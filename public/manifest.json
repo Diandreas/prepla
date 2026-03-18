@@ -1,0 +1,16 @@
+{
+    "name": "PrePla - Language Test Preparation",
+    "short_name": "PrePla",
+    "description": "AI-powered language test preparation for 10 languages and 20+ international exams",
+    "start_url": "/dashboard",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#171717",
+    "icons": [
+        {
+            "src": "/favicon.ico",
+            "sizes": "64x64",
+            "type": "image/x-icon"
+        }
+    ]
+}
