@@ -34,19 +34,19 @@ export default function Generator({ exams }: Props) {
 
     return (
         <AppLayout>
-            <Head title="AI Exercise Generator" />
+            <Head title="Générateur d'exercices IA" />
             <div className="space-y-6 p-4 md:p-6">
                 <div>
-                    <h1 className="text-2xl font-bold">Exercise Generator</h1>
+                    <h1 className="text-2xl font-bold">Générateur d'exercices</h1>
                     <p className="text-muted-foreground">
-                        Generate custom exercises tailored to your needs
+                        Générez des exercices personnalisés adaptés à vos besoins
                     </p>
                 </div>
 
                 {/* Step 1: Choose Exam */}
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-base">1. Choose Exam</CardTitle>
+                        <CardTitle className="text-base">1. Choisir un examen</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -75,7 +75,7 @@ export default function Generator({ exams }: Props) {
                 {selectedExam && (
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-base">2. Choose Exercise Type</CardTitle>
+                            <CardTitle className="text-base">2. Choisir un type d'exercice</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="grid gap-2 sm:grid-cols-2">
@@ -102,7 +102,7 @@ export default function Generator({ exams }: Props) {
                 {selectedTypeId && (
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-base">3. Choose Difficulty</CardTitle>
+                            <CardTitle className="text-base">3. Choisir la difficulté</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="flex flex-wrap gap-2">
@@ -133,7 +133,7 @@ export default function Generator({ exams }: Props) {
                         className="gap-2"
                     >
                         <Sparkles className="h-4 w-4" />
-                        {generating ? 'Generating...' : 'Generate Exercise'}
+                        {generating ? 'Génération en cours...' : "Générer l'exercice"}
                     </Button>
                 )}
             </div>

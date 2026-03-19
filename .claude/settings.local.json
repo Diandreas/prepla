@@ -3,7 +3,10 @@
     "allow": [
       "Bash(php artisan:*)",
       "Bash(npx tsc:*)",
-      "Bash(npx vite:*)"
+      "Bash(npx vite:*)",
+      "Bash(composer show:*)",
+      "Bash(composer require:*)",
+      "Read(//d/project/prepla/**)"
     ]
   }
 }

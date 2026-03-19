@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'mistral' => [
+        'api_key' => env('MISTRAL_API_KEY'),
+        'base_url' => 'https://api.mistral.ai/v1',
+    ],
+
 ];

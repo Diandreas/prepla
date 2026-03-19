@@ -17,12 +17,12 @@ export default function Recommendations({ profile, recentAttempts }: Props) {
 
     return (
         <AppLayout>
-            <Head title="AI Recommendations" />
+            <Head title="Recommandations IA" />
             <div className="space-y-6 p-4 md:p-6">
                 <div>
-                    <h1 className="text-2xl font-bold">Study Recommendations</h1>
+                    <h1 className="text-2xl font-bold">Recommandations d'étude</h1>
                     <p className="text-muted-foreground">
-                        Personalized suggestions based on your performance
+                        Suggestions personnalisées basées sur vos performances
                     </p>
                 </div>
 
@@ -31,43 +31,43 @@ export default function Recommendations({ profile, recentAttempts }: Props) {
                         <CardContent className="flex flex-col items-center py-6">
                             <Target className="h-8 w-8 text-blue-500" />
                             <p className="mt-2 text-2xl font-bold">{profile?.current_level ?? '—'}</p>
-                            <p className="text-sm text-muted-foreground">Current Level</p>
+                            <p className="text-sm text-muted-foreground">Niveau actuel</p>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardContent className="flex flex-col items-center py-6">
                             <TrendingUp className="h-8 w-8 text-green-500" />
                             <p className="mt-2 text-2xl font-bold">{avgAccuracy.toFixed(0)}%</p>
-                            <p className="text-sm text-muted-foreground">Avg Accuracy (last 10)</p>
+                            <p className="text-sm text-muted-foreground">Précision moyenne (10 derniers)</p>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardContent className="flex flex-col items-center py-6">
                             <Lightbulb className="h-8 w-8 text-yellow-500" />
                             <p className="mt-2 text-2xl font-bold">{recentAttempts.length}</p>
-                            <p className="text-sm text-muted-foreground">Recent Exercises</p>
+                            <p className="text-sm text-muted-foreground">Exercices récents</p>
                         </CardContent>
                     </Card>
                 </div>
 
                 <Card>
                     <CardHeader>
-                        <CardTitle>Suggested Focus Areas</CardTitle>
+                        <CardTitle>Domaines prioritaires suggérés</CardTitle>
                     </CardHeader>
                     <CardContent>
                         {recentAttempts.length === 0 ? (
                             <p className="text-muted-foreground">
-                                Complete some exercises first to get personalized recommendations.
+                                Complétez d'abord quelques exercices pour obtenir des recommandations personnalisées.
                             </p>
                         ) : (
                             <div className="space-y-3">
                                 <div className="rounded-lg border border-border p-4">
                                     <div className="flex items-center gap-2">
-                                        <Badge>Priority</Badge>
-                                        <span className="font-medium">Practice more exercises</span>
+                                        <Badge>Priorité</Badge>
+                                        <span className="font-medium">Pratiquer davantage d'exercices</span>
                                     </div>
                                     <p className="mt-2 text-sm text-muted-foreground">
-                                        Keep practicing to build your skill profile. The AI will provide more specific recommendations as you complete more exercises.
+                                        Continuez à pratiquer pour enrichir votre profil de compétences. L'IA fournira des recommandations plus précises au fur et à mesure que vous complétez des exercices.
                                     </p>
                                 </div>
                             </div>
@@ -78,7 +78,7 @@ export default function Recommendations({ profile, recentAttempts }: Props) {
                 {recentAttempts.length > 0 && (
                     <Card>
                         <CardHeader>
-                            <CardTitle>Recent Performance</CardTitle>
+                            <CardTitle>Performances récentes</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-2">
@@ -88,7 +88,7 @@ export default function Recommendations({ profile, recentAttempts }: Props) {
                                         className="flex items-center justify-between rounded-lg border border-border p-3"
                                     >
                                         <span className="text-sm font-medium">
-                                            {attempt.exercise?.exercise_type?.name ?? 'Exercise'}
+                                            {attempt.exercise?.exercise_type?.name ?? 'Exercice'}
                                         </span>
                                         <div className="flex items-center gap-2">
                                             <Badge

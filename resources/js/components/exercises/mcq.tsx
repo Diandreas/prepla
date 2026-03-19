@@ -15,22 +15,25 @@ export function Mcq({ question, onAnswer, selectedAnswer }: McqProps) {
         <div className="space-y-4">
             <p className="text-lg font-medium">{question.text}</p>
             <div className="grid gap-2">
-                {question.options.map((option, i) => (
+                {question.options.map((option, i) => {
+                    const letter = String.fromCharCode(65 + i);
+                    return (
                     <button
                         key={i}
-                        onClick={() => onAnswer(question.id, option)}
+                        onClick={() => onAnswer(question.id, letter)}
                         className={`rounded-lg border p-4 text-left transition-all ${
-                            selectedAnswer === option
+                            selectedAnswer === letter
                                 ? 'border-primary bg-primary/5 ring-1 ring-primary'
                                 : 'border-border hover:border-primary/50'
                         }`}
                     >
                         <span className="mr-3 inline-flex h-6 w-6 items-center justify-center rounded-full bg-muted text-xs font-medium">
-                            {String.fromCharCode(65 + i)}
+                            {letter}
                         </span>
                         {option}
                     </button>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );

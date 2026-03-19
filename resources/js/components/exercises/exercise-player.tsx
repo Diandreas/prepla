@@ -59,7 +59,7 @@ export function ExercisePlayer({ exercise }: ExercisePlayerProps) {
     }
 
     if (!question) {
-        return <p className="text-center text-muted-foreground">No questions in this exercise.</p>;
+        return <p className="text-center text-muted-foreground">Aucune question dans cet exercice.</p>;
     }
 
     return (
@@ -88,13 +88,13 @@ export function ExercisePlayer({ exercise }: ExercisePlayerProps) {
                     disabled={currentIndex === 0}
                     onClick={() => setCurrentIndex((prev) => prev - 1)}
                 >
-                    Previous
+                    Précédent
                 </Button>
                 <Button
                     onClick={handleNext}
                     disabled={!answers[question.id] || submitting}
                 >
-                    {isLast ? (submitting ? 'Submitting...' : 'Submit') : 'Next'}
+                    {isLast ? (submitting ? 'Envoi...' : 'Terminer') : 'Suivant'}
                 </Button>
             </div>
         </div>

@@ -14,7 +14,7 @@ export default function Explainer() {
     const [messages, setMessages] = useState<Message[]>([
         {
             role: 'assistant',
-            content: 'Hi! I\'m your AI language tutor. Ask me anything about grammar, vocabulary, exam strategies, or language learning. How can I help you today?',
+            content: 'Bonjour ! Je suis votre tuteur linguistique IA. Posez-moi n\'importe quelle question sur la grammaire, le vocabulaire, les stratégies d\'examen ou l\'apprentissage des langues. Comment puis-je vous aider aujourd\'hui ?',
         },
     ]);
     const [input, setInput] = useState('');
@@ -31,7 +31,7 @@ export default function Explainer() {
                 ...prev,
                 {
                     role: 'assistant',
-                    content: `That's a great question about "${input}". This is a mock response. Connect the Mistral AI API for real explanations. The AI explainer will provide detailed answers about grammar rules, vocabulary usage, exam tips, and more.`,
+                    content: `C'est une excellente question sur "${input}". Ceci est une réponse simulée. Connectez l'API Mistral AI pour de vraies explications. L'explicateur IA fournira des réponses détaillées sur les règles de grammaire, l'utilisation du vocabulaire, les conseils d'examen, et plus encore.`,
                 },
             ]);
         }, 500);
@@ -39,11 +39,11 @@ export default function Explainer() {
 
     return (
         <AppLayout>
-            <Head title="AI Explainer" />
+            <Head title="Explicateur IA" />
             <div className="flex h-[calc(100vh-8rem)] flex-col p-4 md:p-6">
                 <div className="mb-4">
-                    <h1 className="text-2xl font-bold">AI Explainer</h1>
-                    <p className="text-muted-foreground">Ask questions about language and exam preparation</p>
+                    <h1 className="text-2xl font-bold">Explicateur IA</h1>
+                    <p className="text-muted-foreground">Posez des questions sur la langue et la préparation aux examens</p>
                 </div>
 
                 <Card className="flex flex-1 flex-col overflow-hidden">
@@ -83,7 +83,7 @@ export default function Explainer() {
                             <div className="flex gap-2">
                                 <input
                                     className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
-                                    placeholder="Ask a question..."
+                                    placeholder="Posez une question..."
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && handleSend()}

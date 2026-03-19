@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Exercise;
+use App\Models\LearningPathNode;
 use App\Models\UserExerciseAttempt;
-use App\Models\UserProfile;
+use App\Models\UserLearningProgress;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -47,15 +48,79 @@ class ExerciseController extends Controller
             $profile->increment('xp_total', $result['xp']);
         }
 
-        return redirect()->route('exercise.result', $attempt);
+        // Update node progress if this exercise came from a node
+        $nodeCompleted = false;
+        $nodeId = session('current_node_id');
+        if ($nodeId) {
+            $userId = auth()->id();
+            $progress = UserLearningProgress::where('user_id', $userId)
+                ->where('node_id', $nodeId)
+                ->whereIn('status', ['in_progress', 'available'])
+                ->first();
+
+            if ($progress) {
+                $progress->increment('exercises_done');
+                $progress->refresh();
+
+                if ($progress->exercises_done >= $progress->exercises_required) {
+                    $progress->update(['status' => 'completed']);
+                    $nodeCompleted = true;
+
+                    // Unlock the next node for this user
+                    $node = LearningPathNode::find($nodeId);
+                    if ($node) {
+                        $nextNode = LearningPathNode::where('exam_id', $node->exam_id)
+                            ->where('sort_order', '>', $node->sort_order)
+                            ->orderBy('sort_order')
+                            ->first();
+
+                        if ($nextNode) {
+                            UserLearningProgress::where('user_id', $userId)
+                                ->where('node_id', $nextNode->id)
+                                ->where('status', 'locked')
+                                ->update(['status' => 'available']);
+                        }
+                    }
+
+                    session()->forget('current_node_id');
+                    session(['last_node_id' => $nodeId]);
+                }
+            }
+        }
+
+        return redirect()->route('exercise.result', [
+            'attempt' => $attempt,
+            'node_completed' => $nodeCompleted ? 1 : 0,
+            'node_id' => $nodeId,
+        ]);
     }
 
-    public function result(UserExerciseAttempt $attempt): Response
+    public function result(UserExerciseAttempt $attempt, \Illuminate\Http\Request $request): Response
     {
         $attempt->load(['exercise.exerciseType.section', 'exercise.exam.language']);
 
+        // Load node progress if applicable
+        $nodeProgress = null;
+        $nodeId = $request->query('node_id') ?: session('last_node_id');
+        $nodeCompleted = (bool) $request->query('node_completed', 0);
+
+        if ($nodeId) {
+            $progress = UserLearningProgress::where('user_id', auth()->id())
+                ->where('node_id', $nodeId)
+                ->first();
+            if ($progress) {
+                $nodeProgress = [
+                    'node_id' => $nodeId,
+                    'exercises_done' => $progress->exercises_done,
+                    'exercises_required' => $progress->exercises_required,
+                    'completed' => $nodeCompleted,
+                ];
+            }
+        }
+
         return Inertia::render('exercise/result', [
             'attempt' => $attempt,
+            'nodeProgress' => $nodeProgress,
         ]);
     }
 
@@ -71,11 +136,46 @@ class ExerciseController extends Controller
             $userAnswer = $answers[$questionId] ?? null;
             $correctAnswer = $question['correct_answer'] ?? null;
 
+            // Essay/speaking: no fixed correct answer — give base credit for any submission
+            $questionType = $question['type'] ?? '';
+            if (in_array($questionType, ['essay', 'speaking', 'writing']) || $correctAnswer === null) {
+                $isCorrect = !empty(trim((string)$userAnswer));
+                $feedback[] = [
+                    'question_id' => $questionId,
+                    'correct' => $isCorrect,
+                    'correct_answer' => null,
+                    'explanation' => $question['prompt'] ?? null,
+                ];
+                if ($isCorrect) $correct++;
+                continue;
+            }
+
             $isCorrect = false;
             if (is_array($correctAnswer)) {
                 $isCorrect = is_array($userAnswer) && empty(array_diff($correctAnswer, $userAnswer)) && empty(array_diff($userAnswer, $correctAnswer));
             } else {
-                $isCorrect = strtolower(trim((string)$userAnswer)) === strtolower(trim((string)$correctAnswer));
+                $normalUser = strtolower(trim((string)$userAnswer));
+                $normalCorrect = strtolower(trim((string)$correctAnswer));
+                $isCorrect = $normalUser === $normalCorrect;
+
+                // If user answered a single letter (A-D) but correct_answer is full text,
+                // match by checking if the letter corresponds to the correct option index
+                if (!$isCorrect && preg_match('/^[a-d]$/', $normalUser) && strlen($normalCorrect) > 2) {
+                    $options = $question['options'] ?? [];
+                    $letterIndex = ord($normalUser) - ord('a');
+                    if (isset($options[$letterIndex])) {
+                        $isCorrect = strtolower(trim($options[$letterIndex])) === $normalCorrect;
+                    }
+                }
+
+                // Also handle reverse: correct_answer is a letter, user submitted full text
+                if (!$isCorrect && preg_match('/^[a-d]$/', $normalCorrect) && strlen($normalUser) > 2) {
+                    $options = $question['options'] ?? [];
+                    $letterIndex = ord($normalCorrect) - ord('a');
+                    if (isset($options[$letterIndex])) {
+                        $isCorrect = strtolower(trim($options[$letterIndex])) === $normalUser;
+                    }
+                }
             }
 
             if ($isCorrect) $correct++;

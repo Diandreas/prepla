@@ -9,27 +9,27 @@ import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
     {
-        title: 'Home',
+        title: 'Accueil',
         url: '/dashboard',
         icon: LayoutGrid,
     },
     {
-        title: 'Practice',
+        title: 'Pratiquer',
         url: '/practice',
         icon: BookOpen,
     },
     {
-        title: 'AI Tools',
+        title: 'Outils IA',
         url: '/ai-tools',
         icon: Sparkles,
     },
     {
-        title: 'Results',
+        title: 'Résultats',
         url: '/results',
         icon: BarChart3,
     },
     {
-        title: 'Leaderboard',
+        title: 'Classement',
         url: '/leaderboard',
         icon: Trophy,
     },

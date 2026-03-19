@@ -40,9 +40,9 @@ export default function Attempts({ attempts }: Props) {
                             </div>
                             <div className="flex items-center gap-3">
                                 <Badge
-                                    variant={(attempt.accuracy_percent ?? 0) >= 80 ? 'default' : 'secondary'}
+                                    variant={Number(attempt.accuracy_percent ?? 0) >= 80 ? 'default' : 'secondary'}
                                 >
-                                    {attempt.accuracy_percent?.toFixed(0) ?? 0}%
+                                    {Number(attempt.accuracy_percent ?? 0).toFixed(0)}%
                                 </Badge>
                                 <span className="text-sm font-medium">+{attempt.xp_earned} XP</span>
                             </div>

@@ -19,11 +19,11 @@ export default function PracticeIndex({ exams, targetExamId }: Props) {
 
     return (
         <AppLayout>
-            <Head title="Practice" />
+            <Head title="Pratiquer" />
             <div className="space-y-6 p-4 md:p-6">
                 <div>
-                    <h1 className="text-2xl font-bold">Practice</h1>
-                    <p className="text-muted-foreground">Choose an exam to start practicing</p>
+                    <h1 className="text-2xl font-bold">Pratiquer</h1>
+                    <p className="text-muted-foreground">Choisissez un examen pour commencer vos exercices</p>
                 </div>
 
                 {Object.entries(examsByLanguage).map(([langName, langExams]) => (
@@ -43,7 +43,7 @@ export default function PracticeIndex({ exams, targetExamId }: Props) {
                                     <div className="flex items-center justify-between">
                                         <h3 className="font-semibold">{exam.name}</h3>
                                         {exam.id === targetExamId && (
-                                            <Badge>Your Exam</Badge>
+                                            <Badge>Mon examen</Badge>
                                         )}
                                     </div>
                                     {exam.levels && (

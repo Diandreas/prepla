@@ -14,6 +14,11 @@ class LearningPathNode extends Model
         'exam_id',
         'sort_order',
         'title',
+        'description',
+        'icon',
+        'skill_type',
+        'level',
+        'xp_reward',
         'node_type',
         'exercise_ids',
     ];

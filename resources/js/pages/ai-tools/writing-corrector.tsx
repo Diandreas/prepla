@@ -27,25 +27,25 @@ export default function WritingCorrector() {
 
     return (
         <AppLayout>
-            <Head title="Writing Corrector" />
+            <Head title="Correcteur de rédaction" />
             <div className="space-y-6 p-4 md:p-6">
                 <div>
-                    <h1 className="text-2xl font-bold">Writing Corrector</h1>
+                    <h1 className="text-2xl font-bold">Correcteur de rédaction</h1>
                     <p className="text-muted-foreground">
-                        Submit your writing and get AI-powered corrections and feedback
+                        Soumettez votre rédaction et recevez des corrections et des retours propulsés par l'IA
                     </p>
                 </div>
 
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-base">Your Writing</CardTitle>
+                        <CardTitle className="text-base">Votre rédaction</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div>
-                            <label className="text-sm font-medium">Task Description (optional)</label>
+                            <label className="text-sm font-medium">Description de la tâche (facultatif)</label>
                             <input
                                 className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-                                placeholder="e.g., IELTS Writing Task 2: Discuss advantages and disadvantages..."
+                                placeholder="ex. : IELTS Tâche 2 : Discutez des avantages et inconvénients..."
                                 value={task}
                                 onChange={(e) => setTask(e.target.value)}
                             />
@@ -53,15 +53,15 @@ export default function WritingCorrector() {
                         <div>
                             <textarea
                                 className="min-h-[250px] w-full rounded-lg border border-border bg-background p-4 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                                placeholder="Paste or write your essay here..."
+                                placeholder="Collez ou rédigez votre texte ici..."
                                 value={text}
                                 onChange={(e) => setText(e.target.value)}
                             />
-                            <p className="mt-1 text-xs text-muted-foreground">{wordCount} words</p>
+                            <p className="mt-1 text-xs text-muted-foreground">{wordCount} mots</p>
                         </div>
                         <Button onClick={handleSubmit} disabled={!text.trim() || submitting} className="gap-2">
                             <FileEdit className="h-4 w-4" />
-                            {submitting ? 'Analyzing...' : 'Analyze Writing'}
+                            {submitting ? 'Analyse en cours...' : 'Analyser la rédaction'}
                         </Button>
                     </CardContent>
                 </Card>
@@ -69,7 +69,7 @@ export default function WritingCorrector() {
                 {correction && (
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-base">Feedback</CardTitle>
+                            <CardTitle className="text-base">Retours</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

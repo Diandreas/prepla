@@ -36,7 +36,7 @@ export default function AttemptDetail({ attempt }: Props) {
                     <Card>
                         <CardContent className="flex flex-col items-center py-6">
                             <div className="text-4xl font-bold text-primary">
-                                {attempt.accuracy_percent?.toFixed(0) ?? 0}%
+                                {Number(attempt.accuracy_percent ?? 0).toFixed(0)}%
                             </div>
                             <p className="text-sm text-muted-foreground">Accuracy</p>
                         </CardContent>

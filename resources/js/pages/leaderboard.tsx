@@ -12,11 +12,11 @@ interface Props {
 export default function Leaderboard({ entries, currentUserId }: Props) {
     return (
         <AppLayout>
-            <Head title="Leaderboard" />
+            <Head title="Classement" />
             <div className="space-y-6 p-4 md:p-6">
                 <div>
-                    <h1 className="text-2xl font-bold">Leaderboard</h1>
-                    <p className="text-muted-foreground">Weekly rankings by XP earned</p>
+                    <h1 className="text-2xl font-bold">Classement</h1>
+                    <p className="text-muted-foreground">Classement hebdomadaire par XP gagnés</p>
                 </div>
 
                 {/* Top 3 podium */}
@@ -60,12 +60,12 @@ export default function Leaderboard({ entries, currentUserId }: Props) {
                 {/* Full list */}
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-base">This Week</CardTitle>
+                        <CardTitle className="text-base">Cette semaine</CardTitle>
                     </CardHeader>
                     <CardContent>
                         {entries.length === 0 ? (
                             <p className="text-center text-muted-foreground py-8">
-                                No entries yet. Complete exercises to earn XP and climb the leaderboard!
+                                Aucune entrée pour l'instant. Complétez des exercices pour gagner des XP !
                             </p>
                         ) : (
                             <div className="space-y-1">
@@ -89,7 +89,7 @@ export default function Leaderboard({ entries, currentUserId }: Props) {
                                         <span className="flex-1 font-medium">
                                             {entry.user?.name ?? 'User'}
                                             {entry.user_id === currentUserId && (
-                                                <span className="ml-2 text-xs text-primary">(you)</span>
+                                                <span className="ml-2 text-xs text-primary">(vous)</span>
                                             )}
                                         </span>
                                         <span className="font-semibold">{entry.xp} XP</span>

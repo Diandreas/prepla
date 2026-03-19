@@ -37,12 +37,12 @@ export default function SectionDrills({ exam, section, exercisesByDifficulty }: 
 
                 {!hasExercises ? (
                     <div className="rounded-xl border border-dashed border-border p-12 text-center">
-                        <p className="text-lg font-medium">No exercises yet</p>
+                        <p className="text-lg font-medium">Aucun exercice pour l'instant</p>
                         <p className="mt-2 text-muted-foreground">
-                            Use the AI Generator to create exercises for this section
+                            Utilisez le générateur IA pour créer des exercices pour cette section
                         </p>
                         <Button className="mt-4" asChild>
-                            <Link href="/ai-tools">Go to AI Tools</Link>
+                            <Link href="/ai-tools">Accéder aux outils IA</Link>
                         </Button>
                     </div>
                 ) : (
@@ -57,7 +57,7 @@ export default function SectionDrills({ exam, section, exercisesByDifficulty }: 
                                             {difficulty}
                                         </Badge>
                                         <span className="text-sm text-muted-foreground">
-                                            {exercises.length} exercises
+                                            {exercises.length} exercices
                                         </span>
                                     </div>
                                     <div className="grid gap-2">
@@ -69,7 +69,7 @@ export default function SectionDrills({ exam, section, exercisesByDifficulty }: 
                                             >
                                                 <div>
                                                     <p className="font-medium">
-                                                        {exercise.exercise_type?.name ?? 'Exercise'}
+                                                        {exercise.exercise_type?.name ?? 'Exercice'}
                                                     </p>
                                                     <p className="text-sm text-muted-foreground">
                                                         {exercise.xp_reward} XP

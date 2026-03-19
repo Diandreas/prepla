@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
-import { PropsWithChildren } from 'react';
+import { PropsWithChildren, useEffect, useState } from 'react';
+import { CheckCircle, Sparkles } from 'lucide-react';
 
 interface OnboardingLayoutProps {
     title: string;
@@ -7,7 +8,12 @@ interface OnboardingLayoutProps {
     totalSteps?: number;
 }
 
-const steps = ['Choose Exam', 'Set Goal', 'Placement Test', 'Results'];
+const steps = [
+    { label: 'Examen', sublabel: 'Choisir' },
+    { label: 'Objectif', sublabel: 'Définir' },
+    { label: 'Test', sublabel: 'Évaluer' },
+    { label: 'Programme', sublabel: 'Démarrer' },
+];
 
 export default function OnboardingLayout({
     title,
@@ -15,48 +21,97 @@ export default function OnboardingLayout({
     totalSteps = 4,
     children,
 }: PropsWithChildren<OnboardingLayoutProps>) {
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => setMounted(true), []);
+
     return (
         <>
             <Head title={`${title} - PrePla`} />
             <div className="flex min-h-screen flex-col bg-background">
+                {/* Decorative background blobs */}
+                <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+                    <div className="animate-float absolute -top-32 left-1/4 h-[400px] w-[400px] rounded-full bg-primary/6 blur-3xl" />
+                    <div className="animate-float absolute -bottom-32 right-1/4 h-[300px] w-[300px] rounded-full bg-violet-500/5 blur-3xl" style={{ animationDelay: '3s' }} />
+                </div>
+
                 {/* Header */}
-                <header className="border-b border-border px-4 py-4">
-                    <div className="mx-auto flex max-w-3xl items-center justify-between">
-                        <Link href="/" className="text-xl font-bold">
+                <header className="sticky top-0 z-10 border-b border-border/50 bg-background/80 px-4 py-3 backdrop-blur-xl">
+                    <div className="mx-auto flex max-w-2xl items-center justify-between">
+                        <Link href="/" className="flex items-center gap-1.5 text-xl font-black tracking-tight">
+                            <Sparkles className="h-5 w-5 text-primary" />
                             Pre<span className="text-primary">Pla</span>
                         </Link>
-                        <span className="text-sm text-muted-foreground">
-                            Step {step} of {totalSteps}
+                        <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                            Étape {step}/{totalSteps}
                         </span>
                     </div>
                 </header>
 
-                {/* Progress bar */}
-                <div className="mx-auto w-full max-w-3xl px-4 pt-6">
-                    <div className="flex gap-2">
-                        {steps.map((label, i) => (
-                            <div key={label} className="flex-1">
+                {/* Step indicators */}
+                <div className="mx-auto w-full max-w-2xl px-4 pt-5">
+                    <div className="flex items-start gap-1.5 sm:gap-2.5">
+                        {steps.map((s, i) => {
+                            const stepNum = i + 1;
+                            const done = stepNum < step;
+                            const active = stepNum === step;
+                            return (
                                 <div
-                                    className={`h-2 rounded-full transition-colors ${
-                                        i + 1 <= step ? 'bg-primary' : 'bg-muted'
-                                    }`}
-                                />
-                                <p
-                                    className={`mt-1 text-xs ${
-                                        i + 1 === step
-                                            ? 'font-medium text-foreground'
-                                            : 'text-muted-foreground'
-                                    }`}
+                                    key={s.label}
+                                    className="flex flex-1 flex-col items-center gap-1.5"
+                                    style={{
+                                        opacity: mounted ? 1 : 0,
+                                        transform: mounted ? 'translateY(0)' : 'translateY(8px)',
+                                        transition: 'all 0.5s ease',
+                                        transitionDelay: `${i * 80}ms`,
+                                    }}
                                 >
-                                    {label}
-                                </p>
-                            </div>
-                        ))}
+                                    {/* Bar */}
+                                    <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
+                                        <div
+                                            className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-primary to-primary/70 transition-all duration-1000 ease-out"
+                                            style={{
+                                                width: mounted ? (done ? '100%' : active ? '60%' : '0%') : '0%',
+                                                transitionDelay: `${300 + i * 100}ms`,
+                                            }}
+                                        />
+                                        {/* Shimmer on active bar */}
+                                        {active && (
+                                            <div className="absolute inset-0 overflow-hidden rounded-full">
+                                                <div className="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer" style={{ backgroundSize: '200% 100%' }} />
+                                            </div>
+                                        )}
+                                    </div>
+                                    {/* Label */}
+                                    <div className="flex items-center gap-1">
+                                        {done ? (
+                                            <CheckCircle className="h-3.5 w-3.5 text-primary" />
+                                        ) : (
+                                            <span
+                                                className={`flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold transition-all duration-300 ${
+                                                    active
+                                                        ? 'bg-primary text-primary-foreground shadow-md shadow-primary/30'
+                                                        : 'bg-muted text-muted-foreground'
+                                                }`}
+                                            >
+                                                {stepNum}
+                                            </span>
+                                        )}
+                                        <span
+                                            className={`hidden text-xs font-medium sm:block ${
+                                                active ? 'text-foreground' : done ? 'text-primary' : 'text-muted-foreground'
+                                            }`}
+                                        >
+                                            {s.label}
+                                        </span>
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
 
                 {/* Content */}
-                <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-4 py-8">
+                <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 py-7">
                     {children}
                 </main>
             </div>

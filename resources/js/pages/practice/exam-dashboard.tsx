@@ -20,14 +20,14 @@ const skillIcons: Record<string, typeof BookOpen> = {
 export default function ExamDashboard({ exam, sectionProgress }: Props) {
     return (
         <AppLayout>
-            <Head title={`${exam.name} Practice`} />
+            <Head title={`${exam.name} - Pratiquer`} />
             <div className="space-y-6 p-4 md:p-6">
                 <div>
                     <div className="flex items-center gap-2">
                         <span className="text-2xl">{exam.language?.flag}</span>
                         <h1 className="text-2xl font-bold">{exam.name}</h1>
                     </div>
-                    <p className="text-muted-foreground">Practice all sections of the {exam.name} exam</p>
+                    <p className="text-muted-foreground">Pratiquer toutes les sections de l'examen {exam.name}</p>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -47,14 +47,14 @@ export default function ExamDashboard({ exam, sectionProgress }: Props) {
                                         <div>
                                             <CardTitle className="text-base">{section.name}</CardTitle>
                                             <p className="text-xs text-muted-foreground">
-                                                {section.time_limit} min · {section.exercise_types?.length ?? 0} exercise types
+                                                {section.time_limit} min · {section.exercise_types?.length ?? 0} types d'exercices
                                             </p>
                                         </div>
                                     </CardHeader>
                                     <CardContent>
                                         <div className="flex items-center justify-between">
                                             <span className="text-sm text-muted-foreground">
-                                                {attempts} attempts
+                                                {attempts} tentatives
                                             </span>
                                             <Badge variant="secondary">{section.skill_type}</Badge>
                                         </div>

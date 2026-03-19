@@ -2,7 +2,8 @@ import { router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import OnboardingLayout from '@/layouts/onboarding-layout';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Check } from 'lucide-react';
 import type { LanguageWithExams } from '@/types';
 
 interface Props {
@@ -12,6 +13,20 @@ interface Props {
 export default function ExamSelect({ languages }: Props) {
     const [selectedLanguage, setSelectedLanguage] = useState<LanguageWithExams | null>(null);
     const [selectedExamId, setSelectedExamId] = useState<number | null>(null);
+    const [mounted, setMounted] = useState(false);
+    const [examsVisible, setExamsVisible] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    useEffect(() => {
+        if (selectedLanguage) {
+            setExamsVisible(false);
+            const timer = setTimeout(() => setExamsVisible(true), 50);
+            return () => clearTimeout(timer);
+        }
+    }, [selectedLanguage]);
 
     function handleSubmit() {
         if (!selectedExamId) return;
@@ -21,65 +36,111 @@ export default function ExamSelect({ languages }: Props) {
     }
 
     return (
-        <OnboardingLayout title="Choose Your Exam" step={1}>
+        <OnboardingLayout title="Choisissez votre examen" step={1}>
+            {/* Floating background decoration */}
+            <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+                <div className="animate-float absolute -top-32 right-1/4 h-[400px] w-[400px] rounded-full bg-primary/10 blur-3xl" />
+                <div className="animate-float delay-300 absolute -bottom-24 left-1/3 h-[300px] w-[300px] rounded-full bg-violet-500/8 blur-3xl" />
+            </div>
+
             <div className="space-y-8">
                 <div className="text-center">
-                    <h1 className="text-3xl font-bold">Choose your language</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">Choisissez votre langue</h1>
                     <p className="mt-2 text-muted-foreground">
-                        Select the language you want to prepare for
+                        Sélectionnez la langue que vous souhaitez préparer
                     </p>
                 </div>
 
                 {/* Language grid */}
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
-                    {languages.map((lang) => (
-                        <button
-                            key={lang.id}
-                            onClick={() => {
-                                setSelectedLanguage(lang);
-                                setSelectedExamId(null);
-                            }}
-                            className={`rounded-xl border p-4 text-center transition-all hover:border-primary/50 ${
-                                selectedLanguage?.id === lang.id
-                                    ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                                    : 'border-border'
-                            }`}
-                        >
-                            <span className="text-3xl">{lang.flag}</span>
-                            <p className="mt-2 text-sm font-medium">{lang.name}</p>
-                        </button>
-                    ))}
+                    {languages.map((lang, index) => {
+                        const isSelected = selectedLanguage?.id === lang.id;
+                        return (
+                            <button
+                                key={lang.id}
+                                onClick={() => {
+                                    setSelectedLanguage(lang);
+                                    setSelectedExamId(null);
+                                }}
+                                className={`relative rounded-xl border p-4 text-center transition-all duration-300 hover:border-primary/50 hover:shadow-md ${
+                                    isSelected
+                                        ? 'border-primary bg-primary/5 ring-2 ring-primary shadow-md'
+                                        : 'border-border'
+                                }`}
+                                style={{
+                                    opacity: mounted ? 1 : 0,
+                                    transform: mounted
+                                        ? isSelected
+                                            ? 'translateY(0) scale(1.03)'
+                                            : 'translateY(0) scale(1)'
+                                        : 'translateY(12px) scale(1)',
+                                    transition: `opacity 0.4s ease ${index * 0.07}s, transform 0.4s ease ${index * 0.07}s, border-color 0.2s, box-shadow 0.2s, background-color 0.2s`,
+                                }}
+                            >
+                                {/* Checkmark overlay */}
+                                {isSelected && (
+                                    <span className="absolute top-1.5 right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
+                                        <Check className="h-3 w-3" strokeWidth={3} />
+                                    </span>
+                                )}
+                                <span className="text-3xl">{lang.flag}</span>
+                                <p className="mt-2 text-sm font-medium">{lang.name}</p>
+                            </button>
+                        );
+                    })}
                 </div>
 
                 {/* Exam selection */}
                 {selectedLanguage && (
                     <div className="space-y-4">
                         <h2 className="text-xl font-semibold">
-                            Choose your {selectedLanguage.name} exam
+                            Choisissez votre examen de {selectedLanguage.name}
                         </h2>
                         <div className="grid gap-3 sm:grid-cols-2">
-                            {selectedLanguage.exams.map((exam) => (
-                                <button
-                                    key={exam.id}
-                                    onClick={() => setSelectedExamId(exam.id)}
-                                    className={`rounded-xl border p-4 text-left transition-all hover:border-primary/50 ${
-                                        selectedExamId === exam.id
-                                            ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                                            : 'border-border'
-                                    }`}
-                                >
-                                    <p className="font-semibold">{exam.name}</p>
-                                    {exam.levels && (
-                                        <div className="mt-2 flex flex-wrap gap-1">
-                                            {exam.levels.map((level: string) => (
-                                                <Badge key={level} variant="secondary" className="text-xs">
-                                                    {level}
+                            {selectedLanguage.exams.map((exam, index) => {
+                                const isSelected = selectedExamId === exam.id;
+                                return (
+                                    <button
+                                        key={exam.id}
+                                        onClick={() => setSelectedExamId(exam.id)}
+                                        className={`rounded-xl border p-4 text-left transition-all duration-300 hover:border-primary/50 hover:shadow-md ${
+                                            isSelected
+                                                ? 'border-primary bg-primary/5 ring-2 ring-primary shadow-md'
+                                                : 'border-border'
+                                        }`}
+                                        style={{
+                                            opacity: examsVisible ? 1 : 0,
+                                            transform: examsVisible ? 'translateY(0)' : 'translateY(16px)',
+                                            transition: `opacity 0.4s ease ${index * 0.08}s, transform 0.4s ease ${index * 0.08}s, border-color 0.2s, box-shadow 0.2s, background-color 0.2s`,
+                                            borderLeft: isSelected
+                                                ? '3px solid transparent'
+                                                : undefined,
+                                            borderImage: isSelected
+                                                ? 'linear-gradient(to bottom, hsl(var(--primary)), hsl(var(--primary) / 0.5)) 1'
+                                                : undefined,
+                                            borderImageSlice: isSelected ? '1' : undefined,
+                                        }}
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <p className="font-semibold">{exam.name}</p>
+                                            {exam.levels && (
+                                                <Badge variant="outline" className="text-[10px] tabular-nums">
+                                                    {exam.levels.length} niveau{exam.levels.length > 1 ? 'x' : ''}
                                                 </Badge>
-                                            ))}
+                                            )}
                                         </div>
-                                    )}
-                                </button>
-                            ))}
+                                        {exam.levels && (
+                                            <div className="mt-2 flex flex-wrap gap-1">
+                                                {exam.levels.map((level: string) => (
+                                                    <Badge key={level} variant="secondary" className="text-xs">
+                                                        {level}
+                                                    </Badge>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
                 )}
@@ -89,8 +150,9 @@ export default function ExamSelect({ languages }: Props) {
                         size="lg"
                         disabled={!selectedExamId}
                         onClick={handleSubmit}
+                        className="bg-gradient-to-r from-primary to-primary/85 font-semibold shadow-md transition-all hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50"
                     >
-                        Continue
+                        Continuer →
                     </Button>
                 </div>
             </div>

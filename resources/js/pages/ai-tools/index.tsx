@@ -5,29 +5,29 @@ import { Brain, FileEdit, HelpCircle, Lightbulb, Sparkles } from 'lucide-react';
 
 const tools = [
     {
-        title: 'Exercise Generator',
-        description: 'Generate unlimited practice exercises tailored to your exam and level',
+        title: 'Générateur d\'exercices',
+        description: 'Générez des exercices illimités adaptés à votre examen et votre niveau',
         icon: Sparkles,
         href: '/ai-tools/generator',
         color: 'text-purple-500',
     },
     {
-        title: 'Writing Corrector',
-        description: 'Submit your essays and get detailed corrections with band scores',
+        title: 'Correcteur de rédaction',
+        description: 'Soumettez vos essais et obtenez des corrections détaillées avec scores',
         icon: FileEdit,
         href: '/ai-tools/writing-corrector',
         color: 'text-blue-500',
     },
     {
-        title: 'AI Explainer',
-        description: 'Ask questions about grammar, vocabulary, or exam strategies',
+        title: 'Explicateur IA',
+        description: 'Posez des questions sur la grammaire, le vocabulaire ou les stratégies',
         icon: HelpCircle,
         href: '/ai-tools/explainer',
         color: 'text-green-500',
     },
     {
-        title: 'Recommendations',
-        description: 'Get personalized study recommendations based on your performance',
+        title: 'Recommandations',
+        description: 'Obtenez des recommandations personnalisées basées sur vos performances',
         icon: Lightbulb,
         href: '/ai-tools/recommendations',
         color: 'text-orange-500',
@@ -37,12 +37,12 @@ const tools = [
 export default function AiToolsIndex() {
     return (
         <AppLayout>
-            <Head title="AI Tools" />
+            <Head title="Outils IA" />
             <div className="space-y-6 p-4 md:p-6">
                 <div>
-                    <h1 className="text-2xl font-bold">AI Tools</h1>
+                    <h1 className="text-2xl font-bold">Outils IA</h1>
                     <p className="text-muted-foreground">
-                        Supercharge your preparation with AI-powered tools
+                        Boostez votre préparation avec des outils alimentés par l'IA
                     </p>
                 </div>
 

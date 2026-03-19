@@ -1,9 +1,9 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\OnboardingController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::get('/', LandingController::class)->name('home');
 
@@ -22,14 +22,15 @@ Route::middleware(['auth'])->group(function () {
 
     // Protected by onboarding
     Route::middleware([\App\Http\Middleware\EnsureOnboardingComplete::class])->group(function () {
-        Route::get('dashboard', function () {
-            return Inertia::render('dashboard');
-        })->name('dashboard');
+        Route::get('dashboard', DashboardController::class)->name('dashboard');
 
         // Practice
         Route::get('practice', [\App\Http\Controllers\PracticeController::class, 'index'])->name('practice.index');
         Route::get('practice/{exam}', [\App\Http\Controllers\PracticeController::class, 'examDashboard'])->name('practice.exam');
         Route::get('practice/{exam}/{section}', [\App\Http\Controllers\PracticeController::class, 'sectionDrills'])->name('practice.section');
+
+        // Node start (Duolingo-style: 1 click → exercise)
+        Route::get('node/{node}/start', \App\Http\Controllers\NodeStartController::class)->name('node.start');
 
         // Exercises
         Route::get('exercise/{exercise}', [\App\Http\Controllers\ExerciseController::class, 'show'])->name('exercise.show');
