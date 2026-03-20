@@ -1,15 +1,18 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
+import { ChevronLeft, Moon } from 'lucide-react';
 
 import AppearanceTabs from '@/components/appearance-tabs';
-import HeadingSmall from '@/components/heading-small';
 import { type BreadcrumbItem } from '@/types';
 
 import AppLayout from '@/layouts/app-layout';
-import SettingsLayout from '@/layouts/settings/layout';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Appearance settings',
+        title: 'Profil',
+        href: '/settings/profile',
+    },
+    {
+        title: 'Apparence',
         href: '/settings/appearance',
     },
 ];
@@ -17,14 +20,31 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function Appearance() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Appearance settings" />
+            <Head title="Apparence" />
 
-            <SettingsLayout>
-                <div className="space-y-6">
-                    <HeadingSmall title="Appearance settings" description="Update your account's appearance settings" />
+            <div className="mx-auto max-w-2xl space-y-6 py-6 pb-24 md:py-10 px-4">
+                {/* Mobile Back Button */}
+                <div className="md:hidden mb-6">
+                    <Link href={route('profile.edit')} className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground">
+                        <ChevronLeft className="mr-1 h-4 w-4" />
+                        Retour au profil
+                    </Link>
+                </div>
+
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                        <Moon size={20} />
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-black">Apparence</h2>
+                        <p className="text-sm text-muted-foreground">Personnalisez le thème de l'application</p>
+                    </div>
+                </div>
+
+                <div className="overflow-hidden rounded-2xl border bg-card shadow-sm p-4 md:p-6">
                     <AppearanceTabs />
                 </div>
-            </SettingsLayout>
+            </div>
         </AppLayout>
     );
 }

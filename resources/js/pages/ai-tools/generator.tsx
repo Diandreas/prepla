@@ -9,14 +9,16 @@ import type { ExamRecord, ExamSection, ExerciseTypeRecord } from '@/types';
 
 interface Props {
     exams: (ExamRecord & { sections: (ExamSection & { exercise_types: ExerciseTypeRecord[] })[] })[];
+    targetExamId?: number | null;
+    userLevel?: string | null;
 }
 
 const difficulties = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
-export default function Generator({ exams }: Props) {
-    const [selectedExamId, setSelectedExamId] = useState<number | null>(null);
+export default function Generator({ exams, targetExamId, userLevel }: Props) {
+    const [selectedExamId, setSelectedExamId] = useState<number | null>(targetExamId ?? null);
     const [selectedTypeId, setSelectedTypeId] = useState<number | null>(null);
-    const [difficulty, setDifficulty] = useState('B1');
+    const [difficulty, setDifficulty] = useState(userLevel ?? 'B1');
     const [generating, setGenerating] = useState(false);
 
     const selectedExam = exams.find((e) => e.id === selectedExamId);
@@ -43,39 +45,53 @@ export default function Generator({ exams }: Props) {
                     </p>
                 </div>
 
-                {/* Step 1: Choose Exam */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-base">1. Choisir un examen</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                            {exams.map((exam) => (
-                                <button
-                                    key={exam.id}
-                                    onClick={() => {
-                                        setSelectedExamId(exam.id);
-                                        setSelectedTypeId(null);
-                                    }}
-                                    className={`rounded-lg border p-3 text-left transition-all ${
-                                        selectedExamId === exam.id
-                                            ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                                            : 'border-border hover:border-primary/50'
-                                    }`}
-                                >
-                                    <span className="mr-2">{exam.language?.flag}</span>
-                                    <span className="font-medium">{exam.name}</span>
-                                </button>
-                            ))}
+                {targetExamId && selectedExam && (
+                    <div className="flex items-center gap-4 rounded-xl border bg-card p-4 shadow-sm">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-2xl">
+                            {selectedExam.language?.flag}
                         </div>
-                    </CardContent>
-                </Card>
+                        <div>
+                            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Examen cible</p>
+                            <p className="text-lg font-bold">{selectedExam.name}</p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Step 1: Choose Exam (Only if not pre-selected) */}
+                {!targetExamId && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-base">1. Choisir un examen</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                                {exams.map((exam) => (
+                                    <button
+                                        key={exam.id}
+                                        onClick={() => {
+                                            setSelectedExamId(exam.id);
+                                            setSelectedTypeId(null);
+                                        }}
+                                        className={`rounded-lg border p-3 text-left transition-all ${
+                                            selectedExamId === exam.id
+                                                ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                                                : 'border-border hover:border-primary/50'
+                                        }`}
+                                    >
+                                        <span className="mr-2">{exam.language?.flag}</span>
+                                        <span className="font-medium">{exam.name}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
 
                 {/* Step 2: Choose Exercise Type */}
                 {selectedExam && (
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-base">2. Choisir un type d'exercice</CardTitle>
+                            <CardTitle className="text-base">{targetExamId ? '1' : '2'}. Choisir un type d'exercice</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="grid gap-2 sm:grid-cols-2">
@@ -102,7 +118,7 @@ export default function Generator({ exams }: Props) {
                 {selectedTypeId && (
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-base">3. Choisir la difficulté</CardTitle>
+                            <CardTitle className="text-base">{targetExamId ? '2' : '3'}. Choisir la difficulté</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="flex flex-wrap gap-2">

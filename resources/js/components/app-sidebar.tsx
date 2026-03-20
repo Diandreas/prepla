@@ -5,45 +5,48 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 import { BarChart3, BookOpen, LayoutGrid, Settings, Sparkles, Trophy } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import AppLogo from './app-logo';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Accueil',
-        url: '/dashboard',
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Pratiquer',
-        url: '/practice',
-        icon: BookOpen,
-    },
-    {
-        title: 'Outils IA',
-        url: '/ai-tools',
-        icon: Sparkles,
-    },
-    {
-        title: 'Résultats',
-        url: '/results',
-        icon: BarChart3,
-    },
-    {
-        title: 'Classement',
-        url: '/leaderboard',
-        icon: Trophy,
-    },
-];
-
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Settings',
-        url: '/settings/profile',
-        icon: Settings,
-    },
-];
-
 export function AppSidebar() {
+    const { t } = useTranslation();
+
+    const mainNavItems: NavItem[] = [
+        {
+            title: t('sidebar.home', 'Accueil'),
+            url: '/dashboard',
+            icon: LayoutGrid,
+        },
+        {
+            title: t('sidebar.practice', 'Pratiquer'),
+            url: '/practice',
+            icon: BookOpen,
+        },
+        {
+            title: t('sidebar.ai_tools', 'Outils IA'),
+            url: '/ai-tools',
+            icon: Sparkles,
+        },
+        {
+            title: t('sidebar.results', 'Résultats'),
+            url: '/results',
+            icon: BarChart3,
+        },
+        {
+            title: t('sidebar.leaderboard', 'Classement'),
+            url: '/leaderboard',
+            icon: Trophy,
+        },
+    ];
+
+    const footerNavItems: NavItem[] = [
+        {
+            title: t('sidebar.settings', 'Paramètres'),
+            url: '/settings/profile',
+            icon: Settings,
+        },
+    ];
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>

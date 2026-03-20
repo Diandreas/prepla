@@ -29,18 +29,20 @@ export function AppSidebarHeader() {
 
     return (
         <header
-            className="flex h-14 shrink-0 items-center justify-between border-b px-4"
+            className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between border-b px-4 md:static md:h-14"
             style={{
                 background: '#ffffff',
                 borderColor: 'rgba(26,43,72,0.08)',
                 boxShadow: '0 1px 8px rgba(26,43,72,0.06)',
             }}
         >
-            {/* Left: sidebar toggle + page title */}
+            {/* Left: sidebar toggle (desktop only) + page title */}
             <div className="flex items-center gap-3">
-                <SidebarTrigger className="-ml-1" />
+                <div className="hidden md:block">
+                    <SidebarTrigger className="-ml-1" />
+                </div>
                 <span
-                    className="text-base font-bold"
+                    className="text-base font-bold tracking-tight md:text-lg"
                     style={{ color: OXFORD }}
                 >
                     {pageTitle}
@@ -50,17 +52,17 @@ export function AppSidebarHeader() {
             {/* Right: streak + XP */}
             <div className="flex items-center gap-2">
                 <div
-                    className="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold"
+                    className="flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wider"
                     style={{ background: 'rgba(249,115,22,0.08)', color: '#F97316' }}
                 >
-                    <Flame size={13} />
+                    <Flame size={14} strokeWidth={2.5} />
                     {streak}
                 </div>
                 <div
-                    className="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold"
+                    className="flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wider"
                     style={{ background: 'rgba(245,166,35,0.1)', color: GOLD }}
                 >
-                    <Zap size={13} />
+                    <Zap size={14} strokeWidth={2.5} />
                     {xp}
                 </div>
             </div>

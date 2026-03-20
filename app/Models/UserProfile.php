@@ -16,6 +16,8 @@ class UserProfile extends Model
         'target_score',
         'exam_date',
         'current_level',
+        'plan',
+        'interface_language',
         'xp_total',
         'streak_current',
         'streak_last_date',

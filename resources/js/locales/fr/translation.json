@@ -1,0 +1,68 @@
+{
+  "common": {
+    "start": "Commencer",
+    "continue": "Continuer",
+    "back": "Retour",
+    "loading": "Chargement...",
+    "ai_tools": "Outils IA",
+    "chapter": "Chapitre {{order}}",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "saved": "Enregistré !"
+  },
+  "onboarding": {
+    "choose_language": "Choisissez votre langue",
+    "select_target_language": "Sélectionnez la langue que vous souhaitez préparer"
+  },
+  "exercise": {
+    "next": "Suivant",
+    "check": "Vérifier",
+    "finish": "Terminer la session",
+    "correct": "Correct !",
+    "incorrect": "Incorrect",
+    "why_incorrect": "Pourquoi est-ce faux ?",
+    "explanation": "Explication de l'IA",
+    "progress": "Exercice {{current}} sur {{total}}",
+    "session_complete": "Session Terminée !"
+  },
+  "profile": {
+    "title": "Mon Profil",
+    "xp_points": "Points XP",
+    "streak": "Série",
+    "premium_desc": "Accès illimité à tous les examens et correction IA avancée.",
+    "standard_desc": "Passez au Premium pour débloquer toutes les fonctionnalités.",
+    "manage_subscription": "Gérer mon abonnement",
+    "study_settings": "Paramètres d'étude",
+    "prepared_exam": "Examen préparé",
+    "select_goal": "Sélectionnez votre objectif",
+    "choose_exam": "Choisir un examen",
+    "current_level": "Niveau actuel",
+    "target_score": "Score visé",
+    "exam_date": "Date de l'examen",
+    "exam_day": "Jour J",
+    "interface_language": "Langue de l'interface",
+    "menu_instructions": "Menu et consignes",
+    "save_settings": "Sauvegarder les paramètres",
+    "personal_info": "Informations Personnelles",
+    "full_name": "Nom complet",
+    "name": "Nom",
+    "email": "Email",
+    "verified_account": "Compte Vérifié",
+    "security_status": "Statut de sécurité",
+    "active": "ACTIF",
+    "app_settings": "Application",
+    "appearance": "Apparence",
+    "security_password": "Sécurité & Mot de passe",
+    "logout": "Déconnexion",
+    "made_with": "Fait avec",
+    "for_success": "pour votre réussite"
+  },
+  "sidebar": {
+    "home": "Accueil",
+    "practice": "Pratiquer",
+    "ai_tools": "Outils IA",
+    "results": "Résultats",
+    "leaderboard": "Classement",
+    "settings": "Paramètres"
+  }
+}

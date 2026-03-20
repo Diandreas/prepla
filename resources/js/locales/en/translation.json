@@ -1,0 +1,68 @@
+{
+  "common": {
+    "start": "Start",
+    "continue": "Continue",
+    "back": "Back",
+    "loading": "Loading...",
+    "ai_tools": "AI Tools",
+    "chapter": "Chapter {{order}}",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saved": "Saved!"
+  },
+  "onboarding": {
+    "choose_language": "Choose your language",
+    "select_target_language": "Select the language you want to prepare for"
+  },
+  "exercise": {
+    "next": "Next",
+    "check": "Check",
+    "finish": "Finish session",
+    "correct": "Correct!",
+    "incorrect": "Incorrect",
+    "why_incorrect": "Why is this wrong?",
+    "explanation": "AI Explanation",
+    "progress": "Exercise {{current}} of {{total}}",
+    "session_complete": "Session Complete!"
+  },
+  "profile": {
+    "title": "My Profile",
+    "xp_points": "XP Points",
+    "streak": "Streak",
+    "premium_desc": "Unlimited access to all exams and advanced AI correction.",
+    "standard_desc": "Go Premium to unlock all features.",
+    "manage_subscription": "Manage Subscription",
+    "study_settings": "Study Settings",
+    "prepared_exam": "Prepared Exam",
+    "select_goal": "Select your goal",
+    "choose_exam": "Choose an exam",
+    "current_level": "Current Level",
+    "target_score": "Target Score",
+    "exam_date": "Exam Date",
+    "exam_day": "Day J",
+    "interface_language": "Interface Language",
+    "menu_instructions": "Menu and instructions",
+    "save_settings": "Save Settings",
+    "personal_info": "Personal Information",
+    "full_name": "Full Name",
+    "name": "Name",
+    "email": "Email",
+    "verified_account": "Verified Account",
+    "security_status": "Security Status",
+    "active": "ACTIVE",
+    "app_settings": "App Settings",
+    "appearance": "Appearance",
+    "security_password": "Security & Password",
+    "logout": "Logout",
+    "made_with": "Made with",
+    "for_success": "for your success"
+  },
+  "sidebar": {
+    "home": "Home",
+    "practice": "Practice",
+    "ai_tools": "AI Tools",
+    "results": "Results",
+    "leaderboard": "Leaderboard",
+    "settings": "Settings"
+  }
+}

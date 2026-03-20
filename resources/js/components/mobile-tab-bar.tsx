@@ -25,11 +25,12 @@ const tabs = [
         label: 'IA',
         href: '/ai-tools',
         isCenter: true,
-        icon: (active: boolean) => (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2a4 4 0 0 1 4 4c0 1.5-.8 2.8-2 3.5V11h1a2 2 0 0 1 2 2v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1v-1H6a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1v-1a2 2 0 0 1 2-2h1V9.5A4 4 0 0 1 8 6a4 4 0 0 1 4-4z"/>
-                <circle cx="10" cy="15" r="1" fill="white"/>
-                <circle cx="14" cy="15" r="1" fill="white"/>
+        icon: (_active: boolean) => (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                {/* Sparkles / AI icon */}
+                <path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5z" fill="white" stroke="none"/>
+                <path d="M19 14l.8 2.2L22 17l-2.2.8L19 20l-.8-2.2L16 17l2.2-.8z" fill="rgba(255,255,255,0.7)" stroke="none"/>
+                <path d="M5 3l.6 1.4L7 5l-1.4.6L5 7l-.6-1.4L3 5l1.4-.6z" fill="rgba(255,255,255,0.5)" stroke="none"/>
             </svg>
         ),
     },

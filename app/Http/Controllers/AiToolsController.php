@@ -21,9 +21,12 @@ class AiToolsController extends Controller
     public function generator(): Response
     {
         $exams = Exam::with(['language', 'sections.exerciseTypes'])->get();
+        $profile = auth()->user()->profile;
 
         return Inertia::render('ai-tools/generator', [
             'exams' => $exams,
+            'targetExamId' => $profile?->target_exam_id,
+            'userLevel' => $profile?->current_level,
         ]);
     }
 

@@ -11,13 +11,17 @@ export default function AppSidebarLayout({ children, breadcrumbs = [] }: { child
 
     return (
         <AppShell variant="sidebar">
-            <AppSidebar />
+            {/* Sidebar only on desktop */}
+            {!isMobile && <AppSidebar />}
+            
             <AppContent variant="sidebar">
                 <AppSidebarHeader breadcrumbs={breadcrumbs} />
-                <div className="pb-20 md:pb-0">
+                <div className="pb-24 md:pb-6">
                     {children}
                 </div>
             </AppContent>
+            
+            {/* Mobile Navigation */}
             <MobileTabBar />
         </AppShell>
     );

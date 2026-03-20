@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
+use App\Models\Exam;
+use App\Models\Language;
+
 class ProfileController extends Controller
 {
     /**
@@ -18,14 +21,20 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
+        $user = $request->user();
+        $profile = $user->profile?->load('targetExam.language');
+        $exams = Exam::with('language')->get();
+
         return Inertia::render('settings/profile', [
-            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
+            'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
+            'profile' => $profile,
+            'exams' => $exams,
         ]);
     }
 
     /**
-     * Update the user's profile settings.
+     * Update the user's profile settings (name/email).
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
@@ -37,7 +46,41 @@ class ProfileController extends Controller
 
         $request->user()->save();
 
-        return to_route('profile.edit');
+        return back();
+    }
+
+    /**
+     * Update the user's exam/learning settings.
+     */
+    public function updateLearning(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'target_exam_id' => 'nullable|exists:exams,id',
+            'target_score' => 'nullable|numeric|min:0',
+            'exam_date' => 'nullable|date',
+            'current_level' => 'nullable|string|in:A1,A2,B1,B2,C1,C2',
+            'interface_language' => 'nullable|string|in:en,fr',
+        ]);
+
+        $profile = $request->user()->profile;
+        
+        // If target exam changed, we might want to regenerate roadmap
+        $examChanged = $profile->target_exam_id != ($validated['target_exam_id'] ?? null);
+
+        $profile->update($validated);
+
+        if ($examChanged && $profile->target_exam_id) {
+            // Trigger roadmap generation (algorithm style)
+            $exam = Exam::find($profile->target_exam_id);
+            app(\App\Services\AI\RoadmapGeneratorService::class)->generateForUser(
+                $request->user(),
+                $exam,
+                $profile->current_level ?? 'A1',
+                $profile->exam_date
+            );
+        }
+
+        return back()->with('status', 'settings-updated');
     }
 
     /**

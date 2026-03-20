@@ -1,5 +1,6 @@
-import { useForm } from '@inertiajs/react';
+import { Link, useForm } from '@inertiajs/react';
 import { FormEventHandler, useRef } from 'react';
+import { Trash2 } from 'lucide-react';
 
 // Components...
 import InputError from '@/components/input-error';
@@ -32,59 +33,58 @@ export default function DeleteUser() {
     };
 
     return (
-        <div className="space-y-6">
-            <HeadingSmall title="Delete account" description="Delete your account and all of its resources" />
-            <div className="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10">
-                <div className="relative space-y-0.5 text-red-600 dark:text-red-100">
-                    <p className="font-medium">Warning</p>
-                    <p className="text-sm">Please proceed with caution, this cannot be undone.</p>
+        <div className="p-4 space-y-4">
+            <div className="flex items-center gap-3 text-red-600">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-100 dark:bg-red-900/30">
+                    <Trash2 size={18} />
                 </div>
-
-                <Dialog>
-                    <DialogTrigger asChild>
-                        <Button variant="destructive">Delete account</Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogTitle>Are you sure you want to delete your account?</DialogTitle>
-                        <DialogDescription>
-                            Once your account is deleted, all of its resources and data will also be permanently deleted. Please enter your password
-                            to confirm you would like to permanently delete your account.
-                        </DialogDescription>
-                        <form className="space-y-6" onSubmit={deleteUser}>
-                            <div className="grid gap-2">
-                                <Label htmlFor="password" className="sr-only">
-                                    Password
-                                </Label>
-
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    name="password"
-                                    ref={passwordInput}
-                                    value={data.password}
-                                    onChange={(e) => setData('password', e.target.value)}
-                                    placeholder="Password"
-                                    autoComplete="current-password"
-                                />
-
-                                <InputError message={errors.password} />
-                            </div>
-
-                            <DialogFooter>
-                                <DialogClose asChild>
-                                    <Button variant="secondary" onClick={closeModal}>
-                                        Cancel
-                                    </Button>
-                                </DialogClose>
-
-                                <Button variant="destructive" disabled={processing} asChild>
-                                    <button type="submit">Delete account</button>
-                                </Button>
-                            </DialogFooter>
-                        </form>
-                    </DialogContent>
-                </Dialog>
+                <div>
+                    <p className="text-sm font-bold">Zone de danger</p>
+                    <p className="text-xs text-muted-foreground opacity-80">Action irréversible</p>
+                </div>
             </div>
+
+            <Dialog>
+                <DialogTrigger asChild>
+                    <Button variant="destructive" className="w-full font-bold">Supprimer mon compte</Button>
+                </DialogTrigger>
+                <DialogContent>
+                    <DialogTitle>Êtes-vous sûr de vouloir supprimer votre compte ?</DialogTitle>
+                    <DialogDescription>
+                        Cette action est définitive. Toutes vos données de progression, XP et accomplissements seront supprimés à jamais.
+                    </DialogDescription>
+                    <form className="space-y-6" onSubmit={deleteUser}>
+                        <div className="grid gap-2">
+                            <Label htmlFor="password">Mot de passe</Label>
+
+                            <Input
+                                id="password"
+                                type="password"
+                                name="password"
+                                ref={passwordInput}
+                                value={data.password}
+                                onChange={(e) => setData('password', e.target.value)}
+                                placeholder="Confirmez avec votre mot de passe"
+                                autoComplete="current-password"
+                            />
+
+                            <InputError message={errors.password} />
+                        </div>
+
+                        <DialogFooter className="gap-2 sm:gap-0">
+                            <DialogClose asChild>
+                                <Button variant="secondary" onClick={closeModal} className="font-bold">
+                                    Annuler
+                                </Button>
+                            </DialogClose>
+
+                            <Button variant="destructive" disabled={processing} type="submit" className="font-bold">
+                                Supprimer définitivement
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

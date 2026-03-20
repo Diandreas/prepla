@@ -8,6 +8,7 @@ use App\Models\LearningPathNode;
 use App\Models\UserLearningProgress;
 use App\Models\UserProfile;
 use App\Services\AI\PlacementTestService;
+use App\Services\AI\RoadmapGeneratorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
@@ -15,8 +16,10 @@ use Inertia\Response;
 
 class OnboardingController extends Controller
 {
-    public function __construct(protected PlacementTestService $placementTest)
-    {
+    public function __construct(
+        protected PlacementTestService $placementTest,
+        protected RoadmapGeneratorService $roadmapGenerator
+    ) {
     }
 
     public function examSelect(): Response
@@ -155,46 +158,14 @@ class OnboardingController extends Controller
         $profile = $request->user()->profile->load('targetExam.language');
         $exam = $profile->targetExam;
 
-        // Generate learning roadmap via AI
+        // Generate learning roadmap via Algorithm (Duolingo-style)
         if ($exam) {
-            $cacheKey = "roadmap_{$request->user()->id}_{$exam->id}";
-            $roadmapNodes = Cache::remember($cacheKey, 3600, function () use ($profile, $exam) {
-                return $this->placementTest->generateRoadmap(
-                    $exam->language->name ?? 'English',
-                    $exam->name ?? 'Language Exam',
-                    $profile->current_level ?? 'B1',
-                    $profile->target_score,
-                    $profile->exam_date?->format('Y-m-d')
-                );
-            });
-
-            // Delete existing nodes for this exam+user combo
-            $existingNodeIds = LearningPathNode::where('exam_id', $exam->id)->pluck('id');
-            UserLearningProgress::where('user_id', $request->user()->id)
-                ->whereIn('node_id', $existingNodeIds)
-                ->delete();
-
-            // Create new nodes and user progress
-            foreach ($roadmapNodes as $i => $nodeData) {
-                $node = LearningPathNode::updateOrCreate(
-                    ['exam_id' => $exam->id, 'sort_order' => $nodeData['sort_order'] ?? ($i + 1)],
-                    [
-                        'title' => $nodeData['title'],
-                        'description' => $nodeData['description'] ?? '',
-                        'icon' => $nodeData['icon'] ?? 'book',
-                        'skill_type' => $nodeData['skill_type'] ?? 'mixed',
-                        'level' => $nodeData['level'] ?? $profile->current_level,
-                        'xp_reward' => $nodeData['xp_reward'] ?? 50,
-                        'node_type' => $nodeData['node_type'] ?? 'lesson',
-                    ]
-                );
-
-                UserLearningProgress::create([
-                    'user_id' => $request->user()->id,
-                    'node_id' => $node->id,
-                    'status' => $i === 0 ? 'available' : 'locked',
-                ]);
-            }
+            $this->roadmapGenerator->generateForUser(
+                $request->user(),
+                $exam,
+                $profile->current_level ?? 'A1',
+                $profile->exam_date
+            );
         }
 
         $profile->update([

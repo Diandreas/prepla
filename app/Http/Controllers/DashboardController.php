@@ -15,36 +15,58 @@ class DashboardController extends Controller
         $profile = $user->profile?->load('targetExam.language');
         $examId = $profile?->target_exam_id;
 
-        // Get learning roadmap nodes with user progress
-        $roadmap = [];
+        $chapters = [];
+        $totalNodes = 0;
+        $completedNodes = 0;
+
         if ($examId) {
-            $nodes = LearningPathNode::where('exam_id', $examId)
-                ->orderBy('sort_order')
-                ->get();
+            // 1. Récupérer la progression de l'utilisateur pour cet examen
+            // On filtre par les nœuds qui existent dans la roadmap de l'utilisateur
+            $userProgress = UserLearningProgress::where('user_id', $user->id)
+                ->with(['node' => function($q) use ($examId) {
+                    $q->where('exam_id', $examId);
+                }])
+                ->get()
+                ->filter(fn($p) => $p->node !== null) // Sécurité si un nœud a été supprimé
+                ->sortBy(function($p) {
+                    return $p->node->chapter_order * 1000 + $p->node->sort_order;
+                });
 
-            $progressMap = UserLearningProgress::where('user_id', $user->id)
-                ->whereIn('node_id', $nodes->pluck('id'))
-                ->pluck('status', 'node_id');
+            $totalNodes = $userProgress->count();
+            $completedNodes = $userProgress->where('status', 'completed')->count();
 
-            $roadmap = $nodes->map(function ($node) use ($progressMap) {
+            // 2. Grouper par chapitre
+            $chapters = $userProgress->groupBy(function($p) {
+                return $p->node->chapter_name ?? 'Introduction';
+            })->map(function($items, $name) {
                 return [
-                    'id' => $node->id,
-                    'sort_order' => $node->sort_order,
-                    'title' => $node->title,
-                    'description' => $node->description,
-                    'icon' => $node->icon,
-                    'skill_type' => $node->skill_type,
-                    'level' => $node->level,
-                    'xp_reward' => $node->xp_reward,
-                    'node_type' => $node->node_type,
-                    'status' => $progressMap[$node->id] ?? 'locked',
+                    'name' => $name,
+                    'order' => $items->first()->node->chapter_order ?? 1,
+                    'nodes' => $items->map(function($p) {
+                        return [
+                            'id' => $p->node->id,
+                            'title' => $p->node->title,
+                            'description' => $p->node->description,
+                            'icon' => $p->node->icon,
+                            'skill_type' => $p->node->skill_type,
+                            'level' => $p->node->level,
+                            'status' => $p->status,
+                            'scheduled_for' => $p->scheduled_for,
+                            'xp_reward' => $p->node->xp_reward,
+                        ];
+                    })->values()
                 ];
-            })->values()->toArray();
+            })->values()->sortBy('order')->values()->toArray();
         }
 
         return Inertia::render('dashboard', [
             'profile' => $profile,
-            'roadmap' => $roadmap,
+            'chapters' => $chapters,
+            'stats' => [
+                'total_nodes' => $totalNodes,
+                'completed_nodes' => $completedNodes,
+                'progress_percent' => $totalNodes > 0 ? round(($completedNodes / $totalNodes) * 100) : 0,
+            ]
         ]);
     }
 }

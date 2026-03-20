@@ -12,6 +12,53 @@ use Inertia\Response;
 
 class ExerciseController extends Controller
 {
+    public function submitSession(Request $request, LearningPathNode $node)
+    {
+        $user = auth()->user();
+        $validated = $request->validate([
+            'answers' => 'required|array',
+        ]);
+
+        // 1. Marquer le nœud comme complété
+        $progress = UserLearningProgress::where('user_id', $user->id)
+            ->where('node_id', $node->id)
+            ->first();
+
+        if ($progress) {
+            $progress->update([
+                'status' => 'completed',
+                'exercises_done' => $progress->exercises_required,
+                'exercises_required' => 3
+            ]);
+
+            // 2. Débloquer le nœud suivant dans le syllabus
+            $nextNode = LearningPathNode::where('exam_id', $node->exam_id)
+                ->where(function($query) use ($node) {
+                    $query->where('chapter_order', '>', $node->chapter_order)
+                          ->orWhere(function($q) use ($node) {
+                              $q->where('chapter_order', $node->chapter_order)
+                                ->where('sort_order', '>', $node->sort_order);
+                          });
+                })
+                ->orderBy('chapter_order')
+                ->orderBy('sort_order')
+                ->first();
+
+            if ($nextNode) {
+                UserLearningProgress::updateOrCreate(
+                    ['user_id' => $user->id, 'node_id' => $nextNode->id],
+                    ['status' => 'available']
+                );
+            }
+        }
+
+        // 3. Ajouter de l'XP à l'utilisateur
+        $xpEarned = $node->xp_reward ?? 50;
+        $user->profile?->increment('xp_total', $xpEarned);
+
+        return redirect()->route('dashboard')->with('success', "Session terminée ! +{$xpEarned} XP");
+    }
+
     public function show(Exercise $exercise): Response
     {
         $exercise->load(['exerciseType.section', 'exam.language']);
