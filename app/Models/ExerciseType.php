@@ -17,7 +17,18 @@ class ExerciseType extends Model
         'name',
         'skill_type',
         'component_key',
+        'description',
+        'scoring_rubric',
+        'generation_config',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'scoring_rubric' => 'array',
+            'generation_config' => 'array',
+        ];
+    }
 
     public function section(): BelongsTo
     {

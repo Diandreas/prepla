@@ -1,7 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { CheckCircle, XCircle, Clock, Zap, Trophy, Star, Award } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Zap, Trophy, Star } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import type { ExerciseAttempt } from '@/types';
 
 interface NodeProgress {
@@ -16,7 +15,14 @@ interface Props {
     nodeProgress?: NodeProgress | null;
 }
 
+const OXFORD = '#1A2B48';
+const SKY = '#4A90E2';
+const GOLD = '#F5A623';
+
 export default function ExerciseResult({ attempt, nodeProgress }: Props) {
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => setMounted(true), []);
+
     const feedback = (attempt.feedback ?? []) as Array<{
         question_id: string;
         correct: boolean;
@@ -33,13 +39,22 @@ export default function ExerciseResult({ attempt, nodeProgress }: Props) {
     const exercisesDone = nodeProgress?.exercises_done ?? 0;
     const exercisesRequired = nodeProgress?.exercises_required ?? 3;
 
+    const stagger = (i: number) => ({
+        opacity: mounted ? 1 : 0,
+        transform: mounted ? 'translateY(0)' : 'translateY(16px)',
+        transition: `all 0.5s cubic-bezier(0.22, 1, 0.36, 1) ${i * 100}ms`,
+    });
+
     return (
         <>
             <Head title="Résultats" />
-            <div className="mx-auto max-w-3xl space-y-6 px-4 py-8">
-                <div className="text-center">
-                    <h1 className="text-3xl font-bold">Exercice terminé !</h1>
-                    <p className="mt-2 text-muted-foreground">
+            <div className="mx-auto max-w-2xl space-y-6 px-4 py-8">
+                {/* Header */}
+                <div className="text-center" style={stagger(0)}>
+                    <h1 className="text-3xl font-black tracking-tight" style={{ color: OXFORD }}>
+                        Exercice terminé !
+                    </h1>
+                    <p className="mt-2 text-sm font-bold text-muted-foreground">
                         {exercise?.exercise_type?.name} · {exercise?.exam?.name}
                     </p>
                 </div>
@@ -47,97 +62,117 @@ export default function ExerciseResult({ attempt, nodeProgress }: Props) {
                 {/* Node progress banner */}
                 {nodeProgress && (
                     <div
-                        className="rounded-xl border-2 p-4 text-center"
+                        className="duo-card overflow-hidden p-0"
                         style={{
-                            borderColor: nodeCompleted ? '#F5A623' : 'rgba(74,144,226,0.3)',
-                            background: nodeCompleted ? 'rgba(245,166,35,0.06)' : 'rgba(74,144,226,0.05)',
+                            borderColor: nodeCompleted ? GOLD : SKY,
+                            ...stagger(1),
                         }}
                     >
                         {nodeCompleted ? (
-                            <div className="flex flex-col items-center gap-2">
-                                <Trophy className="h-8 w-8" style={{ color: '#F5A623' }} />
-                                <p className="font-bold text-lg" style={{ color: '#1A2B48' }}>Étape complétée !</p>
-                                <p className="text-sm text-muted-foreground">La prochaine étape est débloquée 🎉</p>
+                            <div
+                                className="flex flex-col items-center gap-2 p-5"
+                                style={{ background: 'rgba(245,166,35,0.06)' }}
+                            >
+                                <Trophy className="h-10 w-10" style={{ color: GOLD }} />
+                                <p className="text-lg font-black" style={{ color: OXFORD }}>Étape complétée !</p>
+                                <p className="text-sm font-bold text-muted-foreground">La prochaine étape est débloquée 🎉</p>
                             </div>
                         ) : (
-                            <div className="flex flex-col items-center gap-2">
-                                <div className="flex gap-1">
+                            <div className="flex flex-col items-center gap-2 p-5">
+                                <div className="flex gap-1.5">
                                     {Array.from({ length: exercisesRequired }).map((_, i) => (
                                         <Star
                                             key={i}
-                                            className="h-6 w-6"
-                                            style={{ color: i < exercisesDone ? '#F5A623' : undefined, fill: i < exercisesDone ? '#F5A623' : 'none' }}
+                                            className="h-7 w-7"
+                                            style={{
+                                                color: i < exercisesDone ? GOLD : '#e5e7eb',
+                                                fill: i < exercisesDone ? GOLD : 'none',
+                                            }}
                                         />
                                     ))}
                                 </div>
-                                <p className="text-sm font-medium" style={{ color: '#1A2B48' }}>
+                                <p className="text-sm font-black" style={{ color: OXFORD }}>
                                     {exercisesDone}/{exercisesRequired} exercices complétés
                                 </p>
+                                {/* Mini progress */}
+                                <div className="duo-progress mt-1 w-48" style={{ height: '0.5rem' }}>
+                                    <div
+                                        className="h-full rounded-full"
+                                        style={{
+                                            width: `${(exercisesDone / exercisesRequired) * 100}%`,
+                                            background: `linear-gradient(180deg, #FFC24A 0%, ${GOLD} 40%, #e08c10 100%)`,
+                                            boxShadow: 'inset 0 -2px 0 rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.3)',
+                                        }}
+                                    />
+                                </div>
                             </div>
                         )}
                     </div>
                 )}
 
                 {/* Score cards */}
-                <div className="grid gap-4 sm:grid-cols-3">
-                    <Card>
-                        <CardContent className="flex flex-col items-center py-6">
-                            <div className="text-4xl font-bold" style={{ color: '#4A90E2' }}>
-                                {Number(attempt.accuracy_percent ?? 0).toFixed(0)}%
-                            </div>
-                            <p className="text-sm text-muted-foreground">Précision</p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardContent className="flex flex-col items-center py-6">
-                            <div className="flex items-center gap-1 text-4xl font-bold">
-                                <Zap className="h-6 w-6" style={{ color: '#F5A623' }} />
-                                <span style={{ color: '#F5A623' }}>{attempt.xp_earned}</span>
-                            </div>
-                            <p className="text-sm text-muted-foreground">XP gagnés</p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardContent className="flex flex-col items-center py-6">
-                            <div className="flex items-center gap-1 text-4xl font-bold">
-                                <Clock className="h-6 w-6" style={{ color: '#1A2B48' }} />
-                                {mins}:{String(secs).padStart(2, '0')}
-                            </div>
-                            <p className="text-sm text-muted-foreground">Temps</p>
-                        </CardContent>
-                    </Card>
+                <div className="grid gap-3 grid-cols-3" style={stagger(2)}>
+                    <div className="duo-card flex flex-col items-center p-5">
+                        <div className="text-3xl font-black" style={{ color: SKY }}>
+                            {Number(attempt.accuracy_percent ?? 0).toFixed(0)}%
+                        </div>
+                        <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Précision</p>
+                    </div>
+                    <div className="duo-card flex flex-col items-center p-5">
+                        <div className="flex items-center gap-1 text-3xl font-black" style={{ color: GOLD }}>
+                            <Zap className="h-6 w-6 fill-current" />
+                            {attempt.xp_earned}
+                        </div>
+                        <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">XP gagnés</p>
+                    </div>
+                    <div className="duo-card flex flex-col items-center p-5">
+                        <div className="flex items-center gap-1 text-3xl font-black" style={{ color: OXFORD }}>
+                            <Clock className="h-5 w-5" />
+                            {mins}:{String(secs).padStart(2, '0')}
+                        </div>
+                        <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Temps</p>
+                    </div>
                 </div>
 
                 {/* Question review */}
-                <div className="space-y-3">
-                    <h2 className="text-xl font-semibold">Révision</h2>
+                <div className="space-y-3" style={stagger(3)}>
+                    <h2 className="text-lg font-black" style={{ color: OXFORD }}>Révision</h2>
                     {feedback.map((item, i) => {
                         const question = questions.find((q) => q.id === item.question_id) ?? questions[i];
                         return (
                             <div
                                 key={item.question_id}
-                                className={`rounded-lg border p-4 ${
-                                    item.correct
-                                        ? 'border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-900/10'
-                                        : 'border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-900/10'
-                                }`}
+                                className="duo-card overflow-hidden p-0"
+                                style={{
+                                    borderColor: item.correct ? '#48b77b' : '#ef4444',
+                                    boxShadow: item.correct ? '0 4px 0 0 #2d7d52' : '0 4px 0 0 #dc2626',
+                                }}
                             >
-                                <div className="flex items-start gap-2">
-                                    {item.correct ? (
-                                        <CheckCircle className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
-                                    ) : (
-                                        <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
-                                    )}
-                                    <div>
-                                        <p className="font-medium">{question?.text ?? `Question ${i + 1}`}</p>
-                                        {!item.correct && item.correct_answer && (
-                                            <p className="mt-1 text-sm">
-                                                Bonne réponse : <strong>{Array.isArray(item.correct_answer) ? item.correct_answer.join(', ') : item.correct_answer}</strong>
+                                <div
+                                    className="p-4"
+                                    style={{
+                                        background: item.correct ? 'rgba(72,183,123,0.06)' : 'rgba(239,68,68,0.06)',
+                                    }}
+                                >
+                                    <div className="flex items-start gap-3">
+                                        {item.correct ? (
+                                            <CheckCircle className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
+                                        ) : (
+                                            <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-500" />
+                                        )}
+                                        <div>
+                                            <p className="text-sm font-bold" style={{ color: OXFORD }}>
+                                                {question?.text ?? `Question ${i + 1}`}
                                             </p>
-                                        )}
-                                        {item.explanation && (
-                                            <p className="mt-1 text-sm text-muted-foreground">{item.explanation}</p>
-                                        )}
+                                            {!item.correct && item.correct_answer && (
+                                                <p className="mt-1 text-sm">
+                                                    Bonne réponse : <strong>{Array.isArray(item.correct_answer) ? item.correct_answer.join(', ') : item.correct_answer}</strong>
+                                                </p>
+                                            )}
+                                            {item.explanation && (
+                                                <p className="mt-1 text-xs text-muted-foreground">{item.explanation}</p>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -146,16 +181,18 @@ export default function ExerciseResult({ attempt, nodeProgress }: Props) {
                 </div>
 
                 {/* CTA buttons */}
-                <div className="flex justify-center gap-3">
+                <div className="flex justify-center gap-3 pt-2" style={stagger(4)}>
                     {nodeProgress && !nodeCompleted ? (
                         <>
-                            <Button variant="outline" asChild style={{ borderColor: 'rgba(26,43,72,0.3)', color: '#1A2B48' }}>
-                                <Link href="/dashboard">Retour au parcours</Link>
-                            </Button>
+                            <button
+                                onClick={() => router.visit('/dashboard')}
+                                className="duo-btn-secondary"
+                            >
+                                Retour au parcours
+                            </button>
                             <button
                                 onClick={() => router.visit(`/node/${nodeProgress.node_id}/start`)}
-                                className="inline-flex items-center gap-2 rounded-lg px-6 py-2.5 text-sm font-semibold text-white transition-all hover:-translate-y-0.5"
-                                style={{ background: 'linear-gradient(135deg, #4A90E2 0%, #3478c8 100%)', boxShadow: '0 4px 14px rgba(74,144,226,0.35)' }}
+                                className="duo-btn-primary"
                             >
                                 Continuer ({exercisesDone}/{exercisesRequired})
                             </button>
@@ -163,21 +200,26 @@ export default function ExerciseResult({ attempt, nodeProgress }: Props) {
                     ) : nodeCompleted ? (
                         <button
                             onClick={() => router.visit('/dashboard')}
-                            className="inline-flex items-center gap-2 rounded-lg px-8 py-3 text-sm font-semibold text-white transition-all hover:-translate-y-0.5"
-                            style={{ background: 'linear-gradient(135deg, #F5A623 0%, #e08c10 100%)', boxShadow: '0 4px 14px rgba(245,166,35,0.4)' }}
+                            className="duo-btn-primary"
+                            style={{
+                                background: GOLD,
+                                boxShadow: `0 5px 0 0 #c07a0e`,
+                            }}
                         >
                             <Trophy className="h-4 w-4" />
                             Voir le parcours
                         </button>
                     ) : (
                         <>
-                            <Button variant="outline" asChild style={{ borderColor: 'rgba(26,43,72,0.3)', color: '#1A2B48' }}>
-                                <Link href="/dashboard">Retour au parcours</Link>
-                            </Button>
+                            <button
+                                onClick={() => router.visit('/dashboard')}
+                                className="duo-btn-secondary"
+                            >
+                                Retour au parcours
+                            </button>
                             <button
                                 onClick={() => router.visit('/practice')}
-                                className="inline-flex items-center gap-2 rounded-lg px-6 py-2.5 text-sm font-semibold text-white transition-all hover:-translate-y-0.5"
-                                style={{ background: 'linear-gradient(135deg, #4A90E2 0%, #3478c8 100%)' }}
+                                className="duo-btn-primary"
                             >
                                 Pratiquer
                             </button>

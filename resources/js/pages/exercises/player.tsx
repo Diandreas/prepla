@@ -9,6 +9,14 @@ import { TrueFalseNg } from '@/components/exercises/true-false-ng';
 import { GapFill } from '@/components/exercises/gap-fill';
 import { Matching } from '@/components/exercises/matching';
 import { EssayEditor } from '@/components/exercises/essay-editor';
+import { SentenceCompletion } from '@/components/exercises/sentence-completion';
+import { ShortAnswer } from '@/components/exercises/short-answer';
+import { NoteCompletion } from '@/components/exercises/note-completion';
+import { Ordering } from '@/components/exercises/ordering';
+import { Dictation } from '@/components/exercises/dictation';
+import { OpenCloze } from '@/components/exercises/open-cloze';
+import { WordFormation } from '@/components/exercises/word-formation';
+import { KeyWordTransformation } from '@/components/exercises/key-word-transformation';
 import { Progress } from '@/components/ui/progress';
 
 interface Exercise {
@@ -47,6 +55,14 @@ const componentMap: Record<string, React.ComponentType<any>> = {
     'gap-fill': GapFill,
     'matching': Matching,
     'essay-editor': EssayEditor,
+    'sentence-completion': SentenceCompletion,
+    'short-answer': ShortAnswer,
+    'note-completion': NoteCompletion,
+    'ordering': Ordering,
+    'dictation': Dictation,
+    'open-cloze': OpenCloze,
+    'word-formation': WordFormation,
+    'key-word-transformation': KeyWordTransformation,
 };
 
 export default function SessionPlayer({ node, exercises, progress }: Props) {

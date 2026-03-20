@@ -11,6 +11,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             LanguageSeeder::class,
             ExamSeeder::class,
+            ExamSyllabusSeeder::class,
             AchievementSeeder::class,
         ]);
     }

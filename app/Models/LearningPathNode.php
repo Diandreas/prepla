@@ -12,6 +12,8 @@ class LearningPathNode extends Model
 
     protected $fillable = [
         'exam_id',
+        'chapter_name',
+        'chapter_order',
         'sort_order',
         'title',
         'description',
@@ -21,13 +23,23 @@ class LearningPathNode extends Model
         'xp_reward',
         'node_type',
         'exercise_ids',
+        'blueprint_id',
+        'prerequisites',
+        'mastery_score',
+        'exercises_count',
     ];
 
     protected function casts(): array
     {
         return [
             'exercise_ids' => 'array',
+            'prerequisites' => 'array',
         ];
+    }
+
+    public function blueprint(): BelongsTo
+    {
+        return $this->belongsTo(ExamBlueprint::class, 'blueprint_id');
     }
 
     public function exam(): BelongsTo

@@ -1,8 +1,11 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DictionaryController;
+use App\Http\Controllers\ErrorReviewController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\OnboardingController;
+use App\Http\Controllers\VocabularyController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', LandingController::class)->name('home');
@@ -38,6 +41,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('node/{node}/submit', [\App\Http\Controllers\ExerciseController::class, 'submitSession'])->name('exercise.submit_session');
         Route::get('exercise/result/{attempt}', [\App\Http\Controllers\ExerciseController::class, 'result'])->name('exercise.result');
 
+        // Dictionary API
+        Route::get('api/dictionary/{language}/{word}', [DictionaryController::class, 'lookup'])
+            ->name('dictionary.lookup')
+            ->where('word', '[^/]+');
+
         // AI Tools
         Route::get('ai-tools', [\App\Http\Controllers\AiToolsController::class, 'index'])->name('ai-tools.index');
         Route::get('ai-tools/generator', [\App\Http\Controllers\AiToolsController::class, 'generator'])->name('ai-tools.generator');
@@ -46,6 +54,22 @@ Route::middleware(['auth'])->group(function () {
         Route::post('ai-tools/writing-corrector', [\App\Http\Controllers\AiToolsController::class, 'submitWriting'])->name('ai-tools.writing-corrector.store');
         Route::get('ai-tools/explainer', [\App\Http\Controllers\AiToolsController::class, 'explainer'])->name('ai-tools.explainer');
         Route::get('ai-tools/recommendations', [\App\Http\Controllers\AiToolsController::class, 'recommendations'])->name('ai-tools.recommendations');
+
+        // Vocabulary
+        Route::prefix('vocabulary')->name('vocabulary.')->group(function () {
+            Route::get('/', [VocabularyController::class, 'index'])->name('index');
+            Route::get('/learn', [VocabularyController::class, 'learn'])->name('learn');
+            Route::get('/review', [VocabularyController::class, 'review'])->name('review');
+            Route::post('/', [VocabularyController::class, 'store'])->name('store');
+            Route::post('/{vocab}/review', [VocabularyController::class, 'submitReview'])->name('submit-review');
+        });
+
+        // Error Review
+        Route::prefix('errors')->name('errors.')->group(function () {
+            Route::get('/', [ErrorReviewController::class, 'index'])->name('index');
+            Route::get('/practice', [ErrorReviewController::class, 'practice'])->name('practice');
+            Route::post('/{error}/review', [ErrorReviewController::class, 'submitReview'])->name('submit-review');
+        });
 
         // Leaderboard
         Route::get('leaderboard', [\App\Http\Controllers\HomeController::class, 'leaderboard'])->name('leaderboard');

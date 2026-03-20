@@ -37,6 +37,11 @@ class Exam extends Model
         return $this->hasMany(ExamSection::class);
     }
 
+    public function blueprints(): HasMany
+    {
+        return $this->hasMany(ExamBlueprint::class);
+    }
+
     public function exercises(): HasMany
     {
         return $this->hasMany(Exercise::class);

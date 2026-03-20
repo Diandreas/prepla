@@ -1,9 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { ArrowRight, BarChart3, BookOpen, Clock, Headphones, MessageSquare, Mic, Target, Zap } from 'lucide-react';
+import { ArrowRight, BookOpen, Headphones, MessageSquare, Mic, Target, Zap, BarChart3 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { UserProfile, ExerciseAttempt } from '@/types';
 
@@ -19,6 +16,10 @@ interface Props {
     recentAttempts: ExerciseAttempt[];
 }
 
+const OXFORD = '#1A2B48';
+const SKY = '#4A90E2';
+const GOLD = '#F5A623';
+
 const skillIcons: Record<string, typeof BookOpen> = {
     reading: BookOpen,
     listening: Headphones,
@@ -26,11 +27,11 @@ const skillIcons: Record<string, typeof BookOpen> = {
     speaking: Mic,
 };
 
-const skillColors: Record<string, { text: string; bg: string; gradient: string }> = {
-    reading: { text: 'text-blue-500', bg: 'bg-blue-500/10', gradient: 'from-blue-500 to-blue-600' },
-    listening: { text: 'text-green-500', bg: 'bg-green-500/10', gradient: 'from-green-500 to-green-600' },
-    writing: { text: 'text-purple-500', bg: 'bg-purple-500/10', gradient: 'from-purple-500 to-purple-600' },
-    speaking: { text: 'text-orange-500', bg: 'bg-orange-500/10', gradient: 'from-orange-500 to-orange-600' },
+const skillThemes: Record<string, { bg: string; shadow: string; text: string }> = {
+    reading: { bg: `linear-gradient(135deg, ${SKY}, #3478c8)`, shadow: '#2a6fc0', text: SKY },
+    listening: { bg: `linear-gradient(135deg, #48b77b, #3a9d68)`, shadow: '#2d7d52', text: '#48b77b' },
+    writing: { bg: `linear-gradient(135deg, ${OXFORD}, #2a3f6a)`, shadow: '#0e1a2e', text: OXFORD },
+    speaking: { bg: `linear-gradient(135deg, ${GOLD}, #e08c10)`, shadow: '#c07a0e', text: GOLD },
 };
 
 const skillLabels: Record<string, string> = {
@@ -48,155 +49,178 @@ export default function ResultsIndex({ profile, skillStats, recentAttempts }: Pr
     const stagger = (i: number) => ({
         opacity: mounted ? 1 : 0,
         transform: mounted ? 'translateY(0)' : 'translateY(16px)',
-        transition: 'all 0.5s cubic-bezier(0.22, 1, 0.36, 1)',
-        transitionDelay: `${i * 100}ms`,
+        transition: `all 0.5s cubic-bezier(0.22, 1, 0.36, 1) ${i * 100}ms`,
     });
 
     return (
         <AppLayout>
             <Head title="Résultats" />
-            <div className="mx-auto max-w-4xl space-y-6 p-4 md:p-6">
-                <div className="flex items-center justify-between" style={stagger(0)}>
+            <div className="mx-auto max-w-2xl px-4 py-8">
+                {/* Header */}
+                <div className="mb-8 flex items-center justify-between" style={stagger(0)}>
                     <div>
-                        <h1 className="text-2xl font-bold">Résultats & Analyses</h1>
-                        <p className="text-muted-foreground">Suivez votre progression dans toutes les compétences</p>
+                        <h1 className="text-2xl font-black tracking-tight" style={{ color: OXFORD }}>
+                            Résultats & Analyses
+                        </h1>
+                        <p className="mt-1 text-sm font-bold text-muted-foreground">
+                            Suivez votre progression dans toutes les compétences
+                        </p>
                     </div>
-                    <Button variant="outline" asChild className="gap-1">
-                        <Link href="/results/attempts">
-                            Historique
-                            <ArrowRight className="h-3.5 w-3.5" />
-                        </Link>
-                    </Button>
+                    <Link
+                        href="/results/attempts"
+                        className="duo-btn-secondary text-xs"
+                    >
+                        Historique
+                        <ArrowRight size={14} />
+                    </Link>
                 </div>
 
                 {/* Skill breakdown cards */}
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="mb-6 grid gap-3 grid-cols-2 lg:grid-cols-4">
                     {skills.map((skill, i) => {
                         const stat = skillStats[skill];
                         const Icon = skillIcons[skill] ?? BookOpen;
-                        const colors = skillColors[skill];
+                        const theme = skillThemes[skill];
                         return (
-                            <Card
+                            <div
                                 key={skill}
-                                className="overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
+                                className="duo-card overflow-hidden p-0"
                                 style={stagger(i + 1)}
                             >
-                                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                    <CardTitle className="text-sm font-medium">
-                                        {skillLabels[skill]}
-                                    </CardTitle>
-                                    <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${colors.bg}`}>
-                                        <Icon className={`h-4 w-4 ${colors.text}`} />
+                                <div className="p-4 pb-3">
+                                    <div className="mb-3 flex items-center justify-between">
+                                        <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: OXFORD, opacity: 0.5 }}>
+                                            {skillLabels[skill]}
+                                        </span>
+                                        <div
+                                            className="flex h-8 w-8 items-center justify-center rounded-xl"
+                                            style={{
+                                                background: theme.bg,
+                                                boxShadow: `0 3px 0 0 ${theme.shadow}`,
+                                            }}
+                                        >
+                                            <Icon size={14} color="white" strokeWidth={2.5} />
+                                        </div>
                                     </div>
-                                </CardHeader>
-                                <CardContent>
                                     {stat ? (
                                         <>
-                                            <div className="text-2xl font-bold">{Number(stat.avg_accuracy).toFixed(0)}%</div>
-                                            <p className="text-xs text-muted-foreground">
+                                            <div className="text-2xl font-black" style={{ color: OXFORD }}>
+                                                {Number(stat.avg_accuracy).toFixed(0)}%
+                                            </div>
+                                            <p className="text-[10px] font-bold text-muted-foreground">
                                                 {stat.count} exercices · {stat.total_xp} XP
                                             </p>
-                                            {/* Mini progress bar */}
-                                            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-                                                <div
-                                                    className={`h-full rounded-full bg-gradient-to-r ${colors.gradient} transition-all duration-1000 ease-out`}
-                                                    style={{ width: mounted ? `${Math.min(Number(stat.avg_accuracy), 100)}%` : '0%', transitionDelay: `${(i + 1) * 200}ms` }}
-                                                />
-                                            </div>
                                         </>
                                     ) : (
-                                        <p className="text-sm text-muted-foreground">Pas encore de données</p>
+                                        <p className="text-xs font-bold text-muted-foreground">Pas encore de données</p>
                                     )}
-                                </CardContent>
-                            </Card>
+                                </div>
+                                {/* Progress bar */}
+                                {stat && (
+                                    <div className="px-4 pb-4">
+                                        <div className="duo-progress" style={{ height: '0.5rem' }}>
+                                            <div
+                                                className="h-full rounded-full transition-all duration-1000 ease-out"
+                                                style={{
+                                                    width: mounted ? `${Math.min(Number(stat.avg_accuracy), 100)}%` : '0%',
+                                                    background: theme.bg,
+                                                    boxShadow: 'inset 0 -2px 0 rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.3)',
+                                                    transitionDelay: `${(i + 1) * 200}ms`,
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         );
                     })}
                 </div>
 
                 {/* Overview stats */}
-                <div className="grid gap-4 sm:grid-cols-3">
-                    <Card className="overflow-hidden" style={stagger(5)}>
-                        <CardContent className="flex items-center gap-3 py-4">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/10">
-                                <Target className="h-6 w-6 text-blue-500" />
+                <div className="mb-6 grid gap-3 grid-cols-3">
+                    {[
+                        { label: 'Niveau actuel', value: profile?.current_level ?? '—', icon: Target, color: SKY, shadow: '#2a6fc0' },
+                        { label: 'XP Total', value: profile?.xp_total ?? 0, icon: Zap, color: GOLD, shadow: '#c07a0e' },
+                        { label: 'Exercices récents', value: recentAttempts.length, icon: BarChart3, color: '#48b77b', shadow: '#2d7d52' },
+                    ].map((item, i) => (
+                        <div
+                            key={item.label}
+                            className="duo-card flex flex-col items-center p-4"
+                            style={stagger(i + 5)}
+                        >
+                            <div
+                                className="mb-2 flex h-10 w-10 items-center justify-center rounded-2xl"
+                                style={{
+                                    background: `linear-gradient(135deg, ${item.color}, ${item.shadow})`,
+                                    boxShadow: `0 3px 0 0 ${item.shadow}`,
+                                }}
+                            >
+                                <item.icon size={18} color="white" strokeWidth={2.5} />
                             </div>
-                            <div>
-                                <p className="text-2xl font-bold">{profile?.current_level ?? '—'}</p>
-                                <p className="text-xs text-muted-foreground">Niveau actuel</p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card className="overflow-hidden" style={stagger(6)}>
-                        <CardContent className="flex items-center gap-3 py-4">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-500/10">
-                                <Zap className="h-6 w-6 text-yellow-500" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold">{profile?.xp_total ?? 0}</p>
-                                <p className="text-xs text-muted-foreground">XP Total</p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card className="overflow-hidden" style={stagger(7)}>
-                        <CardContent className="flex items-center gap-3 py-4">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-500/10">
-                                <BarChart3 className="h-6 w-6 text-green-500" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold">{recentAttempts.length}</p>
-                                <p className="text-xs text-muted-foreground">Exercices récents</p>
-                            </div>
-                        </CardContent>
-                    </Card>
+                            <p className="text-xl font-black" style={{ color: OXFORD }}>{item.value}</p>
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{item.label}</p>
+                        </div>
+                    ))}
                 </div>
 
                 {/* Recent attempts */}
-                <Card style={stagger(8)}>
-                    <CardHeader>
-                        <CardTitle className="text-base">Tentatives récentes</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {recentAttempts.length === 0 ? (
-                            <p className="py-4 text-center text-muted-foreground">
-                                Aucune tentative. Commencez à pratiquer pour voir vos résultats ici.
-                            </p>
-                        ) : (
-                            <div className="space-y-2">
-                                {recentAttempts.map((attempt, i) => (
+                <div className="duo-card overflow-hidden p-0" style={stagger(8)}>
+                    <div className="border-b-2 border-gray-100 px-5 py-3">
+                        <p className="text-xs font-black uppercase tracking-widest" style={{ color: OXFORD, opacity: 0.5 }}>
+                            Tentatives récentes
+                        </p>
+                    </div>
+                    {recentAttempts.length === 0 ? (
+                        <p className="py-10 text-center text-sm font-bold text-muted-foreground">
+                            Aucune tentative. Commencez à pratiquer pour voir vos résultats ici.
+                        </p>
+                    ) : (
+                        <div className="divide-y divide-gray-100">
+                            {recentAttempts.map((attempt, i) => {
+                                const acc = Number(attempt.accuracy_percent ?? 0);
+                                const isGood = acc >= 80;
+                                return (
                                     <div
                                         key={attempt.id}
-                                        className="flex items-center justify-between rounded-xl border border-border p-3 transition-all duration-200 hover:border-primary/30 hover:shadow-sm"
+                                        className="flex items-center justify-between px-5 py-3"
                                         style={{
                                             opacity: mounted ? 1 : 0,
                                             transform: mounted ? 'translateX(0)' : 'translateX(-8px)',
-                                            transition: 'all 0.4s ease',
-                                            transitionDelay: `${1200 + i * 60}ms`,
+                                            transition: `all 0.4s ease ${1200 + i * 60}ms`,
                                         }}
                                     >
                                         <div>
-                                            <p className="text-sm font-medium">
+                                            <p className="text-sm font-bold" style={{ color: OXFORD }}>
                                                 {attempt.exercise?.exercise_type?.name ?? 'Exercice'}
                                             </p>
-                                            <p className="text-xs text-muted-foreground">
+                                            <p className="text-[10px] font-medium text-muted-foreground">
                                                 {attempt.exercise?.exam?.name} · {new Date(attempt.created_at).toLocaleDateString('fr-FR')}
                                             </p>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <Badge
-                                                variant={Number(attempt.accuracy_percent ?? 0) >= 80 ? 'default' : 'secondary'}
+                                            <span
+                                                className="rounded-lg px-2.5 py-1 text-xs font-black text-white"
+                                                style={{
+                                                    background: isGood
+                                                        ? `linear-gradient(135deg, ${SKY}, #3478c8)`
+                                                        : 'rgba(26,43,72,0.12)',
+                                                    color: isGood ? '#fff' : OXFORD,
+                                                    boxShadow: isGood ? '0 2px 0 0 #2a6fc0' : '0 2px 0 0 #d1d5db',
+                                                }}
                                             >
-                                                {Number(attempt.accuracy_percent ?? 0).toFixed(0)}%
-                                            </Badge>
-                                            <span className="text-xs text-muted-foreground">
-                                                +{attempt.xp_earned} XP
+                                                {acc.toFixed(0)}%
+                                            </span>
+                                            <span className="flex items-center gap-0.5 text-xs font-black" style={{ color: GOLD }}>
+                                                <Zap size={12} className="fill-current" />
+                                                +{attempt.xp_earned}
                                             </span>
                                         </div>
                                     </div>
-                                ))}
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
             </div>
         </AppLayout>
     );

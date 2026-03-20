@@ -40,4 +40,8 @@ return [
         'base_url' => 'https://api.mistral.ai/v1',
     ],
 
+    'forvo' => [
+        'key' => env('FORVO_API_KEY'),
+    ],
+
 ];

@@ -19,8 +19,8 @@ interface Chapter {
     nodes: RoadmapNode[];
 }
 
-interface PageProps { 
-    profile: UserProfile | null; 
+interface PageProps {
+    profile: UserProfile | null;
     chapters: Chapter[];
     stats: {
         total_nodes: number;
@@ -31,30 +31,30 @@ interface PageProps {
 
 /* ─── Brand colors ─── */
 const OXFORD = '#1A2B48';
-const SKY    = '#4A90E2';
-const GOLD   = '#F5A623';
-const PEARL  = '#F4F7F6';
+const SKY = '#4A90E2';
+const GOLD = '#F5A623';
+const PEARL = '#F4F7F6';
 
 /* ─── Custom node icons ─── */
 function NodeIcon({ name, size, color = 'white' }: { name: string; size: number; color?: string }) {
     const s = size;
     switch (name) {
-        case 'book': return <svg width={s} height={s} viewBox="0 0 24 24" fill="none"><path d="M4 4h7a1 1 0 0 1 1 1v14a1 1 0 0 0-1-1H4V4z" fill={color} opacity="0.9"/><path d="M20 4h-7a1 1 0 0 0-1 1v14a1 1 0 0 1 1-1h7V4z" fill={color} opacity="0.5"/><line x1="12" y1="5" x2="12" y2="19" stroke={color} strokeWidth="1.5"/></svg>;
-        case 'headphones': return <svg width={s} height={s} viewBox="0 0 24 24" fill="none"><path d="M12 3a9 9 0 0 0-9 9v3h3a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-7a10 10 0 0 1 20 0v7a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2h3v-3a9 9 0 0 0-9-9z" fill={color} opacity="0.85"/></svg>;
-        case 'pen': return <svg width={s} height={s} viewBox="0 0 24 24" fill="none"><path d="M17 3l4 4-12 12H5v-4L17 3z" fill={color} opacity="0.9"/><path d="M15 5l4 4" stroke={color} strokeWidth="1.5" opacity="0.5"/><line x1="5" y1="20" x2="19" y2="20" stroke={color} strokeWidth="2" strokeLinecap="round" opacity="0.4"/></svg>;
-        case 'mic': return <svg width={s} height={s} viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="12" rx="3" fill={color} opacity="0.9"/><path d="M5 10a7 7 0 0 0 14 0" stroke={color} strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.7"/><line x1="12" y1="17" x2="12" y2="21" stroke={color} strokeWidth="2" strokeLinecap="round" opacity="0.7"/><line x1="9" y1="21" x2="15" y2="21" stroke={color} strokeWidth="2" strokeLinecap="round" opacity="0.7"/></svg>;
-        case 'brain': return <svg width={s} height={s} viewBox="0 0 24 24" fill="none"><path d="M12 3a6 6 0 0 1 4 10.5V16a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.5A6 6 0 0 1 12 3z" fill={color} opacity="0.9"/><rect x="9" y="17" width="6" height="1.5" rx="0.75" fill={color} opacity="0.6"/><rect x="10" y="19.5" width="4" height="1.5" rx="0.75" fill={color} opacity="0.4"/></svg>;
-        case 'target': return <svg width={s} height={s} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke={color} strokeWidth="2" opacity="0.4"/><circle cx="12" cy="12" r="5.5" stroke={color} strokeWidth="2" opacity="0.7"/><circle cx="12" cy="12" r="2.5" fill={color}/></svg>;
+        case 'book': return <svg width={s} height={s} viewBox="0 0 24 24" fill="none"><path d="M4 4h7a1 1 0 0 1 1 1v14a1 1 0 0 0-1-1H4V4z" fill={color} opacity="0.9" /><path d="M20 4h-7a1 1 0 0 0-1 1v14a1 1 0 0 1 1-1h7V4z" fill={color} opacity="0.5" /><line x1="12" y1="5" x2="12" y2="19" stroke={color} strokeWidth="1.5" /></svg>;
+        case 'headphones': return <svg width={s} height={s} viewBox="0 0 24 24" fill="none"><path d="M12 3a9 9 0 0 0-9 9v3h3a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-7a10 10 0 0 1 20 0v7a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2h3v-3a9 9 0 0 0-9-9z" fill={color} opacity="0.85" /></svg>;
+        case 'pen': return <svg width={s} height={s} viewBox="0 0 24 24" fill="none"><path d="M17 3l4 4-12 12H5v-4L17 3z" fill={color} opacity="0.9" /><path d="M15 5l4 4" stroke={color} strokeWidth="1.5" opacity="0.5" /><line x1="5" y1="20" x2="19" y2="20" stroke={color} strokeWidth="2" strokeLinecap="round" opacity="0.4" /></svg>;
+        case 'mic': return <svg width={s} height={s} viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="12" rx="3" fill={color} opacity="0.9" /><path d="M5 10a7 7 0 0 0 14 0" stroke={color} strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.7" /><line x1="12" y1="17" x2="12" y2="21" stroke={color} strokeWidth="2" strokeLinecap="round" opacity="0.7" /><line x1="9" y1="21" x2="15" y2="21" stroke={color} strokeWidth="2" strokeLinecap="round" opacity="0.7" /></svg>;
+        case 'brain': return <svg width={s} height={s} viewBox="0 0 24 24" fill="none"><path d="M12 3a6 6 0 0 1 4 10.5V16a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.5A6 6 0 0 1 12 3z" fill={color} opacity="0.9" /><rect x="9" y="17" width="6" height="1.5" rx="0.75" fill={color} opacity="0.6" /><rect x="10" y="19.5" width="4" height="1.5" rx="0.75" fill={color} opacity="0.4" /></svg>;
+        case 'target': return <svg width={s} height={s} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke={color} strokeWidth="2" opacity="0.4" /><circle cx="12" cy="12" r="5.5" stroke={color} strokeWidth="2" opacity="0.7" /><circle cx="12" cy="12" r="2.5" fill={color} /></svg>;
         default: return <Zap size={s} color={color} />;
     }
 }
 
 const chapterThemes = [
     { bg: `linear-gradient(135deg, ${OXFORD} 0%, #2a3f6a 100%)`, pathColor: OXFORD },
-    { bg: `linear-gradient(135deg, ${SKY} 0%, #2a6fc0 100%)`,   pathColor: SKY    },
+    { bg: `linear-gradient(135deg, ${SKY} 0%, #2a6fc0 100%)`, pathColor: SKY },
     { bg: `linear-gradient(135deg, ${OXFORD} 0%, ${SKY} 100%)`, pathColor: '#3070b0' },
     { bg: `linear-gradient(135deg, #2a6fc0 0%, ${OXFORD} 100%)`, pathColor: '#2a6fc0' },
-    { bg: `linear-gradient(135deg, ${GOLD} 0%, #e08c10 100%)`,  pathColor: GOLD   },
+    { bg: `linear-gradient(135deg, ${GOLD} 0%, #e08c10 100%)`, pathColor: GOLD },
 ];
 
 const zigzagX = [0, 55, 90, 55, 0, -55, -90, -55];
@@ -83,9 +83,8 @@ function RoadmapNodeItem({ node, index, mounted, isNext, pathColor }: { node: Ro
                 <button
                     disabled={isLocked}
                     onClick={() => isAvailable && router.visit(route('node.start', node.id))}
-                    className={`relative flex items-center justify-center rounded-full border-[3px] ${
-                        isCompleted ? 'duo-node-completed' : isAvailable ? 'duo-node-available' : 'duo-node-locked'
-                    }`}
+                    className={`relative flex items-center justify-center rounded-full border-[3px] ${isCompleted ? 'duo-node-completed' : isAvailable ? 'duo-node-available' : 'duo-node-locked'
+                        }`}
                     style={{
                         width: size, height: size,
                         background: isCompleted ? OXFORD : isAvailable ? SKY : '#e0e4ea',
