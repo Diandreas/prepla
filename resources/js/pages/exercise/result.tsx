@@ -1,5 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { CheckCircle, XCircle, Clock, Zap, Trophy, Star } from 'lucide-react';
+function Icon({ name, size = 20, className, style }: { name: string; size?: number; className?: string; style?: React.CSSProperties }) {
+    return <img src={`/icons/${name}.png`} alt="" width={size} height={size} className={className} style={{ objectFit: 'contain', ...style }} />;
+}
 import { useEffect, useState } from 'react';
 import type { ExerciseAttempt } from '@/types';
 
@@ -73,7 +75,7 @@ export default function ExerciseResult({ attempt, nodeProgress }: Props) {
                                 className="flex flex-col items-center gap-2 p-5"
                                 style={{ background: 'rgba(245,166,35,0.06)' }}
                             >
-                                <Trophy className="h-10 w-10" style={{ color: GOLD }} />
+                                <Icon name="award" size={40} style={{ color: GOLD }} />
                                 <p className="text-lg font-black" style={{ color: OXFORD }}>Étape complétée !</p>
                                 <p className="text-sm font-bold text-muted-foreground">La prochaine étape est débloquée 🎉</p>
                             </div>
@@ -81,12 +83,12 @@ export default function ExerciseResult({ attempt, nodeProgress }: Props) {
                             <div className="flex flex-col items-center gap-2 p-5">
                                 <div className="flex gap-1.5">
                                     {Array.from({ length: exercisesRequired }).map((_, i) => (
-                                        <Star
+                                        <Icon
                                             key={i}
-                                            className="h-7 w-7"
+                                            name="star"
+                                            size={28}
                                             style={{
-                                                color: i < exercisesDone ? GOLD : '#e5e7eb',
-                                                fill: i < exercisesDone ? GOLD : 'none',
+                                                opacity: i < exercisesDone ? 1 : 0.2,
                                             }}
                                         />
                                     ))}
@@ -120,14 +122,14 @@ export default function ExerciseResult({ attempt, nodeProgress }: Props) {
                     </div>
                     <div className="duo-card flex flex-col items-center p-5">
                         <div className="flex items-center gap-1 text-3xl font-black" style={{ color: GOLD }}>
-                            <Zap className="h-6 w-6 fill-current" />
+                            <Icon name="zap" size={24} />
                             {attempt.xp_earned}
                         </div>
                         <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">XP gagnés</p>
                     </div>
                     <div className="duo-card flex flex-col items-center p-5">
                         <div className="flex items-center gap-1 text-3xl font-black" style={{ color: OXFORD }}>
-                            <Clock className="h-5 w-5" />
+                            <Icon name="clock" size={20} />
                             {mins}:{String(secs).padStart(2, '0')}
                         </div>
                         <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Temps</p>
@@ -156,9 +158,9 @@ export default function ExerciseResult({ attempt, nodeProgress }: Props) {
                                 >
                                     <div className="flex items-start gap-3">
                                         {item.correct ? (
-                                            <CheckCircle className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
+                                            <Icon name="check-circle" size={20} className="mt-0.5 shrink-0 text-green-600" />
                                         ) : (
-                                            <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-500" />
+                                            <Icon name="x-circle" size={20} className="mt-0.5 shrink-0 text-red-500" />
                                         )}
                                         <div>
                                             <p className="text-sm font-bold" style={{ color: OXFORD }}>
@@ -206,7 +208,7 @@ export default function ExerciseResult({ attempt, nodeProgress }: Props) {
                                 boxShadow: `0 5px 0 0 #c07a0e`,
                             }}
                         >
-                            <Trophy className="h-4 w-4" />
+                            <Icon name="award" size={16} />
                             Voir le parcours
                         </button>
                     ) : (

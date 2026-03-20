@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Clock } from 'lucide-react';
 
 interface ExerciseTimerProps {
     onTimeUpdate: (seconds: number) => void;
@@ -26,7 +25,7 @@ export function ExerciseTimer({ onTimeUpdate, timeLimit }: ExerciseTimerProps) {
 
     return (
         <div className={`flex items-center gap-1.5 text-sm ${isOverTime ? 'text-red-500' : 'text-muted-foreground'}`}>
-            <Clock className="h-4 w-4" />
+            <img src="/icons/clock.png" alt="" width={16} height={16} style={{ objectFit: 'contain' }} />
             <span>{String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}</span>
             {timeLimit && (
                 <span className="text-xs">/ {Math.floor(timeLimit / 60)}:{String(timeLimit % 60).padStart(2, '0')}</span>

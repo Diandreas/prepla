@@ -1,6 +1,5 @@
 import { Head } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-import { Trophy, Flame, Zap } from 'lucide-react';
 import type { LeaderboardEntry } from '@/types';
 import { useEffect, useState } from 'react';
 
@@ -12,6 +11,18 @@ interface Props {
 const OXFORD = '#1A2B48';
 const SKY = '#4A90E2';
 const GOLD = '#F5A623';
+
+// Custom icon component using icons from /public/icons
+function CustomIcon({ name, className, style }: { name: string; className?: string; style?: React.CSSProperties }) {
+    return (
+        <img
+            src={`/icons/${name}.png`}
+            alt={name}
+            className={className || 'h-5 w-5'}
+            style={{ objectFit: 'contain', ...style }}
+        />
+    );
+}
 
 const podiumColors = [
     { bg: GOLD, shadow: '#d48b10', ring: 'rgba(245,166,35,0.25)' },      // 1st
@@ -128,11 +139,10 @@ export default function Leaderboard({ entries, currentUserId }: Props) {
                             {entries.map((entry, i) => (
                                 <div
                                     key={entry.id}
-                                    className={`flex items-center gap-3 px-5 py-3 transition-all ${
-                                        entry.user_id === currentUserId
-                                            ? 'bg-primary/5'
-                                            : ''
-                                    }`}
+                                    className={`flex items-center gap-3 px-5 py-3 transition-all ${entry.user_id === currentUserId
+                                        ? 'bg-primary/5'
+                                        : ''
+                                        }`}
                                     style={{
                                         opacity: mounted ? 1 : 0,
                                         transform: mounted ? 'translateX(0)' : 'translateX(-10px)',
@@ -166,7 +176,7 @@ export default function Leaderboard({ entries, currentUserId }: Props) {
                                     </span>
                                     {/* XP */}
                                     <div className="flex items-center gap-1">
-                                        <Zap size={14} className="fill-current" style={{ color: GOLD }} />
+                                        <CustomIcon name="trophy" className="h-3.5 w-3.5" style={{ filter: 'brightness(0) saturate(100%) invert(84%) sepia(40%) saturate(1734%) hue-rotate(353deg) brightness(94%) contrast(86%)' }} />
                                         <span className="text-sm font-black" style={{ color: GOLD }}>
                                             {entry.xp}
                                         </span>

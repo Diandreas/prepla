@@ -1,9 +1,23 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-import { Flame, Lock, Sparkles, Trophy, Zap, ChevronRight } from 'lucide-react';
+function Icon({ name, size = 20, style }: { name: string; size?: number; style?: React.CSSProperties }) {
+    return <img src={`/icons/${name}.png`} alt="" width={size} height={size} style={{ objectFit: 'contain', ...style }} />;
+}
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { SharedData, UserProfile } from '@/types';
+
+// Custom icon component using icons from /public/icons
+function CustomIcon({ name, className, style }: { name: string; className?: string; style?: React.CSSProperties }) {
+    return (
+        <img
+            src={`/icons/${name}.png`}
+            alt={name}
+            className={className || 'h-5 w-5'}
+            style={{ objectFit: 'contain', ...style }}
+        />
+    );
+}
 
 /* ─── Types ─── */
 interface RoadmapNode {
@@ -45,7 +59,7 @@ function NodeIcon({ name, size, color = 'white' }: { name: string; size: number;
         case 'mic': return <svg width={s} height={s} viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="12" rx="3" fill={color} opacity="0.9" /><path d="M5 10a7 7 0 0 0 14 0" stroke={color} strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.7" /><line x1="12" y1="17" x2="12" y2="21" stroke={color} strokeWidth="2" strokeLinecap="round" opacity="0.7" /><line x1="9" y1="21" x2="15" y2="21" stroke={color} strokeWidth="2" strokeLinecap="round" opacity="0.7" /></svg>;
         case 'brain': return <svg width={s} height={s} viewBox="0 0 24 24" fill="none"><path d="M12 3a6 6 0 0 1 4 10.5V16a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.5A6 6 0 0 1 12 3z" fill={color} opacity="0.9" /><rect x="9" y="17" width="6" height="1.5" rx="0.75" fill={color} opacity="0.6" /><rect x="10" y="19.5" width="4" height="1.5" rx="0.75" fill={color} opacity="0.4" /></svg>;
         case 'target': return <svg width={s} height={s} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke={color} strokeWidth="2" opacity="0.4" /><circle cx="12" cy="12" r="5.5" stroke={color} strokeWidth="2" opacity="0.7" /><circle cx="12" cy="12" r="2.5" fill={color} /></svg>;
-        default: return <Zap size={s} color={color} />;
+        default: return <img src="/icons/zap.png" alt="" width={s} height={s} style={{ objectFit: 'contain' }} />;
     }
 }
 
@@ -91,7 +105,7 @@ function RoadmapNodeItem({ node, index, mounted, isNext, pathColor }: { node: Ro
                         animation: isAvailable && !isCompleted ? 'nodeBounce 2.2s ease-in-out infinite' : undefined
                     }}
                 >
-                    {isCompleted ? <Check color="white" /> : isLocked ? <Lock size={20} color="rgba(26,43,72,0.25)" /> : <NodeIcon name={node.icon} size={24} />}
+                    {isCompleted ? <Icon name="check" size={20} style={{ filter: 'brightness(0) invert(1)' }} /> : isLocked ? <Icon name="shield" size={20} style={{ opacity: 0.25 }} /> : <NodeIcon name={node.icon} size={24} />}
                 </button>
                 {isNext && isAvailable && (
                     <div className="absolute -top-14 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-2xl px-5 py-2.5 text-[12px] font-black text-white tracking-widest animate-bounce"
@@ -228,11 +242,11 @@ export default function Dashboard() {
                     </div>
                     <div className="flex gap-2">
                         <div className="duo-badge flex items-center gap-1.5 rounded-xl border bg-card px-3 py-2 text-sm font-bold">
-                            <Flame size={16} className="text-orange-500" />
+                            <CustomIcon name="medal" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(50%) sepia(96%) saturate(1762%) hue-rotate(332deg) brightness(102%) contrast(96%)' }} />
                             <span>{profile?.streak_current ?? 0}</span>
                         </div>
                         <div className="duo-badge flex items-center gap-1.5 rounded-xl border bg-card px-3 py-2 text-sm font-bold">
-                            <Zap size={16} className="text-yellow-500" />
+                            <CustomIcon name="trophy" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(84%) sepia(40%) saturate(1734%) hue-rotate(353deg) brightness(94%) contrast(86%)' }} />
                             <span>{(profile?.xp_total ?? 0).toLocaleString()}</span>
                         </div>
                     </div>
@@ -300,12 +314,18 @@ export default function Dashboard() {
                 {/* Bottom Navigation Quick Access */}
                 <div className="mt-16 grid grid-cols-2 gap-4">
                     <Link href={route('practice.index')} className="duo-link flex items-center justify-between rounded-2xl border bg-card p-4 font-bold">
-                        <span>{t('common.start')}</span>
-                        <ChevronRight />
+                        <span className="flex items-center gap-2">
+                            <CustomIcon name="puzzle" className="h-5 w-5" />
+                            {t('common.start')}
+                        </span>
+                        <Icon name="chevron-right" size={20} />
                     </Link>
                     <Link href={route('ai-tools.index')} className="duo-link flex items-center justify-between rounded-2xl border bg-card p-4 font-bold">
-                        <span>{t('common.ai_tools')}</span>
-                        <ChevronRight />
+                        <span className="flex items-center gap-2">
+                            <CustomIcon name="video" className="h-5 w-5" />
+                            {t('common.ai_tools')}
+                        </span>
+                        <Icon name="chevron-right" size={20} />
                     </Link>
                 </div>
             </div>

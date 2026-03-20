@@ -1,6 +1,5 @@
 import { Link, useForm } from '@inertiajs/react';
 import { FormEventHandler, useRef } from 'react';
-import { Trash2 } from 'lucide-react';
 
 // Components...
 import InputError from '@/components/input-error';
@@ -36,7 +35,7 @@ export default function DeleteUser() {
         <div className="p-4 space-y-4">
             <div className="flex items-center gap-3 text-red-600">
                 <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-100 dark:bg-red-900/30">
-                    <Trash2 size={18} />
+                    <img src="/icons/trash.png" alt="" width={18} height={18} style={{ objectFit: 'contain' }} />
                 </div>
                 <div>
                     <p className="text-sm font-bold">Zone de danger</p>

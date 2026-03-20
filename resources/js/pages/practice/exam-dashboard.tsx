@@ -1,6 +1,8 @@
 import { Head, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-import { BookOpen, ChevronRight, Headphones, MessageSquare, Mic } from 'lucide-react';
+function Icon({ name, size = 20, style }: { name: string; size?: number; style?: React.CSSProperties }) {
+    return <img src={`/icons/${name}.png`} alt="" width={size} height={size} style={{ objectFit: 'contain', ...style }} />;
+}
 import { useEffect, useState } from 'react';
 import type { ExamRecord, ExamSection } from '@/types';
 
@@ -13,11 +15,11 @@ const OXFORD = '#1A2B48';
 const SKY = '#4A90E2';
 const GOLD = '#F5A623';
 
-const skillIcons: Record<string, typeof BookOpen> = {
-    reading: BookOpen,
-    listening: Headphones,
-    writing: MessageSquare,
-    speaking: Mic,
+const skillIcons: Record<string, string> = {
+    reading: 'book',
+    listening: 'headphones',
+    writing: 'message-square',
+    speaking: 'mic',
 };
 
 const skillThemes: Record<string, { bg: string; shadow: string }> = {
@@ -51,7 +53,7 @@ export default function ExamDashboard({ exam, sectionProgress }: Props) {
                 {/* Section Cards */}
                 <div className="grid gap-4 sm:grid-cols-2">
                     {exam.sections.map((section, i) => {
-                        const Icon = skillIcons[section.skill_type] ?? BookOpen;
+                        const iconName = skillIcons[section.skill_type] ?? 'book';
                         const theme = skillThemes[section.skill_type] ?? skillThemes.reading;
                         const attempts = sectionProgress[section.id] ?? 0;
 
@@ -74,7 +76,7 @@ export default function ExamDashboard({ exam, sectionProgress }: Props) {
                                         boxShadow: `0 4px 0 0 ${theme.shadow}`,
                                     }}
                                 >
-                                    <Icon size={20} color="white" strokeWidth={2.5} />
+                                    <Icon name={iconName} size={20} style={{ filter: 'brightness(0) invert(1)' }} />
                                 </div>
 
                                 {/* Content */}
@@ -102,7 +104,7 @@ export default function ExamDashboard({ exam, sectionProgress }: Props) {
                                 </div>
 
                                 {/* Chevron */}
-                                <ChevronRight size={16} style={{ color: 'rgba(26,43,72,0.25)' }} />
+                                <Icon name="chevron-right" size={16} style={{ opacity: 0.25 }} />
                             </Link>
                         );
                     })}

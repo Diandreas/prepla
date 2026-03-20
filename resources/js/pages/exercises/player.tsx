@@ -3,7 +3,9 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
 import { useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Check, ChevronRight, X, Sparkles, AlertCircle } from 'lucide-react';
+function Icon({ name, size = 20, className, style }: { name: string; size?: number; className?: string; style?: React.CSSProperties }) {
+    return <img src={`/icons/${name}.png`} alt="" width={size} height={size} className={className} style={{ objectFit: 'contain', ...style }} />;
+}
 import { Mcq } from '@/components/exercises/mcq';
 import { TrueFalseNg } from '@/components/exercises/true-false-ng';
 import { GapFill } from '@/components/exercises/gap-fill';
@@ -132,7 +134,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
         return (
             <AppLayout>
                 <div className="flex flex-col items-center justify-center py-20">
-                    <AlertCircle className="h-12 w-12 text-muted-foreground" />
+                    <Icon name="alert-circle" size={48} className="text-muted-foreground" />
                     <p className="mt-4 text-xl font-medium">Session non disponible</p>
                 </div>
             </AppLayout>
@@ -149,7 +151,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                                <Sparkles className="h-5 w-5" />
+                                <Icon name="sparkles" size={20} />
                             </span>
                             <div>
                                 <h1 className="text-lg font-bold leading-none">{node.title}</h1>
@@ -196,7 +198,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                                     <div className={`flex h-12 w-12 items-center justify-center rounded-full ${
                                         isCorrect ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
                                     }`}>
-                                        {isCorrect ? <Check className="h-6 w-6" /> : <X className="h-6 w-6" />}
+                                        {isCorrect ? <Icon name="check" size={24} style={{ filter: 'brightness(0) invert(1)' }} /> : <Icon name="x" size={24} style={{ filter: 'brightness(0) invert(1)' }} />}
                                     </div>
                                     <div>
                                         <p className={`text-lg font-bold ${isCorrect ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400'}`}>
@@ -225,7 +227,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                                 ? (currentExerciseIndex === exercises.length - 1 && currentQuestionIndex === questions.length - 1 ? t('exercise.finish') : t('exercise.next'))
                                 : t('exercise.check')
                             }
-                            {!isChecked && <ChevronRight className="ml-2 h-4 w-4" />}
+                            {!isChecked && <Icon name="chevron-right" size={16} className="ml-2" style={{ filter: 'brightness(0) invert(1)' }} />}
                         </Button>
                     </div>
                 </div>

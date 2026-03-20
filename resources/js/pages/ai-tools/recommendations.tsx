@@ -2,7 +2,9 @@ import { Head } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Lightbulb, Target, TrendingUp } from 'lucide-react';
+function Icon({ name, size = 20, className, style }: { name: string; size?: number; className?: string; style?: React.CSSProperties }) {
+    return <img src={`/icons/${name}.png`} alt="" width={size} height={size} className={className} style={{ objectFit: 'contain', ...style }} />;
+}
 import type { UserProfile, ExerciseAttempt } from '@/types';
 
 interface Props {
@@ -29,21 +31,21 @@ export default function Recommendations({ profile, recentAttempts }: Props) {
                 <div className="grid gap-4 sm:grid-cols-3">
                     <Card>
                         <CardContent className="flex flex-col items-center py-6">
-                            <Target className="h-8 w-8 text-blue-500" />
+                            <Icon name="target" size={32} className="text-blue-500" />
                             <p className="mt-2 text-2xl font-bold">{profile?.current_level ?? '—'}</p>
                             <p className="text-sm text-muted-foreground">Niveau actuel</p>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardContent className="flex flex-col items-center py-6">
-                            <TrendingUp className="h-8 w-8 text-green-500" />
+                            <Icon name="trending-up" size={32} className="text-green-500" />
                             <p className="mt-2 text-2xl font-bold">{avgAccuracy.toFixed(0)}%</p>
                             <p className="text-sm text-muted-foreground">Précision moyenne (10 derniers)</p>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardContent className="flex flex-col items-center py-6">
-                            <Lightbulb className="h-8 w-8 text-yellow-500" />
+                            <Icon name="lightbulb" size={32} className="text-yellow-500" />
                             <p className="mt-2 text-2xl font-bold">{recentAttempts.length}</p>
                             <p className="text-sm text-muted-foreground">Exercices récents</p>
                         </CardContent>

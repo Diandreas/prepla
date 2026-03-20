@@ -1,7 +1,9 @@
 import { Head, Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { CheckCircle, Clock, XCircle, Zap } from 'lucide-react';
+function Icon({ name, size = 20, className, style }: { name: string; size?: number; className?: string; style?: React.CSSProperties }) {
+    return <img src={`/icons/${name}.png`} alt="" width={size} height={size} className={className} style={{ objectFit: 'contain', ...style }} />;
+}
 import type { ExerciseAttempt } from '@/types';
 
 interface Props {
@@ -44,7 +46,7 @@ export default function AttemptDetail({ attempt }: Props) {
                     <Card>
                         <CardContent className="flex flex-col items-center py-6">
                             <div className="flex items-center gap-1 text-4xl font-bold">
-                                <Zap className="h-6 w-6 text-yellow-500" />
+                                <Icon name="zap" size={24} className="text-yellow-500" />
                                 {attempt.xp_earned}
                             </div>
                             <p className="text-sm text-muted-foreground">XP Earned</p>
@@ -53,7 +55,7 @@ export default function AttemptDetail({ attempt }: Props) {
                     <Card>
                         <CardContent className="flex flex-col items-center py-6">
                             <div className="flex items-center gap-1 text-4xl font-bold">
-                                <Clock className="h-6 w-6 text-blue-500" />
+                                <Icon name="clock" size={24} className="text-blue-500" />
                                 {mins}:{String(secs).padStart(2, '0')}
                             </div>
                             <p className="text-sm text-muted-foreground">Time</p>
@@ -76,9 +78,9 @@ export default function AttemptDetail({ attempt }: Props) {
                             >
                                 <div className="flex items-start gap-2">
                                     {item.correct ? (
-                                        <CheckCircle className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
+                                        <Icon name="check-circle" size={20} className="mt-0.5 shrink-0 text-green-600" />
                                     ) : (
-                                        <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
+                                        <Icon name="x-circle" size={20} className="mt-0.5 shrink-0 text-red-600" />
                                     )}
                                     <div>
                                         <p className="font-medium">{question?.text ?? `Question ${i + 1}`}</p>

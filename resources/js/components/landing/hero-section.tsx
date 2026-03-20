@@ -1,6 +1,5 @@
 import { Link } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
-import { ArrowRight, CheckCircle } from 'lucide-react';
 
 const LANGUAGES = ['Allemand', 'Anglais', 'Japonais', 'Chinois', 'Espagnol', 'Coréen', 'Français', 'Russe', 'Arabe', 'Portugais'];
 const EXAM_CARDS = [
@@ -76,7 +75,7 @@ function MockExerciseCard({ card, visible }: { card: typeof EXAM_CARDS[0]; visib
                                 {String.fromCharCode(65 + i)}
                             </span>
                             {opt}
-                            {showResult && isCorrect && <CheckCircle className="ml-auto h-3.5 w-3.5 shrink-0 text-green-400" />}
+                            {showResult && isCorrect && <img src="/icons/check-circle.png" alt="" className="ml-auto h-3.5 w-3.5 shrink-0" style={{ filter: 'brightness(0) saturate(100%) invert(69%) sepia(56%) saturate(487%) hue-rotate(92deg) brightness(103%) contrast(93%)' }} />}
                         </div>
                     );
                 })}
@@ -259,7 +258,7 @@ export function HeroSection() {
                                 onMouseLeave={(e) => (e.currentTarget.style.boxShadow = '0 0 0 0 rgba(74,144,226,0.4)')}
                             >
                                 Commencer gratuitement
-                                <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+                                <img src="/icons/arrow-right.png" alt="" className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" style={{ filter: 'brightness(0) saturate(100%) invert(100%)' }} />
                             </Link>
                             <a
                                 href="#pricing"

@@ -1,5 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { ChevronLeft, Check, Sparkles, CreditCard, Zap, Shield, Crown } from 'lucide-react';
+function Icon({ name, size = 20, className, style }: { name: string; size?: number; className?: string; style?: React.CSSProperties }) {
+    return <img src={`/icons/${name}.png`} alt="" width={size} height={size} className={className} style={{ objectFit: 'contain', ...style }} />;
+}
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,11 +33,11 @@ export default function Subscription({ currentPlan }: Props) {
     };
 
     const features = [
-        { icon: <Sparkles className="h-5 w-5 text-amber-500" />, text: "Accès illimité à tous les examens (IELTS, TOEFL, TCF...)" },
-        { icon: <Zap className="h-5 w-5 text-blue-500" />, text: "Correction IA instantanée pour vos rédactions et oraux" },
-        { icon: <Shield className="h-5 w-5 text-emerald-500" />, text: "Expliqueur d'erreurs illimité sur chaque exercice" },
-        { icon: <Crown className="h-5 w-5 text-purple-500" />, text: "Générateur d'exercices IA sans limites quotidiennes" },
-        { icon: <Check className="h-5 w-5 text-sky-500" />, text: "Statistiques de progression avancées" },
+        { icon: <Icon name="sparkles" size={20} className="text-amber-500" />, text: "Accès illimité à tous les examens (IELTS, TOEFL, TCF...)" },
+        { icon: <Icon name="zap" size={20} className="text-blue-500" />, text: "Correction IA instantanée pour vos rédactions et oraux" },
+        { icon: <Icon name="shield" size={20} className="text-emerald-500" />, text: "Expliqueur d'erreurs illimité sur chaque exercice" },
+        { icon: <Icon name="award" size={20} className="text-purple-500" />, text: "Générateur d'exercices IA sans limites quotidiennes" },
+        { icon: <Icon name="check" size={20} className="text-sky-500" />, text: "Statistiques de progression avancées" },
     ];
 
     return (
@@ -46,7 +48,7 @@ export default function Subscription({ currentPlan }: Props) {
                 {/* Mobile Back Button */}
                 <div className="md:hidden mb-6">
                     <Link href={route('profile.edit')} className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground">
-                        <ChevronLeft className="mr-1 h-4 w-4" />
+                        <img src="/icons/chevron-right.png" alt="" width={16} height={16} style={{ objectFit: 'contain', transform: 'rotate(180deg)' }} className="mr-1" />
                         Retour au profil
                     </Link>
                 </div>
@@ -71,11 +73,11 @@ export default function Subscription({ currentPlan }: Props) {
                         </CardHeader>
                         <CardContent className="space-y-3">
                             <div className="flex items-center gap-2 text-sm">
-                                <Check className="h-4 w-4 text-emerald-500" />
+                                <Icon name="check" size={16} className="text-emerald-500" />
                                 <span>1 examen au choix</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm">
-                                <Check className="h-4 w-4 text-emerald-500" />
+                                <Icon name="check" size={16} className="text-emerald-500" />
                                 <span>Exercices de base</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm opacity-40 italic">
@@ -102,7 +104,7 @@ export default function Subscription({ currentPlan }: Props) {
                         {isPremium && <Badge className="absolute top-3 right-3 bg-amber-400 text-amber-950 font-bold">ACTIF</Badge>}
                         <CardHeader>
                             <div className="flex items-center gap-2 text-amber-600 font-bold text-sm uppercase tracking-widest">
-                                <Sparkles className="h-4 w-4 fill-current" />
+                                <Icon name="sparkles" size={16} />
                                 Recommandé
                             </div>
                             <CardTitle className="text-2xl font-black">PrePla Plus</CardTitle>
@@ -125,7 +127,7 @@ export default function Subscription({ currentPlan }: Props) {
                             {isPremium ? (
                                 <div className="w-full space-y-3">
                                     <div className="flex items-center justify-center gap-2 rounded-xl bg-amber-50 p-3 text-sm font-bold text-amber-700 border border-amber-100">
-                                        <Shield className="h-4 w-4" />
+                                        <Icon name="shield" size={16} />
                                         Abonnement actif via Carte Bancaire
                                     </div>
                                     <p className="text-center text-[10px] text-muted-foreground">Prochaine facturation le {new Date(new Date().setMonth(new Date().getMonth() + 1)).toLocaleDateString()}</p>
@@ -144,7 +146,7 @@ export default function Subscription({ currentPlan }: Props) {
                 </div>
 
                 <div className="rounded-2xl bg-muted/30 p-6 text-center space-y-4 border border-dashed border-border">
-                    <CreditCard className="mx-auto h-8 w-8 text-muted-foreground opacity-50" />
+                    <Icon name="credit-card" size={32} className="mx-auto text-muted-foreground opacity-50" />
                     <div className="space-y-1">
                         <p className="text-sm font-bold">Paiement sécurisé</p>
                         <p className="text-xs text-muted-foreground">

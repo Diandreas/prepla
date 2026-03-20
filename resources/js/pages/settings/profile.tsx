@@ -2,11 +2,6 @@ import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { FormEventHandler, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { 
-    User, Mail, Shield, CreditCard, BookOpen, Target, 
-    Calendar, ChevronRight, LogOut, Trash2, Moon, 
-    Lock, Sparkles, Languages, Award, Flame, Zap
-} from 'lucide-react';
 
 import DeleteUser from '@/components/delete-user';
 import { Button } from '@/components/ui/button';
@@ -19,6 +14,18 @@ import { useInitials } from '@/hooks/use-initials';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+
+// Custom icon component using icons from /public/icons
+function CustomIcon({ name, className, style }: { name: string; className?: string; style?: React.CSSProperties }) {
+    return (
+        <img
+            src={`/icons/${name}.png`}
+            alt={name}
+            className={className || 'h-5 w-5'}
+            style={{ objectFit: 'contain', ...style }}
+        />
+    );
+}
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -98,24 +105,24 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                             </AvatarFallback>
                         </Avatar>
                         <div className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white shadow-lg border-4 border-background">
-                            <Sparkles size={14} fill="currentColor" />
+                            <CustomIcon name="sparkles" className="h-3.5 w-3.5" style={{ filter: 'brightness(0) saturate(100%) invert(100%)' }} />
                         </div>
                     </div>
                     <h2 className="text-2xl font-black tracking-tight">{auth.user.name}</h2>
                     <p className="text-sm text-muted-foreground">{auth.user.email}</p>
-                    
+
                     <div className="mt-6 flex gap-3">
                         <div className="flex flex-col items-center rounded-2xl border bg-card px-5 py-3 shadow-sm min-w-[100px]">
                             <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">{t('profile.xp_points', 'Points XP')}</span>
                             <div className="flex items-center gap-1.5 text-lg font-black text-primary">
-                                <Zap size={18} className="fill-current" />
+                                <CustomIcon name="zap" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(84%) sepia(40%) saturate(1734%) hue-rotate(353deg) brightness(94%) contrast(86%)' }} />
                                 {profile?.xp_total ?? 0}
                             </div>
                         </div>
                         <div className="flex flex-col items-center rounded-2xl border bg-card px-5 py-3 shadow-sm min-w-[100px]">
                             <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">{t('profile.streak', 'Série')}</span>
                             <div className="flex items-center gap-1.5 text-lg font-black text-orange-500">
-                                <Flame size={18} className="fill-current" />
+                                <CustomIcon name="flame" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(50%) sepia(96%) saturate(1762%) hue-rotate(332deg) brightness(102%) contrast(96%)' }} />
                                 {profile?.streak_current ?? 0}
                             </div>
                         </div>
@@ -130,21 +137,21 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                                 <Badge className={`font-bold ${profile?.plan === 'premium' ? 'bg-amber-400 text-amber-950' : 'bg-neutral-500 text-white'}`}>
                                     {profile?.plan === 'premium' ? 'PREMIUM' : 'STANDARD'}
                                 </Badge>
-                                <CreditCard size={18} className="opacity-50" />
+                                <CustomIcon name="credit-card" className="h-4 w-4 opacity-50" style={{ filter: 'brightness(0) saturate(100%) invert(100%)' }} />
                             </div>
                             <CardTitle className="text-xl mt-2 font-black">
                                 {profile?.plan === 'premium' ? 'PrePla Plus' : 'PrePla Standard'}
                             </CardTitle>
                             <CardDescription className="text-blue-100/70">
-                                {profile?.plan === 'premium' 
-                                    ? t('profile.premium_desc', 'Accès illimité à tous les examens et correction IA avancée.') 
+                                {profile?.plan === 'premium'
+                                    ? t('profile.premium_desc', 'Accès illimité à tous les examens et correction IA avancée.')
                                     : t('profile.standard_desc', 'Passez au Premium pour débloquer toutes les fonctionnalités.')}
                             </CardDescription>
                         </CardHeader>
                         <CardFooter className="pt-0">
                             <Link href={route('subscription.index')} className="w-full">
-                                <Button 
-                                    variant="secondary" 
+                                <Button
+                                    variant="secondary"
                                     className="w-full mt-4 bg-white/10 hover:bg-white/20 border-white/20 text-white font-bold"
                                 >
                                     {t('profile.manage_subscription', 'Gérer mon abonnement')}
@@ -162,15 +169,15 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                         <div className="p-4 space-y-4">
                             <div className="flex items-center mb-1">
                                 <div className={itemIconBg + " bg-blue-100 text-blue-600"}>
-                                    <BookOpen size={18} />
+                                    <CustomIcon name="book" className="h-4 w-4" />
                                 </div>
                                 <div className="flex-1">
                                     <p className="text-sm font-bold">{t('profile.prepared_exam', 'Examen préparé')}</p>
                                     <p className="text-xs text-muted-foreground">{t('profile.select_goal', 'Sélectionnez votre objectif')}</p>
                                 </div>
                             </div>
-                            <Select 
-                                value={learningForm.data.target_exam_id} 
+                            <Select
+                                value={learningForm.data.target_exam_id}
                                 onValueChange={(val) => {
                                     learningForm.setData('target_exam_id', val);
                                 }}
@@ -192,8 +199,8 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                         <div className="p-4 grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">{t('profile.current_level', 'Niveau actuel')}</Label>
-                                <Select 
-                                    value={learningForm.data.current_level} 
+                                <Select
+                                    value={learningForm.data.current_level}
                                     onValueChange={(val) => learningForm.setData('current_level', val)}
                                 >
                                     <SelectTrigger className="bg-muted/30 border-none h-11 font-bold">
@@ -208,7 +215,7 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                             </div>
                             <div className="space-y-2">
                                 <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">{t('profile.target_score', 'Score visé')}</Label>
-                                <Input 
+                                <Input
                                     type="number"
                                     step="0.1"
                                     className="bg-muted/30 border-none h-11 font-bold text-center"
@@ -222,14 +229,14 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                         <div className="p-4 flex items-center justify-between">
                             <div className="flex items-center">
                                 <div className={itemIconBg + " bg-purple-100 text-purple-600"}>
-                                    <Calendar size={18} />
+                                    <CustomIcon name="calendar" className="h-4 w-4" />
                                 </div>
                                 <div>
                                     <p className="text-sm font-bold">{t('profile.exam_date', 'Date de l\'examen')}</p>
                                     <p className="text-xs text-muted-foreground">{t('profile.exam_day', 'Jour J')}</p>
                                 </div>
                             </div>
-                            <Input 
+                            <Input
                                 type="date"
                                 className="w-auto bg-muted/30 border-none font-bold"
                                 value={learningForm.data.exam_date}
@@ -241,15 +248,15 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                         <div className="p-4 flex items-center justify-between">
                             <div className="flex items-center">
                                 <div className={itemIconBg + " bg-orange-100 text-orange-600"}>
-                                    <Languages size={18} />
+                                    <CustomIcon name="languages" className="h-4 w-4" />
                                 </div>
                                 <div>
                                     <p className="text-sm font-bold">{t('profile.interface_language', 'Langue de l\'interface')}</p>
                                     <p className="text-xs text-muted-foreground">{t('profile.menu_instructions', 'Menu et consignes')}</p>
                                 </div>
                             </div>
-                            <Select 
-                                value={learningForm.data.interface_language} 
+                            <Select
+                                value={learningForm.data.interface_language}
                                 onValueChange={(val) => learningForm.setData('interface_language', val)}
                             >
                                 <SelectTrigger className="w-auto min-w-[120px] bg-muted/30 border-none h-11 font-bold">
@@ -263,7 +270,7 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                         </div>
 
                         <div className="p-4 bg-muted/5 text-center">
-                            <Button 
+                            <Button
                                 onClick={submitLearning}
                                 disabled={learningForm.processing}
                                 className="w-full font-bold shadow-md rounded-xl"
@@ -278,20 +285,20 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                 <div className="px-4">
                     <h3 className={sectionTitleStyle}>{t('profile.personal_info', 'Informations Personnelles')}</h3>
                     <div className="overflow-hidden rounded-2xl border bg-card shadow-sm divide-y">
-                        <button 
+                        <button
                             onClick={() => setIsEditingInfo(!isEditingInfo)}
                             className={itemStyle}
                         >
                             <div className="flex items-center">
                                 <div className={itemIconBg + " bg-neutral-100 text-neutral-600"}>
-                                    <User size={18} />
+                                    <CustomIcon name="user" className="h-4 w-4" />
                                 </div>
                                 <div>
                                     <p className="text-sm font-bold">{auth.user.name}</p>
                                     <p className="text-xs text-muted-foreground">{t('profile.full_name', 'Nom complet')}</p>
                                 </div>
                             </div>
-                            <ChevronRight size={16} className="text-muted-foreground opacity-50" />
+                            <CustomIcon name="chevron-right" className="h-4 w-4 text-muted-foreground opacity-50" />
                         </button>
 
                         {isEditingInfo && (
@@ -310,11 +317,11 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                                 </div>
                             </form>
                         )}
-                        
+
                         <div className={itemStyle}>
                             <div className="flex items-center">
                                 <div className={itemIconBg + " bg-neutral-100 text-neutral-600"}>
-                                    <Shield size={18} />
+                                    <CustomIcon name="shield" className="h-4 w-4" />
                                 </div>
                                 <div>
                                     <p className="text-sm font-bold">{t('profile.verified_account', 'Compte Vérifié')}</p>
@@ -333,25 +340,25 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                         <Link href={route('appearance')} className={itemStyle}>
                             <div className="flex items-center">
                                 <div className={itemIconBg + " bg-neutral-100 text-neutral-600"}>
-                                    <Moon size={18} />
+                                    <CustomIcon name="moon" className="h-4 w-4" />
                                 </div>
                                 <p className="text-sm font-bold">{t('profile.appearance', 'Apparence')}</p>
                             </div>
-                            <ChevronRight size={16} className="text-muted-foreground opacity-50" />
+                            <CustomIcon name="chevron-right" className="h-4 w-4 text-muted-foreground opacity-50" />
                         </Link>
                         <Link href={route('password.edit')} className={itemStyle}>
                             <div className="flex items-center">
                                 <div className={itemIconBg + " bg-neutral-100 text-neutral-600"}>
-                                    <Lock size={18} />
+                                    <CustomIcon name="lock" className="h-4 w-4" />
                                 </div>
                                 <p className="text-sm font-bold">{t('profile.security_password', 'Sécurité & Mot de passe')}</p>
                             </div>
-                            <ChevronRight size={16} className="text-muted-foreground opacity-50" />
+                            <CustomIcon name="chevron-right" className="h-4 w-4 text-muted-foreground opacity-50" />
                         </Link>
                         <Link href={route('logout')} method="post" as="button" className={itemStyle}>
                             <div className="flex items-center text-red-600">
                                 <div className={itemIconBg + " bg-red-50 text-red-600"}>
-                                    <LogOut size={18} />
+                                    <CustomIcon name="log-out" className="h-4 w-4" />
                                 </div>
                                 <p className="text-sm font-bold">{t('profile.logout', 'Déconnexion')}</p>
                             </div>

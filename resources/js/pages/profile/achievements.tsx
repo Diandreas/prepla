@@ -2,7 +2,6 @@ import { Head } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Lock } from 'lucide-react';
 import type { AchievementRecord } from '@/types';
 
 interface Props {
@@ -35,9 +34,9 @@ export default function Achievements({ achievements, earnedIds }: Props) {
                                         earned ? 'bg-primary/10' : 'bg-muted'
                                     }`}>
                                         {earned ? (
-                                            <CheckCircle className="h-5 w-5 text-primary" />
+                                            <img src="/icons/check-circle.png" alt="" width={20} height={20} style={{ objectFit: 'contain' }} className="text-primary" />
                                         ) : (
-                                            <Lock className="h-5 w-5 text-muted-foreground" />
+                                            <img src="/icons/shield.png" alt="" width={20} height={20} style={{ objectFit: 'contain' }} className="text-muted-foreground" />
                                         )}
                                     </div>
                                     <div className="flex-1">

@@ -3,7 +3,6 @@ import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import type { ExamRecord, ExamSection, ExerciseTypeRecord } from '@/types';
 
@@ -148,7 +147,7 @@ export default function Generator({ exams, targetExamId, userLevel }: Props) {
                         disabled={generating}
                         className="gap-2"
                     >
-                        <Sparkles className="h-4 w-4" />
+                        <img src="/icons/sparkles.png" alt="" width={16} height={16} style={{ objectFit: 'contain' }} />
                         {generating ? 'Génération en cours...' : "Générer l'exercice"}
                     </Button>
                 )}

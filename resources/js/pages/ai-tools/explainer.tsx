@@ -2,7 +2,9 @@ import { Head } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Send, User, Bot } from 'lucide-react';
+function Icon({ name, size = 20, style, className }: { name: string; size?: number; style?: React.CSSProperties; className?: string }) {
+    return <img src={`/icons/${name}.png`} alt="" width={size} height={size} style={{ objectFit: 'contain', ...style }} className={className} />;
+}
 import { useState } from 'react';
 
 interface Message {
@@ -57,7 +59,7 @@ export default function Explainer() {
                                 >
                                     {msg.role === 'assistant' && (
                                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                                            <Bot className="h-4 w-4 text-primary" />
+                                            <Icon name="sparkles" size={16} className="text-primary" />
                                         </div>
                                     )}
                                     <div
@@ -71,7 +73,7 @@ export default function Explainer() {
                                     </div>
                                     {msg.role === 'user' && (
                                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
-                                            <User className="h-4 w-4" />
+                                            <Icon name="user" size={16} />
                                         </div>
                                     )}
                                 </div>
@@ -89,7 +91,7 @@ export default function Explainer() {
                                     onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                                 />
                                 <Button size="icon" onClick={handleSend} disabled={!input.trim()}>
-                                    <Send className="h-4 w-4" />
+                                    <Icon name="send" size={16} />
                                 </Button>
                             </div>
                         </div>

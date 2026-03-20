@@ -1,7 +1,9 @@
 import { Head } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Card, CardContent } from '@/components/ui/card';
-import { BarChart3, Clock, Flame, Target, Trophy, Zap } from 'lucide-react';
+function Icon({ name, size = 20, className }: { name: string; size?: number; className?: string }) {
+    return <img src={`/icons/${name}.png`} alt="" width={size} height={size} className={className} style={{ objectFit: 'contain' }} />;
+}
 import type { UserProfile } from '@/types';
 
 interface Props {
@@ -27,7 +29,7 @@ export default function Stats({ profile, totalAttempts, totalTime, avgAccuracy }
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     <Card>
                         <CardContent className="flex items-center gap-4 py-6">
-                            <Zap className="h-10 w-10 text-yellow-500" />
+                            <Icon name="zap" size={40} className="text-yellow-500" />
                             <div>
                                 <p className="text-3xl font-bold">{profile?.xp_total ?? 0}</p>
                                 <p className="text-sm text-muted-foreground">Total XP</p>
@@ -36,7 +38,7 @@ export default function Stats({ profile, totalAttempts, totalTime, avgAccuracy }
                     </Card>
                     <Card>
                         <CardContent className="flex items-center gap-4 py-6">
-                            <Flame className="h-10 w-10 text-orange-500" />
+                            <Icon name="flame" size={40} className="text-orange-500" />
                             <div>
                                 <p className="text-3xl font-bold">{profile?.streak_current ?? 0}</p>
                                 <p className="text-sm text-muted-foreground">Day Streak</p>
@@ -45,7 +47,7 @@ export default function Stats({ profile, totalAttempts, totalTime, avgAccuracy }
                     </Card>
                     <Card>
                         <CardContent className="flex items-center gap-4 py-6">
-                            <Target className="h-10 w-10 text-blue-500" />
+                            <Icon name="target" size={40} className="text-blue-500" />
                             <div>
                                 <p className="text-3xl font-bold">{profile?.current_level ?? '—'}</p>
                                 <p className="text-sm text-muted-foreground">Current Level</p>
@@ -54,7 +56,7 @@ export default function Stats({ profile, totalAttempts, totalTime, avgAccuracy }
                     </Card>
                     <Card>
                         <CardContent className="flex items-center gap-4 py-6">
-                            <BarChart3 className="h-10 w-10 text-green-500" />
+                            <Icon name="trending-up" size={40} className="text-green-500" />
                             <div>
                                 <p className="text-3xl font-bold">{avgAccuracy}%</p>
                                 <p className="text-sm text-muted-foreground">Avg Accuracy</p>
@@ -63,7 +65,7 @@ export default function Stats({ profile, totalAttempts, totalTime, avgAccuracy }
                     </Card>
                     <Card>
                         <CardContent className="flex items-center gap-4 py-6">
-                            <Trophy className="h-10 w-10 text-purple-500" />
+                            <Icon name="award" size={40} className="text-purple-500" />
                             <div>
                                 <p className="text-3xl font-bold">{totalAttempts}</p>
                                 <p className="text-sm text-muted-foreground">Exercises Done</p>
@@ -72,7 +74,7 @@ export default function Stats({ profile, totalAttempts, totalTime, avgAccuracy }
                     </Card>
                     <Card>
                         <CardContent className="flex items-center gap-4 py-6">
-                            <Clock className="h-10 w-10 text-indigo-500" />
+                            <Icon name="clock" size={40} className="text-indigo-500" />
                             <div>
                                 <p className="text-3xl font-bold">
                                     {hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`}

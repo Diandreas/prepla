@@ -1,6 +1,8 @@
 import { Head, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-import { ArrowRight, BookOpen, Headphones, MessageSquare, Mic, Target, Zap, BarChart3 } from 'lucide-react';
+function Icon({ name, size = 20, style }: { name: string; size?: number; style?: React.CSSProperties }) {
+    return <img src={`/icons/${name}.png`} alt="" width={size} height={size} style={{ objectFit: 'contain', ...style }} />;
+}
 import { useEffect, useState } from 'react';
 import type { UserProfile, ExerciseAttempt } from '@/types';
 
@@ -20,12 +22,17 @@ const OXFORD = '#1A2B48';
 const SKY = '#4A90E2';
 const GOLD = '#F5A623';
 
-const skillIcons: Record<string, typeof BookOpen> = {
-    reading: BookOpen,
-    listening: Headphones,
-    writing: MessageSquare,
-    speaking: Mic,
-};
+// Custom icon component using icons from /public/icons
+function CustomIcon({ name, className, style }: { name: string; className?: string; style?: React.CSSProperties }) {
+    return (
+        <img
+            src={`/icons/${name}.png`}
+            alt={name}
+            className={className || 'h-5 w-5'}
+            style={{ objectFit: 'contain', ...style }}
+        />
+    );
+}
 
 const skillThemes: Record<string, { bg: string; shadow: string; text: string }> = {
     reading: { bg: `linear-gradient(135deg, ${SKY}, #3478c8)`, shadow: '#2a6fc0', text: SKY },
@@ -39,6 +46,13 @@ const skillLabels: Record<string, string> = {
     listening: 'Écoute',
     writing: 'Écriture',
     speaking: 'Expression',
+};
+
+const skillIcons: Record<string, string> = {
+    reading: 'book',
+    listening: 'listening',
+    writing: 'writing',
+    speaking: 'speaking',
 };
 
 export default function ResultsIndex({ profile, skillStats, recentAttempts }: Props) {
@@ -71,7 +85,7 @@ export default function ResultsIndex({ profile, skillStats, recentAttempts }: Pr
                         className="duo-btn-secondary text-xs"
                     >
                         Historique
-                        <ArrowRight size={14} />
+                        <Icon name="arrow-right" size={14} />
                     </Link>
                 </div>
 
@@ -79,7 +93,7 @@ export default function ResultsIndex({ profile, skillStats, recentAttempts }: Pr
                 <div className="mb-6 grid gap-3 grid-cols-2 lg:grid-cols-4">
                     {skills.map((skill, i) => {
                         const stat = skillStats[skill];
-                        const Icon = skillIcons[skill] ?? BookOpen;
+                        const skillIconName = skillIcons[skill] ?? 'book';
                         const theme = skillThemes[skill];
                         return (
                             <div
@@ -99,7 +113,7 @@ export default function ResultsIndex({ profile, skillStats, recentAttempts }: Pr
                                                 boxShadow: `0 3px 0 0 ${theme.shadow}`,
                                             }}
                                         >
-                                            <Icon size={14} color="white" strokeWidth={2.5} />
+                                            <CustomIcon name={skillIcons[skill]} className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(100%)' }} />
                                         </div>
                                     </div>
                                     {stat ? (
@@ -139,9 +153,9 @@ export default function ResultsIndex({ profile, skillStats, recentAttempts }: Pr
                 {/* Overview stats */}
                 <div className="mb-6 grid gap-3 grid-cols-3">
                     {[
-                        { label: 'Niveau actuel', value: profile?.current_level ?? '—', icon: Target, color: SKY, shadow: '#2a6fc0' },
-                        { label: 'XP Total', value: profile?.xp_total ?? 0, icon: Zap, color: GOLD, shadow: '#c07a0e' },
-                        { label: 'Exercices récents', value: recentAttempts.length, icon: BarChart3, color: '#48b77b', shadow: '#2d7d52' },
+                        { label: 'Niveau actuel', value: profile?.current_level ?? '—', icon: 'target', color: SKY, shadow: '#2a6fc0' },
+                        { label: 'XP Total', value: profile?.xp_total ?? 0, icon: 'trophy', color: GOLD, shadow: '#c07a0e' },
+                        { label: 'Exercices récents', value: recentAttempts.length, icon: 'statistics', color: '#48b77b', shadow: '#2d7d52' },
                     ].map((item, i) => (
                         <div
                             key={item.label}
@@ -155,7 +169,7 @@ export default function ResultsIndex({ profile, skillStats, recentAttempts }: Pr
                                     boxShadow: `0 3px 0 0 ${item.shadow}`,
                                 }}
                             >
-                                <item.icon size={18} color="white" strokeWidth={2.5} />
+                                <CustomIcon name={item.icon} className="h-5 w-5" style={{ filter: 'brightness(0) saturate(100%) invert(100%)' }} />
                             </div>
                             <p className="text-xl font-black" style={{ color: OXFORD }}>{item.value}</p>
                             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{item.label}</p>
@@ -211,7 +225,7 @@ export default function ResultsIndex({ profile, skillStats, recentAttempts }: Pr
                                                 {acc.toFixed(0)}%
                                             </span>
                                             <span className="flex items-center gap-0.5 text-xs font-black" style={{ color: GOLD }}>
-                                                <Zap size={12} className="fill-current" />
+                                                <CustomIcon name="trophy" className="h-3 w-3" style={{ filter: 'brightness(0) saturate(100%) invert(84%) sepia(40%) saturate(1734%) hue-rotate(353deg) brightness(94%) contrast(86%)' }} />
                                                 +{attempt.xp_earned}
                                             </span>
                                         </div>

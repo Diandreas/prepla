@@ -1,5 +1,4 @@
 import { Head, useForm } from '@inertiajs/react';
-import { LoaderCircle } from 'lucide-react';
 import { FormEventHandler } from 'react';
 
 import InputError from '@/components/input-error';
@@ -102,7 +101,7 @@ export default function Register() {
                     </div>
 
                     <Button type="submit" className="mt-2 w-full" tabIndex={5} disabled={processing}>
-                        {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
+                        {processing && <img src="/icons/loader.png" className="animate-spin" width={16} height={16} style={{ objectFit: 'contain' }} />}
                         Create account
                     </Button>
                 </div>

@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import OnboardingLayout from '@/layouts/onboarding-layout';
 import { useState, useEffect } from 'react';
-import { Check } from 'lucide-react';
 import type { LanguageWithExams } from '@/types';
 
 interface Props {
@@ -80,7 +79,7 @@ export default function ExamSelect({ languages }: Props) {
                                 {/* Checkmark overlay */}
                                 {isSelected && (
                                     <span className="absolute top-1.5 right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
-                                        <Check className="h-3 w-3" strokeWidth={3} />
+                                        <img src="/icons/check.png" alt="" width={12} height={12} style={{ objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
                                     </span>
                                 )}
                                 <span className="text-3xl">{lang.flag}</span>

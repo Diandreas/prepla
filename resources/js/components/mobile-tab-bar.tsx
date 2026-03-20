@@ -5,20 +5,30 @@ const tabs = [
         label: 'Accueil',
         href: '/dashboard',
         icon: (active: boolean) => (
-            <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? '#1A2B48' : 'none'} stroke={active ? '#1A2B48' : '#94a3b8'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                <polyline points="9 22 9 12 15 12 15 22"/>
-            </svg>
+            <img
+                src="/icons/home.png"
+                alt="Accueil"
+                width={26}
+                height={26}
+                style={{
+                    filter: active ? 'brightness(0) saturate(100%) invert(16%) sepia(9%) saturate(1749%) hue-rotate(181deg) brightness(95%) contrast(92%)' : 'brightness(0) saturate(100%) invert(84%) sepia(5%) saturate(392%) hue-rotate(177deg) brightness(94%) contrast(86%)',
+                }}
+            />
         ),
     },
     {
         label: 'Pratiquer',
         href: '/practice',
         icon: (active: boolean) => (
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? '#1A2B48' : '#94a3b8'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" fill={active ? 'rgba(26,43,72,0.12)' : 'none'}/>
-                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" fill={active ? 'rgba(26,43,72,0.12)' : 'none'}/>
-            </svg>
+            <img
+                src="/icons/puzzle.png"
+                alt="Pratiquer"
+                width={26}
+                height={26}
+                style={{
+                    filter: active ? 'brightness(0) saturate(100%) invert(16%) sepia(9%) saturate(1749%) hue-rotate(181deg) brightness(95%) contrast(92%)' : 'brightness(0) saturate(100%) invert(84%) sepia(5%) saturate(392%) hue-rotate(177deg) brightness(94%) contrast(86%)',
+                }}
+            />
         ),
     },
     {
@@ -26,36 +36,43 @@ const tabs = [
         href: '/ai-tools',
         isCenter: true,
         icon: (_active: boolean) => (
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                {/* Sparkles / AI icon */}
-                <path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5z" fill="white" stroke="none"/>
-                <path d="M19 14l.8 2.2L22 17l-2.2.8L19 20l-.8-2.2L16 17l2.2-.8z" fill="rgba(255,255,255,0.7)" stroke="none"/>
-                <path d="M5 3l.6 1.4L7 5l-1.4.6L5 7l-.6-1.4L3 5l1.4-.6z" fill="rgba(255,255,255,0.5)" stroke="none"/>
-            </svg>
+            <img
+                src="/icons/sparkles.png"
+                alt="IA"
+                width={26}
+                height={26}
+                style={{ filter: 'brightness(0) saturate(100%) invert(100%)' }}
+            />
         ),
     },
     {
         label: 'Résultats',
         href: '/results',
         icon: (active: boolean) => (
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? '#1A2B48' : '#94a3b8'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="20" x2="18" y2="10"/>
-                <line x1="12" y1="20" x2="12" y2="4"/>
-                <line x1="6" y1="20" x2="6" y2="14"/>
-                {active && <rect x="4.5" y="13.5" width="3" height="7" rx="0.5" fill="rgba(26,43,72,0.15)" stroke="none"/>}
-                {active && <rect x="10.5" y="3.5" width="3" height="17" rx="0.5" fill="rgba(26,43,72,0.15)" stroke="none"/>}
-                {active && <rect x="16.5" y="9.5" width="3" height="11" rx="0.5" fill="rgba(26,43,72,0.15)" stroke="none"/>}
-            </svg>
+            <img
+                src="/icons/statistics.png"
+                alt="Résultats"
+                width={26}
+                height={26}
+                style={{
+                    filter: active ? 'brightness(0) saturate(100%) invert(16%) sepia(9%) saturate(1749%) hue-rotate(181deg) brightness(95%) contrast(92%)' : 'brightness(0) saturate(100%) invert(84%) sepia(5%) saturate(392%) hue-rotate(177deg) brightness(94%) contrast(86%)',
+                }}
+            />
         ),
     },
     {
         label: 'Profil',
         href: '/settings/profile',
         icon: (active: boolean) => (
-            <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? 'rgba(26,43,72,0.12)' : 'none'} stroke={active ? '#1A2B48' : '#94a3b8'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
-            </svg>
+            <img
+                src="/icons/profile.png"
+                alt="Profil"
+                width={26}
+                height={26}
+                style={{
+                    filter: active ? 'brightness(0) saturate(100%) invert(16%) sepia(9%) saturate(1749%) hue-rotate(181deg) brightness(95%) contrast(92%)' : 'brightness(0) saturate(100%) invert(84%) sepia(5%) saturate(392%) hue-rotate(177deg) brightness(94%) contrast(86%)',
+                }}
+            />
         ),
     },
 ];

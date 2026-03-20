@@ -1,12 +1,20 @@
 import { router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import OnboardingLayout from '@/layouts/onboarding-layout';
-import {
-    BookOpen, CheckCircle, Flame, Headphones, Lightbulb,
-    MessageSquare, Mic, Rocket, Star, Target, TrendingUp, Trophy, Zap
-} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { UserProfile } from '@/types';
+
+// Custom icon component using icons from /public/icons
+function CustomIcon({ name, className, style }: { name: string; className?: string; style?: React.CSSProperties }) {
+    return (
+        <img
+            src={`/icons/${name}.png`}
+            alt={name}
+            className={className || 'h-5 w-5'}
+            style={{ objectFit: 'contain', ...style }}
+        />
+    );
+}
 
 interface FocusArea {
     skill: string;
@@ -58,11 +66,11 @@ const levelRings: Record<string, string> = {
     C2: 'ring-rose-200 dark:ring-rose-800',
 };
 
-const skillIcons: Record<string, typeof BookOpen> = {
-    reading: BookOpen,
-    listening: Headphones,
-    writing: MessageSquare,
-    speaking: Mic,
+const skillIcons: Record<string, string> = {
+    reading: 'book',
+    listening: 'headphones',
+    writing: 'writing',
+    speaking: 'speaking',
 };
 
 const skillLabels: Record<string, string> = {
@@ -119,9 +127,9 @@ export default function Result({ profile, program }: Props) {
                         {/* Sparkle particles */}
                         {showLevel && (
                             <>
-                                <div className="absolute -top-2 -right-2 animate-sparkle"><Star className="h-4 w-4 text-amber-400" /></div>
-                                <div className="absolute -bottom-1 -left-3 animate-sparkle" style={{ animationDelay: '0.3s' }}><Star className="h-3 w-3 text-primary" /></div>
-                                <div className="absolute top-0 -left-4 animate-sparkle" style={{ animationDelay: '0.6s' }}><Star className="h-3.5 w-3.5 text-violet-400" /></div>
+                                <div className="absolute -top-2 -right-2 animate-sparkle"><CustomIcon name="star" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(84%) sepia(40%) saturate(1734%) hue-rotate(353deg) brightness(94%) contrast(86%)' }} /></div>
+                                <div className="absolute -bottom-1 -left-3 animate-sparkle" style={{ animationDelay: '0.3s' }}><CustomIcon name="star" className="h-3 w-3" style={{ filter: 'brightness(0) saturate(100%) invert(39%) sepia(96%) saturate(1944%) hue-rotate(212deg) brightness(94%) contrast(91%)' }} /></div>
+                                <div className="absolute top-0 -left-4 animate-sparkle" style={{ animationDelay: '0.6s' }}><CustomIcon name="star" className="h-3.5 w-3.5" style={{ filter: 'brightness(0) saturate(100%) invert(63%) sepia(31%) saturate(2078%) hue-rotate(229deg) brightness(97%) contrast(92%)' }} /></div>
                             </>
                         )}
                     </div>
@@ -179,7 +187,7 @@ export default function Result({ profile, program }: Props) {
                 {program?.strengths?.length > 0 && (
                     <div className="rounded-2xl border border-border bg-card p-5" style={stagger(3)}>
                         <h2 className="mb-3 flex items-center gap-2 font-semibold">
-                            <Trophy className="h-4 w-4 text-yellow-500" />
+                            <CustomIcon name="trophy" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(84%) sepia(40%) saturate(1734%) hue-rotate(353deg) brightness(94%) contrast(86%)' }} />
                             Vos points forts
                         </h2>
                         <ul className="space-y-2">
@@ -194,7 +202,7 @@ export default function Result({ profile, program }: Props) {
                                         transitionDelay: `${1000 + i * 100}ms`,
                                     }}
                                 >
-                                    <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
+                                    <CustomIcon name="check-circle" className="mt-0.5 h-4 w-4 shrink-0" style={{ filter: 'brightness(0) saturate(100%) invert(47%) sepia(58%) saturate(392%) hue-rotate(96deg) brightness(97%) contrast(86%)' }} />
                                     {s}
                                 </li>
                             ))}
@@ -206,12 +214,12 @@ export default function Result({ profile, program }: Props) {
                 {program?.focus_areas?.length > 0 && (
                     <div className="rounded-2xl border border-border bg-card p-5" style={stagger(4)}>
                         <h2 className="mb-4 flex items-center gap-2 font-semibold">
-                            <Target className="h-4 w-4 text-blue-500" />
+                            <CustomIcon name="target" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(39%) sepia(96%) saturate(1944%) hue-rotate(212deg) brightness(94%) contrast(91%)' }} />
                             Programme personnalisé par compétence
                         </h2>
                         <div className="grid gap-3 sm:grid-cols-2">
                             {program.focus_areas.map((area, i) => {
-                                const Icon = skillIcons[area.skill] ?? BookOpen;
+                                const Icon = skillIcons[area.skill] ?? 'book';
                                 return (
                                     <div
                                         key={area.skill}
@@ -225,7 +233,7 @@ export default function Result({ profile, program }: Props) {
                                     >
                                         <div className="mb-2 flex items-center justify-between">
                                             <div className="flex items-center gap-2">
-                                                <Icon className="h-4 w-4 text-primary" />
+                                                <CustomIcon name={Icon} className="h-4 w-4" />
                                                 <span className="text-sm font-semibold">
                                                     {skillLabels[area.skill] ?? area.skill}
                                                 </span>
@@ -246,12 +254,12 @@ export default function Result({ profile, program }: Props) {
                 {program?.weekly_plan && (
                     <div className="rounded-2xl border border-border bg-card p-5" style={stagger(5)}>
                         <h2 className="mb-4 flex items-center gap-2 font-semibold">
-                            <Zap className="h-4 w-4 text-yellow-500" />
+                            <CustomIcon name="zap" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(84%) sepia(40%) saturate(1734%) hue-rotate(353deg) brightness(94%) contrast(86%)' }} />
                             Plan hebdomadaire recommandé
                         </h2>
                         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                             {Object.entries(program.weekly_plan).map(([skill, count], i) => {
-                                const Icon = skillIcons[skill] ?? BookOpen;
+                                const Icon = skillIcons[skill] ?? 'book';
                                 return (
                                     <div
                                         key={skill}
@@ -263,7 +271,7 @@ export default function Result({ profile, program }: Props) {
                                             transitionDelay: `${1500 + i * 80}ms`,
                                         }}
                                     >
-                                        <Icon className="h-5 w-5 text-primary" />
+                                        <CustomIcon name={Icon} className="h-5 w-5" />
                                         <span className="mt-1 text-2xl font-bold">{count}</span>
                                         <span className="mt-0.5 text-xs text-muted-foreground">exercices/sem.</span>
                                         <span className="text-xs font-medium text-foreground capitalize">{skill}</span>
@@ -278,7 +286,7 @@ export default function Result({ profile, program }: Props) {
                 {program?.milestones?.length > 0 && (
                     <div className="rounded-2xl border border-border bg-card p-5" style={stagger(6)}>
                         <h2 className="mb-4 flex items-center gap-2 font-semibold">
-                            <TrendingUp className="h-4 w-4 text-green-500" />
+                            <CustomIcon name="trending-up" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(47%) sepia(58%) saturate(392%) hue-rotate(96deg) brightness(97%) contrast(86%)' }} />
                             Objectifs étape par étape
                         </h2>
                         <div className="relative space-y-4 pl-7">
@@ -311,7 +319,7 @@ export default function Result({ profile, program }: Props) {
                 {program?.daily_tip && (
                     <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-800/30 dark:bg-amber-900/10" style={stagger(7)}>
                         <div className="flex items-start gap-3">
-                            <Lightbulb className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400 animate-bounce-soft" />
+                            <CustomIcon name="lightbulb" className="mt-0.5 h-5 w-5 shrink-0 animate-bounce-soft" style={{ filter: 'brightness(0) saturate(100%) invert(84%) sepia(40%) saturate(1734%) hue-rotate(353deg) brightness(94%) contrast(86%)' }} />
                             <div>
                                 <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">Conseil du jour</p>
                                 <p className="mt-0.5 text-sm text-amber-700 dark:text-amber-400">{program.daily_tip}</p>
@@ -323,7 +331,7 @@ export default function Result({ profile, program }: Props) {
                 {/* CTA */}
                 <div className={`rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-6 text-center`} style={stagger(8)}>
                     <div className="flex items-center justify-center gap-2">
-                        <Flame className="h-5 w-5 text-orange-500" />
+                        <CustomIcon name="flame" className="h-5 w-5" style={{ filter: 'brightness(0) saturate(100%) invert(50%) sepia(96%) saturate(1762%) hue-rotate(332deg) brightness(102%) contrast(96%)' }} />
                         <p className="font-semibold">
                             Objectif : niveau {program?.next_level ?? CEFR[Math.min(levelIndex + 1, 5)]}
                         </p>
@@ -336,7 +344,7 @@ export default function Result({ profile, program }: Props) {
                         onClick={handleComplete}
                         className={`mt-4 w-full gap-2 bg-gradient-to-r ${gradient} font-semibold text-white shadow-lg hover:opacity-90 hover:shadow-xl hover:-translate-y-0.5 transition-all sm:w-auto`}
                     >
-                        <Rocket className="h-4 w-4" />
+                        <CustomIcon name="rocket" className="h-4 w-4" />
                         Voir ma feuille de route
                     </Button>
                 </div>

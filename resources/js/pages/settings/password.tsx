@@ -4,7 +4,6 @@ import { type BreadcrumbItem } from '@/types';
 import { Transition } from '@headlessui/react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEventHandler, useRef } from 'react';
-import { ChevronLeft, Lock } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -59,14 +58,14 @@ export default function Password() {
                 {/* Mobile Back Button */}
                 <div className="md:hidden mb-6">
                     <Link href={route('profile.edit')} className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground">
-                        <ChevronLeft className="mr-1 h-4 w-4" />
+                        <img src="/icons/chevron-right.png" alt="" width={16} height={16} style={{ objectFit: 'contain', transform: 'rotate(180deg)' }} className="mr-1" />
                         Retour au profil
                     </Link>
                 </div>
 
                 <div className="flex items-center gap-3 mb-6">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                        <Lock size={20} />
+                        <img src="/icons/shield.png" alt="" width={20} height={20} style={{ objectFit: 'contain' }} />
                     </div>
                     <div>
                         <h2 className="text-xl font-black">Sécurité & Mot de passe</h2>

@@ -1,6 +1,8 @@
 import { Head, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-import { Zap, ChevronRight, Sparkles } from 'lucide-react';
+function Icon({ name, size = 20, style, className }: { name: string; size?: number; style?: React.CSSProperties; className?: string }) {
+    return <img src={`/icons/${name}.png`} alt="" width={size} height={size} style={{ objectFit: 'contain', ...style }} className={className} />;
+}
 import { useEffect, useState } from 'react';
 import type { ExamRecord, ExamSection, ExerciseRecord } from '@/types';
 
@@ -48,7 +50,7 @@ export default function SectionDrills({ exam, section, exercisesByDifficulty }: 
 
                 {!hasExercises ? (
                     <div className="duo-card flex flex-col items-center p-10 text-center">
-                        <Sparkles size={40} style={{ color: SKY }} className="mb-3" />
+                        <Icon name="sparkles" size={40} style={{ color: SKY }} className="mb-3" />
                         <p className="text-lg font-black" style={{ color: OXFORD }}>
                             Aucun exercice pour l'instant
                         </p>
@@ -103,7 +105,7 @@ export default function SectionDrills({ exam, section, exercisesByDifficulty }: 
                                                         {exercise.exercise_type?.name ?? 'Exercice'}
                                                     </p>
                                                     <div className="mt-1 flex items-center gap-1">
-                                                        <Zap size={12} className="fill-current" style={{ color: GOLD }} />
+                                                        <Icon name="zap" size={12} style={{ color: GOLD }} />
                                                         <span className="text-[10px] font-black" style={{ color: GOLD }}>
                                                             {exercise.xp_reward} XP
                                                         </span>
@@ -119,7 +121,7 @@ export default function SectionDrills({ exam, section, exercisesByDifficulty }: 
                                                     >
                                                         {exercise.exercise_type?.component_key}
                                                     </span>
-                                                    <ChevronRight size={14} style={{ color: 'rgba(26,43,72,0.25)' }} />
+                                                    <Icon name="chevron-right" size={14} style={{ opacity: 0.25 }} />
                                                 </div>
                                             </Link>
                                         ))}

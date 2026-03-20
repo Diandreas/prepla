@@ -1,7 +1,9 @@
 import { Head, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, ChevronRight, Star } from 'lucide-react';
+function Icon({ name, size = 20, style }: { name: string; size?: number; style?: React.CSSProperties }) {
+    return <img src={`/icons/${name}.png`} alt="" width={size} height={size} style={{ objectFit: 'contain', ...style }} />;
+}
 import { useEffect, useState } from 'react';
 import type { ExamRecord } from '@/types';
 
@@ -13,6 +15,18 @@ interface Props {
 const OXFORD = '#1A2B48';
 const SKY = '#4A90E2';
 const GOLD = '#F5A623';
+
+// Custom icon component using icons from /public/icons
+function CustomIcon({ name, className, style }: { name: string; className?: string; style?: React.CSSProperties }) {
+    return (
+        <img
+            src={`/icons/${name}.png`}
+            alt={name}
+            className={className || 'h-5 w-5'}
+            style={{ objectFit: 'contain', ...style }}
+        />
+    );
+}
 
 export default function PracticeIndex({ exams, targetExamId }: Props) {
     const [mounted, setMounted] = useState(false);
@@ -74,7 +88,11 @@ export default function PracticeIndex({ exams, targetExamId }: Props) {
                                                 boxShadow: isTarget ? `0 4px 0 0 #2a6fc0` : '0 3px 0 0 #e5e7eb',
                                             }}
                                         >
-                                            <BookOpen size={20} color={isTarget ? 'white' : OXFORD} strokeWidth={2.5} />
+                                            <CustomIcon
+                                                name="courses"
+                                                className="h-6 w-6"
+                                                style={{ filter: isTarget ? 'brightness(0) saturate(100%) invert(100%)' : undefined }}
+                                            />
                                         </div>
 
                                         {/* Content */}
@@ -88,7 +106,7 @@ export default function PracticeIndex({ exams, targetExamId }: Props) {
                                                         className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-white"
                                                         style={{ background: GOLD, boxShadow: '0 2px 0 0 #d48b10' }}
                                                     >
-                                                        <Star size={10} fill="white" />
+                                                        <img src="/icons/star.png" alt="" width={10} height={10} style={{ objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
                                                         Mon examen
                                                     </span>
                                                 )}
@@ -123,7 +141,7 @@ export default function PracticeIndex({ exams, targetExamId }: Props) {
                                         </div>
 
                                         {/* Chevron */}
-                                        <ChevronRight size={18} style={{ color: 'rgba(26,43,72,0.25)' }} />
+                                        <Icon name="chevron-right" size={18} style={{ opacity: 0.25 }} />
                                     </Link>
                                 );
                             })}

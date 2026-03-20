@@ -1,20 +1,31 @@
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { usePage } from '@inertiajs/react';
 import type { SharedData } from '@/types';
-import { Flame, Zap } from 'lucide-react';
 
 const OXFORD = '#1A2B48';
-const SKY    = '#4A90E2';
-const GOLD   = '#F5A623';
+const SKY = '#4A90E2';
+const GOLD = '#F5A623';
 
 const PAGE_TITLES: Record<string, string> = {
-    '/dashboard':        'Mon Parcours',
-    '/practice':         'Pratiquer',
-    '/ai-tools':         'Outils IA',
-    '/results':          'Résultats',
+    '/dashboard': 'Mon Parcours',
+    '/practice': 'Pratiquer',
+    '/ai-tools': 'Outils IA',
+    '/results': 'Résultats',
     '/settings/profile': 'Profil',
-    '/leaderboard':      'Classement',
+    '/leaderboard': 'Classement',
 };
+
+// Custom icon component using icons from /public/icons
+function CustomIcon({ name, className, style }: { name: string; className?: string; style?: React.CSSProperties }) {
+    return (
+        <img
+            src={`/icons/${name}.png`}
+            alt={name}
+            className={className || 'h-5 w-5'}
+            style={{ objectFit: 'contain', ...style }}
+        />
+    );
+}
 
 export function AppSidebarHeader() {
     const page = usePage<SharedData & { userProfile?: any }>();
@@ -25,7 +36,7 @@ export function AppSidebarHeader() {
     const pageTitle = Object.entries(PAGE_TITLES).find(([path]) => url === path || url.startsWith(path + '/'))?.[1] ?? 'PrePla';
 
     const streak = (userProfile as any)?.streak_current ?? 0;
-    const xp     = (userProfile as any)?.xp_total ?? 0;
+    const xp = (userProfile as any)?.xp_total ?? 0;
 
     return (
         <header
@@ -55,14 +66,14 @@ export function AppSidebarHeader() {
                     className="flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wider"
                     style={{ background: 'rgba(249,115,22,0.08)', color: '#F97316' }}
                 >
-                    <Flame size={14} strokeWidth={2.5} />
+                    <CustomIcon name="medal" className="h-3.5 w-3.5" style={{ filter: 'brightness(0) saturate(100%) invert(50%) sepia(96%) saturate(1762%) hue-rotate(332deg) brightness(102%) contrast(96%)' }} />
                     {streak}
                 </div>
                 <div
                     className="flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wider"
                     style={{ background: 'rgba(245,166,35,0.1)', color: GOLD }}
                 >
-                    <Zap size={14} strokeWidth={2.5} />
+                    <CustomIcon name="trophy" className="h-3.5 w-3.5" style={{ filter: 'brightness(0) saturate(100%) invert(84%) sepia(40%) saturate(1734%) hue-rotate(353deg) brightness(94%) contrast(86%)' }} />
                     {xp}
                 </div>
             </div>

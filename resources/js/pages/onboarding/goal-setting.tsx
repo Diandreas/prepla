@@ -4,7 +4,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import OnboardingLayout from '@/layouts/onboarding-layout';
 import { useMemo, useState } from 'react';
-import { Target, CalendarDays, Lightbulb } from 'lucide-react';
+function Icon({ name, size = 20, className, style }: { name: string; size?: number; className?: string; style?: React.CSSProperties }) {
+    return <img src={`/icons/${name}.png`} alt="" width={size} height={size} className={className} style={{ objectFit: 'contain', ...style }} />;
+}
 import type { ExamWithLanguage, UserProfile } from '@/types';
 
 interface Props {
@@ -73,7 +75,7 @@ export default function GoalSetting({ exam, profile }: Props) {
                         {exam?.max_score && (
                             <div className="space-y-2">
                                 <Label htmlFor="target-score" className="flex items-center gap-2">
-                                    <Target className="h-4 w-4 text-primary" />
+                                    <Icon name="target" size={16} className="text-primary" />
                                     Score visé (max {exam.max_score})
                                 </Label>
                                 <Input
@@ -108,7 +110,7 @@ export default function GoalSetting({ exam, profile }: Props) {
 
                         <div className="space-y-2">
                             <Label htmlFor="exam-date" className="flex items-center gap-2">
-                                <CalendarDays className="h-4 w-4 text-primary" />
+                                <Icon name="calendar-days" size={16} className="text-primary" />
                                 Date d'examen (optionnel)
                             </Label>
                             <Input
@@ -137,7 +139,7 @@ export default function GoalSetting({ exam, profile }: Props) {
                 {/* Motivational tip box */}
                 <div className="mx-auto max-w-md animate-in fade-in slide-in-from-bottom-2 duration-500 delay-300">
                     <div className="flex items-start gap-3 rounded-xl border border-amber-200/60 bg-amber-50/50 p-4 dark:border-amber-500/20 dark:bg-amber-950/20">
-                        <Lightbulb className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
+                        <Icon name="lightbulb" size={20} className="mt-0.5 shrink-0 text-amber-500" />
                         <p className="text-sm text-amber-900 dark:text-amber-200/90">
                             Fixer un objectif précis augmente vos chances de réussite de 42%
                         </p>

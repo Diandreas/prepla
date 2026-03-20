@@ -1,17 +1,31 @@
 import { Head, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-import { Brain, FileEdit, HelpCircle, Lightbulb, Sparkles, ChevronRight } from 'lucide-react';
+function Icon({ name, size = 20, style }: { name: string; size?: number; style?: React.CSSProperties }) {
+    return <img src={`/icons/${name}.png`} alt="" width={size} height={size} style={{ objectFit: 'contain', ...style }} />;
+}
 import { useEffect, useState } from 'react';
 
 const OXFORD = '#1A2B48';
 const SKY = '#4A90E2';
 const GOLD = '#F5A623';
 
+// Custom icon component using icons from /public/icons
+function CustomIcon({ name, className, style }: { name: string; className?: string; style?: React.CSSProperties }) {
+    return (
+        <img
+            src={`/icons/${name}.png`}
+            alt={name}
+            className={className || 'h-5 w-5'}
+            style={{ objectFit: 'contain', ...style }}
+        />
+    );
+}
+
 const tools = [
     {
         title: 'Générateur d\'exercices',
         description: 'Générez des exercices illimités adaptés à votre examen et votre niveau',
-        icon: Sparkles,
+        icon: 'sparkles',
         href: '/ai-tools/generator',
         bg: `linear-gradient(135deg, ${SKY}, #3478c8)`,
         shadow: '#2a6fc0',
@@ -19,7 +33,7 @@ const tools = [
     {
         title: 'Correcteur de rédaction',
         description: 'Soumettez vos essais et obtenez des corrections détaillées avec scores',
-        icon: FileEdit,
+        icon: 'writing',
         href: '/ai-tools/writing-corrector',
         bg: `linear-gradient(135deg, ${OXFORD}, #2a3f6a)`,
         shadow: '#0e1a2e',
@@ -27,7 +41,7 @@ const tools = [
     {
         title: 'Explicateur IA',
         description: 'Posez des questions sur la grammaire, le vocabulaire ou les stratégies',
-        icon: HelpCircle,
+        icon: 'help',
         href: '/ai-tools/explainer',
         bg: `linear-gradient(135deg, #48b77b, #3a9d68)`,
         shadow: '#2d7d52',
@@ -35,7 +49,7 @@ const tools = [
     {
         title: 'Recommandations',
         description: 'Obtenez des recommandations personnalisées basées sur vos performances',
-        icon: Lightbulb,
+        icon: 'target',
         href: '/ai-tools/recommendations',
         bg: `linear-gradient(135deg, ${GOLD}, #e08c10)`,
         shadow: '#c07a0e',
@@ -82,7 +96,7 @@ export default function AiToolsIndex() {
                                         boxShadow: `0 4px 0 0 ${tool.shadow}`,
                                     }}
                                 >
-                                    <tool.icon size={22} color="white" strokeWidth={2.5} />
+                                    <CustomIcon name={tool.icon} className="h-6 w-6" style={{ filter: 'brightness(0) saturate(100%) invert(100%)' }} />
                                 </div>
                                 <h3 className="text-sm font-black" style={{ color: OXFORD }}>
                                     {tool.title}
@@ -102,7 +116,7 @@ export default function AiToolsIndex() {
                                 >
                                     Commencer
                                 </span>
-                                <ChevronRight size={14} style={{ color: SKY }} />
+                                <Icon name="chevron-right" size={14} style={{ filter: 'brightness(0) saturate(100%) invert(47%) sepia(85%) saturate(562%) hue-rotate(183deg) brightness(101%) contrast(96%)' }} />
                             </div>
                         </Link>
                     ))}

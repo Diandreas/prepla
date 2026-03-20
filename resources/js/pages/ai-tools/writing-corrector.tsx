@@ -2,7 +2,6 @@ import { Head, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileEdit } from 'lucide-react';
 import { useState } from 'react';
 
 export default function WritingCorrector() {
@@ -60,7 +59,7 @@ export default function WritingCorrector() {
                             <p className="mt-1 text-xs text-muted-foreground">{wordCount} mots</p>
                         </div>
                         <Button onClick={handleSubmit} disabled={!text.trim() || submitting} className="gap-2">
-                            <FileEdit className="h-4 w-4" />
+                            <img src="/icons/file-edit.png" alt="" width={16} height={16} style={{ objectFit: 'contain' }} />
                             {submitting ? 'Analyse en cours...' : 'Analyser la rédaction'}
                         </Button>
                     </CardContent>
