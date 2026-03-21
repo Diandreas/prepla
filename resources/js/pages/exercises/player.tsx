@@ -111,12 +111,13 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
 
     const checkAnswer = () => {
         if (!question || isChecked) return;
-        
-        // Simple check for MCQ/TrueFalse (assuming correct index is in question.correct)
+
         const currentAnswer = answers[question.id];
-        const correctAnswer = question.correct;
-        
-        setIsCorrect(parseInt(currentAnswer) === parseInt(correctAnswer));
+        // Backend stores correct answer as letter ("A","B","C","D") or string
+        const correctAnswer = question.correct_answer ?? question.correct;
+
+        const isRight = String(currentAnswer).trim().toUpperCase() === String(correctAnswer).trim().toUpperCase();
+        setIsCorrect(isRight);
         setIsChecked(true);
     };
 

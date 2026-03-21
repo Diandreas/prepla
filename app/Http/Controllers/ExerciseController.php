@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Exercise;
+use App\Models\LeaderboardEntry;
 use App\Models\LearningPathNode;
 use App\Models\UserExerciseAttempt;
 use App\Models\UserLearningProgress;
@@ -56,6 +57,9 @@ class ExerciseController extends Controller
         $xpEarned = $node->xp_reward ?? 50;
         $user->profile?->increment('xp_total', $xpEarned);
 
+        // 4. Mettre à jour le classement hebdomadaire
+        $this->incrementLeaderboard($user->id, $xpEarned);
+
         return redirect()->route('dashboard')->with('success', "Session terminée ! +{$xpEarned} XP");
     }
 
@@ -94,6 +98,9 @@ class ExerciseController extends Controller
         if ($profile) {
             $profile->increment('xp_total', $result['xp']);
         }
+
+        // Mettre à jour le classement hebdomadaire
+        $this->incrementLeaderboard(auth()->id(), $result['xp']);
 
         // Update node progress if this exercise came from a node
         $nodeCompleted = false;
@@ -244,5 +251,22 @@ class ExerciseController extends Controller
             'xp' => $xp,
             'feedback' => $feedback,
         ];
+    }
+
+    private function incrementLeaderboard(int $userId, int $xp): void
+    {
+        if ($xp <= 0) return;
+
+        $periodKey = now()->format('Y-\WW'); // ex: 2026-W12
+
+        LeaderboardEntry::updateOrCreate(
+            ['user_id' => $userId, 'period_type' => 'weekly', 'period_key' => $periodKey],
+            ['xp' => 0] // valeur initiale si création
+        );
+
+        LeaderboardEntry::where('user_id', $userId)
+            ->where('period_type', 'weekly')
+            ->where('period_key', $periodKey)
+            ->increment('xp', $xp);
     }
 }

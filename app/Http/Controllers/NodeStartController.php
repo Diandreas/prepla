@@ -52,7 +52,10 @@ class NodeStartController extends Controller
         }
 
         // 4. Génération IA si toujours pas assez d'exercices
-        if ($exercises->count() < 3) {
+        // On ne génère QUE si le nœud n'a jamais eu d'exercices générés (évite de reconsommer des tokens)
+        $alreadyGenerated = Exercise::where('node_id', $node->id)->where('is_ai_generated', true)->exists();
+
+        if ($exercises->count() < 3 && !$alreadyGenerated) {
             $node->loadMissing('exam.language');
             $exerciseType = ExerciseType::where('exam_id', $node->exam_id)->inRandomOrder()->first()
                 ?? ExerciseType::inRandomOrder()->first();
@@ -63,6 +66,8 @@ class NodeStartController extends Controller
                 for ($i = 0; $i < $needed; $i++) {
                     try {
                         $ex = $generator->generate($exerciseType, $node->exam, $node->level);
+                        // Attacher le node_id pour ne plus régénérer la prochaine fois
+                        $ex->update(['node_id' => $node->id, 'order_in_node' => $i + 1]);
                         $ex->load(['exerciseType', 'exam.language']);
                         $generated->push($ex);
                     } catch (\Throwable $e) {
@@ -72,6 +77,13 @@ class NodeStartController extends Controller
                 }
                 $exercises = $exercises->concat($generated);
             }
+        } elseif ($exercises->count() < 3 && $alreadyGenerated) {
+            // Récupérer les exercices déjà générés pour ce nœud (node_id attaché)
+            $existing = Exercise::where('node_id', $node->id)
+                ->with(['exerciseType', 'exam.language'])
+                ->orderBy('order_in_node')
+                ->get();
+            $exercises = $existing;
         }
 
         // 5. Mettre à jour le statut du nœud
