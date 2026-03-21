@@ -4,10 +4,27 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import OnboardingLayout from '@/layouts/onboarding-layout';
 import { useMemo, useState } from 'react';
+import * as Flags from 'country-flag-icons/react/3x2';
+import type { ExamWithLanguage, UserProfile } from '@/types';
+
 function Icon({ name, size = 20, className, style }: { name: string; size?: number; className?: string; style?: React.CSSProperties }) {
     return <img src={`/icons/${name}.png`} alt="" width={size} height={size} className={className} style={{ objectFit: 'contain', ...style }} />;
 }
-import type { ExamWithLanguage, UserProfile } from '@/types';
+
+function flagEmojiToCode(flag: string): string {
+    const points = [...flag].map(c => c.codePointAt(0)! - 0x1F1E6);
+    if (points.length === 2 && points[0] >= 0 && points[0] <= 25) {
+        return String.fromCharCode(65 + points[0], 65 + points[1]);
+    }
+    return '';
+}
+
+function FlagImg({ flag, size = 24 }: { flag: string; size?: number }) {
+    const code = flagEmojiToCode(flag);
+    const FlagComponent = code ? (Flags as Record<string, React.ComponentType<{ style?: React.CSSProperties }>>)[code] : null;
+    if (FlagComponent) return <FlagComponent style={{ width: size, borderRadius: 2 }} />;
+    return <span style={{ fontSize: '1.5rem' }}>{flag}</span>;
+}
 
 interface Props {
     exam: ExamWithLanguage | null;
@@ -50,7 +67,7 @@ export default function GoalSetting({ exam, profile }: Props) {
                 {exam && (
                     <div className="flex justify-center animate-in fade-in zoom-in-95 duration-700">
                         <div className="inline-flex items-center gap-3 rounded-full border border-primary/20 bg-primary/5 px-5 py-2.5 shadow-sm">
-                            <span className="text-2xl">{exam.language.flag}</span>
+                            <FlagImg flag={exam.language.flag} size={32} />
                             <div className="flex flex-col">
                                 <span className="text-sm font-semibold text-foreground">{exam.name}</span>
                                 <span className="text-xs text-muted-foreground">{exam.language.name}</span>

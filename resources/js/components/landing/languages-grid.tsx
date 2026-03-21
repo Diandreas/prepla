@@ -1,5 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Language } from '@/data/languages';
+import * as Flags from 'country-flag-icons/react/3x2';
+
+function flagEmojiToCode(flag: string): string {
+    const points = [...flag].map(c => c.codePointAt(0)! - 0x1F1E6);
+    if (points.length === 2 && points[0] >= 0 && points[0] <= 25) {
+        return String.fromCharCode(65 + points[0], 65 + points[1]);
+    }
+    return '';
+}
 
 const SKY = '#4A90E2';
 const GOLD = '#F5A623';
@@ -63,8 +72,14 @@ function LangCard({ lang, index }: { lang: Language; index: number }) {
             }} />
 
             {/* Flag */}
-            <div style={{ fontSize: '2.5rem', lineHeight: 1, marginBottom: '0.75rem' }}>
-                {lang.flag}
+            <div style={{ marginBottom: '0.75rem', display: 'flex', justifyContent: 'center' }}>
+                {(() => {
+                    const code = flagEmojiToCode(lang.flag);
+                    const FlagComponent = code ? (Flags as Record<string, React.ComponentType<{ style?: React.CSSProperties }>>)[code] : null;
+                    return FlagComponent
+                        ? <FlagComponent style={{ width: 48, borderRadius: 4 }} />
+                        : <span style={{ fontSize: '2.5rem', lineHeight: 1 }}>{lang.flag}</span>;
+                })()}
             </div>
 
             {/* Name */}

@@ -16,23 +16,23 @@ export default function VerifyEmail({ status }: { status?: string }) {
     };
 
     return (
-        <AuthLayout title="Verify email" description="Please verify your email address by clicking on the link we just emailed to you.">
-            <Head title="Email verification" />
+        <AuthLayout title="Vérifiez votre e-mail" description="Cliquez sur le lien que nous venons de vous envoyer par e-mail pour vérifier votre adresse.">
+            <Head title="Vérification e-mail" />
 
             {status === 'verification-link-sent' && (
                 <div className="mb-4 text-center text-sm font-medium text-green-600">
-                    A new verification link has been sent to the email address you provided during registration.
+                    Un nouveau lien de vérification a été envoyé à l'adresse e-mail fournie lors de l'inscription.
                 </div>
             )}
 
             <form onSubmit={submit} className="space-y-6 text-center">
                 <Button disabled={processing} variant="secondary">
                     {processing && <img src="/icons/loader.png" className="animate-spin" width={16} height={16} style={{ objectFit: 'contain' }} />}
-                    Resend verification email
+                    Renvoyer l'e-mail de vérification
                 </Button>
 
                 <TextLink href={route('logout')} method="post" className="mx-auto block text-sm">
-                    Log out
+                    Se déconnecter
                 </TextLink>
             </form>
         </AuthLayout>

@@ -5,6 +5,25 @@ import OnboardingLayout from '@/layouts/onboarding-layout';
 import { useState, useEffect } from 'react';
 import type { LanguageWithExams } from '@/types';
 
+import * as Flags from 'country-flag-icons/react/3x2';
+
+function flagEmojiToCode(flag: string): string {
+    const points = [...flag].map(c => c.codePointAt(0)! - 0x1F1E6);
+    if (points.length === 2 && points[0] >= 0 && points[0] <= 25) {
+        return String.fromCharCode(65 + points[0], 65 + points[1]);
+    }
+    return '';
+}
+
+function FlagImage({ flag }: { flag: string }) {
+    const code = flagEmojiToCode(flag);
+    const FlagComponent = code ? (Flags as Record<string, React.ComponentType<{ style?: React.CSSProperties }>>)[code] : null;
+    if (FlagComponent) {
+        return <FlagComponent style={{ width: 48, borderRadius: 4 }} />;
+    }
+    return <span style={{ fontSize: '2rem' }}>{flag}</span>;
+}
+
 interface Props {
     languages: LanguageWithExams[];
 }
@@ -82,7 +101,7 @@ export default function ExamSelect({ languages }: Props) {
                                         <img src="/icons/check.png" alt="" width={12} height={12} style={{ objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
                                     </span>
                                 )}
-                                <span className="text-3xl">{lang.flag}</span>
+                                <div className="flex justify-center mb-1"><FlagImage flag={lang.flag} /></div>
                                 <p className="mt-2 text-sm font-medium">{lang.name}</p>
                             </button>
                         );

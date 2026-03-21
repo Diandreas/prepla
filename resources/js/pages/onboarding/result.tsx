@@ -2,7 +2,23 @@ import { router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import OnboardingLayout from '@/layouts/onboarding-layout';
 import { useEffect, useState } from 'react';
+import * as Flags from 'country-flag-icons/react/3x2';
 import type { UserProfile } from '@/types';
+
+function flagEmojiToCode(flag: string): string {
+    const points = [...flag].map(c => c.codePointAt(0)! - 0x1F1E6);
+    if (points.length === 2 && points[0] >= 0 && points[0] <= 25) {
+        return String.fromCharCode(65 + points[0], 65 + points[1]);
+    }
+    return '';
+}
+
+function FlagImg({ flag, size = 20 }: { flag: string; size?: number }) {
+    const code = flagEmojiToCode(flag);
+    const FlagComponent = code ? (Flags as Record<string, React.ComponentType<{ style?: React.CSSProperties }>>)[code] : null;
+    if (FlagComponent) return <FlagComponent style={{ width: size, borderRadius: 2, display: 'inline-block', verticalAlign: 'middle' }} />;
+    return <span>{flag}</span>;
+}
 
 // Custom icon component using icons from /public/icons
 function CustomIcon({ name, className, style }: { name: string; className?: string; style?: React.CSSProperties }) {
@@ -135,8 +151,8 @@ export default function Result({ profile, program }: Props) {
                     </div>
                     <h1 className="text-2xl font-bold sm:text-3xl">Votre niveau estimé</h1>
                     {profile.target_exam && (
-                        <p className="mt-1 text-sm text-muted-foreground">
-                            {profile.target_exam.language.flag}{' '}
+                        <p className="mt-1 text-sm text-muted-foreground inline-flex items-center gap-1">
+                            <FlagImg flag={profile.target_exam.language.flag} size={18} />{' '}
                             {profile.target_exam.name}
                             {profile.target_score ? ` · Score cible : ${profile.target_score}` : ''}
                         </p>
@@ -171,7 +187,7 @@ export default function Result({ profile, program }: Props) {
                     <div className="rounded-2xl border border-primary/25 bg-primary/5 p-5" style={stagger(2)}>
                         <div className="flex items-start gap-3">
                             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/15 animate-pulse-soft">
-                                <Star className="h-4 w-4 text-primary" />
+                                <CustomIcon name="sparkles" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(65%) sepia(60%) saturate(600%) hue-rotate(195deg)' }} />
                             </div>
                             <div>
                                 <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-primary">

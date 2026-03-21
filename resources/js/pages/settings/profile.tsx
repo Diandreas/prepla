@@ -2,6 +2,22 @@ import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { FormEventHandler, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import * as Flags from 'country-flag-icons/react/3x2';
+
+function flagEmojiToCode(flag: string): string {
+    const points = [...flag].map(c => c.codePointAt(0)! - 0x1F1E6);
+    if (points.length === 2 && points[0] >= 0 && points[0] <= 25) {
+        return String.fromCharCode(65 + points[0], 65 + points[1]);
+    }
+    return '';
+}
+
+function FlagImg({ flag, size = 18 }: { flag: string; size?: number }) {
+    const code = flagEmojiToCode(flag);
+    const FlagComponent = code ? (Flags as Record<string, React.ComponentType<{ style?: React.CSSProperties }>>)[code] : null;
+    if (FlagComponent) return <FlagComponent style={{ width: size, borderRadius: 2, display: 'inline-block', verticalAlign: 'middle' }} />;
+    return <span>{flag}</span>;
+}
 
 import DeleteUser from '@/components/delete-user';
 import { Button } from '@/components/ui/button';
@@ -188,7 +204,7 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                                 <SelectContent>
                                     {exams.map(exam => (
                                         <SelectItem key={exam.id} value={exam.id.toString()}>
-                                            {exam.language.flag} {exam.name}
+                                            <span className="inline-flex items-center gap-1.5"><FlagImg flag={exam.language.flag} size={16} /> {exam.name}</span>
                                         </SelectItem>
                                     ))}
                                 </SelectContent>

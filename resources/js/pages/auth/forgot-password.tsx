@@ -21,15 +21,15 @@ export default function ForgotPassword({ status }: { status?: string }) {
     };
 
     return (
-        <AuthLayout title="Forgot password" description="Enter your email to receive a password reset link">
-            <Head title="Forgot password" />
+        <AuthLayout title="Mot de passe oublié" description="Entrez votre adresse e-mail pour recevoir un lien de réinitialisation">
+            <Head title="Mot de passe oublié" />
 
             {status && <div className="mb-4 text-center text-sm font-medium text-green-600">{status}</div>}
 
             <div className="space-y-6">
                 <form onSubmit={submit}>
                     <div className="grid gap-2">
-                        <Label htmlFor="email">Email address</Label>
+                        <Label htmlFor="email">Adresse e-mail</Label>
                         <Input
                             id="email"
                             type="email"
@@ -38,7 +38,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                             value={data.email}
                             autoFocus
                             onChange={(e) => setData('email', e.target.value)}
-                            placeholder="email@example.com"
+                            placeholder="email@exemple.com"
                         />
 
                         <InputError message={errors.email} />
@@ -47,14 +47,14 @@ export default function ForgotPassword({ status }: { status?: string }) {
                     <div className="my-6 flex items-center justify-start">
                         <Button className="w-full" disabled={processing}>
                             {processing && <img src="/icons/loader.png" className="animate-spin" width={16} height={16} style={{ objectFit: 'contain' }} />}
-                            Email password reset link
+                            Envoyer le lien de réinitialisation
                         </Button>
                     </div>
                 </form>
 
                 <div className="text-muted-foreground space-x-1 text-center text-sm">
-                    <span>Or, return to</span>
-                    <TextLink href={route('login')}>log in</TextLink>
+                    <span>Ou, retourner à la</span>
+                    <TextLink href={route('login')}>connexion</TextLink>
                 </div>
             </div>
         </AuthLayout>

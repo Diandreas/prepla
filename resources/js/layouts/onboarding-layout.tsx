@@ -1,6 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
 import { PropsWithChildren, useEffect, useState } from 'react';
-import { CheckCircle, Sparkles } from 'lucide-react';
 
 interface OnboardingLayoutProps {
     title: string;
@@ -38,7 +37,7 @@ export default function OnboardingLayout({
                 <header className="sticky top-0 z-10 border-b border-border/50 bg-background/80 px-4 py-3 backdrop-blur-xl">
                     <div className="mx-auto flex max-w-2xl items-center justify-between">
                         <Link href="/" className="flex items-center gap-1.5 text-xl font-black tracking-tight">
-                            <Sparkles className="h-5 w-5 text-primary" />
+                            <img src="/icons/sparkles.png" alt="" width={20} height={20} style={{ objectFit: 'contain', filter: 'brightness(0) saturate(100%) invert(47%) sepia(68%) saturate(600%) hue-rotate(195deg)' }} />
                             Pre<span className="text-primary">Pla</span>
                         </Link>
                         <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
@@ -84,7 +83,7 @@ export default function OnboardingLayout({
                                     {/* Label */}
                                     <div className="flex items-center gap-1">
                                         {done ? (
-                                            <CheckCircle className="h-3.5 w-3.5 text-primary" />
+                                            <img src="/icons/check-circle.png" alt="" width={14} height={14} style={{ objectFit: 'contain', filter: 'brightness(0) saturate(100%) invert(47%) sepia(68%) saturate(600%) hue-rotate(195deg)' }} />
                                         ) : (
                                             <span
                                                 className={`flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold transition-all duration-300 ${

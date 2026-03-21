@@ -44,6 +44,7 @@
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "concurrently": "^9.0.1",
+        "country-flag-icons": "^1.6.15",
         "globals": "^15.14.0",
         "i18next": "^25.8.19",
         "i18next-browser-languagedetector": "^8.2.1",

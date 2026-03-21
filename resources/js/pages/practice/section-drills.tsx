@@ -1,10 +1,27 @@
 import { Head, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
+import * as Flags from 'country-flag-icons/react/3x2';
+import { useEffect, useState } from 'react';
+import type { ExamRecord, ExamSection, ExerciseRecord } from '@/types';
+
 function Icon({ name, size = 20, style, className }: { name: string; size?: number; style?: React.CSSProperties; className?: string }) {
     return <img src={`/icons/${name}.png`} alt="" width={size} height={size} style={{ objectFit: 'contain', ...style }} className={className} />;
 }
-import { useEffect, useState } from 'react';
-import type { ExamRecord, ExamSection, ExerciseRecord } from '@/types';
+
+function flagEmojiToCode(flag: string): string {
+    const points = [...flag].map(c => c.codePointAt(0)! - 0x1F1E6);
+    if (points.length === 2 && points[0] >= 0 && points[0] <= 25) {
+        return String.fromCharCode(65 + points[0], 65 + points[1]);
+    }
+    return '';
+}
+
+function FlagImg({ flag, size = 28 }: { flag: string; size?: number }) {
+    const code = flagEmojiToCode(flag);
+    const FlagComponent = code ? (Flags as Record<string, React.ComponentType<{ style?: React.CSSProperties }>>)[code] : null;
+    if (FlagComponent) return <FlagComponent style={{ width: size, borderRadius: 3 }} />;
+    return <span style={{ fontSize: '1.5rem' }}>{flag}</span>;
+}
 
 interface Props {
     exam: ExamRecord;
@@ -38,7 +55,7 @@ export default function SectionDrills({ exam, section, exercisesByDifficulty }: 
                 {/* Header */}
                 <div className="mb-8">
                     <div className="flex items-center gap-2">
-                        <span className="text-2xl">{exam.language?.flag}</span>
+                        {exam.language?.flag && <FlagImg flag={exam.language.flag} size={28} />}
                         <h1 className="text-2xl font-black tracking-tight" style={{ color: OXFORD }}>
                             {section.name}
                         </h1>

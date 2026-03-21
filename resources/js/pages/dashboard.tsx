@@ -1,11 +1,28 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-function Icon({ name, size = 20, style }: { name: string; size?: number; style?: React.CSSProperties }) {
-    return <img src={`/icons/${name}.png`} alt="" width={size} height={size} style={{ objectFit: 'contain', ...style }} />;
-}
+import * as Flags from 'country-flag-icons/react/3x2';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { SharedData, UserProfile } from '@/types';
+
+function Icon({ name, size = 20, style }: { name: string; size?: number; style?: React.CSSProperties }) {
+    return <img src={`/icons/${name}.png`} alt="" width={size} height={size} style={{ objectFit: 'contain', ...style }} />;
+}
+
+function flagEmojiToCode(flag: string): string {
+    const points = [...flag].map(c => c.codePointAt(0)! - 0x1F1E6);
+    if (points.length === 2 && points[0] >= 0 && points[0] <= 25) {
+        return String.fromCharCode(65 + points[0], 65 + points[1]);
+    }
+    return '';
+}
+
+function FlagImg({ flag, size = 20 }: { flag: string; size?: number }) {
+    const code = flagEmojiToCode(flag);
+    const FlagComponent = code ? (Flags as Record<string, React.ComponentType<{ style?: React.CSSProperties }>>)[code] : null;
+    if (FlagComponent) return <FlagComponent style={{ width: size, borderRadius: 2, display: 'inline-block', verticalAlign: 'middle' }} />;
+    return <span>{flag}</span>;
+}
 
 // Custom icon component using icons from /public/icons
 function CustomIcon({ name, className, style }: { name: string; className?: string; style?: React.CSSProperties }) {
@@ -237,7 +254,7 @@ export default function Dashboard() {
                     <div>
                         <h1 className="text-2xl font-black tracking-tight" style={{ color: OXFORD }}>
                             {auth.user.name.split(' ')[0]}
-                            {examName && <span className="ml-2 text-sm font-medium text-muted-foreground">{examFlag} {examName}</span>}
+                            {examName && <span className="ml-2 text-sm font-medium text-muted-foreground inline-flex items-center gap-1">{examFlag && <FlagImg flag={examFlag} size={18} />} {examName}</span>}
                         </h1>
                     </div>
                     <div className="flex gap-2">

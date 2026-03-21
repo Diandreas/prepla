@@ -65,6 +65,7 @@ class RoadmapGeneratorService
         // Supprimer l'ancienne progression pour repartir de zéro (ou archiver si nécessaire)
         UserLearningProgress::where('user_id', $userId)->delete();
 
+        $nodes = $nodes->values(); // Réindexer à partir de 0
         foreach ($nodes as $index => $node) {
             // Distribution linéaire sur les jours disponibles
             $dayOffset = (int) floor($index / max(1, $nodesPerDay));

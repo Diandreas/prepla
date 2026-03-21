@@ -1,7 +1,23 @@
 import { Head, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Badge } from '@/components/ui/badge';
+import * as Flags from 'country-flag-icons/react/3x2';
 import type { ExerciseAttempt } from '@/types';
+
+function flagEmojiToCode(flag: string): string {
+    const points = [...flag].map(c => c.codePointAt(0)! - 0x1F1E6);
+    if (points.length === 2 && points[0] >= 0 && points[0] <= 25) {
+        return String.fromCharCode(65 + points[0], 65 + points[1]);
+    }
+    return '';
+}
+
+function FlagImg({ flag, size = 16 }: { flag: string; size?: number }) {
+    const code = flagEmojiToCode(flag);
+    const FlagComponent = code ? (Flags as Record<string, React.ComponentType<{ style?: React.CSSProperties }>>)[code] : null;
+    if (FlagComponent) return <FlagComponent style={{ width: size, borderRadius: 2, display: 'inline-block', verticalAlign: 'middle' }} />;
+    return <span>{flag}</span>;
+}
 
 interface Props {
     attempts: {
@@ -35,7 +51,7 @@ export default function Attempts({ attempts }: Props) {
                                     {attempt.exercise?.exercise_type?.name ?? 'Exercise'}
                                 </p>
                                 <p className="text-sm text-muted-foreground">
-                                    {attempt.exercise?.exam?.language?.flag} {attempt.exercise?.exam?.name} · {new Date(attempt.created_at).toLocaleDateString()}
+                                    {attempt.exercise?.exam?.language?.flag && <FlagImg flag={attempt.exercise.exam.language.flag} size={16} />}{' '}{attempt.exercise?.exam?.name} · {new Date(attempt.created_at).toLocaleDateString()}
                                 </p>
                             </div>
                             <div className="flex items-center gap-3">

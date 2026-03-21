@@ -4,7 +4,23 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
+import * as Flags from 'country-flag-icons/react/3x2';
 import type { ExamRecord, ExamSection, ExerciseTypeRecord } from '@/types';
+
+function flagEmojiToCode(flag: string): string {
+    const points = [...flag].map(c => c.codePointAt(0)! - 0x1F1E6);
+    if (points.length === 2 && points[0] >= 0 && points[0] <= 25) {
+        return String.fromCharCode(65 + points[0], 65 + points[1]);
+    }
+    return '';
+}
+
+function FlagImg({ flag, size = 20 }: { flag: string; size?: number }) {
+    const code = flagEmojiToCode(flag);
+    const FlagComponent = code ? (Flags as Record<string, React.ComponentType<{ style?: React.CSSProperties }>>)[code] : null;
+    if (FlagComponent) return <FlagComponent style={{ width: size, borderRadius: 2, display: 'inline-block', verticalAlign: 'middle' }} />;
+    return <span>{flag}</span>;
+}
 
 interface Props {
     exams: (ExamRecord & { sections: (ExamSection & { exercise_types: ExerciseTypeRecord[] })[] })[];
@@ -46,8 +62,8 @@ export default function Generator({ exams, targetExamId, userLevel }: Props) {
 
                 {targetExamId && selectedExam && (
                     <div className="flex items-center gap-4 rounded-xl border bg-card p-4 shadow-sm">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-2xl">
-                            {selectedExam.language?.flag}
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                            {selectedExam.language?.flag && <FlagImg flag={selectedExam.language.flag} size={32} />}
                         </div>
                         <div>
                             <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Examen cible</p>
@@ -77,7 +93,7 @@ export default function Generator({ exams, targetExamId, userLevel }: Props) {
                                                 : 'border-border hover:border-primary/50'
                                         }`}
                                     >
-                                        <span className="mr-2">{exam.language?.flag}</span>
+                                        {exam.language?.flag && <span className="mr-2 inline-flex"><FlagImg flag={exam.language.flag} size={18} /></span>}
                                         <span className="font-medium">{exam.name}</span>
                                     </button>
                                 ))}
