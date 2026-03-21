@@ -100,7 +100,7 @@ function NodePath({ fromX, toX, color }: { fromX: number; toX: number; color: st
     );
 }
 
-function RoadmapNodeItem({ node, index, mounted, isNext, pathColor }: { node: RoadmapNode; index: number; mounted: boolean; isNext: boolean; pathColor: string }) {
+function RoadmapNodeItem({ node, index, mounted, isNext, pathColor, onStart }: { node: RoadmapNode; index: number; mounted: boolean; isNext: boolean; pathColor: string; onStart: (id: number, title: string) => void }) {
     const { t } = useTranslation();
     const isCompleted = node.status === 'completed';
     const isAvailable = node.status === 'available' || node.status === 'in_progress';
@@ -113,7 +113,7 @@ function RoadmapNodeItem({ node, index, mounted, isNext, pathColor }: { node: Ro
             <div className="relative">
                 <button
                     disabled={isLocked}
-                    onClick={() => isAvailable && router.visit(route('node.start', node.id))}
+                    onClick={() => isAvailable && onStart(node.id, node.title)}
                     className={`relative flex items-center justify-center rounded-full border-[3px] ${isCompleted ? 'duo-node-completed' : isAvailable ? 'duo-node-available' : 'duo-node-locked'
                         }`}
                     style={{
@@ -143,7 +143,13 @@ export default function Dashboard() {
     const { t } = useTranslation();
     const { auth, profile, chapters, stats } = usePage<SharedData & PageProps>().props;
     const [mounted, setMounted] = useState(false);
+    const [loadingNode, setLoadingNode] = useState<{ id: number; title: string } | null>(null);
     useEffect(() => setMounted(true), []);
+
+    const handleStartNode = (id: number, title: string) => {
+        setLoadingNode({ id, title });
+        router.visit(route('node.start', id));
+    };
 
     const examName = (profile as any)?.target_exam?.name;
     const examFlag = (profile as any)?.target_exam?.language?.flag;
@@ -151,6 +157,36 @@ export default function Dashboard() {
     return (
         <AppLayout>
             <Head title="Dashboard" />
+
+            {/* Loading overlay when starting a node */}
+            {loadingNode && (
+                <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-white/90 backdrop-blur-md">
+                    <style>{`
+                        @keyframes spinRing { to { transform: rotate(360deg); } }
+                        @keyframes pulseGlow { 0%,100% { opacity:0.6; transform:scale(1); } 50% { opacity:1; transform:scale(1.08); } }
+                        @keyframes dotBounce { 0%,80%,100% { transform:translateY(0); opacity:0.4; } 40% { transform:translateY(-8px); opacity:1; } }
+                    `}</style>
+                    <div className="relative flex items-center justify-center" style={{ width: 88, height: 88 }}>
+                        <svg className="absolute inset-0" style={{ animation: 'spinRing 1.2s linear infinite' }} width="88" height="88" viewBox="0 0 88 88">
+                            <circle cx="44" cy="44" r="38" fill="none" stroke="#e5e7eb" strokeWidth="6" />
+                            <circle cx="44" cy="44" r="38" fill="none" stroke={SKY} strokeWidth="6"
+                                strokeLinecap="round" strokeDasharray="60 180" />
+                        </svg>
+                        <div className="flex items-center justify-center rounded-2xl" style={{ width: 56, height: 56, background: SKY, animation: 'pulseGlow 1.8s ease-in-out infinite' }}>
+                            <Icon name="sparkles" size={28} style={{ filter: 'brightness(0) invert(1)' }} />
+                        </div>
+                    </div>
+                    <div className="text-center">
+                        <p className="text-base font-bold" style={{ color: OXFORD }}>Préparation de ta session…</p>
+                        <p className="mt-1 text-sm font-medium" style={{ color: '#6b7280' }}>{loadingNode.title}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        {[0, 1, 2].map(i => (
+                            <div key={i} className="rounded-full" style={{ width: 8, height: 8, background: SKY, animation: `dotBounce 1.2s ease-in-out ${i * 0.2}s infinite` }} />
+                        ))}
+                    </div>
+                </div>
+            )}
             <style>{`
                 @keyframes nodeBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 
@@ -311,6 +347,7 @@ export default function Dashboard() {
                                                     mounted={mounted}
                                                     isNext={isNext && !chapter.nodes.slice(0, nIdx).some(n => n.status === 'available')}
                                                     pathColor={theme.pathColor}
+                                                    onStart={handleStartNode}
                                                 />
                                                 {nextNode && (
                                                     <NodePath

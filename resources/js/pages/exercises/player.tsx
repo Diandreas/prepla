@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 function Icon({ name, size = 20, className, style }: { name: string; size?: number; className?: string; style?: React.CSSProperties }) {
     return <img src={`/icons/${name}.png`} alt="" width={size} height={size} className={className} style={{ objectFit: 'contain', ...style }} />;
@@ -20,6 +20,7 @@ import { OpenCloze } from '@/components/exercises/open-cloze';
 import { WordFormation } from '@/components/exercises/word-formation';
 import { KeyWordTransformation } from '@/components/exercises/key-word-transformation';
 import { Progress } from '@/components/ui/progress';
+import { ExerciseTimer } from '@/components/exercises/exercise-timer';
 
 interface Exercise {
     id: number;
@@ -75,6 +76,14 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
     const [isChecked, setIsChecked] = useState(false);
     const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
     const [submitting, setSubmitting] = useState(false);
+    const [transitioning, setTransitioning] = useState(false);
+    const [visible, setVisible] = useState(true);
+    const [timeSpent, setTimeSpent] = useState(0);
+    const [timerKey, setTimerKey] = useState(0); // reset timer on question change
+    const contentRef = useRef<HTMLDivElement>(null);
+
+    // ~45s per question as a reasonable exam-like limit
+    const TIME_PER_QUESTION = 45;
 
     const exercise = exercises[currentExerciseIndex];
     const questions = exercise?.questions ?? [];
@@ -115,20 +124,42 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
         setIsChecked(false);
         setIsCorrect(null);
 
-        if (currentQuestionIndex < questions.length - 1) {
-            setCurrentQuestionIndex(prev => prev + 1);
-        } else if (currentExerciseIndex < exercises.length - 1) {
-            setCurrentExerciseIndex(prev => prev + 1);
-            setCurrentQuestionIndex(0);
-        } else {
-            // End of session
+        const isEndOfSession = currentExerciseIndex === exercises.length - 1 && currentQuestionIndex === questions.length - 1;
+
+        if (isEndOfSession) {
             setSubmitting(true);
             router.post(route('exercise.submit_session', node.id), {
                 answers,
-                node_id: node.id
+                node_id: node.id,
+                time_spent: timeSpent,
             });
+            return;
         }
+
+        // Animate out, then advance
+        setVisible(false);
+        setTransitioning(true);
+        setTimeout(() => {
+            if (currentQuestionIndex < questions.length - 1) {
+                setCurrentQuestionIndex(prev => prev + 1);
+            } else {
+                setCurrentExerciseIndex(prev => prev + 1);
+                setCurrentQuestionIndex(0);
+            }
+            setTransitioning(false);
+            setVisible(true);
+            setTimerKey(k => k + 1); // reset per-question timer
+        }, 220);
     };
+
+    const handleTimeExpire = useCallback(() => {
+        // Auto-advance when time is up
+        if (!isChecked) {
+            setIsChecked(true);
+            setIsCorrect(false);
+        }
+        setTimeout(() => nextStep(), 1200);
+    }, [isChecked]);
 
     if (!exercise || !question) {
         return (
@@ -144,7 +175,13 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
     return (
         <AppLayout>
             <Head title={`${node.title} - PrePla`} />
-            
+            <style>{`
+                @keyframes slideInUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+                @keyframes slideOutUp { from { opacity:1; transform:translateY(0); } to { opacity:0; transform:translateY(-12px); } }
+                .question-enter { animation: slideInUp 0.22s cubic-bezier(.4,0,.2,1) forwards; }
+                .question-exit  { animation: slideOutUp 0.18s cubic-bezier(.4,0,.2,1) forwards; }
+            `}</style>
+
             <div className="mx-auto max-w-3xl space-y-8 py-6">
                 {/* Header & Global Progress */}
                 <div className="space-y-4">
@@ -160,7 +197,13 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                                 </p>
                             </div>
                         </div>
-                        <div className="text-right">
+                        <div className="flex items-center gap-3">
+                            <ExerciseTimer
+                                key={timerKey}
+                                timeLimit={TIME_PER_QUESTION}
+                                onTimeUpdate={(elapsed) => setTimeSpent(prev => prev + 1)}
+                                onExpire={handleTimeExpire}
+                            />
                             <span className="text-sm font-bold tabular-nums">
                                 {overallProgressCount + 1} / {totalQuestionsInSession}
                             </span>
@@ -170,7 +213,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                 </div>
 
                 {/* Exercise Content */}
-                <div className="space-y-6">
+                <div ref={contentRef} className={`space-y-6 ${visible ? 'question-enter' : 'question-exit'}`}>
                     {exercise.content?.passage && (
                         <div className="rounded-2xl border bg-card p-6 shadow-sm leading-relaxed text-sm prose prose-slate dark:prose-invert max-w-none">
                             {exercise.content.passage}

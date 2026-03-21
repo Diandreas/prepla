@@ -1,7 +1,7 @@
 import { router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import OnboardingLayout from '@/layouts/onboarding-layout';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { ExamWithLanguage } from '@/types';
 
 interface PlacementQuestion {
@@ -27,12 +27,60 @@ const levelColors: Record<string, string> = {
     C2: 'bg-red-100 text-red-700 border border-red-200 dark:bg-red-900/30 dark:text-red-400',
 };
 
+// 30s per question for placement test — exam ambiance
+const QUESTION_TIME = 30;
+
+function QuestionTimer({ seconds: total, onExpire, expired }: { seconds: number; onExpire: () => void; expired: boolean }) {
+    const [remaining, setRemaining] = useState(total);
+    const calledRef = useRef(false);
+
+    useEffect(() => {
+        if (expired) return;
+        const id = setInterval(() => {
+            setRemaining(prev => {
+                const next = prev - 1;
+                if (next <= 0 && !calledRef.current) {
+                    calledRef.current = true;
+                    clearInterval(id);
+                    onExpire();
+                }
+                return Math.max(0, next);
+            });
+        }, 1000);
+        return () => clearInterval(id);
+    }, [expired]);
+
+    const ratio = remaining / total;
+    const isWarning = ratio <= 0.4 && ratio > 0.15;
+    const isCritical = ratio <= 0.15;
+    const color = isCritical ? '#ef4444' : isWarning ? '#f59e0b' : '#4A90E2';
+
+    // SVG arc
+    const r = 11; const circ = 2 * Math.PI * r;
+    const dash = circ * ratio;
+
+    return (
+        <div className="relative flex items-center justify-center" style={{ width: 32, height: 32 }}>
+            <svg width="32" height="32" viewBox="0 0 32 32" style={{ transform: 'rotate(-90deg)' }}>
+                <circle cx="16" cy="16" r={r} fill="none" stroke="#e5e7eb" strokeWidth="3" />
+                <circle cx="16" cy="16" r={r} fill="none" stroke={color} strokeWidth="3"
+                    strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
+                    style={{ transition: 'stroke-dasharray 1s linear, stroke 0.3s' }} />
+            </svg>
+            <span className={`absolute text-[9px] font-bold tabular-nums`} style={{ color }}>{remaining}</span>
+        </div>
+    );
+}
+
 export default function PlacementTest({ exam, questions }: Props) {
     const [currentQ, setCurrentQ] = useState(0);
     const [answers, setAnswers] = useState<Record<string, number>>({});
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [visible, setVisible] = useState(true);
+    const [timerKey, setTimerKey] = useState(0);
+    const [timeExpired, setTimeExpired] = useState(false);
+    const autoAdvanceRef = useRef(false);
 
     const question = questions[currentQ];
     const total = questions.length;
@@ -41,17 +89,16 @@ export default function PlacementTest({ exam, questions }: Props) {
 
     useEffect(() => {
         setVisible(true);
+        setTimeExpired(false);
+        autoAdvanceRef.current = false;
     }, [currentQ]);
 
-    function handleSelect(index: number) {
-        if (!visible) return;
-        setSelectedOption(index);
-    }
+    const advanceQuestion = useCallback((forcedAnswer: number | null) => {
+        if (autoAdvanceRef.current) return;
+        autoAdvanceRef.current = true;
 
-    function handleNext() {
-        if (selectedOption === null || !visible) return;
-
-        const newAnswers = { ...answers, [question.id]: selectedOption };
+        const answer = forcedAnswer ?? selectedOption;
+        const newAnswers = answer !== null ? { ...answers, [question.id]: answer } : answers;
         setAnswers(newAnswers);
 
         if (isLast) {
@@ -64,10 +111,28 @@ export default function PlacementTest({ exam, questions }: Props) {
             setVisible(false);
             setTimeout(() => {
                 setSelectedOption(null);
-                setCurrentQ((prev) => prev + 1);
+                setCurrentQ(prev => prev + 1);
+                setTimerKey(k => k + 1);
                 setVisible(true);
             }, 180);
         }
+    }, [selectedOption, answers, question, isLast, questions]);
+
+    const handleTimeExpire = useCallback(() => {
+        setTimeExpired(true);
+        // Brief flash then auto-advance with no answer (counts as wrong)
+        setTimeout(() => advanceQuestion(null), 800);
+    }, [advanceQuestion]);
+
+    function handleSelect(index: number) {
+        if (!visible || timeExpired) return;
+        setSelectedOption(index);
+    }
+
+    function handleNext() {
+        if (selectedOption === null || !visible || timeExpired) return;
+
+        advanceQuestion(selectedOption);
     }
 
     if (!question) {
@@ -97,13 +162,17 @@ export default function PlacementTest({ exam, questions }: Props) {
                     </p>
                 </div>
 
-                {/* Progress bar */}
-                <div className="space-y-1.5">
-                    <div className="flex justify-between text-xs text-muted-foreground">
+                {/* Progress bar + timer */}
+                <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <span>Question {currentQ + 1} / {total}</span>
-                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${levelColors[question.level] ?? ''}`}>
-                            Niveau {question.level}
-                        </span>
+                        <div className="flex items-center gap-2">
+                            <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${levelColors[question.level] ?? ''}`}>
+                                Niveau {question.level}
+                            </span>
+                            {/* Countdown per question */}
+                            <QuestionTimer key={timerKey} seconds={QUESTION_TIME} onExpire={handleTimeExpire} expired={timeExpired} />
+                        </div>
                     </div>
                     <div className="h-2 overflow-hidden rounded-full bg-muted">
                         <div
@@ -170,13 +239,14 @@ export default function PlacementTest({ exam, questions }: Props) {
                 <div className="flex items-center justify-between pt-2">
                     <Button
                         variant="outline"
-                        disabled={currentQ === 0 || submitting}
+                        disabled={currentQ === 0 || submitting || timeExpired}
                         onClick={() => {
                             setVisible(false);
                             setTimeout(() => {
                                 const prevId = questions[currentQ - 1]?.id;
                                 setSelectedOption(prevId !== undefined ? (answers[prevId] ?? null) : null);
-                                setCurrentQ((prev) => prev - 1);
+                                setCurrentQ(prev => prev - 1);
+                                setTimerKey(k => k + 1);
                                 setVisible(true);
                             }, 180);
                         }}
@@ -186,7 +256,7 @@ export default function PlacementTest({ exam, questions }: Props) {
 
                     <Button
                         size="lg"
-                        disabled={selectedOption === null || submitting}
+                        disabled={selectedOption === null || submitting || timeExpired}
                         onClick={handleNext}
                         className="min-w-[160px] gap-2 bg-gradient-to-r from-primary to-primary/85 font-semibold shadow-md hover:shadow-lg"
                     >
