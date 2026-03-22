@@ -48,6 +48,9 @@ Route::middleware(['auth'])->group(function () {
             ->name('dictionary.lookup')
             ->where('word', '[^/]+');
 
+        // TTS API
+        Route::post('api/tts/speak', [\App\Http\Controllers\TtsController::class, 'speak'])->name('tts.speak');
+
         // AI Tools
         Route::get('ai-tools', [\App\Http\Controllers\AiToolsController::class, 'index'])->name('ai-tools.index');
         Route::get('ai-tools/generator', [\App\Http\Controllers\AiToolsController::class, 'generator'])->name('ai-tools.generator');

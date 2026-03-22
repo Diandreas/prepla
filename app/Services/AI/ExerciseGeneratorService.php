@@ -69,12 +69,54 @@ class ExerciseGeneratorService
         $skillType = $exerciseType->section?->skill_type ?? 'reading';
 
         $questionFormat = match ($componentKey) {
+            // --- Original components ---
             'mcq' => 'Array of 3 questions, each with: id (string q1/q2/q3), type ("mcq"), text (question in ' . $language . '), options (array of exactly 4 answer choices in ' . $language . ', do NOT include letters like "A)" prefix), correct_answer (ONLY the letter: "A", "B", "C", or "D" corresponding to the correct option index), explanation (string in ' . $language . ')',
             'true-false-ng' => 'Array of 3 statements, each with: id (string), type ("true-false-ng"), text (statement in ' . $language . '), correct_answer ("True"/"False"/"Not Given"), explanation (string)',
             'gap-fill' => 'Array of 3 items, each with: id (string), type ("gap-fill"), text (sentence with ___ for blank, in ' . $language . '), correct_answer (string), explanation (string)',
             'matching' => 'Array of 4 questions, each with: id (string q1-q4), type ("matching"), text (the term/concept to identify in ' . $language . '), options (array of exactly 4 definitions in ' . $language . ' — one correct, three plausible distractors, shuffled), correct_answer (ONLY the letter "A", "B", "C", or "D" for the correct option)',
+            'essay-editor' => 'Array of 1 question with: id (string), type ("essay-editor"), text (writing prompt in ' . $language . '), min_words (integer, e.g. 150), max_words (integer, e.g. 250), correct_answer (null — scored manually)',
+            'sentence-completion' => 'Array of 3 items, each with: id (string), type ("sentence-completion"), text (incomplete sentence in ' . $language . '), options (array of 4 choices), correct_answer (letter "A"/"B"/"C"/"D"), explanation (string)',
+            'short-answer' => 'Array of 3 items, each with: id (string), type ("short-answer"), text (question in ' . $language . '), correct_answer (short answer string, max 3 words), explanation (string)',
+            'note-completion' => 'Array of 1 question with: id (string), type ("note-completion"), notes (array of objects {label: string, value: string} where value is blank "" for items the student must fill, or pre-filled text), correct_answers (object mapping blank indices to correct strings)',
+            'ordering' => 'Array of 1 question with: id (string), type ("ordering"), text (instruction in ' . $language . '), items (array of 5-6 items to reorder, in CORRECT order), correct_order (array of ids in correct sequence)',
+            'dictation' => 'Array of 1 question with: id (string), type ("dictation"), audio_text (text to be read aloud in ' . $language . ', 30-50 words), text (instruction), correct_answer (the exact text)',
+            'open-cloze' => 'Array of 1 question with: id (string), type ("open-cloze"), text (passage with numbered gaps like (1)___, (2)___), correct_answers (object mapping "1" to answer, "2" to answer, etc.)',
+            'word-formation' => 'Array of 3 items, each with: id (string), type ("word-formation"), text (sentence with ___ gap), root_word (base word to transform), correct_answer (the transformed word), explanation (string)',
+            'key-word-transformation' => 'Array of 3 items, each with: id (string), type ("key-word-transformation"), original_sentence (in ' . $language . '), key_word (word that must be used), correct_answer (transformed sentence), explanation (string)',
+
+            // --- Sprint 1: Simple text components ---
+            'short-writing' => 'Array of 1 question with: id (string), type ("short-writing"), text (writing prompt in ' . $language . ', e.g. write a postcard/email/message), context (optional context string), min_words (30), max_words (80), correct_answer (null)',
+            'form-completion' => 'Array of 1 question with: id (string), type ("form-completion"), text (instruction in ' . $language . '), fields (array of 6-8 objects {label: string in ' . $language . ', value: string or "" for blanks, type: "text"|"date"|"select", options?: string[] for select}), correct_answers (object mapping blank field indices to correct values)',
+            'summary-completion' => 'Array of 1 question with: id (string), type ("summary-completion"), text (summary passage in ' . $language . ' with ___ for each blank), word_list (array of 8-10 words, including correct answers plus distractors), correct_answers (object mapping blank index "0","1",etc. to correct word)',
+
+            // --- Sprint 2: Table/visual components ---
+            'table-completion' => 'Array of 1 question with: id (string), type ("table-completion"), text (instruction in ' . $language . '), headers (array of column header strings), rows (2D array of strings, use "" for blank cells students must fill), correct_answers (object mapping "rowIndex-colIndex" to correct value for each blank cell)',
+            'flow-chart-completion' => 'Array of 1 question with: id (string), type ("flow-chart-completion"), text (instruction in ' . $language . '), steps (array of objects {text: string or "" for blanks, is_blank: boolean}), correct_answers (object mapping blank step indices to correct text)',
+            'multiple-matching' => 'Array of 1 question with: id (string), type ("multiple-matching"), texts (array of 4 objects {id: "A"/"B"/"C"/"D", title: string, content: string in ' . $language . '}), statements (array of 6 objects {id: "s1"-"s6", text: string in ' . $language . '}), correct_answers (object mapping statement id to text id, e.g. {"s1":"B","s2":"A",...})',
+
+            // --- Sprint 3: Interactive components ---
+            'insert-text' => 'Array of 1 question with: id (string), type ("insert-text"), sentence (the sentence to insert, in ' . $language . '), passage (text with markers [A], [B], [C], [D] where sentence could be inserted), correct_answer ("A"/"B"/"C"/"D")',
+            'gapped-text' => 'Array of 1 question with: id (string), type ("gapped-text"), text (instruction in ' . $language . '), passage_parts (array of strings, the main text split at gaps), paragraphs (array of objects {id: "p1"-"p5", text: string in ' . $language . '} — paragraphs to place in gaps), correct_order (array of paragraph ids in correct gap order)',
+            'graph-description' => 'Array of 1 question with: id (string), type ("graph-description"), text (writing prompt describing the chart in ' . $language . '), chart_data ({type: "bar"|"line"|"pie", labels: string[], datasets: [{label: string, data: number[]}]}), min_words (150), max_words (250), correct_answer (null)',
+            'academic-discussion' => 'Array of 1 question with: id (string), type ("academic-discussion"), professor_prompt (discussion topic in ' . $language . '), student_posts (array of 2 objects {name: string, text: opinion in ' . $language . '}), writing_prompt (instruction for student response in ' . $language . '), min_words (100), max_words (150), correct_answer (null)',
+
+            // --- Sprint 4: Audio/Speaking components ---
+            'speaking-recorder' => 'Array of 1 question with: id (string), type ("speaking-recorder"), text (speaking prompt in ' . $language . ', e.g. describe an experience, give opinion on topic), prep_time (30), speak_time (60), image_url (null), correct_answer (null)',
+            'role-play' => 'Array of 1 question with: id (string), type ("role-play"), scenario (situation description in ' . $language . '), role (candidate role in ' . $language . '), dialogue_turns (array of 4-6 objects {speaker: "examiner"|"candidate", text: string for examiner lines, prompt: string for candidate hints}), correct_answer (null)',
+
+            // --- Sprint 5: Complex components ---
+            'diagram-labeling' => 'Array of 1 question with: id (string), type ("diagram-labeling"), text (instruction in ' . $language . '), image_url (null — will use placeholder), labels (array of 4-6 objects {id: "l1"-"l6", x: number 10-90, y: number 10-90, answer: correct label string}), correct_answers (object mapping label id to correct text)',
+            'synthesis' => 'Array of 1 question with: id (string), type ("synthesis"), documents (array of 2-3 objects {title: string, content: text of 100-150 words in ' . $language . '}), writing_prompt (synthesis instruction in ' . $language . '), min_words (220), max_words (250), correct_answer (null)',
+            'integrated-task' => 'Array of 1 question with: id (string), type ("integrated-task"), reading_passage ({title: string, content: 200-word text in ' . $language . '}), audio_text (100-word listening text in ' . $language . ' for TTS), audio_lang ("' . strtolower(substr($language, 0, 2)) . '"), response_type ("writing"), writing_prompt (instruction in ' . $language . '), min_words (150), max_words (225), correct_answer (null)',
+
             default => 'Array of 3 questions with: id (string), type ("mcq"), text, options (4 choices), correct_answer, explanation',
         };
+
+        // Determine content structure based on component type
+        $needsPassage = in_array($componentKey, ['mcq', 'true-false-ng', 'gap-fill', 'matching', 'sentence-completion', 'short-answer', 'open-cloze']);
+        $contentStructure = $needsPassage
+            ? '"content": {"passage": "A ' . $difficulty . '-level text in ' . $language . ' (150-200 words)", "instructions": "Instructions in ' . $language . '"}'
+            : '"content": {"instructions": "Instructions in ' . $language . '"}';
 
         return <<<PROMPT
 Generate a {$exerciseType->name} exercise for the {$exam->name} exam at CEFR {$difficulty} level.
@@ -83,14 +125,12 @@ Skill tested: {$skillType}.
 
 Return JSON with exactly this structure:
 {
-  "content": {
-    "passage": "A {$difficulty}-level text in {$language} (150-200 words for reading, shorter for other skills)",
-    "instructions": "Instructions in {$language}"
-  },
+  {$contentStructure},
   "questions": [{$questionFormat}]
 }
 
 Important: ALL text (passage, questions, options, explanations) must be in {$language}. No English unless it's an English exam.
+For writing/speaking exercises, correct_answer should be null (these are scored differently).
 PROMPT;
     }
 

@@ -190,17 +190,45 @@ class ExerciseController extends Controller
             $userAnswer = $answers[$questionId] ?? null;
             $correctAnswer = $question['correct_answer'] ?? null;
 
-            // Essay/speaking: no fixed correct answer — give base credit for any submission
+            // Essay/speaking/writing: no fixed correct answer — give base credit for any submission
             $questionType = $question['type'] ?? '';
-            if (in_array($questionType, ['essay', 'speaking', 'writing']) || $correctAnswer === null) {
-                $isCorrect = !empty(trim((string)$userAnswer));
+            $noScoreTypes = ['essay', 'essay-editor', 'speaking', 'writing', 'short-writing', 'graph-description',
+                'academic-discussion', 'speaking-recorder', 'role-play', 'synthesis', 'integrated-task'];
+            if (in_array($questionType, $noScoreTypes) || $correctAnswer === null) {
+                $isCorrect = is_string($userAnswer) ? !empty(trim($userAnswer)) : !empty($userAnswer);
                 $feedback[] = [
                     'question_id' => $questionId,
                     'correct' => $isCorrect,
                     'correct_answer' => null,
-                    'explanation' => $question['prompt'] ?? null,
+                    'explanation' => $question['prompt'] ?? $question['writing_prompt'] ?? null,
                 ];
                 if ($isCorrect) $correct++;
+                continue;
+            }
+
+            // Record-based answers (form-completion, table-completion, etc.)
+            // correct_answers is an object, userAnswer is also an object
+            $correctAnswers = $question['correct_answers'] ?? null;
+            if (is_array($correctAnswers) && is_array($userAnswer) && !array_is_list($correctAnswers)) {
+                $fieldCorrect = 0;
+                $fieldTotal = count($correctAnswers);
+                foreach ($correctAnswers as $key => $expected) {
+                    $given = $userAnswer[$key] ?? '';
+                    if (strtolower(trim((string)$given)) === strtolower(trim((string)$expected))) {
+                        $fieldCorrect++;
+                    }
+                }
+                $isCorrect = $fieldTotal > 0 && $fieldCorrect === $fieldTotal;
+                $partialAccuracy = $fieldTotal > 0 ? round(($fieldCorrect / $fieldTotal) * 100) : 0;
+                // Give partial credit: count as correct if >= 70% fields right
+                if ($partialAccuracy >= 70) $correct++;
+                $feedback[] = [
+                    'question_id' => $questionId,
+                    'correct' => $isCorrect,
+                    'correct_answer' => $correctAnswers,
+                    'partial_accuracy' => $partialAccuracy,
+                    'explanation' => $question['explanation'] ?? null,
+                ];
                 continue;
             }
 

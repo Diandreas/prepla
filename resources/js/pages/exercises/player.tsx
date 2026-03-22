@@ -19,6 +19,22 @@ import { Dictation } from '@/components/exercises/dictation';
 import { OpenCloze } from '@/components/exercises/open-cloze';
 import { WordFormation } from '@/components/exercises/word-formation';
 import { KeyWordTransformation } from '@/components/exercises/key-word-transformation';
+import { ShortWriting } from '@/components/exercises/short-writing';
+import { FormCompletion } from '@/components/exercises/form-completion';
+import { SummaryCompletion } from '@/components/exercises/summary-completion';
+import { TableCompletion } from '@/components/exercises/table-completion';
+import { FlowChartCompletion } from '@/components/exercises/flow-chart-completion';
+import { MultipleMatching } from '@/components/exercises/multiple-matching';
+import { InsertText } from '@/components/exercises/insert-text';
+import { GappedText } from '@/components/exercises/gapped-text';
+import { GraphDescription } from '@/components/exercises/graph-description';
+import { AcademicDiscussion } from '@/components/exercises/academic-discussion';
+import { SpeakingRecorder } from '@/components/exercises/speaking-recorder';
+import { RolePlay } from '@/components/exercises/role-play';
+import { DiagramLabeling } from '@/components/exercises/diagram-labeling';
+import { Synthesis } from '@/components/exercises/synthesis';
+import { IntegratedTask } from '@/components/exercises/integrated-task';
+import { VocabularyCard } from '@/components/exercises/vocabulary-card';
 import { Progress } from '@/components/ui/progress';
 import { ExerciseTimer } from '@/components/exercises/exercise-timer';
 
@@ -66,6 +82,22 @@ const componentMap: Record<string, React.ComponentType<any>> = {
     'open-cloze': OpenCloze,
     'word-formation': WordFormation,
     'key-word-transformation': KeyWordTransformation,
+    'short-writing': ShortWriting,
+    'form-completion': FormCompletion,
+    'summary-completion': SummaryCompletion,
+    'table-completion': TableCompletion,
+    'flow-chart-completion': FlowChartCompletion,
+    'multiple-matching': MultipleMatching,
+    'insert-text': InsertText,
+    'gapped-text': GappedText,
+    'graph-description': GraphDescription,
+    'academic-discussion': AcademicDiscussion,
+    'speaking-recorder': SpeakingRecorder,
+    'role-play': RolePlay,
+    'diagram-labeling': DiagramLabeling,
+    'synthesis': Synthesis,
+    'integrated-task': IntegratedTask,
+    'vocabulary-card': VocabularyCard,
 };
 
 export default function SessionPlayer({ node, exercises, progress }: Props) {
@@ -82,8 +114,18 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
     const [timerKey, setTimerKey] = useState(0); // reset timer on question change
     const contentRef = useRef<HTMLDivElement>(null);
 
-    // ~45s per question as a reasonable exam-like limit
-    const TIME_PER_QUESTION = 45;
+    // Dynamic time per question based on exercise type
+    const componentKey = exercise?.exercise_type?.component_key ?? 'mcq';
+    const TIME_PER_QUESTION = useMemo(() => {
+        const writingTypes = ['essay-editor', 'short-writing', 'graph-description', 'academic-discussion', 'synthesis', 'integrated-task'];
+        const speakingTypes = ['speaking-recorder', 'role-play'];
+        const longTypes = ['gapped-text', 'insert-text', 'table-completion', 'flow-chart-completion', 'summary-completion', 'form-completion', 'diagram-labeling', 'multiple-matching'];
+
+        if (writingTypes.includes(componentKey)) return 600; // 10 min
+        if (speakingTypes.includes(componentKey)) return 300; // 5 min
+        if (longTypes.includes(componentKey)) return 120; // 2 min
+        return 45;
+    }, [componentKey]);
 
     const exercise = exercises[currentExerciseIndex];
     const questions = exercise?.questions ?? [];

@@ -44,4 +44,8 @@ return [
         'key' => env('FORVO_API_KEY'),
     ],
 
+    'deepgram' => [
+        'api_key' => env('DEEPGRAM_API_KEY'),
+    ],
+
 ];

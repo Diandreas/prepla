@@ -1,4 +1,5 @@
 import { Head } from '@inertiajs/react';
+import { LandingThemeProvider, useTokens } from '@/components/landing/landing-theme';
 import { LandingNavbar } from '@/components/landing/landing-navbar';
 import { HeroSection } from '@/components/landing/hero-section';
 import { LanguagesGrid } from '@/components/landing/languages-grid';
@@ -14,20 +15,30 @@ interface WelcomeProps {
     pricing: PricingPlan[];
 }
 
+function WelcomeInner({ languages, pricing }: WelcomeProps) {
+    const T = useTokens();
+
+    return (
+        <div style={{ minHeight: '100vh', background: T.bg, color: T.text, transition: 'background 0.3s ease, color 0.3s ease' }}>
+            <LandingNavbar />
+            <HeroSection />
+            <LanguagesGrid languages={languages} />
+            <FeaturesSection />
+            <HowItWorks />
+            <PricingSection pricing={pricing} />
+            <CtaSection />
+            <LandingFooter />
+        </div>
+    );
+}
+
 export default function Welcome({ languages, pricing }: WelcomeProps) {
     return (
         <>
-            <Head title="PrePla - AI-Powered Language Test Preparation" />
-            <div className="min-h-screen bg-background text-foreground">
-                <LandingNavbar />
-                <HeroSection />
-                <LanguagesGrid languages={languages} />
-                <FeaturesSection />
-                <HowItWorks />
-                <PricingSection pricing={pricing} />
-                <CtaSection />
-                <LandingFooter />
-            </div>
+            <Head title="PrePla — Préparez vos examens de langue avec l'IA" />
+            <LandingThemeProvider>
+                <WelcomeInner languages={languages} pricing={pricing} />
+            </LandingThemeProvider>
         </>
     );
 }

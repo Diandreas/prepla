@@ -8,12 +8,14 @@ import { useTranslation } from 'react-i18next';
 import AppLogo from './app-logo';
 
 // Custom icon component using icons from /public/icons
-function CustomIcon({ name, className }: { name: string; className?: string }) {
+// Uses CSS filter to colorize PNGs based on active state and dark/light mode
+function SidebarIcon({ name }: { name: string }) {
     return (
         <img
             src={`/icons/${name}.png`}
             alt={name}
-            className={className || 'h-5 w-5'}
+            width={32}
+            height={32}
             style={{ objectFit: 'contain' }}
         />
     );
@@ -26,27 +28,27 @@ export function AppSidebar() {
         {
             title: t('sidebar.home', 'Accueil'),
             url: '/dashboard',
-            icon: () => <CustomIcon name="home" />,
+            icon: () => <SidebarIcon name="home" />,
         },
         {
             title: t('sidebar.practice', 'Pratiquer'),
             url: '/practice',
-            icon: () => <CustomIcon name="puzzle" />,
+            icon: () => <SidebarIcon name="puzzle" />,
         },
         {
             title: t('sidebar.ai_tools', 'Outils IA'),
             url: '/ai-tools',
-            icon: () => <CustomIcon name="video" />,
+            icon: () => <SidebarIcon name="sparkles" />,
         },
         {
             title: t('sidebar.results', 'Résultats'),
             url: '/results',
-            icon: () => <CustomIcon name="statistics" />,
+            icon: () => <SidebarIcon name="statistics" />,
         },
         {
             title: t('sidebar.leaderboard', 'Classement'),
             url: '/leaderboard',
-            icon: () => <CustomIcon name="trophy" />,
+            icon: () => <SidebarIcon name="trophy" />,
         },
     ];
 
@@ -54,7 +56,7 @@ export function AppSidebar() {
         {
             title: t('sidebar.settings', 'Paramètres'),
             url: '/settings/profile',
-            icon: () => <CustomIcon name="settings" />,
+            icon: () => <SidebarIcon name="settings" />,
         },
     ];
 
