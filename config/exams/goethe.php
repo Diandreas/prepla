@@ -142,9 +142,10 @@ return [
                     'slug' => 'hoeren',
                     'name' => 'Hören (Listening)',
                     'skill_type' => 'listening',
-                    'time_limit' => 30,
+                    'time_limit' => 40,
+                    'question_count' => 30,
                     'scoring_weight' => 25,
-                    'description' => '4 parties : annonces, conversations, discussion radio, dialogue quotidien.',
+                    'description' => '4 parties : annonces (matching 10 items), MCQ (5 items), vrai/faux (7 items), vrai/faux (8 items).',
                     'exercise_types' => ['mcq', 'true-false-not-given', 'matching', 'note-completion'],
                 ],
                 [
@@ -153,7 +154,7 @@ return [
                     'skill_type' => 'writing',
                     'time_limit' => 60,
                     'scoring_weight' => 25,
-                    'description' => '3 tâches : email/lettre semi-formelle, prise de position, email personnel.',
+                    'description' => '3 tâches : email/lettre semi-formelle (~80 mots), prise de position (~80 mots), email personnel.',
                     'exercise_types' => ['essay', 'letter-writing'],
                 ],
                 [
