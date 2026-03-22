@@ -22,6 +22,31 @@ class OnboardingController extends Controller
     ) {
     }
 
+    // ─── Étape 1 : Langue maternelle ────────────────────────────────────────
+
+    public function nativeLanguage(): Response
+    {
+        return Inertia::render('onboarding/native-language', [
+            'currentNativeLanguage' => auth()->user()->profile?->native_language,
+        ]);
+    }
+
+    public function storeNativeLanguage(Request $request)
+    {
+        $validated = $request->validate([
+            'native_language' => 'required|string|max:50',
+        ]);
+
+        UserProfile::updateOrCreate(
+            ['user_id' => $request->user()->id],
+            ['native_language' => $validated['native_language']]
+        );
+
+        return redirect()->route('onboarding.exam');
+    }
+
+    // ─── Étape 2 : Choix de l'examen ────────────────────────────────────────
+
     public function examSelect(): Response
     {
         $languages = Language::where('is_active', true)
@@ -80,48 +105,50 @@ class OnboardingController extends Controller
         }
 
         $language = $exam->language;
-        $cacheKey = "placement_questions_{$exam->id}_{$profile->user_id}";
+        $nativeLanguage = $profile->native_language ?? 'Français';
+        $cacheKey = "placement_v2_{$exam->id}_{$profile->user_id}";
 
-        // Generate or retrieve cached questions (cache for 30 min per user session)
-        $questions = Cache::remember($cacheKey, 1800, function () use ($language, $exam) {
-            return $this->placementTest->generateQuestions(
+        $testData = Cache::remember($cacheKey, 1800, function () use ($language, $exam, $nativeLanguage) {
+            return $this->placementTest->generateFullTest(
                 $language->name,
-                $language->native_name,
-                $exam->name
+                $language->native_name ?? $language->name,
+                $exam->name,
+                $nativeLanguage
             );
         });
 
         return Inertia::render('onboarding/placement-test', [
-            'exam' => $exam,
-            'questions' => $questions,
+            'exam'     => $exam,
+            'sectionA' => $testData['section_a'],
+            'sectionB' => $testData['section_b'],
+            'sectionC' => $testData['section_c'],
         ]);
     }
 
     public function submitPlacement(Request $request)
     {
         $validated = $request->validate([
-            'answers' => 'required|array',
-            'questions' => 'required|string',
+            'answers'         => 'required|array',
+            'questions'       => 'required|string',
+            'essay_text'      => 'nullable|string|max:6000',
+            'essay_time_used' => 'nullable|integer|min:0',
         ]);
 
         $questions = json_decode($validated['questions'], true) ?? [];
 
-        // Evaluate level based on answers
-        $level = $this->placementTest->evaluateLevel(
+        $level = $this->placementTest->evaluateFullLevel(
             $questions,
-            $validated['answers']
+            $validated['answers'],
+            $validated['essay_text'] ?? ''
         );
 
-        $request->user()->profile->update([
-            'current_level' => $level,
-        ]);
+        $request->user()->profile->update(['current_level' => $level]);
 
-        // Cache the questions so result page can use them
-        $cacheKey = "placement_answers_{$request->user()->id}";
-        Cache::put($cacheKey, [
-            'questions' => $validated['questions'],
-            'answers' => $validated['answers'],
-            'level' => $level,
+        Cache::put("placement_answers_{$request->user()->id}", [
+            'questions'  => $validated['questions'],
+            'answers'    => $validated['answers'],
+            'essay_text' => $validated['essay_text'] ?? '',
+            'level'      => $level,
         ], 3600);
 
         return redirect()->route('onboarding.result');
@@ -174,6 +201,7 @@ class OnboardingController extends Controller
 
         // Clear caches
         Cache::forget("placement_questions_{$profile->target_exam_id}_{$request->user()->id}");
+        Cache::forget("placement_v2_{$profile->target_exam_id}_{$request->user()->id}");
         Cache::forget("placement_answers_{$request->user()->id}");
 
         return redirect()->route('dashboard');

@@ -54,7 +54,7 @@ export default function ExamSelect({ languages }: Props) {
     }
 
     return (
-        <OnboardingLayout title="Choisissez votre examen" step={1}>
+        <OnboardingLayout title="Choisissez votre examen" step={2}>
             {/* Floating background decoration */}
             <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
                 <div className="animate-float absolute -top-32 right-1/4 h-[400px] w-[400px] rounded-full bg-primary/10 blur-3xl" />

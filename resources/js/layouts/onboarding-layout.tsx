@@ -8,6 +8,7 @@ interface OnboardingLayoutProps {
 }
 
 const steps = [
+    { label: 'Langue', sublabel: 'Maternelle' },
     { label: 'Examen', sublabel: 'Choisir' },
     { label: 'Objectif', sublabel: 'Définir' },
     { label: 'Test', sublabel: 'Évaluer' },
@@ -17,7 +18,7 @@ const steps = [
 export default function OnboardingLayout({
     title,
     step,
-    totalSteps = 4,
+    totalSteps = 5,
     children,
 }: PropsWithChildren<OnboardingLayoutProps>) {
     const [mounted, setMounted] = useState(false);

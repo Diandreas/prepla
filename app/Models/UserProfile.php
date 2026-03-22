@@ -18,6 +18,7 @@ class UserProfile extends Model
         'current_level',
         'plan',
         'interface_language',
+        'native_language',
         'xp_total',
         'streak_current',
         'streak_last_date',

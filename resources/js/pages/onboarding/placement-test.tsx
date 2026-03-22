@@ -1,43 +1,63 @@
 import { router } from '@inertiajs/react';
-import { Button } from '@/components/ui/button';
 import OnboardingLayout from '@/layouts/onboarding-layout';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { ExamWithLanguage } from '@/types';
 
-interface PlacementQuestion {
+// ─── Types ──────────────────────────────────────────────────────────────────
+
+interface MCQQuestion {
     id: string;
     level: string;
     text: string;
-    sentence: string;
+    sentence?: string;
     options: string[];
-    correct: number;
+    correct_answer: string;
+}
+
+interface SectionBData {
+    passage: string;
+    questions: MCQQuestion[];
+}
+
+interface SectionCData {
+    prompt: string;
 }
 
 interface Props {
     exam: ExamWithLanguage | null;
-    questions: PlacementQuestion[];
+    sectionA: MCQQuestion[];
+    sectionB: SectionBData;
+    sectionC: SectionCData;
 }
 
-const levelColors: Record<string, string> = {
-    A1: 'bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400',
-    A2: 'bg-green-100 text-green-700 border border-green-200 dark:bg-green-900/30 dark:text-green-400',
-    B1: 'bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-400',
-    B2: 'bg-indigo-100 text-indigo-700 border border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-400',
-    C1: 'bg-purple-100 text-purple-700 border border-purple-200 dark:bg-purple-900/30 dark:text-purple-400',
-    C2: 'bg-red-100 text-red-700 border border-red-200 dark:bg-red-900/30 dark:text-red-400',
-};
+// ─── Brand colors ────────────────────────────────────────────────────────────
+const OXFORD = '#1A2B48';
+const SKY = '#4A90E2';
+const GOLD = '#F5A623';
 
-// 30s per question for placement test — exam ambiance
-const QUESTION_TIME = 30;
+// ─── Countdown ring component ────────────────────────────────────────────────
 
-function QuestionTimer({ seconds: total, onExpire, expired }: { seconds: number; onExpire: () => void; expired: boolean }) {
+function QuestionTimer({
+    seconds: total,
+    onExpire,
+    expired,
+}: {
+    seconds: number;
+    onExpire: () => void;
+    expired: boolean;
+}) {
     const [remaining, setRemaining] = useState(total);
     const calledRef = useRef(false);
 
     useEffect(() => {
+        setRemaining(total);
+        calledRef.current = false;
+    }, [total]);
+
+    useEffect(() => {
         if (expired) return;
         const id = setInterval(() => {
-            setRemaining(prev => {
+            setRemaining((prev) => {
                 const next = prev - 1;
                 if (next <= 0 && !calledRef.current) {
                     calledRef.current = true;
@@ -48,234 +68,522 @@ function QuestionTimer({ seconds: total, onExpire, expired }: { seconds: number;
             });
         }, 1000);
         return () => clearInterval(id);
-    }, [expired]);
+    }, [expired, onExpire]);
 
     const ratio = remaining / total;
-    const isWarning = ratio <= 0.4 && ratio > 0.15;
-    const isCritical = ratio <= 0.15;
-    const color = isCritical ? '#ef4444' : isWarning ? '#f59e0b' : '#4A90E2';
+    const isCritical = ratio <= 0.2;
+    const isWarning = ratio <= 0.45 && !isCritical;
+    const color = isCritical ? '#ef4444' : isWarning ? '#f59e0b' : SKY;
 
-    // SVG arc
-    const r = 11; const circ = 2 * Math.PI * r;
+    const r = 11;
+    const circ = 2 * Math.PI * r;
     const dash = circ * ratio;
 
     return (
-        <div className="relative flex items-center justify-center" style={{ width: 32, height: 32 }}>
-            <svg width="32" height="32" viewBox="0 0 32 32" style={{ transform: 'rotate(-90deg)' }}>
-                <circle cx="16" cy="16" r={r} fill="none" stroke="#e5e7eb" strokeWidth="3" />
-                <circle cx="16" cy="16" r={r} fill="none" stroke={color} strokeWidth="3"
+        <div className="relative flex items-center justify-center" style={{ width: 34, height: 34 }}>
+            <svg width="34" height="34" viewBox="0 0 34 34" style={{ transform: 'rotate(-90deg)' }}>
+                <circle cx="17" cy="17" r={r} fill="none" stroke="#e5e7eb" strokeWidth="3" />
+                <circle
+                    cx="17" cy="17" r={r} fill="none" stroke={color} strokeWidth="3"
                     strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
-                    style={{ transition: 'stroke-dasharray 1s linear, stroke 0.3s' }} />
+                    style={{ transition: 'stroke-dasharray 1s linear, stroke 0.3s' }}
+                />
             </svg>
-            <span className={`absolute text-[9px] font-bold tabular-nums`} style={{ color }}>{remaining}</span>
+            <span className="absolute text-[10px] font-black tabular-nums" style={{ color }}>
+                {remaining}
+            </span>
         </div>
     );
 }
 
-export default function PlacementTest({ exam, questions }: Props) {
-    const [currentQ, setCurrentQ] = useState(0);
-    const [answers, setAnswers] = useState<Record<string, number>>({});
-    const [selectedOption, setSelectedOption] = useState<number | null>(null);
-    const [submitting, setSubmitting] = useState(false);
-    const [visible, setVisible] = useState(true);
-    const [timerKey, setTimerKey] = useState(0);
-    const [timeExpired, setTimeExpired] = useState(false);
-    const autoAdvanceRef = useRef(false);
+// ─── Big essay countdown ──────────────────────────────────────────────────────
 
-    const question = questions[currentQ];
-    const total = questions.length;
-    const isLast = currentQ === total - 1;
-    const progress = (currentQ / total) * 100;
+function EssayTimer({
+    totalSeconds,
+    onExpire,
+    onTick,
+}: {
+    totalSeconds: number;
+    onExpire: () => void;
+    onTick: (remaining: number) => void;
+}) {
+    const [remaining, setRemaining] = useState(totalSeconds);
+    const calledRef = useRef(false);
 
     useEffect(() => {
-        setVisible(true);
-        setTimeExpired(false);
-        autoAdvanceRef.current = false;
-    }, [currentQ]);
-
-    const advanceQuestion = useCallback((forcedAnswer: number | null) => {
-        if (autoAdvanceRef.current) return;
-        autoAdvanceRef.current = true;
-
-        const answer = forcedAnswer ?? selectedOption;
-        const newAnswers = answer !== null ? { ...answers, [question.id]: answer } : answers;
-        setAnswers(newAnswers);
-
-        if (isLast) {
-            setSubmitting(true);
-            router.post(route('onboarding.placement.store'), {
-                answers: newAnswers,
-                questions: JSON.stringify(questions),
+        const id = setInterval(() => {
+            setRemaining((prev) => {
+                const next = prev - 1;
+                onTick(next);
+                if (next <= 0 && !calledRef.current) {
+                    calledRef.current = true;
+                    clearInterval(id);
+                    onExpire();
+                }
+                return Math.max(0, next);
             });
-        } else {
-            setVisible(false);
-            setTimeout(() => {
-                setSelectedOption(null);
-                setCurrentQ(prev => prev + 1);
-                setTimerKey(k => k + 1);
-                setVisible(true);
-            }, 180);
-        }
-    }, [selectedOption, answers, question, isLast, questions]);
+        }, 1000);
+        return () => clearInterval(id);
+    }, [onExpire, onTick]);
 
-    const handleTimeExpire = useCallback(() => {
-        setTimeExpired(true);
-        // Brief flash then auto-advance with no answer (counts as wrong)
-        setTimeout(() => advanceQuestion(null), 800);
+    const mins = Math.floor(remaining / 60);
+    const secs = remaining % 60;
+    const ratio = remaining / totalSeconds;
+    const isCritical = ratio <= 0.15;
+    const isWarning = ratio <= 0.35 && !isCritical;
+    const color = isCritical ? '#ef4444' : isWarning ? '#f59e0b' : SKY;
+
+    return (
+        <div
+            className="flex items-center gap-2 rounded-xl px-3 py-1.5 font-black tabular-nums"
+            style={{
+                background: isCritical ? '#fef2f2' : isWarning ? '#fffbeb' : `${SKY}12`,
+                color,
+                animation: isCritical ? 'pulse 0.8s ease-in-out infinite' : undefined,
+            }}
+        >
+            <img
+                src="/icons/clock.png"
+                alt=""
+                width={14}
+                height={14}
+                style={{
+                    objectFit: 'contain',
+                    filter: isCritical
+                        ? 'brightness(0) saturate(100%) invert(30%) sepia(80%) saturate(600%) hue-rotate(330deg)'
+                        : isWarning
+                        ? 'brightness(0) saturate(100%) invert(55%) sepia(60%) saturate(500%) hue-rotate(15deg)'
+                        : `brightness(0) saturate(100%) invert(47%) sepia(80%) saturate(600%) hue-rotate(195deg)`,
+                }}
+            />
+            <span className="text-base">
+                {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
+            </span>
+        </div>
+    );
+}
+
+// ─── Section transition flash ─────────────────────────────────────────────────
+
+function SectionTransition({ label, onDone }: { label: string; onDone: () => void }) {
+    useEffect(() => {
+        const t = setTimeout(onDone, 1600);
+        return () => clearTimeout(t);
+    }, [onDone]);
+
+    return (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div
+                className="mb-4 flex h-16 w-16 items-center justify-center rounded-full"
+                style={{ background: `${SKY}18`, border: `3px solid ${SKY}` }}
+            >
+                <img
+                    src="/icons/check-circle.png"
+                    alt=""
+                    width={32}
+                    height={32}
+                    style={{ filter: `brightness(0) saturate(100%) invert(47%) sepia(80%) saturate(600%) hue-rotate(195deg)`, objectFit: 'contain' }}
+                />
+            </div>
+            <p className="text-lg font-black" style={{ color: OXFORD }}>
+                {label} terminée !
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">Préparation de la section suivante…</p>
+        </div>
+    );
+}
+
+// ─── MCQ question block ───────────────────────────────────────────────────────
+
+function MCQBlock({
+    question,
+    selectedAnswer,
+    onAnswer,
+    disabled,
+}: {
+    question: MCQQuestion;
+    selectedAnswer?: string;
+    onAnswer: (qId: string, letter: string) => void;
+    disabled: boolean;
+}) {
+    return (
+        <div className="space-y-4">
+            <p className="text-base font-semibold leading-relaxed">{question.text}</p>
+            {question.sentence && (
+                <div className="rounded-xl bg-muted/60 px-4 py-3">
+                    <p className="text-center italic text-muted-foreground">{question.sentence}</p>
+                </div>
+            )}
+            <div className="grid gap-2.5">
+                {question.options.map((option, i) => {
+                    const letter = String.fromCharCode(65 + i);
+                    const isSelected = selectedAnswer === letter;
+                    return (
+                        <button
+                            key={i}
+                            disabled={disabled}
+                            onClick={() => onAnswer(question.id, letter)}
+                            className={`flex items-center gap-3 rounded-xl border p-4 text-left text-sm transition-all ${
+                                isSelected
+                                    ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
+                                    : 'border-border bg-card hover:border-primary/40'
+                            } disabled:opacity-50`}
+                        >
+                            <span
+                                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors ${
+                                    isSelected ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
+                                }`}
+                            >
+                                {letter}
+                            </span>
+                            <span className={`font-medium ${isSelected ? 'text-primary' : ''}`}>{option}</span>
+                        </button>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
+// ─── Level badge ──────────────────────────────────────────────────────────────
+
+const levelColors: Record<string, string> = {
+    A1: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+    A2: 'bg-green-100 text-green-700 border-green-200',
+    B1: 'bg-blue-100 text-blue-700 border-blue-200',
+    B2: 'bg-indigo-100 text-indigo-700 border-indigo-200',
+    C1: 'bg-purple-100 text-purple-700 border-purple-200',
+};
+
+// ─── Section progress mini-bar ────────────────────────────────────────────────
+
+function SectionBar({ label, state }: { label: string; state: 'done' | 'active' | 'pending' }) {
+    return (
+        <div className="flex flex-1 flex-col items-center gap-1">
+            <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                    className="absolute inset-y-0 left-0 rounded-full transition-all duration-700"
+                    style={{
+                        width: state === 'done' ? '100%' : state === 'active' ? '55%' : '0%',
+                        background: state === 'done' ? '#22c55e' : SKY,
+                    }}
+                />
+            </div>
+            <span
+                className="text-[10px] font-bold"
+                style={{ color: state === 'active' ? OXFORD : state === 'done' ? '#22c55e' : '#94a3b8' }}
+            >
+                {label}
+            </span>
+        </div>
+    );
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
+
+type Section = 'A' | 'transition_B' | 'B' | 'transition_C' | 'C' | 'submitting';
+
+export default function PlacementTest({ exam, sectionA, sectionB, sectionC }: Props) {
+    const [section, setSection] = useState<Section>('A');
+    const [currentQ, setCurrentQ] = useState(0);
+    const [answers, setAnswers] = useState<Record<string, string>>({});
+    const [timerKey, setTimerKey] = useState(0);
+    const [qExpired, setQExpired] = useState(false);
+    const [essayText, setEssayText] = useState('');
+    const [essayRemaining, setEssayRemaining] = useState(300);
+    const [visible, setVisible] = useState(true);
+    const submittingRef = useRef(false);
+
+    // Current question depends on section
+    const currentQuestions = section === 'A' || section === 'transition_B'
+        ? sectionA
+        : section === 'B' || section === 'transition_C'
+        ? sectionB.questions
+        : [];
+
+    const question = currentQuestions[currentQ];
+    const isLastQ = currentQ === currentQuestions.length - 1;
+
+    // Section-level progress state
+    const sectionState = (s: 'A' | 'B' | 'C') => {
+        if (s === 'A') return section === 'A' ? 'active' : 'done';
+        if (s === 'B') return section === 'B' || section === 'transition_C' ? 'active' : section === 'A' || section === 'transition_B' ? 'pending' : 'done';
+        if (s === 'C') return section === 'C' ? 'active' : section === 'submitting' ? 'done' : 'pending';
+        return 'pending';
+    };
+
+    // --- Navigate question ---
+    const advanceQuestion = useCallback(
+        (forcedAnswer?: string) => {
+            const qId = question?.id;
+            const ans = forcedAnswer ?? answers[qId ?? ''];
+            const newAnswers = qId ? { ...answers, [qId]: ans ?? '' } : answers;
+            setAnswers(newAnswers);
+            setQExpired(false);
+
+            if (isLastQ) {
+                // End of section
+                if (section === 'A') {
+                    setSection('transition_B');
+                } else if (section === 'B') {
+                    setSection('transition_C');
+                }
+            } else {
+                setVisible(false);
+                setTimeout(() => {
+                    setCurrentQ((q) => q + 1);
+                    setTimerKey((k) => k + 1);
+                    setVisible(true);
+                }, 180);
+            }
+        },
+        [question, answers, isLastQ, section]
+    );
+
+    const handleQExpire = useCallback(() => {
+        setQExpired(true);
+        setTimeout(() => advanceQuestion(''), 700);
     }, [advanceQuestion]);
 
-    function handleSelect(index: number) {
-        if (!visible || timeExpired) return;
-        setSelectedOption(index);
-    }
+    // --- Essay ---
+    const handleEssaySubmit = useCallback(() => {
+        if (submittingRef.current) return;
+        submittingRef.current = true;
+        setSection('submitting');
 
-    function handleNext() {
-        if (selectedOption === null || !visible || timeExpired) return;
+        const allMcq = [...sectionA, ...sectionB.questions];
+        router.post(route('onboarding.placement.store'), {
+            answers,
+            questions: JSON.stringify(allMcq),
+            essay_text: essayText,
+            essay_time_used: 300 - essayRemaining,
+        });
+    }, [answers, essayText, essayRemaining, sectionA, sectionB]);
 
-        advanceQuestion(selectedOption);
-    }
+    const handleEssayExpire = useCallback(() => {
+        handleEssaySubmit();
+    }, [handleEssaySubmit]);
 
-    if (!question) {
+    const wordCount = essayText.trim() ? essayText.trim().split(/\s+/).length : 0;
+
+    // ─── Render ───────────────────────────────────────────────────────────────
+
+    if (section === 'submitting') {
         return (
-            <OnboardingLayout title="Test de placement" step={3}>
-                <div className="flex items-center justify-center py-20">
-                    <div className="flex flex-col items-center gap-4">
-                        <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-                        <p className="text-muted-foreground">Chargement des questions…</p>
+            <OnboardingLayout title="Test de placement" step={4}>
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <img src="/icons/loader.png" alt="" width={40} height={40} className="animate-spin mb-4"
+                        style={{ filter: `brightness(0) saturate(100%) invert(47%) sepia(80%) saturate(600%) hue-rotate(195deg)` }} />
+                    <p className="text-lg font-black" style={{ color: OXFORD }}>Analyse de votre niveau…</p>
+                    <p className="mt-1 text-sm text-muted-foreground">L'IA évalue votre grammaire, lecture et expression écrite</p>
+                </div>
+            </OnboardingLayout>
+        );
+    }
+
+    if (section === 'transition_B') {
+        return (
+            <OnboardingLayout title="Test de placement" step={4}>
+                <SectionTransition label="Section A" onDone={() => { setSection('B'); setCurrentQ(0); setTimerKey((k) => k + 1); }} />
+            </OnboardingLayout>
+        );
+    }
+
+    if (section === 'transition_C') {
+        return (
+            <OnboardingLayout title="Test de placement" step={4}>
+                <SectionTransition label="Section B" onDone={() => setSection('C')} />
+            </OnboardingLayout>
+        );
+    }
+
+    // Section C — Essay
+    if (section === 'C') {
+        return (
+            <OnboardingLayout title="Test de placement" step={4}>
+                <div className="space-y-6">
+                    {/* Section progress */}
+                    <div className="flex items-center gap-2">
+                        <SectionBar label="Section A" state="done" />
+                        <SectionBar label="Section B" state="done" />
+                        <SectionBar label="Section C" state="active" />
+                    </div>
+
+                    {/* Header */}
+                    <div className="flex items-start justify-between gap-3">
+                        <div>
+                            <p className="text-xs font-black uppercase tracking-widest" style={{ color: SKY }}>
+                                Section C — Expression Écrite
+                            </p>
+                            <h2 className="mt-1 text-xl font-black" style={{ color: OXFORD }}>
+                                Rédigez votre réponse
+                            </h2>
+                            <p className="text-xs text-muted-foreground mt-0.5">Prenez votre temps, qualité et longueur sont évaluées</p>
+                        </div>
+                        <EssayTimer
+                            totalSeconds={300}
+                            onExpire={handleEssayExpire}
+                            onTick={setEssayRemaining}
+                        />
+                    </div>
+
+                    {/* Prompt */}
+                    <div
+                        className="rounded-2xl border-2 p-5"
+                        style={{ borderColor: `${GOLD}60`, background: `${GOLD}08` }}
+                    >
+                        <p className="text-xs font-black uppercase tracking-wider mb-2" style={{ color: GOLD }}>
+                            Sujet
+                        </p>
+                        <p className="text-sm leading-relaxed font-medium" style={{ color: OXFORD }}>
+                            {sectionC.prompt}
+                        </p>
+                    </div>
+
+                    {/* Textarea */}
+                    <div className="space-y-2">
+                        <textarea
+                            value={essayText}
+                            onChange={(e) => setEssayText(e.target.value)}
+                            placeholder="Rédigez votre réponse ici…"
+                            rows={8}
+                            className="w-full resize-none rounded-2xl border-2 border-border bg-card p-4 text-sm leading-relaxed outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            style={{ minHeight: 200 }}
+                        />
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span>
+                                <span className="font-bold" style={{ color: wordCount >= 100 ? '#22c55e' : wordCount >= 50 ? GOLD : OXFORD }}>
+                                    {wordCount}
+                                </span>{' '}
+                                mot{wordCount !== 1 ? 's' : ''}
+                                <span className="ml-2 opacity-60">· Visez 150+ mots pour un meilleur score</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Submit button */}
+                    <div className="flex justify-end">
+                        <button
+                            onClick={handleEssaySubmit}
+                            disabled={submittingRef.current}
+                            className="flex items-center gap-2 rounded-2xl px-6 py-3 text-sm font-black text-white transition-all disabled:opacity-50"
+                            style={{
+                                background: `linear-gradient(135deg, ${SKY}, #3478c8)`,
+                                boxShadow: '0 4px 0 0 #2a6fc0',
+                            }}
+                        >
+                            <img src="/icons/check.png" alt="" width={14} height={14} style={{ filter: 'brightness(0) invert(1)', objectFit: 'contain' }} />
+                            Soumettre mon test
+                        </button>
                     </div>
                 </div>
             </OnboardingLayout>
         );
     }
 
+    // Sections A & B — MCQ
+    const isSectionA = section === 'A';
+    const qTimer = isSectionA ? 20 : 45;
+    const sectionLabel = isSectionA ? 'Section A — Grammaire & Vocabulaire' : 'Section B — Compréhension Écrite';
+    const totalInSection = currentQuestions.length;
+    const progress = ((currentQ) / totalInSection) * 100;
+
     return (
-        <OnboardingLayout title="Test de placement" step={3}>
+        <OnboardingLayout title="Test de placement" step={4}>
             <div className="space-y-6">
-                {/* Header */}
-                <div className="text-center">
-                    <h1 className="text-2xl font-bold sm:text-3xl">
-                        Test de placement
-                        {exam?.language?.name ? ` — ${exam.language.name}` : ''}
-                    </h1>
-                    <p className="mt-2 text-sm text-muted-foreground">
-                        Répondez honnêtement pour que l'IA évalue votre niveau avec précision
-                    </p>
+                {/* Section mini-progress */}
+                <div className="flex items-center gap-2">
+                    <SectionBar label="Section A" state={sectionState('A')} />
+                    <SectionBar label="Section B" state={sectionState('B')} />
+                    <SectionBar label="Section C" state="pending" />
                 </div>
 
-                {/* Progress bar + timer */}
-                <div className="space-y-2">
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>Question {currentQ + 1} / {total}</span>
-                        <div className="flex items-center gap-2">
-                            <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${levelColors[question.level] ?? ''}`}>
-                                Niveau {question.level}
-                            </span>
-                            {/* Countdown per question */}
-                            <QuestionTimer key={timerKey} seconds={QUESTION_TIME} onExpire={handleTimeExpire} expired={timeExpired} />
-                        </div>
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                    <div>
+                        <p className="text-xs font-black uppercase tracking-widest" style={{ color: SKY }}>
+                            {sectionLabel}
+                        </p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                            Question {currentQ + 1} / {totalInSection}
+                        </p>
                     </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-muted">
-                        <div
-                            className="h-2 rounded-full bg-gradient-to-r from-primary to-primary/70 transition-all duration-500 ease-out"
-                            style={{ width: `${progress}%` }}
+                    <div className="flex items-center gap-3">
+                        <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-black ${levelColors[question?.level ?? 'B1'] ?? ''}`}>
+                            {question?.level}
+                        </span>
+                        <QuestionTimer
+                            key={timerKey}
+                            seconds={qTimer}
+                            onExpire={handleQExpire}
+                            expired={qExpired}
                         />
                     </div>
                 </div>
 
-                {/* Question card with fade/slide animation */}
-                <div
-                    style={{
-                        opacity: visible ? 1 : 0,
-                        transform: visible ? 'translateY(0)' : 'translateY(8px)',
-                        transition: 'opacity 0.18s ease, transform 0.18s ease',
-                    }}
-                >
-                    <div className="mx-auto max-w-xl space-y-4">
-                        <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-                            <p className="font-semibold leading-relaxed">{question.text}</p>
-                            {question.sentence && (
-                                <div className="mt-3 rounded-xl bg-muted/60 px-4 py-3">
-                                    <p className="text-center text-base italic text-muted-foreground">
-                                        {question.sentence}
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="grid gap-2.5">
-                            {question.options.map((option, i) => {
-                                const isSelected = selectedOption === i;
-                                return (
-                                    <button
-                                        key={i}
-                                        onClick={() => handleSelect(i)}
-                                        disabled={submitting}
-                                        className={`group flex items-center gap-4 rounded-xl border p-4 text-left transition-all duration-150 ${
-                                            isSelected
-                                                ? 'border-primary bg-primary/5 shadow-md ring-2 ring-primary/20'
-                                                : 'border-border bg-card hover:border-primary/40 hover:shadow-sm'
-                                        }`}
-                                    >
-                                        <span
-                                            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold transition-colors ${
-                                                isSelected
-                                                    ? 'bg-primary text-primary-foreground'
-                                                    : 'bg-muted text-muted-foreground group-hover:bg-primary/15 group-hover:text-primary'
-                                            }`}
-                                        >
-                                            {String.fromCharCode(65 + i)}
-                                        </span>
-                                        <span className={`font-medium ${isSelected ? 'text-primary' : ''}`}>
-                                            {option}
-                                        </span>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
+                {/* Progress bar */}
+                <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                    <div
+                        className="h-1.5 rounded-full transition-all duration-500"
+                        style={{ width: `${progress}%`, background: SKY }}
+                    />
                 </div>
+
+                {/* Reading passage for Section B */}
+                {section === 'B' && (
+                    <div className="rounded-2xl border bg-muted/30 p-5 text-sm leading-relaxed max-h-48 overflow-y-auto">
+                        <p className="text-[10px] font-black uppercase tracking-wider mb-2" style={{ color: OXFORD, opacity: 0.5 }}>Texte à lire</p>
+                        <p>{sectionB.passage}</p>
+                    </div>
+                )}
+
+                {/* Question card */}
+                {question && (
+                    <div
+                        style={{
+                            opacity: visible ? 1 : 0,
+                            transform: visible ? 'translateY(0)' : 'translateY(10px)',
+                            transition: 'opacity 0.18s ease, transform 0.18s ease',
+                        }}
+                    >
+                        <MCQBlock
+                            question={question}
+                            selectedAnswer={answers[question.id]}
+                            onAnswer={(qId, letter) => setAnswers((prev) => ({ ...prev, [qId]: letter }))}
+                            disabled={qExpired}
+                        />
+                    </div>
+                )}
 
                 {/* Navigation */}
                 <div className="flex items-center justify-between pt-2">
-                    <Button
-                        variant="outline"
-                        disabled={currentQ === 0 || submitting || timeExpired}
+                    <button
+                        disabled={currentQ === 0 && section === 'A'}
                         onClick={() => {
-                            setVisible(false);
-                            setTimeout(() => {
-                                const prevId = questions[currentQ - 1]?.id;
-                                setSelectedOption(prevId !== undefined ? (answers[prevId] ?? null) : null);
-                                setCurrentQ(prev => prev - 1);
-                                setTimerKey(k => k + 1);
-                                setVisible(true);
-                            }, 180);
+                            if (currentQ > 0) {
+                                setVisible(false);
+                                setTimeout(() => { setCurrentQ((q) => q - 1); setTimerKey((k) => k + 1); setVisible(true); }, 180);
+                            }
                         }}
+                        className="rounded-xl border px-4 py-2.5 text-sm font-bold text-muted-foreground transition-all hover:border-primary/40 disabled:opacity-30"
                     >
                         ← Retour
-                    </Button>
+                    </button>
 
-                    <Button
-                        size="lg"
-                        disabled={selectedOption === null || submitting || timeExpired}
-                        onClick={handleNext}
-                        className="min-w-[160px] gap-2 bg-gradient-to-r from-primary to-primary/85 font-semibold shadow-md hover:shadow-lg"
+                    <button
+                        disabled={!answers[question?.id] && !qExpired}
+                        onClick={() => advanceQuestion()}
+                        className="flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-black text-white transition-all disabled:opacity-40"
+                        style={{
+                            background: `linear-gradient(135deg, ${SKY}, #3478c8)`,
+                            boxShadow: '0 3px 0 0 #2a6fc0',
+                        }}
                     >
-                        {submitting ? (
-                            <>
-                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-                                Analyse en cours…
-                            </>
-                        ) : isLast ? (
-                            '✨ Voir mes résultats'
-                        ) : (
-                            'Suivant →'
-                        )}
-                    </Button>
+                        {isLastQ
+                            ? isSectionA ? 'Section B →' : 'Section C →'
+                            : 'Suivant →'}
+                    </button>
                 </div>
-
-                <p className="text-center text-xs text-muted-foreground">
-                    {Math.round(progress)}% complété · Questions générées par IA pour {exam?.name ?? 'votre examen'}
-                </p>
             </div>
         </OnboardingLayout>
     );

@@ -298,4 +298,163 @@ PROMPT;
         $levels = ['A1' => 'A2', 'A2' => 'B1', 'B1' => 'B2', 'B2' => 'C1', 'C1' => 'C2', 'C2' => 'C2'];
         return $levels[$level] ?? 'B1';
     }
+
+    // ─── Nouveau test complet 3 sections ────────────────────────────────────
+
+    /**
+     * Génère le test complet en UN seul appel Mistral (sections A + B + C).
+     */
+    public function generateFullTest(
+        string $language,
+        string $languageNative,
+        string $examName,
+        string $nativeLanguage
+    ): array {
+        $prompt = <<<PROMPT
+You are a language testing expert. Generate a placement test for {$examName} ({$language}).
+The student's native language is {$nativeLanguage} — do not test skills obvious in that language.
+
+Return a single valid JSON object with this exact structure (no extra text):
+{
+  "section_a": [
+    {"id":"a1","level":"A1","text":"Question in French","sentence":"sentence in {$language} (or empty string)","options":["A","B","C","D"],"correct_answer":"A"},
+    {"id":"a2","level":"A2","text":"...","sentence":"...","options":["A","B","C","D"],"correct_answer":"B"},
+    {"id":"a3","level":"B1","text":"...","sentence":"...","options":["A","B","C","D"],"correct_answer":"C"},
+    {"id":"a4","level":"B2","text":"...","sentence":"...","options":["A","B","C","D"],"correct_answer":"A"},
+    {"id":"a5","level":"C1","text":"...","sentence":"...","options":["A","B","C","D"],"correct_answer":"D"}
+  ],
+  "section_b": {
+    "passage": "A 80-120 word authentic passage in {$language} on any topic",
+    "questions": [
+      {"id":"b1","level":"B1","text":"Question about the passage in French","options":["A","B","C","D"],"correct_answer":"B"},
+      {"id":"b2","level":"B2","text":"...","options":["A","B","C","D"],"correct_answer":"A"},
+      {"id":"b3","level":"C1","text":"...","options":["A","B","C","D"],"correct_answer":"C"}
+    ]
+  },
+  "section_c": {
+    "prompt": "One clear writing instruction in French for a short essay or paragraph (2-3 sentences max), adapted to {$examName}"
+  }
+}
+
+Rules:
+- section_a: 5 grammar/vocabulary MCQ, levels A1 A2 B1 B2 C1 (one each), options are full text strings (NOT letters), correct_answer is the letter "A","B","C" or "D" matching the correct option index (A=first, B=second...)
+- section_b: 3 reading comprehension MCQ about the passage, options are full text strings, correct_answer is letter
+- section_c: one essay prompt suited to {$examName} level
+- All instructions (text, prompt) in French; language content in {$language}
+- Return ONLY the JSON, no markdown, no explanation
+PROMPT;
+
+        $content = $this->mistral->chat([['role' => 'user', 'content' => $prompt]]);
+
+        if ($content) {
+            // Strip markdown code fences if present
+            $clean = preg_replace('/^```(?:json)?\s*/m', '', $content);
+            $clean = preg_replace('/```\s*$/m', '', $clean);
+            $decoded = json_decode(trim($clean), true);
+
+            if (
+                isset($decoded['section_a'], $decoded['section_b'], $decoded['section_c']) &&
+                is_array($decoded['section_a']) && count($decoded['section_a']) >= 3 &&
+                isset($decoded['section_b']['passage'], $decoded['section_b']['questions']) &&
+                isset($decoded['section_c']['prompt'])
+            ) {
+                return $decoded;
+            }
+        }
+
+        Log::warning('PlacementTestService: generateFullTest AI failed, using fallback');
+        return $this->getFallbackFullTest($language, $examName);
+    }
+
+    /**
+     * Évalue le niveau combiné MCQ + essay (sans appel IA supplémentaire).
+     */
+    public function evaluateFullLevel(array $questions, array $answers, string $essayText): string
+    {
+        // 1. Score MCQ (60 % du poids)
+        $levelScores = [];
+        $levelCounts = [];
+        foreach ($questions as $q) {
+            $level = $q['level'] ?? 'B1';
+            $levelCounts[$level] = ($levelCounts[$level] ?? 0) + 1;
+            $given = strtoupper(trim($answers[$q['id']] ?? ''));
+            $correct = strtoupper(trim($q['correct_answer'] ?? $q['correct'] ?? ''));
+            if ($given === $correct && $given !== '') {
+                $levelScores[$level] = ($levelScores[$level] ?? 0) + 1;
+            }
+        }
+
+        $cefrOrder = ['A1', 'A2', 'B1', 'B2', 'C1'];
+        $mcqLevel = 'A1';
+        foreach (array_reverse($cefrOrder) as $lvl) {
+            $count = $levelCounts[$lvl] ?? 0;
+            $score = $levelScores[$lvl] ?? 0;
+            if ($count > 0 && ($score / $count) >= 0.5) {
+                $mcqLevel = $lvl;
+                break;
+            }
+        }
+
+        // 2. Score essay heuristique (40 % du poids) — aucun appel IA
+        if (trim($essayText) === '') {
+            return $mcqLevel;
+        }
+
+        $words = preg_split('/\s+/', trim($essayText), -1, PREG_SPLIT_NO_EMPTY);
+        $wordCount = count($words);
+
+        $wordLevel = match (true) {
+            $wordCount >= 300 => 'C1',
+            $wordCount >= 200 => 'B2',
+            $wordCount >= 100 => 'B1',
+            $wordCount >= 50  => 'A2',
+            default           => 'A1',
+        };
+
+        // Bonus connecteurs avancés (+0.5 par connecteur unique trouvé, max +2 niveaux)
+        $advancedConnectors = [
+            'although','however','nevertheless','furthermore','consequently',
+            'en outre','néanmoins','cependant','bien que','par conséquent',
+            'sin embargo','además','no obstante','aunque','por lo tanto',
+        ];
+        $essay = strtolower($essayText);
+        $bonusCount = 0;
+        foreach ($advancedConnectors as $c) {
+            if (str_contains($essay, $c)) $bonusCount++;
+        }
+        $levelIdx = array_search($wordLevel, $cefrOrder) ?: 0;
+        $levelIdx = min(4, $levelIdx + intdiv($bonusCount, 2));
+        $essayLevel = $cefrOrder[$levelIdx];
+
+        // 3. Combinaison 60 % MCQ + 40 % essay
+        $mcqIdx   = array_search($mcqLevel, $cefrOrder) ?: 0;
+        $essayIdx = array_search($essayLevel, $cefrOrder) ?: 0;
+        $combined = (int) round($mcqIdx * 0.6 + $essayIdx * 0.4);
+
+        return $cefrOrder[min(4, max(0, $combined))];
+    }
+
+    private function getFallbackFullTest(string $language, string $examName): array
+    {
+        return [
+            'section_a' => [
+                ['id' => 'a1', 'level' => 'A1', 'text' => 'Choisissez la bonne réponse :', 'sentence' => 'I ___ a student.', 'options' => ['am', 'is', 'are', 'be'], 'correct_answer' => 'A'],
+                ['id' => 'a2', 'level' => 'A2', 'text' => 'Complétez la phrase :', 'sentence' => 'She ___ to school every day.', 'options' => ['go', 'goes', 'going', 'gone'], 'correct_answer' => 'B'],
+                ['id' => 'a3', 'level' => 'B1', 'text' => 'Choisissez la bonne forme :', 'sentence' => 'They ___ dinner when I called.', 'options' => ['have', 'had', 'were having', 'has'], 'correct_answer' => 'C'],
+                ['id' => 'a4', 'level' => 'B2', 'text' => 'Sélectionnez la bonne structure :', 'sentence' => 'Not only ___ the test, but she also won a prize.', 'options' => ['she passed', 'did she pass', 'she did pass', 'passed she'], 'correct_answer' => 'B'],
+                ['id' => 'a5', 'level' => 'C1', 'text' => 'Choisissez la forme correcte :', 'sentence' => 'Had I known about the meeting, I ___ attended.', 'options' => ['would have', 'will have', 'would', 'should'], 'correct_answer' => 'A'],
+            ],
+            'section_b' => [
+                'passage' => 'Technology has transformed the way people communicate and work. Social media platforms allow instant sharing of information across the globe, while remote work tools enable employees to collaborate from different locations. However, these advancements come with challenges: privacy concerns, digital addiction, and the risk of misinformation spreading rapidly online.',
+                'questions' => [
+                    ['id' => 'b1', 'level' => 'B1', 'text' => 'Quel est le sujet principal du texte ?', 'options' => ['La cuisine traditionnelle', "L'impact de la technologie", 'Les voyages en avion', 'Le sport professionnel'], 'correct_answer' => 'B'],
+                    ['id' => 'b2', 'level' => 'B2', 'text' => 'Selon le texte, quel est un inconvénient de la technologie ?', 'options' => ['Coût élevé', 'Problèmes de confidentialité', 'Lenteur des connexions', 'Manque de logiciels'], 'correct_answer' => 'B'],
+                    ['id' => 'b3', 'level' => 'C1', 'text' => 'Que sous-entend l\'auteur par "misinformation spreading rapidly" ?', 'options' => ['Les nouvelles sont lentes', "Les fausses informations se propagent vite", 'La technologie est fiable', 'Internet est sécurisé'], 'correct_answer' => 'B'],
+                ],
+            ],
+            'section_c' => [
+                'prompt' => "Rédigez un court paragraphe (environ 150 mots) sur les avantages et inconvénients des réseaux sociaux dans la vie quotidienne. Donnez votre opinion personnelle et justifiez-la avec des exemples.",
+            ],
+        ];
+    }
 }

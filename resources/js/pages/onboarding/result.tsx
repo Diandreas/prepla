@@ -129,7 +129,7 @@ export default function Result({ profile, program }: Props) {
     });
 
     return (
-        <OnboardingLayout title="Vos résultats" step={4}>
+        <OnboardingLayout title="Vos résultats" step={5}>
             <div className="space-y-7 pb-8">
 
                 {/* Level badge - with celebration animation */}

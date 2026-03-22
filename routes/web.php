@@ -13,6 +13,8 @@ Route::get('/', LandingController::class)->name('home');
 Route::middleware(['auth'])->group(function () {
     // Onboarding
     Route::prefix('onboarding')->name('onboarding.')->group(function () {
+        Route::get('/native-language', [OnboardingController::class, 'nativeLanguage'])->name('native-language');
+        Route::post('/native-language', [OnboardingController::class, 'storeNativeLanguage'])->name('native-language.store');
         Route::get('/exam', [OnboardingController::class, 'examSelect'])->name('exam');
         Route::post('/exam', [OnboardingController::class, 'storeExam'])->name('exam.store');
         Route::get('/goal', [OnboardingController::class, 'goalSetting'])->name('goal');
