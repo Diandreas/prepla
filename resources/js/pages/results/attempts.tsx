@@ -32,13 +32,27 @@ interface Props {
 export default function Attempts({ attempts }: Props) {
     return (
         <AppLayout>
-            <Head title="All Attempts" />
+            <Head title="Mes tentatives" />
             <div className="space-y-6 p-4 md:p-6">
                 <div>
-                    <h1 className="text-2xl font-bold">All Attempts</h1>
-                    <p className="text-muted-foreground">Your complete exercise history</p>
+                    <h1 className="text-2xl font-bold">Mes tentatives</h1>
+                    <p className="text-muted-foreground">Historique complet de vos exercices</p>
                 </div>
 
+                {attempts.data.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border py-16 text-center">
+                        <img src="/icons/tasks.png" alt="" width={48} height={48} className="mb-4 opacity-40" style={{ objectFit: 'contain' }} />
+                        <p className="text-lg font-semibold text-muted-foreground">Aucune tentative pour le moment</p>
+                        <p className="mt-1 text-sm text-muted-foreground/70">Complétez des exercices pour voir vos résultats ici</p>
+                        <Link
+                            href={route('practice.index')}
+                            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-all hover:opacity-90"
+                        >
+                            <img src="/icons/rocket.png" alt="" width={14} height={14} style={{ filter: 'brightness(0) invert(1)', objectFit: 'contain' }} />
+                            Commencer à pratiquer
+                        </Link>
+                    </div>
+                ) : (
                 <div className="space-y-2">
                     {attempts.data.map((attempt) => (
                         <Link
@@ -65,6 +79,7 @@ export default function Attempts({ attempts }: Props) {
                         </Link>
                     ))}
                 </div>
+                )}
 
                 {/* Pagination */}
                 {attempts.last_page > 1 && (
@@ -74,18 +89,18 @@ export default function Attempts({ attempts }: Props) {
                                 href={attempts.prev_page_url}
                                 className="rounded-lg border border-border px-4 py-2 text-sm hover:bg-muted"
                             >
-                                Previous
+                                Précédent
                             </Link>
                         )}
                         <span className="flex items-center px-4 text-sm text-muted-foreground">
-                            Page {attempts.current_page} of {attempts.last_page}
+                            Page {attempts.current_page} sur {attempts.last_page}
                         </span>
                         {attempts.next_page_url && (
                             <Link
                                 href={attempts.next_page_url}
                                 className="rounded-lg border border-border px-4 py-2 text-sm hover:bg-muted"
                             >
-                                Next
+                                Suivant
                             </Link>
                         )}
                     </div>
