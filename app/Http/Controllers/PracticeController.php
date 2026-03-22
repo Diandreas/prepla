@@ -64,7 +64,7 @@ class PracticeController extends Controller
         }
 
         // Sinon, on liste tous les examens (cas rare après onboarding)
-        $exams = Exam::with('language')->get();
+        $exams = Exam::with('language')->whereHas('language', fn ($q) => $q->where('is_active', true))->get();
         return Inertia::render('practice/index', [
             'exams' => $exams,
             'targetExamId' => null,
