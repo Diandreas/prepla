@@ -4,28 +4,61 @@ namespace App\Services\AI;
 
 class WritingCorrectorService
 {
+    protected MistralService $mistral;
+
+    public function __construct(MistralService $mistral)
+    {
+        $this->mistral = $mistral;
+    }
+
     public function correct(string $text, string $taskDescription, string $examType = 'IELTS'): array
     {
-        // Mock implementation - replace with Mistral API later
+        $systemPrompt = "You are an expert $examType examiner. Evaluate the user's writing text based on the standard $examType grading criteria.
+Task description: $taskDescription
+Output your evaluation as a JSON object with the following structure:
+{
+    \"score\": 0.0, // overall band score 1-9
+    \"band_scores\": {
+        \"task_achievement\": 0.0,
+        \"coherence_cohesion\": 0.0,
+        \"lexical_resource\": 0.0,
+        \"grammar_accuracy\": 0.0
+    },
+    \"corrections\": [
+        {
+            \"original\": \"incorrect string\",
+            \"corrected\": \"corrected string\",
+            \"explanation\": \"why it was corrected\"
+        }
+    ],
+    \"feedback\": \"Detailed overall feedback about strengths and weaknesses.\"
+}";
+
+        $response = $this->mistral->chat([
+            ['role' => 'system', 'content' => $systemPrompt],
+            ['role' => 'user', 'content' => $text]
+        ]);
+
         $wordCount = str_word_count($text);
-        $score = min(9, max(1, round($wordCount / 30)));
+
+        if ($response) {
+            $data = json_decode($response, true);
+            if ($data) {
+                $data['word_count'] = $wordCount;
+                return $data;
+            }
+        }
 
         return [
-            'score' => $score,
+            'score' => 0,
             'band_scores' => [
-                'task_achievement' => $score,
-                'coherence_cohesion' => max(1, $score - 0.5),
-                'lexical_resource' => max(1, $score - 0.5),
-                'grammar_accuracy' => max(1, $score - 1),
+                'task_achievement' => 0,
+                'coherence_cohesion' => 0,
+                'lexical_resource' => 0,
+                'grammar_accuracy' => 0,
             ],
-            'corrections' => [
-                [
-                    'original' => '',
-                    'corrected' => '',
-                    'explanation' => 'This is a placeholder. Connect the Mistral API for real corrections.',
-                ],
-            ],
-            'feedback' => 'This is mock feedback. Connect the Mistral API for detailed writing analysis.',
+            'corrections' => [],
+            'feedback' => 'Erreur de connexion à Mistral AI. Veuillez réessayer.',
             'word_count' => $wordCount,
         ];
     }

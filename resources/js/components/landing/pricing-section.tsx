@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { PricingPlan } from '@/data/languages';
 import { useTokens } from './landing-theme';
 
@@ -16,6 +17,7 @@ function useInView(ref: React.RefObject<HTMLElement | null>, threshold = 0.1) {
 
 function PlanCard({ plan, index }: { plan: PricingPlan; index: number }) {
     const T = useTokens();
+    const { t } = useTranslation();
     const ref = useRef<HTMLDivElement>(null);
     const visible = useInView(ref as React.RefObject<HTMLElement>);
     const [hovered, setHovered] = useState(false);
@@ -55,7 +57,7 @@ function PlanCard({ plan, index }: { plan: PricingPlan; index: number }) {
                     fontFamily: '"Plus Jakarta Sans", sans-serif',
                     whiteSpace: 'nowrap', boxShadow: `0 4px 16px ${T.sky}44`,
                 }}>
-                    Le plus populaire
+                    {t('landing.pricing_popular')}
                 </div>
             )}
 
@@ -71,7 +73,7 @@ function PlanCard({ plan, index }: { plan: PricingPlan; index: number }) {
                         fontFamily: '"Cormorant Garamond", Georgia, serif',
                         fontSize: 'clamp(2.5rem, 4vw, 3.5rem)', fontWeight: 700, color: T.text, lineHeight: 1,
                     }}>
-                        {plan.price === 0 ? 'Gratuit' : `${plan.price}€`}
+                        {plan.price === 0 ? t('landing.pricing_free') : `${plan.price}€`}
                     </span>
                     {plan.period && (
                         <span style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '0.8rem', color: T.textMid, marginLeft: '0.25rem' }}>
@@ -121,6 +123,7 @@ function PlanCard({ plan, index }: { plan: PricingPlan; index: number }) {
 
 export function PricingSection({ pricing }: { pricing: PricingPlan[] }) {
     const T = useTokens();
+    const { t } = useTranslation();
     const headerRef = useRef<HTMLDivElement>(null);
     const headerVisible = useInView(headerRef as React.RefObject<HTMLElement>);
 
@@ -148,7 +151,7 @@ export function PricingSection({ pricing }: { pricing: PricingPlan[] }) {
                     }}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={T.sky} strokeWidth="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
                         <span style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.sky }}>
-                            Tarifs
+                            {t('landing.pricing_badge')}
                         </span>
                     </div>
                     <h2 style={{
@@ -156,11 +159,11 @@ export function PricingSection({ pricing }: { pricing: PricingPlan[] }) {
                         fontSize: 'clamp(2rem, 4vw, 3.25rem)', fontWeight: 700, lineHeight: 1.1,
                         color: T.text, marginBottom: '1rem',
                     }}>
-                        Tarification{' '}
-                        <span style={{ fontStyle: 'italic', color: T.gold }}>simple et transparente</span>
+                        {t('landing.pricing_headline')}{' '}
+                        <span style={{ fontStyle: 'italic', color: T.gold }}>{t('landing.pricing_headline_accent')}</span>
                     </h2>
                     <p style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '1rem', color: T.textMid, maxWidth: '32rem', margin: '0 auto', lineHeight: 1.7 }}>
-                        Commencez gratuitement, évoluez quand vous êtes prêt. Aucun engagement, aucune surprise.
+                        {t('landing.pricing_body')}
                     </p>
                 </div>
 
@@ -169,7 +172,7 @@ export function PricingSection({ pricing }: { pricing: PricingPlan[] }) {
                 </div>
 
                 <p style={{ textAlign: 'center', marginTop: '2.5rem', fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '0.8rem', color: T.textDim }}>
-                    Paiement sécurisé · Résiliation à tout moment · Support inclus
+                    {t('landing.pricing_footer')}
                 </p>
             </div>
         </section>

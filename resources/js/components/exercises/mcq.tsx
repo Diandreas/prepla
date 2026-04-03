@@ -20,7 +20,7 @@ export function Mcq({ question, onAnswer, selectedAnswer, disabled }: McqProps) 
         <div className="space-y-4">
             <p className="text-lg font-medium">{question.text}</p>
             <div className="grid gap-2">
-                {question.options.map((option, i) => {
+                {(question.options || []).map((option, i) => {
                     const letter = String.fromCharCode(65 + i);
                     const isSelected = selectedAnswer === letter;
                     const isCorrect = disabled && correctAnswer === letter;

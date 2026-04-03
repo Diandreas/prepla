@@ -1,24 +1,6 @@
 import { Link } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import { useTokens } from './landing-theme';
-
-const footerLinks = {
-    Produit: [
-        { label: 'Fonctionnalités', href: '#features' },
-        { label: 'Tarifs', href: '#pricing' },
-        { label: 'Langues', href: '#languages' },
-        { label: 'Comment ça marche', href: '#hiw' },
-    ],
-    Entreprise: [
-        { label: 'À propos', href: '#' },
-        { label: 'Blog', href: '#' },
-        { label: 'Contact', href: '#' },
-    ],
-    Légal: [
-        { label: 'Confidentialité', href: '#' },
-        { label: 'CGU', href: '#' },
-        { label: 'Cookies', href: '#' },
-    ],
-};
 
 const socialLinks = [
     { icon: '✉', href: '#', label: 'Email' },
@@ -28,6 +10,26 @@ const socialLinks = [
 
 export function LandingFooter() {
     const T = useTokens();
+    const { t } = useTranslation();
+
+    const footerLinks = {
+        [t('landing.footer_col_product')]: [
+            { label: t('landing.footer_link_features'), href: '#features' },
+            { label: t('landing.footer_link_pricing'), href: '#pricing' },
+            { label: t('landing.footer_link_languages'), href: '#languages' },
+            { label: t('landing.footer_link_hiw'), href: '#hiw' },
+        ],
+        [t('landing.footer_col_company')]: [
+            { label: t('landing.footer_link_about'), href: '#' },
+            { label: t('landing.footer_link_blog'), href: '#' },
+            { label: t('landing.footer_link_contact'), href: '#' },
+        ],
+        [t('landing.footer_col_legal')]: [
+            { label: t('landing.footer_link_privacy'), href: '#' },
+            { label: t('landing.footer_link_terms'), href: '#' },
+            { label: t('landing.footer_link_cookies'), href: '#' },
+        ],
+    };
 
     return (
         <footer style={{
@@ -36,7 +38,6 @@ export function LandingFooter() {
             borderTop: `1px solid ${T.border}`,
             overflow: 'hidden',
         }}>
-            {/* Top gradient accent */}
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, transparent, ${T.sky}33, ${T.gold}33, transparent)` }} />
 
             <div style={{ maxWidth: '72rem', margin: '0 auto', padding: '4rem 1.5rem 2rem' }}>
@@ -56,7 +57,7 @@ export function LandingFooter() {
                         </Link>
 
                         <p style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '0.8rem', color: T.textMid, lineHeight: 1.7, maxWidth: '18rem', margin: '0 0 1.5rem' }}>
-                            Préparation aux examens de langue alimentée par l'IA. Anglais, Français, Allemand — 8 certifications internationales.
+                            {t('landing.footer_tagline')}
                         </p>
 
                         <div style={{ display: 'flex', gap: '0.6rem' }}>
@@ -106,12 +107,12 @@ export function LandingFooter() {
 
                 <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
                     <p style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '0.75rem', color: T.textDim }}>
-                        © {new Date().getFullYear()} PrePla. Tous droits réservés.
+                        {t('landing.footer_copyright', { year: new Date().getFullYear() })}
                     </p>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                         <span style={{ fontSize: '0.8rem', color: '#22c55e', opacity: 0.6 }}>🛡</span>
                         <span style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '0.7rem', color: T.textDim }}>
-                            Données sécurisées · RGPD conforme
+                            {t('landing.footer_gdpr')}
                         </span>
                     </div>
                 </div>

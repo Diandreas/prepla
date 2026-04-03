@@ -280,7 +280,8 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="fr">🇫🇷 Français</SelectItem>
-                                    <SelectItem value="en">🇺🇸 English</SelectItem>
+                                    <SelectItem value="en">🇬🇧 English</SelectItem>
+                                    <SelectItem value="de">🇩🇪 Deutsch</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>

@@ -261,13 +261,13 @@
     --chart-4: hsl(152, 55%, 45%);
     --chart-5: hsl(0, 72%, 55%);
     --radius: 0.75rem;
-    --sidebar-background: hsl(218, 47%, 19%);   /* Oxford Blue sidebar */
-    --sidebar-foreground: hsl(210, 40%, 88%);
+    --sidebar-background: hsl(0, 0%, 100%);
+    --sidebar-foreground: hsl(218, 47%, 19%);
     --sidebar-primary: hsl(212, 72%, 59%);
     --sidebar-primary-foreground: hsl(0, 0%, 100%);
-    --sidebar-accent: hsl(218, 40%, 28%);
-    --sidebar-accent-foreground: hsl(0, 0%, 100%);
-    --sidebar-border: hsl(218, 35%, 26%);
+    --sidebar-accent: hsl(218, 20%, 96%);
+    --sidebar-accent-foreground: hsl(218, 47%, 19%);
+    --sidebar-border: hsl(218, 20%, 88%);
     --sidebar-ring: hsl(212, 72%, 59%);
 
     /* Brand color custom properties (use anywhere) */

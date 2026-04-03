@@ -71,6 +71,19 @@ class AiToolsController extends Controller
         return Inertia::render('ai-tools/explainer');
     }
 
+    public function askExplainer(Request $request, ExplainerService $explainer)
+    {
+        $validated = $request->validate([
+            'messages' => 'required|array',
+            'messages.*.role' => 'required|in:user,assistant,system',
+            'messages.*.content' => 'required|string',
+        ]);
+
+        $response = $explainer->chat($validated['messages']);
+
+        return response()->json(['reply' => $response]);
+    }
+
     public function recommendations(): Response
     {
         $profile = auth()->user()->profile?->load('targetExam.language');

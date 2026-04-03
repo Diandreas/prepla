@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useTokens } from './landing-theme';
 
 function useInView(ref: React.RefObject<HTMLElement | null>, threshold = 0.2) {
@@ -15,6 +16,7 @@ function useInView(ref: React.RefObject<HTMLElement | null>, threshold = 0.2) {
 
 export function CtaSection() {
     const T = useTokens();
+    const { t } = useTranslation();
     const ref = useRef<HTMLDivElement>(null);
     const visible = useInView(ref as React.RefObject<HTMLElement>);
 
@@ -29,7 +31,6 @@ export function CtaSection() {
                 <rect width="100%" height="100%" fill="url(#cta-grid)" />
             </svg>
 
-            {/* Glows */}
             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 600, height: 400, background: `radial-gradient(ellipse at center, ${T.sky}14 0%, transparent 70%)`, pointerEvents: 'none' }} />
             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 400, height: 300, background: `radial-gradient(ellipse at center, ${T.gold}0d 0%, transparent 70%)`, pointerEvents: 'none' }} />
 
@@ -38,7 +39,6 @@ export function CtaSection() {
                 opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(32px)',
                 transition: 'all 0.8s cubic-bezier(0.4,0,0.2,1)',
             }}>
-                {/* Icon */}
                 <div style={{
                     width: 72, height: 72, borderRadius: '50%',
                     background: `${T.sky}14`, border: `1px solid ${T.sky}30`,
@@ -48,7 +48,6 @@ export function CtaSection() {
                     <span style={{ fontSize: '1.75rem', color: T.sky, lineHeight: 1 }}>→</span>
                 </div>
 
-                {/* Eyebrow */}
                 <div style={{
                     display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem',
                     padding: '0.35rem 1rem', borderRadius: '100px',
@@ -56,7 +55,7 @@ export function CtaSection() {
                 }}>
                     <span style={{ width: 6, height: 6, borderRadius: '50%', background: T.gold, display: 'inline-block', animation: 'ctaPulse 2s ease-in-out infinite' }} />
                     <span style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.gold }}>
-                        Commencez dès aujourd'hui
+                        {t('landing.cta_badge')}
                     </span>
                 </div>
 
@@ -65,15 +64,15 @@ export function CtaSection() {
                     fontSize: 'clamp(2.2rem, 5vw, 4rem)', fontWeight: 700, lineHeight: 1.08,
                     color: T.text, marginBottom: '1.25rem',
                 }}>
-                    Prêt à décrocher votre{' '}
-                    <span style={{ fontStyle: 'italic', color: T.gold }}>meilleur score ?</span>
+                    {t('landing.cta_headline')}{' '}
+                    <span style={{ fontStyle: 'italic', color: T.gold }}>{t('landing.cta_headline_accent')}</span>
                 </h2>
 
                 <p style={{
                     fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '1rem', color: T.textMid,
                     maxWidth: '32rem', margin: '0 auto 2.5rem', lineHeight: 1.7,
                 }}>
-                    Rejoignez des milliers d'apprenants qui se préparent plus intelligemment. Gratuit pour commencer, sans carte de crédit.
+                    {t('landing.cta_body')}
                 </p>
 
                 <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1rem' }}>
@@ -87,7 +86,7 @@ export function CtaSection() {
                     }}
                         onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLElement).style.boxShadow = `0 8px 40px ${T.sky}55`; }}
                         onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLElement).style.boxShadow = `0 4px 24px ${T.sky}44`; }}>
-                        Commencer gratuitement
+                        {t('landing.cta_primary')}
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M9 5l7 7-7 7"/>
                         </svg>
@@ -102,20 +101,20 @@ export function CtaSection() {
                     }}
                         onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = T.borderHov; (e.currentTarget as HTMLElement).style.color = T.text; }}
                         onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = T.border; (e.currentTarget as HTMLElement).style.color = T.textMid; }}>
-                        Se connecter
+                        {t('landing.cta_secondary')}
                     </Link>
                 </div>
 
                 <div style={{ marginTop: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
                     {[
-                        { icon: '🛡', text: 'Gratuit pour commencer' },
-                        { icon: '✓', text: 'Sans engagement' },
-                        { icon: '⚡', text: 'Accès immédiat' },
+                        { icon: '🛡', key: 'landing.cta_trust1' },
+                        { icon: '✓', key: 'landing.cta_trust2' },
+                        { icon: '⚡', key: 'landing.cta_trust3' },
                     ].map((item) => (
-                        <div key={item.text} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <div key={item.key} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                             <span style={{ fontSize: '0.875rem', color: '#22c55e', opacity: 0.8 }}>{item.icon}</span>
                             <span style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '0.75rem', color: T.textDim }}>
-                                {item.text}
+                                {t(item.key)}
                             </span>
                         </div>
                     ))}

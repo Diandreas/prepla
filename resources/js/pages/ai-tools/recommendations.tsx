@@ -100,7 +100,7 @@ export default function Recommendations({ profile, recentAttempts }: Props) {
                                                         : 'secondary'
                                                 }
                                             >
-                                                {attempt.accuracy_percent?.toFixed(0) ?? 0}%
+                                                {Number(attempt.accuracy_percent || 0).toFixed(0)}%
                                             </Badge>
                                         </div>
                                     </div>

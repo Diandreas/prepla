@@ -1,8 +1,8 @@
 import { Link } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useTokens } from './landing-theme';
 
-const LANGUAGES = ['Anglais', 'Français', 'Allemand'];
 const EXAM_CARDS = [
     {
         exam: 'IELTS Academic',
@@ -38,6 +38,7 @@ function useCyclingIndex(length: number, interval = 3800) {
 
 function MockExerciseCard({ card, visible }: { card: typeof EXAM_CARDS[0]; visible: boolean }) {
     const T = useTokens();
+    const { t } = useTranslation();
     const [selected, setSelected] = useState<number | null>(null);
     const [revealed, setRevealed] = useState(false);
 
@@ -112,7 +113,7 @@ function MockExerciseCard({ card, visible }: { card: typeof EXAM_CARDS[0]; visib
                     color: revealed ? '#22c55e' : `${T.gold}99`,
                     opacity: selected !== null ? 1 : 0,
                 }}>
-                {revealed ? '✓ Bonne réponse ! +10 XP' : 'Vérification en cours…'}
+                {revealed ? t('landing.hero_correct') : t('landing.hero_checking')}
             </div>
             <div className="pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full blur-2xl"
                 style={{ background: `${T.gold}18` }} />
@@ -122,10 +123,19 @@ function MockExerciseCard({ card, visible }: { card: typeof EXAM_CARDS[0]; visib
 
 export function HeroSection() {
     const T = useTokens();
+    const { t, i18n } = useTranslation();
     const [mounted, setMounted] = useState(false);
-    const langIndex = useCyclingIndex(LANGUAGES.length, 2200);
+    const langIndex = useCyclingIndex(3, 2200);
     const cardIndex = useCyclingIndex(EXAM_CARDS.length, 5000);
     const [cardVisible, setCardVisible] = useState(true);
+
+    // Language names cycle based on current i18n locale
+    const LANGUAGES_BY_LOCALE: Record<string, string[]> = {
+        fr: ['Anglais', 'Français', 'Allemand'],
+        en: ['English', 'French', 'German'],
+        de: ['Englisch', 'Französisch', 'Deutsch'],
+    };
+    const languages = LANGUAGES_BY_LOCALE[i18n.language] ?? LANGUAGES_BY_LOCALE.en;
 
     useEffect(() => { setMounted(true); }, []);
     useEffect(() => {
@@ -173,7 +183,7 @@ export function HeroSection() {
                                 transition: 'all 0.6s ease 0.1s',
                             }}>
                             <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: T.gold }} />
-                            Alimenté par Mistral IA · 3 langues
+                            {t('landing.hero_badge')}
                         </div>
 
                         {/* Headline */}
@@ -185,18 +195,19 @@ export function HeroSection() {
                             transform: mounted ? 'translateY(0)' : 'translateY(20px)',
                             transition: 'all 0.7s ease 0.2s',
                         }}>
-                            Maîtrisez votre{' '}
-                            <span style={{ fontStyle: 'italic', color: T.gold }}>examen</span>
-                            <br />de langue.
+                            {t('landing.hero_headline').split(' ').slice(0, -2).join(' ')}{' '}
+                            <span style={{ fontStyle: 'italic', color: T.gold }}>
+                                {t('landing.hero_headline').split(' ').slice(-2).join(' ')}
+                            </span>
                         </h1>
 
                         {/* Language ticker */}
                         <div className="mt-4 flex items-baseline gap-3"
                             style={{ opacity: mounted ? 1 : 0, transition: 'opacity 0.6s ease 0.4s' }}>
-                            <span className="text-sm" style={{ color: T.textMid }}>Préparez-vous en</span>
+                            <span className="text-sm" style={{ color: T.textMid }}>{t('landing.hero_prepare_in')}</span>
                             <span key={langIndex} className="text-base font-semibold"
                                 style={{ color: T.text, fontFamily: '"Plus Jakarta Sans", sans-serif', animation: 'langTick 0.4s cubic-bezier(0.22,1,0.36,1) both' }}>
-                                {LANGUAGES[langIndex]}
+                                {languages[langIndex]}
                             </span>
                         </div>
 
@@ -209,8 +220,7 @@ export function HeroSection() {
                                 transform: mounted ? 'translateY(0)' : 'translateY(16px)',
                                 transition: 'all 0.7s ease 0.35s',
                             }}>
-                            IELTS, TOEFL, Cambridge, DELF/DALF, TCF, TEF, Goethe, TestDaF — exercices générés par IA,
-                            corrections instantanées, parcours personnalisé selon votre niveau CECR.
+                            {t('landing.hero_body')}
                         </p>
 
                         {/* CTAs */}
@@ -219,7 +229,7 @@ export function HeroSection() {
                             <Link href="/register"
                                 className="group inline-flex items-center gap-2.5 rounded-full px-7 py-3.5 text-sm font-semibold transition-all duration-300 hover:-translate-y-0.5"
                                 style={{ background: `linear-gradient(135deg, ${T.sky} 0%, #3478c8 100%)`, color: '#fff', boxShadow: `0 4px 20px ${T.sky}44` }}>
-                                Commencer gratuitement
+                                {t('landing.hero_cta_primary')}
                                 <svg className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/>
                                 </svg>
@@ -229,21 +239,21 @@ export function HeroSection() {
                                 style={{ borderColor: T.border, color: T.textMid }}
                                 onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${T.sky}55`; (e.currentTarget as HTMLElement).style.color = T.text; }}
                                 onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = T.border; (e.currentTarget as HTMLElement).style.color = T.textMid; }}>
-                                Voir les tarifs
+                                {t('landing.hero_cta_secondary')}
                             </a>
                         </div>
 
                         <p className="mt-4 text-xs" style={{ color: T.textDim, opacity: mounted ? 1 : 0, transition: 'opacity 0.6s ease 0.7s' }}>
-                            Gratuit pour commencer · Aucune carte de crédit requise
+                            {t('landing.hero_disclaimer')}
                         </p>
 
                         {/* Stats */}
                         <div className="mt-12 flex gap-8 border-t pt-8"
                             style={{ borderColor: T.border, opacity: mounted ? 1 : 0, transition: 'opacity 0.6s ease 0.8s' }}>
                             {[
-                                { value: '3', label: 'Langues' },
-                                { value: '8', label: 'Examens officiels' },
-                                { value: '∞', label: 'Exercices IA' },
+                                { value: '3', label: t('landing.hero_stat_languages') },
+                                { value: '8', label: t('landing.hero_stat_exams') },
+                                { value: '∞', label: t('landing.hero_stat_exercises') },
                             ].map((s) => (
                                 <div key={s.label}>
                                     <div className="text-3xl font-black"
@@ -261,7 +271,7 @@ export function HeroSection() {
                         style={{ opacity: mounted ? 1 : 0, transform: mounted ? 'translateY(0)' : 'translateY(30px)', transition: 'all 0.8s ease 0.4s' }}>
                         <div className="flex items-center gap-2 text-xs font-medium tracking-wide" style={{ color: `${T.gold}88` }}>
                             <span className="h-px w-8 bg-current" />
-                            EXERCICE EN DIRECT
+                            {t('landing.hero_live_label')}
                             <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
                         </div>
 
@@ -278,16 +288,16 @@ export function HeroSection() {
                         <div className="w-full max-w-sm rounded-xl border p-4"
                             style={{ borderColor: T.border, background: T.bgCard }}>
                             <p className="mb-3 text-xs font-semibold uppercase tracking-widest" style={{ color: T.textDim }}>
-                                Votre niveau estimé
+                                {t('landing.hero_level_title')}
                             </p>
                             <div className="space-y-2">
                                 {[
-                                    { skill: 'Lecture', pct: 78, color: T.sky },
-                                    { skill: 'Grammaire', pct: 61, color: T.gold },
-                                    { skill: 'Vocabulaire', pct: 85, color: '#22c55e' },
+                                    { skillKey: 'landing.hero_skill_reading', pct: 78, color: T.sky },
+                                    { skillKey: 'landing.hero_skill_grammar', pct: 61, color: T.gold },
+                                    { skillKey: 'landing.hero_skill_vocab', pct: 85, color: '#22c55e' },
                                 ].map((item) => (
-                                    <div key={item.skill} className="flex items-center gap-3">
-                                        <span className="w-20 text-xs" style={{ color: T.textMid }}>{item.skill}</span>
+                                    <div key={item.skillKey} className="flex items-center gap-3">
+                                        <span className="w-20 text-xs" style={{ color: T.textMid }}>{t(item.skillKey)}</span>
                                         <div className="flex-1 overflow-hidden rounded-full" style={{ height: '4px', background: T.border }}>
                                             <div className="h-full rounded-full"
                                                 style={{ width: mounted ? `${item.pct}%` : '0%', background: item.color, transition: 'width 1.2s cubic-bezier(0.4,0,0.2,1) 0.9s' }} />

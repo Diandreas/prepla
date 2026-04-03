@@ -3,14 +3,17 @@ import { useCallback, useRef, useState } from 'react';
 interface UseAudioRecorderReturn {
     isRecording: boolean;
     audioUrl: string | null;
+    audioBlob: Blob | null;
     startRecording: () => Promise<void>;
     stopRecording: () => void;
+    clearRecording: () => void;
     error: string | null;
 }
 
 export function useAudioRecorder(): UseAudioRecorderReturn {
     const [isRecording, setIsRecording] = useState(false);
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
+    const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
     const [error, setError] = useState<string | null>(null);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const chunksRef = useRef<Blob[]>([]);
@@ -19,6 +22,7 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
         try {
             setError(null);
             setAudioUrl(null);
+            setAudioBlob(null);
             chunksRef.current = [];
 
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -35,6 +39,7 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
             mediaRecorder.onstop = () => {
                 const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
                 const url = URL.createObjectURL(blob);
+                setAudioBlob(blob);
                 setAudioUrl(url);
                 stream.getTracks().forEach((t) => t.stop());
             };
@@ -55,5 +60,11 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
         }
     }, []);
 
-    return { isRecording, audioUrl, startRecording, stopRecording, error };
+    const clearRecording = useCallback(() => {
+        setAudioUrl(null);
+        setAudioBlob(null);
+        chunksRef.current = [];
+    }, []);
+
+    return { isRecording, audioUrl, audioBlob, startRecording, stopRecording, clearRecording, error };
 }

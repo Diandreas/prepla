@@ -4,6 +4,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 
 import enTranslation from '../../locales/en/translation.json';
 import frTranslation from '../../locales/fr/translation.json';
+import deTranslation from '../../locales/de/translation.json';
 
 i18n
   .use(LanguageDetector)
@@ -11,7 +12,8 @@ i18n
   .init({
     resources: {
       en: { translation: enTranslation },
-      fr: { translation: frTranslation }
+      fr: { translation: frTranslation },
+      de: { translation: deTranslation },
     },
     fallbackLng: 'en',
     interpolation: {

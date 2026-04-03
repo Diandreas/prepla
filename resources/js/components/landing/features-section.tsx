@@ -1,35 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useTokens } from './landing-theme';
 
-const features = [
-    {
-        icon: '✦',
-        label: 'IA Générative',
-        title: 'Exercices illimités,\ncréés par l\'IA',
-        description: 'Chaque exercice est généré en temps réel par Mistral IA, adapté à votre niveau CECR et calqué sur le format exact de votre examen cible.',
-        accentKey: 'sky' as const,
-    },
-    {
-        icon: '⚡',
-        label: 'Instantané',
-        title: 'Corrections &\nexplications en direct',
-        description: 'Soumettez votre réponse et obtenez une analyse détaillée en quelques secondes — grammaire, vocabulaire, registre de langue, tout est commenté.',
-        accentKey: 'gold' as const,
-    },
-    {
-        icon: '◎',
-        label: 'Adaptatif',
-        title: 'Parcours sur\nmesure, semaine après semaine',
-        description: 'L\'algorithme identifie vos lacunes et réoriente votre programme de révision là où vous en avez vraiment besoin — sans effort de votre part.',
-        accentKey: 'green' as const,
-    },
-    {
-        icon: '↗',
-        label: 'Analytiques',
-        title: 'Progressez,\net le voyez vraiment',
-        description: 'Tableaux de bord de compétences, historique de scores, streaks de pratique : votre évolution est visible, mesurable et motivante.',
-        accentKey: 'violet' as const,
-    },
+const featureKeys = [
+    { icon: '✦', accentKey: 'sky' as const, labelKey: 'landing.feature_ai_label', titleKey: 'landing.feature_ai_title', descKey: 'landing.feature_ai_desc' },
+    { icon: '⚡', accentKey: 'gold' as const, labelKey: 'landing.feature_instant_label', titleKey: 'landing.feature_instant_title', descKey: 'landing.feature_instant_desc' },
+    { icon: '◎', accentKey: 'green' as const, labelKey: 'landing.feature_adaptive_label', titleKey: 'landing.feature_adaptive_title', descKey: 'landing.feature_adaptive_desc' },
+    { icon: '↗', accentKey: 'violet' as const, labelKey: 'landing.feature_analytics_label', titleKey: 'landing.feature_analytics_title', descKey: 'landing.feature_analytics_desc' },
 ];
 
 const ACCENT_COLORS = {
@@ -50,8 +27,9 @@ function useInView(ref: React.RefObject<HTMLElement | null>, threshold = 0.15) {
     return visible;
 }
 
-function FeatureCard({ feature, index }: { feature: typeof features[0]; index: number }) {
+function FeatureCard({ feature, index }: { feature: typeof featureKeys[0]; index: number }) {
     const T = useTokens();
+    const { t } = useTranslation();
     const ref = useRef<HTMLDivElement>(null);
     const visible = useInView(ref as React.RefObject<HTMLElement>);
     const [hovered, setHovered] = useState(false);
@@ -75,7 +53,6 @@ function FeatureCard({ feature, index }: { feature: typeof features[0]; index: n
                     : T.theme === 'dark' ? '0 4px 24px rgba(0,0,0,0.2)' : '0 4px 16px rgba(26,22,18,0.06)',
                 cursor: 'default',
             }}>
-            {/* Glow */}
             <div style={{
                 position: 'absolute', top: 0, right: 0,
                 width: 120, height: 120, background: `${accent}18`,
@@ -83,7 +60,6 @@ function FeatureCard({ feature, index }: { feature: typeof features[0]; index: n
                 opacity: hovered ? 1 : 0, transition: 'opacity 0.4s ease', pointerEvents: 'none',
             }} />
 
-            {/* Icon */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
                 <div style={{
                     width: 52, height: 52, borderRadius: '0.875rem',
@@ -98,7 +74,7 @@ function FeatureCard({ feature, index }: { feature: typeof features[0]; index: n
                     fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '0.65rem',
                     fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: accent,
                 }}>
-                    {feature.label}
+                    {t(feature.labelKey)}
                 </span>
             </div>
 
@@ -107,14 +83,13 @@ function FeatureCard({ feature, index }: { feature: typeof features[0]; index: n
                 fontSize: 'clamp(1.3rem, 2vw, 1.55rem)', fontWeight: 700, lineHeight: 1.15,
                 color: T.text, whiteSpace: 'pre-line', marginBottom: '1rem',
             }}>
-                {feature.title}
+                {t(feature.titleKey)}
             </h3>
 
             <p style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '0.875rem', lineHeight: 1.7, color: T.textMid }}>
-                {feature.description}
+                {t(feature.descKey)}
             </p>
 
-            {/* Bottom line */}
             <div style={{
                 position: 'absolute', bottom: 0, left: '1.75rem', right: '1.75rem',
                 height: '1px', background: `linear-gradient(90deg, transparent, ${accent}44, transparent)`,
@@ -126,6 +101,7 @@ function FeatureCard({ feature, index }: { feature: typeof features[0]; index: n
 
 export function FeaturesSection() {
     const T = useTokens();
+    const { t } = useTranslation();
     const headerRef = useRef<HTMLDivElement>(null);
     const headerVisible = useInView(headerRef as React.RefObject<HTMLElement>);
 
@@ -153,7 +129,7 @@ export function FeaturesSection() {
                     }}>
                         <span style={{ color: T.gold }}>✦</span>
                         <span style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.gold }}>
-                            Fonctionnalités
+                            {t('landing.features_badge')}
                         </span>
                     </div>
 
@@ -162,16 +138,16 @@ export function FeaturesSection() {
                         fontSize: 'clamp(2rem, 4vw, 3.25rem)', fontWeight: 700, lineHeight: 1.1,
                         color: T.text, marginBottom: '1rem',
                     }}>
-                        Tout ce qu'il vous faut pour{' '}
-                        <span style={{ fontStyle: 'italic', color: T.gold }}>réussir</span>
+                        {t('landing.features_headline')}{' '}
+                        <span style={{ fontStyle: 'italic', color: T.gold }}>{t('landing.features_headline_accent')}</span>
                     </h2>
                     <p style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '1rem', color: T.textMid, maxWidth: '36rem', margin: '0 auto', lineHeight: 1.7 }}>
-                        Une plateforme conçue autour d'un seul objectif : vous amener au score que vous visez, le plus efficacement possible.
+                        {t('landing.features_body')}
                     </p>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1.25rem' }}>
-                    {features.map((f, i) => <FeatureCard key={f.label} feature={f} index={i} />)}
+                    {featureKeys.map((f, i) => <FeatureCard key={f.labelKey} feature={f} index={i} />)}
                 </div>
             </div>
         </section>

@@ -18,26 +18,22 @@ export function ExerciseTimer({ onTimeUpdate, onExpire, timeLimit }: ExerciseTim
 
     useEffect(() => {
         const interval = setInterval(() => {
-            setSeconds((prev) => {
-                if (isCountdown) {
-                    const next = prev - 1;
-                    onTimeUpdate(timeLimit! - next); // elapsed
-                    if (next <= 0 && !expiredRef.current) {
-                        expiredRef.current = true;
-                        clearInterval(interval);
-                        onExpire?.();
-                        return 0;
-                    }
-                    return Math.max(0, next);
-                } else {
-                    const next = prev + 1;
-                    onTimeUpdate(next);
-                    return next;
-                }
-            });
+            setSeconds((prev) => isCountdown ? Math.max(0, prev - 1) : prev + 1);
         }, 1000);
         return () => clearInterval(interval);
-    }, [isCountdown, timeLimit, onTimeUpdate, onExpire]);
+    }, [isCountdown]);
+
+    useEffect(() => {
+        if (isCountdown) {
+            onTimeUpdate(timeLimit! - seconds);
+            if (seconds <= 0 && !expiredRef.current) {
+                expiredRef.current = true;
+                onExpire?.();
+            }
+        } else {
+            onTimeUpdate(seconds);
+        }
+    }, [seconds, isCountdown, timeLimit, onTimeUpdate, onExpire]);
 
     const display = isCountdown ? seconds : seconds;
     const mins = Math.floor(display / 60);

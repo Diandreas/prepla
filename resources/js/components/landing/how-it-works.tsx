@@ -1,28 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useTokens } from './landing-theme';
 
-const steps = [
-    {
-        number: '01',
-        icon: '◉',
-        title: 'Créez votre profil',
-        description: 'Inscrivez-vous en 30 secondes, sélectionnez votre examen cible et votre langue. Indiquez votre score visé et la date de votre test.',
-        accentKey: 'sky' as const,
-    },
-    {
-        number: '02',
-        icon: '⬡',
-        title: 'Pratiquez avec l\'IA',
-        description: 'Enchaînez les exercices générés sur mesure — compréhension écrite, grammaire, expression, écoute. L\'IA corrige et explique chaque réponse.',
-        accentKey: 'gold' as const,
-    },
-    {
-        number: '03',
-        icon: '↗',
-        title: 'Suivez votre progression',
-        description: 'Consultez vos analyses détaillées, identifiez vos points faibles et regardez votre score estimé grimper semaine après semaine.',
-        accentKey: 'green' as const,
-    },
+const stepKeys = [
+    { number: '01', icon: '◉', accentKey: 'sky' as const, titleKey: 'landing.hiw_step1_title', descKey: 'landing.hiw_step1_desc' },
+    { number: '02', icon: '⬡', accentKey: 'gold' as const, titleKey: 'landing.hiw_step2_title', descKey: 'landing.hiw_step2_desc' },
+    { number: '03', icon: '↗', accentKey: 'green' as const, titleKey: 'landing.hiw_step3_title', descKey: 'landing.hiw_step3_desc' },
 ];
 
 const ACCENT_COLORS = { sky: '#4A90E2', gold: '#F5A623', green: '#22c55e' };
@@ -38,8 +21,9 @@ function useInView(ref: React.RefObject<HTMLElement | null>, threshold = 0.15) {
     return visible;
 }
 
-function StepCard({ step }: { step: typeof steps[0] }) {
+function StepCard({ step }: { step: typeof stepKeys[0] }) {
     const T = useTokens();
+    const { t } = useTranslation();
     const [hovered, setHovered] = useState(false);
     const accent = ACCENT_COLORS[step.accentKey];
 
@@ -55,7 +39,6 @@ function StepCard({ step }: { step: typeof steps[0] }) {
                 boxShadow: hovered ? `0 16px 48px ${accent}1a` : T.theme === 'dark' ? 'none' : '0 4px 16px rgba(26,22,18,0.06)',
                 textAlign: 'center',
             }}>
-            {/* Big number bg */}
             <div style={{
                 position: 'absolute', top: '1rem', right: '1.25rem',
                 fontFamily: '"Cormorant Garamond", Georgia, serif',
@@ -65,7 +48,6 @@ function StepCard({ step }: { step: typeof steps[0] }) {
                 {step.number}
             </div>
 
-            {/* Icon */}
             <div style={{
                 width: 64, height: 64, borderRadius: '50%',
                 background: `${accent}14`, border: `1.5px solid ${accent}28`,
@@ -80,7 +62,7 @@ function StepCard({ step }: { step: typeof steps[0] }) {
                 fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '0.65rem', fontWeight: 700,
                 letterSpacing: '0.14em', textTransform: 'uppercase', color: accent, marginBottom: '0.75rem',
             }}>
-                Étape {step.number}
+                {t('landing.hiw_step', { number: step.number })}
             </div>
 
             <h3 style={{
@@ -88,11 +70,11 @@ function StepCard({ step }: { step: typeof steps[0] }) {
                 fontSize: 'clamp(1.25rem, 2vw, 1.5rem)', fontWeight: 700, lineHeight: 1.2,
                 color: T.text, marginBottom: '0.875rem',
             }}>
-                {step.title}
+                {t(step.titleKey)}
             </h3>
 
             <p style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '0.875rem', lineHeight: 1.7, color: T.textMid }}>
-                {step.description}
+                {t(step.descKey)}
             </p>
         </div>
     );
@@ -100,6 +82,7 @@ function StepCard({ step }: { step: typeof steps[0] }) {
 
 export function HowItWorks() {
     const T = useTokens();
+    const { t } = useTranslation();
     const headerRef = useRef<HTMLDivElement>(null);
     const headerVisible = useInView(headerRef as React.RefObject<HTMLElement>);
     const stepsRef = useRef<HTMLDivElement>(null);
@@ -129,7 +112,7 @@ export function HowItWorks() {
                     }}>
                         <span style={{ color: T.sky, fontSize: '0.8rem' }}>→</span>
                         <span style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.sky }}>
-                            Comment ça marche
+                            {t('landing.hiw_badge')}
                         </span>
                     </div>
 
@@ -138,11 +121,11 @@ export function HowItWorks() {
                         fontSize: 'clamp(2rem, 4vw, 3.25rem)', fontWeight: 700, lineHeight: 1.1,
                         color: T.text, marginBottom: '1rem',
                     }}>
-                        Trois étapes vers votre{' '}
-                        <span style={{ fontStyle: 'italic', color: T.gold }}>meilleur score</span>
+                        {t('landing.hiw_headline')}{' '}
+                        <span style={{ fontStyle: 'italic', color: T.gold }}>{t('landing.hiw_headline_accent')}</span>
                     </h2>
                     <p style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '1rem', color: T.textMid, maxWidth: '34rem', margin: '0 auto', lineHeight: 1.7 }}>
-                        Commencez à pratiquer en moins de 2 minutes. Aucune installation, aucune carte de crédit.
+                        {t('landing.hiw_body')}
                     </p>
                 </div>
 
@@ -151,7 +134,7 @@ export function HowItWorks() {
                     gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))',
                     gap: '1.5rem', position: 'relative',
                 }}>
-                    {steps.map((step, i) => (
+                    {stepKeys.map((step, i) => (
                         <div key={step.number} style={{
                             opacity: stepsVisible ? 1 : 0,
                             transform: stepsVisible ? 'translateY(0)' : 'translateY(36px)',
@@ -164,7 +147,7 @@ export function HowItWorks() {
 
                 <div style={{ marginTop: 'clamp(3rem,5vw,4rem)', textAlign: 'center', opacity: stepsVisible ? 1 : 0, transition: 'opacity 0.7s ease 0.5s' }}>
                     <p style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '0.875rem', color: T.textMid }}>
-                        Rejoignez des milliers d'apprenants qui préparent leur examen plus intelligemment.
+                        {t('landing.hiw_footer')}
                     </p>
                 </div>
             </div>

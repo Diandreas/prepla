@@ -1,4 +1,5 @@
 import { Head } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import { LandingThemeProvider, useTokens } from '@/components/landing/landing-theme';
 import { LandingNavbar } from '@/components/landing/landing-navbar';
 import { HeroSection } from '@/components/landing/hero-section';
@@ -33,9 +34,11 @@ function WelcomeInner({ languages, pricing }: WelcomeProps) {
 }
 
 export default function Welcome({ languages, pricing }: WelcomeProps) {
+    const { t } = useTranslation();
+
     return (
         <>
-            <Head title="PrePla — Préparez vos examens de langue avec l'IA" />
+            <Head title={t('landing.hero_headline', 'Master your language exam') + ' — PrePla'} />
             <LandingThemeProvider>
                 <WelcomeInner languages={languages} pricing={pricing} />
             </LandingThemeProvider>

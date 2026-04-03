@@ -57,18 +57,17 @@ function QuestionTimer({
     useEffect(() => {
         if (expired) return;
         const id = setInterval(() => {
-            setRemaining((prev) => {
-                const next = prev - 1;
-                if (next <= 0 && !calledRef.current) {
-                    calledRef.current = true;
-                    clearInterval(id);
-                    onExpire();
-                }
-                return Math.max(0, next);
-            });
+            setRemaining((prev) => Math.max(0, prev - 1));
         }, 1000);
         return () => clearInterval(id);
-    }, [expired, onExpire]);
+    }, [expired]);
+
+    useEffect(() => {
+        if (remaining <= 0 && !calledRef.current && !expired) {
+            calledRef.current = true;
+            onExpire();
+        }
+    }, [remaining, expired, onExpire]);
 
     const ratio = remaining / total;
     const isCritical = ratio <= 0.2;
@@ -112,19 +111,18 @@ function EssayTimer({
 
     useEffect(() => {
         const id = setInterval(() => {
-            setRemaining((prev) => {
-                const next = prev - 1;
-                onTick(next);
-                if (next <= 0 && !calledRef.current) {
-                    calledRef.current = true;
-                    clearInterval(id);
-                    onExpire();
-                }
-                return Math.max(0, next);
-            });
+            setRemaining((prev) => Math.max(0, prev - 1));
         }, 1000);
         return () => clearInterval(id);
-    }, [onExpire, onTick]);
+    }, []);
+
+    useEffect(() => {
+        onTick(remaining);
+        if (remaining <= 0 && !calledRef.current) {
+            calledRef.current = true;
+            onExpire();
+        }
+    }, [remaining, onTick, onExpire]);
 
     const mins = Math.floor(remaining / 60);
     const secs = remaining % 60;

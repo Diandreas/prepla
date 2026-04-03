@@ -2,6 +2,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import * as Flags from 'country-flag-icons/react/3x2';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { ExamRecord, ExamSection } from '@/types';
 
 function Icon({ name, size = 20, style }: { name: string; size?: number; style?: React.CSSProperties }) {
@@ -48,6 +49,7 @@ const skillThemes: Record<string, { bg: string; shadow: string }> = {
 
 // Global exam session timer displayed as floating banner
 function ExamBanner({ totalMinutes, onExpire }: { totalMinutes: number; onExpire: () => void }) {
+    const { t } = useTranslation();
     const total = totalMinutes * 60;
     const [remaining, setRemaining] = useState(total);
     const calledRef = useRef(false);
@@ -86,12 +88,13 @@ function ExamBanner({ totalMinutes, onExpire }: { totalMinutes: number; onExpire
             <span className="text-sm font-black tabular-nums text-white">
                 {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
             </span>
-            <span className="text-xs font-bold text-white/60">MODE EXAMEN</span>
+            <span className="text-xs font-bold text-white/60">{t('practice.exam_mode_badge')}</span>
         </div>
     );
 }
 
 export default function ExamDashboard({ exam, sectionProgress }: Props) {
+    const { t } = useTranslation();
     const [mounted, setMounted] = useState(false);
     const [examMode, setExamMode] = useState(false);
     const [examExpired, setExamExpired] = useState(false);
@@ -116,14 +119,14 @@ export default function ExamDashboard({ exam, sectionProgress }: Props) {
                 <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-black/70 backdrop-blur-sm">
                     <div className="rounded-3xl bg-white p-8 text-center shadow-2xl max-w-sm mx-4">
                         <img src="/icons/clock.png" alt="" width={48} height={48} className="mx-auto mb-3" style={{ filter: 'brightness(0) saturate(100%) invert(30%) sepia(80%) saturate(600%) hue-rotate(330deg)' }} />
-                        <h2 className="text-xl font-black" style={{ color: OXFORD }}>Temps écoulé !</h2>
-                        <p className="mt-2 text-sm text-muted-foreground">La session d'examen simulé est terminée.</p>
+                        <h2 className="text-xl font-black" style={{ color: OXFORD }}>{t('practice.exam_expired_title')}</h2>
+                        <p className="mt-2 text-sm text-muted-foreground">{t('practice.exam_expired_desc')}</p>
                         <button
                             className="mt-5 w-full rounded-xl py-3 text-sm font-black text-white"
                             style={{ background: OXFORD }}
                             onClick={() => setExamExpired(false)}
                         >
-                            Voir mes résultats
+                            {t('practice.exam_expired_cta')}
                         </button>
                     </div>
                 </div>
@@ -139,7 +142,7 @@ export default function ExamDashboard({ exam, sectionProgress }: Props) {
                         </h1>
                     </div>
                     <p className="mt-1 text-sm font-bold text-muted-foreground">
-                        Pratiquer toutes les sections de l'examen {exam.name}
+                        {t('practice.all_sections', { name: exam.name })}
                     </p>
                 </div>
 
@@ -153,20 +156,20 @@ export default function ExamDashboard({ exam, sectionProgress }: Props) {
                             <img src="/icons/clock.png" alt="" width={18} height={18} style={{ filter: 'brightness(0) invert(1)' }} />
                         </div>
                         <div>
-                            <p className="text-sm font-black" style={{ color: OXFORD }}>Mode Examen Simulé</p>
-                            <p className="text-xs text-muted-foreground">{totalExamMinutes} min · conditions réelles</p>
+                            <p className="text-sm font-black" style={{ color: OXFORD }}>{t('practice.exam_mode_title')}</p>
+                            <p className="text-xs text-muted-foreground">{t('practice.exam_mode_desc', { minutes: totalExamMinutes })}</p>
                         </div>
                     </div>
-                    <button
-                        onClick={() => setExamMode(m => !m)}
+                    <Link
+                        href={route('practice.simulate', exam.id)}
                         className="rounded-xl px-4 py-2 text-xs font-black text-white transition-all"
                         style={{
-                            background: examMode ? '#ef4444' : SKY,
-                            boxShadow: `0 3px 0 0 ${examMode ? '#b91c1c' : '#2a6fc0'}`,
+                            background: SKY,
+                            boxShadow: `0 3px 0 0 #2a6fc0`,
                         }}
                     >
-                        {examMode ? 'Arrêter' : 'Commencer'}
-                    </button>
+                        {t('practice.exam_mode_start')}
+                    </Link>
                 </div>
 
                 {/* Section Cards */}
@@ -204,11 +207,11 @@ export default function ExamDashboard({ exam, sectionProgress }: Props) {
                                         {section.name}
                                     </h3>
                                     <p className="text-[10px] font-bold text-muted-foreground">
-                                        {section.time_limit} min · {section.exercise_types?.length ?? 0} types d'exercices
+                                        {section.time_limit} min · {t('practice.section_exercise_types', { count: section.exercise_types?.length ?? 0 })}
                                     </p>
                                     <div className="mt-2 flex items-center justify-between">
                                         <span className="text-[10px] font-bold text-muted-foreground">
-                                            {attempts} tentatives
+                                            {t('practice.section_attempts_one', { count: attempts })}
                                         </span>
                                         <span
                                             className="rounded-md px-2 py-0.5 text-[10px] font-black uppercase tracking-wider"

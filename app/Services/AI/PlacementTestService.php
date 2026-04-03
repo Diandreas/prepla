@@ -384,16 +384,14 @@ PROMPT;
             }
         }
 
-        $cefrOrder = ['A1', 'A2', 'B1', 'B2', 'C1'];
-        $mcqLevel = 'A1';
-        foreach (array_reverse($cefrOrder) as $lvl) {
-            $count = $levelCounts[$lvl] ?? 0;
-            $score = $levelScores[$lvl] ?? 0;
-            if ($count > 0 && ($score / $count) >= 0.5) {
-                $mcqLevel = $lvl;
-                break;
-            }
-        }
+        $totalCorrect = array_sum($levelScores);
+        $mcqLevel = match (true) {
+            $totalCorrect >= 7 => 'C1',
+            $totalCorrect >= 5 => 'B2',
+            $totalCorrect >= 3 => 'B1',
+            $totalCorrect >= 1 => 'A2',
+            default            => 'A1',
+        };
 
         // 2. Score essay heuristique (40 % du poids) — aucun appel IA
         if (trim($essayText) === '') {
@@ -404,17 +402,16 @@ PROMPT;
         $wordCount = count($words);
 
         $wordLevel = match (true) {
-            $wordCount >= 300 => 'C1',
-            $wordCount >= 200 => 'B2',
+            $wordCount >= 140 => 'B2',
             $wordCount >= 100 => 'B1',
-            $wordCount >= 50  => 'A2',
+            $wordCount >= 40  => 'A2',
             default           => 'A1',
         };
 
-        // Bonus connecteurs avancés (+0.5 par connecteur unique trouvé, max +2 niveaux)
+        // Bonus connecteurs avancés
         $advancedConnectors = [
-            'although','however','nevertheless','furthermore','consequently',
-            'en outre','néanmoins','cependant','bien que','par conséquent',
+            'although','however','nevertheless','furthermore','consequently', 'moreover',
+            'en outre','néanmoins','cependant','bien que','par conséquent', 'ainsi',
             'sin embargo','además','no obstante','aunque','por lo tanto',
         ];
         $essay = strtolower($essayText);
@@ -422,14 +419,15 @@ PROMPT;
         foreach ($advancedConnectors as $c) {
             if (str_contains($essay, $c)) $bonusCount++;
         }
+        $cefrOrder = ['A1', 'A2', 'B1', 'B2', 'C1'];
         $levelIdx = array_search($wordLevel, $cefrOrder) ?: 0;
         $levelIdx = min(4, $levelIdx + intdiv($bonusCount, 2));
         $essayLevel = $cefrOrder[$levelIdx];
 
-        // 3. Combinaison 60 % MCQ + 40 % essay
+        // 3. Combinaison 70 % MCQ + 30 % essay (MCQ is more reliable)
         $mcqIdx   = array_search($mcqLevel, $cefrOrder) ?: 0;
         $essayIdx = array_search($essayLevel, $cefrOrder) ?: 0;
-        $combined = (int) round($mcqIdx * 0.6 + $essayIdx * 0.4);
+        $combined = (int) round($mcqIdx * 0.7 + $essayIdx * 0.3);
 
         return $cefrOrder[min(4, max(0, $combined))];
     }

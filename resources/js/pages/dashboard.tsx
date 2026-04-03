@@ -113,7 +113,7 @@ function RoadmapNodeItem({ node, index, mounted, isNext, pathColor, onStart }: {
             <div className="relative">
                 <button
                     disabled={isLocked}
-                    onClick={() => isAvailable && onStart(node.id, node.title)}
+                    onClick={() => (isAvailable || isCompleted) && onStart(node.id, node.title)}
                     className={`relative flex items-center justify-center rounded-full border-[3px] ${isCompleted ? 'duo-node-completed' : isAvailable ? 'duo-node-available' : 'duo-node-locked'
                         }`}
                     style={{
@@ -177,7 +177,7 @@ export default function Dashboard() {
                         </div>
                     </div>
                     <div className="text-center">
-                        <p className="text-base font-bold" style={{ color: OXFORD }}>Préparation de ta session…</p>
+                        <p className="text-base font-bold" style={{ color: OXFORD }}>{t('dashboard.preparing_session')}</p>
                         <p className="mt-1 text-sm font-medium" style={{ color: '#6b7280' }}>{loadingNode.title}</p>
                     </div>
                     <div className="flex items-center gap-2">

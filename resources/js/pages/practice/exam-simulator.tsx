@@ -2,7 +2,9 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { ExamRecord, ExamSection } from '@/types';
 
+// Icons & Components
 function Icon({ name, size = 20, className, style }: { name: string; size?: number; className?: string; style?: React.CSSProperties }) {
     return <img src={`/icons/${name}.png`} alt="" width={size} height={size} className={className} style={{ objectFit: 'contain', ...style }} />;
 }
@@ -50,22 +52,9 @@ interface Exercise {
 }
 
 interface Props {
-    node: {
-        id: number;
-        title: string;
-        level: string;
-        exam: {
-            name: string;
-            language: {
-                name: string;
-            }
-        }
-    };
+    exam: ExamRecord & { sections: ExamSection[] };
     exercises: Exercise[];
-    progress: {
-        id: number;
-        status: string;
-    };
+    totalExamsTime: number; // in minutes
 }
 
 const componentMap: Record<string, React.ComponentType<any>> = {
@@ -100,9 +89,7 @@ const componentMap: Record<string, React.ComponentType<any>> = {
     'vocabulary-card': VocabularyCard,
 };
 
-// Segmented progress dots
 function ProgressDots({ total, current }: { total: number; current: number }) {
-    // Cap at 40 dots for readability
     const MAX = 40;
     const capped = Math.min(total, MAX);
     const ratio = total > MAX ? current / total : current;
@@ -137,90 +124,65 @@ function ProgressDots({ total, current }: { total: number; current: number }) {
     );
 }
 
-// Circular SVG countdown arc
-function ArcTimer({ seconds, limit, warning, critical, expired }: {
-    seconds: number; limit: number;
-    warning: boolean; critical: boolean; expired: boolean;
-}) {
-    const r = 18;
-    const circ = 2 * Math.PI * r;
-    const pct = limit > 0 ? seconds / limit : 1;
-    const offset = circ * (1 - pct);
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+function ExamGlobalBanner({ totalMinutes, onExpire }: { totalMinutes: number; onExpire: () => void }) {
+    const { t } = useTranslation();
+    const total = totalMinutes * 60;
+    const [remaining, setRemaining] = useState(total);
+    const calledRef = useRef(false);
+    const OXFORD = '#1A2B48';
 
-    const trackColor = expired || critical ? '#ef4444' : warning ? '#f59e0b' : 'var(--player-accent)';
-    const bgColor = expired || critical ? 'rgba(239,68,68,0.12)' : warning ? 'rgba(245,158,11,0.12)' : 'rgba(var(--player-accent-rgb),0.1)';
+    useEffect(() => {
+        const id = setInterval(() => {
+            setRemaining(prev => {
+                const next = prev - 1;
+                if (next <= 0 && !calledRef.current) {
+                    calledRef.current = true;
+                    clearInterval(id);
+                    onExpire();
+                }
+                return Math.max(0, next);
+            });
+        }, 1000);
+        return () => clearInterval(id);
+    }, [onExpire]);
+
+    const mins = Math.floor(remaining / 60);
+    const secs = remaining % 60;
+    const ratio = remaining / total;
+    const isCritical = ratio <= 0.1;
 
     return (
         <div
+            className="fixed top-4 left-1/2 z-50 -translate-x-1/2 flex items-center gap-3 rounded-2xl px-5 py-2.5 shadow-xl"
             style={{
-                position: 'relative',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 52,
-                height: 52,
-                animation: critical && !expired ? 'timerPulse 1s ease-in-out infinite' : 'none',
+                background: isCritical ? '#ef4444' : OXFORD,
+                boxShadow: `0 4px 0 0 ${isCritical ? '#b91c1c' : '#0e1a2e'}`,
+                animation: isCritical ? 'pulse 0.8s ease-in-out infinite' : undefined,
             }}
         >
-            <svg width="52" height="52" style={{ position: 'absolute', top: 0, left: 0 }}>
-                {/* Background track */}
-                <circle cx="26" cy="26" r={r} fill="none" stroke={bgColor} strokeWidth="3" />
-                {/* Progress arc */}
-                <circle
-                    cx="26" cy="26" r={r}
-                    fill="none"
-                    stroke={trackColor}
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeDasharray={circ}
-                    strokeDashoffset={offset}
-                    transform="rotate(-90 26 26)"
-                    style={{ transition: 'stroke-dashoffset 0.9s linear, stroke 0.3s' }}
-                />
-            </svg>
-            <span style={{
-                fontSize: 11,
-                fontWeight: 700,
-                fontVariantNumeric: 'tabular-nums',
-                letterSpacing: '-0.02em',
-                color: expired || critical ? '#ef4444' : warning ? '#f59e0b' : 'var(--player-text-muted)',
-                lineHeight: 1,
-            }}>
+            <img src="/icons/clock.png" alt="" width={16} height={16} style={{ filter: 'brightness(0) invert(1)' }} />
+            <span className="text-sm font-black tabular-nums text-white">
                 {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
             </span>
+            <span className="text-xs font-bold text-white/60">{t('practice.exam_mode_badge', 'Mode Examen')}</span>
         </div>
     );
 }
 
-export default function SessionPlayer({ node, exercises, progress }: Props) {
+export default function ExamSimulator({ exam, exercises, totalExamsTime }: Props) {
     const { t } = useTranslation();
     const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [answers, setAnswers] = useState<Record<string, any>>({});
-    const [isChecked, setIsChecked] = useState(false);
-    const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [transitioning, setTransitioning] = useState(false);
     const [visible, setVisible] = useState(true);
     const [timeSpent, setTimeSpent] = useState(0);
-    const [timerKey, setTimerKey] = useState(0);
-    const [timerSeconds, setTimerSeconds] = useState(0);
-    const contentRef = useRef<HTMLDivElement>(null);
+    const [examExpired, setExamExpired] = useState(false);
+    const OXFORD = '#1A2B48';
 
     const exercise = exercises[currentExerciseIndex];
     const componentKey = exercise?.exercise_type?.component_key ?? 'mcq';
-
-    const TIME_PER_QUESTION = useMemo(() => {
-        const writingTypes = ['essay-editor', 'short-writing', 'graph-description', 'academic-discussion', 'synthesis', 'integrated-task'];
-        const speakingTypes = ['speaking-recorder', 'role-play'];
-        const longTypes = ['gapped-text', 'insert-text', 'table-completion', 'flow-chart-completion', 'summary-completion', 'form-completion', 'diagram-labeling', 'multiple-matching'];
-        if (writingTypes.includes(componentKey)) return 600;
-        if (speakingTypes.includes(componentKey)) return 300;
-        if (longTypes.includes(componentKey)) return 120;
-        return 45;
-    }, [componentKey]);
 
     const questions = exercise?.questions ?? [];
     const question = questions[currentQuestionIndex];
@@ -238,63 +200,33 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
         return count + currentQuestionIndex;
     }, [currentExerciseIndex, currentQuestionIndex, exercises]);
 
+    // Track total time loosely
+    useEffect(() => {
+        const id = setInterval(() => setTimeSpent(t => t + 1), 1000);
+        return () => clearInterval(id);
+    }, []);
+
     const handleAnswer = useCallback((questionId: string, answer: any) => {
-        if (isChecked) return;
         setAnswers(prev => ({ ...prev, [questionId]: answer }));
-    }, [isChecked]);
+    }, []);
 
-    const handleRetry = useCallback(() => {
-        setIsChecked(false);
-        setIsCorrect(null);
-        setAnswers(prev => {
-            const next = { ...prev };
-            if (question) delete next[question.id];
-            return next;
-        });
-        setTimerSeconds(TIME_PER_QUESTION); // Reset timer 
-    }, [question, TIME_PER_QUESTION]);
+    const submitExam = useCallback(() => {
+        setSubmitting(true);
+        router.post(route('practice.simulate.store', exam.id), {
+            answers,
+            time_spent: timeSpent,
+        }, { forceFormData: true });
+    }, [answers, exam.id, timeSpent]);
 
-    const checkAnswer = useCallback(() => {
-        if (!question || isChecked) return;
-        const currentAnswer = answers[question.id];
-
-        const noScoreTypes = ['essay-editor', 'speaking-recorder', 'role-play', 'short-writing', 'graph-description', 'academic-discussion', 'synthesis', 'integrated-task'];
-        let isRight = false;
-
-        if (noScoreTypes.includes(componentKey)) {
-            isRight = currentAnswer !== undefined && String(currentAnswer).trim() !== '';
-        } else {
-            // Very naive check; works for single MCQ/TF, but backend scores partials.
-            const correctAnswer = question.correct_answer ?? question.correct;
-            // Also handle array of correct answers if it's form completion
-            if (Array.isArray(correctAnswer) && Array.isArray(currentAnswer)) {
-                isRight = JSON.stringify(correctAnswer) === JSON.stringify(currentAnswer);
-            } else if (typeof correctAnswer === 'object' && typeof currentAnswer === 'object') {
-                isRight = JSON.stringify(correctAnswer) === JSON.stringify(currentAnswer);
-            } else {
-                isRight = String(currentAnswer).trim().toUpperCase() === String(correctAnswer).trim().toUpperCase();
-            }
-        }
-
-        setIsCorrect(isRight);
-        setIsChecked(true);
-    }, [question, isChecked, answers, componentKey]);
+    const handleExamExpire = useCallback(() => {
+        setExamExpired(true);
+    }, []);
 
     const nextStep = useCallback(() => {
-        setIsChecked(false);
-        setIsCorrect(null);
-
         const isEndOfSession = currentExerciseIndex === exercises.length - 1 && currentQuestionIndex === questions.length - 1;
 
         if (isEndOfSession) {
-            setSubmitting(true);
-            router.post(route('exercise.submit_session', node.id), {
-                answers,
-                node_id: node.id,
-                time_spent: timeSpent,
-            }, {
-                forceFormData: true,
-            });
+            submitExam();
             return;
         }
 
@@ -309,35 +241,8 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
             }
             setTransitioning(false);
             setVisible(true);
-            setTimerKey(k => k + 1);
         }, 220);
-    }, [currentExerciseIndex, currentQuestionIndex, exercises.length, questions.length, answers, node.id, timeSpent, isChecked]);
-
-    const handleTimeExpire = useCallback(() => {
-        if (!isChecked) {
-            setIsChecked(true);
-            setIsCorrect(false);
-        }
-        setTimeout(() => nextStep(), 1200);
-    }, [isChecked, nextStep]);
-
-    // Keyboard shortcut: Space / Enter
-    useEffect(() => {
-        const onKey = (e: KeyboardEvent) => {
-            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-            if (e.code === 'Space' || e.code === 'Enter') {
-                e.preventDefault();
-                if (isChecked) nextStep();
-                else if (answers[question?.id] !== undefined) checkAnswer();
-            }
-        };
-        window.addEventListener('keydown', onKey);
-        return () => window.removeEventListener('keydown', onKey);
-    }, [isChecked, nextStep, checkAnswer, answers, question]);
-
-    const timerWarning = timerSeconds <= TIME_PER_QUESTION * 0.2 && timerSeconds > 0;
-    const timerCritical = timerSeconds <= 10 && timerSeconds > 0;
-    const timerExpired = timerSeconds === 0 && timerKey > 0;
+    }, [currentExerciseIndex, currentQuestionIndex, exercises.length, questions.length, submitExam]);
 
     const isLastQuestion = currentExerciseIndex === exercises.length - 1 && currentQuestionIndex === questions.length - 1;
     const hasAnswer = answers[question?.id] !== undefined;
@@ -355,7 +260,26 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
 
     return (
         <AppLayout>
-            <Head title={`${node.title} - PrePla`} />
+            <Head title={`Simulator: ${exam.name} - PrePla`} />
+            <ExamGlobalBanner totalMinutes={totalExamsTime} onExpire={handleExamExpire} />
+            
+            {examExpired && (
+                <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-black/70 backdrop-blur-sm">
+                    <div className="rounded-3xl bg-white p-8 text-center shadow-2xl max-w-sm mx-4">
+                        <img src="/icons/clock.png" alt="" width={48} height={48} className="mx-auto mb-3" style={{ filter: 'brightness(0) saturate(100%) invert(30%) sepia(80%) saturate(600%) hue-rotate(330deg)' }} />
+                        <h2 className="text-xl font-black" style={{ color: OXFORD }}>{t('practice.exam_expired_title', 'Temps écoulé !')}</h2>
+                        <p className="mt-2 text-sm text-muted-foreground">{t('practice.exam_expired_desc', 'Vous avez atteint la limite de temps.')}</p>
+                        <button
+                            className="mt-5 w-full rounded-xl py-3 text-sm font-black text-white"
+                            style={{ background: OXFORD }}
+                            onClick={() => submitExam()}
+                        >
+                            {t('practice.exam_expired_cta', 'Soumettre mon examen')}
+                        </button>
+                    </div>
+                </div>
+            )}
+
             <style>{`
                 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@400;500;600;700&display=swap');
 
@@ -375,40 +299,16 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                     from { opacity: 1; transform: translateY(0) scale(1); }
                     to   { opacity: 0; transform: translateY(-14px) scale(0.99); }
                 }
-                @keyframes feedbackSlideIn {
-                    from { opacity: 0; transform: translateY(6px); }
-                    to   { opacity: 1; transform: translateY(0); }
-                }
-                @keyframes timerPulse {
-                    0%, 100% { transform: scale(1); }
-                    50%       { transform: scale(1.06); }
-                }
-                @keyframes checkPop {
-                    0%   { transform: scale(0.6); opacity: 0; }
-                    60%  { transform: scale(1.15); opacity: 1; }
-                    100% { transform: scale(1); }
-                }
 
                 .player-font { font-family: 'DM Sans', system-ui, sans-serif; }
                 .question-enter { animation: slideInUp 0.26s cubic-bezier(.22,1,.36,1) forwards; }
                 .question-exit  { animation: slideOutUp 0.18s cubic-bezier(.4,0,.2,1) forwards; }
-                .feedback-enter { animation: feedbackSlideIn 0.22s cubic-bezier(.22,1,.36,1) forwards; }
-                .check-pop      { animation: checkPop 0.32s cubic-bezier(.22,1,.36,1) forwards; }
 
                 .player-card {
                     border-radius: 16px;
                     border: 1px solid rgba(var(--player-accent-rgb), 0.12);
                     background: var(--card, #fff);
                     box-shadow: 0 2px 16px rgba(0,0,0,0.05), 0 0 0 1px rgba(var(--player-accent-rgb),0.04);
-                }
-
-                .action-bar-correct {
-                    background: linear-gradient(to right, rgba(16,185,129,0.06), rgba(16,185,129,0.02));
-                    border-top-color: rgba(16,185,129,0.25) !important;
-                }
-                .action-bar-incorrect {
-                    background: linear-gradient(to right, rgba(239,68,68,0.06), rgba(239,68,68,0.02));
-                    border-top-color: rgba(239,68,68,0.22) !important;
                 }
 
                 .btn-check {
@@ -433,8 +333,6 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                 .btn-check:disabled { opacity: 0.42; cursor: not-allowed; }
 
                 .btn-default  { background: var(--player-accent); color: #fff; box-shadow: 0 3px 12px rgba(99,102,241,0.35); }
-                .btn-correct  { background: #10b981; color: #fff; box-shadow: 0 3px 12px rgba(16,185,129,0.35); }
-                .btn-incorrect { background: #ef4444; color: #fff; box-shadow: 0 3px 12px rgba(239,68,68,0.3); }
                 .btn-submitting { background: var(--player-accent); color: #fff; opacity: 0.7; }
 
                 .passage-card {
@@ -445,20 +343,12 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                     font-size: 0.875rem;
                     line-height: 1.75;
                 }
-
-                .kbd-hint {
-                    display: inline-flex; align-items: center; gap: 4px;
-                    font-size: 11px; opacity: 0.45; font-family: monospace;
-                    border: 1px solid currentColor; border-radius: 4px;
-                    padding: 1px 5px; margin-left: 6px;
-                }
             `}</style>
 
-            <div className="player-font mx-auto max-w-2xl py-6 px-4" style={{ paddingBottom: '120px' }}>
+            <div className="player-font mx-auto max-w-2xl py-6 px-4 pt-16" style={{ paddingBottom: '120px' }}>
 
                 {/* ── Header ── */}
                 <div style={{ marginBottom: 20 }}>
-                    {/* Top row: title + timer */}
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                             <div style={{
@@ -468,12 +358,12 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 flexShrink: 0,
                             }}>
-                                <Icon name="sparkles" size={18} style={{ opacity: 0.8, filter: 'hue-rotate(20deg) saturate(1.5)' }} />
+                                <Icon name="book" size={18} style={{ opacity: 0.8, filter: 'hue-rotate(20deg) saturate(1.5)' }} />
                             </div>
                             <div>
-                                <div style={{ fontWeight: 700, fontSize: '0.9375rem', lineHeight: 1.2 }}>{node.title}</div>
+                                <div style={{ fontWeight: 700, fontSize: '0.9375rem', lineHeight: 1.2 }}>Examen: {exam.name}</div>
                                 <div style={{ fontSize: '0.75rem', opacity: 0.5, marginTop: 2 }}>
-                                    {node.exam.language.name} · {node.exam.name}
+                                    {exercise?.exercise_type?.name}
                                 </div>
                             </div>
                         </div>
@@ -490,26 +380,6 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                                 <span style={{ opacity: 0.5, margin: '0 3px' }}>/</span>
                                 {totalQuestionsInSession}
                             </div>
-
-                            {/* Arc timer — hidden ExerciseTimer drives the state */}
-                            <div style={{ display: 'none' }}>
-                                <ExerciseTimer
-                                    key={timerKey}
-                                    timeLimit={TIME_PER_QUESTION}
-                                    onTimeUpdate={(elapsed) => {
-                                        setTimeSpent(prev => prev + 1);
-                                        setTimerSeconds(TIME_PER_QUESTION - elapsed);
-                                    }}
-                                    onExpire={handleTimeExpire}
-                                />
-                            </div>
-                            <ArcTimer
-                                seconds={timerSeconds}
-                                limit={TIME_PER_QUESTION}
-                                warning={timerWarning}
-                                critical={timerCritical}
-                                expired={timerExpired}
-                            />
                         </div>
                     </div>
 
@@ -519,7 +389,6 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
 
                 {/* ── Exercise Content ── */}
                 <div
-                    ref={contentRef}
                     className={visible ? 'question-enter' : 'question-exit'}
                     style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
                 >
@@ -535,7 +404,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                             question={question}
                             onAnswer={(ans: any) => handleAnswer(question.id, ans)}
                             selectedAnswer={answers[question.id]}
-                            disabled={isChecked}
+                            disabled={false} // Exams don't lock inputs immediately!
                         />
                     </div>
                 </div>
@@ -543,14 +412,10 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
 
             {/* ── Bottom Action Bar ── */}
             <div
-                className={`fixed bottom-0 left-0 right-0 transition-all duration-300 ${
-                    isChecked
-                        ? isCorrect ? 'action-bar-correct' : 'action-bar-incorrect'
-                        : ''
-                }`}
+                className={`fixed bottom-0 left-0 right-0 transition-all duration-300`}
                 style={{
                     borderTop: '1px solid rgba(0,0,0,0.07)',
-                    background: isChecked ? undefined : 'var(--background, #fff)',
+                    background: 'var(--background, #fff)',
                     backdropFilter: 'blur(12px)',
                     WebkitBackdropFilter: 'blur(12px)',
                 }}
@@ -566,87 +431,21 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                         gap: 16,
                     }}
                 >
-                    {/* Feedback panel */}
                     <div style={{ flex: 1, minHeight: 48, display: 'flex', alignItems: 'center' }}>
-                        {isChecked && (
-                            <div className="feedback-enter" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                <div
-                                    className="check-pop"
-                                    style={{
-                                        width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        background: isCorrect ? '#10b981' : '#ef4444',
-                                    }}
-                                >
-                                    <Icon
-                                        name={isCorrect ? 'check' : 'x'}
-                                        size={22}
-                                        style={{ filter: 'brightness(0) invert(1)' }}
-                                    />
-                                </div>
-                                <div>
-                                    <div style={{
-                                        fontWeight: 700,
-                                        fontSize: '1rem',
-                                        color: isCorrect ? '#059669' : '#dc2626',
-                                        lineHeight: 1.2,
-                                    }}>
-                                        {isCorrect ? t('exercise.correct') : t('exercise.incorrect')}
-                                    </div>
-                                    {!isCorrect && (
-                                        <button
-                                            style={{
-                                                background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-                                                fontSize: '0.8125rem', fontWeight: 500,
-                                                color: '#dc2626', textDecoration: 'underline', marginTop: 2,
-                                                fontFamily: 'inherit', opacity: 0.8,
-                                            }}
-                                        >
-                                            {t('exercise.why_incorrect')}
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-                        {!isChecked && (
-                            <div style={{ fontSize: '0.75rem', opacity: 0.3, userSelect: 'none' }}>
-                                <span className="kbd-hint">Space</span> {t('exercise.check', 'Check')}
-                            </div>
-                        )}
+                        {/* No Check Feedback in Exam Simulator Mode! */}
                     </div>
 
                     {/* CTA button */}
                     <button
-                        className={`btn-check ${
-                            submitting
-                                ? 'btn-submitting'
-                                : isChecked
-                                    ? isCorrect ? 'btn-correct' : 'btn-incorrect'
-                                    : 'btn-default'
-                        }`}
-                        disabled={!hasAnswer || submitting}
-                        onClick={isChecked ? (isCorrect ? nextStep : handleRetry) : checkAnswer}
+                        className={`btn-check ${submitting ? 'btn-submitting' : 'btn-default'}`}
+                        disabled={submitting}
+                        onClick={nextStep}
                     >
                         {submitting ? (
-                            <>
-                                <span style={{ opacity: 0.8 }}>{t('exercise.finish', 'Finish')}</span>
-                            </>
-                        ) : isChecked ? (
-                            isCorrect ? (
-                                <>
-                                    {isLastQuestion ? t('exercise.finish', 'Finish') : t('exercise.next', 'Next')}
-                                    <Icon name="chevron-right" size={15} style={{ filter: 'brightness(0) invert(1)' }} />
-                                </>
-                            ) : (
-                                <>
-                                    {t('exercise.retry', 'Réessayer')}
-                                    <Icon name="refresh-cw" size={15} style={{ filter: 'brightness(0) invert(1)' }} />
-                                </>
-                            )
+                            <span style={{ opacity: 0.8 }}>{t('exercise.finish', 'Finish')}</span>
                         ) : (
                             <>
-                                {t('exercise.check', 'Check')}
+                                {isLastQuestion ? t('common.submit', 'Soumettre') : t('exercise.next', 'Next')}
                                 <Icon name="chevron-right" size={15} style={{ filter: 'brightness(0) invert(1)' }} />
                             </>
                         )}

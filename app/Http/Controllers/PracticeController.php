@@ -106,4 +106,54 @@ class PracticeController extends Controller
             'exercisesByDifficulty' => $exercises,
         ]);
     }
+
+    public function simulate(Exam $exam): Response
+    {
+        // For a mock exam, we pull 1 or 2 generic exercises from *each* section
+        $exam->load(['language', 'sections.exerciseTypes']);
+        
+        $orderedExercises = collect();
+        $totalTime = 0;
+
+        foreach ($exam->sections as $section) {
+            $totalTime += $section->time_limit ?? 30; // Minutes 
+            
+            // Pick exercises per exerciseType in the section
+            foreach ($section->exerciseTypes as $type) {
+                $exercises = Exercise::where('exam_id', $exam->id)
+                    ->where('exercise_type_id', $type->id)
+                    ->with('exerciseType')
+                    ->inRandomOrder()
+                    ->limit(2) // 2 exercises max per type to keep the test length reasonable
+                    ->get();
+                $orderedExercises = $orderedExercises->concat($exercises);
+            }
+        }
+
+        return Inertia::render('practice/exam-simulator', [
+            'exam' => $exam,
+            'exercises' => $orderedExercises->values(),
+            'totalExamsTime' => $totalTime,
+        ]);
+    }
+
+    public function submitSimulation(Request $request, Exam $exam)
+    {
+        $validated = $request->validate([
+            'answers' => 'required|array',
+            'time_spent' => 'required|integer|min:0',
+        ]);
+
+        $user = auth()->user();
+        
+        // Just grant some flat XP for completing a mock exam, e.g. 50 XP per exercise
+        $exerciseCount = count($validated['answers']);
+        $xpEarned = max(100, $exerciseCount * 25);
+
+        if ($user->profile) {
+            $user->profile->increment('xp_total', $xpEarned);
+        }
+
+        return redirect()->route('dashboard')->with('success', "Examen blanc terminé ! +{$xpEarned} XP");
+    }
 }

@@ -32,7 +32,9 @@ Route::middleware(['auth'])->group(function () {
         // Practice
         Route::get('practice', [\App\Http\Controllers\PracticeController::class, 'index'])->name('practice.index');
         Route::get('practice/{exam}', [\App\Http\Controllers\PracticeController::class, 'examDashboard'])->name('practice.exam');
-        Route::get('practice/{exam}/{section}', [\App\Http\Controllers\PracticeController::class, 'sectionDrills'])->name('practice.section');
+        Route::get('practice/{exam}/section/{section}', [\App\Http\Controllers\PracticeController::class, 'sectionDrills'])->name('practice.section');
+        Route::get('practice/{exam}/simulate', [\App\Http\Controllers\PracticeController::class, 'simulate'])->name('practice.simulate');
+        Route::post('practice/{exam}/simulate', [\App\Http\Controllers\PracticeController::class, 'submitSimulation'])->name('practice.simulate.store');
 
         // Node start (Duolingo-style: 1 click → exercise)
         Route::get('node/{node}/start', \App\Http\Controllers\NodeStartController::class)->name('node.start');
@@ -58,6 +60,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('ai-tools/writing-corrector', [\App\Http\Controllers\AiToolsController::class, 'writingCorrector'])->name('ai-tools.writing-corrector');
         Route::post('ai-tools/writing-corrector', [\App\Http\Controllers\AiToolsController::class, 'submitWriting'])->name('ai-tools.writing-corrector.store');
         Route::get('ai-tools/explainer', [\App\Http\Controllers\AiToolsController::class, 'explainer'])->name('ai-tools.explainer');
+        Route::post('ai-tools/explainer/ask', [\App\Http\Controllers\AiToolsController::class, 'askExplainer'])->name('ai-tools.explainer.ask');
         Route::get('ai-tools/recommendations', [\App\Http\Controllers\AiToolsController::class, 'recommendations'])->name('ai-tools.recommendations');
 
         // Vocabulary
@@ -87,6 +90,11 @@ Route::middleware(['auth'])->group(function () {
         // Profile extras
         Route::get('profile/achievements', [\App\Http\Controllers\ProfileController::class, 'achievements'])->name('profile.achievements');
         Route::get('profile/stats', [\App\Http\Controllers\ProfileController::class, 'stats'])->name('profile.stats');
+
+        // Test Sandbox
+        Route::get('test/sandbox', function() {
+            return \Inertia\Inertia::render('test/sandbox');
+        })->name('test.sandbox');
     });
 });
 

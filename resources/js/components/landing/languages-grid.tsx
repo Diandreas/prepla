@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Language } from '@/data/languages';
 import * as Flags from 'country-flag-icons/react/3x2';
 import { useTokens } from './landing-theme';
@@ -44,14 +45,12 @@ function LangCard({ lang, index }: { lang: Language; index: number }) {
                 boxShadow: hovered ? `0 20px 50px ${T.sky}22` : T.theme === 'dark' ? 'none' : '0 4px 20px rgba(26,22,18,0.06)',
                 cursor: 'default',
             }}>
-            {/* Corner glow */}
             <div style={{
                 position: 'absolute', top: 0, right: 0, width: 80, height: 80,
                 background: `${T.sky}14`, borderRadius: '50%', filter: 'blur(24px)',
                 opacity: hovered ? 1 : 0, transition: 'opacity 0.35s ease', pointerEvents: 'none',
             }} />
 
-            {/* Flag */}
             <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'center' }}>
                 {(() => {
                     const code = flagEmojiToCode(lang.flag);
@@ -62,7 +61,6 @@ function LangCard({ lang, index }: { lang: Language; index: number }) {
                 })()}
             </div>
 
-            {/* Name */}
             <h3 style={{
                 fontFamily: '"Cormorant Garamond", Georgia, serif',
                 fontSize: '1.15rem', fontWeight: 700, color: T.text, lineHeight: 1.2, marginBottom: '0.2rem',
@@ -73,7 +71,6 @@ function LangCard({ lang, index }: { lang: Language; index: number }) {
                 {lang.native_name}
             </p>
 
-            {/* Exam badges */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', justifyContent: 'center' }}>
                 {lang.exams.map((exam) => (
                     <span key={exam.slug} style={{
@@ -95,12 +92,12 @@ function LangCard({ lang, index }: { lang: Language; index: number }) {
 
 export function LanguagesGrid({ languages }: { languages: Language[] }) {
     const T = useTokens();
+    const { t } = useTranslation();
     const headerRef = useRef<HTMLDivElement>(null);
     const headerVisible = useInView(headerRef as React.RefObject<HTMLElement>);
 
     return (
         <section id="languages" style={{ position: 'relative', background: T.bgAlt, overflow: 'hidden', padding: 'clamp(5rem,10vw,8rem) 0' }}>
-            {/* Grid */}
             <svg aria-hidden className="pointer-events-none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: T.gridOpacity }}>
                 <defs>
                     <pattern id="lang-grid" width="60" height="60" patternUnits="userSpaceOnUse">
@@ -111,7 +108,6 @@ export function LanguagesGrid({ languages }: { languages: Language[] }) {
             </svg>
 
             <div style={{ position: 'relative', maxWidth: '72rem', margin: '0 auto', padding: '0 1.5rem' }}>
-                {/* Header */}
                 <div ref={headerRef} style={{
                     textAlign: 'center', marginBottom: 'clamp(3rem,6vw,5rem)',
                     opacity: headerVisible ? 1 : 0,
@@ -125,7 +121,7 @@ export function LanguagesGrid({ languages }: { languages: Language[] }) {
                     }}>
                         <span style={{ width: 8, height: 8, borderRadius: '50%', background: T.gold, display: 'inline-block' }} />
                         <span style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.gold }}>
-                            Langues disponibles
+                            {t('landing.languages_badge')}
                         </span>
                     </div>
 
@@ -134,36 +130,34 @@ export function LanguagesGrid({ languages }: { languages: Language[] }) {
                         fontSize: 'clamp(2rem, 4vw, 3.25rem)', fontWeight: 700, lineHeight: 1.1,
                         color: T.text, marginBottom: '1rem',
                     }}>
-                        <span style={{ fontStyle: 'italic', color: T.gold }}>3 langues</span>,{' '}
-                        8 examens officiels
+                        <span style={{ fontStyle: 'italic', color: T.gold }}>{t('landing.languages_headline_accent')}</span>,{' '}
+                        {t('landing.languages_headline_rest')}
                     </h2>
                     <p style={{
                         fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '1rem', color: T.textMid,
                         maxWidth: '34rem', margin: '0 auto', lineHeight: 1.7,
                     }}>
-                        Choisissez votre langue cible et commencez à vous préparer avec des exercices calqués sur les vrais formats d'examen.
+                        {t('landing.languages_body')}
                     </p>
                 </div>
 
-                {/* Cards — 3 columns for 3 languages */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '1.5rem' }}>
                     {languages.map((lang, i) => (
                         <LangCard key={lang.slug} lang={lang} index={i} />
                     ))}
                 </div>
 
-                {/* Stats strip */}
                 <div style={{
                     marginTop: '3.5rem', display: 'flex', justifyContent: 'center',
                     gap: 'clamp(2rem, 6vw, 5rem)', flexWrap: 'wrap',
                     paddingTop: '2.5rem', borderTop: `1px solid ${T.border}`,
                 }}>
                     {[
-                        { value: '3', label: 'Langues' },
-                        { value: '8', label: 'Examens officiels' },
-                        { value: 'A1–C2', label: 'Tous niveaux CECR' },
+                        { value: '3', labelKey: 'landing.languages_stat_languages' },
+                        { value: '8', labelKey: 'landing.languages_stat_exams' },
+                        { value: 'A1–C2', labelKey: 'landing.languages_stat_levels' },
                     ].map((s) => (
-                        <div key={s.label} style={{ textAlign: 'center' }}>
+                        <div key={s.labelKey} style={{ textAlign: 'center' }}>
                             <div style={{
                                 fontFamily: '"Cormorant Garamond", Georgia, serif',
                                 fontSize: 'clamp(1.75rem, 3vw, 2.5rem)', fontWeight: 700,
@@ -172,7 +166,7 @@ export function LanguagesGrid({ languages }: { languages: Language[] }) {
                                 {s.value}
                             </div>
                             <div style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '0.8rem', color: T.textMid }}>
-                                {s.label}
+                                {t(s.labelKey)}
                             </div>
                         </div>
                     ))}

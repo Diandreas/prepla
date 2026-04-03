@@ -21,22 +21,28 @@ export default function Explainer() {
     ]);
     const [input, setInput] = useState('');
 
-    function handleSend() {
+    async function handleSend() {
         if (!input.trim()) return;
         const userMessage: Message = { role: 'user', content: input };
-        setMessages((prev) => [...prev, userMessage]);
+        const newMessages = [...messages, userMessage];
+        setMessages(newMessages);
         setInput('');
 
-        // Mock response - replace with SSE streaming later
-        setTimeout(() => {
+        try {
+            // @ts-ignore
+            const res = await window.axios.post(route('ai-tools.explainer.ask'), {
+                messages: newMessages.slice(1) // exclude local greeting
+            });
             setMessages((prev) => [
                 ...prev,
-                {
-                    role: 'assistant',
-                    content: `C'est une excellente question sur "${input}". Ceci est une réponse simulée. Connectez l'API Mistral AI pour de vraies explications. L'explicateur IA fournira des réponses détaillées sur les règles de grammaire, l'utilisation du vocabulaire, les conseils d'examen, et plus encore.`,
-                },
+                { role: 'assistant', content: res.data.reply }
             ]);
-        }, 500);
+        } catch (error) {
+            setMessages((prev) => [
+                ...prev,
+                { role: 'assistant', content: "Erreur de connexion à l'API Mistral." }
+            ]);
+        }
     }
 
     return (
