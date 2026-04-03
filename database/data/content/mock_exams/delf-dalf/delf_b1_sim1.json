@@ -1,0 +1,61 @@
+{
+  "exam": "delf-dalf",
+  "mock_exam_name": "DELF B1 - Simulation Complète 1",
+  "sections": [
+    {
+      "slug": "comprehension-ecrite",
+      "parts": [
+        {
+          "name": "Compréhension des écrits - Exercice 1",
+          "level": "B1",
+          "exercises": [
+            {
+              "type": "mcq",
+              "content": { "passage": "La municipalité de Grenoble a lancé un programme innovant de bibliothèques itinérantes. Un bus aménagé en bibliothèque parcourt les quartiers périphériques chaque semaine, offrant un accès gratuit à plus de 3 000 ouvrages. Ce service s'adresse particulièrement aux familles éloignées du centre-ville. En six mois, plus de 1 200 inscrits ont été enregistrés, dont 40% d'enfants de moins de 12 ans. Le programme prévoit l'ajout d'un deuxième bus dès septembre prochain." },
+              "difficulty": "B1",
+              "questions": [
+                { "id": "delf_b1_ce_q1", "text": "Quel est l'objectif principal de ce programme ?", "options": ["Rendre la lecture accessible aux quartiers éloignés.", "Remplacer les bibliothèques municipales.", "Vendre des livres à prix réduit.", "Former des bibliothécaires."], "correct_answer": "Rendre la lecture accessible aux quartiers éloignés." },
+                { "id": "delf_b1_ce_q2", "text": "Quelle proportion des inscrits sont des enfants ?", "options": ["40%.", "60%.", "12%.", "25%."], "correct_answer": "40%." },
+                { "id": "delf_b1_ce_q3", "text": "Que prévoit le programme pour la suite ?", "options": ["L'ajout d'un deuxième bus.", "La fermeture des bibliothèques fixes.", "Une augmentation des tarifs.", "Un partenariat avec Amazon."], "correct_answer": "L'ajout d'un deuxième bus." }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Compréhension des écrits - Exercice 2",
+          "level": "B1",
+          "exercises": [
+            {
+              "type": "true-false",
+              "content": { "passage": "L'application « TooGoodToGo » permet aux commerçants de vendre leurs invendus alimentaires à petit prix. Les utilisateurs achètent un « panier surprise » contenant des produits du jour qui n'ont pas été vendus. Le prix varie entre 3 et 6 euros pour une valeur réelle d'environ 12 euros. L'application est présente dans 17 pays et revendique avoir sauvé plus de 200 millions de repas depuis sa création en 2016." },
+              "difficulty": "B1",
+              "questions": [
+                { "id": "delf_b1_ce_q4", "text": "Les utilisateurs choisissent exactement les produits qu'ils veulent.", "options": ["Vrai", "Faux"], "correct_answer": "Faux" },
+                { "id": "delf_b1_ce_q5", "text": "Un panier coûte entre 3 et 6 euros.", "options": ["Vrai", "Faux"], "correct_answer": "Vrai" },
+                { "id": "delf_b1_ce_q6", "text": "L'application existe depuis 2020.", "options": ["Vrai", "Faux"], "correct_answer": "Faux" },
+                { "id": "delf_b1_ce_q7", "text": "L'application est disponible dans plus de 15 pays.", "options": ["Vrai", "Faux"], "correct_answer": "Vrai" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "production-ecrite",
+      "parts": [
+        {
+          "name": "Essai / Expression d'opinion",
+          "level": "B1",
+          "exercises": [
+            {
+              "type": "essay",
+              "content": { "passage": "Sujet : Vous lisez ce message sur un forum Internet :\n\n« Je pense que les cours de cuisine devraient être obligatoires à l'école. Les jeunes ne savent plus cuisiner et mangent trop de plats préparés. »\n\nVous répondez à ce message. Vous donnez votre opinion et vous la justifiez avec des exemples. (160 mots minimum)" },
+              "difficulty": "B1",
+              "questions": [{ "id": "delf_b1_pe_q1", "text": "Rédigez votre réponse.", "options": [], "correct_answer": "AI_EVALUATED" }]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,116 @@
+{
+  "exam": "cambridge",
+  "mock_exam_name": "Cambridge B2 First (FCE) - Simulation 1",
+  "sections": [
+    {
+      "slug": "reading-use-of-english",
+      "parts": [
+        {
+          "name": "Part 1 — Multiple-choice cloze",
+          "level": "B2",
+          "exercises": [
+            {
+              "type": "mcq",
+              "content": { "passage": "The popularity of podcasts has (1)___ dramatically over the past decade. What was once a (2)___ medium has now become mainstream entertainment, with millions of episodes (3)___ every day. Experts (4)___ this growth to the convenience of on-demand audio content." },
+              "difficulty": "B2",
+              "questions": [
+                { "id": "cam_b2_rue_q1", "text": "(1)", "options": ["grown", "raised", "lifted", "mounted"], "correct_answer": "grown" },
+                { "id": "cam_b2_rue_q2", "text": "(2)", "options": ["niche", "tiny", "scarce", "narrow"], "correct_answer": "niche" },
+                { "id": "cam_b2_rue_q3", "text": "(3)", "options": ["downloaded", "loaded", "charged", "installed"], "correct_answer": "downloaded" },
+                { "id": "cam_b2_rue_q4", "text": "(4)", "options": ["attribute", "contribute", "distribute", "subscribe"], "correct_answer": "attribute" }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Part 2 — Open cloze",
+          "level": "B2",
+          "exercises": [
+            {
+              "type": "gap-fill",
+              "content": { "passage": "Fill in each gap with ONE word:\n\nVolunteering abroad has become increasingly popular (1)___ young people. Many students take a gap year (2)___ order to gain experience and make a difference. (3)___ the work can be challenging, most volunteers describe the experience (4)___ life-changing." },
+              "difficulty": "B2",
+              "questions": [
+                { "id": "cam_b2_rue_q5", "text": "(1) — 'popular ___ young people'", "options": ["among", "between", "with", "for"], "correct_answer": "among" },
+                { "id": "cam_b2_rue_q6", "text": "(2) — 'gap year ___ order to'", "options": ["in", "for", "by", "on"], "correct_answer": "in" },
+                { "id": "cam_b2_rue_q7", "text": "(3) — '___ the work can be challenging'", "options": ["Although", "Despite", "However", "Because"], "correct_answer": "Although" },
+                { "id": "cam_b2_rue_q8", "text": "(4) — 'describe the experience ___'", "options": ["as", "like", "for", "to"], "correct_answer": "as" }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Part 3 — Word formation",
+          "level": "B2",
+          "exercises": [
+            {
+              "type": "word-formation",
+              "content": { "passage": "Form the correct word from the root given in brackets:\n\n1. The museum's new exhibition was (EXTREME) ___ popular.\n2. Her (DECIDE) ___ to study abroad changed her life.\n3. The (CONSTRUCT) ___ of the new bridge took three years.\n4. He showed great (GENEROUS) ___ by donating his prize money." },
+              "difficulty": "B2",
+              "questions": [
+                { "id": "cam_b2_rue_q9", "text": "EXTREME → ___", "options": ["extremely", "extremity", "extremist", "extremism"], "correct_answer": "extremely" },
+                { "id": "cam_b2_rue_q10", "text": "DECIDE → ___", "options": ["decision", "decisive", "decidedly", "decider"], "correct_answer": "decision" },
+                { "id": "cam_b2_rue_q11", "text": "CONSTRUCT → ___", "options": ["construction", "constructive", "constructor", "constructing"], "correct_answer": "construction" },
+                { "id": "cam_b2_rue_q12", "text": "GENEROUS → ___", "options": ["generosity", "generously", "generous", "generousness"], "correct_answer": "generosity" }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Part 4 — Key word transformation",
+          "level": "B2",
+          "exercises": [
+            {
+              "type": "key-word-transformation",
+              "content": { "passage": "Complete the second sentence so that it has a similar meaning to the first, using the word given. Use 2-5 words including the key word." },
+              "difficulty": "B2",
+              "questions": [
+                { "id": "cam_b2_rue_q13", "text": "'I haven't seen Maria for ages.' (SINCE) → 'It's been ages ___ Maria.'", "options": ["since I saw", "since I see", "since seeing", "since I've seen"], "correct_answer": "since I saw" },
+                { "id": "cam_b2_rue_q14", "text": "'They say this restaurant is excellent.' (SUPPOSED) → 'This restaurant ___ excellent.'", "options": ["is supposed to be", "is supposed being", "supposed to be", "is supposed as"], "correct_answer": "is supposed to be" },
+                { "id": "cam_b2_rue_q15", "text": "'I regret not studying harder.' (WISH) → 'I ___ harder.'", "options": ["wish I had studied", "wish I studied", "wish I would study", "wish studying"], "correct_answer": "wish I had studied" }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Part 5 — Multiple choice reading",
+          "level": "B2",
+          "exercises": [
+            {
+              "type": "mcq",
+              "content": { "passage": "When Sarah first moved to Tokyo at the age of twenty-three, she spoke barely a word of Japanese. The linguistic isolation was, paradoxically, one of the most liberating experiences of her life. Stripped of her ability to engage in small talk, gossip, or social performance, she found herself paying attention to the world in entirely new ways. She noticed the precise choreography of strangers navigating a crowded station platform, the elaborate ritual of gift-wrapping in department stores, the unspoken rules governing queue formation. Language, she realized, had been a kind of noise — a constant narration that had prevented her from truly observing." },
+              "difficulty": "B2",
+              "questions": [
+                { "id": "cam_b2_rue_q16", "text": "Why did Sarah find the language barrier 'liberating'?", "options": ["It forced her to observe the world more carefully.", "She enjoyed being alone.", "She preferred silence.", "She didn't like Japanese culture."], "correct_answer": "It forced her to observe the world more carefully." },
+                { "id": "cam_b2_rue_q17", "text": "What does Sarah compare language to?", "options": ["Noise that prevented true observation.", "A bridge between cultures.", "A tool for self-expression.", "A form of art."], "correct_answer": "Noise that prevented true observation." }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "writing",
+      "parts": [
+        {
+          "name": "Writing",
+          "level": "B2",
+          "exercises": [
+            {
+              "type": "essay",
+              "content": { "passage": "Part 1 (Compulsory): Your class has been discussing the importance of exercise. Your teacher has asked you to write an essay discussing the following statement:\n\n'All workplaces should provide exercise facilities for their employees.'\n\nWrite your essay in 140-190 words. Include: why exercise is important for workers, potential problems for employers, your own opinion." },
+              "difficulty": "B2",
+              "questions": [{ "id": "cam_b2_w_q1", "text": "Write your essay.", "options": [], "correct_answer": "AI_EVALUATED" }]
+            },
+            {
+              "type": "essay",
+              "content": { "passage": "Part 2 (Choice): You have been asked to write a review of a film you have seen recently for an English-language magazine. Describe the film, say what you liked and didn't like, and whether you would recommend it. (140-190 words)" },
+              "difficulty": "B2",
+              "questions": [{ "id": "cam_b2_w_q2", "text": "Write your review.", "options": [], "correct_answer": "AI_EVALUATED" }]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

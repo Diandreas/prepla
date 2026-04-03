@@ -1,0 +1,77 @@
+{
+  "exam": "testdaf",
+  "mock_exam_name": "TestDaF - Simulation 1",
+  "sections": [
+    {
+      "slug": "lesen",
+      "parts": [
+        {
+          "name": "Lesetext 1 — Kurztexte Uni-Alltag",
+          "level": "B2",
+          "exercises": [
+            {
+              "type": "matching",
+              "content": { "passage": "Ordnen Sie die Kurztexte den Beschreibungen zu:\n\nText A: 'Tutorium Statistik — Jeden Dienstag 16-18 Uhr, Raum H204. Anmeldung über das Online-Portal bis Freitag.'\n\nText B: 'Mensa-Speiseplan: Heute gibt es Currywurst mit Pommes (2,50€), Gemüselasagne (3,20€) oder Salatteller (2,80€).'\n\nText C: 'Die Universitätsbibliothek ist wegen Renovierung vom 1. bis 15. August geschlossen. Nutzen Sie die Stadtteilbibliothek.'\n\nText D: 'WG-Zimmer frei! 14m², Altbau, Nähe Uni, 350€ warm. Kontakt: wg-freundlich@mail.de'" },
+              "difficulty": "B2",
+              "questions": [
+                { "id": "testdaf_l1_q1", "text": "Sie suchen eine Unterkunft in der Nähe der Universität.", "options": ["Text D", "Text A", "Text B", "Text C"], "correct_answer": "Text D" },
+                { "id": "testdaf_l1_q2", "text": "Sie möchten in der Mittagspause billig essen.", "options": ["Text B", "Text A", "Text C", "Text D"], "correct_answer": "Text B" },
+                { "id": "testdaf_l1_q3", "text": "Sie brauchen Hilfe bei einem Fach.", "options": ["Text A", "Text B", "Text C", "Text D"], "correct_answer": "Text A" },
+                { "id": "testdaf_l1_q4", "text": "Sie wollen Bücher ausleihen, aber es gibt ein Problem.", "options": ["Text C", "Text A", "Text B", "Text D"], "correct_answer": "Text C" }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Lesetext 2 — Journalistischer Text",
+          "level": "B2-C1",
+          "exercises": [
+            {
+              "type": "mcq",
+              "content": { "passage": "Die Zahl der internationalen Studierenden an deutschen Universitäten hat sich in den letzten zehn Jahren verdoppelt. Laut dem DAAD studieren derzeit über 400.000 ausländische Studierende in Deutschland, davon kommen die meisten aus China, Indien und der Türkei. Die Gründe sind vielfältig: gebührenfreies Studium, hohe Qualität der Ausbildung und gute Berufsaussichten. Allerdings berichten viele internationale Studierende von Schwierigkeiten bei der Wohnungssuche und von bürokratischen Hürden bei der Visumserteilung." },
+              "difficulty": "B2",
+              "questions": [
+                { "id": "testdaf_l2_q1", "text": "Wie viele internationale Studierende gibt es derzeit in Deutschland?", "options": ["Über 400.000.", "200.000.", "1 Million.", "50.000."], "correct_answer": "Über 400.000." },
+                { "id": "testdaf_l2_q2", "text": "Was ist ein Hauptgrund für das Studium in Deutschland?", "options": ["Das gebührenfreie Studium.", "Das warme Klima.", "Die kurzen Studiengänge.", "Die einfache Sprache."], "correct_answer": "Das gebührenfreie Studium." },
+                { "id": "testdaf_l2_q3", "text": "Welches Problem wird genannt?", "options": ["Schwierigkeiten bei der Wohnungssuche.", "Zu hohe Studiengebühren.", "Mangel an Kursen auf Englisch.", "Schlechte Qualität der Lehre."], "correct_answer": "Schwierigkeiten bei der Wohnungssuche." }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Lesetext 3 — Wissenschaftlicher Text",
+          "level": "C1",
+          "exercises": [
+            {
+              "type": "true-false-not-given",
+              "content": { "passage": "Forscher der TU München haben eine neue Methode zur Herstellung von Wasserstoff aus Sonnenlicht entwickelt. Das Verfahren nutzt spezielle Katalysatoren, die das Wasser direkt spalten können, ohne den Umweg über die Elektrolyse nehmen zu müssen. Die Effizienz liegt bei 18%, deutlich über dem bisherigen Durchschnitt von 12%. Die Wissenschaftler betonen jedoch, dass das Verfahren noch mindestens fünf Jahre von der kommerziellen Anwendung entfernt ist." },
+              "difficulty": "C1",
+              "questions": [
+                { "id": "testdaf_l3_q1", "text": "Die neue Methode ist effizienter als bisherige Verfahren.", "options": ["Richtig", "Falsch", "Nicht im Text"], "correct_answer": "Richtig" },
+                { "id": "testdaf_l3_q2", "text": "Das Verfahren wird bereits kommerziell genutzt.", "options": ["Richtig", "Falsch", "Nicht im Text"], "correct_answer": "Falsch" },
+                { "id": "testdaf_l3_q3", "text": "Die Forschung wurde von der Bundesregierung finanziert.", "options": ["Richtig", "Falsch", "Nicht im Text"], "correct_answer": "Nicht im Text" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "schreiben",
+      "parts": [
+        {
+          "name": "Schriftlicher Ausdruck",
+          "level": "B2-C1",
+          "exercises": [
+            {
+              "type": "essay",
+              "content": { "passage": "Aufgabe: Schreiben Sie einen argumentativen Text zum folgenden Thema:\n\n'Sollte das Studium in Deutschland auch für internationale Studierende kostenpflichtig werden?'\n\nBerücksichtigen Sie folgende Punkte:\n- Beschreiben Sie die aktuelle Situation\n- Nennen Sie Argumente dafür und dagegen\n- Geben Sie Ihre eigene Meinung\n(350-400 Wörter)" },
+              "difficulty": "C1",
+              "questions": [{ "id": "testdaf_s_q1", "text": "Schreiben Sie Ihren Text.", "options": [], "correct_answer": "AI_EVALUATED" }]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

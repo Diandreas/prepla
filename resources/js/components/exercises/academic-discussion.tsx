@@ -41,7 +41,7 @@ export function AcademicDiscussion({ question, onAnswer, selectedAnswer, disable
 
             {/* Student posts */}
             <div className="space-y-3">
-                {question.student_posts.map((post, i) => (
+                {(question.student_posts || []).map((post, i) => (
                     <div key={i} className="rounded-xl border bg-muted/30 p-4">
                         <div className="mb-2 flex items-center gap-2">
                             <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-xs font-bold text-foreground">

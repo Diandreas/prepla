@@ -14,6 +14,8 @@ class Exercise extends Model
     protected $fillable = [
         'exercise_type_id',
         'exam_id',
+        'mock_exam_id',
+        'exam_section_id',
         'content',
         'questions',
         'difficulty',
@@ -38,6 +40,16 @@ class Exercise extends Model
     public function exam(): BelongsTo
     {
         return $this->belongsTo(Exam::class);
+    }
+
+    public function mockExam(): BelongsTo
+    {
+        return $this->belongsTo(MockExam::class);
+    }
+
+    public function examSection(): BelongsTo
+    {
+        return $this->belongsTo(ExamSection::class);
     }
 
     public function attempts(): HasMany

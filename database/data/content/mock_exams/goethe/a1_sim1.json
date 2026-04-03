@@ -1,0 +1,60 @@
+{
+  "exam": "goethe",
+  "mock_exam_name": "Goethe-Zertifikat A1: Start Deutsch 1 - Simulation 1",
+  "sections": [
+    {
+      "slug": "lesen",
+      "parts": [
+        {
+          "name": "Lesen (Reading)",
+          "level": "A1",
+          "exercises": [
+            {
+              "type": "true-false",
+              "content": { "passage": "Öffnungszeiten Stadtbibliothek:\nMontag: geschlossen\nDienstag–Freitag: 10:00–18:00 Uhr\nSamstag: 9:00–13:00 Uhr\nAnmeldung kostenlos mit Personalausweis." },
+              "difficulty": "A1",
+              "questions": [
+                { "id": "goethe_a1_l_q1", "text": "Die Bibliothek ist am Montag geöffnet.", "options": ["Richtig", "Falsch"], "correct_answer": "Falsch" },
+                { "id": "goethe_a1_l_q2", "text": "Am Samstag kann man bis 13 Uhr in die Bibliothek gehen.", "options": ["Richtig", "Falsch"], "correct_answer": "Richtig" },
+                { "id": "goethe_a1_l_q3", "text": "Die Anmeldung kostet 5 Euro.", "options": ["Richtig", "Falsch"], "correct_answer": "Falsch" }
+              ]
+            },
+            {
+              "type": "mcq",
+              "content": { "passage": "Liebe Maria,\nich bin jetzt in Berlin. Das Wetter ist kalt, aber die Stadt ist sehr schön. Morgen besuche ich das Brandenburger Tor. Am Abend gehe ich in ein Restaurant mit meinem Bruder.\nViele Grüße,\nPeter" },
+              "difficulty": "A1",
+              "questions": [
+                { "id": "goethe_a1_l_q4", "text": "Wo ist Peter?", "options": ["In Berlin.", "In München.", "In Wien.", "In Hamburg."], "correct_answer": "In Berlin." },
+                { "id": "goethe_a1_l_q5", "text": "Was macht Peter morgen?", "options": ["Er besucht das Brandenburger Tor.", "Er fliegt nach Hause.", "Er geht einkaufen.", "Er arbeitet."], "correct_answer": "Er besucht das Brandenburger Tor." },
+                { "id": "goethe_a1_l_q6", "text": "Mit wem geht Peter ins Restaurant?", "options": ["Mit seinem Bruder.", "Mit Maria.", "Allein.", "Mit Freunden."], "correct_answer": "Mit seinem Bruder." }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "schreiben",
+      "parts": [
+        {
+          "name": "Schreiben (Writing)",
+          "level": "A1",
+          "exercises": [
+            {
+              "type": "essay",
+              "content": { "passage": "Aufgabe: Füllen Sie das Anmeldeformular für einen Deutschkurs aus:\nVorname: ___ Nachname: ___ Geburtsdatum: ___ Land: ___ Telefonnummer: ___ E-Mail: ___" },
+              "difficulty": "A1",
+              "questions": [{ "id": "goethe_a1_s_q1", "text": "Füllen Sie das Formular aus.", "options": [], "correct_answer": "AI_EVALUATED" }]
+            },
+            {
+              "type": "essay",
+              "content": { "passage": "Aufgabe: Schreiben Sie eine SMS an einen Freund. Sie können nicht zum Abendessen kommen. Schreiben Sie warum und schlagen Sie einen anderen Tag vor. (ca. 30 Wörter)" },
+              "difficulty": "A1",
+              "questions": [{ "id": "goethe_a1_s_q2", "text": "Schreiben Sie Ihre SMS.", "options": [], "correct_answer": "AI_EVALUATED" }]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

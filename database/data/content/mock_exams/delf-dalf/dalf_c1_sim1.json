@@ -1,0 +1,52 @@
+{
+  "exam": "delf-dalf",
+  "mock_exam_name": "DALF C1 - Simulation 1",
+  "sections": [
+    {
+      "slug": "comprehension-ecrite",
+      "parts": [
+        {
+          "name": "Compréhension des écrits — Texte long",
+          "level": "C1",
+          "exercises": [
+            {
+              "type": "mcq",
+              "content": { "passage": "La notion de « charge mentale », popularisée par la dessinatrice Emma en 2017, désigne l'ensemble des tâches cognitives invisibles — anticiper, planifier, coordonner — qui incombent majoritairement aux femmes dans la sphère domestique. Ce concept, issu de la sociologie du travail, a été initialement théorisé par Monique Haicault en 1984. Si le partage des tâches ménagères a progressé — les hommes y consacrent aujourd'hui 1h30 par jour contre 45 minutes en 1975 — la charge mentale reste largement asymétrique. Une étude de l'INED montre que dans 72% des couples hétérosexuels, c'est la femme qui gère l'organisation familiale : rendez-vous médicaux, achats scolaires, coordination des activités extrascolaires.\n\nCette inégalité a des répercussions mesurables sur la santé et la carrière des femmes. Le burn-out parental touche trois fois plus les mères que les pères. Sur le plan professionnel, la « pénalité maternelle » se traduit par une baisse de salaire de 5% par enfant, tandis que les pères bénéficient d'un « bonus paternel » estimé à 3%. Des entreprises pionnières commencent à intégrer cette problématique dans leurs politiques RH, en proposant des congés parentaux égalitaires et des horaires flexibles pour les deux parents." },
+              "difficulty": "C1",
+              "questions": [
+                { "id": "dalf_c1_ce_q1", "text": "Qui a théorisé en premier la notion de charge mentale ?", "options": ["Monique Haicault.", "Emma la dessinatrice.", "L'INED.", "L'INSEE."], "correct_answer": "Monique Haicault." },
+                { "id": "dalf_c1_ce_q2", "text": "Dans quel pourcentage de couples la femme gère-t-elle l'organisation familiale ?", "options": ["72%.", "45%.", "84%.", "60%."], "correct_answer": "72%." },
+                { "id": "dalf_c1_ce_q3", "text": "Que signifie la « pénalité maternelle » selon le texte ?", "options": ["Une baisse de salaire de 5% par enfant pour les femmes.", "Un licenciement après le congé maternité.", "Une réduction du temps de travail imposée.", "Une taxe spéciale pour les mères."], "correct_answer": "Une baisse de salaire de 5% par enfant pour les femmes." },
+                { "id": "dalf_c1_ce_q4", "text": "Combien de temps les hommes consacrent-ils aux tâches ménagères aujourd'hui ?", "options": ["1h30 par jour.", "45 minutes.", "3 heures.", "2 heures."], "correct_answer": "1h30 par jour." },
+                { "id": "dalf_c1_ce_q5", "text": "Que proposent les entreprises pionnières ?", "options": ["Des congés parentaux égalitaires et des horaires flexibles.", "Des crèches d'entreprise gratuites.", "Des primes de naissance.", "La suppression des heures supplémentaires."], "correct_answer": "Des congés parentaux égalitaires et des horaires flexibles." }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "production-ecrite",
+      "parts": [
+        {
+          "name": "Synthèse + Essai argumenté",
+          "level": "C1",
+          "exercises": [
+            {
+              "type": "essay",
+              "content": { "passage": "Synthèse de documents (~220 mots) : À partir des deux textes ci-dessous, rédigez une synthèse objective sans donner votre avis personnel.\n\nTexte 1 : « Le numérique à l'école permettra de démocratiser l'accès au savoir et de personnaliser les apprentissages grâce à l'IA adaptative. »\n\nTexte 2 : « L'écran omniprésent en classe creuse les inégalités : seuls les enfants de milieux favorisés disposent de l'accompagnement parental nécessaire pour en tirer profit. »" },
+              "difficulty": "C1",
+              "questions": [{ "id": "dalf_c1_pe_q1", "text": "Rédigez votre synthèse.", "options": [], "correct_answer": "AI_EVALUATED" }]
+            },
+            {
+              "type": "essay",
+              "content": { "passage": "Essai argumenté (~250 mots) : En vous appuyant sur les thèmes abordés dans les documents, rédigez un essai argumenté dans lequel vous exprimez votre position personnelle sur la place du numérique dans l'éducation." },
+              "difficulty": "C1",
+              "questions": [{ "id": "dalf_c1_pe_q2", "text": "Rédigez votre essai.", "options": [], "correct_answer": "AI_EVALUATED" }]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

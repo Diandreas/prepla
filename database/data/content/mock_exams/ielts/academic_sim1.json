@@ -1,0 +1,95 @@
+{
+  "exam": "ielts",
+  "mock_exam_name": "IELTS Academic - Simulation 1",
+  "sections": [
+    {
+      "slug": "reading",
+      "parts": [
+        {
+          "name": "Passage 1 — Social Sciences",
+          "level": "B1-B2",
+          "exercises": [
+            {
+              "type": "true-false-not-given",
+              "content": { "passage": "The concept of 'urban resilience' has gained significant traction in city planning circles over the past decade. Cities around the world are increasingly facing challenges from climate change, including rising sea levels, extreme heat events, and more frequent flooding. Rotterdam, in the Netherlands, has become a global model for water management, implementing an extensive network of water squares — public spaces that function as recreational areas during dry weather but transform into water storage basins during heavy rainfall. The city has invested over €200 million in climate adaptation measures since 2010, including green roofs covering 280,000 square metres and underground water storage capable of holding 10 million litres." },
+              "difficulty": "B2",
+              "questions": [
+                { "id": "ielts_ac_r1_q1", "text": "Rotterdam has been recognized internationally for its approach to managing water.", "options": ["True", "False", "Not Given"], "correct_answer": "True" },
+                { "id": "ielts_ac_r1_q2", "text": "Water squares are used exclusively for water storage.", "options": ["True", "False", "Not Given"], "correct_answer": "False" },
+                { "id": "ielts_ac_r1_q3", "text": "Rotterdam's climate adaptation budget has increased every year since 2010.", "options": ["True", "False", "Not Given"], "correct_answer": "Not Given" },
+                { "id": "ielts_ac_r1_q4", "text": "The city's underground storage can hold more than 5 million litres.", "options": ["True", "False", "Not Given"], "correct_answer": "True" }
+              ]
+            },
+            {
+              "type": "mcq",
+              "content": { "passage": "Continued from above passage." },
+              "difficulty": "B2",
+              "questions": [
+                { "id": "ielts_ac_r1_q5", "text": "What is the main purpose of water squares?", "options": ["To serve a dual function as both recreation and water management.", "To replace traditional parks.", "To provide drinking water.", "To generate electricity."], "correct_answer": "To serve a dual function as both recreation and water management." },
+                { "id": "ielts_ac_r1_q6", "text": "How much has Rotterdam invested in climate adaptation since 2010?", "options": ["Over €200 million.", "€100 million.", "€50 million.", "€500 million."], "correct_answer": "Over €200 million." }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Passage 2 — Natural Sciences",
+          "level": "B2-C1",
+          "exercises": [
+            {
+              "type": "mcq",
+              "content": { "passage": "Microplastics have been discovered in virtually every environment on Earth, from the deepest ocean trenches to the summit of Mount Everest. These tiny fragments, measuring less than 5 millimetres in diameter, originate primarily from the degradation of larger plastic items and the shedding of synthetic textile fibres during washing. A single load of laundry can release up to 700,000 microfibre particles. Recent studies have detected microplastics in human blood, lung tissue, and even placental tissue, raising urgent questions about their long-term health effects.\n\nThe most concerning finding is the potential for microplastics to act as vectors for harmful chemicals. Persistent organic pollutants (POPs) such as PCBs and DDT tend to adsorb onto plastic surfaces, concentrating to levels up to a million times higher than in surrounding seawater. When ingested by marine organisms, these toxin-laden particles can bioaccumulate through the food chain, ultimately reaching human consumers." },
+              "difficulty": "C1",
+              "questions": [
+                { "id": "ielts_ac_r2_q1", "text": "What is the primary source of microplastics according to the passage?", "options": ["Degradation of larger plastics and synthetic textile shedding.", "Industrial chemical production.", "Volcanic activity.", "Agricultural runoff."], "correct_answer": "Degradation of larger plastics and synthetic textile shedding." },
+                { "id": "ielts_ac_r2_q2", "text": "How many microfibres can a single laundry load release?", "options": ["Up to 700,000.", "Up to 7,000.", "Up to 70,000.", "Up to 7 million."], "correct_answer": "Up to 700,000." },
+                { "id": "ielts_ac_r2_q3", "text": "What does 'bioaccumulate' mean in this context?", "options": ["Build up in concentration as substances move up the food chain.", "Break down naturally over time.", "Spread evenly through the environment.", "Decrease in toxicity."], "correct_answer": "Build up in concentration as substances move up the food chain." },
+                { "id": "ielts_ac_r2_q4", "text": "Why are microplastics described as 'vectors'?", "options": ["They carry and transport harmful chemicals.", "They move quickly through water.", "They are used in medical treatments.", "They reproduce like organisms."], "correct_answer": "They carry and transport harmful chemicals." },
+                { "id": "ielts_ac_r2_q5", "text": "Where have microplastics NOT been mentioned as found?", "options": ["In volcanic lava.", "In ocean trenches.", "On Mount Everest.", "In human blood."], "correct_answer": "In volcanic lava." }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Passage 3 — Technology",
+          "level": "C1",
+          "exercises": [
+            {
+              "type": "matching-headings",
+              "content": { "passage": "Paragraph A: Quantum computing promises to solve problems that classical computers cannot handle in any reasonable timeframe. Unlike classical bits, which exist as either 0 or 1, quantum bits (qubits) can exist in multiple states simultaneously through a property called superposition.\n\nParagraph B: However, quantum computers are extremely fragile. Qubits must be cooled to near absolute zero (-273°C) and isolated from all external interference. Even the slightest vibration or thermal fluctuation can cause 'decoherence', destroying the quantum state.\n\nParagraph C: Despite these limitations, major corporations are investing heavily. Google, IBM, and Microsoft have all announced roadmaps for fault-tolerant quantum computers within the next decade. Google's 2019 achievement of 'quantum supremacy' — performing a calculation in 200 seconds that would take a classical supercomputer 10,000 years — marked a watershed moment.\n\nParagraph D: The implications for cryptography are perhaps the most immediate concern. Current encryption methods rely on the difficulty of factoring large prime numbers — a task that quantum computers could accomplish efficiently, potentially rendering most internet security obsolete." },
+              "difficulty": "C1",
+              "questions": [
+                { "id": "ielts_ac_r3_q1", "text": "Which paragraph discusses the vulnerability of quantum systems?", "options": ["Paragraph B", "Paragraph A", "Paragraph C", "Paragraph D"], "correct_answer": "Paragraph B" },
+                { "id": "ielts_ac_r3_q2", "text": "Which paragraph discusses the security implications of quantum computing?", "options": ["Paragraph D", "Paragraph A", "Paragraph B", "Paragraph C"], "correct_answer": "Paragraph D" },
+                { "id": "ielts_ac_r3_q3", "text": "In Paragraph C, what does 'watershed moment' mean?", "options": ["A turning point or significant event.", "A moment of failure.", "A routine achievement.", "An environmental crisis."], "correct_answer": "A turning point or significant event." },
+                { "id": "ielts_ac_r3_q4", "text": "What temperature must qubits be cooled to?", "options": ["Near absolute zero (-273°C).", "-100°C.", "Room temperature.", "0°C."], "correct_answer": "Near absolute zero (-273°C)." }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "writing",
+      "parts": [
+        {
+          "name": "Writing Tasks",
+          "level": "B2-C1",
+          "exercises": [
+            {
+              "type": "essay",
+              "content": { "passage": "Writing Task 1: The bar chart below shows the percentage of households with internet access in five countries (USA, UK, Japan, Brazil, Nigeria) from 2000 to 2020. Summarise the information by selecting and reporting the main features, and make comparisons where relevant. (150+ words)\n\n[Note: In the actual exam, a chart image would be provided. For this simulation, describe trends based on this data: USA: 44%→90%, UK: 25%→96%, Japan: 30%→92%, Brazil: 3%→81%, Nigeria: 0.1%→42%]" },
+              "difficulty": "B2",
+              "questions": [{ "id": "ielts_ac_w_q1", "text": "Write your Task 1 response.", "options": [], "correct_answer": "AI_EVALUATED" }]
+            },
+            {
+              "type": "essay",
+              "content": { "passage": "Writing Task 2: Some people think that the best way to reduce crime is to give longer prison sentences. Others, however, believe there are better alternative ways of reducing crime. Discuss both views and give your own opinion. (250+ words)" },
+              "difficulty": "C1",
+              "questions": [{ "id": "ielts_ac_w_q2", "text": "Write your Task 2 essay.", "options": [], "correct_answer": "AI_EVALUATED" }]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

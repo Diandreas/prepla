@@ -15,8 +15,9 @@ interface InsertTextProps {
 export function InsertText({ question, onAnswer, selectedAnswer, disabled }: InsertTextProps) {
     const [selected, setSelected] = useState<string | null>(selectedAnswer ?? null);
 
-    const markers = question.passage.match(/\[([A-Z])\]/g) ?? [];
-    const parts = question.passage.split(/\[[A-Z]\]/);
+    const passage = question.passage || '';
+    const markers = passage.match(/\[([A-Z])\]/g) ?? [];
+    const parts = passage.split(/\[[A-Z]\]/);
 
     const handleSelect = (marker: string) => {
         if (disabled) return;

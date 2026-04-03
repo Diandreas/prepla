@@ -4,6 +4,7 @@ interface SynthesisProps {
     question: {
         id: string;
         documents: { title: string; content: string }[];
+        sources?: any[];
         writing_prompt: string;
         min_words?: number;
         max_words?: number;
@@ -27,11 +28,10 @@ export function Synthesis({ question, onAnswer, selectedAnswer, disabled }: Synt
     };
 
     return (
-        <div className="space-y-4">
-            {/* Documents */}
-            <div className="space-y-2">
+        <div className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-4">
                 <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Documents sources</p>
-                {question.documents.map((doc, i) => (
+                {(question.documents || question.sources || []).map((doc, i) => (
                     <div key={i} className="overflow-hidden rounded-xl border">
                         <button
                             onClick={() => setExpandedDoc(expandedDoc === i ? null : i)}

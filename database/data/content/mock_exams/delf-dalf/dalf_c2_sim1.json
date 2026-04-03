@@ -1,0 +1,23 @@
+{
+  "exam": "delf-dalf",
+  "mock_exam_name": "DALF C2 - Simulation 1",
+  "sections": [
+    {
+      "slug": "comprehension-production-ecrites",
+      "parts": [
+        {
+          "name": "Compréhension et production écrites combinées",
+          "level": "C2",
+          "exercises": [
+            {
+              "type": "essay",
+              "content": { "passage": "DOSSIER DOCUMENTAIRE\n\nDocument 1 — Extrait d'article, Le Monde Diplomatique :\n« La marchandisation du savoir universitaire ne cesse de s'intensifier. Les classements internationaux, comme celui de Shanghai, imposent une logique de compétition qui détourne les universités de leur mission première : former des citoyens éclairés. La course aux publications et aux brevets transforme le chercheur en entrepreneur de lui-même, au détriment de la recherche fondamentale. »\n\nDocument 2 — Extrait de conférence, Collège de France :\n« L'université doit s'adapter aux réalités du XXIe siècle. La collaboration avec le secteur privé n'est pas antinomique avec l'excellence académique. Au contraire, elle permet de financer des laboratoires, d'offrir des débouchés aux étudiants et de rendre la recherche socialement utile. Le modèle des universités américaines, malgré ses excès, a produit les avancées technologiques les plus significatives des dernières décennies. »\n\nConsigne : À partir de ce dossier, rédigez un texte structuré (article, éditorial ou essai) dans lequel vous analysez la tension entre mission académique et impératifs économiques de l'université contemporaine. (~700 mots)" },
+              "difficulty": "C2",
+              "questions": [{ "id": "dalf_c2_cpe_q1", "text": "Rédigez votre texte structuré.", "options": [], "correct_answer": "AI_EVALUATED" }]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

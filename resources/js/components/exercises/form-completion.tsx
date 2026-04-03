@@ -21,7 +21,8 @@ interface FormCompletionProps {
 
 export function FormCompletion({ question, onAnswer, selectedAnswer, disabled }: FormCompletionProps) {
     const [values, setValues] = useState<Record<string, string>>(selectedAnswer ?? {});
-    const blanks = question.fields
+    const fields = question.fields || [];
+    const blanks = fields
         .map((f, i) => ({ ...f, originalIndex: i }))
         .filter((f) => f.blank);
 
@@ -45,7 +46,7 @@ export function FormCompletion({ question, onAnswer, selectedAnswer, disabled }:
             )}
 
             <div className="overflow-hidden rounded-xl border">
-                {question.fields.map((field, i) => {
+                {fields.map((field, i) => {
                     const isBlank = field.blank;
                     const currentBlankIdx = isBlank ? blankIdx++ : -1;
 

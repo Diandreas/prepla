@@ -69,55 +69,64 @@ const componentMap: Record<string, React.ComponentType<any>> = {
 const getDummyQuestion = (key: string) => {
     switch (key) {
         case 'speaking-recorder':
-            return {
-                id: 'q1',
-                text: 'Present yourself to the audience for 1 minute.',
-            };
+            return { id: 'q1', text: 'Present yourself to the audience for 1 minute.' };
         case 'mcq':
-            return {
-                id: 'q1',
-                text: 'Which of the following is correct?',
-                options: ['Option A', 'Option B', 'Option C', 'Option D'],
-                correct_answer: 'Option B'
-            };
+            return { id: 'q1', text: 'Which of the following is correct?', options: ['Option A', 'Option B', 'Option C', 'Option D'], correct_answer: 'Option B' };
         case 'true-false-ng':
-            return {
-                id: 'q1',
-                text: 'The sky is heavily blue today.',
-            };
+            return { id: 'q1', text: 'The sky is heavily blue today.', options: ['True', 'False', 'Not Given'] };
         case 'gap-fill':
-            return {
-                id: 'q1',
-                text: 'The main goal of this exercise is to {gap} the correct word.',
-            };
+            return { id: 'q1', text: 'The main goal of this exercise is to {gap} the correct word.', options: ['find', 'lose', 'ignore'] };
         case 'matching':
-            return {
-                id: 'q1',
-                pairs: [
-                    { left: 'Dog', right: 'Animal' },
-                    { left: 'Car', right: 'Vehicle' }
-                ]
-            };
+            return { id: 'q1', pairs: [{ left: 'Dog', right: 'Animal' }, { left: 'Car', right: 'Vehicle' }] };
         case 'essay-editor':
-            return {
-                id: 'q1',
-                text: 'Write an essay about AI.',
-            };
+            return { id: 'q1', text: 'Write an essay about AI.', min_words: 100 };
         case 'table-completion':
             return {
-                id: 'q1',
-                text: 'Complete the table below.',
-                table_headers: ['Name', 'Age'],
-                table_rows: [
-                    ['Alice', '{gap}'],
-                    ['{gap}', '30']
-                ]
+                id: 'q1', title: 'User Information', headers: ['Name', 'Age'], 
+                rows: [{ cells: [{value: "Alice", blank: false}, {value: "", blank: true}] }, { cells: [{value: "", blank: true}, {value: "30", blank: false}] }]
             };
+        case 'flow-chart-completion':
+            return { id: 'q1', title: 'Process', steps: [{text: 'Start', blank: false}, {text: '', blank: true}, {text: 'End', blank: false}] };
+        case 'insert-text':
+            return { id: 'q1', passage: 'This is the first sentence. [A] This is the second. [B] This is the third. [C]', sentence_to_insert: 'This is an inserted sentence.' };
+        case 'multiple-matching':
+            return { id: 'q1', texts: [{id: 'A', title: 'Text A', content: 'Lorem ipsum A.'}, {id: 'B', title: 'Text B', content: 'Lorem ipsum B.'}], statements: [{id: 's1', text: 'Statement 1'}, {id: 's2', text: 'Statement 2'}] };
+        case 'gapped-text':
+            return { id: 'q1', passage_with_gaps: ['First part.', null, 'Second part.', null], removed_paragraphs: ['Missing 1', 'Missing 2'], gap_count: 2 };
+        case 'diagram-labeling':
+            return { id: 'q1', text: 'Label this diagram', image_url: 'https://via.placeholder.com/400x200', labels: [{id: 'l1', x: 20, y: 30}, {id: 'l2', x: 80, y: 60}] };
+        case 'synthesis':
+            return { id: 'q1', documents: [{title: 'Doc 1', content: 'Text 1'}], sources: [{title: 'Doc 1', content: 'Text 1'}], writing_prompt: 'Synthesize the docs' };
+        case 'academic-discussion':
+            return { id: 'q1', professor_prompt: 'Discuss AI ethics.', student_posts: [{name: 'Bob', text: 'AI is good.'}, {name: 'Alice', text: 'AI is dangerous.'}], writing_prompt: 'What do you think?' };
+        case 'summary-completion':
+            return { id: 'q1', summary_text: 'The sky is ___ and the grass is ___.', word_list: ['blue', 'green', 'red'], gap_count: 2 };
+        case 'role-play':
+            return { id: 'q1', scenario: 'You are at a restaurant.', role: 'Customer', dialogue_turns: [{speaker: 'examiner', text: 'Welcome!'}, {speaker: 'candidate', prompt: 'Ask for the menu'}] };
+        case 'form-completion':
+            return { id: 'q1', title: 'Application Form', fields: [{label: 'Name', blank: true}, {label: 'Date', blank: false, answer: '2025-01-01'}] };
+        case 'note-completion':
+            return { id: 'q1', title: 'Meeting Notes', notes: [{label: 'Date', blank: false}, {label: 'Action item', blank: true}] };
+        case 'ordering':
+            return { id: 'q1', text: 'Order these events:', items: ['First', 'Second', 'Third'] };
+        case 'short-writing':
+        case 'short-answer':
+        case 'dictation':
+            return { id: 'q1', text: `Interact with ${key}` };
+        case 'open-cloze':
+        case 'word-formation':
+            return { id: 'q1', text: 'The cat is sleeping on the {gap}.', options: ['mat'] };
+        case 'key-word-transformation':
+            return { id: 'q1', text: 'Transform sentence.', lead_in: 'He is tall.', gap_before: 'He is ', gap_after: ' than her.', keyword: 'TALLER' };
+        case 'graph-description':
+            return { id: 'q1', text: 'Describe the graph', image_url: 'https://via.placeholder.com/400x200', prompt: 'Write 150 words.' };
+        case 'integrated-task':
+            return { id: 'q1', reading_text: 'Read this.', audio_url: 'https://example.com/audio.mp3', writing_prompt: 'Write about the relationship.' };
+        case 'vocabulary-card':
+            return { id: 'q1', term: 'Hello', translation: 'Bonjour', part_of_speech: 'Greeting', example_sentence: 'Hello world.' };
         default:
             return {
-                id: 'q1',
-                text: `This is a generic prompt for ${key}. Please interact with the component.`,
-                options: ['A', 'B', 'C']
+                id: 'q1', text: `Generic prompt for ${key}.`, options: ['A', 'B', 'C']
             };
     }
 };

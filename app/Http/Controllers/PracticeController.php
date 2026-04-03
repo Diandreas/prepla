@@ -7,6 +7,7 @@ use App\Models\ExamSection;
 use App\Models\Exercise;
 use App\Models\ExerciseType;
 use App\Models\LearningPathNode;
+use App\Models\MockExam;
 use App\Models\UserLearningProgress;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -107,33 +108,56 @@ class PracticeController extends Controller
         ]);
     }
 
-    public function simulate(Exam $exam): Response
+    public function simulate(Exam $exam, Request $request): Response
     {
-        // For a mock exam, we pull 1 or 2 generic exercises from *each* section
         $exam->load(['language', 'sections.exerciseTypes']);
-        
-        $orderedExercises = collect();
-        $totalTime = 0;
 
-        foreach ($exam->sections as $section) {
-            $totalTime += $section->time_limit ?? 30; // Minutes 
-            
-            // Pick exercises per exerciseType in the section
-            foreach ($section->exerciseTypes as $type) {
-                $exercises = Exercise::where('exam_id', $exam->id)
-                    ->where('exercise_type_id', $type->id)
-                    ->with('exerciseType')
-                    ->inRandomOrder()
-                    ->limit(2) // 2 exercises max per type to keep the test length reasonable
-                    ->get();
-                $orderedExercises = $orderedExercises->concat($exercises);
+        // Try to load a specific mock exam, or pick a random one for this exam
+        $mockExamId = $request->query('mock_exam_id');
+
+        $mockExam = $mockExamId
+            ? MockExam::where('id', $mockExamId)->where('is_published', true)->first()
+            : MockExam::whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id))
+                ->where('is_published', true)
+                ->inRandomOrder()
+                ->first();
+
+        $totalTime = $exam->sections->sum(fn ($s) => $s->time_limit ?? 30);
+
+        if ($mockExam) {
+            // Load ALL exercises belonging to this mock exam, ordered by section
+            $orderedExercises = Exercise::where('mock_exam_id', $mockExam->id)
+                ->with('exerciseType')
+                ->get()
+                ->sortBy(fn ($ex) => $ex->exam_section_id);
+        } else {
+            // Fallback: pick random exercises per type (legacy behavior)
+            $orderedExercises = collect();
+            foreach ($exam->sections as $section) {
+                foreach ($section->exerciseTypes as $type) {
+                    $exercises = Exercise::where('exam_id', $exam->id)
+                        ->where('exercise_type_id', $type->id)
+                        ->with('exerciseType')
+                        ->inRandomOrder()
+                        ->limit(2)
+                        ->get();
+                    $orderedExercises = $orderedExercises->concat($exercises);
+                }
             }
         }
+
+        // List available mock exams for this exam (for the selector UI)
+        $availableMockExams = MockExam::whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id))
+            ->where('is_published', true)
+            ->withCount('exercises')
+            ->get(['id', 'title', 'description']);
 
         return Inertia::render('practice/exam-simulator', [
             'exam' => $exam,
             'exercises' => $orderedExercises->values(),
             'totalExamsTime' => $totalTime,
+            'mockExam' => $mockExam,
+            'availableMockExams' => $availableMockExams,
         ]);
     }
 

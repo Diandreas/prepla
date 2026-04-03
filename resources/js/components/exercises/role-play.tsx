@@ -26,7 +26,7 @@ export function RolePlay({ question, onAnswer, selectedAnswer, disabled }: RoleP
     const [recordings, setRecordings] = useState<string[]>([]);
     const { isRecording, audioUrl, startRecording, stopRecording, error } = useAudioRecorder();
 
-    const turns = question.dialogue_turns;
+    const turns = question.dialogue_turns || [];
     const candidateTurns = turns.filter((t) => t.speaker === 'candidate');
     const allDone = selectedAnswer || recordings.length >= candidateTurns.length;
 

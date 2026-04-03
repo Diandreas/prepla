@@ -400,10 +400,10 @@ export default function ExamSimulator({ exam, exercises, totalExamsTime }: Props
 
                     <div className="player-card" style={{ padding: '24px' }}>
                         <Component
-                            key={question.id}
-                            question={question}
-                            onAnswer={(ans: any) => handleAnswer(question.id, ans)}
-                            selectedAnswer={answers[question.id]}
+                            key={question.id ?? currentQuestionIndex}
+                            question={{ ...exercise.content, ...question }}
+                            onAnswer={(childId: string, ans: any) => handleAnswer(childId ?? String(currentQuestionIndex), ans)}
+                            selectedAnswer={answers[question.id ?? String(currentQuestionIndex)]}
                             disabled={false} // Exams don't lock inputs immediately!
                         />
                     </div>

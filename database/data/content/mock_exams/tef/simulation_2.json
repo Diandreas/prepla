@@ -1,0 +1,159 @@
+{
+  "exam": "tef",
+  "mock_exam_name": "TEF - Simulation Complète 2",
+  "sections": [
+    {
+      "slug": "comprehension-ecrite",
+      "parts": [
+        {
+          "name": "Section A - Documents courts",
+          "level": "A1-A2",
+          "exercises": [
+            {
+              "type": "mcq",
+              "content": { "passage": "COURS DE YOGA\nTous les mardis et jeudis de 18h à 19h30\nSalle polyvalente, 3ème étage\nMatériel fourni — Tenue souple recommandée\nInscription à l'accueil — 45€ le trimestre" },
+              "difficulty": "A1",
+              "questions": [
+                { "id": "tef2_ce_a_q1", "text": "Combien de fois par semaine ont lieu les cours ?", "options": ["Deux fois.", "Une fois.", "Trois fois.", "Tous les jours."], "correct_answer": "Deux fois." },
+                { "id": "tef2_ce_a_q2", "text": "Faut-il apporter son propre matériel ?", "options": ["Non, il est fourni.", "Oui, obligatoirement.", "Seulement un tapis.", "C'est en option payante."], "correct_answer": "Non, il est fourni." }
+              ]
+            },
+            {
+              "type": "mcq",
+              "content": { "passage": "ATTENTION — Peinture fraîche\nLa cage d'escalier du bâtiment B a été repeinte ce matin.\nMerci de ne pas toucher les murs et d'emprunter l'ascenseur jusqu'à demain matin.\nService technique" },
+              "difficulty": "A1",
+              "questions": [
+                { "id": "tef2_ce_a_q3", "text": "Que demande-t-on aux résidents ?", "options": ["D'utiliser l'ascenseur et de ne pas toucher les murs.", "De repeindre eux-mêmes.", "De rester chez eux.", "D'appeler le service technique."], "correct_answer": "D'utiliser l'ascenseur et de ne pas toucher les murs." }
+              ]
+            },
+            {
+              "type": "mcq",
+              "content": { "passage": "Offre d'emploi — Boulangerie « Au Pain Doré »\nRecherche vendeur/vendeuse, CDI temps partiel (25h/semaine)\nHoraires : 6h30-11h30, du mardi au samedi\nExpérience en vente alimentaire souhaitée\nEnvoyer CV à : paindore@email.fr" },
+              "difficulty": "A2",
+              "questions": [
+                { "id": "tef2_ce_a_q4", "text": "Quel type de contrat est proposé ?", "options": ["CDI temps partiel.", "CDD temps plein.", "Stage.", "Intérim."], "correct_answer": "CDI temps partiel." },
+                { "id": "tef2_ce_a_q5", "text": "Quels sont les jours de travail ?", "options": ["Du mardi au samedi.", "Du lundi au vendredi.", "Le week-end uniquement.", "Tous les jours."], "correct_answer": "Du mardi au samedi." },
+                { "id": "tef2_ce_a_q6", "text": "Quelle expérience est demandée ?", "options": ["Expérience en vente alimentaire.", "Diplôme de boulanger.", "Permis de conduire.", "Aucune expérience."], "correct_answer": "Expérience en vente alimentaire." }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Section B - Textes informatifs",
+          "level": "A2-B1",
+          "exercises": [
+            {
+              "type": "mcq",
+              "content": { "passage": "Le marché de Noël de Strasbourg, le plus ancien de France, accueille chaque année plus de deux millions de visiteurs. Étalé sur 300 chalets répartis dans le centre historique, il propose artisanat local, gastronomie alsacienne et animations pour enfants. La ville a renforcé les mesures de sécurité cette année avec un périmètre piétonnier élargi et des contrôles à chaque entrée. Le marché est ouvert du 24 novembre au 24 décembre, de 11h à 21h en semaine et jusqu'à 22h le week-end." },
+              "difficulty": "B1",
+              "questions": [
+                { "id": "tef2_ce_b_q1", "text": "Combien de visiteurs le marché accueille-t-il par an ?", "options": ["Plus de deux millions.", "500 000.", "100 000.", "10 millions."], "correct_answer": "Plus de deux millions." },
+                { "id": "tef2_ce_b_q2", "text": "Quelle mesure de sécurité supplémentaire a été prise ?", "options": ["Un périmètre piétonnier élargi avec des contrôles.", "Des caméras de surveillance.", "La présence militaire.", "La fermeture du centre-ville."], "correct_answer": "Un périmètre piétonnier élargi avec des contrôles." },
+                { "id": "tef2_ce_b_q3", "text": "Jusqu'à quelle heure le marché est-il ouvert le week-end ?", "options": ["22h.", "21h.", "23h.", "20h."], "correct_answer": "22h." }
+              ]
+            },
+            {
+              "type": "mcq",
+              "content": { "passage": "La France produit annuellement 10 millions de tonnes de déchets alimentaires, soit 150 kg par habitant. La loi anti-gaspillage de 2020 oblige désormais les supermarchés de plus de 400 m² à donner leurs invendus à des associations. Depuis cette mesure, les Restos du Cœur ont vu leurs stocks augmenter de 25%. Cependant, 60% du gaspillage provient des ménages, ce qui appelle à un changement de comportement individuel." },
+              "difficulty": "B1",
+              "questions": [
+                { "id": "tef2_ce_b_q4", "text": "Combien de déchets alimentaires chaque Français produit-il par an ?", "options": ["150 kg.", "10 kg.", "50 kg.", "300 kg."], "correct_answer": "150 kg." },
+                { "id": "tef2_ce_b_q5", "text": "Que doivent faire les grands supermarchés depuis 2020 ?", "options": ["Donner leurs invendus à des associations.", "Recycler tous les emballages.", "Réduire leurs prix de 50%.", "Fermer après 20h."], "correct_answer": "Donner leurs invendus à des associations." },
+                { "id": "tef2_ce_b_q6", "text": "D'où provient la majorité du gaspillage alimentaire ?", "options": ["Des ménages (60%).", "Des restaurants.", "Des supermarchés.", "Des cantines scolaires."], "correct_answer": "Des ménages (60%)." }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Section C - Textes argumentatifs",
+          "level": "B2-C1",
+          "exercises": [
+            {
+              "type": "mcq",
+              "content": { "passage": "Le débat autour de la « sobriété choisie » s'intensifie. Ce mouvement, inspiré des thèses de Pierre Rabhi, prône un mode de vie volontairement plus simple, en rupture avec le consumérisme ambiant. Ses adeptes plaident pour une décroissance maîtrisée qui préserverait les ressources naturelles tout en favorisant le bien-être individuel. Leurs opposants rétorquent que la décroissance conduirait inévitablement à une récession économique et à une hausse du chômage. Le sociologue Jean Viard propose une voie médiane : non pas produire moins, mais produire autrement, en misant sur l'économie circulaire et les circuits courts." },
+              "difficulty": "B2",
+              "questions": [
+                { "id": "tef2_ce_c_q1", "text": "Que propose la « sobriété choisie » ?", "options": ["Un mode de vie plus simple et moins consumériste.", "Une augmentation de la production.", "La suppression de toute technologie.", "Le retour à l'agriculture pré-industrielle."], "correct_answer": "Un mode de vie plus simple et moins consumériste." },
+                { "id": "tef2_ce_c_q2", "text": "Quelle est la position de Jean Viard ?", "options": ["Produire autrement plutôt que produire moins.", "Arrêter de produire.", "Augmenter les exportations.", "Nationaliser toutes les entreprises."], "correct_answer": "Produire autrement plutôt que produire moins." },
+                { "id": "tef2_ce_c_q3", "text": "Quel argument avancent les opposants à la décroissance ?", "options": ["Le risque de récession et de hausse du chômage.", "La perte d'identité culturelle.", "L'impossibilité technique.", "Le refus des pays voisins."], "correct_answer": "Le risque de récession et de hausse du chômage." }
+              ]
+            },
+            {
+              "type": "mcq",
+              "content": { "passage": "L'essor des véhicules autonomes pose des questions éthiques inédites. En cas d'accident inévitable, l'algorithme doit-il privilégier la vie du passager ou celle du piéton ? Ce dilemme, connu sous le nom de « problème du tramway », a été repensé par le MIT dans son étude Moral Machine, interrogeant 40 millions de personnes dans 233 pays. Les résultats révèlent des divergences culturelles profondes : les sociétés individualistes tendent à protéger le passager, tandis que les sociétés collectivistes favorisent le piéton. Ces constats compliquent considérablement l'élaboration d'un cadre réglementaire international." },
+              "difficulty": "C1",
+              "questions": [
+                { "id": "tef2_ce_c_q4", "text": "Qu'est-ce que le « problème du tramway » dans le contexte des voitures autonomes ?", "options": ["Le choix éthique entre protéger le passager ou le piéton en cas d'accident.", "Un problème technique de freinage.", "La concurrence avec les transports en commun.", "Le manque de bornes de recharge."], "correct_answer": "Le choix éthique entre protéger le passager ou le piéton en cas d'accident." },
+                { "id": "tef2_ce_c_q5", "text": "Qu'a révélé l'étude Moral Machine ?", "options": ["Des divergences culturelles profondes dans les choix éthiques.", "Que tout le monde est d'accord sur la priorité au piéton.", "Que les voitures autonomes sont parfaitement sûres.", "Que seuls les pays européens acceptent ces véhicules."], "correct_answer": "Des divergences culturelles profondes dans les choix éthiques." }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "lexique-structure",
+      "parts": [
+        {
+          "name": "Section A - Lexique",
+          "level": "A2-C1",
+          "exercises": [
+            {
+              "type": "mcq",
+              "content": { "passage": "Vocabulaire et expressions idiomatiques." },
+              "difficulty": "B1",
+              "questions": [
+                { "id": "tef2_lex_q1", "text": "Quel est le synonyme de « réticent » ?", "options": ["Hésitant", "Enthousiaste", "Rapide", "Curieux"], "correct_answer": "Hésitant" },
+                { "id": "tef2_lex_q2", "text": "'Mettre les pieds dans le plat' signifie :", "options": ["Aborder un sujet délicat maladroitement.", "Cuisiner un bon repas.", "Marcher dans une flaque.", "Se fatiguer."], "correct_answer": "Aborder un sujet délicat maladroitement." },
+                { "id": "tef2_lex_q3", "text": "L'antonyme de « éphémère » est :", "options": ["Pérenne", "Bref", "Fugace", "Passager"], "correct_answer": "Pérenne" },
+                { "id": "tef2_lex_q4", "text": "Que signifie « corroborer » ?", "options": ["Confirmer, renforcer.", "Contredire.", "Détruire.", "Imaginer."], "correct_answer": "Confirmer, renforcer." },
+                { "id": "tef2_lex_q5", "text": "'Il a jeté l'éponge' signifie :", "options": ["Il a abandonné.", "Il a nettoyé.", "Il a pleuré.", "Il a recommencé."], "correct_answer": "Il a abandonné." }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Section B - Structure",
+          "level": "A2-C1",
+          "exercises": [
+            {
+              "type": "mcq",
+              "content": { "passage": "Grammaire et syntaxe." },
+              "difficulty": "B1",
+              "questions": [
+                { "id": "tef2_str_q1", "text": "Complétez : 'À peine ___ -il sorti qu'il s'est mis à pleuvoir.'", "options": ["était", "a été", "est", "fut"], "correct_answer": "était" },
+                { "id": "tef2_str_q2", "text": "Choisissez : 'Le film ___ nous avons vu hier était passionnant.'", "options": ["que", "qui", "dont", "où"], "correct_answer": "que" },
+                { "id": "tef2_str_q3", "text": "Complétez : 'Je doute qu'il ___ la vérité.'", "options": ["dise", "dit", "dira", "disait"], "correct_answer": "dise" },
+                { "id": "tef2_str_q4", "text": "Quelle phrase est correcte ?", "options": ["Quelles que soient les difficultés, nous réussirons.", "Quelque soient les difficultés, nous réussirons.", "Quel que soient les difficultés, nous réussirons.", "Qu'elles que soient les difficultés, nous réussirons."], "correct_answer": "Quelles que soient les difficultés, nous réussirons." },
+                { "id": "tef2_str_q5", "text": "Complétez : 'C'est la raison ___ laquelle j'ai refusé.'", "options": ["pour", "à", "de", "par"], "correct_answer": "pour" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "expression-ecrite",
+      "parts": [
+        {
+          "name": "Rédaction",
+          "level": "B1-C1",
+          "exercises": [
+            {
+              "type": "essay",
+              "content": { "passage": "Tâche 1 : Vous avez assisté à un événement culturel (concert, exposition, festival). Écrivez à un ami pour lui raconter cette expérience et lui donner envie d'y aller. (~200 mots)" },
+              "difficulty": "B1",
+              "questions": [{ "id": "tef2_ee_q1", "text": "Rédigez votre lettre.", "options": [], "correct_answer": "AI_EVALUATED" }]
+            },
+            {
+              "type": "essay",
+              "content": { "passage": "Tâche 2 : « Le tourisme de masse détruit-il les lieux qu'il est censé célébrer ? » Prenez position et argumentez. (~300 mots)" },
+              "difficulty": "B2",
+              "questions": [{ "id": "tef2_ee_q2", "text": "Rédigez votre texte argumentatif.", "options": [], "correct_answer": "AI_EVALUATED" }]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

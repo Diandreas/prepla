@@ -1,0 +1,58 @@
+{
+  "language": "french",
+  "level": "A1",
+  "topic": "Grammaire Essentielle",
+  "exercises": [
+    {
+      "type": "mcq",
+      "content": {
+        "passage": "Les verbes au présent : Être et Avoir"
+      },
+      "difficulty": "A1",
+      "questions": [
+        {
+          "id": "a1_gram_q1",
+          "text": "Complétez : 'Je ___ étudiant à l'université.'",
+          "options": [
+            "suis",
+            "es",
+            "est",
+            "sommes"
+          ],
+          "correct_answer": "suis"
+        },
+        {
+          "id": "a1_gram_q2",
+          "text": "Complétez : 'Tu ___ un frère ?'",
+          "options": [
+            "a",
+            "as",
+            "avez",
+            "ont"
+          ],
+          "correct_answer": "as"
+        }
+      ]
+    },
+    {
+      "type": "mcq",
+      "content": {
+        "passage": "Les articles définis et indéfinis"
+      },
+      "difficulty": "A1",
+      "questions": [
+        {
+          "id": "a1_gram_q3",
+          "text": "Complétez : 'C'est ___ livre intéressant.'",
+          "options": [
+            "un",
+            "une",
+            "le",
+            "des"
+          ],
+          "correct_answer": "un"
+        }
+      ]
+    }
+  ]
+}

@@ -16,8 +16,10 @@ export function TableCompletion({ question, onAnswer, selectedAnswer, disabled }
     const [values, setValues] = useState<Record<string, string>>(selectedAnswer ?? {});
 
     const blankCells: string[] = [];
-    question.rows.forEach((row, ri) => {
-        row.cells.forEach((cell, ci) => {
+    const rows = question.rows || [];
+    rows.forEach((row, ri) => {
+        const cells = row.cells || [];
+        cells.forEach((cell, ci) => {
             if (cell.blank) blankCells.push(`${ri}-${ci}`);
         });
     });
@@ -41,7 +43,7 @@ export function TableCompletion({ question, onAnswer, selectedAnswer, disabled }
                 <table className="w-full text-sm">
                     <thead>
                         <tr className="bg-muted/50">
-                            {question.headers.map((h, i) => (
+                            {(question.headers || []).map((h, i) => (
                                 <th key={i} className="border-b px-4 py-3 text-left font-semibold">
                                     {h}
                                 </th>

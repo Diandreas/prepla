@@ -1,0 +1,66 @@
+{
+  "exam": "goethe",
+  "mock_exam_name": "Goethe-Zertifikat B1 - Simulation 1",
+  "sections": [
+    {
+      "slug": "lesen",
+      "parts": [
+        {
+          "name": "Lesen Teil 1 — Blog",
+          "level": "B1",
+          "exercises": [
+            {
+              "type": "mcq",
+              "content": { "passage": "Mein nachhaltiger Alltag — Blog von Lena\n\nSeit einem Jahr versuche ich, weniger Plastik zu benutzen. Ich bringe meine eigenen Taschen zum Einkaufen mit und kaufe Obst und Gemüse auf dem Wochenmarkt. Shampoo und Seife kaufe ich jetzt in fester Form, ohne Verpackung. Am schwierigsten finde ich den Verzicht auf To-Go-Becher — ich trinke so gern Kaffee unterwegs! Aber ich habe mir einen Thermobecher gekauft, und die meisten Cafés füllen ihn gerne." },
+              "difficulty": "B1",
+              "questions": [
+                { "id": "goethe_b1_l_q1", "text": "Seit wann lebt Lena nachhaltig?", "options": ["Seit einem Jahr.", "Seit fünf Jahren.", "Seit einem Monat.", "Seit ihrer Kindheit."], "correct_answer": "Seit einem Jahr." },
+                { "id": "goethe_b1_l_q2", "text": "Was fällt Lena am schwersten?", "options": ["Auf To-Go-Becher zu verzichten.", "Auf dem Markt einzukaufen.", "Feste Seife zu benutzen.", "Eigene Taschen mitzubringen."], "correct_answer": "Auf To-Go-Becher zu verzichten." },
+                { "id": "goethe_b1_l_q3", "text": "Wie hat Lena das Problem mit den Bechern gelöst?", "options": ["Sie hat einen Thermobecher gekauft.", "Sie trinkt keinen Kaffee mehr.", "Sie trinkt Kaffee nur zu Hause.", "Sie benutzt Pappbecher."], "correct_answer": "Sie hat einen Thermobecher gekauft." }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Lesen Teil 2 — Zeitungsartikel",
+          "level": "B1",
+          "exercises": [
+            {
+              "type": "true-false",
+              "content": { "passage": "Immer mehr Deutsche entscheiden sich für eine Vier-Tage-Woche. Eine Studie der Universität Münster zeigt: 78% der Arbeitnehmer, die vier Tage pro Woche arbeiten, sind zufriedener und produktiver. Allerdings funktioniert das Modell nicht in allen Branchen. Besonders im Gesundheitswesen und im Einzelhandel ist die Umsetzung schwierig, weil dort Personal an allen Wochentagen gebraucht wird." },
+              "difficulty": "B1",
+              "questions": [
+                { "id": "goethe_b1_l_q4", "text": "Die Mehrheit der Arbeitnehmer mit Vier-Tage-Woche ist zufriedener.", "options": ["Richtig", "Falsch"], "correct_answer": "Richtig" },
+                { "id": "goethe_b1_l_q5", "text": "Die Vier-Tage-Woche funktioniert in allen Branchen gut.", "options": ["Richtig", "Falsch"], "correct_answer": "Falsch" },
+                { "id": "goethe_b1_l_q6", "text": "Im Gesundheitswesen ist die Umsetzung besonders einfach.", "options": ["Richtig", "Falsch"], "correct_answer": "Falsch" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "schreiben",
+      "parts": [
+        {
+          "name": "Schreiben",
+          "level": "B1",
+          "exercises": [
+            {
+              "type": "essay",
+              "content": { "passage": "Aufgabe 1: Ihr Freund Thomas hat Ihnen geschrieben. Er möchte mit Ihnen am Wochenende wandern gehen. Schreiben Sie eine E-Mail (~80 Wörter). Antworten Sie auf seine Einladung, schlagen Sie einen Treffpunkt vor und fragen Sie, was Sie mitbringen sollen." },
+              "difficulty": "B1",
+              "questions": [{ "id": "goethe_b1_s_q1", "text": "Schreiben Sie Ihre E-Mail.", "options": [], "correct_answer": "AI_EVALUATED" }]
+            },
+            {
+              "type": "essay",
+              "content": { "passage": "Aufgabe 2: Thema: 'Sollten Kinder ein eigenes Smartphone haben?'\nSchreiben Sie Ihre Meinung (~80 Wörter). Nennen Sie Vorteile und Nachteile und sagen Sie, was Sie persönlich denken." },
+              "difficulty": "B1",
+              "questions": [{ "id": "goethe_b1_s_q2", "text": "Schreiben Sie Ihre Stellungnahme.", "options": [], "correct_answer": "AI_EVALUATED" }]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -12,7 +12,8 @@ interface NoteCompletionProps {
 
 export function NoteCompletion({ question, onAnswer, selectedAnswer }: NoteCompletionProps) {
     const [values, setValues] = useState<Record<string, string>>(selectedAnswer ?? {});
-    const blanks = question.notes.filter((n) => n.blank);
+    const notes = question.notes || [];
+    const blanks = notes.filter((n) => n.blank);
 
     const handleChange = (index: number, val: string) => {
         const newValues = { ...values, [String(index)]: val };
@@ -30,7 +31,7 @@ export function NoteCompletion({ question, onAnswer, selectedAnswer }: NoteCompl
         <div className="space-y-4">
             {question.title && <p className="text-lg font-bold">{question.title}</p>}
             <div className="rounded-xl border bg-muted/30 p-4 space-y-2">
-                {question.notes.map((note, i) => {
+                {notes.map((note, i) => {
                     if (!note.blank) {
                         return (
                             <div key={i} className="flex items-center gap-2">

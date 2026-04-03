@@ -1,0 +1,70 @@
+{
+  "exam": "toefl",
+  "mock_exam_name": "TOEFL iBT - Simulation 1",
+  "sections": [
+    {
+      "slug": "reading",
+      "parts": [
+        {
+          "name": "Passage 1 — Ecology",
+          "level": "B2-C1",
+          "exercises": [
+            {
+              "type": "mcq",
+              "content": { "passage": "The symbiotic relationship between coral reefs and the microscopic algae known as zooxanthellae is one of the most remarkable partnerships in the natural world. These single-celled organisms live within the coral's tissue, photosynthesizing sunlight into energy that provides up to 90% of the coral's nutritional needs. In return, the coral provides the algae with a protected environment and the compounds necessary for photosynthesis.\n\nWhen ocean temperatures rise even slightly — as little as 1-2°C above the summer maximum — corals expel their zooxanthellae in a stress response known as bleaching. Without their algae, corals lose both their colour and their primary food source. If temperatures return to normal within weeks, corals can recover by reabsorbing zooxanthellae. However, prolonged bleaching events are increasingly common, leading to mass coral die-offs. The Great Barrier Reef has experienced five mass bleaching events since 1998, with the most severe occurring in back-to-back years 2016 and 2017." },
+              "difficulty": "B2",
+              "questions": [
+                { "id": "toefl_r1_q1", "text": "What percentage of coral nutrition comes from zooxanthellae?", "options": ["Up to 90%.", "About 50%.", "Less than 10%.", "100%."], "correct_answer": "Up to 90%." },
+                { "id": "toefl_r1_q2", "text": "What triggers coral bleaching?", "options": ["A rise in ocean temperature of 1-2°C above the summer maximum.", "A decrease in water salinity.", "Increased sunlight exposure.", "The arrival of new fish species."], "correct_answer": "A rise in ocean temperature of 1-2°C above the summer maximum." },
+                { "id": "toefl_r1_q3", "text": "The word 'expel' in the passage is closest in meaning to:", "options": ["Force out.", "Absorb.", "Attract.", "Produce."], "correct_answer": "Force out." },
+                { "id": "toefl_r1_q4", "text": "How many mass bleaching events has the Great Barrier Reef experienced since 1998?", "options": ["Five.", "Three.", "Seven.", "Two."], "correct_answer": "Five." },
+                { "id": "toefl_r1_q5", "text": "What happens if corals undergo prolonged bleaching?", "options": ["They die.", "They adapt permanently.", "They become stronger.", "They reproduce faster."], "correct_answer": "They die." }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Passage 2 — History",
+          "level": "C1",
+          "exercises": [
+            {
+              "type": "mcq",
+              "content": { "passage": "The Rosetta Stone, discovered by French soldiers in 1799 during Napoleon's Egyptian campaign, proved to be the key that unlocked the mysteries of ancient Egyptian hieroglyphics. The stone bears a decree issued in 196 BC by King Ptolemy V, inscribed in three scripts: hieroglyphic, demotic, and ancient Greek. Since scholars could read Greek, the stone provided a crucial bilingual reference for decipherment.\n\nJean-François Champollion, a French linguist with an extraordinary gift for languages — he was fluent in a dozen by age twenty — devoted years to cracking the code. His breakthrough came in 1822 when he realized that hieroglyphics were not purely symbolic but contained a mixture of ideographic and phonetic elements. The name 'Ptolemy', enclosed in a cartouche, appeared in both the Greek and hieroglyphic texts, giving Champollion his first confirmed phonetic values." },
+              "difficulty": "C1",
+              "questions": [
+                { "id": "toefl_r2_q1", "text": "When was the Rosetta Stone discovered?", "options": ["1799.", "1822.", "196 BC.", "1801."], "correct_answer": "1799." },
+                { "id": "toefl_r2_q2", "text": "Why was the Greek text on the stone important?", "options": ["It provided a known language for comparison.", "It was the most ancient text.", "It contained a map.", "It was the emperor's decree."], "correct_answer": "It provided a known language for comparison." },
+                { "id": "toefl_r2_q3", "text": "What was Champollion's key insight about hieroglyphics?", "options": ["They combined ideographic and phonetic elements.", "They were purely symbolic.", "They were a form of mathematics.", "They could only represent sounds."], "correct_answer": "They combined ideographic and phonetic elements." },
+                { "id": "toefl_r2_q4", "text": "What is a 'cartouche' as implied in the passage?", "options": ["An oval enclosure around royal names in hieroglyphics.", "A type of Greek letter.", "A military weapon.", "A decorative border."], "correct_answer": "An oval enclosure around royal names in hieroglyphics." },
+                { "id": "toefl_r2_q5", "text": "How many languages did Champollion speak by age twenty?", "options": ["A dozen.", "Five.", "Three.", "Twenty."], "correct_answer": "A dozen." }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "writing",
+      "parts": [
+        {
+          "name": "Writing Tasks",
+          "level": "B2-C1",
+          "exercises": [
+            {
+              "type": "essay",
+              "content": { "passage": "Integrated Writing Task: Read the passage and respond.\n\nReading passage (summarized): 'Remote work increases productivity by reducing commute time and office distractions, and allows companies to hire talent globally.'\n\nLecture summary: 'The professor challenges these claims, arguing that remote workers often face isolation, communication barriers, and difficulty separating work from personal life, which can decrease overall productivity.'\n\nWrite a response explaining how the lecture challenges the points made in the reading passage. (150-225 words)" },
+              "difficulty": "B2",
+              "questions": [{ "id": "toefl_w_q1", "text": "Write your integrated response.", "options": [], "correct_answer": "AI_EVALUATED" }]
+            },
+            {
+              "type": "essay",
+              "content": { "passage": "Academic Discussion Task:\n\nProfessor: 'Should universities require all students to take courses outside their major field of study? Why or why not?'\n\nStudent A: 'Yes, it creates well-rounded graduates who can think across disciplines.'\n\nStudent B: 'No, students should focus on their specialisation to be competitive in the job market.'\n\nContribute your own opinion to this discussion. (100+ words)" },
+              "difficulty": "B2",
+              "questions": [{ "id": "toefl_w_q2", "text": "Write your academic discussion response.", "options": [], "correct_answer": "AI_EVALUATED" }]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

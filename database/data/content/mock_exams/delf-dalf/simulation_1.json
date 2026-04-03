@@ -1,0 +1,74 @@
+{
+  "exam": "delf-dalf",
+  "mock_exam_name": "DELF B1 - Simulation Complète 1",
+  "sections": [
+    {
+      "slug": "comprehension-ecrite",
+      "parts": [
+        {
+          "name": "Compréhension des écrits",
+          "level": "B1",
+          "exercises": [
+            {
+              "type": "true-false",
+              "content": {
+                "passage": "La nouvelle bibliothèque municipale a ouvert ses portes mardi dernier. Contrairement à l'ancien bâtiment, celle-ci propose un espace dédié à l'apprentissage des langues avec des ordinateurs en libre accès. Toutefois, l'emprunt de livres reste limité à trois ouvrages par personne pour une durée maximale de deux semaines.",
+                "image_url": null
+              },
+              "difficulty": "B1",
+              "questions": [
+                {
+                  "id": "delf_b1_ce_q1",
+                  "text": "La nouvelle bibliothèque dispose d'ordinateurs pour les langues.",
+                  "options": [
+                    "Vrai",
+                    "Faux",
+                    "Non Mentionné"
+                  ],
+                  "correct_answer": "Vrai"
+                },
+                {
+                  "id": "delf_b1_ce_q2",
+                  "text": "On peut emprunter cinq livres en même temps.",
+                  "options": [
+                    "Vrai",
+                    "Faux",
+                    "Non Mentionné"
+                  ],
+                  "correct_answer": "Faux"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "production-ecrite",
+      "parts": [
+        {
+          "name": "Essai / Expression d'opinion",
+          "level": "B1",
+          "exercises": [
+            {
+              "type": "essay",
+              "content": {
+                "passage": "Sujet : Sur un forum Internet, vous lisez le message suivant : 'Le téléphone portable est devenu un problème à l'école. Les élèves ne communiquent plus entre eux pendant la récréation.' Vous répondez à ce message pour donner votre opinion (160 mots minimum).",
+                "image_url": null
+              },
+              "difficulty": "B1",
+              "questions": [
+                {
+                  "id": "delf_b1_pe_q1",
+                  "text": "Rédigez votre réponse ici.",
+                  "options": [],
+                  "correct_answer": "AI_EVALUATED"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

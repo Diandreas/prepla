@@ -8,12 +8,13 @@ interface OrderingProps {
 
 export function Ordering({ question, onAnswer, selectedAnswer }: OrderingProps) {
     const [ordered, setOrdered] = useState<string[]>(selectedAnswer ?? []);
-    const remaining = question.items.filter((item) => !ordered.includes(item));
+    const items = question.items || [];
+    const remaining = items.filter((item) => !ordered.includes(item));
 
     const addItem = (item: string) => {
         const next = [...ordered, item];
         setOrdered(next);
-        if (next.length === question.items.length) {
+        if (next.length === items.length) {
             onAnswer(question.id, next);
         }
     };

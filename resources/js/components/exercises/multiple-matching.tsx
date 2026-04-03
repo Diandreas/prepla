@@ -26,7 +26,10 @@ export function MultipleMatching({ question, onAnswer, selectedAnswer, disabled 
         }
     };
 
-    const textIds = question.texts.map((t) => t.id);
+    const texts = question.texts || [];
+    const statements = question.statements || [];
+
+    const textIds = texts.map((t) => t.id);
 
     return (
         <div className="space-y-5">

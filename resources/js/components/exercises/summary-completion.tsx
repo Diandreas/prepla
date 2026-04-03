@@ -13,9 +13,11 @@ interface SummaryCompletionProps {
 }
 
 export function SummaryCompletion({ question, onAnswer, selectedAnswer, disabled }: SummaryCompletionProps) {
-    const [values, setValues] = useState<string[]>(selectedAnswer ?? Array(question.gap_count).fill(''));
+    const wordList = question.word_list || [];
+    const summaryText = question.summary_text || '';
+    const [values, setValues] = useState<string[]>(selectedAnswer ?? Array(question.gap_count || 1).fill(''));
 
-    const parts = question.summary_text.split(/___\d*___?|___/);
+    const parts = summaryText.split(/___\d*___?|___/);
 
     const handleChange = (index: number, val: string) => {
         const next = [...values];
@@ -35,7 +37,7 @@ export function SummaryCompletion({ question, onAnswer, selectedAnswer, disabled
             <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
                 <p className="mb-2 text-xs font-bold uppercase tracking-wider text-primary">Mots disponibles</p>
                 <div className="flex flex-wrap gap-2">
-                    {question.word_list.map((word, i) => {
+                    {wordList.map((word, i) => {
                         const used = values.includes(word);
                         return (
                             <span
@@ -66,7 +68,7 @@ export function SummaryCompletion({ question, onAnswer, selectedAnswer, disabled
                                 className="mx-1 inline-block min-w-[120px] rounded border-2 border-primary/40 bg-background px-2 py-1 text-sm font-medium focus:border-primary focus:outline-none disabled:opacity-50"
                             >
                                 <option value="">({i + 1})</option>
-                                {question.word_list.map((word, j) => (
+                                {wordList.map((word, j) => (
                                     <option key={j} value={word}>{word}</option>
                                 ))}
                             </select>

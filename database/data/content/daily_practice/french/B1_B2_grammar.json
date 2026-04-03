@@ -1,0 +1,69 @@
+{
+  "language": "french",
+  "level": "B1",
+  "topic": "Conditionnel et Subjonctif",
+  "exercises": [
+    {
+      "type": "mcq",
+      "content": {
+        "passage": "Savoir exprimer un souhait ou une condition est essentiel en français."
+      },
+      "difficulty": "B1",
+      "questions": [
+        {
+          "id": "b1_gram_q1",
+          "text": "Complétez la phrase : 'Si j'avais plus d'argent, je ___ une nouvelle voiture.'",
+          "options": [
+            "achèterais",
+            "achetais",
+            "achète",
+            "achèterai"
+          ],
+          "correct_answer": "achèterais"
+        },
+        {
+          "id": "b1_gram_q2",
+          "text": "Complétez : 'Il faut que tu ___ tes devoirs avant de sortir.'",
+          "options": [
+            "fais",
+            "fasses",
+            "faisais",
+            "fera"
+          ],
+          "correct_answer": "fasses"
+        },
+        {
+          "id": "b1_gram_q3",
+          "text": "Complétez : 'J’aimerais bien que vous ___ m'aider à déménager demain.'",
+          "options": [
+            "pouvez",
+            "puissiez",
+            "pourrez",
+            "pourriez"
+          ],
+          "correct_answer": "puissiez"
+        }
+      ]
+    },
+    {
+      "type": "gap-fill",
+      "content": {
+        "passage": "Expression de l'opinion et des sentiments."
+      },
+      "difficulty": "B2",
+      "questions": [
+        {
+          "id": "b2_gram_q1",
+          "text": "Complétez la phrase logiquement : 'Bien qu'il ___ très froid, nous sommes allés nous promener.'",
+          "options": [
+            "fasse",
+            "fait",
+            "faisait",
+            "fera"
+          ],
+          "correct_answer": "fasse"
+        }
+      ]
+    }
+  ]
+}

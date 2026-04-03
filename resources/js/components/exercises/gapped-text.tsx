@@ -17,9 +17,11 @@ export function GappedText({ question, onAnswer, selectedAnswer, disabled }: Gap
     const [selectedParagraph, setSelectedParagraph] = useState<string | null>(null);
 
     const placedParagraphs = new Set(Object.values(placements));
-    const availableParagraphs = question.removed_paragraphs.filter((p) => !placedParagraphs.has(p));
+    const removedParagraphs = question.removed_paragraphs || [];
+    const availableParagraphs = removedParagraphs.filter((p) => !placedParagraphs.has(p));
 
-    const gapIndices = question.passage_with_gaps
+    const passage = question.passage_with_gaps || [];
+    const gapIndices = passage
         .map((item, i) => (item === null ? String(i) : null))
         .filter(Boolean) as string[];
 
@@ -58,7 +60,7 @@ export function GappedText({ question, onAnswer, selectedAnswer, disabled }: Gap
         <div className="space-y-5">
             {/* Passage */}
             <div className="space-y-3">
-                {question.passage_with_gaps.map((item, i) => {
+                {passage.map((item, i) => {
                     if (item !== null) {
                         return (
                             <p key={i} className="rounded-lg bg-muted/30 p-3 text-sm leading-relaxed">
@@ -110,7 +112,7 @@ export function GappedText({ question, onAnswer, selectedAnswer, disabled }: Gap
                     Paragraphes à placer
                 </p>
                 <div className="space-y-2">
-                    {question.removed_paragraphs.map((para, i) => {
+                    {removedParagraphs.map((para, i) => {
                         const isPlaced = placedParagraphs.has(para);
                         const isSelected = selectedParagraph === para;
                         return (

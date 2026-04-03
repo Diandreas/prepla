@@ -22,13 +22,15 @@ interface DiagramLabelingProps {
 export function DiagramLabeling({ question, onAnswer, selectedAnswer, disabled }: DiagramLabelingProps) {
     const [values, setValues] = useState<Record<string, string>>(selectedAnswer ?? {});
 
+    const labels = question.labels || [];
+
     const handleChange = (labelId: string, val: string) => {
         const next = { ...values, [labelId]: val };
         setValues(next);
     };
 
     const handleSubmit = () => {
-        if (question.labels.every((l) => values[l.id]?.trim())) {
+        if (labels.every((l) => values[l.id]?.trim())) {
             onAnswer(question.id, values);
         }
     };
@@ -42,7 +44,7 @@ export function DiagramLabeling({ question, onAnswer, selectedAnswer, disabled }
                 <div className="relative overflow-hidden rounded-xl border bg-white">
                     <img src={question.image_url} alt="Diagram" className="w-full object-contain" />
                     {/* Numbered markers positioned on the image */}
-                    {question.labels.map((label, i) => (
+                    {labels.map((label, i) => (
                         <div
                             key={label.id}
                             className="absolute flex h-6 w-6 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shadow-md"
@@ -64,7 +66,7 @@ export function DiagramLabeling({ question, onAnswer, selectedAnswer, disabled }
 
             {/* Label inputs */}
             <div className="space-y-2">
-                {question.labels.map((label, i) => (
+                {labels.map((label, i) => (
                     <div key={label.id} className="flex items-center gap-3">
                         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
                             {i + 1}
@@ -84,7 +86,7 @@ export function DiagramLabeling({ question, onAnswer, selectedAnswer, disabled }
             {!disabled && (
                 <button
                     onClick={handleSubmit}
-                    disabled={!question.labels.every((l) => values[l.id]?.trim())}
+                    disabled={!labels.every((l) => values[l.id]?.trim())}
                     className="rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground disabled:opacity-50"
                 >
                     Valider

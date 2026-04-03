@@ -194,7 +194,69 @@ class ExerciseController extends Controller
             $questionType = $question['type'] ?? '';
             $noScoreTypes = ['essay', 'essay-editor', 'speaking', 'writing', 'short-writing', 'graph-description',
                 'academic-discussion', 'speaking-recorder', 'role-play', 'synthesis', 'integrated-task'];
+            
             if (in_array($questionType, $noScoreTypes) || $correctAnswer === null) {
+                // If the user submitted nothing
+                if (empty($userAnswer)) {
+                    $feedback[] = [
+                        'question_id' => $questionId,
+                        'correct' => false,
+                        'correct_answer' => null,
+                        'explanation' => "Aucune réponse fournie.",
+                    ];
+                    continue;
+                }
+
+                // If it's a production type, evaluate dynamically using STT and Mistral
+                if (in_array($questionType, $noScoreTypes)) {
+                    $textToEvaluate = '';
+                    if ($userAnswer instanceof \Illuminate\Http\UploadedFile) {
+                        try {
+                            $textToEvaluate = app(\App\Services\AI\DeepgramSttService::class)->transcribe($userAnswer) ?? '';
+                        } catch (\Exception $e) {
+                            \Illuminate\Support\Facades\Log::error('Deepgram STT failed entirely: ' . $e->getMessage());
+                        }
+                    } else {
+                        $textToEvaluate = is_string($userAnswer) ? trim($userAnswer) : '';
+                    }
+
+                    if (empty($textToEvaluate)) {
+                        $feedback[] = [
+                            'question_id' => $questionId,
+                            'correct' => false,
+                            'correct_answer' => null,
+                            'explanation' => ($userAnswer instanceof \Illuminate\Http\UploadedFile) ? "L'audio n'a pas pu être retranscrit (vide ou muet)." : "Aucun texte détecté.",
+                        ];
+                        continue;
+                    }
+
+                    // Score it with Mistral
+                    $prompt = "Consigne: " . ($question['prompt'] ?? $question['writing_prompt'] ?? $question['text'] ?? "Répondre");
+                    
+                    // Note: If exam is not eager loaded, we default to French or English context.
+                    $lang = $exercise->exam?->language?->name ?? 'French';
+
+                    $aiResult = app(\App\Services\AI\MistralEvaluationService::class)->evaluate($prompt, $textToEvaluate, $lang);
+
+                    $isCorrect = (bool) $aiResult['isCorrect'];
+                    if ($isCorrect) $correct++;
+
+                    $explanation = $aiResult['feedback'];
+                    if ($userAnswer instanceof \Illuminate\Http\UploadedFile) {
+                        $explanation .= "\n\n*(Transcription audio : \"$textToEvaluate\")*";
+                    }
+
+                    $feedback[] = [
+                        'question_id' => $questionId,
+                        'correct' => $isCorrect,
+                        'correct_answer' => null,
+                        'partial_accuracy' => $aiResult['accuracy'],
+                        'explanation' => $explanation,
+                    ];
+                    continue;
+                }
+
+                // Generic fallback for broken questions with no correct answer
                 $isCorrect = is_string($userAnswer) ? !empty(trim($userAnswer)) : !empty($userAnswer);
                 $feedback[] = [
                     'question_id' => $questionId,

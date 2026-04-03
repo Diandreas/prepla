@@ -1,0 +1,347 @@
+{
+  "exam": "tcf",
+  "mock_exam_name": "TCF Tout Public - Simulation Complète 1",
+  "sections": [
+    {
+      "slug": "maitrise-structures",
+      "parts": [
+        {
+          "name": "Maîtrise des structures de la langue",
+          "level": "Mixed",
+          "exercises": [
+            {
+              "type": "mcq",
+              "content": { "passage": "Grammaire et lexique — difficulté croissante A1→C2" },
+              "difficulty": "A1",
+              "questions": [
+                {
+                  "id": "tcf1_str_q1",
+                  "text": "Complétez : 'Je ___ français.'",
+                  "options": ["parle", "parles", "parlons", "parlent"],
+                  "correct_answer": "parle"
+                },
+                {
+                  "id": "tcf1_str_q2",
+                  "text": "Complétez : '___ est ton nom ?'",
+                  "options": ["Quel", "Qui", "Où", "Quand"],
+                  "correct_answer": "Quel"
+                },
+                {
+                  "id": "tcf1_str_q3",
+                  "text": "Choisissez : 'Il y a ___ pommes sur la table.'",
+                  "options": ["des", "les", "un", "la"],
+                  "correct_answer": "des"
+                }
+              ]
+            },
+            {
+              "type": "mcq",
+              "content": { "passage": "Niveau intermédiaire" },
+              "difficulty": "A2",
+              "questions": [
+                {
+                  "id": "tcf1_str_q4",
+                  "text": "Complétez : 'Hier, elle ___ au marché.'",
+                  "options": ["est allée", "va", "ira", "allait"],
+                  "correct_answer": "est allée"
+                },
+                {
+                  "id": "tcf1_str_q5",
+                  "text": "Complétez : 'Je cherche ___ appartement.'",
+                  "options": ["un", "le", "des", "du"],
+                  "correct_answer": "un"
+                },
+                {
+                  "id": "tcf1_str_q6",
+                  "text": "Choisissez : 'Nous nous sommes ___ à 8 heures.'",
+                  "options": ["levés", "levé", "lever", "lèvent"],
+                  "correct_answer": "levés"
+                }
+              ]
+            },
+            {
+              "type": "mcq",
+              "content": { "passage": "Niveau B1-B2" },
+              "difficulty": "B1",
+              "questions": [
+                {
+                  "id": "tcf1_str_q7",
+                  "text": "Complétez : 'Si j'avais su, je ___ venu plus tôt.'",
+                  "options": ["serais", "serai", "suis", "étais"],
+                  "correct_answer": "serais"
+                },
+                {
+                  "id": "tcf1_str_q8",
+                  "text": "Complétez : 'C'est la ville ___ je suis né.'",
+                  "options": ["où", "que", "qui", "dont"],
+                  "correct_answer": "où"
+                },
+                {
+                  "id": "tcf1_str_q9",
+                  "text": "Choisissez la forme correcte : 'Il faut que tu ___ attention.'",
+                  "options": ["fasses", "fais", "feras", "faisais"],
+                  "correct_answer": "fasses"
+                }
+              ]
+            },
+            {
+              "type": "mcq",
+              "content": { "passage": "Niveau B2" },
+              "difficulty": "B2",
+              "questions": [
+                {
+                  "id": "tcf1_str_q10",
+                  "text": "Complétez : 'Quoiqu'il ___ dire, personne ne l'écoute.'",
+                  "options": ["puisse", "peut", "pourra", "pouvait"],
+                  "correct_answer": "puisse"
+                },
+                {
+                  "id": "tcf1_str_q11",
+                  "text": "Choisissez : 'Les mesures ___ le gouvernement a prises sont insuffisantes.'",
+                  "options": ["que", "qui", "dont", "auxquelles"],
+                  "correct_answer": "que"
+                },
+                {
+                  "id": "tcf1_str_q12",
+                  "text": "Complétez : 'Il est parti ___ avoir fini son travail.'",
+                  "options": ["sans", "pour", "après", "avant"],
+                  "correct_answer": "sans"
+                }
+              ]
+            },
+            {
+              "type": "mcq",
+              "content": { "passage": "Niveau C1-C2" },
+              "difficulty": "C1",
+              "questions": [
+                {
+                  "id": "tcf1_str_q13",
+                  "text": "Complétez : 'Encore ___ il accepter, il faudrait qu'on le lui demande.'",
+                  "options": ["faudrait-il", "fallait-il", "faut-il", "faudra-t-il"],
+                  "correct_answer": "faudrait-il"
+                },
+                {
+                  "id": "tcf1_str_q14",
+                  "text": "Choisissez : '___ les difficultés rencontrées, le projet a abouti.'",
+                  "options": ["En dépit des", "Grâce aux", "À cause des", "Faute de"],
+                  "correct_answer": "En dépit des"
+                },
+                {
+                  "id": "tcf1_str_q15",
+                  "text": "Quel mot complète : 'Ce médicament est à prendre à ___ de trois fois par jour.'",
+                  "options": ["raison", "titre", "cause", "propos"],
+                  "correct_answer": "raison"
+                },
+                {
+                  "id": "tcf1_str_q16",
+                  "text": "Complétez : 'Pour peu qu'il ___ un effort, il réussirait.'",
+                  "options": ["fasse", "fait", "fera", "ferait"],
+                  "correct_answer": "fasse"
+                },
+                {
+                  "id": "tcf1_str_q17",
+                  "text": "Choisissez : 'Il s'est exprimé avec une ___ remarquable.'",
+                  "options": ["éloquence", "élégance", "affluence", "influence"],
+                  "correct_answer": "éloquence"
+                },
+                {
+                  "id": "tcf1_str_q18",
+                  "text": "Complétez : 'Dût-il y laisser sa fortune, il ___ ses engagements.'",
+                  "options": ["tiendrait", "tiendra", "tient", "tenait"],
+                  "correct_answer": "tiendrait"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "comprehension-ecrite",
+      "parts": [
+        {
+          "name": "Textes de niveau A1-A2",
+          "level": "A1-A2",
+          "exercises": [
+            {
+              "type": "mcq",
+              "content": {
+                "passage": "PHARMACIE DE GARDE\nCe week-end (samedi et dimanche), la pharmacie de garde est la Pharmacie Centrale, 23 avenue de la République. Ouverte de 9h à 20h. Pour les urgences la nuit, appelez le 3237."
+              },
+              "difficulty": "A1",
+              "questions": [
+                {
+                  "id": "tcf1_ce_q1",
+                  "text": "Quand la pharmacie de garde est-elle ouverte ?",
+                  "options": ["Le week-end de 9h à 20h.", "Tous les jours.", "Seulement la nuit.", "Le lundi uniquement."],
+                  "correct_answer": "Le week-end de 9h à 20h."
+                },
+                {
+                  "id": "tcf1_ce_q2",
+                  "text": "Que faut-il faire en cas d'urgence la nuit ?",
+                  "options": ["Appeler le 3237.", "Aller aux urgences.", "Attendre le matin.", "Envoyer un email."],
+                  "correct_answer": "Appeler le 3237."
+                }
+              ]
+            },
+            {
+              "type": "mcq",
+              "content": {
+                "passage": "Chère Sophie,\nJe t'écris pour te dire que je suis bien arrivée à Montréal. Il fait très froid ici, -15°C aujourd'hui ! Les gens sont très gentils et j'ai déjà trouvé un petit appartement près de l'université. Les cours commencent lundi prochain. Tu me manques !\nBisous, Claire"
+              },
+              "difficulty": "A2",
+              "questions": [
+                {
+                  "id": "tcf1_ce_q3",
+                  "text": "Où se trouve Claire ?",
+                  "options": ["À Montréal.", "À Paris.", "À Lyon.", "À Bruxelles."],
+                  "correct_answer": "À Montréal."
+                },
+                {
+                  "id": "tcf1_ce_q4",
+                  "text": "Quand les cours commencent-ils ?",
+                  "options": ["Lundi prochain.", "Demain.", "Dans un mois.", "Tout de suite."],
+                  "correct_answer": "Lundi prochain."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Textes de niveau B1-B2",
+          "level": "B1-B2",
+          "exercises": [
+            {
+              "type": "mcq",
+              "content": {
+                "passage": "L'agriculture urbaine se développe rapidement dans les métropoles françaises. À Lyon, des toits d'immeubles sont transformés en potagers et des serres verticales poussent dans les quartiers populaires. La doyenne de ce mouvement, l'association « Les Jardins du Rhône », cultive depuis 2010 plus de 200 parcelles sur les toits de la ville. Leur objectif : produire 10 tonnes de fruits et légumes par an d'ici 2030, tout en offrant des formations gratuites aux habitants."
+              },
+              "difficulty": "B1",
+              "questions": [
+                {
+                  "id": "tcf1_ce_q5",
+                  "text": "Depuis quand l'association « Les Jardins du Rhône » existe-t-elle ?",
+                  "options": ["Depuis 2010.", "Depuis 2020.", "Depuis 2005.", "Depuis 2030."],
+                  "correct_answer": "Depuis 2010."
+                },
+                {
+                  "id": "tcf1_ce_q6",
+                  "text": "Quel est l'objectif de production à l'horizon 2030 ?",
+                  "options": ["10 tonnes de fruits et légumes par an.", "200 parcelles supplémentaires.", "1000 formations gratuites.", "Couvrir tous les toits de Lyon."],
+                  "correct_answer": "10 tonnes de fruits et légumes par an."
+                },
+                {
+                  "id": "tcf1_ce_q7",
+                  "text": "Où sont principalement installées les cultures ?",
+                  "options": ["Sur les toits d'immeubles et dans des serres verticales.", "Dans les parcs publics.", "En banlieue uniquement.", "Dans les supermarchés."],
+                  "correct_answer": "Sur les toits d'immeubles et dans des serres verticales."
+                }
+              ]
+            },
+            {
+              "type": "mcq",
+              "content": {
+                "passage": "Le gouvernement français a annoncé un plan ambitieux pour la rénovation énergétique des bâtiments. D'ici 2035, tous les logements classés F ou G sur le diagnostic de performance énergétique (DPE) devront être rénovés sous peine d'interdiction de location. Cette mesure concerne environ 5 millions de logements, soit 17% du parc immobilier. Les propriétaires peuvent bénéficier d'aides financières allant jusqu'à 70% du coût des travaux grâce au dispositif MaPrimeRénov'. Les critiques pointent cependant le manque d'artisans qualifiés et les délais d'attente de plus de six mois pour obtenir un devis."
+              },
+              "difficulty": "B2",
+              "questions": [
+                {
+                  "id": "tcf1_ce_q8",
+                  "text": "Que devront faire les propriétaires de logements F ou G d'ici 2035 ?",
+                  "options": ["Rénover leur logement sous peine de ne plus pouvoir le louer.", "Vendre leur bien immobilier.", "Payer une taxe supplémentaire.", "Déménager obligatoirement."],
+                  "correct_answer": "Rénover leur logement sous peine de ne plus pouvoir le louer."
+                },
+                {
+                  "id": "tcf1_ce_q9",
+                  "text": "Quel pourcentage du parc immobilier est concerné ?",
+                  "options": ["17%.", "5%.", "35%.", "70%."],
+                  "correct_answer": "17%."
+                },
+                {
+                  "id": "tcf1_ce_q10",
+                  "text": "Quel problème pratique est soulevé dans le texte ?",
+                  "options": ["Le manque d'artisans qualifiés et des délais trop longs.", "Le refus des banques de financer les travaux.", "L'opposition des locataires.", "L'absence totale d'aides financières."],
+                  "correct_answer": "Le manque d'artisans qualifiés et des délais trop longs."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Textes de niveau C1-C2",
+          "level": "C1-C2",
+          "exercises": [
+            {
+              "type": "mcq",
+              "content": {
+                "passage": "La notion de « sobriété numérique » gagne du terrain dans le débat public. Portée par des think tanks comme The Shift Project, cette approche invite à repenser notre consommation de technologies digitales à l'aune de leur empreinte environnementale. Le numérique représente aujourd'hui 4% des émissions mondiales de gaz à effet de serre, un chiffre en augmentation de 8% par an. Les data centers, ces immenses fermes de serveurs, consomment à eux seuls l'équivalent énergétique d'un pays comme l'Argentine. L'essor fulgurant de l'intelligence artificielle, avec des modèles de langage nécessitant des puissances de calcul colossales, pourrait aggraver cette tendance. Dès lors, s'interroger sur la pertinence de chaque usage devient un impératif éthique autant qu'écologique."
+              },
+              "difficulty": "C1",
+              "questions": [
+                {
+                  "id": "tcf1_ce_q11",
+                  "text": "Quelle est la part du numérique dans les émissions mondiales de GES ?",
+                  "options": ["4%.", "8%.", "14%.", "2%."],
+                  "correct_answer": "4%."
+                },
+                {
+                  "id": "tcf1_ce_q12",
+                  "text": "À quoi la consommation des data centers est-elle comparée ?",
+                  "options": ["À la consommation énergétique d'un pays comme l'Argentine.", "À celle de toute l'Europe.", "À celle du transport aérien.", "À celle de l'industrie automobile."],
+                  "correct_answer": "À la consommation énergétique d'un pays comme l'Argentine."
+                },
+                {
+                  "id": "tcf1_ce_q13",
+                  "text": "Selon le texte, la sobriété numérique est un impératif à la fois :",
+                  "options": ["Éthique et écologique.", "Économique et politique.", "Technologique et militaire.", "Artistique et philosophique."],
+                  "correct_answer": "Éthique et écologique."
+                },
+                {
+                  "id": "tcf1_ce_q14",
+                  "text": "Que signifie 'à l'aune de' dans ce contexte ?",
+                  "options": ["En fonction de, en considérant.", "Malgré.", "À l'exception de.", "Au-delà de."],
+                  "correct_answer": "En fonction de, en considérant."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "expression-ecrite",
+      "parts": [
+        {
+          "name": "3 tâches de difficulté croissante",
+          "level": "A1-C2",
+          "exercises": [
+            {
+              "type": "essay",
+              "content": {
+                "passage": "Tâche 1 (A1-A2) : Vous avez trouvé un portefeuille dans le bus. Vous écrivez un message au bureau des objets trouvés pour le signaler. Décrivez l'objet et indiquez quand et où vous l'avez trouvé. (40-60 mots)"
+              },
+              "difficulty": "A2",
+              "questions": [{ "id": "tcf1_ee_q1", "text": "Rédigez votre message.", "options": [], "correct_answer": "AI_EVALUATED" }]
+            },
+            {
+              "type": "essay",
+              "content": {
+                "passage": "Tâche 2 (B1-B2) : Vous êtes membre d'une association de quartier. Rédigez un article pour le journal local afin de présenter les activités organisées ce mois-ci et inciter les habitants à y participer. (~120 mots)"
+              },
+              "difficulty": "B1",
+              "questions": [{ "id": "tcf1_ee_q2", "text": "Rédigez votre article.", "options": [], "correct_answer": "AI_EVALUATED" }]
+            },
+            {
+              "type": "essay",
+              "content": {
+                "passage": "Tâche 3 (C1-C2) : « L'éducation devrait-elle être entièrement gratuite, de la maternelle au doctorat ? » Rédigez un texte argumentatif dans lequel vous analysez les enjeux économiques et sociaux de cette question. (~180 mots)"
+              },
+              "difficulty": "C1",
+              "questions": [{ "id": "tcf1_ee_q3", "text": "Rédigez votre texte argumentatif.", "options": [], "correct_answer": "AI_EVALUATED" }]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

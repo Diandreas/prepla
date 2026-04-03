@@ -1,0 +1,85 @@
+{
+  "exam": "tcf",
+  "mock_exam_name": "TCF Tout Public - Simulation 2",
+  "sections": [
+    {
+      "slug": "maitrise-structures",
+      "parts": [
+        {
+          "name": "Maîtrise des structures de la langue",
+          "level": "Mixed",
+          "exercises": [
+            {
+              "type": "mcq",
+              "content": { "passage": "Structures A1-A2" },
+              "difficulty": "A1",
+              "questions": [
+                { "id": "tcf2_str_q1", "text": "Complétez : 'Elle ___ une robe bleue.'", "options": ["porte", "portes", "porter", "portent"], "correct_answer": "porte" },
+                { "id": "tcf2_str_q2", "text": "Complétez : 'Nous ___ à la plage dimanche dernier.'", "options": ["sommes allés", "allons", "irons", "voulons"], "correct_answer": "sommes allés" },
+                { "id": "tcf2_str_q3", "text": "Choisissez : 'Je n'ai ___ de frères.'", "options": ["pas", "plus", "jamais", "rien"], "correct_answer": "pas" }
+              ]
+            },
+            {
+              "type": "mcq",
+              "content": { "passage": "Structures B1" },
+              "difficulty": "B1",
+              "questions": [
+                { "id": "tcf2_str_q4", "text": "Complétez : 'Pendant que je ___, il a commencé à pleuvoir.'", "options": ["dormais", "dors", "dormirai", "ai dormi"], "correct_answer": "dormais" },
+                { "id": "tcf2_str_q5", "text": "Choisissez : 'Le livre ___ tu m'as prêté est passionnant.'", "options": ["que", "qui", "dont", "où"], "correct_answer": "que" },
+                { "id": "tcf2_str_q6", "text": "Complétez : 'Elle viendra ___ qu'elle aura fini.'", "options": ["dès", "avant", "sans", "depuis"], "correct_answer": "dès" }
+              ]
+            },
+            {
+              "type": "mcq",
+              "content": { "passage": "Structures B2-C1" },
+              "difficulty": "B2",
+              "questions": [
+                { "id": "tcf2_str_q7", "text": "Complétez : 'Il n'y a personne ___ puisse résoudre ce problème.'", "options": ["qui", "que", "dont", "lequel"], "correct_answer": "qui" },
+                { "id": "tcf2_str_q8", "text": "Choisissez : 'Eût-il été prévenu, il ___ agi autrement.'", "options": ["eût", "aurait", "avait", "aura"], "correct_answer": "eût" },
+                { "id": "tcf2_str_q9", "text": "Complétez : 'Non seulement il est compétent, ___ il est aussi très créatif.'", "options": ["mais", "et", "or", "donc"], "correct_answer": "mais" }
+              ]
+            },
+            {
+              "type": "mcq",
+              "content": { "passage": "Structures C1-C2" },
+              "difficulty": "C1",
+              "questions": [
+                { "id": "tcf2_str_q10", "text": "Complétez : 'Toute brillante qu'elle ___, elle manque d'expérience.'", "options": ["soit", "est", "sera", "fut"], "correct_answer": "soit" },
+                { "id": "tcf2_str_q11", "text": "Choisissez : 'Ce n'est pas tant qu'il manque de talent ___ qu'il manque de persévérance.'", "options": ["mais plutôt", "et aussi", "ni même", "sauf que"], "correct_answer": "mais plutôt" },
+                { "id": "tcf2_str_q12", "text": "Complétez : 'Quelque effort qu'il ___, il n'a pas réussi.'", "options": ["fît", "fait", "fera", "faisait"], "correct_answer": "fît" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "comprehension-ecrite",
+      "parts": [
+        {
+          "name": "CE — Textes variés",
+          "level": "Mixed",
+          "exercises": [
+            {
+              "type": "mcq",
+              "content": { "passage": "MARCHÉ AUX PUCES\nChaque premier dimanche du mois\nPlace de la Mairie, de 7h à 14h\nEntrée libre — Emplacement exposant : 10€\nContactez l'Office de Tourisme pour réserver." },
+              "difficulty": "A1",
+              "questions": [
+                { "id": "tcf2_ce_q1", "text": "Quand a lieu le marché aux puces ?", "options": ["Le premier dimanche du mois.", "Tous les dimanches.", "Le samedi.", "Chaque jour."], "correct_answer": "Le premier dimanche du mois." }
+              ]
+            },
+            {
+              "type": "mcq",
+              "content": { "passage": "Le « Service National Universel » (SNU), lancé en 2019, ambitionne de renforcer la cohésion nationale chez les jeunes de 15 à 17 ans. Ce programme comprend un séjour de cohésion de deux semaines dans un autre département, suivi d'une mission d'intérêt général de 84 heures. Présenté comme l'héritier du service militaire aboli en 1997, le SNU divise : ses défenseurs louent son rôle de brassage social, ses critiques dénoncent un coût exorbitant (1 500€ par jeune) pour un impact pédagogique incertain." },
+              "difficulty": "B2",
+              "questions": [
+                { "id": "tcf2_ce_q2", "text": "Combien coûte le SNU par jeune ?", "options": ["1 500€.", "2 000€.", "500€.", "Le texte ne le dit pas."], "correct_answer": "1 500€." },
+                { "id": "tcf2_ce_q3", "text": "Quel avantage ses défenseurs mettent-ils en avant ?", "options": ["Le brassage social.", "La préparation militaire.", "La réduction du chômage.", "L'apprentissage d'une langue."], "correct_answer": "Le brassage social." }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

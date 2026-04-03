@@ -1,0 +1,559 @@
+{
+  "exam": "tef",
+  "mock_exam_name": "TEF - Simulation Complète 1",
+  "sections": [
+    {
+      "slug": "comprehension-ecrite",
+      "parts": [
+        {
+          "name": "Section A - Documents courts",
+          "level": "A1-A2",
+          "exercises": [
+            {
+              "type": "mcq",
+              "content": {
+                "passage": "AVIS AUX LOCATAIRES\nEn raison de travaux de maintenance, l'eau chaude sera coupée le mardi 15 mars de 8h à 14h. Nous nous excusons pour la gêne occasionnée.\nLa Direction"
+              },
+              "difficulty": "A1",
+              "questions": [
+                {
+                  "id": "tef1_ce_a_q1",
+                  "text": "Que va-t-il se passer le 15 mars ?",
+                  "options": ["L'eau chaude sera indisponible pendant quelques heures.", "L'immeuble sera fermé pour travaux.", "Les loyers vont augmenter.", "Les locataires doivent quitter l'immeuble."],
+                  "correct_answer": "L'eau chaude sera indisponible pendant quelques heures."
+                },
+                {
+                  "id": "tef1_ce_a_q2",
+                  "text": "Qui a écrit cet avis ?",
+                  "options": ["La direction de l'immeuble.", "Un locataire.", "La mairie.", "Un plombier."],
+                  "correct_answer": "La direction de l'immeuble."
+                }
+              ]
+            },
+            {
+              "type": "mcq",
+              "content": {
+                "passage": "SOLDES D'HIVER — Du 10 au 28 janvier\nJusqu'à -50% sur une sélection d'articles.\nOuvert du lundi au samedi, de 9h30 à 19h. Fermé le dimanche.\nMagasin Élégance, 14 rue du Commerce, Lyon."
+              },
+              "difficulty": "A1",
+              "questions": [
+                {
+                  "id": "tef1_ce_a_q3",
+                  "text": "Combien de temps durent les soldes ?",
+                  "options": ["Environ trois semaines.", "Un mois.", "Une semaine.", "Deux jours."],
+                  "correct_answer": "Environ trois semaines."
+                },
+                {
+                  "id": "tef1_ce_a_q4",
+                  "text": "Quand le magasin est-il fermé ?",
+                  "options": ["Le dimanche.", "Le lundi.", "Le samedi.", "Tous les jours après 17h."],
+                  "correct_answer": "Le dimanche."
+                }
+              ]
+            },
+            {
+              "type": "mcq",
+              "content": {
+                "passage": "Cher client,\nVotre colis n° 4589 a été livré à votre gardien le 3 février à 10h12. Si vous n'avez pas de gardien, le colis est disponible au bureau de poste le plus proche pendant 15 jours.\nCordialement, La Poste"
+              },
+              "difficulty": "A2",
+              "questions": [
+                {
+                  "id": "tef1_ce_a_q5",
+                  "text": "Où se trouve le colis ?",
+                  "options": ["Chez le gardien de l'immeuble.", "Au bureau de poste.", "Devant la porte.", "Au magasin."],
+                  "correct_answer": "Chez le gardien de l'immeuble."
+                },
+                {
+                  "id": "tef1_ce_a_q6",
+                  "text": "Pendant combien de temps peut-on récupérer un colis au bureau de poste ?",
+                  "options": ["15 jours.", "7 jours.", "30 jours.", "3 jours."],
+                  "correct_answer": "15 jours."
+                }
+              ]
+            },
+            {
+              "type": "mcq",
+              "content": {
+                "passage": "MENU DU JOUR — Restaurant Le Bouillon\nEntrée : Soupe à l'oignon ou Salade composée\nPlat : Poulet rôti avec frites ou Filet de saumon avec riz\nDessert : Tarte aux pommes ou Crème brûlée\nFormule complète : 14,50€ — Plat + Dessert : 11€"
+              },
+              "difficulty": "A1",
+              "questions": [
+                {
+                  "id": "tef1_ce_a_q7",
+                  "text": "Combien coûte la formule complète ?",
+                  "options": ["14,50€.", "11€.", "20€.", "Le prix n'est pas indiqué."],
+                  "correct_answer": "14,50€."
+                },
+                {
+                  "id": "tef1_ce_a_q8",
+                  "text": "Combien de choix de plats sont proposés ?",
+                  "options": ["Deux.", "Trois.", "Un seul.", "Quatre."],
+                  "correct_answer": "Deux."
+                }
+              ]
+            },
+            {
+              "type": "mcq",
+              "content": {
+                "passage": "Bonjour Mme Dupont,\nJe vous confirme votre rendez-vous chez le Dr Martin le jeudi 22 avril à 15h30. Merci d'apporter votre carte vitale et une pièce d'identité. En cas d'empêchement, veuillez nous prévenir 48 heures à l'avance.\nSecrétariat médical"
+              },
+              "difficulty": "A2",
+              "questions": [
+                {
+                  "id": "tef1_ce_a_q9",
+                  "text": "Que doit apporter Mme Dupont ?",
+                  "options": ["Sa carte vitale et une pièce d'identité.", "Son ordonnance.", "Un chèque de paiement.", "Son carnet de santé."],
+                  "correct_answer": "Sa carte vitale et une pièce d'identité."
+                },
+                {
+                  "id": "tef1_ce_a_q10",
+                  "text": "Que doit-elle faire si elle ne peut pas venir ?",
+                  "options": ["Prévenir au moins 48 heures avant.", "Envoyer quelqu'un à sa place.", "Payer des frais d'annulation.", "Rien, elle peut juste ne pas venir."],
+                  "correct_answer": "Prévenir au moins 48 heures avant."
+                }
+              ]
+            },
+            {
+              "type": "mcq",
+              "content": {
+                "passage": "BIBLIOTHÈQUE MUNICIPALE — Horaires d'été (juillet-août)\nLundi : Fermé\nMardi-Vendredi : 10h-18h\nSamedi : 9h-13h\nInscription gratuite sur présentation d'un justificatif de domicile."
+              },
+              "difficulty": "A1",
+              "questions": [
+                {
+                  "id": "tef1_ce_a_q11",
+                  "text": "Quel jour la bibliothèque est-elle fermée en été ?",
+                  "options": ["Le lundi.", "Le dimanche.", "Le samedi.", "Le vendredi."],
+                  "correct_answer": "Le lundi."
+                },
+                {
+                  "id": "tef1_ce_a_q12",
+                  "text": "L'inscription est-elle payante ?",
+                  "options": ["Non, elle est gratuite.", "Oui, elle coûte 10€.", "Oui, mais seulement pour les étudiants.", "Le document ne le précise pas."],
+                  "correct_answer": "Non, elle est gratuite."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Section B - Textes informatifs",
+          "level": "A2-B1",
+          "exercises": [
+            {
+              "type": "mcq",
+              "content": {
+                "passage": "Le covoiturage connaît un succès grandissant en France. Selon une étude de l'ADEME, plus de 3 millions de Français utilisent régulièrement des plateformes de covoiturage pour leurs trajets quotidiens. Cette pratique permet de réduire les frais de transport de 40% en moyenne et contribue à diminuer les émissions de CO2. Cependant, certains usagers regrettent le manque de flexibilité horaire et la dépendance à un conducteur."
+              },
+              "difficulty": "B1",
+              "questions": [
+                {
+                  "id": "tef1_ce_b_q1",
+                  "text": "Selon le texte, quel est le principal avantage financier du covoiturage ?",
+                  "options": ["Il réduit les frais de transport de 40% en moyenne.", "Il est entièrement gratuit.", "Il coûte moins cher que le bus.", "Il permet d'obtenir des subventions de l'État."],
+                  "correct_answer": "Il réduit les frais de transport de 40% en moyenne."
+                },
+                {
+                  "id": "tef1_ce_b_q2",
+                  "text": "Quel inconvénient est mentionné dans le texte ?",
+                  "options": ["Le manque de flexibilité horaire.", "Le prix trop élevé.", "Le danger sur la route.", "L'absence de plateformes numériques."],
+                  "correct_answer": "Le manque de flexibilité horaire."
+                }
+              ]
+            },
+            {
+              "type": "mcq",
+              "content": {
+                "passage": "Les jardins partagés se multiplient dans les villes françaises. Ces espaces collectifs permettent aux citadins de cultiver fruits et légumes tout en créant du lien social. La mairie de Bordeaux a inauguré 15 nouveaux jardins partagés cette année, portant le total à 87. Chaque parcelle de 10 m² est attribuée pour deux ans renouvelables, moyennant une cotisation annuelle de 20 euros."
+              },
+              "difficulty": "B1",
+              "questions": [
+                {
+                  "id": "tef1_ce_b_q3",
+                  "text": "Combien de jardins partagés y a-t-il au total à Bordeaux ?",
+                  "options": ["87.", "15.", "72.", "102."],
+                  "correct_answer": "87."
+                },
+                {
+                  "id": "tef1_ce_b_q4",
+                  "text": "Pour combien de temps une parcelle est-elle attribuée ?",
+                  "options": ["Deux ans renouvelables.", "Un an.", "Cinq ans.", "Indéfiniment."],
+                  "correct_answer": "Deux ans renouvelables."
+                },
+                {
+                  "id": "tef1_ce_b_q5",
+                  "text": "Quel double avantage les jardins partagés offrent-ils ?",
+                  "options": ["Cultiver des aliments et créer du lien social.", "Faire du sport et se divertir.", "Gagner de l'argent et se nourrir.", "Apprendre un métier et voyager."],
+                  "correct_answer": "Cultiver des aliments et créer du lien social."
+                }
+              ]
+            },
+            {
+              "type": "mcq",
+              "content": {
+                "passage": "Le télétravail s'est imposé comme une nouvelle norme dans de nombreuses entreprises françaises. D'après un sondage réalisé par l'INSEE en 2024, 35% des salariés du secteur tertiaire travaillent à domicile au moins deux jours par semaine. Si les entreprises y voient une réduction des coûts immobiliers, les syndicats alertent sur les risques psychosociaux : isolement, surcharge de travail et difficulté à séparer vie professionnelle et personnelle."
+              },
+              "difficulty": "B1",
+              "questions": [
+                {
+                  "id": "tef1_ce_b_q6",
+                  "text": "Quel pourcentage de salariés du tertiaire font du télétravail régulièrement ?",
+                  "options": ["35%.", "50%.", "25%.", "10%."],
+                  "correct_answer": "35%."
+                },
+                {
+                  "id": "tef1_ce_b_q7",
+                  "text": "Qu'est-ce que les syndicats reprochent au télétravail ?",
+                  "options": ["Les risques d'isolement et de surcharge.", "Le manque de matériel informatique.", "La baisse des salaires.", "La suppression des congés."],
+                  "correct_answer": "Les risques d'isolement et de surcharge."
+                },
+                {
+                  "id": "tef1_ce_b_q8",
+                  "text": "Pourquoi les entreprises sont-elles favorables au télétravail ?",
+                  "options": ["Pour réduire les coûts immobiliers.", "Pour augmenter les salaires.", "Pour embaucher plus de monde.", "Pour respecter une obligation légale."],
+                  "correct_answer": "Pour réduire les coûts immobiliers."
+                }
+              ]
+            },
+            {
+              "type": "mcq",
+              "content": {
+                "passage": "La ville de Strasbourg a été élue « capitale du vélo » en France pour la troisième année consécutive. Avec plus de 600 kilomètres de pistes cyclables, elle devance largement Nantes et Grenoble. La municipalité a investi 25 millions d'euros dans de nouvelles infrastructures et a instauré une prime de 400 euros pour l'achat d'un vélo électrique. Résultat : la part modale du vélo est passée de 8% à 16% en cinq ans."
+              },
+              "difficulty": "B1",
+              "questions": [
+                {
+                  "id": "tef1_ce_b_q9",
+                  "text": "Combien de kilomètres de pistes cyclables Strasbourg possède-t-elle ?",
+                  "options": ["Plus de 600 km.", "300 km.", "1000 km.", "Le texte ne le précise pas."],
+                  "correct_answer": "Plus de 600 km."
+                },
+                {
+                  "id": "tef1_ce_b_q10",
+                  "text": "Comment la part du vélo a-t-elle évolué en cinq ans ?",
+                  "options": ["Elle a doublé, passant de 8% à 16%.", "Elle a triplé.", "Elle a légèrement augmenté.", "Elle est restée stable."],
+                  "correct_answer": "Elle a doublé, passant de 8% à 16%."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Section C - Textes argumentatifs",
+          "level": "B2-C1",
+          "exercises": [
+            {
+              "type": "mcq",
+              "content": {
+                "passage": "L'intelligence artificielle dans l'éducation suscite des débats passionnés. Ses partisans avancent qu'elle permet une personnalisation sans précédent de l'apprentissage : chaque élève peut progresser à son rythme grâce à des algorithmes adaptatifs. Les détracteurs, quant à eux, dénoncent une déshumanisation de l'enseignement et le risque de créer une dépendance technologique chez les jeunes. Le rapport du Conseil supérieur de l'éducation recommande une approche hybride, où l'IA complète le travail de l'enseignant sans le remplacer."
+              },
+              "difficulty": "B2",
+              "questions": [
+                {
+                  "id": "tef1_ce_c_q1",
+                  "text": "Quelle est la position du Conseil supérieur de l'éducation ?",
+                  "options": ["Il recommande une approche hybride combinant IA et enseignant.", "Il rejette totalement l'utilisation de l'IA.", "Il veut remplacer les enseignants par l'IA.", "Il n'a pas encore pris de position officielle."],
+                  "correct_answer": "Il recommande une approche hybride combinant IA et enseignant."
+                },
+                {
+                  "id": "tef1_ce_c_q2",
+                  "text": "Quel argument avancent les partisans de l'IA dans l'éducation ?",
+                  "options": ["La personnalisation de l'apprentissage.", "La réduction des coûts scolaires.", "La suppression des devoirs.", "L'augmentation du nombre d'enseignants."],
+                  "correct_answer": "La personnalisation de l'apprentissage."
+                }
+              ]
+            },
+            {
+              "type": "mcq",
+              "content": {
+                "passage": "La question de la semaine de quatre jours divise la société française. Une expérimentation menée dans 250 entreprises a montré que la productivité augmentait de 12% lorsque les salariés travaillaient 32 heures sur quatre jours au lieu de 35 heures sur cinq. Toutefois, les secteurs de la santé et du commerce, dont les contraintes opérationnelles sont fortes, peinent à adapter ce modèle. Certains économistes estiment par ailleurs que la généralisation de cette mesure pourrait aggraver les inégalités entre cols blancs et cols bleus."
+              },
+              "difficulty": "B2",
+              "questions": [
+                {
+                  "id": "tef1_ce_c_q3",
+                  "text": "Quel résultat l'expérimentation a-t-elle montré ?",
+                  "options": ["Une hausse de la productivité de 12%.", "Une baisse de la rentabilité.", "Aucun changement significatif.", "Une augmentation de l'absentéisme."],
+                  "correct_answer": "Une hausse de la productivité de 12%."
+                },
+                {
+                  "id": "tef1_ce_c_q4",
+                  "text": "Pourquoi les secteurs de la santé et du commerce ont-ils du mal à adopter ce modèle ?",
+                  "options": ["À cause de leurs contraintes opérationnelles.", "Parce que les salariés refusent.", "Parce que c'est illégal dans ces secteurs.", "Parce que la productivité y baisserait."],
+                  "correct_answer": "À cause de leurs contraintes opérationnelles."
+                },
+                {
+                  "id": "tef1_ce_c_q5",
+                  "text": "Que craignent certains économistes ?",
+                  "options": ["Un creusement des inégalités entre travailleurs.", "Une fuite des entreprises à l'étranger.", "Un effondrement du système de retraite.", "Une augmentation du chômage."],
+                  "correct_answer": "Un creusement des inégalités entre travailleurs."
+                }
+              ]
+            },
+            {
+              "type": "mcq",
+              "content": {
+                "passage": "Le phénomène de gentrification dans les centres-villes français ne cesse de s'amplifier. À Paris, le prix moyen du mètre carré a atteint 10 500 euros, chassant progressivement les classes moyennes vers la périphérie. Ce processus a des conséquences ambivalentes : d'un côté, il revitalise des quartiers autrefois délaissés en attirant commerces et investissements ; de l'autre, il provoque une homogénéisation sociale et culturelle qui appauvrit la diversité urbaine. Les pouvoirs publics tentent de contrebalancer ces effets par des politiques de logement social, mais les résultats demeurent insuffisants face à la pression du marché."
+              },
+              "difficulty": "C1",
+              "questions": [
+                {
+                  "id": "tef1_ce_c_q6",
+                  "text": "Selon l'auteur, la gentrification a des effets :",
+                  "options": ["Ambivalents, à la fois positifs et négatifs.", "Exclusivement négatifs.", "Exclusivement positifs.", "Temporaires et sans importance."],
+                  "correct_answer": "Ambivalents, à la fois positifs et négatifs."
+                },
+                {
+                  "id": "tef1_ce_c_q7",
+                  "text": "Que signifie « homogénéisation sociale et culturelle » dans ce contexte ?",
+                  "options": ["La perte de diversité des habitants et des cultures dans un quartier.", "L'amélioration de la cohésion sociale.", "L'augmentation du nombre d'écoles.", "La construction de logements identiques."],
+                  "correct_answer": "La perte de diversité des habitants et des cultures dans un quartier."
+                },
+                {
+                  "id": "tef1_ce_c_q8",
+                  "text": "Pourquoi les politiques de logement social sont-elles jugées insuffisantes ?",
+                  "options": ["La pression du marché immobilier est trop forte.", "Les citoyens refusent le logement social.", "Le gouvernement a supprimé les aides.", "Les constructions sont de mauvaise qualité."],
+                  "correct_answer": "La pression du marché immobilier est trop forte."
+                }
+              ]
+            },
+            {
+              "type": "mcq",
+              "content": {
+                "passage": "La « fast fashion » est devenue l'un des symboles les plus controversés de la société de consommation. Chaque année, l'industrie textile produit 100 milliards de vêtements dans le monde, soit 14 pièces par habitant. Les conséquences écologiques sont désastreuses : pollution des eaux par les teintures chimiques, émissions massives de gaz à effet de serre et accumulation de déchets textiles dans les pays en développement. Face à cette urgence, un mouvement de « slow fashion » émerge, prônant des achats raisonnés, des matériaux durables et une production éthique. Néanmoins, cette alternative reste pour l'instant réservée aux consommateurs à pouvoir d'achat élevé."
+              },
+              "difficulty": "C1",
+              "questions": [
+                {
+                  "id": "tef1_ce_c_q9",
+                  "text": "Combien de vêtements sont produits par personne chaque année dans le monde ?",
+                  "options": ["14 pièces.", "100 pièces.", "50 pièces.", "7 pièces."],
+                  "correct_answer": "14 pièces."
+                },
+                {
+                  "id": "tef1_ce_c_q10",
+                  "text": "Quelle est la limite principale du mouvement « slow fashion » selon le texte ?",
+                  "options": ["Il est accessible principalement aux personnes aisées.", "Il n'existe pas de marques alternatives.", "Les consommateurs n'en ont jamais entendu parler.", "Il produit autant de pollution que la fast fashion."],
+                  "correct_answer": "Il est accessible principalement aux personnes aisées."
+                },
+                {
+                  "id": "tef1_ce_c_q11",
+                  "text": "Quel mot qualifie le mieux le ton de l'auteur ?",
+                  "options": ["Critique et alarmiste.", "Enthousiaste.", "Neutre et indifférent.", "Humoristique."],
+                  "correct_answer": "Critique et alarmiste."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "lexique-structure",
+      "parts": [
+        {
+          "name": "Section A - Lexique",
+          "level": "A2-C1",
+          "exercises": [
+            {
+              "type": "mcq",
+              "content": { "passage": "Vocabulaire : synonymes, antonymes, sens contextuel." },
+              "difficulty": "A2",
+              "questions": [
+                {
+                  "id": "tef1_lex_a_q1",
+                  "text": "Quel est le synonyme de « content » ?",
+                  "options": ["Heureux", "Triste", "Fatigué", "Énervé"],
+                  "correct_answer": "Heureux"
+                },
+                {
+                  "id": "tef1_lex_a_q2",
+                  "text": "Quel est l'antonyme de « rapide » ?",
+                  "options": ["Lent", "Vite", "Pressé", "Agile"],
+                  "correct_answer": "Lent"
+                },
+                {
+                  "id": "tef1_lex_a_q3",
+                  "text": "Quel mot complète la phrase : 'Il a ___ un bon repas pour ses invités.' ?",
+                  "options": ["préparé", "présenté", "prescrit", "prévenu"],
+                  "correct_answer": "préparé"
+                },
+                {
+                  "id": "tef1_lex_a_q4",
+                  "text": "Dans la phrase 'Ce projet est très ambitieux', que signifie 'ambitieux' ?",
+                  "options": ["Qui vise haut, difficile à réaliser.", "Simple et facile.", "Ennuyeux.", "Court."],
+                  "correct_answer": "Qui vise haut, difficile à réaliser."
+                },
+                {
+                  "id": "tef1_lex_a_q5",
+                  "text": "Quel mot signifie 'rendre plus grand' ?",
+                  "options": ["Agrandir", "Amoindrir", "Aplatir", "Alourdir"],
+                  "correct_answer": "Agrandir"
+                }
+              ]
+            },
+            {
+              "type": "mcq",
+              "content": { "passage": "Vocabulaire avancé : registres de langue et nuances." },
+              "difficulty": "B2",
+              "questions": [
+                {
+                  "id": "tef1_lex_a_q6",
+                  "text": "'Il a pris ses cliques et ses claques.' Cela signifie :",
+                  "options": ["Il est parti brusquement.", "Il a fait ses valises soigneusement.", "Il a applaudi.", "Il a rangé ses affaires."],
+                  "correct_answer": "Il est parti brusquement."
+                },
+                {
+                  "id": "tef1_lex_a_q7",
+                  "text": "Quel est le sens du mot 'ubiquité' ?",
+                  "options": ["La capacité d'être présent partout à la fois.", "Une grande intelligence.", "Un sentiment de solitude.", "Une maladie rare."],
+                  "correct_answer": "La capacité d'être présent partout à la fois."
+                },
+                {
+                  "id": "tef1_lex_a_q8",
+                  "text": "Le mot 'épistolaire' se rapporte à :",
+                  "options": ["La correspondance écrite (lettres).", "La poésie.", "Le théâtre.", "La musique."],
+                  "correct_answer": "La correspondance écrite (lettres)."
+                },
+                {
+                  "id": "tef1_lex_a_q9",
+                  "text": "Que signifie 'procrastiner' ?",
+                  "options": ["Remettre à plus tard ce qu'on devrait faire.", "Travailler avec acharnement.", "Oublier un rendez-vous.", "Partir en vacances."],
+                  "correct_answer": "Remettre à plus tard ce qu'on devrait faire."
+                },
+                {
+                  "id": "tef1_lex_a_q10",
+                  "text": "Dans un registre soutenu, comment dit-on 'manger' ?",
+                  "options": ["Se sustenter", "Bouffer", "Grignoter", "Croquer"],
+                  "correct_answer": "Se sustenter"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Section B - Structure",
+          "level": "A2-C1",
+          "exercises": [
+            {
+              "type": "mcq",
+              "content": { "passage": "Grammaire : conjugaisons, accords, syntaxe, prépositions." },
+              "difficulty": "A2",
+              "questions": [
+                {
+                  "id": "tef1_str_b_q1",
+                  "text": "Complétez : 'Hier, nous ___ au cinéma.'",
+                  "options": ["sommes allés", "allons", "irons", "allions"],
+                  "correct_answer": "sommes allés"
+                },
+                {
+                  "id": "tef1_str_b_q2",
+                  "text": "Complétez : 'Elle habite ___ Paris ___ cinq ans.'",
+                  "options": ["à / depuis", "en / pour", "dans / il y a", "sur / pendant"],
+                  "correct_answer": "à / depuis"
+                },
+                {
+                  "id": "tef1_str_b_q3",
+                  "text": "Choisissez la forme correcte : 'Les fleurs que j'ai ___ sont magnifiques.'",
+                  "options": ["achetées", "acheté", "achetés", "acheter"],
+                  "correct_answer": "achetées"
+                },
+                {
+                  "id": "tef1_str_b_q4",
+                  "text": "Complétez : 'Si tu ___ le temps, viens me voir.'",
+                  "options": ["as", "auras", "avais", "aies"],
+                  "correct_answer": "as"
+                },
+                {
+                  "id": "tef1_str_b_q5",
+                  "text": "Quelle phrase est correcte ?",
+                  "options": ["C'est la maison dont je t'ai parlé.", "C'est la maison que je t'ai parlé.", "C'est la maison qui je t'ai parlé.", "C'est la maison où je t'ai parlé."],
+                  "correct_answer": "C'est la maison dont je t'ai parlé."
+                }
+              ]
+            },
+            {
+              "type": "mcq",
+              "content": { "passage": "Grammaire avancée : subjonctif, concordance, voix passive." },
+              "difficulty": "B2",
+              "questions": [
+                {
+                  "id": "tef1_str_b_q6",
+                  "text": "Complétez : 'Bien qu'il ___ fatigué, il a continué à travailler.'",
+                  "options": ["soit", "est", "était", "serait"],
+                  "correct_answer": "soit"
+                },
+                {
+                  "id": "tef1_str_b_q7",
+                  "text": "Mettez à la voix passive : 'Le professeur corrige les copies.'",
+                  "options": ["Les copies sont corrigées par le professeur.", "Les copies ont corrigé le professeur.", "Le professeur est corrigé par les copies.", "Les copies corrigent le professeur."],
+                  "correct_answer": "Les copies sont corrigées par le professeur."
+                },
+                {
+                  "id": "tef1_str_b_q8",
+                  "text": "Quel est le participe passé correct : 'Elles se sont ___ les mains.'",
+                  "options": ["lavé", "lavées", "lavés", "laver"],
+                  "correct_answer": "lavé"
+                },
+                {
+                  "id": "tef1_str_b_q9",
+                  "text": "Complétez : 'Il est possible que nous ___ en retard.'",
+                  "options": ["soyons", "sommes", "serons", "serions"],
+                  "correct_answer": "soyons"
+                },
+                {
+                  "id": "tef1_str_b_q10",
+                  "text": "Choisissez : 'C'est le livre ___ j'ai le plus apprécié cette année.'",
+                  "options": ["que", "qui", "dont", "où"],
+                  "correct_answer": "que"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "expression-ecrite",
+      "parts": [
+        {
+          "name": "Rédaction et Argumentation",
+          "level": "B1-C1",
+          "exercises": [
+            {
+              "type": "essay",
+              "content": {
+                "passage": "Tâche 1 : Vous venez d'emménager dans un nouveau quartier. Écrivez une lettre à un ami pour lui décrire votre nouveau logement et votre quartier. (~200 mots)"
+              },
+              "difficulty": "B1",
+              "questions": [
+                {
+                  "id": "tef1_ee_q1",
+                  "text": "Rédigez votre lettre.",
+                  "options": [],
+                  "correct_answer": "AI_EVALUATED"
+                }
+              ]
+            },
+            {
+              "type": "essay",
+              "content": {
+                "passage": "Tâche 2 : « Les réseaux sociaux ont-ils un impact positif ou négatif sur les relations humaines ? » Rédigez un texte argumentatif dans lequel vous exprimez votre point de vue en donnant des exemples précis. (~300 mots)"
+              },
+              "difficulty": "B2",
+              "questions": [
+                {
+                  "id": "tef1_ee_q2",
+                  "text": "Rédigez votre texte argumentatif.",
+                  "options": [],
+                  "correct_answer": "AI_EVALUATED"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

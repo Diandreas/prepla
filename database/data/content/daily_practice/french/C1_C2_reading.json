@@ -1,0 +1,38 @@
+{
+  "language": "french",
+  "level": "C1",
+  "topic": "Compréhension Avancée & Stylistique",
+  "exercises": [
+    {
+      "type": "mcq",
+      "content": {
+        "passage": "L’art oratoire, longtemps relégué au second plan par la prédominance de l'écrit, connaît aujourd'hui une résurgence spectaculaire. Il ne s'agit plus seulement de déclamer avec emphase, mais d'incarner une parole authentique, capable de tisser un lien indéfectible avec l'auditoire. La rhétorique contemporaine se dépouille de ses oripeaux grandiloquents pour privilégier la concision, percutant les esprits par des figures de style subtiles plutôt que par des litanies exhaustives."
+      },
+      "difficulty": "C1",
+      "questions": [
+        {
+          "id": "c1_read_q1",
+          "text": "Quel est le constat principal de l'auteur concernant l'art oratoire moderne ?",
+          "options": [
+            "Il est devenu de plus en plus théâtral et excessif.",
+            "Il a complètement remplacé l'expression écrite.",
+            "Il évolue vers une expression plus authentique et concise.",
+            "Il est en déclin à cause de la brièveté exigée par les médias."
+          ],
+          "correct_answer": "Il évolue vers une expression plus authentique et concise."
+        },
+        {
+          "id": "c1_read_q2",
+          "text": "Dans ce contexte, que signifie le mot 'oripeaux' ?",
+          "options": [
+            "Des arguments irréfutables",
+            "Des attributs trompeurs ou dépassés",
+            "Des qualités oratoires exceptionnelles",
+            "Des règles grammaticales strictes"
+          ],
+          "correct_answer": "Des attributs trompeurs ou dépassés"
+        }
+      ]
+    }
+  ]
+}

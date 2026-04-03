@@ -1,0 +1,61 @@
+{
+  "exam": "delf-dalf",
+  "mock_exam_name": "DELF B2 - Simulation 1",
+  "sections": [
+    {
+      "slug": "comprehension-ecrite",
+      "parts": [
+        {
+          "name": "Compréhension des écrits - Texte informatif",
+          "level": "B2",
+          "exercises": [
+            {
+              "type": "mcq",
+              "content": { "passage": "La France est le premier pays européen à avoir interdit la destruction des invendus non alimentaires. Depuis le 1er janvier 2022, les enseignes de mode, d'électronique et de cosmétiques sont tenues de donner ou de recycler leurs stocks invendus. Auparavant, des tonnes de vêtements neufs et d'appareils électroniques en parfait état étaient broyés ou envoyés en décharge pour préserver l'image de marque. Cette loi, unique au monde lors de son adoption, a inspiré des initiatives similaires en Belgique et aux Pays-Bas. Les associations caritatives comme Emmaüs ont vu leurs dons de produits neufs augmenter de 35% en un an." },
+              "difficulty": "B2",
+              "questions": [
+                { "id": "delf_b2_ce_q1", "text": "Que faisaient les enseignes avant cette loi ?", "options": ["Elles détruisaient les invendus pour préserver leur image.", "Elles les vendaient à l'étranger.", "Elles les donnaient systématiquement.", "Elles les stockaient indéfiniment."], "correct_answer": "Elles détruisaient les invendus pour préserver leur image." },
+                { "id": "delf_b2_ce_q2", "text": "Quel a été l'impact de la loi sur les associations ?", "options": ["Les dons de produits neufs ont augmenté de 35%.", "Elles ont perdu des financements.", "Elles ont dû fermer des centres.", "Aucun impact mesurable."], "correct_answer": "Les dons de produits neufs ont augmenté de 35%." },
+                { "id": "delf_b2_ce_q3", "text": "Quels pays se sont inspirés de la France ?", "options": ["La Belgique et les Pays-Bas.", "L'Allemagne et l'Italie.", "L'Espagne et le Portugal.", "Le Royaume-Uni et la Suisse."], "correct_answer": "La Belgique et les Pays-Bas." }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Compréhension des écrits - Texte argumentatif",
+          "level": "B2",
+          "exercises": [
+            {
+              "type": "mcq",
+              "content": { "passage": "Tribune — « L'école à la maison : liberté éducative ou repli social ? »\n\nL'instruction en famille (IEF), pratiquée par environ 62 000 enfants en France, fait l'objet d'un encadrement croissant. La loi « séparatisme » de 2021 impose désormais une autorisation préalable de l'académie, là où une simple déclaration suffisait. Les partisans de l'IEF y voient une atteinte à la liberté d'enseignement garantie par la Constitution. Ils avancent que des raisons légitimes — harcèlement scolaire, phobie scolaire, itinérance familiale — justifient ce choix. En face, les autorités rappellent que certaines familles usaient de l'IEF pour soustraire leurs enfants au socle commun de connaissances, voire pour des motifs d'endoctrinement. Le Conseil constitutionnel a validé cette restriction, estimant qu'elle poursuivait un but d'intérêt général." },
+              "difficulty": "B2",
+              "questions": [
+                { "id": "delf_b2_ce_q4", "text": "Qu'est-ce qui a changé avec la loi de 2021 ?", "options": ["Il faut désormais une autorisation au lieu d'une simple déclaration.", "L'IEF a été totalement interdite.", "Les frais de scolarité ont augmenté.", "Les parents doivent avoir un diplôme d'enseignement."], "correct_answer": "Il faut désormais une autorisation au lieu d'une simple déclaration." },
+                { "id": "delf_b2_ce_q5", "text": "Quelle raison légitime est citée pour l'IEF ?", "options": ["Le harcèlement scolaire.", "Le niveau insuffisant des enseignants.", "Le coût de la cantine.", "Les horaires inadaptés."], "correct_answer": "Le harcèlement scolaire." },
+                { "id": "delf_b2_ce_q6", "text": "Pourquoi les autorités ont-elles renforcé le contrôle ?", "options": ["Pour empêcher les dérives comme l'endoctrinement.", "Pour augmenter les effectifs scolaires.", "Pour économiser de l'argent public.", "Pour favoriser l'enseignement privé."], "correct_answer": "Pour empêcher les dérives comme l'endoctrinement." },
+                { "id": "delf_b2_ce_q7", "text": "Le Conseil constitutionnel a-t-il approuvé la restriction ?", "options": ["Oui, il l'a jugée d'intérêt général.", "Non, il l'a rejetée.", "Il ne s'est pas prononcé.", "Il a demandé un référendum."], "correct_answer": "Oui, il l'a jugée d'intérêt général." }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "production-ecrite",
+      "parts": [
+        {
+          "name": "Prise de position argumentée",
+          "level": "B2",
+          "exercises": [
+            {
+              "type": "essay",
+              "content": { "passage": "Vous êtes membre du comité d'entreprise. Le directeur propose de supprimer la cantine au profit de chèques-repas. Vous écrivez au directeur pour le convaincre de maintenir la cantine, en développant des arguments structurés. (250 mots minimum)" },
+              "difficulty": "B2",
+              "questions": [{ "id": "delf_b2_pe_q1", "text": "Rédigez votre lettre argumentée.", "options": [], "correct_answer": "AI_EVALUATED" }]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

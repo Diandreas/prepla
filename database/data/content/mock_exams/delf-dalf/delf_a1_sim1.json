@@ -1,0 +1,67 @@
+{
+  "exam": "delf-dalf",
+  "mock_exam_name": "DELF A1 - Simulation 1",
+  "sections": [
+    {
+      "slug": "comprehension-ecrite",
+      "parts": [
+        {
+          "name": "Compréhension des écrits",
+          "level": "A1",
+          "exercises": [
+            {
+              "type": "mcq",
+              "content": { "passage": "PISCINE MUNICIPALE\nOuverte du lundi au samedi\nAdultes : 5€ / Enfants (-12 ans) : 3€\nBonnet de bain obligatoire" },
+              "difficulty": "A1",
+              "questions": [
+                { "id": "delf_a1_ce_q1", "text": "Combien coûte l'entrée pour un enfant de 8 ans ?", "options": ["3€", "5€", "8€", "Gratuit"], "correct_answer": "3€" },
+                { "id": "delf_a1_ce_q2", "text": "Que doit-on porter ?", "options": ["Un bonnet de bain.", "Des lunettes.", "Un maillot spécial.", "Des chaussures."], "correct_answer": "Un bonnet de bain." }
+              ]
+            },
+            {
+              "type": "matching",
+              "content": { "passage": "Associez chaque panneau à sa signification :\n1. 🚫📱 Téléphone interdit\n2. 🅿️ Parking\n3. ⛔ Sens interdit\n4. 🏥 Hôpital" },
+              "difficulty": "A1",
+              "questions": [
+                { "id": "delf_a1_ce_q3", "text": "Vous cherchez un hôpital. Quel panneau suivez-vous ?", "options": ["🏥", "🅿️", "🚫📱", "⛔"], "correct_answer": "🏥" },
+                { "id": "delf_a1_ce_q4", "text": "Vous ne pouvez pas utiliser votre téléphone. Quel panneau voyez-vous ?", "options": ["🚫📱", "⛔", "🅿️", "🏥"], "correct_answer": "🚫📱" }
+              ]
+            },
+            {
+              "type": "mcq",
+              "content": { "passage": "Salut Lucas !\nOn se retrouve dimanche à 14h au parc pour jouer au football ? Apporte un ballon si tu peux. \nÀ bientôt,\nThomas" },
+              "difficulty": "A1",
+              "questions": [
+                { "id": "delf_a1_ce_q5", "text": "Qu'est-ce que Thomas propose ?", "options": ["Jouer au football au parc.", "Aller au cinéma.", "Faire du vélo.", "Manger au restaurant."], "correct_answer": "Jouer au football au parc." },
+                { "id": "delf_a1_ce_q6", "text": "Quand se retrouvent-ils ?", "options": ["Dimanche à 14h.", "Samedi à 10h.", "Lundi à 18h.", "Mercredi à 15h."], "correct_answer": "Dimanche à 14h." }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "production-ecrite",
+      "parts": [
+        {
+          "name": "Production écrite A1",
+          "level": "A1",
+          "exercises": [
+            {
+              "type": "essay",
+              "content": { "passage": "Exercice 1 : Remplissez la fiche d'inscription pour un cours de français.\nNom : ___ Prénom : ___ Nationalité : ___ Âge : ___ Profession : ___ Adresse email : ___" },
+              "difficulty": "A1",
+              "questions": [{ "id": "delf_a1_pe_q1", "text": "Remplissez la fiche.", "options": [], "correct_answer": "AI_EVALUATED" }]
+            },
+            {
+              "type": "essay",
+              "content": { "passage": "Exercice 2 : Vous êtes en vacances. Écrivez une carte postale à un ami (40-50 mots). Dites où vous êtes, quel temps il fait, et ce que vous faites." },
+              "difficulty": "A1",
+              "questions": [{ "id": "delf_a1_pe_q2", "text": "Écrivez votre carte postale.", "options": [], "correct_answer": "AI_EVALUATED" }]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

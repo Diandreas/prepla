@@ -1,0 +1,61 @@
+{
+  "exam": "delf-dalf",
+  "mock_exam_name": "DELF A2 - Simulation 1",
+  "sections": [
+    {
+      "slug": "comprehension-ecrite",
+      "parts": [
+        {
+          "name": "Compréhension des écrits",
+          "level": "A2",
+          "exercises": [
+            {
+              "type": "mcq",
+              "content": { "passage": "De : reservation@hotelbellevue.fr\nObjet : Confirmation de réservation\n\nBonjour Monsieur Martin,\nNous confirmons votre réservation pour :\n- Chambre double avec petit-déjeuner\n- Du 12 au 15 août (3 nuits)\n- Total : 285€\n\nArrivée à partir de 14h, départ avant 11h.\nCordialement, Hôtel Bellevue" },
+              "difficulty": "A2",
+              "questions": [
+                { "id": "delf_a2_ce_q1", "text": "Combien de nuits M. Martin a-t-il réservé ?", "options": ["3 nuits.", "2 nuits.", "4 nuits.", "1 nuit."], "correct_answer": "3 nuits." },
+                { "id": "delf_a2_ce_q2", "text": "Le petit-déjeuner est-il inclus ?", "options": ["Oui.", "Non.", "En supplément.", "Le texte ne le dit pas."], "correct_answer": "Oui." },
+                { "id": "delf_a2_ce_q3", "text": "À quelle heure doit-il quitter la chambre ?", "options": ["Avant 11h.", "Avant 14h.", "Avant midi.", "À 10h."], "correct_answer": "Avant 11h." }
+              ]
+            },
+            {
+              "type": "true-false",
+              "content": { "passage": "Margaux a 25 ans. Elle habite à Toulouse et travaille comme infirmière dans un hôpital. Elle travaille souvent la nuit et le week-end. Pendant ses jours de repos, elle aime faire du vélo le long du canal du Midi et cuisiner des plats végétariens. Elle partage un appartement avec sa sœur jumelle, qui est professeur de mathématiques." },
+              "difficulty": "A2",
+              "questions": [
+                { "id": "delf_a2_ce_q4", "text": "Margaux travaille dans une école.", "options": ["Vrai", "Faux"], "correct_answer": "Faux" },
+                { "id": "delf_a2_ce_q5", "text": "Elle habite seule.", "options": ["Vrai", "Faux"], "correct_answer": "Faux" },
+                { "id": "delf_a2_ce_q6", "text": "Elle fait du vélo pendant ses jours de repos.", "options": ["Vrai", "Faux"], "correct_answer": "Vrai" },
+                { "id": "delf_a2_ce_q7", "text": "Sa sœur est également infirmière.", "options": ["Vrai", "Faux"], "correct_answer": "Faux" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "production-ecrite",
+      "parts": [
+        {
+          "name": "Production écrite A2",
+          "level": "A2",
+          "exercises": [
+            {
+              "type": "essay",
+              "content": { "passage": "Exercice 1 : Vous avez passé un week-end chez un ami. Écrivez-lui un message pour le remercier et raconter votre moment préféré. (60-80 mots)" },
+              "difficulty": "A2",
+              "questions": [{ "id": "delf_a2_pe_q1", "text": "Écrivez votre message.", "options": [], "correct_answer": "AI_EVALUATED" }]
+            },
+            {
+              "type": "essay",
+              "content": { "passage": "Exercice 2 : Vous voulez vous inscrire à un club de sport. Écrivez un email au responsable pour demander des informations : horaires, tarifs, équipement nécessaire. (60-80 mots)" },
+              "difficulty": "A2",
+              "questions": [{ "id": "delf_a2_pe_q2", "text": "Écrivez votre email.", "options": [], "correct_answer": "AI_EVALUATED" }]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

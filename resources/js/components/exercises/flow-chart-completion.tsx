@@ -14,7 +14,8 @@ interface FlowChartCompletionProps {
 export function FlowChartCompletion({ question, onAnswer, selectedAnswer, disabled }: FlowChartCompletionProps) {
     const [values, setValues] = useState<Record<string, string>>(selectedAnswer ?? {});
 
-    const blankIndices = question.steps
+    const steps = question.steps || [];
+    const blankIndices = steps
         .map((s, i) => (s.blank ? String(i) : null))
         .filter(Boolean) as string[];
 
@@ -34,7 +35,7 @@ export function FlowChartCompletion({ question, onAnswer, selectedAnswer, disabl
             {question.title && <p className="text-lg font-bold">{question.title}</p>}
 
             <div className="flex flex-col items-center gap-0">
-                {question.steps.map((step, i) => (
+                {steps.map((step, i) => (
                     <div key={i} className="flex flex-col items-center">
                         {/* Arrow connector */}
                         {i > 0 && (
