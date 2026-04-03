@@ -13,6 +13,17 @@ use Inertia\Response;
 
 class ExerciseController extends Controller
 {
+    protected \App\Services\ExerciseScoringService $scoringService;
+    protected \App\Services\StreakService $streakService;
+
+    public function __construct(
+        \App\Services\ExerciseScoringService $scoringService,
+        \App\Services\StreakService $streakService
+    ) {
+        $this->scoringService = $scoringService;
+        $this->streakService = $streakService;
+    }
+
     public function submitSession(Request $request, LearningPathNode $node)
     {
         $user = auth()->user();
@@ -60,6 +71,11 @@ class ExerciseController extends Controller
         // 4. Mettre à jour le classement hebdomadaire
         $this->incrementLeaderboard($user->id, $xpEarned);
 
+        // 5. Mettre à jour la série (streak)
+        if ($user instanceof \App\Models\User) {
+            $this->streakService->recordActivity($user);
+        }
+
         return redirect()->route('dashboard')->with('success', "Session terminée ! +{$xpEarned} XP");
     }
 
@@ -74,16 +90,17 @@ class ExerciseController extends Controller
 
     public function submit(Request $request, Exercise $exercise)
     {
+        $user = auth()->user();
         $validated = $request->validate([
             'answers' => 'required|array',
             'time_spent' => 'required|integer|min:0',
         ]);
 
         // Score the exercise
-        $result = $this->scoreExercise($exercise, $validated['answers']);
+        $result = $this->scoringService->score($exercise, $validated['answers']);
 
         $attempt = UserExerciseAttempt::create([
-            'user_id' => auth()->id(),
+            'user_id' => $user->id,
             'exercise_id' => $exercise->id,
             'answers' => $validated['answers'],
             'score' => $result['score'],
@@ -94,19 +111,19 @@ class ExerciseController extends Controller
         ]);
 
         // Update user XP
-        $profile = auth()->user()->profile;
-        if ($profile) {
-            $profile->increment('xp_total', $result['xp']);
+        if ($user instanceof \App\Models\User && $user->profile) {
+            $user->profile->increment('xp_total', $result['xp']);
+            $this->streakService->recordActivity($user);
         }
 
         // Mettre à jour le classement hebdomadaire
-        $this->incrementLeaderboard(auth()->id(), $result['xp']);
+        $this->incrementLeaderboard($user->id, $result['xp']);
 
         // Update node progress if this exercise came from a node
         $nodeCompleted = false;
         $nodeId = session('current_node_id');
         if ($nodeId) {
-            $userId = auth()->id();
+            $userId = $user->id;
             $progress = UserLearningProgress::where('user_id', $userId)
                 ->where('node_id', $nodeId)
                 ->whereIn('status', ['in_progress', 'available'])
@@ -178,169 +195,24 @@ class ExerciseController extends Controller
         ]);
     }
 
-    private function scoreExercise(Exercise $exercise, array $answers): array
+
+    public function explainMistake(Request $request)
     {
-        $questions = $exercise->questions;
-        $correct = 0;
-        $total = count($questions);
-        $feedback = [];
+        $validated = $request->validate([
+            'prompt' => 'required|string',
+            'user_answer' => 'required|string',
+            'correct_answer' => 'required|string',
+            'language' => 'required|string',
+        ]);
 
-        foreach ($questions as $index => $question) {
-            $questionId = $question['id'] ?? (string)$index;
-            $userAnswer = $answers[$questionId] ?? null;
-            $correctAnswer = $question['correct_answer'] ?? null;
+        $explanation = $this->scoringService->explainMistake(
+            $validated['prompt'] ?? '',
+            $validated['user_answer'] ?? '',
+            $validated['correct_answer'] ?? '',
+            $validated['language'] ?? 'English'
+        );
 
-            // Essay/speaking/writing: no fixed correct answer — give base credit for any submission
-            $questionType = $question['type'] ?? '';
-            $noScoreTypes = ['essay', 'essay-editor', 'speaking', 'writing', 'short-writing', 'graph-description',
-                'academic-discussion', 'speaking-recorder', 'role-play', 'synthesis', 'integrated-task'];
-            
-            if (in_array($questionType, $noScoreTypes) || $correctAnswer === null) {
-                // If the user submitted nothing
-                if (empty($userAnswer)) {
-                    $feedback[] = [
-                        'question_id' => $questionId,
-                        'correct' => false,
-                        'correct_answer' => null,
-                        'explanation' => "Aucune réponse fournie.",
-                    ];
-                    continue;
-                }
-
-                // If it's a production type, evaluate dynamically using STT and Mistral
-                if (in_array($questionType, $noScoreTypes)) {
-                    $textToEvaluate = '';
-                    if ($userAnswer instanceof \Illuminate\Http\UploadedFile) {
-                        try {
-                            $textToEvaluate = app(\App\Services\AI\DeepgramSttService::class)->transcribe($userAnswer) ?? '';
-                        } catch (\Exception $e) {
-                            \Illuminate\Support\Facades\Log::error('Deepgram STT failed entirely: ' . $e->getMessage());
-                        }
-                    } else {
-                        $textToEvaluate = is_string($userAnswer) ? trim($userAnswer) : '';
-                    }
-
-                    if (empty($textToEvaluate)) {
-                        $feedback[] = [
-                            'question_id' => $questionId,
-                            'correct' => false,
-                            'correct_answer' => null,
-                            'explanation' => ($userAnswer instanceof \Illuminate\Http\UploadedFile) ? "L'audio n'a pas pu être retranscrit (vide ou muet)." : "Aucun texte détecté.",
-                        ];
-                        continue;
-                    }
-
-                    // Score it with Mistral
-                    $prompt = "Consigne: " . ($question['prompt'] ?? $question['writing_prompt'] ?? $question['text'] ?? "Répondre");
-                    
-                    // Note: If exam is not eager loaded, we default to French or English context.
-                    $lang = $exercise->exam?->language?->name ?? 'French';
-
-                    $aiResult = app(\App\Services\AI\MistralEvaluationService::class)->evaluate($prompt, $textToEvaluate, $lang);
-
-                    $isCorrect = (bool) $aiResult['isCorrect'];
-                    if ($isCorrect) $correct++;
-
-                    $explanation = $aiResult['feedback'];
-                    if ($userAnswer instanceof \Illuminate\Http\UploadedFile) {
-                        $explanation .= "\n\n*(Transcription audio : \"$textToEvaluate\")*";
-                    }
-
-                    $feedback[] = [
-                        'question_id' => $questionId,
-                        'correct' => $isCorrect,
-                        'correct_answer' => null,
-                        'partial_accuracy' => $aiResult['accuracy'],
-                        'explanation' => $explanation,
-                    ];
-                    continue;
-                }
-
-                // Generic fallback for broken questions with no correct answer
-                $isCorrect = is_string($userAnswer) ? !empty(trim($userAnswer)) : !empty($userAnswer);
-                $feedback[] = [
-                    'question_id' => $questionId,
-                    'correct' => $isCorrect,
-                    'correct_answer' => null,
-                    'explanation' => $question['prompt'] ?? $question['writing_prompt'] ?? null,
-                ];
-                if ($isCorrect) $correct++;
-                continue;
-            }
-
-            // Record-based answers (form-completion, table-completion, etc.)
-            // correct_answers is an object, userAnswer is also an object
-            $correctAnswers = $question['correct_answers'] ?? null;
-            if (is_array($correctAnswers) && is_array($userAnswer) && !array_is_list($correctAnswers)) {
-                $fieldCorrect = 0;
-                $fieldTotal = count($correctAnswers);
-                foreach ($correctAnswers as $key => $expected) {
-                    $given = $userAnswer[$key] ?? '';
-                    if (strtolower(trim((string)$given)) === strtolower(trim((string)$expected))) {
-                        $fieldCorrect++;
-                    }
-                }
-                $isCorrect = $fieldTotal > 0 && $fieldCorrect === $fieldTotal;
-                $partialAccuracy = $fieldTotal > 0 ? round(($fieldCorrect / $fieldTotal) * 100) : 0;
-                // Give partial credit: count as correct if >= 70% fields right
-                if ($partialAccuracy >= 70) $correct++;
-                $feedback[] = [
-                    'question_id' => $questionId,
-                    'correct' => $isCorrect,
-                    'correct_answer' => $correctAnswers,
-                    'partial_accuracy' => $partialAccuracy,
-                    'explanation' => $question['explanation'] ?? null,
-                ];
-                continue;
-            }
-
-            $isCorrect = false;
-            if (is_array($correctAnswer)) {
-                $isCorrect = is_array($userAnswer) && empty(array_diff($correctAnswer, $userAnswer)) && empty(array_diff($userAnswer, $correctAnswer));
-            } else {
-                $normalUser = strtolower(trim((string)$userAnswer));
-                $normalCorrect = strtolower(trim((string)$correctAnswer));
-                $isCorrect = $normalUser === $normalCorrect;
-
-                // If user answered a single letter (A-D) but correct_answer is full text,
-                // match by checking if the letter corresponds to the correct option index
-                if (!$isCorrect && preg_match('/^[a-d]$/', $normalUser) && strlen($normalCorrect) > 2) {
-                    $options = $question['options'] ?? [];
-                    $letterIndex = ord($normalUser) - ord('a');
-                    if (isset($options[$letterIndex])) {
-                        $isCorrect = strtolower(trim($options[$letterIndex])) === $normalCorrect;
-                    }
-                }
-
-                // Also handle reverse: correct_answer is a letter, user submitted full text
-                if (!$isCorrect && preg_match('/^[a-d]$/', $normalCorrect) && strlen($normalUser) > 2) {
-                    $options = $question['options'] ?? [];
-                    $letterIndex = ord($normalCorrect) - ord('a');
-                    if (isset($options[$letterIndex])) {
-                        $isCorrect = strtolower(trim($options[$letterIndex])) === $normalUser;
-                    }
-                }
-            }
-
-            if ($isCorrect) $correct++;
-
-            $feedback[] = [
-                'question_id' => $questionId,
-                'correct' => $isCorrect,
-                'correct_answer' => $correctAnswer,
-                'explanation' => $question['explanation'] ?? null,
-            ];
-        }
-
-        $accuracy = $total > 0 ? round(($correct / $total) * 100, 2) : 0;
-        $xp = (int) round(($accuracy / 100) * $exercise->xp_reward);
-
-        return [
-            'score' => $correct,
-            'accuracy' => $accuracy,
-            'xp' => $xp,
-            'feedback' => $feedback,
-        ];
+        return response()->json(['explanation' => $explanation]);
     }
 
     private function incrementLeaderboard(int $userId, int $xp): void

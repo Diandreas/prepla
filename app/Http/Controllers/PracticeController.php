@@ -15,6 +15,17 @@ use Inertia\Response;
 
 class PracticeController extends Controller
 {
+    protected \App\Services\ExerciseScoringService $scoringService;
+    protected \App\Services\StreakService $streakService;
+
+    public function __construct(
+        \App\Services\ExerciseScoringService $scoringService,
+        \App\Services\StreakService $streakService
+    ) {
+        $this->scoringService = $scoringService;
+        $this->streakService = $streakService;
+    }
+
     /**
      * Lance une session d'apprentissage pour un nœud spécifique (Le "Set de 3").
      */
@@ -169,15 +180,63 @@ class PracticeController extends Controller
         ]);
 
         $user = auth()->user();
+        $answers = $validated['answers'];
         
-        // Just grant some flat XP for completing a mock exam, e.g. 50 XP per exercise
-        $exerciseCount = count($validated['answers']);
-        $xpEarned = max(100, $exerciseCount * 25);
+        // Find the exercises for this exam that were part of the simulation
+        // (Either from a MockExam or picked randomly)
+        $exerciseIds = array_keys($answers); // This is not quite right because answers are question_id based
+        
+        // Actually, we should find exercises related to these questions
+        // But for simplicity, we can just look up the exercises that were likely served.
+        // Let's assume the user is submitting answers for a specific set of exercises.
+        
+        $totalXp = 0;
+        $totalAccuracy = 0;
+        $exerciseCount = 0;
 
-        if ($user->profile) {
-            $user->profile->increment('xp_total', $xpEarned);
+        // Better approach: Since we don't have a question table, the frontend should ideally tell us which exercises were done.
+        // For now, let's look at all exercises for this exam and check if any of their question IDs are in the answers.
+        $examExercises = \App\Models\Exercise::where('exam_id', $exam->id)
+            ->with(['exerciseType', 'exam.language'])
+            ->get();
+
+        foreach ($examExercises as $exercise) {
+            $exerciseAnswers = [];
+            $hasAnswers = false;
+            foreach ($exercise->questions as $index => $question) {
+                $qId = $question['id'] ?? (string)$index;
+                if (isset($answers[$qId])) {
+                    $exerciseAnswers[$qId] = $answers[$qId];
+                    $hasAnswers = true;
+                }
+            }
+
+            if ($hasAnswers) {
+                $result = $this->scoringService->score($exercise, $exerciseAnswers);
+                
+                \App\Models\UserExerciseAttempt::create([
+                    'user_id' => $user->id,
+                    'exercise_id' => $exercise->id,
+                    'answers' => $exerciseAnswers,
+                    'score' => $result['score'],
+                    'accuracy_percent' => $result['accuracy'],
+                    'time_spent' => 0, // Split time is hard to track perfectly here
+                    'xp_earned' => $result['xp'],
+                    'feedback' => $result['feedback'],
+                ]);
+
+                $totalXp += $result['xp'];
+                $totalAccuracy += $result['accuracy'];
+                $exerciseCount++;
+            }
         }
 
-        return redirect()->route('dashboard')->with('success', "Examen blanc terminé ! +{$xpEarned} XP");
+        if ($user->profile) {
+            $user->profile->increment('xp_total', $totalXp);
+        }
+
+        $avgAccuracy = $exerciseCount > 0 ? round($totalAccuracy / $exerciseCount) : 0;
+
+        return redirect()->route('dashboard')->with('success', "Examen blanc terminé ! Précision moyenne : {$avgAccuracy}% (+{$totalXp} XP)");
     }
 }

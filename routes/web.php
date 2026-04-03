@@ -45,10 +45,16 @@ Route::middleware(['auth'])->group(function () {
         Route::post('node/{node}/submit', [\App\Http\Controllers\ExerciseController::class, 'submitSession'])->name('exercise.submit_session');
         Route::get('exercise/result/{attempt}', [\App\Http\Controllers\ExerciseController::class, 'result'])->name('exercise.result');
 
-        // Dictionary API
-        Route::get('api/dictionary/{language}/{word}', [DictionaryController::class, 'lookup'])
-            ->name('dictionary.lookup')
-            ->where('word', '[^/]+');
+        // Dictionary
+        Route::prefix('dictionary')->name('dictionary.')->group(function () {
+            Route::get('/', [DictionaryController::class, 'index'])->name('index');
+            Route::post('/discover', [DictionaryController::class, 'discover'])->name('discover');
+            Route::get('/lookup/{language}/{word}', [DictionaryController::class, 'lookup'])->name('lookup');
+            Route::get('/review/{progress}', [DictionaryController::class, 'review'])->name('review');
+            Route::post('/review/{progress}/submit', [DictionaryController::class, 'submitReview'])->name('submit_review');
+        });
+
+        Route::post('api/ai/explain', [\App\Http\Controllers\ExerciseController::class, 'explainMistake'])->name('api.ai.explain');
 
         // TTS API
         Route::post('api/tts/speak', [\App\Http\Controllers\TtsController::class, 'speak'])->name('tts.speak');

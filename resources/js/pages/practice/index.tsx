@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Badge } from '@/components/ui/badge';
 function Icon({ name, size = 20, style }: { name: string; size?: number; style?: React.CSSProperties }) {
@@ -52,6 +52,31 @@ export default function PracticeIndex({ exams, targetExamId }: Props) {
                     <p className="mt-1 text-sm font-bold text-muted-foreground">
                         Choisissez un examen pour commencer vos exercices
                     </p>
+                </div>
+
+                {/* Dictionary Section */}
+                <div className="mb-10 p-6 rounded-[24px] bg-indigo-50 border-2 border-indigo-100 flex items-center justify-between gap-6 shadow-sm overflow-hidden relative group">
+                    <div className="absolute -top-4 -right-4 opacity-10 rotate-12 transition-transform group-hover:scale-110 duration-500">
+                        <CustomIcon name="book" className="h-28 w-28" />
+                    </div>
+                    <div className="flex-1 relative z-10">
+                        <h2 className="text-xl font-black text-indigo-900 mb-1 flex items-center gap-2">
+                             <CustomIcon name="book" className="h-6 w-6" />
+                             Mon Dictionnaire
+                        </h2>
+                        <p className="text-sm font-bold text-indigo-700/60 mb-5 tracking-tight max-w-[280px]">Réviser vos mots appris et découvrir du vocabulaire académique ciblé.</p>
+                        <div className="flex flex-wrap gap-2">
+                             <Link href={route('dictionary.index')} className="px-5 py-2.5 bg-white text-indigo-600 font-black rounded-xl text-[11px] uppercase shadow-sm border border-indigo-200/50 hover:bg-slate-50 transition-all">
+                                 Consulter
+                             </Link>
+                             <button 
+                                onClick={() => router.post(route('dictionary.discover'))}
+                                className="px-5 py-2.5 bg-indigo-600 text-white font-black rounded-xl text-[11px] uppercase shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all border-b-4 border-indigo-800 active:border-b-0 active:translate-y-[4px]"
+                             >
+                                 Découvrir (+5 XP)
+                             </button>
+                        </div>
+                    </div>
                 </div>
 
                 {Object.entries(examsByLanguage).map(([langName, langExams], gIdx) => (

@@ -207,6 +207,8 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
     const [timeSpent, setTimeSpent] = useState(0);
     const [timerKey, setTimerKey] = useState(0);
     const [timerSeconds, setTimerSeconds] = useState(0);
+    const [explanation, setExplanation] = useState<string | null>(null);
+    const [fetchingExplanation, setFetchingExplanation] = useState(false);
     const contentRef = useRef<HTMLDivElement>(null);
 
     const exercise = exercises[currentExerciseIndex];
@@ -246,6 +248,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
     const handleRetry = useCallback(() => {
         setIsChecked(false);
         setIsCorrect(null);
+        setExplanation(null);
         setAnswers(prev => {
             const next = { ...prev };
             if (question) delete next[question.id];
@@ -283,6 +286,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
     const nextStep = useCallback(() => {
         setIsChecked(false);
         setIsCorrect(null);
+        setExplanation(null);
 
         const isEndOfSession = currentExerciseIndex === exercises.length - 1 && currentQuestionIndex === questions.length - 1;
 
@@ -594,16 +598,46 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                                         {isCorrect ? t('exercise.correct') : t('exercise.incorrect')}
                                     </div>
                                     {!isCorrect && (
-                                        <button
-                                            style={{
-                                                background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-                                                fontSize: '0.8125rem', fontWeight: 500,
-                                                color: '#dc2626', textDecoration: 'underline', marginTop: 2,
-                                                fontFamily: 'inherit', opacity: 0.8,
-                                            }}
-                                        >
-                                            {t('exercise.why_incorrect')}
-                                        </button>
+                                        <div className="flex flex-col gap-2 mt-1">
+                                            <button
+                                                onClick={async () => {
+                                                    if (fetchingExplanation) return;
+                                                    setFetchingExplanation(true);
+                                                    try {
+                                                        const res = await fetch(route('api.ai.explain'), {
+                                                            method: 'POST',
+                                                            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content },
+                                                            body: JSON.stringify({
+                                                                prompt: question.prompt ?? question.text ?? '',
+                                                                user_answer: String(answers[question.id] ?? ''),
+                                                                correct_answer: String(question.correct_answer ?? question.correct ?? ''),
+                                                                language: node.exam.language.name
+                                                            })
+                                                        });
+                                                        const data = await res.json();
+                                                        setExplanation(data.explanation);
+                                                    } catch (e) {
+                                                        setExplanation("Désolé, l'IA ne peut pas expliquer cette erreur pour le moment.");
+                                                    } finally {
+                                                        setFetchingExplanation(false);
+                                                    }
+                                                }}
+                                                className="text-left text-[13px] font-bold text-red-600 hover:text-red-700 underline underline-offset-4 transition-all disabled:opacity-50"
+                                                disabled={fetchingExplanation}
+                                            >
+                                                {fetchingExplanation ? 'Analyse en cours...' : t('exercise.why_incorrect', 'Pourquoi est-ce faux ?')}
+                                            </button>
+
+                                            {explanation && (
+                                                <div className="mt-2 p-4 rounded-2xl bg-white/60 border border-red-100 text-[13px] leading-relaxed text-red-900 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+                                                    <div className="flex items-center gap-2 mb-2 font-black uppercase text-[10px] tracking-widest text-red-400">
+                                                        <Icon name="sparkles" size={12} />
+                                                        Explication IA
+                                                    </div>
+                                                    {explanation}
+                                                </div>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
                             </div>
