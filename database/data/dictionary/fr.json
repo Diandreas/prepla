@@ -1,0 +1,1402 @@
+[
+  {
+    "word": "préconiser",
+    "definition": "Recommander vivement une action ou une idée.",
+    "example": "Le rapport préconise une réduction immédiate des gaz à effet de serre.",
+    "translation": "to advocate, to recommend",
+    "skill_level": "C1"
+  },
+  {
+    "word": "occulter",
+    "definition": "Cacher, dissimuler ou rendre obscur.",
+    "example": "Le gouvernement a tenté d'occulter les aspects négatifs de la réforme.",
+    "translation": "to obscure, to hide",
+    "skill_level": "C1"
+  },
+  {
+    "word": "réfuter",
+    "definition": "Démontrer la fausseté d'une affirmation par des preuves.",
+    "example": "L'expert a réfuté les arguments avancés par l'opposition.",
+    "translation": "to refute",
+    "skill_level": "B2"
+  },
+  {
+    "word": "pallier",
+    "definition": "Remédier de manière provisoire ou incomplète.",
+    "example": "Cette mesure permet de pallier le manque de personnel à court terme.",
+    "translation": "to overcome, to compensate for",
+    "skill_level": "C1"
+  },
+  {
+    "word": "néanmoins",
+    "definition": "Indique une opposition ou une restriction ; cependant.",
+    "example": "L'investissement est risqué ; néanmoins, le potentiel de gain est élevé.",
+    "translation": "nevertheless",
+    "skill_level": "B2"
+  },
+  {
+    "word": "enjeu",
+    "definition": "Ce que l'on peut gagner ou perdre dans une action.",
+    "example": "La protection de la biodiversité est un enjeu majeur pour le siècle.",
+    "translation": "stake, issue",
+    "skill_level": "B2"
+  },
+  {
+    "word": "lacune",
+    "definition": "Manque ou insuffisance dans un ensemble.",
+    "example": "Le candidat présente quelques lacunes en économie internationale.",
+    "translation": "gap, shortcoming",
+    "skill_level": "B2"
+  },
+  {
+    "word": "paradoxe",
+    "definition": "Proposition qui va contre l'opinion commune ou la logique.",
+    "example": "Le paradoxe de cette situation est que plus on produit, plus on s'appauvrit.",
+    "translation": "paradox",
+    "skill_level": "B2"
+  },
+  {
+    "word": "incidence",
+    "definition": "Conséquence, effet ou influence d'une chose sur une autre.",
+    "example": "La baisse des taux d'intérêt aura une incidence sur la consommation.",
+    "translation": "impact, incidence",
+    "skill_level": "C1"
+  },
+  {
+    "word": "contrainte",
+    "definition": "Pression morale ou physique, ou règle limitant la liberté.",
+    "example": "Les entreprises doivent s'adapter aux contraintes environnementales.",
+    "translation": "constraint",
+    "skill_level": "B2"
+  },
+  {
+    "word": "pérenniser",
+    "definition": "Rendre durable ou définitif.",
+    "example": "L'objectif est de pérenniser les emplois créés durant l'été.",
+    "translation": "to perpetuate, to sustain",
+    "skill_level": "C1"
+  },
+  {
+    "word": "entériner",
+    "definition": "Rendre définitif ou valide officiellement.",
+    "example": "Le Parlement doit entériner cet accord avant la fin du mois.",
+    "translation": "to ratify, to validate",
+    "skill_level": "C1"
+  },
+  {
+    "word": "déplorer",
+    "definition": "Exprimer un vif regret ou un mécontentement.",
+    "example": "Nous déplorons le manque de transparence dans cette affaire.",
+    "translation": "to deplore",
+    "skill_level": "B2"
+  },
+  {
+    "word": "abroger",
+    "definition": "Annuler une loi ou un décret.",
+    "example": "La nouvelle loi a pour but d'abroger les dispositions obsolètes.",
+    "translation": "to repeal, to abrogate",
+    "skill_level": "C1"
+  },
+  {
+    "word": "altérer",
+    "definition": "Modifier en changeant la nature ou la qualité, souvent en mal.",
+    "example": "La pollution risque d'altérer la qualité de l'eau potable.",
+    "translation": "to alter, to damage",
+    "skill_level": "B2"
+  },
+  {
+    "word": "bafouer",
+    "definition": "Traiter avec mépris, ne pas respecter.",
+    "example": "Cette décision vient bafouer les droits fondamentaux des citoyens.",
+    "translation": "to flout, to scoff at",
+    "skill_level": "C1"
+  },
+  {
+    "word": "cibler",
+    "definition": "Déterminer précisément l'objectif d'une action.",
+    "example": "La campagne publicitaire doit cibler les jeunes adultes.",
+    "translation": "to target",
+    "skill_level": "B2"
+  },
+  {
+    "word": "conjuguer",
+    "definition": "Unir des éléments différents pour atteindre un but.",
+    "example": "Il faut conjuguer nos efforts pour réussir ce projet.",
+    "translation": "to combine, to join",
+    "skill_level": "B2"
+  },
+  {
+    "word": "déceler",
+    "definition": "Identifier quelque chose qui était caché ou peu visible.",
+    "example": "Les analyses ont permis de déceler des traces de métaux lourds.",
+    "translation": "to detect, to reveal",
+    "skill_level": "C1"
+  },
+  {
+    "word": "démentir",
+    "definition": "Affirmer qu'une information est fausse.",
+    "example": "La direction a tenu à démentir les rumeurs de faillite.",
+    "translation": "to deny, to refute",
+    "skill_level": "B2"
+  },
+  {
+    "word": "émaner",
+    "definition": "Provenir de quelqu'un ou de quelque chose comme de sa source.",
+    "example": "Cette décision semble émaner directement du ministère.",
+    "translation": "to emanate, to come from",
+    "skill_level": "C1"
+  },
+  {
+    "word": "éluder",
+    "definition": "Éviter de répondre ou de faire face à quelque chose.",
+    "example": "Le ministre a tenté d'éluder les questions sur le budget.",
+    "translation": "to elude, to evade",
+    "skill_level": "C1"
+  },
+  {
+    "word": "entraver",
+    "definition": "Gêner ou empêcher le développement de quelque chose.",
+    "example": "Le manque de financement risque d'entraver la recherche.",
+    "translation": "to hinder, to hamper",
+    "skill_level": "C1"
+  },
+  {
+    "word": "évincer",
+    "definition": "Écarter quelqu'un d'une position par la force ou la ruse.",
+    "example": "Il ha été évincé de son poste après le changement de direction.",
+    "translation": "to oust, to evict",
+    "skill_level": "C1"
+  },
+  {
+    "word": "exacerber",
+    "definition": "Rendre plus aigu ou plus violent.",
+    "example": "Cette mesure ne fera qu'exacerber les tensions sociales.",
+    "translation": "to exacerbate",
+    "skill_level": "C1"
+  },
+  {
+    "word": "habiliter",
+    "definition": "Donner le pouvoir ou le droit légal de faire quelque chose.",
+    "example": "Seul le préfet est habilité à signer ce document.",
+    "translation": "to authorize, to empower",
+    "skill_level": "C1"
+  },
+  {
+    "word": "heurter",
+    "definition": "Entrer en conflit avec des idées ou des sentiments.",
+    "example": "Ces propos peuvent heurter la sensibilité du public.",
+    "translation": "to clash with, to offend",
+    "skill_level": "B2"
+  },
+  {
+    "word": "instaurer",
+    "definition": "Établir ou mettre en place quelque chose de nouveau.",
+    "example": "Le gouvernement souhaite instaurer un revenu universel.",
+    "translation": "to establish, to set up",
+    "skill_level": "B2"
+  },
+  {
+    "word": "léser",
+    "definition": "Causer un tort ou un préjudice à quelqu'un.",
+    "example": "Cette réforme risque de léser les petits retraités.",
+    "translation": "to wrong, to prejudice",
+    "skill_level": "C1"
+  },
+  {
+    "word": "nier",
+    "definition": "Dire qu'une chose n'existe pas ou n'est pas vraie.",
+    "example": "On ne peut pas nier l'importance du numérique aujourd'hui.",
+    "translation": "to deny",
+    "skill_level": "B2"
+  },
+  {
+    "word": "octroyer",
+    "definition": "Accorder quelque chose comme une faveur ou un droit.",
+    "example": "La banque a accepté d'octroyer un prêt à taux réduit.",
+    "translation": "to grant",
+    "skill_level": "B2"
+  },
+  {
+    "word": "opérer",
+    "definition": "Effectuer une action ou un changement.",
+    "example": "L'entreprise doit opérer une transition vers le durable.",
+    "translation": "to operate, to carry out",
+    "skill_level": "B2"
+  },
+  {
+    "word": "parachever",
+    "definition": "Mener à son dernier degré de perfection.",
+    "example": "Ces derniers travaux viennent parachever la rénovation du palais.",
+    "translation": "to complete, to finalize",
+    "skill_level": "C1"
+  },
+  {
+    "word": "perturber",
+    "definition": "Troubler l'ordre ou le fonctionnement de quelque chose.",
+    "example": "La grève va perturber le trafic ferroviaire demain.",
+    "translation": "to disturb, to disrupt",
+    "skill_level": "B2"
+  },
+  {
+    "word": "plaider",
+    "definition": "Défendre une cause ou une idée par des arguments.",
+    "example": "L'avocat va plaider en faveur de la libération conditionnelle.",
+    "translation": "to plead, to advocate",
+    "skill_level": "B2"
+  },
+  {
+    "word": "ponctuer",
+    "definition": "Marquer des étapes ou interrompre par intervalles.",
+    "example": "Le discours était ponctué de longs applaudissements.",
+    "translation": "to punctuate, to interrupt",
+    "skill_level": "C1"
+  },
+  {
+    "word": "prélever",
+    "definition": "Prendre une partie d'un tout.",
+    "example": "L'État va prélever une taxe sur les transactions financières.",
+    "translation": "to deduct, to take a sample",
+    "skill_level": "B2"
+  },
+  {
+    "word": "prescrire",
+    "definition": "Ordonner ou recommander avec autorité.",
+    "example": "Le médecin doit prescrire un traitement adapté.",
+    "translation": "to prescribe",
+    "skill_level": "B2"
+  },
+  {
+    "word": "prétendre",
+    "definition": "Affirmer quelque chose sans forcément en avoir la preuve.",
+    "example": "Il prétend détenir la solution au problème.",
+    "translation": "to claim",
+    "skill_level": "B2"
+  },
+  {
+    "word": "prévaloir",
+    "definition": "Avoir l'avantage ou la supériorité sur quelque chose.",
+    "example": "Le bon sens doit prévaloir dans cette situation.",
+    "translation": "to prevail",
+    "skill_level": "C1"
+  },
+  {
+    "word": "prôner",
+    "definition": "Recommander vivement une doctrine ou une méthode.",
+    "example": "Cette association prône le dialogue entre les cultures.",
+    "translation": "to advocate, to extol",
+    "skill_level": "C1"
+  },
+  {
+    "word": "récuser",
+    "definition": "Refuser d'accepter quelqu'un ou quelque chose comme juge.",
+    "example": "L'accusé a décidé de récuser l'un des jurés.",
+    "translation": "to challenge, to recuse",
+    "skill_level": "C1"
+  },
+  {
+    "word": "redouter",
+    "definition": "Craindre vivement quelque chose.",
+    "example": "Les agriculteurs redoutent une période de sécheresse.",
+    "translation": "to dread, to fear",
+    "skill_level": "B2"
+  },
+  {
+    "word": "relayer",
+    "definition": "Prendre la suite de quelqu'un ou transmettre une info.",
+    "example": "Les médias ont largement relayé cet appel à la solidarité.",
+    "translation": "to relay, to take over",
+    "skill_level": "B2"
+  },
+  {
+    "word": "rémunérer",
+    "definition": "Payer quelqu'un pour un travail ou un service.",
+    "example": "Il est important de rémunérer les stagiaires équitablement.",
+    "translation": "to remunerate, to pay",
+    "skill_level": "B2"
+  },
+  {
+    "word": "répercuter",
+    "definition": "Transmettre un effet ou une variation à la suite.",
+    "example": "La hausse du pétrole va se répercuter sur le prix du transport.",
+    "translation": "to pass on, to impact",
+    "skill_level": "C1"
+  },
+  {
+    "word": "résilier",
+    "definition": "Mettre fin à un contrat de manière légale.",
+    "example": "Je souhaite résilier mon abonnement téléphonique.",
+    "translation": "to terminate, to cancel",
+    "skill_level": "B2"
+  },
+  {
+    "word": "susciter",
+    "definition": "Faire naître un sentiment, une idée ou une réaction.",
+    "example": "Cette découverte a suscité un grand enthousiasme.",
+    "translation": "to arouse, to spark",
+    "skill_level": "B2"
+  },
+  {
+    "word": "transgresser",
+    "definition": "Passer outre à une règle, une loi ou un ordre.",
+    "example": "Il a été sanctionné pour avoir transgressé le règlement.",
+    "translation": "to transgress, to break",
+    "skill_level": "C1"
+  },
+  {
+    "word": "vétuste",
+    "definition": "Qui est vieux et en mauvais état.",
+    "example": "L'école doit être fermée car les bâtiments sont trop vétustes.",
+    "translation": "dilapidated, old",
+    "skill_level": "C1"
+  },
+  {
+    "word": "zèle",
+    "definition": "Ardeur ou empressement excessif au service d'une cause.",
+    "example": "Le fonctionnaire a fait preuve d'un zèle remarquable.",
+    "translation": "zeal",
+    "skill_level": "C1"
+  },
+  {
+    "word": "usurpation",
+    "definition": "Action de s'approprier indûment un bien ou un titre.",
+    "example": "L'usurpation d'identité est un crime de plus en plus courant.",
+    "translation": "usurpation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "tergiverser",
+    "definition": "Éviter de prendre une décision en utilisant des délais.",
+    "example": "Il ne faut plus tergiverser, l'heure est à l'action.",
+    "translation": "to procrastinate, to waver",
+    "skill_level": "C1"
+  },
+  {
+    "word": "succinct",
+    "definition": "Exposé en peu de mots ; bref.",
+    "example": "Veuillez me donner un résumé succinct de la situation.",
+    "translation": "succinct, brief",
+    "skill_level": "B2"
+  },
+  {
+    "word": "réticence",
+    "definition": "Hésitation à dire ou à faire quelque chose.",
+    "example": "La direction a exprimé des réticences face au projet.",
+    "translation": "reluctance, hesitation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "quiproquo",
+    "definition": "Malentendu où l'on prend une chose pour une autre.",
+    "example": "Un simple quiproquo a causé cette dispute inutile.",
+    "translation": "misunderstanding",
+    "skill_level": "B2"
+  },
+  {
+    "word": "prérogative",
+    "definition": "Privilège exclusif attaché à une fonction ou un titre.",
+    "example": "La nomination des ministres est une prérogative du président.",
+    "translation": "prerogative",
+    "skill_level": "C1"
+  },
+  {
+    "word": "obscurantisme",
+    "definition": "Opposition à la diffusion de l'instruction et de la culture.",
+    "example": "Certains mouvements prônent un retour à l'obscurantisme.",
+    "translation": "obscurantism",
+    "skill_level": "C1"
+  },
+  {
+    "word": "notoriété",
+    "definition": "Fait d'être connu d'un large public.",
+    "example": "Sa notoriété a explosé après son dernier film.",
+    "translation": "notoriety, fame",
+    "skill_level": "B2"
+  },
+  {
+    "word": "mutation",
+    "definition": "Changement profond et durable.",
+    "example": "Le marché de l'emploi connaît une mutation sans précédent.",
+    "translation": "mutation, change",
+    "skill_level": "B2"
+  },
+  {
+    "word": "litige",
+    "definition": "Contestation donnant lieu à un procès ou un arbitrage.",
+    "example": "Le litige entre les deux entreprises a duré des années.",
+    "translation": "dispute, litigation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "jubilation",
+    "definition": "Joie vive et manifeste.",
+    "example": "On pouvait lire la jubilation sur son visage après sa victoire.",
+    "translation": "jubilation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "innocuité",
+    "definition": "Qualité de ce qui n'est pas toxique ou dangereux.",
+    "example": "Des tests sont nécessaires pour prouver l'innocuité du vaccin.",
+    "translation": "harmlessness",
+    "skill_level": "C1"
+  },
+  {
+    "word": "hégémonie",
+    "definition": "Suprématie d'un État ou d'une puissance sur les autres.",
+    "example": "L'hégémonie culturelle des États-Unis est indéniable.",
+    "translation": "hegemony",
+    "skill_level": "C1"
+  },
+  {
+    "word": "grief",
+    "definition": "Motif de plainte ou de reproche contre quelqu'un.",
+    "example": "L'employé a exposé ses griefs lors de l'entretien.",
+    "translation": "grievance",
+    "skill_level": "C1"
+  },
+  {
+    "word": "fustiger",
+    "definition": "Critiquer violemment quelqu'un ou quelque chose.",
+    "example": "L'éditorialiste vient fustiger la politique du gouvernement.",
+    "translation": "to castigate, to denounce",
+    "skill_level": "C1"
+  },
+  {
+    "word": "équivoque",
+    "definition": "Qui peut s'interpréter de plusieurs façons ; ambigu.",
+    "example": "Sa réponse était équivoque et laissait planer le doute.",
+    "translation": "ambiguous, equivocal",
+    "skill_level": "C1"
+  },
+  {
+    "word": "désuétude",
+    "definition": "État de ce qui n'est plus en usage.",
+    "example": "Ce règlement est tombé en désuétude depuis longtemps.",
+    "translation": "obsolescence, disuse",
+    "skill_level": "C1"
+  },
+  {
+    "word": "consensus",
+    "definition": "Accord entre plusieurs personnes sur un sujet donné.",
+    "example": "Il est difficile de trouver un consensus sur ce point.",
+    "translation": "consensus",
+    "skill_level": "B2"
+  },
+  {
+    "word": "belligérant",
+    "definition": "Qui est en état de guerre.",
+    "example": "Les deux pays belligérants ont signé un cessez-le-feu.",
+    "translation": "belligerent",
+    "skill_level": "C1"
+  },
+  {
+    "word": "aptitude",
+    "definition": "Capacité naturelle ou acquise à faire quelque chose.",
+    "example": "Il possède une aptitude exceptionnelle pour les langues.",
+    "translation": "aptitude",
+    "skill_level": "B2"
+  },
+  {
+    "word": "zénith",
+    "definition": "Point culminant de quelque chose.",
+    "example": "Sa carrière était à son zénith à la fin des années 90.",
+    "translation": "zenith, peak",
+    "skill_level": "C1"
+  },
+  {
+    "word": "ubiquité",
+    "definition": "Fait d'être présent partout à la fois.",
+    "example": "Internet nous donne une certaine forme d'ubiquité.",
+    "translation": "ubiquity",
+    "skill_level": "C1"
+  },
+  {
+    "word": "symptomatique",
+    "definition": "Qui constitue le symptôme d'une évolution plus large.",
+    "example": "Cette crise est symptomatique des problèmes structurels.",
+    "translation": "symptomatic",
+    "skill_level": "B2"
+  },
+  {
+    "word": "robustesse",
+    "definition": "Solidité et résistance physique ou technique.",
+    "example": "La robustesse de ce système a été prouvée par le temps.",
+    "translation": "robustness",
+    "skill_level": "B2"
+  },
+  {
+    "word": "quintessence",
+    "definition": "Ce qu'il y a de meilleur et de plus raffiné dans une chose.",
+    "example": "Ce livre est la quintessence de sa pensée philosophique.",
+    "translation": "quintessence",
+    "skill_level": "C1"
+  },
+  {
+    "word": "pénurie",
+    "definition": "Manque de ce qui est nécessaire.",
+    "example": "Le pays fait face à une grave pénurie d'essence.",
+    "translation": "shortage",
+    "skill_level": "B2"
+  },
+  {
+    "word": "ostracisme",
+    "definition": "Fait d'exclure quelqu'un d'un groupe ou d'une société.",
+    "example": "Il a été victime d'ostracisme après ses déclarations.",
+    "translation": "ostracism",
+    "skill_level": "C1"
+  },
+  {
+    "word": "notionnel",
+    "definition": "Qui relève de la notion ou du concept.",
+    "example": "C'est une approche notionnelle plutôt que pratique.",
+    "translation": "notional",
+    "skill_level": "C1"
+  },
+  {
+    "word": "judicieux",
+    "definition": "Qui a du bon sens et de la pertinence.",
+    "example": "Il a fait un choix judicieux pour ses investissements.",
+    "translation": "judicious, wise",
+    "skill_level": "B2"
+  },
+  {
+    "word": "impondérable",
+    "definition": "Élément imprévisible qui peut modifier une situation.",
+    "example": "Il faut toujours tenir compte des impondérables en voyage.",
+    "translation": "unforeseeable factor",
+    "skill_level": "C1"
+  },
+  {
+    "word": "hypothèse",
+    "definition": "Supposition admise comme base de raisonnement.",
+    "example": "L'hypothèse de départ s'est avérée exacte après tests.",
+    "translation": "hypothesis",
+    "skill_level": "B2"
+  },
+  {
+    "word": "éventualité",
+    "definition": "Possibilité que quelque chose se produise.",
+    "example": "Nous devons nous préparer à toute éventualité.",
+    "translation": "eventuality, possibility",
+    "skill_level": "B2"
+  },
+  {
+    "word": "divergence",
+    "definition": "Différence de vue ou d'opinion entre des personnes.",
+    "example": "Il y a une forte divergence d'opinion sur ce projet.",
+    "translation": "divergence",
+    "skill_level": "B2"
+  },
+  {
+    "word": "concomitant",
+    "definition": "Qui se produit en même temps qu'un autre fait.",
+    "example": "La crise économique est concomitante à la pandémie.",
+    "translation": "concomitant, simultaneous",
+    "skill_level": "C1"
+  },
+  {
+    "word": "abrupte",
+    "definition": "Qui est soudain et sans transition, ou très pentu.",
+    "example": "La fin de la conférence a été un peu abrupte.",
+    "translation": "abrupt, steep",
+    "skill_level": "B2"
+  },
+  {
+    "word": "abnégation",
+    "definition": "Sacrifice de soi-même, de son intérêt.",
+    "example": "Il s'occupe des malades avec une grande abnégation.",
+    "translation": "self-sacrifice",
+    "skill_level": "C1"
+  },
+  {
+    "word": "acrimonie",
+    "definition": "Humeur agressive qui s'exprime par des paroles aigres.",
+    "example": "Ils ont discuté avec beaucoup d'acrimonie.",
+    "translation": "acrimony, bitterness",
+    "skill_level": "C1"
+  },
+  {
+    "word": "adjurer",
+    "definition": "Supplier quelqu'un avec insistance.",
+    "example": "Je vous adjure de dire la vérité.",
+    "translation": "to adjure, to entreat",
+    "skill_level": "C1"
+  },
+  {
+    "word": "aléatoire",
+    "definition": "Qui dépend du hasard ; incertain.",
+    "example": "Le résultat de cette expérience reste aléatoire.",
+    "translation": "random, uncertain",
+    "skill_level": "B2"
+  },
+  {
+    "word": "altruisme",
+    "definition": "Disposition à s'intéresser et à se dévouer à autrui.",
+    "example": "Son altruisme est reconnu par toute la communauté.",
+    "translation": "altruism",
+    "skill_level": "B2"
+  },
+  {
+    "word": "ambiguïté",
+    "definition": "Caractère de ce qui présente deux ou plusieurs sens.",
+    "example": "Il faut lever toute ambiguïté dans ce contrat.",
+    "translation": "ambiguity",
+    "skill_level": "B2"
+  },
+  {
+    "word": "amendement",
+    "definition": "Modification proposée à un texte de loi.",
+    "example": "Le député a déposé un amendement sur le climat.",
+    "translation": "amendment",
+    "skill_level": "B2"
+  },
+  {
+    "word": "anachronisme",
+    "definition": "Erreur de chronologie consistant à placer un fait plus tôt.",
+    "example": "Ce film historique contient un anachronisme flagrant.",
+    "translation": "anachronism",
+    "skill_level": "C1"
+  },
+  {
+    "word": "analogie",
+    "definition": "Rapport de ressemblance entre deux objets différents.",
+    "example": "On peut faire une analogie entre le cerveau et l'ordinateur.",
+    "translation": "analogy",
+    "skill_level": "B2"
+  },
+  {
+    "word": "antagonisme",
+    "definition": "Opposition de deux forces, de deux principes.",
+    "example": "L'antagonisme entre ces deux pays est ancestral.",
+    "translation": "antagonism",
+    "skill_level": "C1"
+  },
+  {
+    "word": "apogée",
+    "definition": "Le point le plus élevé, le plus haut degré.",
+    "example": "L'Empire romain était à son apogée sous Trajan.",
+    "translation": "apogee, peak",
+    "skill_level": "C1"
+  },
+  {
+    "word": "appréhension",
+    "definition": "Crainte ou peur vague d'un danger futur.",
+    "example": "J'éprouve une certaine appréhension avant cet examen.",
+    "translation": "apprehension, dread",
+    "skill_level": "B2"
+  },
+  {
+    "word": "arbitraire",
+    "definition": "Qui dépend du seul bon plaisir d'un individu.",
+    "example": "C'est une décision arbitraire sans fondement légal.",
+    "translation": "arbitrary",
+    "skill_level": "C1"
+  },
+  {
+    "word": "ascendant",
+    "definition": "Influence dominante de quelqu'un sur un autre.",
+    "example": "Il a un certain ascendant sur ses collègues.",
+    "translation": "ascendant, influence",
+    "skill_level": "C1"
+  },
+  {
+    "word": "austérité",
+    "definition": "Caractère de ce qui est sévère et rigoureux.",
+    "example": "La politique d'austérité a réduit les dépenses publiques.",
+    "translation": "austerity",
+    "skill_level": "B2"
+  },
+  {
+    "word": "autarcie",
+    "definition": "État d'une collectivité qui se suffit à elle-même.",
+    "example": "Vivre en autarcie complète est quasiment impossible.",
+    "translation": "autarky, self-sufficiency",
+    "skill_level": "C1"
+  },
+  {
+    "word": "clivage",
+    "definition": "Séparation de deux groupes d'opinion opposés.",
+    "example": "Le clivage politique s'accentue dans le pays.",
+    "translation": "cleavage, divide",
+    "skill_level": "C1"
+  },
+  {
+    "word": "coercition",
+    "definition": "Action de contraindre quelqu'un par la force.",
+    "example": "L'État dispose du monopole de la coercition légitime.",
+    "translation": "coercion",
+    "skill_level": "C1"
+  },
+  {
+    "word": "collusion",
+    "definition": "Entente secrète au préjudice d'un tiers.",
+    "example": "Il y a eu collusion entre les deux entreprises candidates.",
+    "translation": "collusion",
+    "skill_level": "C1"
+  },
+  {
+    "word": "commisération",
+    "definition": "Sentiment de pitié pour les malheurs d'autrui.",
+    "example": "Il regardait les mendiants avec commisération.",
+    "translation": "commiseration, pity",
+    "skill_level": "C1"
+  },
+  {
+    "word": "conjecture",
+    "definition": "Opinion fondée sur des probabilités ; supposition.",
+    "example": "Tout cela n'est que conjecture pour le moment.",
+    "translation": "conjecture, guesswork",
+    "skill_level": "C1"
+  },
+  {
+    "word": "contingence",
+    "definition": "Événement qui peut arriver ou non ; hasard.",
+    "example": "Il faut savoir s'adapter aux contingences du direct.",
+    "translation": "contingency",
+    "skill_level": "C1"
+  },
+  {
+    "word": "corrélation",
+    "definition": "Lien réciproque entre deux phénomènes.",
+    "example": "Il existe une corrélation entre éducation et revenus.",
+    "translation": "correlation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "décliner",
+    "definition": "Refuser poliment une invitation ou une offre.",
+    "example": "Il ha décidé de décliner le poste qu'on lui proposait.",
+    "translation": "to decline",
+    "skill_level": "B2"
+  },
+  {
+    "word": "démagogue",
+    "definition": "Qui flatte les passions du peuple pour accroître sa popularité.",
+    "example": "Ce discours démagogue vise à gagner des voix facilement.",
+    "translation": "demagogic",
+    "skill_level": "C1"
+  },
+  {
+    "word": "dénouement",
+    "definition": "Manière dont se termine une intrigue ou une affaire.",
+    "example": "Le dénouement du film était totalement inattendu.",
+    "translation": "denouement, ending",
+    "skill_level": "B2"
+  },
+  {
+    "word": "déontologie",
+    "definition": "Ensemble des règles et devoirs d'une profession.",
+    "example": "La déontologie journalistique impose de vérifier les faits.",
+    "translation": "deontology, ethics",
+    "skill_level": "C1"
+  },
+  {
+    "word": "dépréciation",
+    "definition": "Diminution de la valeur de quelque chose.",
+    "example": "La dépréciation de la monnaie nuit au pouvoir d'achat.",
+    "translation": "depreciation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "désavouer",
+    "definition": "Refuser de reconnaître pour sien ; désapprouver.",
+    "example": "Le parti a fini par désavouer son candidat.",
+    "translation": "to disavow, to repudiate",
+    "skill_level": "C1"
+  },
+  {
+    "word": "digression",
+    "definition": "Action de s'écarter de son sujet principal.",
+    "example": "Après une courte digression, il revint à son exposé.",
+    "translation": "digression",
+    "skill_level": "C1"
+  },
+  {
+    "word": "dilemme",
+    "definition": "Obligation de choisir entre deux partis difficiles.",
+    "example": "Il est face à un dilemme cornélien.",
+    "translation": "dilemma",
+    "skill_level": "B2"
+  },
+  {
+    "word": "disparité",
+    "definition": "Inégalité, manque d'harmonie entre les choses.",
+    "example": "Les disparités salariales restent trop importantes.",
+    "translation": "disparity",
+    "skill_level": "B2"
+  },
+  {
+    "word": "dissidence",
+    "definition": "Action de se séparer d'une communauté ou d'un parti.",
+    "example": "Il est entré en dissidence après le vote.",
+    "translation": "dissidence",
+    "skill_level": "C1"
+  },
+  {
+    "word": "distorsion",
+    "definition": "Écart ou déformation par rapport à une norme.",
+    "example": "Il y a une distorsion entre la réalité et les chiffres.",
+    "translation": "distortion",
+    "skill_level": "C1"
+  },
+  {
+    "word": "dogme",
+    "definition": "Vérité fondamentale considérée comme incontestable.",
+    "example": "Certaines théories économiques sont devenues des dogmes.",
+    "translation": "dogma",
+    "skill_level": "C1"
+  },
+  {
+    "word": "drastique",
+    "definition": "Qui est très rigoureux ou énergique.",
+    "example": "L'entreprise doit prendre des mesures drastiques.",
+    "translation": "drastic",
+    "skill_level": "B2"
+  },
+  {
+    "word": "dualité",
+    "definition": "Coexistence de deux éléments de nature différente.",
+    "example": "On retrouve une dualité entre corps et esprit.",
+    "translation": "duality",
+    "skill_level": "C1"
+  },
+  {
+    "word": "dysfonctionnement",
+    "definition": "Trouble dans le fonctionnement de quelque chose.",
+    "example": "L'enquête a révélé un dysfonctionnement grave.",
+    "translation": "malfunction",
+    "skill_level": "B2"
+  },
+  {
+    "word": "éclectisme",
+    "definition": "Fait de s'intéresser à des domaines très variés.",
+    "example": "Son éclectisme musical est impressionnant.",
+    "translation": "eclecticism",
+    "skill_level": "C1"
+  },
+  {
+    "word": "édifiant",
+    "definition": "Qui porte à la vertu ou qui est très instructif.",
+    "example": "C'est un exemple édifiant de solidarité humaine.",
+    "translation": "edifying, instructive",
+    "skill_level": "C1"
+  },
+  {
+    "word": "effience",
+    "definition": "Capacité à produire le maximum de résultats avec le minimum de moyens.",
+    "example": "L'efficience énergétique est un enjeu de demain.",
+    "translation": "efficiency",
+    "skill_level": "B2"
+  },
+  {
+    "word": "élitisme",
+    "definition": "Attitude favorisant une élite par rapport au plus grand nombre.",
+    "example": "Certains critiquent l'élitisme des grandes écoles.",
+    "translation": "elitism",
+    "skill_level": "C1"
+  },
+  {
+    "word": "éloquence",
+    "definition": "Art de bien parler pour convaincre ou émouvoir.",
+    "example": "Il a fait preuve d'une éloquence remarquable lors du débat.",
+    "translation": "eloquence",
+    "skill_level": "B2"
+  },
+  {
+    "word": "embargo",
+    "definition": "Interdiction des échanges commerciaux avec un pays.",
+    "example": "L'embargo sur les armes a été levé.",
+    "translation": "embargo",
+    "skill_level": "B2"
+  },
+  {
+    "word": "émancipation",
+    "definition": "Action de se libérer d'une tutelle ou d'une contrainte.",
+    "example": "L'émancipation des femmes a marqué le XXe siècle.",
+    "translation": "emancipation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "éminent",
+    "definition": "Qui est au-dessus du niveau commun par ses qualités.",
+    "example": "C'est un éminent spécialiste de la biologie marine.",
+    "translation": "eminent, distinguished",
+    "skill_level": "C1"
+  },
+  {
+    "word": "empirique",
+    "definition": "Qui s'appuie uniquement sur l'expérience.",
+    "example": "Cette étude repose sur des données empiriques.",
+    "translation": "empirical",
+    "skill_level": "C1"
+  },
+  {
+    "word": "endémique",
+    "definition": "Qui règne de façon constante dans une région.",
+    "example": "Le chômage est devenu endémique dans ce secteur.",
+    "translation": "endemic",
+    "skill_level": "C1"
+  },
+  {
+    "word": "énigmatique",
+    "definition": "Qui est difficile à comprendre ou à interpréter.",
+    "example": "Il a laissé un message énigmatique sur son bureau.",
+    "translation": "enigmatic, mysterious",
+    "skill_level": "B2"
+  },
+  {
+    "word": "entité",
+    "definition": "Ce qui constitue une unité réelle et distincte.",
+    "example": "L'entreprise est considérée comme une entité juridique.",
+    "translation": "entity",
+    "skill_level": "B2"
+  },
+  {
+    "word": "équité",
+    "definition": "Justice qui va au-delà de la simple loi écrite.",
+    "example": "L'équité fiscale est au cœur des débats actuels.",
+    "translation": "equity, fairness",
+    "skill_level": "B2"
+  },
+  {
+    "word": "érosion",
+    "definition": "Usure lente et progressive d'une chose.",
+    "example": "L'érosion côtière menace de nombreux villages.",
+    "translation": "erosion",
+    "skill_level": "B2"
+  },
+  {
+    "word": "érudit",
+    "definition": "Qui possède un savoir approfondi dans un domaine.",
+    "example": "C'est un homme érudit qui connaît bien l'histoire.",
+    "translation": "erudite, scholarly",
+    "skill_level": "C1"
+  },
+  {
+    "word": "ésotérique",
+    "definition": "Qui est compréhensible par les seuls initiés.",
+    "example": "Son discours était trop ésotérique pour le grand public.",
+    "translation": "esoteric",
+    "skill_level": "C1"
+  },
+  {
+    "word": "éthique",
+    "definition": "Réflexion sur les valeurs et les principes moraux.",
+    "example": "L'éthique professionnelle est essentielle en médecine.",
+    "translation": "ethics",
+    "skill_level": "B2"
+  },
+  {
+    "word": "euphémisme",
+    "definition": "Expression atténuée pour éviter de choquer.",
+    "example": "'Demander sa main' est un euphémisme pour le mariage.",
+    "translation": "euphemism",
+    "skill_level": "B2"
+  },
+  {
+    "word": "exhaustif",
+    "definition": "Qui traite un sujet complètement, sans rien oublier.",
+    "example": "Il a fourni un rapport exhaustif sur la situation.",
+    "translation": "exhaustive, thorough",
+    "skill_level": "C1"
+  },
+  {
+    "word": "exode",
+    "definition": "Départ en masse d'une population.",
+    "example": "L'exode rural a transformé les campagnes.",
+    "translation": "exodus",
+    "skill_level": "B2"
+  },
+  {
+    "word": "extrapoler",
+    "definition": "Généraliser à partir de données connues.",
+    "example": "On ne peut pas extrapoler ces résultats à tout le pays.",
+    "translation": "to extrapolate",
+    "skill_level": "C1"
+  },
+  {
+    "word": "fallacieux",
+    "definition": "Qui est trompeur ou mensonger.",
+    "example": "Il a utilisé des arguments fallacieux pour convaincre.",
+    "translation": "fallacious, misleading",
+    "skill_level": "C1"
+  },
+  {
+    "word": "faisabilité",
+    "definition": "Caractère de ce qui est réalisable.",
+    "example": "Une étude de faisabilité est nécessaire avant de commencer.",
+    "translation": "feasibility",
+    "skill_level": "B2"
+  },
+  {
+    "word": "féru",
+    "definition": "Passionné par quelque chose.",
+    "example": "Il est féru d'art contemporain et de musique jazz.",
+    "translation": "keen on, passionate about",
+    "skill_level": "B2"
+  },
+  {
+    "word": "fiabilité",
+    "definition": "Qualité de ce qui est digne de confiance.",
+    "example": "La fiabilité de cet appareil est remise en question.",
+    "translation": "reliability",
+    "skill_level": "B2"
+  },
+  {
+    "word": "finalité",
+    "definition": "But ou objectif vers lequel on tend.",
+    "example": "La finalité de cette mesure est de réduire la pollution.",
+    "translation": "purpose, finality",
+    "skill_level": "C1"
+  },
+  {
+    "word": "fléau",
+    "definition": "Grande calamité qui frappe un peuple.",
+    "example": "La drogue est un fléau pour la jeunesse.",
+    "translation": "scourge, plague",
+    "skill_level": "B2"
+  },
+  {
+    "word": "fluctuation",
+    "definition": "Variation successive dans un sens puis dans l'autre.",
+    "example": "Les fluctuations boursières inquiètent les investisseurs.",
+    "translation": "fluctuation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "formaliser",
+    "definition": "Donner une forme précise et officielle à quelque chose.",
+    "example": "Il faut formaliser cet accord par écrit.",
+    "translation": "to formalize",
+    "skill_level": "B2"
+  },
+  {
+    "word": "fourvoyer",
+    "definition": "Se tromper de chemin, s'égarer au sens figuré.",
+    "example": "L'entreprise s'est fourvoyée dans cette stratégie.",
+    "translation": "to go astray, to be mistaken",
+    "skill_level": "C1"
+  },
+  {
+    "word": "fréquence",
+    "definition": "Nombre de fois qu'un phénomène se reproduit.",
+    "example": "La fréquence des tempêtes augmente avec le climat.",
+    "translation": "frequency",
+    "skill_level": "B2"
+  },
+  {
+    "word": "frugalité",
+    "definition": "Caractère de ce qui est simple et modéré.",
+    "example": "Vivre avec frugalité permet d'épargner davantage.",
+    "translation": "frugality",
+    "skill_level": "C1"
+  },
+  {
+    "word": "générique",
+    "definition": "Qui appartient à tout un genre, qui n'est pas spécifique.",
+    "example": "C'est un terme générique qui désigne plusieurs espèces.",
+    "translation": "generic",
+    "skill_level": "B2"
+  },
+  {
+    "word": "gouvernance",
+    "definition": "Manière de diriger et d'organiser un État ou une entreprise.",
+    "example": "La bonne gouvernance est un gage de stabilité.",
+    "translation": "governance",
+    "skill_level": "B2"
+  },
+  {
+    "word": "hardi",
+    "definition": "Qui est courageux, audacieux et n'a pas peur du risque.",
+    "example": "C'est une proposition hardie pour l'époque.",
+    "translation": "bold, daring",
+    "skill_level": "C1"
+  },
+  {
+    "word": "hétérogène",
+    "definition": "Qui est composé d'éléments de nature différente.",
+    "example": "C'est un groupe très hétérogène avec des profils variés.",
+    "translation": "heterogeneous",
+    "skill_level": "C1"
+  },
+  {
+    "word": "homogène",
+    "definition": "Qui est composé d'éléments semblables ou unis.",
+    "example": "La pâte doit être homogène avant la cuisson.",
+    "translation": "homogeneous",
+    "skill_level": "B2"
+  },
+  {
+    "word": "hostilité",
+    "definition": "Sentiment d'inimitié ou attitude agressive.",
+    "example": "On sentait une certaine hostilité dans la salle.",
+    "translation": "hostility",
+    "skill_level": "B2"
+  },
+  {
+    "word": "humanisme",
+    "definition": "Philosophie qui place l'homme au centre de tout.",
+    "example": "L'humanisme de la Renaissance a changé la vision du monde.",
+    "translation": "humanism",
+    "skill_level": "C1"
+  },
+  {
+    "word": "hybride",
+    "definition": "Qui provient du croisement de deux espèces ou natures.",
+    "example": "Les voitures hybrides consomment moins d'essence.",
+    "translation": "hybrid",
+    "skill_level": "B2"
+  },
+  {
+    "word": "idéalisme",
+    "definition": "Attitude qui privilégie les idées sur la réalité.",
+    "example": "Son idéalisme le pousse à croire en un monde sans guerres.",
+    "translation": "idealism",
+    "skill_level": "B2"
+  },
+  {
+    "word": "identité",
+    "definition": "Caractère de ce qui demeure identique à soi-même.",
+    "example": "La protection de l'identité culturelle est un enjeu.",
+    "translation": "identity",
+    "skill_level": "B2"
+  },
+  {
+    "word": "idéologie",
+    "definition": "Système d'idées et de croyances propre à un groupe.",
+    "example": "Chaque parti politique a sa propre idéologie.",
+    "translation": "ideology",
+    "skill_level": "B2"
+  },
+  {
+    "word": "illicite",
+    "definition": "Qui est interdit par la loi.",
+    "example": "Le commerce illicite de drogues est sévèrement puni.",
+    "translation": "illicit, illegal",
+    "skill_level": "B2"
+  },
+  {
+    "word": "immuable",
+    "definition": "Qui ne peut changer ; qui reste identique.",
+    "example": "Les lois de la physique sont considérées comme immuables.",
+    "translation": "immutable, unchanging",
+    "skill_level": "C1"
+  },
+  {
+    "word": "impartialité",
+    "definition": "Absence de parti pris ; neutralité.",
+    "example": "Le juge doit faire preuve d'une totale impartialité.",
+    "translation": "impartiality",
+    "skill_level": "B2"
+  },
+  {
+    "word": "impasse",
+    "definition": "Situation où l'on ne peut plus avancer.",
+    "example": "Les négociations sont arrivées dans une impasse.",
+    "translation": "deadlock, impasse",
+    "skill_level": "B2"
+  },
+  {
+    "word": "impératif",
+    "definition": "Ce qui est absolument nécessaire et urgent.",
+    "example": "La protection du climat est un impératif moral.",
+    "translation": "imperative",
+    "skill_level": "B2"
+  },
+  {
+    "word": "impulsion",
+    "definition": "Force qui pousse à agir soudainement.",
+    "example": "Il a agi sous le coup d'une impulsion irrésistible.",
+    "translation": "impulse",
+    "skill_level": "B2"
+  },
+  {
+    "word": "imputable",
+    "definition": "Qui peut être attribué à quelqu'un ou quelque chose.",
+    "example": "Cette erreur est imputable à un manque de vigilance.",
+    "translation": "attributable",
+    "skill_level": "C1"
+  },
+  {
+    "word": "inadvertance",
+    "definition": "Manque d'attention qui fait commettre une erreur.",
+    "example": "J'ai oublié mon sac par simple inadvertance.",
+    "translation": "inadvertence, oversight",
+    "skill_level": "B2"
+  },
+  {
+    "word": "incitation",
+    "definition": "Action de pousser quelqu'un à faire quelque chose.",
+    "example": "L'État propose des incitations fiscales pour l'écologie.",
+    "translation": "incentive, incitement",
+    "skill_level": "B2"
+  },
+  {
+    "word": "incohérence",
+    "definition": "Manque de liaison ou de logique entre des idées.",
+    "example": "On remarque une incohérence dans son témoignage.",
+    "translation": "inconsistency",
+    "skill_level": "B2"
+  },
+  {
+    "word": "inculquer",
+    "definition": "Faire entrer durablement une idea dans l'esprit.",
+    "example": "Il est important d'inculquer le respect aux enfants.",
+    "translation": "to instill, to inculcate",
+    "skill_level": "C1"
+  },
+  {
+    "word": "indicateur",
+    "definition": "Donnée qui permet de mesurer une situation.",
+    "example": "Le PIB est un indicateur de la santé économique.",
+    "translation": "indicator",
+    "skill_level": "B2"
+  },
+  {
+    "word": "indulgence",
+    "definition": "Facilité à pardonner les fautes d'autrui.",
+    "example": "Le professeur a fait preuve d'indulgence avec lui.",
+    "translation": "indulgence, leniency",
+    "skill_level": "B2"
+  },
+  {
+    "word": "inertie",
+    "definition": "État de ce qui ne bouge pas ou manque d'énergie.",
+    "example": "L'inertie du système empêche toute réforme rapide.",
+    "translation": "inertia",
+    "skill_level": "C1"
+  },
+  {
+    "word": "inférer",
+    "definition": "Tirer une conséquence d'un fait ; déduire.",
+    "example": "On peut inférer de ces chiffres que la pauvreté baisse.",
+    "translation": "to infer",
+    "skill_level": "C1"
+  },
+  {
+    "word": "infléchir",
+    "definition": "Changer l'orientation ou la direction de quelque chose.",
+    "example": "Le ministre veut infléchir la courbe du chômage.",
+    "translation": "to influence, to bend",
+    "skill_level": "C1"
+  },
+  {
+    "word": "influence",
+    "definition": "Action qu'une personne ou une chose exerce sur une autre.",
+    "example": "Ses amis ont une mauvaise influence sur lui.",
+    "translation": "influence",
+    "skill_level": "B2"
+  },
+  {
+    "word": "infraction",
+    "definition": "Violation d'une loi ou d'un règlement.",
+    "example": "Il a commis une infraction au code de la route.",
+    "translation": "infraction, offense",
+    "skill_level": "B2"
+  },
+  {
+    "word": "infrastructure",
+    "definition": "Ensemble des installations nécessaires à une activité.",
+    "example": "Le pays doit moderniser ses infrastructures routières.",
+    "translation": "infrastructure",
+    "skill_level": "B2"
+  },
+  {
+    "word": "inhérent",
+    "definition": "Qui est lié de manière inséparable à quelque chose.",
+    "example": "Le risque est inhérent à toute activité humaine.",
+    "translation": "inherent",
+    "skill_level": "C1"
+  },
+  {
+    "word": "inhiber",
+    "definition": "Ralentir ou empêcher un processus ou une action.",
+    "example": "La peur peut inhiber les capacités de réflexion.",
+    "translation": "to inhibit",
+    "skill_level": "C1"
+  },
+  {
+    "word": "initier",
+    "definition": "Donner les premières connaissances à quelqu'un.",
+    "example": "Il m'a initié aux secrets de la cuisine française.",
+    "translation": "to initiate, to introduce",
+    "skill_level": "B2"
+  },
+  {
+    "word": "innovation",
+    "definition": "Action d'introduire quelque chose de nouveau.",
+    "example": "L'innovation technologique est le moteur de la croissance.",
+    "translation": "innovation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "insatiable",
+    "definition": "Que l'on ne peut satisfaire ou apaiser.",
+    "example": "Il a une soif insatiable de connaissances.",
+    "translation": "insatiable",
+    "skill_level": "C1"
+  },
+  {
+    "word": "insidieux",
+    "definition": "Qui agit sournoisement, sans en avoir l'air.",
+    "example": "C'est un poison insidieux qui détruit la confiance.",
+    "translation": "insidious",
+    "skill_level": "C1"
+  },
+  {
+    "word": "insigne",
+    "definition": "Qui est remarquable ou exceptionnel.",
+    "example": "Il a rendu un service insigne à la nation.",
+    "translation": "outstanding, signal",
+    "skill_level": "C1"
+  },
+  {
+    "word": "instigation",
+    "definition": "Action de pousser quelqu'un à faire un acte (souvent blâmable).",
+    "example": "Il a agi à l'instigation de son entourage.",
+    "translation": "instigation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "insulaire",
+    "definition": "Qui est propre aux îles.",
+    "example": "Le climat insulaire est souvent doux et humide.",
+    "translation": "insular",
+    "skill_level": "C1"
+  },
+  {
+    "word": "intégrité",
+    "definition": "Qualité d'une personne honnête et incorruptible.",
+    "example": "On ne peut pas remettre en cause son intégrité.",
+    "translation": "integrity",
+    "skill_level": "B2"
+  },
+  {
+    "word": "intensifier",
+    "definition": "Rendre plus intense ou plus fort.",
+    "example": "Le vent va s'intensifier durant la soirée.",
+    "translation": "to intensify",
+    "skill_level": "B2"
+  },
+  {
+    "word": "interaction",
+    "definition": "Action réciproque entre deux ou plusieurs personnes.",
+    "example": "L'interaction entre les élèves favorise l'apprentissage.",
+    "translation": "interaction",
+    "skill_level": "B2"
+  },
+  {
+    "word": "interdire",
+    "definition": "Défendre à quelqu'un de faire quelque chose.",
+    "example": "Il est interdit de fumer dans les lieux publics.",
+    "translation": "to forbid, to prohibit",
+    "skill_level": "B2"
+  },
+  {
+    "word": "intérêt",
+    "definition": "Ce qui importe à quelqu'un ou ce qui est avantageux.",
+    "example": "Il agit toujours dans son propre intérêt.",
+    "translation": "interest",
+    "skill_level": "B2"
+  }
+]

@@ -1,0 +1,2102 @@
+[
+  {
+    "word": "abasourdir",
+    "definition": "Frapper d'un grand étonnement, de stupeur.",
+    "example": "Cette révélation inattendue a fini par nous abasourdir.",
+    "translation": "to dumbfound, to stun",
+    "skill_level": "B2"
+  },
+  {
+    "word": "abdiquer",
+    "definition": "Renoncer formellement à un pouvoir ou à une responsabilité.",
+    "example": "Le roi a été forcé d'abdiquer en faveur de son fils.",
+    "translation": "to abdicate, to resign",
+    "skill_level": "C1"
+  },
+  {
+    "word": "aberrant",
+    "definition": "Qui s'écarte de la logique, du bon sens ou de la norme.",
+    "example": "Il est aberrant de continuer à polluer nos océans ainsi.",
+    "translation": "aberrant, absurd",
+    "skill_level": "B2"
+  },
+  {
+    "word": "abolir",
+    "definition": "Supprimer légalement une coutume ou une institution.",
+    "example": "La loi vise à abolir définitivement la peine de mort.",
+    "translation": "to abolish",
+    "skill_level": "B2"
+  },
+  {
+    "word": "aborder",
+    "definition": "Commencer à parler d'un sujet ou à traiter un problème.",
+    "example": "Nous allons aborder la question de la transition énergétique.",
+    "translation": "to tackle, to address",
+    "skill_level": "B2"
+  },
+  {
+    "word": "absoudre",
+    "definition": "Pardonner une faute ou déclarer un accusé innocent.",
+    "example": "Le tribunal a décidé d'absoudre le prévenu faute de preuves.",
+    "translation": "to absolve, to acquit",
+    "skill_level": "C1"
+  },
+  {
+    "word": "abstention",
+    "definition": "Action de s'abstenir, notamment lors d'un vote.",
+    "example": "Le taux d'abstention a atteint un niveau record cette année.",
+    "translation": "abstention",
+    "skill_level": "B2"
+  },
+  {
+    "word": "accabler",
+    "definition": "Faire peser une charge écrasante, morale ou physique.",
+    "example": "Les impôts finissent par accabler les petites entreprises.",
+    "translation": "to overwhelm, to burden",
+    "skill_level": "B2"
+  },
+  {
+    "word": "acclamation",
+    "definition": "Cri de joie ou d'approbation d'une foule.",
+    "example": "Le candidat a été élu par acclamation.",
+    "translation": "acclamation, cheer",
+    "skill_level": "B2"
+  },
+  {
+    "word": "accommoder",
+    "definition": "Adapter quelque chose à un usage ou à une situation.",
+    "example": "Il faut savoir s'accommoder des circonstances imprévues.",
+    "translation": "to accommodate, to adapt",
+    "skill_level": "B2"
+  },
+  {
+    "word": "accomplissement",
+    "definition": "Action de réaliser pleinement une tâche ou un but.",
+    "example": "L'accomplissement de ce projet a nécessité des années.",
+    "translation": "accomplishment, fulfillment",
+    "skill_level": "B2"
+  },
+  {
+    "word": "accréditer",
+    "definition": "Donner de la crédibilité à une thèse ou une rumeur.",
+    "example": "Ces nouveaux documents viennent accréditer sa version des faits.",
+    "translation": "to accredit, to substantiate",
+    "skill_level": "C1"
+  },
+  {
+    "word": "accroissement",
+    "definition": "Action d'augmenter ou fait de s'accroître.",
+    "example": "L'accroissement de la population urbaine pose des défis majeurs.",
+    "translation": "increase, growth",
+    "skill_level": "B2"
+  },
+  {
+    "word": "acheminement",
+    "definition": "Transport de marchandises ou de correspondances vers un lieu.",
+    "example": "L'acheminement des secours a été retardé par la tempête.",
+    "translation": "routing, transport",
+    "skill_level": "B2"
+  },
+  {
+    "word": "acquittement",
+    "definition": "Décision de justice déclarant l'innocence d'un accusé.",
+    "example": "L'avocat a plaidé pour l'acquittement de son client.",
+    "translation": "acquittal",
+    "skill_level": "C1"
+  },
+  {
+    "word": "acronyme",
+    "definition": "Sigle prononcé comme un mot ordinaire.",
+    "example": "L'UNESCO est un acronyme bien connu à l'échelle mondiale.",
+    "translation": "acronym",
+    "skill_level": "B2"
+  },
+  {
+    "word": "acquiescement",
+    "definition": "Consentement ou accord donné de manière explicite ou tacite.",
+    "example": "Un simple hochement de tête a servi d'acquiescement.",
+    "translation": "acquiescence, compliance",
+    "skill_level": "C1"
+  },
+  {
+    "word": "additif",
+    "definition": "Substance ajoutée en petite quantité pour améliorer un produit.",
+    "example": "Ce produit alimentaire ne contient aucun additif chimique.",
+    "translation": "additive",
+    "skill_level": "B2"
+  },
+  {
+    "word": "adepte",
+    "definition": "Personne qui a adhéré à une doctrine ou à une idée.",
+    "example": "Il est un fervent adepte du développement personnel.",
+    "translation": "follower, enthusiast",
+    "skill_level": "B2"
+  },
+  {
+    "word": "adhésion",
+    "definition": "Action de s'inscrire ou de marquer son accord.",
+    "example": "Son discours a suscité l'adhésion immédiate du public.",
+    "translation": "adhesion, support, membership",
+    "skill_level": "B2"
+  },
+  {
+    "word": "adjacent",
+    "definition": "Qui est situé tout près, qui est attenant.",
+    "example": "Le terrain adjacent sera utilisé pour construire un parc.",
+    "translation": "adjacent, adjoining",
+    "skill_level": "B2"
+  },
+  {
+    "word": "adjoindre",
+    "definition": "Ajouter quelqu'un ou quelque chose à un groupe existant.",
+    "example": "On va lui adjoindre un assistant pour l'aider.",
+    "translation": "to attach, to add",
+    "skill_level": "C1"
+  },
+  {
+    "word": "adjudication",
+    "definition": "Attribution d'un marché public par voie de concours.",
+    "example": "L'adjudication des travaux aura lieu le mois prochain.",
+    "translation": "adjudication, awarding",
+    "skill_level": "C1"
+  },
+  {
+    "word": "admettre",
+    "definition": "Reconnaître comme vrai ou accepter une personne.",
+    "example": "Il faut admettre que la situation économique est complexe.",
+    "translation": "to admit, to acknowledge",
+    "skill_level": "B2"
+  },
+  {
+    "word": "adulation",
+    "definition": "Admiration excessive et souvent servile.",
+    "example": "La star a été accueillie avec une adulation débordante.",
+    "translation": "adulation, flattery",
+    "skill_level": "C1"
+  },
+  {
+    "word": "affaiblissement",
+    "definition": "Diminution de la force ou de l'intensité.",
+    "example": "On observe un affaiblissement de la monnaie nationale.",
+    "translation": "weakening, decline",
+    "skill_level": "B2"
+  },
+  {
+    "word": "affairement",
+    "definition": "Activité intense et un peu confuse.",
+    "example": "Il régnait un grand affairement dans les coulisses.",
+    "translation": "bustle, flurry",
+    "skill_level": "B2"
+  },
+  {
+    "word": "affectation",
+    "definition": "Destination d'un fonds ou d'une personne à un poste.",
+    "example": "Son affectation dans ce service a été confirmée ce matin.",
+    "translation": "assignment, allocation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "affinité",
+    "definition": "Ressemblance ou conformité de goûts entre personnes.",
+    "example": "Il existe une forte affinité élective entre ces deux chercheurs.",
+    "translation": "affinity",
+    "skill_level": "B2"
+  },
+  {
+    "word": "affirmation",
+    "definition": "Énoncé par lequel on donne une chose pour vraie.",
+    "example": "Il n'a apporté aucune preuve pour soutenir son affirmation.",
+    "translation": "affirmation, assertion",
+    "skill_level": "B2"
+  },
+  {
+    "word": "affliction",
+    "definition": "Chagrin profond ou cause de détresse.",
+    "example": "La famille a été plongée dans l'affliction après le drame.",
+    "translation": "affliction, sorrow",
+    "skill_level": "C1"
+  },
+  {
+    "word": "affluence",
+    "definition": "Arrivée massive de personnes dans un même lieu.",
+    "example": "L'affluence record des touristes pose des problèmes locaux.",
+    "translation": "influx, crowd",
+    "skill_level": "B2"
+  },
+  {
+    "word": "affluent",
+    "definition": "Cours d'eau qui se jette dans un autre.",
+    "example": "La Marne est un affluent important de la Seine.",
+    "translation": "tributary",
+    "skill_level": "B2"
+  },
+  {
+    "word": "affranchissement",
+    "definition": "Action de libérer d'une contrainte ou de la servitude.",
+    "example": "L'affranchissement des esclaves fut une étape historique.",
+    "translation": "emancipation, liberation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "affrontement",
+    "definition": "Lutte ouverte ou combat entre adversaires.",
+    "example": "L'affrontement idéologique s'est durci au fil du temps.",
+    "translation": "clash, confrontation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "affubler",
+    "definition": "Vêtir quelqu'un de façon ridicule ou lui donner un surnom.",
+    "example": "On l'a affublé d'un titre qu'il ne méritait pas.",
+    "translation": "to dress up ridiculously, to tag",
+    "skill_level": "C1"
+  },
+  {
+    "word": "agencement",
+    "definition": "Disposition de différentes parties pour former un tout.",
+    "example": "L'agencement des pièces de la maison est très fonctionnel.",
+    "translation": "layout, arrangement",
+    "skill_level": "B2"
+  },
+  {
+    "word": "agglomération",
+    "definition": "Ensemble constitué par une ville et sa banlieue.",
+    "example": "Le réseau de transport dessert toute l'agglomération.",
+    "translation": "agglomeration, urban area",
+    "skill_level": "B2"
+  },
+  {
+    "word": "aggravation",
+    "definition": "Fait de rendre plus grave ou plus sérieux.",
+    "example": "L'aggravation de son état de santé nécessite une hospitalisation.",
+    "translation": "aggravation, worsening",
+    "skill_level": "B2"
+  },
+  {
+    "word": "agilité",
+    "definition": "Souplesse et rapidité dans les mouvements ou la pensée.",
+    "example": "Son agilité intellectuelle lui permet de résoudre les crises.",
+    "translation": "agility",
+    "skill_level": "B2"
+  },
+  {
+    "word": "agitation",
+    "definition": "Mouvement désordonné ou trouble social.",
+    "example": "L'agitation syndicale a paralysé le pays pendant des jours.",
+    "translation": "agitation, unrest",
+    "skill_level": "B2"
+  },
+  {
+    "word": "aigreur",
+    "definition": "Caractère de ce qui est acide, ou ressentiment moral.",
+    "example": "Ses échecs répétés lui ont laissé beaucoup d'aigreur.",
+    "translation": "sourness, bitterness",
+    "skill_level": "C1"
+  },
+  {
+    "word": "aiguillonner",
+    "definition": "Stimuler, inciter vivement à l'action.",
+    "example": "La concurrence va aiguillonner l'innovation dans ce secteur.",
+    "translation": "to spur on, to stimulate",
+    "skill_level": "C1"
+  },
+  {
+    "word": "aliénation",
+    "definition": "Perte de sa liberté ou de son identité face à une pression.",
+    "example": "Le travail à la chaîne peut conduire à l'aliénation des ouvriers.",
+    "translation": "alienation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "alignement",
+    "definition": "Action de placer sur une même ligne, ou de se conformer.",
+    "example": "Il faut un alignement des prix sur le marché européen.",
+    "translation": "alignment",
+    "skill_level": "B2"
+  },
+  {
+    "word": "allégation",
+    "definition": "Affirmation souvent dépourvue de preuves.",
+    "example": "Les allégations de fraude ont été fermement démenties.",
+    "translation": "allegation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "allégement",
+    "definition": "Diminution d'un fardeau ou d'une charge.",
+    "example": "Les entreprises réclament un allégement des charges fiscales.",
+    "translation": "relief, lightening",
+    "skill_level": "B2"
+  },
+  {
+    "word": "allégeance",
+    "definition": "Obligation de fidélité et d'obéissance.",
+    "example": "Les vassaux devaient prêter allégeance à leur seigneur.",
+    "translation": "allegiance",
+    "skill_level": "C1"
+  },
+  {
+    "word": "allergie",
+    "definition": "Réaction anormale de l'organisme, ou rejet moral vif.",
+    "example": "Il éprouve une véritable allergie envers les formalités administratives.",
+    "translation": "allergy, strong aversion",
+    "skill_level": "B2"
+  },
+  {
+    "word": "alliance",
+    "definition": "Union conclue entre des États, des groupes ou des personnes.",
+    "example": "Cette alliance stratégique permettra de dominer le marché.",
+    "translation": "alliance",
+    "skill_level": "B2"
+  },
+  {
+    "word": "amoncellement",
+    "definition": "Accumulation d'objets ou de problèmes les uns sur les autres.",
+    "example": "L'amoncellement des dossiers témoigne du retard accumulé.",
+    "translation": "accumulation, pile",
+    "skill_level": "C1"
+  },
+  {
+    "word": "amoral",
+    "definition": "Qui ignore les règles de la morale.",
+    "example": "Le capitalisme sauvage est souvent décrit comme un système amoral.",
+    "translation": "amoral",
+    "skill_level": "C1"
+  },
+  {
+    "word": "amortissement",
+    "definition": "Remboursement progressif d'une dette ou perte de valeur.",
+    "example": "L'amortissement de cet équipement se fera sur cinq ans.",
+    "translation": "amortization, depreciation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "amputation",
+    "definition": "Retrait d'une partie d'un ensemble, souvent un budget.",
+    "example": "Le ministère a subi une amputation sévère de ses crédits.",
+    "translation": "amputation, reduction",
+    "skill_level": "C1"
+  },
+  {
+    "word": "anéantissement",
+    "definition": "Destruction totale ou accablement moral extrême.",
+    "example": "L'anéantissement des récoltes causera une famine.",
+    "translation": "annihilation, devastation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "angoisse",
+    "definition": "Sentiment d'anxiété profonde et d'insécurité.",
+    "example": "La perspective du chômage suscite une véritable angoisse.",
+    "translation": "anguish, anxiety",
+    "skill_level": "B2"
+  },
+  {
+    "word": "ankyloser",
+    "definition": "Rendre rigide ou incapable de réagir.",
+    "example": "La bureaucratie tend à ankyloser l'administration publique.",
+    "translation": "to stiffen, to paralyze",
+    "skill_level": "C1"
+  },
+  {
+    "word": "annexion",
+    "definition": "Rattachement d'un territoire à un autre État par la force.",
+    "example": "L'annexion de cette région a provoqué un tollé international.",
+    "translation": "annexation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "anticipation",
+    "definition": "Action de prévoir et d'agir en fonction d'événements futurs.",
+    "example": "C'est un roman d'anticipation qui décrit un monde dystopique.",
+    "translation": "anticipation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "antithèse",
+    "definition": "Opposition de deux pensées, ou personne totalement différente.",
+    "example": "Sa méthode de travail est l'antithèse de la mienne.",
+    "translation": "antithesis",
+    "skill_level": "C1"
+  },
+  {
+    "word": "apaisement",
+    "definition": "Retour au calme ou à la tranquillité.",
+    "example": "Les récentes déclarations ont permis un apaisement des tensions.",
+    "translation": "appeasement, calming",
+    "skill_level": "B2"
+  },
+  {
+    "word": "apatride",
+    "definition": "Personne qu'aucun État ne considère comme son ressortissant.",
+    "example": "De nombreux réfugiés se retrouvent dans une situation d'apatride.",
+    "translation": "stateless person",
+    "skill_level": "C1"
+  },
+  {
+    "word": "aperçu",
+    "definition": "Vue rapide et globale sur un sujet.",
+    "example": "Le rapport donne un bon aperçu de la situation financière.",
+    "translation": "overview, glimpse",
+    "skill_level": "B2"
+  },
+  {
+    "word": "appauvrissement",
+    "definition": "Perte de richesses matérielles, culturelles ou biologiques.",
+    "example": "L'appauvrissement des sols inquiète les agronomes.",
+    "translation": "impoverishment, depletion",
+    "skill_level": "B2"
+  },
+  {
+    "word": "appel",
+    "definition": "Recours juridique ou demande pressante d'aide.",
+    "example": "L'accusé a décidé de faire appel du jugement.",
+    "translation": "appeal",
+    "skill_level": "B2"
+  },
+  {
+    "word": "appendice",
+    "definition": "Partie ajoutée à la fin d'un ouvrage, ou prolongement.",
+    "example": "Vous trouverez les statistiques en appendice du livre.",
+    "translation": "appendix",
+    "skill_level": "C1"
+  },
+  {
+    "word": "appesantir",
+    "definition": "Insister lourdement sur un sujet lors d'un discours.",
+    "example": "Je ne vais pas m'appesantir sur les détails techniques.",
+    "translation": "to dwell on",
+    "skill_level": "C1"
+  },
+  {
+    "word": "application",
+    "definition": "Mise en pratique d'une règle, d'une loi ou d'une méthode.",
+    "example": "L'application stricte du règlement a suscité des plaintes.",
+    "translation": "application, enforcement",
+    "skill_level": "B2"
+  },
+  {
+    "word": "apport",
+    "definition": "Contribution matérielle ou intellectuelle à un projet.",
+    "example": "Son apport à la recherche sur le cancer est indéniable.",
+    "translation": "contribution, input",
+    "skill_level": "B2"
+  },
+  {
+    "word": "appréciation",
+    "definition": "Évaluation de la qualité ou de la valeur de quelque chose.",
+    "example": "La note finale dépendra de l'appréciation du jury.",
+    "translation": "assessment, appreciation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "appropriation",
+    "definition": "Action de faire sien, de s'attribuer quelque chose.",
+    "example": "L'appropriation culturelle est un débat sensible aujourd'hui.",
+    "translation": "appropriation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "approbation",
+    "definition": "Consentement donné à une opinion ou à une proposition.",
+    "example": "Le plan a reçu l'approbation unanime du conseil d'administration.",
+    "translation": "approval",
+    "skill_level": "B2"
+  },
+  {
+    "word": "approvisionnement",
+    "definition": "Fourniture de marchandises ou de vivres nécessaires.",
+    "example": "L'approvisionnement en eau potable est devenu difficile.",
+    "translation": "supply, provisioning",
+    "skill_level": "B2"
+  },
+  {
+    "word": "approfondissement",
+    "definition": "Action de creuser davantage un sujet pour mieux le comprendre.",
+    "example": "Ce thème nécessitera un approfondissement lors du prochain cours.",
+    "translation": "deepening, thorough study",
+    "skill_level": "B2"
+  },
+  {
+    "word": "arborescence",
+    "definition": "Disposition ramifiée semblable à celle d'un arbre.",
+    "example": "L'arborescence du site web doit être claire pour l'utilisateur.",
+    "translation": "tree structure",
+    "skill_level": "C1"
+  },
+  {
+    "word": "arguer",
+    "definition": "Tirer une conclusion, ou prétexter quelque chose.",
+    "example": "Il a argué de sa bonne foi pour se justifier.",
+    "translation": "to argue, to infer, to plead",
+    "skill_level": "C1"
+  },
+  {
+    "word": "aridité",
+    "definition": "Sécheresse extrême ou manque d'intérêt intellectuel.",
+    "example": "L'aridité de son discours a ennuyé l'auditoire.",
+    "translation": "aridity, dryness",
+    "skill_level": "C1"
+  },
+  {
+    "word": "aristocratie",
+    "definition": "Classe sociale qui détient le pouvoir par hérédité.",
+    "example": "La Révolution française a mis fin aux privilèges de l'aristocratie.",
+    "translation": "aristocracy",
+    "skill_level": "B2"
+  },
+  {
+    "word": "arracher",
+    "definition": "Obtenir quelque chose avec difficulté ou par la force.",
+    "example": "Le syndicat a réussi à arracher un accord in extremis.",
+    "translation": "to snatch, to extract",
+    "skill_level": "B2"
+  },
+  {
+    "word": "arrangement",
+    "definition": "Accord visant à régler un différend à l'amiable.",
+    "example": "Ils ont trouvé un arrangement financier hors tribunal.",
+    "translation": "arrangement, settlement",
+    "skill_level": "B2"
+  },
+  {
+    "word": "arrestation",
+    "definition": "Action de priver quelqu'un de sa liberté au nom de la loi.",
+    "example": "L'arrestation du suspect a eu lieu à l'aube.",
+    "translation": "arrest",
+    "skill_level": "B2"
+  },
+  {
+    "word": "arrière-pensée",
+    "definition": "Pensée cachée, mobile secret d'une action.",
+    "example": "Il a fait cette proposition avec une évidente arrière-pensée.",
+    "translation": "ulterior motive",
+    "skill_level": "C1"
+  },
+  {
+    "word": "arrimer",
+    "definition": "Attacher solidement la cargaison, ou lier deux entités.",
+    "example": "Le pays cherche à arrimer son économie à celle de ses voisins.",
+    "translation": "to secure, to peg",
+    "skill_level": "C1"
+  },
+  {
+    "word": "arrogance",
+    "definition": "Attitude hautaine et méprisante.",
+    "example": "Son arrogance lui a valu de nombreux ennemis.",
+    "translation": "arrogance",
+    "skill_level": "B2"
+  },
+  {
+    "word": "artéfact",
+    "definition": "Phénomène artificiel créé par la technique employée.",
+    "example": "L'anomalie sur la radio n'est qu'un artéfact visuel.",
+    "translation": "artifact",
+    "skill_level": "C1"
+  },
+  {
+    "word": "artifice",
+    "definition": "Moyen habile ou trompeur utilisé pour parvenir à ses fins.",
+    "example": "Le magicien a utilisé plusieurs artifices pour tromper le public.",
+    "translation": "artifice, trick",
+    "skill_level": "C1"
+  },
+  {
+    "word": "assertion",
+    "definition": "Proposition que l'on avance et soutient comme vraie.",
+    "example": "Cette assertion mériterait d'être démontrée scientifiquement.",
+    "translation": "assertion",
+    "skill_level": "C1"
+  },
+  {
+    "word": "asservissement",
+    "definition": "Action de réduire à un état de soumission totale.",
+    "example": "La dépendance technologique peut mener à un asservissement caché.",
+    "translation": "enslavement, subjugation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "assignation",
+    "definition": "Convocation en justice ou affectation à un but précis.",
+    "example": "Il a reçu une assignation à comparaître devant le tribunal.",
+    "translation": "summons, assignment",
+    "skill_level": "C1"
+  },
+  {
+    "word": "assimilation",
+    "definition": "Action d'intégrer des individus ou des connaissances.",
+    "example": "L'assimilation des immigrés est un sujet de débat politique.",
+    "translation": "assimilation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "assistance",
+    "definition": "Action de porter secours, ou public présent.",
+    "example": "Une assistance technique est disponible en cas de panne.",
+    "translation": "assistance, audience",
+    "skill_level": "B2"
+  },
+  {
+    "word": "association",
+    "definition": "Regroupement de personnes autour d'un intérêt commun.",
+    "example": "L'association de défense des consommateurs a porté plainte.",
+    "translation": "association",
+    "skill_level": "B2"
+  },
+  {
+    "word": "assouplissement",
+    "definition": "Action de rendre moins rigide, plus tolérant.",
+    "example": "Le gouvernement prévoit un assouplissement des règles sanitaires.",
+    "translation": "softening, easing",
+    "skill_level": "C1"
+  },
+  {
+    "word": "assourdir",
+    "definition": "Rendre momentanément sourd, ou atténuer un son.",
+    "example": "Le bruit de l'explosion a failli nous assourdir.",
+    "translation": "to deafen, to muffle",
+    "skill_level": "B2"
+  },
+  {
+    "word": "assouvir",
+    "definition": "Satisfaire pleinement un besoin, un désir ou une passion.",
+    "example": "Il lit énormément pour assouvir sa soif d'apprendre.",
+    "translation": "to satisfy, to quench",
+    "skill_level": "C1"
+  },
+  {
+    "word": "assujettissement",
+    "definition": "État de dépendance ou fait d'être soumis à un impôt.",
+    "example": "L'assujettissement à la TVA concerne presque toutes les ventes.",
+    "translation": "subjection, liability (to tax)",
+    "skill_level": "C1"
+  },
+  {
+    "word": "assumer",
+    "definition": "Prendre en charge, accepter les responsabilités de ses actes.",
+    "example": "Le chef d'entreprise doit assumer les conséquences de ses choix.",
+    "translation": "to assume, to take on",
+    "skill_level": "B2"
+  },
+  {
+    "word": "assurance",
+    "definition": "Confiance en soi, ou garantie contre un risque.",
+    "example": "Il a répondu aux questions avec beaucoup d'assurance.",
+    "translation": "assurance, insurance, confidence",
+    "skill_level": "B2"
+  },
+  {
+    "word": "astreindre",
+    "definition": "Soumettre quelqu'un à une obligation stricte.",
+    "example": "La loi l'astreint à rembourser ses dettes au plus vite.",
+    "translation": "to compel, to subject",
+    "skill_level": "C1"
+  },
+  {
+    "word": "asymétrie",
+    "definition": "Absence de symétrie, déséquilibre entre deux parties.",
+    "example": "L'asymétrie de l'information défavorise l'acheteur.",
+    "translation": "asymmetry",
+    "skill_level": "C1"
+  },
+  {
+    "word": "atermoiement",
+    "definition": "Action de repousser une décision à plus tard.",
+    "example": "Après de longs atermoiements, ils ont enfin signé l'accord.",
+    "translation": "procrastination, delay",
+    "skill_level": "C1"
+  },
+  {
+    "word": "athéisme",
+    "definition": "Doctrine qui nie l'existence de toute divinité.",
+    "example": "L'athéisme philosophique s'est développé au siècle des Lumières.",
+    "translation": "atheism",
+    "skill_level": "C1"
+  },
+  {
+    "word": "atroce",
+    "definition": "Qui cause une souffrance extrême, très cruel.",
+    "example": "Les victimes ont relaté les détails de ce crime atroce.",
+    "translation": "atrocious, excruciating",
+    "skill_level": "B2"
+  },
+  {
+    "word": "attestation",
+    "definition": "Document écrit témoignant de la vérité d'un fait.",
+    "example": "Vous devez fournir une attestation d'hébergement.",
+    "translation": "attestation, certificate",
+    "skill_level": "B2"
+  },
+  {
+    "word": "atténuation",
+    "definition": "Fait de rendre moins grave ou moins vif.",
+    "example": "On observe une atténuation des symptômes grâce au traitement.",
+    "translation": "mitigation, alleviation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "attractivité",
+    "definition": "Capacité à attirer des capitaux ou des personnes.",
+    "example": "La ville a mené une campagne pour renforcer son attractivité.",
+    "translation": "attractiveness",
+    "skill_level": "B2"
+  },
+  {
+    "word": "attribution",
+    "definition": "Action d'accorder quelque chose, ou compétence légale.",
+    "example": "L'attribution des bourses se fait sur critères sociaux.",
+    "translation": "attribution, allocation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "attrition",
+    "definition": "Usure lente ou perte d'effectifs naturelle dans une entreprise.",
+    "example": "La guerre s'est transformée en un conflit d'attrition.",
+    "translation": "attrition",
+    "skill_level": "C1"
+  },
+  {
+    "word": "atypique",
+    "definition": "Qui ne correspond pas au type habituel.",
+    "example": "C'est un candidat au parcours professionnel tout à fait atypique.",
+    "translation": "atypical, unusual",
+    "skill_level": "B2"
+  },
+  {
+    "word": "aubaine",
+    "definition": "Avantage inattendu ou très bonne affaire.",
+    "example": "Cette promotion exceptionnelle est une véritable aubaine.",
+    "translation": "godsend, windfall",
+    "skill_level": "B2"
+  },
+  {
+    "word": "audace",
+    "definition": "Qualité de celui qui ose des actions risquées.",
+    "example": "Il a eu l'audace de tenir tête au directeur.",
+    "translation": "audacity, boldness",
+    "skill_level": "B2"
+  },
+  {
+    "word": "audience",
+    "definition": "Séance au cours de laquelle une cour écoute les plaidoiries.",
+    "example": "Le juge a suspendu l'audience pour quelques minutes.",
+    "translation": "hearing, audience",
+    "skill_level": "B2"
+  },
+  {
+    "word": "audit",
+    "definition": "Examen critique de la gestion ou de la comptabilité.",
+    "example": "Un audit indépendant a été commandé par la direction.",
+    "translation": "audit",
+    "skill_level": "B2"
+  },
+  {
+    "word": "augure",
+    "definition": "Signe qui laisse présager l'avenir.",
+    "example": "Ce premier succès est de bon augure pour la suite.",
+    "translation": "omen, portent",
+    "skill_level": "C1"
+  },
+  {
+    "word": "auguste",
+    "definition": "Qui inspire le respect et la vénération.",
+    "example": "Il a fait son entrée dans cette auguste assemblée.",
+    "translation": "august, majestic",
+    "skill_level": "C1"
+  },
+  {
+    "word": "auspice",
+    "definition": "Présage, circonstance permettant de deviner l'avenir.",
+    "example": "Les négociations ont commencé sous de mauvais auspices.",
+    "translation": "auspice",
+    "skill_level": "C1"
+  },
+  {
+    "word": "autocratie",
+    "definition": "Régime politique où un seul individu détient tout le pouvoir.",
+    "example": "Le pays a lentement glissé vers une autocratie militaire.",
+    "translation": "autocracy",
+    "skill_level": "C1"
+  },
+  {
+    "word": "automatisme",
+    "definition": "Comportement instinctif ou mécanique.",
+    "example": "L'entraînement a transformé ce geste en un simple automatisme.",
+    "translation": "automatism, reflex",
+    "skill_level": "B2"
+  },
+  {
+    "word": "autonomie",
+    "definition": "Capacité à se gouverner par ses propres lois.",
+    "example": "La région revendique une plus grande autonomie politique.",
+    "translation": "autonomy, independence",
+    "skill_level": "B2"
+  },
+  {
+    "word": "autoritarisme",
+    "definition": "Exercice rigide et absolu de l'autorité.",
+    "example": "Le peuple a fini par se révolter contre cet autoritarisme.",
+    "translation": "authoritarianism",
+    "skill_level": "C1"
+  },
+  {
+    "word": "avaliser",
+    "definition": "Soutenir ou approuver officiellement une action.",
+    "example": "Le comité scientifique a refusé d'avaliser cette étude biaisée.",
+    "translation": "to endorse, to back",
+    "skill_level": "C1"
+  },
+  {
+    "word": "avènement",
+    "definition": "Arrivée ou installation d'une ère ou d'une invention importante.",
+    "example": "L'avènement d'Internet a bouleversé notre société.",
+    "translation": "advent, coming",
+    "skill_level": "C1"
+  },
+  {
+    "word": "avertissement",
+    "definition": "Appel à l'attention pour prévenir d'un danger.",
+    "example": "Ce rapport écologique doit être perçu comme un avertissement.",
+    "translation": "warning",
+    "skill_level": "B2"
+  },
+  {
+    "word": "aveu",
+    "definition": "Reconnaissance d'une faute ou d'une vérité dissimulée.",
+    "example": "Il a fini par faire des aveux complets à la police.",
+    "translation": "confession",
+    "skill_level": "B2"
+  },
+  {
+    "word": "avide",
+    "definition": "Qui a un désir insatiable de quelque chose.",
+    "example": "Les investisseurs sont souvent avides de profits rapides.",
+    "translation": "avid, greedy",
+    "skill_level": "B2"
+  },
+  {
+    "word": "avilissement",
+    "definition": "Perte de dignité ou de valeur morale.",
+    "example": "L'avilissement des mœurs était dénoncé par les philosophes.",
+    "translation": "degradation, debasement",
+    "skill_level": "C1"
+  },
+  {
+    "word": "axiome",
+    "definition": "Vérité évidente par elle-même qui n'a pas besoin d'être prouvée.",
+    "example": "En mathématiques, on part de plusieurs axiomes fondamentaux.",
+    "translation": "axiom",
+    "skill_level": "C1"
+  },
+  {
+    "word": "banqueroute",
+    "definition": "Faillite frauduleuse ou effondrement économique.",
+    "example": "L'État a frôlé la banqueroute suite à cette crise financière.",
+    "translation": "bankruptcy, ruin",
+    "skill_level": "C1"
+  },
+  {
+    "word": "bannissement",
+    "definition": "Condamnation consistant à expulser quelqu'un de son pays.",
+    "example": "Le bannissement était une peine fréquente dans l'Antiquité.",
+    "translation": "banishment, exile",
+    "skill_level": "C1"
+  },
+  {
+    "word": "barbare",
+    "definition": "Qui est cruel, inhumain ou étranger à la civilisation.",
+    "example": "Ces actes barbares ont été fermement condamnés par l'ONU.",
+    "translation": "barbaric, barbarian",
+    "skill_level": "B2"
+  },
+  {
+    "word": "balise",
+    "definition": "Repère destiné à guider ou à signaler un danger.",
+    "example": "Une balise GPS permet de suivre les déplacements du navire.",
+    "translation": "beacon, marker",
+    "skill_level": "B2"
+  },
+  {
+    "word": "basculer",
+    "definition": "Changer radicalement de situation, pencher fortement.",
+    "example": "L'élection pourrait basculer à la dernière minute.",
+    "translation": "to tip over, to sway",
+    "skill_level": "B2"
+  },
+  {
+    "word": "bien-fondé",
+    "definition": "Caractère justifié et légitime d'une chose.",
+    "example": "Le juge examinera le bien-fondé de cette requête.",
+    "translation": "validity, merits",
+    "skill_level": "C1"
+  },
+  {
+    "word": "bienséance",
+    "definition": "Respect des règles de politesse et de savoir-vivre.",
+    "example": "Les règles de bienséance exigeaient qu'il se lève.",
+    "translation": "propriety, decorum",
+    "skill_level": "C1"
+  },
+  {
+    "word": "bifurquer",
+    "definition": "Se diviser en deux directions, changer de sujet.",
+    "example": "La discussion a fini par bifurquer sur la politique.",
+    "translation": "to branch off, to diverge",
+    "skill_level": "B2"
+  },
+  {
+    "word": "bilatéral",
+    "definition": "Qui engage deux parties contractantes.",
+    "example": "Un traité bilatéral de libre-échange a été signé hier.",
+    "translation": "bilateral",
+    "skill_level": "B2"
+  },
+  {
+    "word": "bipolarisation",
+    "definition": "Division en deux pôles opposés.",
+    "example": "La guerre froide a conduit à une bipolarisation du monde.",
+    "translation": "bipolarization",
+    "skill_level": "C1"
+  },
+  {
+    "word": "blâme",
+    "definition": "Jugement moral de désapprobation ou sanction.",
+    "example": "Le fonctionnaire a reçu un blâme pour négligence grave.",
+    "translation": "blame, reprimand",
+    "skill_level": "B2"
+  },
+  {
+    "word": "blasphème",
+    "definition": "Parole outrageante contre la religion ou ce qui est respecté.",
+    "example": "Dans certains pays, le blasphème est encore puni par la loi.",
+    "translation": "blasphemy",
+    "skill_level": "C1"
+  },
+  {
+    "word": "boycotter",
+    "definition": "Refuser toute relation commerciale ou sociale en signe de protestation.",
+    "example": "Des militants ont appelé à boycotter les produits de cette marque.",
+    "translation": "to boycott",
+    "skill_level": "B2"
+  },
+  {
+    "word": "braconnage",
+    "definition": "Chasse ou pêche illégale.",
+    "example": "Le braconnage menace directement la survie des rhinocéros.",
+    "translation": "poaching",
+    "skill_level": "B2"
+  },
+  {
+    "word": "bravade",
+    "definition": "Action de défier avec ostentation.",
+    "example": "L'ennemi a perçu cette manœuvre comme une bravade inutile.",
+    "translation": "bravado",
+    "skill_level": "C1"
+  },
+  {
+    "word": "brimade",
+    "definition": "Épreuve vexatoire imposée par les anciens aux nouveaux.",
+    "example": "Les brimades sont strictement interdites dans cette école.",
+    "translation": "hazing, bullying",
+    "skill_level": "C1"
+  },
+  {
+    "word": "brouhaha",
+    "definition": "Bruit confus de voix nombreuses.",
+    "example": "Un brouhaha s'est élevé dans la salle à l'annonce des résultats.",
+    "translation": "hubbub, uproar",
+    "skill_level": "B2"
+  },
+  {
+    "word": "brut",
+    "definition": "Qui est à l'état naturel, sans raffinement ou sans déduction.",
+    "example": "Le produit intérieur brut a augmenté de deux pour cent.",
+    "translation": "raw, gross, crude",
+    "skill_level": "B2"
+  },
+  {
+    "word": "bureaucratie",
+    "definition": "Influence abusive ou lourdeur de l'administration.",
+    "example": "La lenteur de la bureaucratie freine la création d'entreprises.",
+    "translation": "bureaucracy",
+    "skill_level": "B2"
+  },
+  {
+    "word": "cacophonie",
+    "definition": "Mélange discordant de sons ou d'idées.",
+    "example": "Le débat s'est transformé en une véritable cacophonie.",
+    "translation": "cacophony",
+    "skill_level": "C1"
+  },
+  {
+    "word": "calamité",
+    "definition": "Malheur public ou catastrophe naturelle grave.",
+    "example": "Les inondations sont une calamité pour cette région agricole.",
+    "translation": "calamity, disaster",
+    "skill_level": "B2"
+  },
+  {
+    "word": "calomnie",
+    "definition": "Accusation fausse et mensongère portant atteinte à l'honneur.",
+    "example": "Le politicien a porté plainte pour diffamation et calomnie.",
+    "translation": "slander, calumny",
+    "skill_level": "C1"
+  },
+  {
+    "word": "camouflet",
+    "definition": "Affront humiliant et souvent public.",
+    "example": "Le rejet de sa proposition a été vécu comme un véritable camouflet.",
+    "translation": "snub, rebuff",
+    "skill_level": "C1"
+  },
+  {
+    "word": "canaliser",
+    "definition": "Diriger ou concentrer une énergie dans une direction précise.",
+    "example": "Il faut savoir canaliser l'énergie de ces jeunes enfants.",
+    "translation": "to channel",
+    "skill_level": "B2"
+  },
+  {
+    "word": "canevas",
+    "definition": "Trame, plan de base d'un récit ou d'un projet.",
+    "example": "L'écrivain a d'abord rédigé le canevas de son futur roman.",
+    "translation": "framework, outline",
+    "skill_level": "C1"
+  },
+  {
+    "word": "canular",
+    "definition": "Fausse nouvelle diffusée pour tromper le public.",
+    "example": "L'annonce de la découverte extraterrestre n'était qu'un canular.",
+    "translation": "hoax, prank",
+    "skill_level": "C1"
+  },
+  {
+    "word": "capitalisation",
+    "definition": "Action de transformer des revenus en capital.",
+    "example": "La capitalisation boursière de l'entreprise a chuté.",
+    "translation": "capitalization",
+    "skill_level": "C1"
+  },
+  {
+    "word": "capitulation",
+    "definition": "Convention par laquelle on se rend à l'ennemi.",
+    "example": "La capitulation de l'armée a marqué la fin du conflit.",
+    "translation": "capitulation, surrender",
+    "skill_level": "B2"
+  },
+  {
+    "word": "caprice",
+    "definition": "Désir soudain et irréfléchi.",
+    "example": "Ce projet faramineux n'est qu'un caprice du milliardaire.",
+    "translation": "whim, caprice",
+    "skill_level": "B2"
+  },
+  {
+    "word": "captivant",
+    "definition": "Qui retient fortement l'attention ou l'intérêt.",
+    "example": "Le conférencier a livré un récit captivant de son voyage.",
+    "translation": "captivating, enthralling",
+    "skill_level": "B2"
+  },
+  {
+    "word": "carence",
+    "definition": "Absence ou manque de ce qui serait nécessaire.",
+    "example": "Une carence en vitamines peut entraîner de graves maladies.",
+    "translation": "deficiency, shortage",
+    "skill_level": "B2"
+  },
+  {
+    "word": "caricature",
+    "definition": "Représentation exagérée ou satirique.",
+    "example": "Cette description de la société n'est qu'une caricature grossière.",
+    "translation": "caricature",
+    "skill_level": "B2"
+  },
+  {
+    "word": "cataclysme",
+    "definition": "Bouleversement majeur de la surface du globe, ou désastre.",
+    "example": "La Seconde Guerre mondiale fut un cataclysme pour l'Europe.",
+    "translation": "cataclysm",
+    "skill_level": "C1"
+  },
+  {
+    "word": "catalyser",
+    "definition": "Provoquer une réaction ou accélérer un processus.",
+    "example": "La crise économique a catalysé le mécontentement populaire.",
+    "translation": "to catalyze",
+    "skill_level": "C1"
+  },
+  {
+    "word": "catalyseur",
+    "definition": "Élément qui provoque ou accélère un changement.",
+    "example": "Les réseaux sociaux ont servi de catalyseur aux révolutions.",
+    "translation": "catalyst",
+    "skill_level": "C1"
+  },
+  {
+    "word": "catégorique",
+    "definition": "Qui n'admet aucune réserve, qui est absolu.",
+    "example": "Le refus du directeur a été clair et catégorique.",
+    "translation": "categorical, flat (refusal)",
+    "skill_level": "B2"
+  },
+  {
+    "word": "cautionner",
+    "definition": "Apporter sa garantie ou son appui moral à une action.",
+    "example": "Le syndicat a refusé de cautionner ce projet de loi.",
+    "translation": "to endorse, to back",
+    "skill_level": "C1"
+  },
+  {
+    "word": "célérité",
+    "definition": "Grande rapidité dans l'action ou l'exécution.",
+    "example": "Les secours sont intervenus avec une célérité exemplaire.",
+    "translation": "celerity, swiftness",
+    "skill_level": "C1"
+  },
+  {
+    "word": "censure",
+    "definition": "Contrôle exercé par une autorité sur les publications.",
+    "example": "Le journal indépendant a été victime de la censure de l'État.",
+    "translation": "censorship",
+    "skill_level": "B2"
+  },
+  {
+    "word": "centralisation",
+    "definition": "Action de concentrer les pouvoirs en un point unique.",
+    "example": "La centralisation administrative est une tradition française.",
+    "translation": "centralization",
+    "skill_level": "B2"
+  },
+  {
+    "word": "certitude",
+    "definition": "Assurance pleine et entière de la vérité de quelque chose.",
+    "example": "Il n'y a aucune certitude quant à la date de reprise des vols.",
+    "translation": "certainty",
+    "skill_level": "B2"
+  },
+  {
+    "word": "cessation",
+    "definition": "Fait de mettre fin ou de s'arrêter.",
+    "example": "La cessation des hostilités a été signée à minuit.",
+    "translation": "cessation, ending",
+    "skill_level": "C1"
+  },
+  {
+    "word": "charisme",
+    "definition": "Influence exceptionnelle qu'exerce une personne sur les autres.",
+    "example": "Ce leader politique possède un charisme indéniable.",
+    "translation": "charisma",
+    "skill_level": "B2"
+  },
+  {
+    "word": "charlatan",
+    "definition": "Imposteur qui exploite la crédulité publique.",
+    "example": "Ce médecin prétendument révolutionnaire n'est qu'un charlatan.",
+    "translation": "charlatan, quack",
+    "skill_level": "C1"
+  },
+  {
+    "word": "châtiment",
+    "definition": "Peine sévère infligée en réparation d'une faute.",
+    "example": "Le coupable a reçu un châtiment proportionnel à son crime.",
+    "translation": "punishment, chastisement",
+    "skill_level": "C1"
+  },
+  {
+    "word": "chauvinisme",
+    "definition": "Patriotisme excessif et souvent agressif.",
+    "example": "Son chauvinisme l'empêche de reconnaître les mérites des autres.",
+    "translation": "chauvinism, jingoism",
+    "skill_level": "C1"
+  },
+  {
+    "word": "chimère",
+    "definition": "Projet irréalisable ou illusion vaine.",
+    "example": "Poursuivre ce rêve de perfection n'est qu'une chimère.",
+    "translation": "chimera, pipe dream",
+    "skill_level": "C1"
+  },
+  {
+    "word": "chronique",
+    "definition": "Qui dure longtemps ou revient souvent, en parlant d'un mal.",
+    "example": "Le chômage chronique frappe particulièrement les jeunes.",
+    "translation": "chronic",
+    "skill_level": "B2"
+  },
+  {
+    "word": "chronologie",
+    "definition": "Succession des événements dans le temps.",
+    "example": "Il faut respecter la chronologie des faits lors de l'enquête.",
+    "translation": "chronology",
+    "skill_level": "B2"
+  },
+  {
+    "word": "circonlocution",
+    "definition": "Détour de langage pour éviter de dire les choses directement.",
+    "example": "Il s'est perdu en circonlocutions avant d'annoncer la mauvaise nouvelle.",
+    "translation": "circumlocution",
+    "skill_level": "C1"
+  },
+  {
+    "word": "circonscrire",
+    "definition": "Limiter, donner des bornes précises à quelque chose.",
+    "example": "Les pompiers ont rapidement réussi à circonscrire l'incendie.",
+    "translation": "to contain, to circumscribe",
+    "skill_level": "C1"
+  },
+  {
+    "word": "circonstance",
+    "definition": "Fait particulier qui accompagne un événement.",
+    "example": "Les circonstances de l'accident restent encore à éclaircir.",
+    "translation": "circumstance",
+    "skill_level": "B2"
+  },
+  {
+    "word": "circonspection",
+    "definition": "Prudence qui fait observer attentivement avant d'agir.",
+    "example": "Face à ces rumeurs, il convient de faire preuve de circonspection.",
+    "translation": "circumspection, caution",
+    "skill_level": "C1"
+  },
+  {
+    "word": "citoyenneté",
+    "definition": "Qualité de citoyen, impliquant droits et devoirs.",
+    "example": "L'education à la citoyenneté commence dès le plus jeune âge.",
+    "translation": "citizenship",
+    "skill_level": "B2"
+  },
+  {
+    "word": "clandestin",
+    "definition": "Qui se fait en secret, souvent en violation de la loi.",
+    "example": "L'immigration clandestine est un sujet politique brûlant.",
+    "translation": "clandestine, illegal",
+    "skill_level": "B2"
+  },
+  {
+    "word": "clarification",
+    "definition": "Action de rendre clair ou de dissiper une confusion.",
+    "example": "Une clarification de la politique étrangère est demandée.",
+    "translation": "clarification",
+    "skill_level": "B2"
+  },
+  {
+    "word": "coalition",
+    "definition": "Alliance politique ou militaire temporaire.",
+    "example": "Une vaste coalition internationale a été formée pour la paix.",
+    "translation": "coalition",
+    "skill_level": "C1"
+  },
+  {
+    "word": "codification",
+    "definition": "Action de réunir des lois en un code systématique.",
+    "example": "La codification du droit a simplifié le travail des avocats.",
+    "translation": "codification",
+    "skill_level": "C1"
+  },
+  {
+    "word": "cohésion",
+    "definition": "Force qui unit les différentes parties d'un groupe.",
+    "example": "La cohésion sociale est menacée par les inégalités grandissantes.",
+    "translation": "cohesion",
+    "skill_level": "B2"
+  },
+  {
+    "word": "coïncidence",
+    "definition": "Rencontre fortuite d'événements arrivant au même moment.",
+    "example": "C'est par une pure coïncidence que je l'ai retrouvé hier.",
+    "translation": "coincidence",
+    "skill_level": "B2"
+  },
+  {
+    "word": "collaborer",
+    "definition": "Travailler de concert avec d'autres pour une œuvre commune.",
+    "example": "Les deux universités ont décidé de collaborer sur cette recherche.",
+    "translation": "to collaborate",
+    "skill_level": "B2"
+  },
+  {
+    "word": "collatéral",
+    "definition": "Qui est secondaire, indirect.",
+    "example": "Les dommages collatéraux de cette opération sont très lourds.",
+    "translation": "collateral",
+    "skill_level": "C1"
+  },
+  {
+    "word": "collectivité",
+    "definition": "Groupe de personnes vivant ensemble ou ayant des intérêts communs.",
+    "example": "Les décisions de la collectivité territoriale sont souveraines.",
+    "translation": "community, local authority",
+    "skill_level": "B2"
+  },
+  {
+    "word": "collégialité",
+    "definition": "Système où l'autorité est exercée en commun.",
+    "example": "La direction de l'entreprise a opté pour la collégialité des décisions.",
+    "translation": "collegiality",
+    "skill_level": "C1"
+  },
+  {
+    "word": "colonisation",
+    "definition": "Occupation et exploitation d'un territoire par un État étranger.",
+    "example": "L'ère de la colonisation a profondément marqué l'histoire moderne.",
+    "translation": "colonization",
+    "skill_level": "B2"
+  },
+  {
+    "word": "colossal",
+    "definition": "Qui est d'une taille, d'une force ou d'une importance énorme.",
+    "example": "Le coût de ce projet d'infrastructure est colossal.",
+    "translation": "colossal",
+    "skill_level": "B2"
+  },
+  {
+    "word": "commémoration",
+    "definition": "Cérémonie destinée à rappeler le souvenir d'un événement.",
+    "example": "La commémoration de l'armistice a lieu chaque année en novembre.",
+    "translation": "commemoration",
+    "skill_level": "B2"
+  },
+  {
+    "word": "commensurable",
+    "definition": "Que l'on peut comparer grâce à une mesure commune.",
+    "example": "Ces deux risques économiques ne sont pas vraiment commensurables.",
+    "translation": "commensurable",
+    "skill_level": "C1"
+  },
+  {
+    "word": "compassion",
+    "definition": "Sentiment qui porte à plaindre les maux d'autrui et à y compatir.",
+    "example": "L'infirmière a fait preuve de beaucoup de compassion envers les malades.",
+    "translation": "compassion",
+    "skill_level": "B2"
+  },
+  {
+    "word": "compatibilité",
+    "definition": "Caractère de ce qui peut exister ou fonctionner ensemble.",
+    "example": "Nous devons vérifier la compatibilité des nouveaux logiciels.",
+    "translation": "compatibility",
+    "skill_level": "B2"
+  },
+  {
+    "word": "complaisance",
+    "definition": "Attitude consistant à chercher à plaire pour éviter des conflits.",
+    "example": "Le rapport pointe la complaisance des autorités dans cette affaire.",
+    "translation": "complacency, indulgence",
+    "skill_level": "C1"
+  },
+  {
+    "word": "complexité",
+    "definition": "Caractère de ce qui comprend de multiples éléments enchevêtrés.",
+    "example": "La complexité du cerveau humain dépasse notre compréhension actuelle.",
+    "translation": "complexity",
+    "skill_level": "B2"
+  },
+  {
+    "word": "complication",
+    "definition": "Élément qui rend une chose plus difficile ou maladie inattendue.",
+    "example": "L'opération s'est déroulée sans aucune complication.",
+    "translation": "complication",
+    "skill_level": "B2"
+  },
+  {
+    "word": "complicité",
+    "definition": "Participation à un délit, ou entente profonde entre personnes.",
+    "example": "L'accusé a été condamné pour complicité de fraude.",
+    "translation": "complicity",
+    "skill_level": "B2"
+  },
+  {
+    "word": "composante",
+    "definition": "Élément qui entre dans la composition d'un tout.",
+    "example": "L'agriculture est une composante essentielle de notre économie.",
+    "translation": "component",
+    "skill_level": "B2"
+  },
+  {
+    "word": "compromettre",
+    "definition": "Exposer à un risque, ou ternir la réputation de quelqu'un.",
+    "example": "Cette fuite d'informations pourrait compromettre la sécurité nationale.",
+    "translation": "to compromise",
+    "skill_level": "C1"
+  },
+  {
+    "word": "compromis",
+    "definition": "Accord obtenu par des concessions mutuelles.",
+    "example": "Les négociateurs ont fini par trouver un compromis acceptable.",
+    "translation": "compromise",
+    "skill_level": "B2"
+  },
+  {
+    "word": "compulsion",
+    "definition": "Force intérieure irrépressible poussant à accomplir un acte.",
+    "example": "L'achat impulsif relève parfois d'une véritable compulsion.",
+    "translation": "compulsion",
+    "skill_level": "C1"
+  },
+  {
+    "word": "concentration",
+    "definition": "Action de réunir en un même point, ou effort d'attention.",
+    "example": "La concentration des médias entre quelques mains pose problème.",
+    "translation": "concentration",
+    "skill_level": "B2"
+  },
+  {
+    "word": "conception",
+    "definition": "Manière de comprendre, ou processus de création.",
+    "example": "La conception de ce nouveau modèle a pris plusieurs années.",
+    "translation": "conception, design",
+    "skill_level": "B2"
+  },
+  {
+    "word": "concession",
+    "definition": "Abandon d'un avantage lors d'une négociation.",
+    "example": "L'entreprise a dû faire une concession sur les salaires.",
+    "translation": "concession",
+    "skill_level": "B2"
+  },
+  {
+    "word": "conciliation",
+    "definition": "Action d'amener à l'entente des personnes en désaccord.",
+    "example": "Le comité de conciliation tentera d'éviter la grève.",
+    "translation": "conciliation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "concision",
+    "definition": "Qualité de ce qui exprime beaucoup de choses en peu de mots.",
+    "example": "Son rapport se distingue par sa clarté et sa concision.",
+    "translation": "conciseness",
+    "skill_level": "C1"
+  },
+  {
+    "word": "conclusion",
+    "definition": "Partie finale d'un raisonnement ou d'un événement.",
+    "example": "En conclusion, nous préconisons la prudence financière.",
+    "translation": "conclusion",
+    "skill_level": "B2"
+  },
+  {
+    "word": "concordance",
+    "definition": "Fait de correspondre ou de s'accorder parfaitement.",
+    "example": "On observe une concordance parfaite entre les deux témoignages.",
+    "translation": "concordance, agreement",
+    "skill_level": "C1"
+  },
+  {
+    "word": "concrétiser",
+    "definition": "Rendre réel ou effectif ce qui n'était qu'un projet.",
+    "example": "Il espère concrétiser ses idées dans les mois à venir.",
+    "translation": "to materialize, to realize",
+    "skill_level": "B2"
+  },
+  {
+    "word": "concurrence",
+    "definition": "Rivalité d'intérêts entre plusieurs personnes ou entreprises.",
+    "example": "La concurrence est rude sur le marché des smartphones.",
+    "translation": "competition",
+    "skill_level": "B2"
+  },
+  {
+    "word": "condescendance",
+    "definition": "Attitude de supériorité hautaine mais bienveillante en apparence.",
+    "example": "Il s'est adressé à son employé avec une condescendance agaçante.",
+    "translation": "condescension",
+    "skill_level": "C1"
+  },
+  {
+    "word": "conditionnement",
+    "definition": "Influence de l'environnement sur les actes, ou emballage.",
+    "example": "Le conditionnement psychologique joue un grand rôle dans la publicité.",
+    "translation": "conditioning, packaging",
+    "skill_level": "C1"
+  },
+  {
+    "word": "configuration",
+    "definition": "Disposition des différentes parties d'un tout.",
+    "example": "La configuration géographique de la vallée favorise les crues.",
+    "translation": "configuration, layout",
+    "skill_level": "B2"
+  },
+  {
+    "word": "confinement",
+    "definition": "Maintien d'une population ou d'un produit dans un espace clos.",
+    "example": "Le confinement strict a permis de freiner l'épidémie.",
+    "translation": "lockdown, containment",
+    "skill_level": "B2"
+  },
+  {
+    "word": "confiscation",
+    "definition": "Saisie légale d'un bien par l'autorité publique.",
+    "example": "La confiscation des armes a été ordonnée par le juge.",
+    "translation": "confiscation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "conflit",
+    "definition": "Opposition violente ou désaccord profond.",
+    "example": "Le conflit d'intérêts est évident dans cette transaction.",
+    "translation": "conflict",
+    "skill_level": "B2"
+  },
+  {
+    "word": "conformation",
+    "definition": "Action de se modeler sur un exemple ou structure physique.",
+    "example": "La conformation de l'aile de cet oiseau le rend très agile.",
+    "translation": "conformation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "conformisme",
+    "definition": "Soumission aveugle aux usages de son milieu.",
+    "example": "Le conformisme étouffe parfois la créativité et l'innovation.",
+    "translation": "conformism",
+    "skill_level": "C1"
+  },
+  {
+    "word": "confronter",
+    "definition": "Mettre en présence pour comparer ou chercher la vérité.",
+    "example": "L'enquêteur a décidé de confronter les deux suspects.",
+    "translation": "to confront",
+    "skill_level": "B2"
+  },
+  {
+    "word": "confusion",
+    "definition": "Manque d'ordre ou erreur consistant à prendre l'un pour l'autre.",
+    "example": "Il règne une grande confusion autour de la nouvelle loi.",
+    "translation": "confusion",
+    "skill_level": "B2"
+  },
+  {
+    "word": "conglomérat",
+    "definition": "Groupe constitué d'entreprises aux activités diverses.",
+    "example": "Ce vaste conglomérat industriel pèse lourd dans l'économie.",
+    "translation": "conglomerate",
+    "skill_level": "C1"
+  },
+  {
+    "word": "congrégation",
+    "definition": "Réunion de fidèles ou ordre religieux.",
+    "example": "Cette congrégation religieuse s'occupe des plus démunis.",
+    "translation": "congregation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "connotation",
+    "definition": "Sens particulier ajouté au sens premier d'un mot.",
+    "example": "Ce terme possède une forte connotation péjorative.",
+    "translation": "connotation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "conscience",
+    "definition": "Connaissance intuitive que l'être a de lui-même ou sens moral.",
+    "example": "La prise de conscience écologique est de plus en plus forte.",
+    "translation": "awareness, conscience",
+    "skill_level": "B2"
+  },
+  {
+    "word": "conscription",
+    "definition": "Appel sous les drapeaux d'une classe d'âge.",
+    "example": "Le gouvernement envisage de rétablir la conscription militaire.",
+    "translation": "conscription, draft",
+    "skill_level": "C1"
+  },
+  {
+    "word": "consécration",
+    "definition": "Fait d'être reconnu et honoré pour son talent ou ses actes.",
+    "example": "L'obtention de ce prix prestigieux est une véritable consécration.",
+    "translation": "consecration, recognition",
+    "skill_level": "C1"
+  },
+  {
+    "word": "conservatisme",
+    "definition": "Attitude consistant à maintenir les traditions et refuser le changement.",
+    "example": "Le conservatisme de cette institution bloque toute réforme.",
+    "translation": "conservatism",
+    "skill_level": "B2"
+  },
+  {
+    "word": "considération",
+    "definition": "Respect que l'on porte à quelqu'un, ou fait d'examiner une chose.",
+    "example": "Ce problème mérite une considération très attentive.",
+    "translation": "consideration, respect",
+    "skill_level": "B2"
+  },
+  {
+    "word": "consistance",
+    "definition": "Degré de solidité, ou solidité d'un raisonnement.",
+    "example": "Les arguments de la défense manquent de consistance.",
+    "translation": "consistency",
+    "skill_level": "C1"
+  },
+  {
+    "word": "consolidation",
+    "definition": "Action de rendre plus solide et durable.",
+    "example": "La consolidation de la paix est une priorité régionale.",
+    "translation": "consolidation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "conspiration",
+    "definition": "Entente secrète pour renverser un pouvoir.",
+    "example": "Une conspiration a été déjouée par les services de renseignement.",
+    "translation": "conspiracy",
+    "skill_level": "C1"
+  },
+  {
+    "word": "constance",
+    "definition": "Fermeté de caractère, fidélité ou persévérance.",
+    "example": "Sa constance dans l'effort lui a permis de réussir.",
+    "translation": "constancy, perseverance",
+    "skill_level": "C1"
+  },
+  {
+    "word": "constatation",
+    "definition": "Action d'observer et d'enregistrer un fait.",
+    "example": "La constatation des dégâts sera effectuée par un expert.",
+    "translation": "finding, observation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "consternation",
+    "definition": "Abattement profond suite à une mauvaise nouvelle.",
+    "example": "C'est avec consternation que nous avons appris son décès.",
+    "translation": "consternation, dismay",
+    "skill_level": "C1"
+  },
+  {
+    "word": "constitution",
+    "definition": "Loi fondamentale qui règle le gouvernement d'un État.",
+    "example": "Le président a proposé de réviser la constitution actuelle.",
+    "translation": "constitution",
+    "skill_level": "B2"
+  },
+  {
+    "word": "consumérisme",
+    "definition": "Mode de vie poussant à consommer toujours plus.",
+    "example": "Le consumérisme excessif est souvent pointé du doigt par les écologistes.",
+    "translation": "consumerism",
+    "skill_level": "C1"
+  },
+  {
+    "word": "contagion",
+    "definition": "Transmission d'une maladie, ou diffusion d'un sentiment.",
+    "example": "La panique financière s'est propagée par contagion aux autres banques.",
+    "translation": "contagion",
+    "skill_level": "B2"
+  },
+  {
+    "word": "contamination",
+    "definition": "Action d'infecter ou de souiller par des substances nocives.",
+    "example": "Le risque de contamination radioactive est toujours présent.",
+    "translation": "contamination",
+    "skill_level": "B2"
+  },
+  {
+    "word": "contemplation",
+    "definition": "Observation méditative ou réflexion profonde.",
+    "example": "Le poète s'est perdu dans la contemplation du paysage.",
+    "translation": "contemplation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "contestation",
+    "definition": "Remise en cause d'une autorité, d'un droit ou d'une affirmation.",
+    "example": "La nouvelle loi a déclenché une vive contestation sociale.",
+    "translation": "protest, disputation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "contiguïté",
+    "definition": "État de deux choses qui se touchent.",
+    "example": "La contiguïté de ces deux terrains facilite le projet immobilier.",
+    "translation": "contiguity",
+    "skill_level": "C1"
+  },
+  {
+    "word": "continuel",
+    "definition": "Qui dure sans interruption.",
+    "example": "Ce bruit continuel est devenu insupportable à la longue.",
+    "translation": "continual",
+    "skill_level": "B2"
+  },
+  {
+    "word": "contourner",
+    "definition": "Passer autour de quelque chose pour éviter un obstacle.",
+    "example": "Il a trouvé une astuce pour contourner la difficulté juridique.",
+    "translation": "to bypass, to circumvent",
+    "skill_level": "B2"
+  },
+  {
+    "word": "contradiction",
+    "definition": "Incompatibilité entre deux affirmations ou principes.",
+    "example": "Il y a une contradiction manifeste dans ses déclarations.",
+    "translation": "contradiction",
+    "skill_level": "B2"
+  },
+  {
+    "word": "contravention",
+    "definition": "Infraction aux règlements, souvent punie d'une amende.",
+    "example": "Il a reçu une contravention pour excès de vitesse.",
+    "translation": "infringement, fine",
+    "skill_level": "B2"
+  },
+  {
+    "word": "contrepartie",
+    "definition": "Ce qu'on donne en échange de quelque chose.",
+    "example": "L'aide financière a été accordée avec des exigences en contrepartie.",
+    "translation": "counterpart, compensation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "controverse",
+    "definition": "Discussion argumentée et prolongée sur une question.",
+    "example": "La découverte de ce vaccin a suscité une vive controverse médicale.",
+    "translation": "controversy",
+    "skill_level": "B2"
+  },
+  {
+    "word": "convenance",
+    "definition": "Ce qui convient moralement ou socialement.",
+    "example": "Le mariage de convenance était courant au dix-neuvième siècle.",
+    "translation": "propriety, convenience",
+    "skill_level": "C1"
+  },
+  {
+    "word": "convergence",
+    "definition": "Action de tendre vers le même but ou point de rencontre.",
+    "example": "On note une convergence des politiques monétaires européennes.",
+    "translation": "convergence",
+    "skill_level": "C1"
+  },
+  {
+    "word": "conviction",
+    "definition": "Croyance ferme, certitude reposant sur des preuves ou idées.",
+    "example": "Le politicien a défendu son projet avec une profonde conviction.",
+    "translation": "conviction",
+    "skill_level": "B2"
+  },
+  {
+    "word": "convocation",
+    "definition": "Action d'appeler à se réunir ou document qui convoque.",
+    "example": "Les employés ont reçu leur convocation pour l'assemblée générale.",
+    "translation": "summons, convening",
+    "skill_level": "B2"
+  },
+  {
+    "word": "coopération",
+    "definition": "Action de travailler ensemble de manière volontaire.",
+    "example": "La coopération internationale est indispensable contre le réchauffement.",
+    "translation": "cooperation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "coordination",
+    "definition": "Harmonisation des actions de différents acteurs.",
+    "example": "Un manque de coordination a retardé l'intervention des pompiers.",
+    "translation": "coordination",
+    "skill_level": "B2"
+  },
+  {
+    "word": "corporatisme",
+    "definition": "Défense exclusive des intérêts d'une profession ou d'un corps.",
+    "example": "Le corporatisme freine souvent les réformes d'ensemble.",
+    "translation": "corporatism",
+    "skill_level": "C1"
+  },
+  {
+    "word": "corporel",
+    "definition": "Qui est propre ou relatif au corps.",
+    "example": "Le droit pénal condamne les atteintes à l'intégrité corporelle.",
+    "translation": "bodily, corporal",
+    "skill_level": "B2"
+  },
+  {
+    "word": "correctif",
+    "definition": "Mesure destinée à redresser une erreur ou un défaut.",
+    "example": "Un budget correctif sera voté à l'automne pour rééquilibrer les comptes.",
+    "translation": "corrective measure",
+    "skill_level": "C1"
+  },
+  {
+    "word": "corroborer",
+    "definition": "Appuyer ou confirmer une opinion ou une hypothèse.",
+    "example": "Les récentes études viennent corroborer cette vieille théorie.",
+    "translation": "to corroborate",
+    "skill_level": "C1"
+  },
+  {
+    "word": "corruption",
+    "definition": "Utilisation abusive d'un pouvoir pour obtenir un avantage privé.",
+    "example": "L'ONG lutte contre la corruption dans l'administration publique.",
+    "translation": "corruption",
+    "skill_level": "B2"
+  },
+  {
+    "word": "cosmos",
+    "definition": "L'univers considéré comme un système bien ordonné.",
+    "example": "Les philosophes grecs s'interrogeaient déjà sur la structure du cosmos.",
+    "translation": "cosmos, universe",
+    "skill_level": "B2"
+  },
+  {
+    "word": "cotation",
+    "definition": "Évaluation officielle des prix sur un marché boursier.",
+    "example": "L'entreprise fera bientôt son entrée en cotation à la bourse de Paris.",
+    "translation": "quotation, listing",
+    "skill_level": "C1"
+  },
+  {
+    "word": "courroux",
+    "definition": "Colère vive et justifiée.",
+    "example": "Il s'est attiré le courroux du directeur par son comportement.",
+    "translation": "wrath, ire",
+    "skill_level": "C1"
+  },
+  {
+    "word": "courtoisie",
+    "definition": "Politesse raffinée et bienveillante.",
+    "example": "La diplomatie exige une courtoisie de tous les instants.",
+    "translation": "courtesy",
+    "skill_level": "B2"
+  },
+  {
+    "word": "crédibilité",
+    "definition": "Caractère de ce qui est digne de foi ou de confiance.",
+    "example": "Les scandales récents ont affecté la crédibilité du gouvernement.",
+    "translation": "credibility",
+    "skill_level": "B2"
+  },
+  {
+    "word": "crédo",
+    "definition": "Ensemble des principes sur lesquels on fonde son action.",
+    "example": "La transparence financière est le nouveau crédo de la direction.",
+    "translation": "credo, creed",
+    "skill_level": "C1"
+  },
+  {
+    "word": "crédulité",
+    "definition": "Disposition à croire trop facilement ou naïvement.",
+    "example": "Les escrocs profitent souvent de la crédulité des personnes âgées.",
+    "translation": "credulity",
+    "skill_level": "C1"
+  },
+  {
+    "word": "crisper",
+    "definition": "Contracter, irriter ou rendre la situation tendue.",
+    "example": "L'échec des négociations a fini par crisper les relations diplomatiques.",
+    "translation": "to tense up, to annoy",
+    "skill_level": "C1"
+  },
+  {
+    "word": "critère",
+    "definition": "Principe ou élément de référence servant à juger ou évaluer.",
+    "example": "L'expérience professionnelle est un critère essentiel pour ce poste.",
+    "translation": "criterion",
+    "skill_level": "B2"
+  },
+  {
+    "word": "croiser",
+    "definition": "Se rencontrer ou mélanger pour comparer des informations.",
+    "example": "Il est utile de croiser les sources pour vérifier l'exactitude des faits.",
+    "translation": "to cross-check",
+    "skill_level": "B2"
+  },
+  {
+    "word": "croissance",
+    "definition": "Développement économique ou augmentation en taille.",
+    "example": "Le pays a retrouvé le chemin de la croissance économique.",
+    "translation": "growth",
+    "skill_level": "B2"
+  },
+  {
+    "word": "croyance",
+    "definition": "Certitude intime qu'une chose est vraie sans en avoir la preuve.",
+    "example": "Les anciennes croyances populaires se perdent avec le temps.",
+    "translation": "belief",
+    "skill_level": "B2"
+  },
+  {
+    "word": "cruauté",
+    "definition": "Méchant plaisir à faire souffrir autrui.",
+    "example": "La cruauté envers les animaux est sévèrement réprimée.",
+    "translation": "cruelty",
+    "skill_level": "B2"
+  },
+  {
+    "word": "crypter",
+    "definition": "Traduire des données en code pour les protéger.",
+    "example": "L'application permet de crypter toutes vos communications privées.",
+    "translation": "to encrypt",
+    "skill_level": "B2"
+  },
+  {
+    "word": "culpabilité",
+    "definition": "État d'une personne coupable, ou sentiment de faute.",
+    "example": "Il a éprouvé un fort sentiment de culpabilité après la dispute.",
+    "translation": "guilt",
+    "skill_level": "B2"
+  },
+  {
+    "word": "culte",
+    "definition": "Admiration religieuse ou passionnée pour une idée ou personne.",
+    "example": "Le régime imposait un véritable culte de la personnalité au chef de l'État.",
+    "translation": "cult, worship",
+    "skill_level": "C1"
+  },
+  {
+    "word": "cumulatif",
+    "definition": "Qui s'ajoute de manière continue et additionnelle.",
+    "example": "L'effet cumulatif de ces erreurs a conduit à la catastrophe.",
+    "translation": "cumulative",
+    "skill_level": "C1"
+  },
+  {
+    "word": "cupidité",
+    "definition": "Désir immodéré de posséder des richesses.",
+    "example": "La cupidité de certains spéculateurs a déstabilisé les marchés.",
+    "translation": "greed, cupidity",
+    "skill_level": "C1"
+  },
+  {
+    "word": "curatif",
+    "definition": "Qui vise à soigner ou guérir une maladie.",
+    "example": "Plutôt que des mesures préventives, ils ont adopté un traitement curatif.",
+    "translation": "curative, therapeutic",
+    "skill_level": "C1"
+  },
+  {
+    "word": "cynisme",
+    "definition": "Attitude effrontée de celui qui brave la morale ouvertement.",
+    "example": "Il a répondu aux accusations avec un cynisme déconcertant.",
+    "translation": "cynicism",
+    "skill_level": "C1"
+  },
+  {
+    "word": "dangerosité",
+    "definition": "Caractère dangereux d'une substance ou d'une personne.",
+    "example": "L'expertise psychiatrique devra évaluer la dangerosité de l'accusé.",
+    "translation": "dangerousness",
+    "skill_level": "B2"
+  },
+  {
+    "word": "débâcle",
+    "definition": "Déroute totale ou effondrement soudain d'un système.",
+    "example": "La débâcle militaire a précipité la chute du régime.",
+    "translation": "debacle, collapse",
+    "skill_level": "C1"
+  },
+  {
+    "word": "débauche",
+    "definition": "Dérèglement des mœurs, gaspillage ou excès.",
+    "example": "Il y a eu une débauche d'énergie pour sauver ce projet voué à l'échec.",
+    "translation": "debauchery, excess",
+    "skill_level": "C1"
+  },
+  {
+    "word": "débilitant",
+    "definition": "Qui affaiblit physiquement ou moralement.",
+    "example": "Le stress permanent a un effet débilitant sur la santé mentale.",
+    "translation": "debilitating",
+    "skill_level": "C1"
+  },
+  {
+    "word": "débiteur",
+    "definition": "Personne ou entité qui doit de l'argent à un créancier.",
+    "example": "Le débiteur a obtenu un délai supplémentaire pour rembourser sa dette.",
+    "translation": "debtor",
+    "skill_level": "C1"
+  },
+  {
+    "word": "déboires",
+    "definition": "Échecs successifs causant de la déception.",
+    "example": "Malgré ses nombreux déboires professionnels, il n'a jamais baissé les bras.",
+    "translation": "setbacks, woes",
+    "skill_level": "C1"
+  },
+  {
+    "word": "débordement",
+    "definition": "Action de sortir de ses limites, ou excès incontrôlable.",
+    "example": "Les forces de l'ordre craignent un débordement lors de la manifestation.",
+    "translation": "overflow, outburst",
+    "skill_level": "B2"
+  },
+  {
+    "word": "décadence",
+    "definition": "Déclin de la grandeur ou de la valeur morale d'une civilisation.",
+    "example": "L'historien a étudié les causes de la décadence de l'Empire romain.",
+    "translation": "decadence, decline",
+    "skill_level": "C1"
+  },
+  {
+    "word": "décalage",
+    "definition": "Différence, écart ou manque de synchronisation.",
+    "example": "Il existe un décalage flagrant entre ses promesses et ses actes.",
+    "translation": "gap, discrepancy",
+    "skill_level": "B2"
+  },
+  {
+    "word": "décence",
+    "definition": "Respect des règles de bonne conduite et de pudeur.",
+    "example": "La décence voudrait qu'il démissionne après ce scandale.",
+    "translation": "decency",
+    "skill_level": "C1"
+  },
+  {
+    "word": "déception",
+    "definition": "Sentiment de tristesse causé par un espoir trompé.",
+    "example": "La déception était immense après l'annulation inattendue de l'événement.",
+    "translation": "disappointment",
+    "skill_level": "B2"
+  },
+  {
+    "word": "déchéance",
+    "definition": "Perte d'un droit ou chute dans un état inférieur.",
+    "example": "La déchéance de nationalité est une mesure extrêmement rare et controversée.",
+    "translation": "forfeiture, downfall",
+    "skill_level": "C1"
+  },
+  {
+    "word": "décomposition",
+    "definition": "Processus de désintégration d'un organisme ou d'un groupe.",
+    "example": "Le parti politique semble entrer dans une phase de lente décomposition.",
+    "translation": "decomposition, disintegration",
+    "skill_level": "C1"
+  },
+  {
+    "word": "déconstruction",
+    "definition": "Action d'analyser un concept pour en dévoiler la structure cachée.",
+    "example": "La déconstruction des stéréotypes de genre est devenue primordiale.",
+    "translation": "deconstruction",
+    "skill_level": "C1"
+  },
+  {
+    "word": "déductible",
+    "definition": "Qui peut être soustrait d'une somme.",
+    "example": "Cette dépense est fiscalement déductible.",
+    "translation": "deductible",
+    "skill_level": "B2"
+  },
+  {
+    "word": "défaillance",
+    "definition": "Manque momentané de force ou d'énergie.",
+    "example": "Une défaillance technique a causé l'arrêt de l'usine.",
+    "translation": "failure, breakdown",
+    "skill_level": "B2"
+  },
+  {
+    "word": "défection",
+    "definition": "Action d'abandonner un parti ou un groupe.",
+    "example": "Plusieurs membres ont fait défection après le vote.",
+    "translation": "defection, withdrawal",
+    "skill_level": "C1"
+  },
+  {
+    "word": "déférence",
+    "definition": "Considération très respectueuse que l'on témoigne à quelqu'un.",
+    "example": "Il s'est adressé à son aîné avec beaucoup de déférence.",
+    "translation": "deference, respect",
+    "skill_level": "C1"
+  }
+]

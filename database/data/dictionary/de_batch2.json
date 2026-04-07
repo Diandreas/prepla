@@ -1,0 +1,3194 @@
+[
+  {
+    "word": "Abweichung",
+    "definition": "Unterschied oder Differenz von einem Standard, einer Norm oder einem erwarteten Wert.",
+    "example": "Die Messergebnisse zeigten eine signifikante Abweichung von der Theorie.",
+    "translation": "écart / déviation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "abwägen",
+    "definition": "Verschiedene Möglichkeiten oder Argumente prüfend miteinander vergleichen, um eine Entscheidung zu treffen.",
+    "example": "Vor der Entscheidung müssen wir die Vor- und Nachteile sorgfältig abwägen.",
+    "translation": "peser / soupeser",
+    "skill_level": "C1"
+  },
+  {
+    "word": "anfordern",
+    "definition": "Etwas (meist Informationen oder Unterlagen) offiziell verlangen.",
+    "example": "Die Universität hat weitere Dokumente für die Zulassung angefordert.",
+    "translation": "demander / solliciter",
+    "skill_level": "B2"
+  },
+  {
+    "word": "aufgreifen",
+    "definition": "Ein Thema, eine Idee oder einen Gedanken übernehmen und weiterführen.",
+    "example": "Der Professor griff die Frage eines Studenten in seiner Vorlesung auf.",
+    "translation": "reprendre / aborder",
+    "skill_level": "C1"
+  },
+  {
+    "word": "ausgleichen",
+    "definition": "Einen Mangel oder einen Unterschied durch etwas anderes kompensieren.",
+    "example": "Hohe Investitionen in Bildung können soziale Unterschiede teilweise ausgleichen.",
+    "translation": "compenser / équilibrer",
+    "skill_level": "B2"
+  },
+  {
+    "word": "befürworten",
+    "definition": "Sich für etwas aussprechen oder eine Idee unterstützen.",
+    "example": "Viele Experten befürworten eine Reform des Rentensystems.",
+    "translation": "préconiser / approuver",
+    "skill_level": "B2"
+  },
+  {
+    "word": "beruhen",
+    "definition": "Sich auf etwas gründen oder seine Basis in etwas haben.",
+    "example": "Die Theorie beruht auf jahrelangen empirischen Beobachtungen.",
+    "translation": "reposer sur / être fondé sur",
+    "skill_level": "B2"
+  },
+  {
+    "word": "darlegen",
+    "definition": "Einen Sachverhalt ausführlich und klar erklären oder präsentieren.",
+    "example": "In der Einleitung legt der Autor seine zentralen Thesen dar.",
+    "translation": "exposer / expliquer",
+    "skill_level": "C1"
+  },
+  {
+    "word": "einbeziehen",
+    "definition": "Jemanden oder etwas in eine Planung oder Untersuchung aufnehmen.",
+    "example": "Wir müssen alle relevanten Faktoren in unsere Analyse einbeziehen.",
+    "translation": "inclure / intégrer",
+    "skill_level": "B2"
+  },
+  {
+    "word": "einschränken",
+    "definition": "Die Gültigkeit oder den Umfang von etwas begrenzen.",
+    "example": "Die neuen Gesetze schränken die Handlungsfreiheit der Unternehmen ein.",
+    "translation": "restreindre / limiter",
+    "skill_level": "B2"
+  },
+  {
+    "word": "erfordern",
+    "definition": "Etwas als notwendige Voraussetzung verlangen.",
+    "example": "Die Lösung dieses Problems erfordert eine internationale Zusammenarbeit.",
+    "translation": "nécessiter / exiger",
+    "skill_level": "B2"
+  },
+  {
+    "word": "erläutern",
+    "definition": "Einen komplizierten Sachverhalt durch Beispiele oder Erklärungen verständlich machen.",
+    "example": "Der Dozent erläuterte das physikalische Prinzip anhand eines Experiments.",
+    "translation": "expliquer / commenter",
+    "skill_level": "B2"
+  },
+  {
+    "word": "ermitteln",
+    "definition": "Einen Wert, eine Information oder einen Sachverhalt durch Untersuchung feststellen.",
+    "example": "Die Forscher ermittelten die genaue Ursache der Umweltverschmutzung.",
+    "translation": "déterminer / établir",
+    "skill_level": "B2"
+  },
+  {
+    "word": "erschweren",
+    "definition": "Etwas schwieriger oder mühsamer machen.",
+    "example": "Der Mangel an finanziellen Mitteln erschwert die Durchführung der Studie.",
+    "translation": "compliquer / rendre plus difficile",
+    "skill_level": "B2"
+  },
+  {
+    "word": "fördern",
+    "definition": "Die Entwicklung oder das Vorankommen von etwas unterstützen.",
+    "example": "Der Staat sollte innovative Forschungsprojekte stärker fördern.",
+    "translation": "promouvoir / favoriser",
+    "skill_level": "B2"
+  },
+  {
+    "word": "gefährden",
+    "definition": "Etwas in Gefahr bringen oder ein Risiko für etwas darstellen.",
+    "example": "Der Klimawandel gefährdet die Existenz vieler Tierarten.",
+    "translation": "mettre en danger / compromettre",
+    "skill_level": "B2"
+  },
+  {
+    "word": "gelangen",
+    "definition": "An einen bestimmten Ort oder zu einem bestimmten Ergebnis kommen.",
+    "example": "Die Wissenschaftler gelangten nach langen Versuchen zu einer neuen Erkenntnis.",
+    "translation": "parvenir / arriver à",
+    "skill_level": "B2"
+  },
+  {
+    "word": "gewähren",
+    "definition": "Jemandem etwas (meist ein Recht oder eine Bitte) zugestehen oder geben.",
+    "example": "Die Bank gewährt dem Unternehmen einen langfristigen Kredit.",
+    "translation": "accorder / octroyer",
+    "skill_level": "B2"
+  },
+  {
+    "word": "herbeiführen",
+    "definition": "Die Ursache dafür sein, dass etwas Bestimmtes geschieht.",
+    "example": "Die neuen Maßnahmen sollen eine Verbesserung der Lage herbeiführen.",
+    "translation": "provoquer / amener",
+    "skill_level": "C1"
+  },
+  {
+    "word": "hervorheben",
+    "definition": "Etwas besonders betonen oder als wichtig markieren.",
+    "example": "Der Redner hob die Bedeutung der Bildung für die Gesellschaft hervor.",
+    "translation": "souligner / mettre en relief",
+    "skill_level": "C1"
+  },
+  {
+    "word": "hinweisen",
+    "definition": "Auf eine Tatsache oder einen Umstand aufmerksam machen.",
+    "example": "Ich möchte darauf hinweisen, dass die Frist morgen abläuft.",
+    "translation": "signaler / attirer l'attention sur",
+    "skill_level": "B2"
+  },
+  {
+    "word": "leisten",
+    "definition": "Eine Arbeit tun oder einen Beitrag zu etwas erbringen.",
+    "example": "Das Team hat hervorragende Arbeit bei der Datenerfassung geleistet.",
+    "translation": "accomplir / fournir",
+    "skill_level": "B2"
+  },
+  {
+    "word": "mangeln",
+    "definition": "Nicht in ausreichendem Maße vorhanden sein.",
+    "example": "Es mangelt in vielen Schulen an moderner technischer Ausstattung.",
+    "translation": "manquer de",
+    "skill_level": "B2"
+  },
+  {
+    "word": "nachweisen",
+    "definition": "Die Richtigkeit von etwas durch Beweise bestätigen.",
+    "example": "Der Zusammenhang zwischen Rauchen und Krebs konnte eindeutig nachgewiesen werden.",
+    "translation": "prouver / démontrer",
+    "skill_level": "B2"
+  },
+  {
+    "word": "rechtfertigen",
+    "definition": "Einen triftigen Grund für eine Handlung oder Entscheidung angeben.",
+    "example": "Hohe Kosten allein rechtfertigen keine Kürzungen im Bildungsbereich.",
+    "translation": "justifier",
+    "skill_level": "B2"
+  },
+  {
+    "word": "scheitern",
+    "definition": "Ein Ziel nicht erreichen oder keinen Erfolg haben.",
+    "example": "Das Projekt scheiterte an mangelnder Kommunikation zwischen den Abteilungen.",
+    "translation": "échouer",
+    "skill_level": "B2"
+  },
+  {
+    "word": "steuern",
+    "definition": "Einen Prozess oder eine Entwicklung gezielt beeinflussen oder lenken.",
+    "example": "Die Zentralbank versucht, die Inflation durch Zinsen zu steuern.",
+    "translation": "piloter / diriger",
+    "skill_level": "B2"
+  },
+  {
+    "word": "übertreffen",
+    "definition": "Besser oder größer sein als etwas anderes oder als erwartet.",
+    "example": "Die Ergebnisse der Studie übertrafen alle Erwartungen.",
+    "translation": "dépasser / surpasser",
+    "skill_level": "C1"
+  },
+  {
+    "word": "unterliegen",
+    "definition": "Von etwas bestimmt werden oder einer Regelung folgen müssen.",
+    "example": "Wissenschaftliche Experimente unterliegen strengen ethischen Regeln.",
+    "translation": "être soumis à",
+    "skill_level": "C1"
+  },
+  {
+    "word": "unterstützen",
+    "definition": "Jemandem helfen oder eine Idee fördern.",
+    "example": "Die Regierung unterstützt den Ausbau erneuerbarer Energien.",
+    "translation": "soutenir / appuyer",
+    "skill_level": "B2"
+  },
+  {
+    "word": "verfassen",
+    "definition": "Einen Text (meist wissenschaftlich oder literarisch) schreiben.",
+    "example": "Der Student verfasste seine Bachelorarbeit zum Thema Künstliche Intelligenz.",
+    "translation": "rédiger",
+    "skill_level": "B2"
+  },
+  {
+    "word": "verfügen",
+    "definition": "Etwas besitzen oder zur Verfügung haben.",
+    "example": "Das Land verfügt über große Vorkommen an natürlichen Ressourcen.",
+    "translation": "disposer de",
+    "skill_level": "B2"
+  },
+  {
+    "word": "vermeiden",
+    "definition": "Es verhindern, dass etwas Unangenehmes geschieht.",
+    "example": "Durch regelmäßige Kontrollen lassen sich Fehler oft vermeiden.",
+    "translation": "éviter",
+    "skill_level": "B2"
+  },
+  {
+    "word": "verursachen",
+    "definition": "Der Grund oder die Ursache für etwas sein.",
+    "example": "Starker Regen verursachte große Schäden an der Infrastruktur.",
+    "translation": "provoquer / causer",
+    "skill_level": "B2"
+  },
+  {
+    "word": "verzichten",
+    "definition": "Freiwillig auf etwas verzichten, das man haben könnte.",
+    "example": "Immer mehr Menschen verzichten aus Umweltschutzgründen auf das Auto.",
+    "translation": "renoncer à",
+    "skill_level": "B2"
+  },
+  {
+    "word": "widerlegen",
+    "definition": "Durch Argumente oder Beweise zeigen, dass eine Behauptung falsch ist.",
+    "example": "Die neuen Daten widerlegen die bisherige Theorie vollständig.",
+    "translation": "réfuter / démentir",
+    "skill_level": "C1"
+  },
+  {
+    "word": "zusammenfassen",
+    "definition": "Das Wesentliche eines Textes oder einer Rede kurz wiedergeben.",
+    "example": "Am Ende des Vortrags fasste die Referentin die wichtigsten Punkte zusammen.",
+    "translation": "résumer",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Auseinandersetzung",
+    "definition": "Eine intensive Beschäftigung mit einem Thema oder ein Streit.",
+    "example": "Die wissenschaftliche Auseinandersetzung mit diesem Problem dauert an.",
+    "translation": "débat / discussion / confrontation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Wechselwirkung",
+    "definition": "Gegenseitige Beeinflussung von zwei oder mehr Faktoren.",
+    "example": "In der Natur besteht eine komplexe Wechselwirkung zwischen Klima und Vegetation.",
+    "translation": "interaction / effet réciproque",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Verhältnismäßigkeit",
+    "definition": "Angemessenheit einer Maßnahme im Verhältnis zum angestrebten Zweck.",
+    "example": "Das Gericht prüfte die Verhältnismäßigkeit der polizeilichen Maßnahmen.",
+    "translation": "proportionnalité",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Beeinträchtigung",
+    "definition": "Negative Auswirkung auf eine Funktion oder einen Zustand.",
+    "example": "Lärm führt oft zu einer erheblichen Beeinträchtigung der Lebensqualität.",
+    "translation": "atteinte / altération / gêne",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Gewährleistung",
+    "definition": "Die Zusicherung oder Garantie für das Bestehen eines Zustands.",
+    "example": "Die Gewährleistung der Sicherheit hat bei diesem Projekt Vorrang.",
+    "translation": "garantie / assurance",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Vernachlässigung",
+    "definition": "Das Unbeachtetlassen oder nicht ausreichende Sorgen für etwas.",
+    "example": "Die Vernachlässigung der Grundlagenforschung kann fatale Folgen haben.",
+    "translation": "négligence",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Herausforderung",
+    "definition": "Eine schwierige, aber interessante Aufgabe.",
+    "example": "Die Digitalisierung ist eine große Herausforderung für viele Schulen.",
+    "translation": "défi / challenge",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Fortschritt",
+    "definition": "Die Weiterentwicklung zum Besseren.",
+    "example": "Der technische Fortschritt hat das Leben der Menschen grundlegend verändert.",
+    "translation": "progrès",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Gerechtigkeit",
+    "definition": "Das Prinzip, dass jeder das bekommt, was ihm zusteht.",
+    "example": "Soziale Gerechtigkeit ist ein wichtiges Ziel der modernen Politik.",
+    "translation": "justice / équité",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Verantwortung",
+    "definition": "Die Pflicht, für seine Handlungen und deren Folgen einzustehen.",
+    "example": "Wissenschaftler tragen eine große Verantwortung für die Folgen ihrer Forschung.",
+    "translation": "responsabilité",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Umfeld",
+    "definition": "Die Gesamtheit der äußeren Bedingungen, die jemanden umgeben.",
+    "example": "Ein anregendes Lernumfeld fördert die Motivation der Studierenden.",
+    "translation": "environnement / entourage",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Vorgehensweise",
+    "definition": "Die Art und Weise, wie man bei einer Aufgabe vorgeht.",
+    "example": "Die methodische Vorgehensweise muss im Forschungsbericht genau beschrieben werden.",
+    "translation": "procédure / démarche",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Zusammenhang",
+    "definition": "Die Verbindung zwischen verschiedenen Dingen oder Ereignissen.",
+    "example": "Es besteht ein enger Zusammenhang zwischen Armut und Krankheit.",
+    "translation": "lien / rapport / contexte",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Bedeutung",
+    "definition": "Die Wichtigkeit oder der Sinn von etwas.",
+    "example": "Die Entdeckung des Penicillins war von enormer Bedeutung für die Medizin.",
+    "translation": "importance / signification",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Beziehung",
+    "definition": "Das Verhältnis oder der Kontakt zwischen Personen oder Dingen.",
+    "example": "Die Beziehung zwischen Lehrer und Schüler ist für den Lernerfolg wichtig.",
+    "translation": "relation / rapport",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Einfluss",
+    "definition": "Die Einwirkung auf die Entwicklung oder das Verhalten von jemandem oder etwas.",
+    "example": "Die sozialen Medien haben einen großen Einfluss auf die Meinungsbildung.",
+    "translation": "influence",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Ergebnis",
+    "definition": "Das, was am Ende einer Untersuchung oder Arbeit herauskommt.",
+    "example": "Das Ergebnis der Verhandlungen war für beide Seiten akzeptabel.",
+    "translation": "résultat",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Grund",
+    "definition": "Die Ursache oder das Motiv für eine Handlung oder einen Zustand.",
+    "example": "Es gibt viele Gründe, warum Menschen in andere Länder auswandern.",
+    "translation": "raison / motif",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Kenntnis",
+    "definition": "Das Wissen über einen bestimmten Sachverhalt.",
+    "example": "Gute Kenntnisse in Mathematik sind für dieses Studium unerlässlich.",
+    "translation": "connaissance / savoir",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Methode",
+    "definition": "Ein planmäßiges Verfahren zur Erreichung eines Ziels.",
+    "example": "In der Chemie gibt es verschiedene Methoden zur Analyse von Stoffen.",
+    "translation": "méthode",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Möglichkeit",
+    "definition": "Etwas, das ausführbar oder denkbar ist.",
+    "example": "Das Internet bietet viele Möglichkeiten zur weltweiten Kommunikation.",
+    "translation": "possibilité",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Quelle",
+    "definition": "Der Ursprung einer Information oder eines Stoffes.",
+    "example": "Der Historiker muss die Zuverlässigkeit seiner Quellen prüfen.",
+    "translation": "source",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Rahmen",
+    "definition": "Die äußeren Bedingungen oder die Begrenzung einer Sache.",
+    "example": "Im Rahmen dieser Studie wurden über tausend Personen befragt.",
+    "translation": "cadre / contexte",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Schwerpunkt",
+    "definition": "Der wichtigste Teil oder das zentrale Thema einer Arbeit.",
+    "example": "Der Schwerpunkt der Vorlesung liegt auf der modernen Geschichte.",
+    "translation": "point fort / priorité / centre de gravité",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Standpunkt",
+    "definition": "Die eigene Meinung oder Sichtweise zu einem Thema.",
+    "example": "Aus meinem Standpunkt ist diese Entscheidung nicht nachvollziehbar.",
+    "translation": "point de vue",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Untersuchung",
+    "definition": "Die genaue Prüfung oder Erforschung eines Sachverhalts.",
+    "example": "Die Untersuchung der Bodenproben ergab eine hohe Belastung mit Schwermetallen.",
+    "translation": "examen / enquête / étude",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Verfahren",
+    "definition": "Die Art und Weise, wie etwas durchgeführt wird; Methode.",
+    "example": "Das neue Verfahren zur Mülltrennung ist effizienter als das alte.",
+    "translation": "procédure / procédé",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Vergleich",
+    "definition": "Die Gegenüberstellung von Dingen, um Gemeinsamkeiten und Unterschiede zu finden.",
+    "example": "Im Vergleich zu früher haben wir heute viel mehr Informationen zur Verfügung.",
+    "translation": "comparaison",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Wirkung",
+    "definition": "Die Folge einer Ursache oder Einwirkung.",
+    "example": "Die Wirkung des Medikaments tritt erst nach einigen Tagen ein.",
+    "translation": "effet",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Zustand",
+    "definition": "Die Art und Weise, wie sich jemand oder etwas zu einem bestimmten Zeitpunkt befindet.",
+    "example": "Der Zustand der Brücke ist so schlecht, dass sie gesperrt werden musste.",
+    "translation": "état",
+    "skill_level": "B2"
+  },
+  {
+    "word": "beeinträchtigen",
+    "definition": "Eine negative Wirkung auf etwas haben.",
+    "example": "Schlafmangel kann die Konzentrationsfähigkeit erheblich beeinträchtigen.",
+    "translation": "nuire à / altérer",
+    "skill_level": "B2"
+  },
+  {
+    "word": "hervorrufen",
+    "definition": "Die Ursache für eine Reaktion oder einen Zustand sein.",
+    "example": "Bestimmte Pollen können bei Allergikern starke Reaktionen hervorrufen.",
+    "translation": "susciter / provoquer",
+    "skill_level": "B2"
+  },
+  {
+    "word": "vernachlässigen",
+    "definition": "Sich nicht oder nicht genug um etwas kümmern.",
+    "example": "Man sollte seine sozialen Kontakte während des Studiums nicht vernachlässigen.",
+    "translation": "négliger",
+    "skill_level": "B2"
+  },
+  {
+    "word": "gewährleisten",
+    "definition": "Dafür sorgen, dass etwas Bestimmtes sichergestellt ist.",
+    "example": "Die neuen Sicherheitsvorschriften sollen den Schutz der Arbeiter gewährleisten.",
+    "translation": "garantir / assurer",
+    "skill_level": "C1"
+  },
+  {
+    "word": "hinterfragen",
+    "definition": "Nach den tieferen Gründen oder der Berechtigung von etwas fragen.",
+    "example": "Kritisches Denken bedeutet, auch etablierte Meinungen zu hinterfragen.",
+    "translation": "remettre en question",
+    "skill_level": "C1"
+  },
+  {
+    "word": "erörtern",
+    "definition": "Ein Thema von verschiedenen Seiten ausführlich diskutieren.",
+    "example": "In seinem Aufsatz erörtert der Student die Vor- und Nachteile der Kernenergie.",
+    "translation": "discuter / examiner",
+    "skill_level": "C1"
+  },
+  {
+    "word": "konstatieren",
+    "definition": "Etwas prüfend feststellen oder bemerken.",
+    "example": "Der Arzt konnte nur noch den Tod des Patienten konstatieren.",
+    "translation": "constater",
+    "skill_level": "C1"
+  },
+  {
+    "word": "revidieren",
+    "definition": "Eine Meinung oder Entscheidung aufgrund neuer Erkenntnisse ändern.",
+    "example": "Nach der neuen Studie mussten viele Experten ihre Ansichten revidieren.",
+    "translation": "réviser / modifier",
+    "skill_level": "C1"
+  },
+  {
+    "word": "implizieren",
+    "definition": "Etwas logisch einschließen oder mit bedeuten.",
+    "example": "Diese Aussage impliziert, dass wir keine andere Wahl haben.",
+    "translation": "impliquer",
+    "skill_level": "C1"
+  },
+  {
+    "word": "evozieren",
+    "definition": "Erinnerungen, Gefühle oder Vorstellungen hervorrufen.",
+    "example": "Der Duft von Lavendel evoziert bei ihr Kindheitserinnerungen.",
+    "translation": "évoquer",
+    "skill_level": "C1"
+  },
+  {
+    "word": "initiieren",
+    "definition": "Den Anstoß zu etwas geben oder etwas in Gang setzen.",
+    "example": "Die Professorin initiierte ein neues Forschungsprojekt zur Klimageschichte.",
+    "translation": "initier / lancer",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Ressourcenknappheit",
+    "definition": "Der Mangel an notwendigen Mitteln wie Rohstoffen oder Energie.",
+    "example": "Die globale Ressourcenknappheit führt zu steigenden Preisen auf dem Weltmarkt.",
+    "translation": "pénurie de ressources",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Energiewende",
+    "definition": "Der Übergang von fossilen Brennstoffen zu erneuerbaren Energien.",
+    "example": "Die Energiewende ist ein zentrales Projekt der deutschen Umweltpolitik.",
+    "translation": "transition énergétique",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Treibhauseffekt",
+    "definition": "Die Erwärmung der Atmosphäre durch bestimmte Gase.",
+    "example": "Der menschengemachte Treibhauseffekt führt zur globalen Erwärmung.",
+    "translation": "effet de serre",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Biodiversität",
+    "definition": "Die Vielfalt der verschiedenen Arten in einem Ökosystem.",
+    "example": "Der Schutz der Biodiversität ist für das Überleben der Menschheit wichtig.",
+    "translation": "biodiversité",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Infrastrukturmaßnahme",
+    "definition": "Eine Aktion zur Verbesserung der grundlegenden Einrichtungen eines Landes.",
+    "example": "Der Bau neuer Schienenwege ist eine wichtige Infrastrukturmaßnahme.",
+    "translation": "mesure d'infrastructure",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Digitalisierungsschub",
+    "definition": "Eine Phase sehr schneller Ausbreitung digitaler Technologien.",
+    "example": "Die Pandemie hat in vielen Schulen zu einem Digitalisierungsschub geführt.",
+    "translation": "poussée de numérisation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Chancengleichheit",
+    "definition": "Das Recht aller Menschen auf die gleichen Startbedingungen im Leben.",
+    "example": "Bildung ist der wichtigste Schlüssel zur Chancengleichheit.",
+    "translation": "égalité des chances",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Bildungsgerechtigkeit",
+    "definition": "Ein Zustand, in dem der Bildungserfolg nicht von der sozialen Herkunft abhängt.",
+    "example": "Wir müssen mehr tun, um die Bildungsgerechtigkeit in unserem Land zu fördern.",
+    "translation": "équité scolaire / justice éducative",
+    "skill_level": "C1"
+  },
+  {
+    "word": "demografischer Wandel",
+    "definition": "Die Veränderung der Zusammensetzung der Bevölkerung (z.B. Alterung).",
+    "example": "Der demografische Wandel stellt unsere Sozialsysteme vor große Probleme.",
+    "translation": "changement démographique",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Integrationsbemühung",
+    "definition": "Die Anstrengung, Menschen in eine Gesellschaft einzugliedern.",
+    "example": "Die Integrationsbemühungen der Stadt zeigen erste Erfolge.",
+    "translation": "effort d'intégration",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Fachkräftemangel",
+    "definition": "Das Fehlen von qualifizierten Arbeitskräften in bestimmten Berufen.",
+    "example": "Der Fachkräftemangel bremst das wirtschaftliche Wachstum in vielen Regionen.",
+    "translation": "pénurie de main-d'œuvre qualifiée",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Kompetenzerwerb",
+    "definition": "Der Prozess des Lernens und Erreichens neuer Fähigkeiten.",
+    "example": "In der Schule steht heute der Kompetenzerwerb im Vordergrund, nicht nur pures Wissen.",
+    "translation": "acquisition de compétences",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Kausalzusammenhang",
+    "definition": "Die Beziehung zwischen Ursache und Wirkung.",
+    "example": "Zwischen CO2-Ausstoß und Erderwärmung besteht ein klarer Kausalzusammenhang.",
+    "translation": "lien de causalité",
+    "skill_level": "C1"
+  },
+  {
+    "word": "gravierend",
+    "definition": "Sehr schwerwiegend oder bedeutend.",
+    "example": "Der Fehler im System hatte gravierende Folgen für die gesamte Produktion.",
+    "translation": "grave / sérieux",
+    "skill_level": "B2"
+  },
+  {
+    "word": "unerlässlich",
+    "definition": "Unbedingt notwendig; man kann nicht darauf verzichten.",
+    "example": "Gute Sprachkenntnisse sind für ein Studium im Ausland unerlässlich.",
+    "translation": "indispensable",
+    "skill_level": "C1"
+  },
+  {
+    "word": "fundiert",
+    "definition": "Gut begründet oder auf solidem Wissen basierend.",
+    "example": "Seine Kritik war fundiert und sachlich korrekt.",
+    "translation": "fondé / solide",
+    "skill_level": "C1"
+  },
+  {
+    "word": "nachhaltig",
+    "definition": "So, dass es eine dauerhafte Wirkung hat und Ressourcen schont.",
+    "example": "Wir müssen nachhaltig wirtschaften, um die Umwelt für kommende Generationen zu erhalten.",
+    "translation": "durable",
+    "skill_level": "B2"
+  },
+  {
+    "word": "effizient",
+    "definition": "So, dass mit wenig Aufwand viel erreicht wird.",
+    "example": "Die neue Methode ist wesentlich effizienter als die bisherige.",
+    "translation": "efficace / efficient",
+    "skill_level": "B2"
+  },
+  {
+    "word": "objektiv",
+    "definition": "Unvoreingenommen; sachlich; nicht von Gefühlen beeinflusst.",
+    "example": "Ein Journalist sollte versuchen, so objektiv wie möglich über die Ereignisse zu berichten.",
+    "translation": "objectif",
+    "skill_level": "B2"
+  },
+  {
+    "word": "subjektiv",
+    "definition": "Persönlich; von eigenen Gefühlen oder Meinungen geprägt.",
+    "example": "Schmerz ist eine subjektive Empfindung und für jeden Menschen anders.",
+    "translation": "subjectif",
+    "skill_level": "B2"
+  },
+  {
+    "word": "komplex",
+    "definition": "Vielschichtig; aus vielen verschiedenen Teilen bestehend.",
+    "example": "Das menschliche Gehirn ist eines der komplexesten Systeme der Natur.",
+    "translation": "complexe",
+    "skill_level": "B2"
+  },
+  {
+    "word": "abstrakt",
+    "definition": "Rein theoretisch; nicht konkret oder anschaulich.",
+    "example": "Manche philosophischen Begriffe sind so abstrakt, dass sie schwer zu verstehen sind.",
+    "translation": "abstrait",
+    "skill_level": "B2"
+  },
+  {
+    "word": "konkret",
+    "definition": "Gegenständlich; anschaulich; genau bestimmt.",
+    "example": "Wir brauchen konkrete Vorschläge, wie wir den Verkehr in der Stadt reduzieren können.",
+    "translation": "concret",
+    "skill_level": "B2"
+  },
+  {
+    "word": "relevant",
+    "definition": "Wichtig in einem bestimmten Zusammenhang.",
+    "example": "Diese Information ist für unsere Untersuchung nicht relevant.",
+    "translation": "pertinent",
+    "skill_level": "B2"
+  },
+  {
+    "word": "signifikant",
+    "definition": "Deutlich erkennbar; wesentlich; bedeutsam.",
+    "example": "Es gibt einen signifikanten Unterschied zwischen den beiden Versuchsgruppen.",
+    "translation": "significatif",
+    "skill_level": "C1"
+  },
+  {
+    "word": "plausibel",
+    "definition": "Einleuchtend; verständlich; glaubwürdig.",
+    "example": "Seine Erklärung für das späte Kommen klang durchaus plausibel.",
+    "translation": "plausible",
+    "skill_level": "B2"
+  },
+  {
+    "word": "präzise",
+    "definition": "Ganz genau; exakt.",
+    "example": "Der Wissenschaftler machte sehr präzise Angaben über die Dauer des Versuchs.",
+    "translation": "précis",
+    "skill_level": "B2"
+  },
+  {
+    "word": "kontrovers",
+    "definition": "Umstritten; es gibt dazu verschiedene Meinungen.",
+    "example": "Das Thema Kernkraft wird in der Öffentlichkeit sehr kontrovers diskutiert.",
+    "translation": "controversé",
+    "skill_level": "B2"
+  },
+  {
+    "word": "systematisch",
+    "definition": "Nach einem festen Plan oder System vorgehend.",
+    "example": "Die Daten wurden systematisch erfasst und in einer Datenbank gespeichert.",
+    "translation": "systématique",
+    "skill_level": "B2"
+  },
+  {
+    "word": "theoretisch",
+    "definition": "Nur in der Theorie existierend; nicht praktisch erprobt.",
+    "example": "Theoretisch ist die Reise zum Mars möglich, aber praktisch noch sehr schwierig.",
+    "translation": "théorique",
+    "skill_level": "B2"
+  },
+  {
+    "word": "praktisch",
+    "definition": "Auf die Anwendung bezogen; nützlich.",
+    "example": "Er hat viel theoretisches Wissen, aber ihm fehlt die praktische Erfahrung.",
+    "translation": "pratique",
+    "skill_level": "B2"
+  },
+  {
+    "word": "umfassend",
+    "definition": "Sehr viel enthaltend; gründlich; vollständig.",
+    "example": "Das Buch bietet eine umfassende Darstellung der deutschen Geschichte.",
+    "translation": "vaste / complet / exhaustif",
+    "skill_level": "B2"
+  },
+  {
+    "word": "wesentlich",
+    "definition": "Sehr wichtig; den Kern einer Sache betreffend.",
+    "example": "Ein wesentlicher Bestandteil der Demokratie ist die Meinungsfreiheit.",
+    "translation": "essentiel",
+    "skill_level": "B2"
+  },
+  {
+    "word": "zusätzlich",
+    "definition": "Noch hinzukommend; extra.",
+    "example": "Für das Projekt werden zusätzliche finanzielle Mittel benötigt.",
+    "translation": "supplémentaire",
+    "skill_level": "B2"
+  },
+  {
+    "word": "erheblich",
+    "definition": "In beträchtlichem Maße; groß.",
+    "example": "Der Sturm verursachte erhebliche Schäden an den Gebäuden.",
+    "translation": "considérable / important",
+    "skill_level": "B2"
+  },
+  {
+    "word": "gering",
+    "definition": "Klein; unbedeutend; wenig.",
+    "example": "Das Risiko einer Infektion ist bei dieser Krankheit sehr gering.",
+    "translation": "faible / minime",
+    "skill_level": "B2"
+  },
+  {
+    "word": "ständig",
+    "definition": "Immer wieder; dauernd.",
+    "example": "Die Technologie verändert sich ständig, weshalb man immer weiter lernen muss.",
+    "translation": "permanent / constant",
+    "skill_level": "B2"
+  },
+  {
+    "word": "selten",
+    "definition": "Nicht oft; nur in wenigen Fällen.",
+    "example": "Diese Pflanzenart ist sehr selten und steht unter Naturschutz.",
+    "translation": "rare",
+    "skill_level": "B2"
+  },
+  {
+    "word": "häufig",
+    "definition": "Oft vorkommend.",
+    "example": "Ein häufiger Fehler beim Lernen ist, dass man sich zu viel auf einmal vornimmt.",
+    "translation": "fréquent",
+    "skill_level": "B2"
+  },
+  {
+    "word": "allgemein",
+    "definition": "Die Gesamtheit betreffend; nicht speziell.",
+    "example": "Es ist eine allgemein bekannte Tatsache, dass Rauchen ungesund ist.",
+    "translation": "général",
+    "skill_level": "B2"
+  },
+  {
+    "word": "besonders",
+    "definition": "Speziell; mehr als gewöhnlich.",
+    "example": "Dieses Jahr war der Sommer besonders heiß und trocken.",
+    "translation": "particulièrement / spécial",
+    "skill_level": "B2"
+  },
+  {
+    "word": "notwendig",
+    "definition": "Unbedingt erforderlich.",
+    "example": "Es ist notwendig, dass wir die Regeln einhalten, um Chaos zu vermeiden.",
+    "translation": "nécessaire",
+    "skill_level": "B2"
+  },
+  {
+    "word": "möglich",
+    "definition": "Ausführbar; denkbar.",
+    "example": "Es ist durchaus möglich, dass wir das Ziel noch in diesem Monat erreichen.",
+    "translation": "possible",
+    "skill_level": "B2"
+  },
+  {
+    "word": "unmöglich",
+    "definition": "Nicht ausführbar; nicht denkbar.",
+    "example": "Ohne Sauerstoff ist Leben auf der Erde unmöglich.",
+    "translation": "impossible",
+    "skill_level": "B2"
+  },
+  {
+    "word": "klar",
+    "definition": "Deutlich; verständlich; hell.",
+    "example": "Der Professor gab eine klare Antwort auf die Frage des Studenten.",
+    "translation": "clair",
+    "skill_level": "B2"
+  },
+  {
+    "word": "unentschieden",
+    "definition": "Noch nicht feststehend; ohne Ergebnis.",
+    "example": "Der Ausgang der Wahl ist momentan noch völlig unentschieden.",
+    "translation": "indécis / non tranché",
+    "skill_level": "B2"
+  },
+  {
+    "word": "eindeutig",
+    "definition": "Ganz klar; ohne Zweifel.",
+    "example": "Das Ergebnis des Tests war eindeutig: Das Produkt ist sicher.",
+    "translation": "univoque / sans ambiguïté",
+    "skill_level": "B2"
+  },
+  {
+    "word": "vielfältig",
+    "definition": "Sehr verschiedenartig; abwechslungsreich.",
+    "example": "Die Gründe für den Klimawandel sind sehr vielfältig.",
+    "translation": "divers / varié",
+    "skill_level": "B2"
+  },
+  {
+    "word": "einzeln",
+    "definition": "Allein; für sich allein stehend.",
+    "example": "Man sollte die Probleme einzeln angehen und nicht alle auf einmal.",
+    "translation": "individuel / seul",
+    "skill_level": "B2"
+  },
+  {
+    "word": "gemeinsam",
+    "definition": "Zusammen mit anderen.",
+    "example": "In der Gruppe macht das Lernen meist mehr Spaß als alleine.",
+    "translation": "commun / ensemble",
+    "skill_level": "B2"
+  },
+  {
+    "word": "ähnlich",
+    "definition": "In vielen Merkmalen übereinstimmend.",
+    "example": "Diese beiden Sprachen sind sich sehr ähnlich, was das Lernen erleichtert.",
+    "translation": "semblable",
+    "skill_level": "B2"
+  },
+  {
+    "word": "verschieden",
+    "definition": "Nicht gleich; unterschiedlich.",
+    "example": "Es gibt viele verschiedene Meinungen zu diesem Thema.",
+    "translation": "différent",
+    "skill_level": "B2"
+  },
+  {
+    "word": "gleich",
+    "definition": "In allen Merkmalen übereinstimmend.",
+    "example": "Alle Menschen haben die gleichen Rechte, unabhängig von ihrer Herkunft.",
+    "translation": "égal / identique",
+    "skill_level": "B2"
+  },
+  {
+    "word": "unabhängig",
+    "definition": "Nicht von etwas anderem beeinflusst oder bestimmt.",
+    "example": "Wissenschaftler müssen unabhängig von politischen Interessen forschen können.",
+    "translation": "indépendant",
+    "skill_level": "B2"
+  },
+  {
+    "word": "abhängig",
+    "definition": "Von etwas anderem beeinflusst oder bestimmt.",
+    "example": "Der Erfolg des Projekts ist stark von der Finanzierung abhängig.",
+    "translation": "dépendant",
+    "skill_level": "B2"
+  },
+  {
+    "word": "sicher",
+    "definition": "Ohne Gefahr; gewiss.",
+    "example": "Wir sind uns sicher, dass diese Methode zum Erfolg führen wird.",
+    "translation": "sûr",
+    "skill_level": "B2"
+  },
+  {
+    "word": "unsicher",
+    "definition": "Mit Gefahr verbunden; ungewiss.",
+    "example": "Die wirtschaftliche Lage ist momentan sehr unsicher, weshalb viele Firmen vorsichtig sind.",
+    "translation": "incertain / peu sûr",
+    "skill_level": "B2"
+  },
+  {
+    "word": "wichtig",
+    "definition": "Von großer Bedeutung.",
+    "example": "Es ist wichtig, dass wir uns regelmäßig über die Fortschritte austauschen.",
+    "translation": "important",
+    "skill_level": "B2"
+  },
+  {
+    "word": "unwichtig",
+    "definition": "Ohne große Bedeutung.",
+    "example": "Manche Details sind für das Verständnis des Ganzen unwichtig.",
+    "translation": "sans importance",
+    "skill_level": "B2"
+  },
+  {
+    "word": "richtig",
+    "definition": "Den Tatsachen entsprechend; korrekt.",
+    "example": "Seine Antwort war vollkommen richtig, was ihn sehr freute.",
+    "translation": "vrai / correct",
+    "skill_level": "B2"
+  },
+  {
+    "word": "falsch",
+    "definition": "Nicht den Tatsachen entsprechend; inkorrekt.",
+    "example": "Es ist falsch zu behaupten, dass Bildung allein alle Probleme löst.",
+    "translation": "faux / erroné",
+    "skill_level": "B2"
+  },
+  {
+    "word": "neu",
+    "definition": "Gerade erst entstanden oder bekannt geworden.",
+    "example": "Die neuen Forschungsergebnisse werfen ein ganz anderes Licht auf die Sache.",
+    "translation": "nouveau",
+    "skill_level": "B2"
+  },
+  {
+    "word": "alt",
+    "definition": "Schon lange existierend.",
+    "example": "Diese alten Methoden sind heute oft nicht mehr effizient genug.",
+    "translation": "vieux / ancien",
+    "skill_level": "B2"
+  },
+  {
+    "word": "schnell",
+    "definition": "Mit großer Geschwindigkeit.",
+    "example": "Die Technologie entwickelt sich heute so schnell wie nie zuvor.",
+    "translation": "rapide",
+    "skill_level": "B2"
+  },
+  {
+    "word": "langsam",
+    "definition": "Mit geringer Geschwindigkeit.",
+    "example": "Der Heilungsprozess verläuft langsam, aber stetig.",
+    "translation": "lent",
+    "skill_level": "B2"
+  },
+  {
+    "word": "stark",
+    "definition": "Mit großer Kraft oder Intensität.",
+    "example": "Der Einfluss der Eltern auf die Berufswahl der Kinder ist oft sehr stark.",
+    "translation": "fort / intense",
+    "skill_level": "B2"
+  },
+  {
+    "word": "schwach",
+    "definition": "Mit geringer Kraft oder Intensität.",
+    "example": "Das Signal war zu schwach, um eine stabile Verbindung aufzubauen.",
+    "translation": "faible",
+    "skill_level": "B2"
+  },
+  {
+    "word": "groß",
+    "definition": "Von beträchtlichem Ausmaß.",
+    "example": "Das Interesse an der neuen Ausstellung war sehr groß.",
+    "translation": "grand",
+    "skill_level": "B2"
+  },
+  {
+    "word": "klein",
+    "definition": "Von geringem Ausmaß.",
+    "example": "Ein kleiner Fehler kann manchmal große Auswirkungen haben.",
+    "translation": "petit",
+    "skill_level": "B2"
+  },
+  {
+    "word": "viel",
+    "definition": "In großer Menge.",
+    "example": "Wir haben viel Zeit in die Vorbereitung investiert.",
+    "translation": "beaucoup",
+    "skill_level": "B2"
+  },
+  {
+    "word": "wenig",
+    "definition": "In geringer Menge.",
+    "example": "Es gab nur wenig Kritik an dem neuen Entwurf.",
+    "translation": "peu",
+    "skill_level": "B2"
+  },
+  {
+    "word": "gut",
+    "definition": "Von hoher Qualität; angenehm.",
+    "example": "Eine gute Vorbereitung ist die halbe Miete für eine erfolgreiche Prüfung.",
+    "translation": "bon",
+    "skill_level": "B2"
+  },
+  {
+    "word": "schlecht",
+    "definition": "Von geringer Qualität; unangenehm.",
+    "example": "Schlechte Arbeitsbedingungen führen oft zu hoher Fluktuation.",
+    "translation": "mauvais",
+    "skill_level": "B2"
+  },
+  {
+    "word": "einfach",
+    "definition": "Leicht verständlich; ohne Schwierigkeiten.",
+    "example": "Es ist nicht immer einfach, die richtige Entscheidung zu treffen.",
+    "translation": "simple / facile",
+    "skill_level": "B2"
+  },
+  {
+    "word": "schwer",
+    "definition": "Mühsam; mit Schwierigkeiten verbunden.",
+    "example": "Es fällt manchen Menschen schwer, sich an neue Situationen anzupassen.",
+    "translation": "difficile / lourd",
+    "skill_level": "B2"
+  },
+  {
+    "word": "aktiv",
+    "definition": "Tätig; unternehmungslustig.",
+    "example": "Man sollte während des Studiums aktiv an Diskussionen teilnehmen.",
+    "translation": "actif",
+    "skill_level": "B2"
+  },
+  {
+    "word": "passiv",
+    "definition": "Tatenlos; abwartend.",
+    "example": "Man sollte nicht nur passiv zusehen, sondern selbst die Initiative ergreifen.",
+    "translation": "passif",
+    "skill_level": "B2"
+  },
+  {
+    "word": "direkt",
+    "definition": "Unmittelbar; ohne Umwege.",
+    "example": "Es besteht ein direkter Zusammenhang zwischen Bildung und Einkommen.",
+    "translation": "direct",
+    "skill_level": "B2"
+  },
+  {
+    "word": "indirekt",
+    "definition": "Mittelbar; über Umwege.",
+    "example": "Die neuen Steuern wirken sich indirekt auch auf die Preise für Lebensmittel aus.",
+    "translation": "indirect",
+    "skill_level": "B2"
+  },
+  {
+    "word": "privat",
+    "definition": "Nicht öffentlich; den Einzelnen betreffend.",
+    "example": "In der Freizeit sollte man auch mal sein privates Leben genießen.",
+    "translation": "privé",
+    "skill_level": "B2"
+  },
+  {
+    "word": "öffentlich",
+    "definition": "Für jeden zugänglich; den Staat betreffend.",
+    "example": "Der öffentliche Nahverkehr sollte besser ausgebaut werden.",
+    "translation": "public",
+    "skill_level": "B2"
+  },
+  {
+    "word": "natürlich",
+    "definition": "Die Natur betreffend; selbstverständlich.",
+    "example": "Es ist ganz natürlich, dass man vor einer Prüfung nervös ist.",
+    "translation": "naturel",
+    "skill_level": "B2"
+  },
+  {
+    "word": "künstlich",
+    "definition": "Vom Menschen gemacht; nicht echt.",
+    "example": "Künstliche Intelligenz wird in Zukunft viele Arbeitsplätze verändern.",
+    "translation": "artificiel",
+    "skill_level": "B2"
+  },
+  {
+    "word": "innere",
+    "definition": "Im Inneren befindlich; die Seele betreffend.",
+    "example": "Man braucht eine gewisse innere Ruhe, um schwierige Situationen zu meistern.",
+    "translation": "intérieur",
+    "skill_level": "B2"
+  },
+  {
+    "word": "äußere",
+    "definition": "Außen befindlich; die Erscheinung betreffend.",
+    "example": "Der äußere Schein kann manchmal trügen.",
+    "translation": "extérieur",
+    "skill_level": "B2"
+  },
+  {
+    "word": "nötig",
+    "definition": "Erforderlich; gebraucht.",
+    "example": "Wir müssen alle nötigen Maßnahmen ergreifen, um das Ziel zu erreichen.",
+    "translation": "nécessaire",
+    "skill_level": "B2"
+  },
+  {
+    "word": "überflüssig",
+    "definition": "Nicht gebraucht; zu viel.",
+    "example": "Manche Informationen im Internet sind völlig überflüssig.",
+    "translation": "superflu",
+    "skill_level": "B2"
+  },
+  {
+    "word": "möglichst",
+    "definition": "Wenn machbar; so weit wie möglich.",
+    "example": "Wir sollten versuchen, möglichst viele Menschen für unser Projekt zu gewinnen.",
+    "translation": "autant que possible",
+    "skill_level": "B2"
+  },
+  {
+    "word": "wahrscheinlich",
+    "definition": "Vermutlich; es ist anzunehmen.",
+    "example": "Es ist sehr wahrscheinlich, dass es heute noch regnen wird.",
+    "translation": "probable",
+    "skill_level": "B2"
+  },
+  {
+    "word": "unwahrscheinlich",
+    "definition": "Es ist kaum anzunehmen.",
+    "example": "Es ist sehr unwahrscheinlich, dass wir in nächster Zeit auf dem Mars leben werden.",
+    "translation": "improbable",
+    "skill_level": "B2"
+  },
+  {
+    "word": "völlig",
+    "definition": "Ganz und gar; total.",
+    "example": "Ich bin völlig deiner Meinung, was diesen Punkt betrifft.",
+    "translation": "totalement / complètement",
+    "skill_level": "B2"
+  },
+  {
+    "word": "teilweise",
+    "definition": "Nicht ganz; zum Teil.",
+    "example": "Die Kosten wurden nur teilweise von der Versicherung übernommen.",
+    "translation": "partiellement",
+    "skill_level": "B2"
+  },
+  {
+    "word": "überhaupt",
+    "definition": "Ganz allgemein; in jeder Hinsicht.",
+    "example": "Ich habe überhaupt keine Ahnung, wie wir das Problem lösen sollen.",
+    "translation": "en général / du tout",
+    "skill_level": "B2"
+  },
+  {
+    "word": "besonders",
+    "definition": "Speziell; vor allem.",
+    "example": "Besonders in großen Städten ist der Wohnraum sehr teuer geworden.",
+    "translation": "particulièrement",
+    "skill_level": "B2"
+  },
+  {
+    "word": "eigentlich",
+    "definition": "Im Grunde genommen; ursprünglich.",
+    "example": "Eigentlich wollte ich heute früher gehen, aber es gab noch viel zu tun.",
+    "translation": "à vrai dire / en fait",
+    "skill_level": "B2"
+  },
+  {
+    "word": "wirklich",
+    "definition": "In der Realität; tatsächlich.",
+    "example": "Ist das wirklich deine Meinung oder sagst du das nur so?",
+    "translation": "vraiment / réellement",
+    "skill_level": "B2"
+  },
+  {
+    "word": "plötzlich",
+    "definition": "Unerwartet und schnell.",
+    "example": "Plötzlich fing es an zu regnen, obwohl die Sonne eben noch schien.",
+    "translation": "soudain / subit",
+    "skill_level": "B2"
+  },
+  {
+    "word": "langsam",
+    "definition": "Nicht schnell.",
+    "example": "Man sollte die Sprache langsam und gründlich lernen.",
+    "translation": "lentement",
+    "skill_level": "B2"
+  },
+  {
+    "word": "schnell",
+    "definition": "In kurzer Zeit.",
+    "example": "Wir müssen schnell handeln, bevor es zu spät ist.",
+    "translation": "vite / rapidement",
+    "skill_level": "B2"
+  },
+  {
+    "word": "oft",
+    "definition": "Häufig.",
+    "example": "Wir treffen uns oft in der Bibliothek, um gemeinsam zu lernen.",
+    "translation": "souvent",
+    "skill_level": "B2"
+  },
+  {
+    "word": "selten",
+    "definition": "Nicht oft.",
+    "example": "Es kommt nur selten vor, dass alle Studenten pünktlich sind.",
+    "translation": "rarement",
+    "skill_level": "B2"
+  },
+  {
+    "word": "immer",
+    "definition": "Zu jeder Zeit.",
+    "example": "Man sollte immer ehrlich zu sich selbst sein.",
+    "translation": "toujours",
+    "skill_level": "B2"
+  },
+  {
+    "word": "nie",
+    "definition": "Zu keiner Zeit.",
+    "example": "Man sollte nie die Hoffnung aufgeben, auch wenn es schwierig wird.",
+    "translation": "jamais",
+    "skill_level": "B2"
+  },
+  {
+    "word": "überall",
+    "definition": "An jedem Ort.",
+    "example": "Heutzutage kann man fast überall im Internet surfen.",
+    "translation": "partout",
+    "skill_level": "B2"
+  },
+  {
+    "word": "nirgends",
+    "definition": "An keinem Ort.",
+    "example": "Ich habe meinen Schlüssel gesucht, aber ich konnte ihn nirgends finden.",
+    "translation": "nulle part",
+    "skill_level": "B2"
+  },
+  {
+    "word": "vielleicht",
+    "definition": "Eventuell; es ist möglich.",
+    "example": "Vielleicht haben wir morgen mehr Glück mit dem Wetter.",
+    "translation": "peut-être",
+    "skill_level": "B2"
+  },
+  {
+    "word": "gerne",
+    "definition": "Mit Freude.",
+    "example": "Ich helfe dir gerne bei deinen Hausaufgaben.",
+    "translation": "volontiers / avec plaisir",
+    "skill_level": "B2"
+  },
+  {
+    "word": "leider",
+    "definition": "Bedauerlicherweise.",
+    "example": "Leider habe ich heute keine Zeit, mit dir ins Kino zu gehen.",
+    "translation": "malheureusement",
+    "skill_level": "B2"
+  },
+  {
+    "word": "doch",
+    "definition": "Aber; dennoch; zur Verstärkung einer Aussage.",
+    "example": "Ich habe es ihm gesagt, aber er hat es doch nicht gemacht.",
+    "translation": "pourtant / si / mais",
+    "skill_level": "B2"
+  },
+  {
+    "word": "dennoch",
+    "definition": "Trotzdem.",
+    "example": "Es war sehr kalt, aber wir sind dennoch spazieren gegangen.",
+    "translation": "pourtant / néanmoins",
+    "skill_level": "B2"
+  },
+  {
+    "word": "trotzdem",
+    "definition": "Obwohl es einen Grund dagegen gibt.",
+    "example": "Ich war müde, aber ich habe trotzdem noch gelernt.",
+    "translation": "quand même / malgré tout",
+    "skill_level": "B2"
+  },
+  {
+    "word": "außerdem",
+    "definition": "Darüber hinaus; zusätzlich.",
+    "example": "Das Hotel war sehr teuer und außerdem war der Service schlecht.",
+    "translation": "de plus / en outre",
+    "skill_level": "B2"
+  },
+  {
+    "word": "zudem",
+    "definition": "Außerdem; zusätzlich.",
+    "example": "Er ist sehr intelligent und zudem sehr fleißig.",
+    "translation": "de plus / en outre",
+    "skill_level": "C1"
+  },
+  {
+    "word": "darüber hinaus",
+    "definition": "Außerdem; über das Genannte hinaus.",
+    "example": "Wir müssen uns über das Projekt informieren und darüber hinaus die Kosten planen.",
+    "translation": "par ailleurs / au-delà de cela",
+    "skill_level": "C1"
+  },
+  {
+    "word": "allerdings",
+    "definition": "Aber; jedoch.",
+    "example": "Das Buch ist sehr interessant, allerdings ist es auch sehr lang.",
+    "translation": "toutefois / cependant",
+    "skill_level": "B2"
+  },
+  {
+    "word": "jedoch",
+    "definition": "Aber; doch.",
+    "example": "Wir wollten eigentlich wegfahren, jedoch hat es den ganzen Tag geregnet.",
+    "translation": "pourtant / cependant",
+    "skill_level": "B2"
+  },
+  {
+    "word": "indes",
+    "definition": "Währenddessen; aber.",
+    "example": "Die Verhandlungen dauern an, indes wächst der Druck auf die Regierung.",
+    "translation": "pendant ce temps / toutefois",
+    "skill_level": "C1"
+  },
+  {
+    "word": "hingegen",
+    "definition": "Im Gegensatz dazu.",
+    "example": "Er lernt sehr schnell, sie hingegen braucht etwas mehr Zeit.",
+    "translation": "en revanche / par contre",
+    "skill_level": "B2"
+  },
+  {
+    "word": "dahingegen",
+    "definition": "Im Gegensatz dazu.",
+    "example": "Das erste Modell war sehr teuer, das zweite dahingegen war deutlich günstiger.",
+    "translation": "par contre",
+    "skill_level": "C1"
+  },
+  {
+    "word": "vielmehr",
+    "definition": "Sondern eher; genauer gesagt.",
+    "example": "Das Problem ist nicht das Geld, sondern vielmehr der Mangel an Zeit.",
+    "translation": "au contraire / plutôt",
+    "skill_level": "C1"
+  },
+  {
+    "word": "dafür",
+    "definition": "Als Ersatz oder Ausgleich für etwas.",
+    "example": "Ich habe kein Geld, aber dafür habe ich viel Zeit.",
+    "translation": "en revanche / pour cela",
+    "skill_level": "B2"
+  },
+  {
+    "word": "dagegen",
+    "definition": "Im Gegensatz dazu; als Einwand.",
+    "example": "Er ist für den Plan, ich hingegen bin dagegen.",
+    "translation": "contre cela / en revanche",
+    "skill_level": "B2"
+  },
+  {
+    "word": "daher",
+    "definition": "Aus diesem Grund.",
+    "example": "Es hat den ganzen Tag geregnet, daher sind wir zu Hause geblieben.",
+    "translation": "par conséquent / c'est pourquoi",
+    "skill_level": "B2"
+  },
+  {
+    "word": "darum",
+    "definition": "Aus diesem Grund.",
+    "example": "Ich habe meinen Bus verpasst, darum bin ich zu spät gekommen.",
+    "translation": "c'est pourquoi",
+    "skill_level": "B2"
+  },
+  {
+    "word": "deshalb",
+    "definition": "Aus diesem Grund.",
+    "example": "Er war krank, deshalb konnte er nicht zur Schule gehen.",
+    "translation": "c'est pourquoi",
+    "skill_level": "B2"
+  },
+  {
+    "word": "deswegen",
+    "definition": "Aus diesem Grund.",
+    "example": "Ich habe viel gelernt und deswegen habe ich die Prüfung bestanden.",
+    "translation": "c'est pour cela que",
+    "skill_level": "B2"
+  },
+  {
+    "word": "infolgedessen",
+    "definition": "Als Folge davon.",
+    "example": "Es gab einen Stromausfall, infolgedessen standen alle Maschinen still.",
+    "translation": "par conséquent",
+    "skill_level": "C1"
+  },
+  {
+    "word": "folglich",
+    "definition": "Daraus ergibt sich.",
+    "example": "Er hat nicht gelernt, folglich hat er die Prüfung nicht bestanden.",
+    "translation": "par conséquent",
+    "skill_level": "B2"
+  },
+  {
+    "word": "somit",
+    "definition": "Dadurch; folglich.",
+    "example": "Das Projekt ist abgeschlossen und somit können wir uns neuen Aufgaben widmen.",
+    "translation": "ainsi / par conséquent",
+    "skill_level": "B2"
+  },
+  {
+    "word": "demnach",
+    "definition": "Also; nach dem, was gesagt wurde.",
+    "example": "Der Zeuge war zur Tatzeit nicht vor Ort, demnach kann er nichts gesehen haben.",
+    "translation": "donc / selon cela",
+    "skill_level": "B2"
+  },
+  {
+    "word": "also",
+    "definition": "Folglich; nun.",
+    "example": "Ich habe Hunger, also gehen wir jetzt essen.",
+    "translation": "donc / alors",
+    "skill_level": "B2"
+  },
+  {
+    "word": "zuerst",
+    "definition": "Am Anfang.",
+    "example": "Zuerst müssen wir die Daten sammeln, bevor wir sie analysieren können.",
+    "translation": "d'abord / premièrement",
+    "skill_level": "B2"
+  },
+  {
+    "word": "zunächst",
+    "definition": "Am Anfang; erst einmal.",
+    "example": "Zunächst einmal möchte ich mich für Ihre Aufmerksamkeit bedanken.",
+    "translation": "tout d'abord",
+    "skill_level": "B2"
+  },
+  {
+    "word": "dann",
+    "definition": "Danach.",
+    "example": "Erst machen wir die Hausaufgaben, dann gehen wir spielen.",
+    "translation": "ensuite / puis",
+    "skill_level": "B2"
+  },
+  {
+    "word": "danach",
+    "definition": "Nach einem Ereignis.",
+    "example": "Er hat gegessen und danach hat er ein Schläfchen gemacht.",
+    "translation": "après cela / ensuite",
+    "skill_level": "B2"
+  },
+  {
+    "word": "nachdem",
+    "definition": "Nach einem zeitlich davor liegenden Ereignis.",
+    "example": "Nachdem er die Prüfung bestanden hatte, feierte er mit seinen Freunden.",
+    "translation": "après que",
+    "skill_level": "B2"
+  },
+  {
+    "word": "bevor",
+    "definition": "Vor einem zeitlich danach liegenden Ereignis.",
+    "example": "Bevor wir anfangen, sollten wir uns kurz vorstellen.",
+    "translation": "avant que / avant de",
+    "skill_level": "B2"
+  },
+  {
+    "word": "während",
+    "definition": "Gleichzeitig mit etwas anderem.",
+    "example": "Während ich lerne, höre ich gerne leise Musik.",
+    "translation": "pendant que / alors que",
+    "skill_level": "B2"
+  },
+  {
+    "word": "solange",
+    "definition": "Über den ganzen Zeitraum hinweg.",
+    "example": "Solange es regnet, bleiben wir im Haus.",
+    "translation": "tant que / aussi longtemps que",
+    "skill_level": "B2"
+  },
+  {
+    "word": "bis",
+    "definition": "Bis zu einem bestimmten Zeitpunkt.",
+    "example": "Wir müssen warten, bis der Regen aufhört.",
+    "translation": "jusqu'à ce que",
+    "skill_level": "B2"
+  },
+  {
+    "word": "sobald",
+    "definition": "Gleich wenn etwas geschieht.",
+    "example": "Sobald ich zu Hause bin, rufe ich dich an.",
+    "translation": "dès que / aussitôt que",
+    "skill_level": "B2"
+  },
+  {
+    "word": "seitdem",
+    "definition": "Von einem Zeitpunkt an bis jetzt.",
+    "example": "Seitdem er in Deutschland lebt, hat er viel gelernt.",
+    "translation": "depuis que",
+    "skill_level": "B2"
+  },
+  {
+    "word": "als",
+    "definition": "Zu einem einmaligen Zeitpunkt in der Vergangenheit.",
+    "example": "Als ich ein Kind war, wollte ich Astronaut werden.",
+    "translation": "quand / lorsque",
+    "skill_level": "B2"
+  },
+  {
+    "word": "wenn",
+    "definition": "Bei wiederholten Ereignissen oder in der Zukunft/Gegenwart.",
+    "example": "Wenn ich Zeit habe, lese ich gerne ein Buch.",
+    "translation": "si / quand / lorsque",
+    "skill_level": "B2"
+  },
+  {
+    "word": "ob",
+    "definition": "Bei einer indirekten Frage oder Entscheidung zwischen zwei Möglichkeiten.",
+    "example": "Ich weiß nicht, ob er heute kommen wird.",
+    "translation": "si",
+    "skill_level": "B2"
+  },
+  {
+    "word": "dass",
+    "definition": "Leitet einen Nebensatz ein.",
+    "example": "Ich finde es wichtig, dass wir uns gegenseitig helfen.",
+    "translation": "que",
+    "skill_level": "B2"
+  },
+  {
+    "word": "weil",
+    "definition": "Gibt den Grund für etwas an.",
+    "example": "Ich lerne Deutsch, weil ich in Deutschland studieren möchte.",
+    "translation": "parce que",
+    "skill_level": "B2"
+  },
+  {
+    "word": "da",
+    "definition": "Gibt einen meist bekannten Grund an.",
+    "example": "Da es regnet, nehmen wir den Schirm mit.",
+    "translation": "comme / puisque",
+    "skill_level": "B2"
+  },
+  {
+    "word": "obwohl",
+    "definition": "Trotz eines Gegengrundes.",
+    "example": "Obwohl er müde war, hat er noch bis spät in die Nacht gearbeitet.",
+    "translation": "bien que / quoique",
+    "skill_level": "B2"
+  },
+  {
+    "word": "obgleich",
+    "definition": "Obwohl (gehobener).",
+    "example": "Obgleich das Wetter schlecht war, gingen wir wandern.",
+    "translation": "bien que / quoique",
+    "skill_level": "C1"
+  },
+  {
+    "word": "falls",
+    "definition": "Unter der Bedingung, dass.",
+    "example": "Falls es morgen regnet, fällt das Picknick aus.",
+    "translation": "si / au cas où",
+    "skill_level": "B2"
+  },
+  {
+    "word": "sofern",
+    "definition": "Unter der Bedingung, dass (gehobener).",
+    "example": "Sofern nichts dazwischenkommt, bin ich morgen pünktlich.",
+    "translation": "pourvu que / si",
+    "skill_level": "C1"
+  },
+  {
+    "word": "indem",
+    "definition": "Gibt die Art und Weise an.",
+    "example": "Man kann Strom sparen, indem man das Licht ausschaltet.",
+    "translation": "en + participe présent",
+    "skill_level": "B2"
+  },
+  {
+    "word": "dadurch dass",
+    "definition": "Gibt das Mittel oder den Grund an.",
+    "example": "Dadurch dass wir früher angefangen haben, sind wir jetzt schon fertig.",
+    "translation": "du fait que / par le fait que",
+    "skill_level": "B2"
+  },
+  {
+    "word": "damit",
+    "definition": "Gibt den Zweck oder das Ziel an.",
+    "example": "Ich lerne viel, damit ich die Prüfung bestehe.",
+    "translation": "pour que / afin que",
+    "skill_level": "B2"
+  },
+  {
+    "word": "um ... zu",
+    "definition": "Gibt den Zweck oder das Ziel bei gleichem Subjekt an.",
+    "example": "Ich gehe in die Stadt, um ein Buch zu kaufen.",
+    "translation": "pour / afin de",
+    "skill_level": "B2"
+  },
+  {
+    "word": "ohne ... zu",
+    "definition": "Gibt an, dass etwas nicht geschieht.",
+    "example": "Er ist gegangen, ohne sich zu verabschieden.",
+    "translation": "sans",
+    "skill_level": "B2"
+  },
+  {
+    "word": "anstatt ... zu",
+    "definition": "Gibt eine Alternative an.",
+    "example": "Anstatt zu lernen, hat er den ganzen Tag Videospiele gespielt.",
+    "translation": "au lieu de",
+    "skill_level": "B2"
+  },
+  {
+    "word": "anstelle",
+    "definition": "Anstatt.",
+    "example": "Anstelle eines Briefes schickte er ihr eine E-Mail.",
+    "translation": "au lieu de / à la place de",
+    "skill_level": "B2"
+  },
+  {
+    "word": "stattdessen",
+    "definition": "Als Ersatz für das zuvor Genannte.",
+    "example": "Er wollte eigentlich ein Eis essen, kaufte sich stattdessen aber einen Apfel.",
+    "translation": "à la place / au lieu de cela",
+    "skill_level": "B2"
+  },
+  {
+    "word": "einerseits",
+    "definition": "Wird verwendet, um den ersten Teil eines Gegensatzes einzuleiten.",
+    "example": "Einerseits möchte ich reisen, andererseits muss ich arbeiten.",
+    "translation": "d'une part",
+    "skill_level": "B2"
+  },
+  {
+    "word": "andererseits",
+    "definition": "Wird verwendet, um den zweiten Teil eines Gegensatzes einzuleiten.",
+    "example": "Einerseits ist es teuer, andererseits ist es sehr praktisch.",
+    "translation": "d'autre part",
+    "skill_level": "B2"
+  },
+  {
+    "word": "zwar ... aber",
+    "definition": "Wird verwendet, um eine Einschränkung auszudrücken.",
+    "example": "Es ist zwar teuer, aber es ist von sehr guter Qualität.",
+    "translation": "certes ... mais",
+    "skill_level": "B2"
+  },
+  {
+    "word": "entweder ... oder",
+    "definition": "Wird verwendet, um zwei Alternativen auszudrücken.",
+    "example": "Wir können entweder ins Kino gehen oder zu Hause bleiben.",
+    "translation": "soit ... soit / ou bien ... ou bien",
+    "skill_level": "B2"
+  },
+  {
+    "word": "weder ... noch",
+    "definition": "Wird verwendet, um zwei Dinge auszuschließen.",
+    "example": "Ich habe weder Zeit noch Lust, heute Abend wegzugehen.",
+    "translation": "ni ... ni",
+    "skill_level": "B2"
+  },
+  {
+    "word": "sowohl ... als auch",
+    "definition": "Wird verwendet, um zwei Dinge einzuschließen.",
+    "example": "Er spricht sowohl Deutsch als auch Englisch fließend.",
+    "translation": "tant ... que / aussi bien ... que",
+    "skill_level": "B2"
+  },
+  {
+    "word": "nicht nur ... sondern auch",
+    "definition": "Wird verwendet, um eine Steigerung oder Ergänzung auszudrücken.",
+    "example": "Er ist nicht nur intelligent, sondern auch sehr sympathisch.",
+    "translation": "non seulement ... mais aussi",
+    "skill_level": "B2"
+  },
+  {
+    "word": "je ... desto",
+    "definition": "Wird verwendet, um eine proportionale Steigerung auszudrücken.",
+    "example": "Je mehr ich lerne, desto besser werde ich.",
+    "translation": "plus ... plus",
+    "skill_level": "B2"
+  },
+  {
+    "word": "je ... umso",
+    "definition": "Wird verwendet, um eine proportionale Steigerung auszudrücken (wie je...desto).",
+    "example": "Je schneller wir arbeiten, umso früher sind wir fertig.",
+    "translation": "plus ... plus",
+    "skill_level": "B2"
+  },
+  {
+    "word": "allmählich",
+    "definition": "Langsam und schrittweise.",
+    "example": "Allmählich wird es draußen dunkel und wir sollten nach Hause gehen.",
+    "translation": "peu à peu / progressivement",
+    "skill_level": "B2"
+  },
+  {
+    "word": "unverzüglich",
+    "definition": "Sofort; ohne jede Verzögerung.",
+    "example": "Bei Gefahr muss man unverzüglich die Polizei rufen.",
+    "translation": "immédiatement / sans délai",
+    "skill_level": "C1"
+  },
+  {
+    "word": "demnächst",
+    "definition": "In naher Zukunft.",
+    "example": "Der neue Film wird demnächst in den Kinos zu sehen sein.",
+    "translation": "prochainement",
+    "skill_level": "B2"
+  },
+  {
+    "word": "kürzlich",
+    "definition": "Vor kurzer Zeit.",
+    "example": "Ich habe ihn kürzlich in der Stadt getroffen und er sah sehr gut aus.",
+    "translation": "récemment",
+    "skill_level": "B2"
+  },
+  {
+    "word": "damals",
+    "definition": "Zu einem früheren Zeitpunkt in der Vergangenheit.",
+    "example": "Damals gab es noch keine Handys und das Leben war ruhiger.",
+    "translation": "à l'époque / autrefois",
+    "skill_level": "B2"
+  },
+  {
+    "word": "heutzutage",
+    "definition": "In der gegenwärtigen Zeit.",
+    "example": "Heutzutage ist das Internet aus unserem Alltag nicht mehr wegzudenken.",
+    "translation": "de nos jours",
+    "skill_level": "B2"
+  },
+  {
+    "word": "derzeit",
+    "definition": "Im Moment; gegenwärtig.",
+    "example": "Derzeit arbeiten wir an einem sehr spannenden neuen Projekt.",
+    "translation": "actuellement",
+    "skill_level": "B2"
+  },
+  {
+    "word": "gelegentlich",
+    "definition": "Manchmal; ab und zu.",
+    "example": "Ich gehe gelegentlich joggen, um mich fit zu halten.",
+    "translation": "occasionnellement",
+    "skill_level": "B2"
+  },
+  {
+    "word": "offenbar",
+    "definition": "Anscheinend; es scheint so zu sein.",
+    "example": "Offenbar hat er die E-Mail nicht erhalten, sonst hätte er geantwortet.",
+    "translation": "apparemment / manifestement",
+    "skill_level": "B2"
+  },
+  {
+    "word": "anscheinend",
+    "definition": "Es macht den Eindruck.",
+    "example": "Anscheinend gibt es ein Problem mit der Internetverbindung.",
+    "translation": "apparemment",
+    "skill_level": "B2"
+  },
+  {
+    "word": "vermutlich",
+    "definition": "Wahrscheinlich.",
+    "example": "Er kommt heute vermutlich etwas später, weil er noch viel zu tun hat.",
+    "translation": "vraisemblablement",
+    "skill_level": "B2"
+  },
+  {
+    "word": "sicherlich",
+    "definition": "Bestimmt; gewiss.",
+    "example": "Er wird sicherlich kommen, er hat es mir fest versprochen.",
+    "translation": "certainement",
+    "skill_level": "B2"
+  },
+  {
+    "word": "gewiss",
+    "definition": "Sicher; bestimmt.",
+    "example": "Ein gewisser Grad an Unsicherheit bleibt bei jedem Experiment bestehen.",
+    "translation": "certain / sûrement",
+    "skill_level": "B2"
+  },
+  {
+    "word": "bekanntlich",
+    "definition": "Wie allgemein bekannt ist.",
+    "example": "Bekanntlich ist Sport gesund für den Körper und den Geist.",
+    "translation": "comme on le sait",
+    "skill_level": "B2"
+  },
+  {
+    "word": "glücklicherweise",
+    "definition": "Zum Glück.",
+    "example": "Glücklicherweise ist bei dem Unfall niemand schwer verletzt worden.",
+    "translation": "heureusement",
+    "skill_level": "B2"
+  },
+  {
+    "word": "bedauerlicherweise",
+    "definition": "Leider.",
+    "example": "Bedauerlicherweise konnte das Konzert wegen des Wetters nicht stattfinden.",
+    "translation": "malheureusement",
+    "skill_level": "B2"
+  },
+  {
+    "word": "erstaunlicherweise",
+    "definition": "Es ist überraschend.",
+    "example": "Erstaunlicherweise hat er die Prüfung bestanden, obwohl er kaum gelernt hatte.",
+    "translation": "étonnamment",
+    "skill_level": "C1"
+  },
+  {
+    "word": "interessanterweise",
+    "definition": "Es ist interessant festzustellen.",
+    "example": "Interessanterweise zeigen die Ergebnisse der Studie ein ganz anderes Bild als erwartet.",
+    "translation": "curieusement / il est intéressant de noter que",
+    "skill_level": "B2"
+  },
+  {
+    "word": "ausgerechnet",
+    "definition": "Wird verwendet, um eine unangenehme Überraschung auszudrücken.",
+    "example": "Ausgerechnet heute, wo ich so viel zu tun habe, ist mein Computer kaputt gegangen.",
+    "translation": "justement / de tous les ...",
+    "skill_level": "B2"
+  },
+  {
+    "word": "beispielsweise",
+    "definition": "Zum Beispiel.",
+    "example": "Man kann viele Dinge tun, um die Umwelt zu schützen, beispielsweise weniger Plastik verbrauchen.",
+    "translation": "par exemple",
+    "skill_level": "B2"
+  },
+  {
+    "word": "etwa",
+    "definition": "Ungefähr; zum Beispiel.",
+    "example": "Es waren etwa 50 Personen bei dem Vortrag anwesend.",
+    "translation": "environ / par exemple",
+    "skill_level": "B2"
+  },
+  {
+    "word": "ungefähr",
+    "definition": "Nicht exakt; zirka.",
+    "example": "Die Fahrt nach Berlin dauert ungefähr vier Stunden.",
+    "translation": "environ",
+    "skill_level": "B2"
+  },
+  {
+    "word": "fast",
+    "definition": "Beinahe.",
+    "example": "Ich habe fast den ganzen Tag gearbeitet und bin jetzt sehr müde.",
+    "translation": "presque",
+    "skill_level": "B2"
+  },
+  {
+    "word": "beinahe",
+    "definition": "Fast.",
+    "example": "Er wäre beinahe hingefallen, aber er konnte sich noch rechtzeitig abfangen.",
+    "translation": "presque / faillir",
+    "skill_level": "B2"
+  },
+  {
+    "word": "kaum",
+    "definition": "Fast nicht.",
+    "example": "Ich konnte ihn in der Menge kaum erkennen.",
+    "translation": "à peine / presque pas",
+    "skill_level": "B2"
+  },
+  {
+    "word": "höchstens",
+    "definition": "Maximal.",
+    "example": "Es waren höchstens zehn Personen bei der Versammlung anwesend.",
+    "translation": "tout au plus",
+    "skill_level": "B2"
+  },
+  {
+    "word": "mindestens",
+    "definition": "Nicht weniger als.",
+    "example": "Du solltest mindestens zwei Liter Wasser am Tag trinken.",
+    "translation": "au moins",
+    "skill_level": "B2"
+  },
+  {
+    "word": "wenigstens",
+    "definition": "Zumindest.",
+    "example": "Wenn du schon nicht kommst, hättest du wenigstens anrufen können.",
+    "translation": "au moins / du moins",
+    "skill_level": "B2"
+  },
+  {
+    "word": "zumindest",
+    "definition": "Wenigstens.",
+    "example": "Wir sollten zumindest versuchen, eine Lösung zu finden.",
+    "translation": "au moins",
+    "skill_level": "B2"
+  },
+  {
+    "word": "überhaupt nicht",
+    "definition": "Ganz und gar nicht.",
+    "example": "Ich bin mit dem Ergebnis der Arbeit überhaupt nicht zufrieden.",
+    "translation": "pas du tout",
+    "skill_level": "B2"
+  },
+  {
+    "word": "gar nicht",
+    "definition": "Überhaupt nicht.",
+    "example": "Das ist gar nicht wahr, was er über mich gesagt hat.",
+    "translation": "pas du tout",
+    "skill_level": "B2"
+  },
+  {
+    "word": "gar kein",
+    "definition": "Überhaupt kein.",
+    "example": "Ich habe gar kein Interesse an diesem Thema.",
+    "translation": "aucun",
+    "skill_level": "B2"
+  },
+  {
+    "word": "keineswegs",
+    "definition": "Ganz und gar nicht; auf keinen Fall.",
+    "example": "Diese Entscheidung ist keineswegs endgültig, wir können sie noch ändern.",
+    "translation": "nullement / en aucun cas",
+    "skill_level": "C1"
+  },
+  {
+    "word": "durchaus",
+    "definition": "Absolut; ganz und gar; völlig.",
+    "example": "Es ist durchaus möglich, dass wir morgen mehr Erfolg haben werden.",
+    "translation": "tout à fait / absolument",
+    "skill_level": "B2"
+  },
+  {
+    "word": "keinesfalls",
+    "definition": "Unter keinen Umständen.",
+    "example": "Wir dürfen keinesfalls vergessen, den Termin rechtzeitig abzusagen.",
+    "translation": "en aucun cas",
+    "skill_level": "C1"
+  },
+  {
+    "word": "unbedingt",
+    "definition": "Ohne jede Einschränkung.",
+    "example": "Ich möchte unbedingt dieses neue Buch lesen, von dem alle sprechen.",
+    "translation": "absolument",
+    "skill_level": "B2"
+  },
+  {
+    "word": "durchweg",
+    "definition": "Ohne Ausnahme; durchgehend.",
+    "example": "Die Reaktionen auf den neuen Film waren durchweg positiv.",
+    "translation": "systématiquement / d'un bout à l'autre",
+    "skill_level": "C1"
+  },
+  {
+    "word": "fortwährend",
+    "definition": "Ständig; ohne Unterbrechung.",
+    "example": "Der technologische Fortschritt verändert unsere Welt fortwährend.",
+    "translation": "continuellement",
+    "skill_level": "C1"
+  },
+  {
+    "word": "andauernd",
+    "definition": "Ständig (oft genervt).",
+    "example": "Er stellt andauernd Fragen, was mich bei der Arbeit stört.",
+    "translation": "sans cesse",
+    "skill_level": "B2"
+  },
+  {
+    "word": "beständig",
+    "definition": "Dauerhaft; stabil.",
+    "example": "Ein beständiger Erfolg erfordert viel Fleiß und Ausdauer.",
+    "translation": "constant / durable",
+    "skill_level": "B2"
+  },
+  {
+    "word": "nach wie vor",
+    "definition": "Immer noch; unverändert.",
+    "example": "Das Problem der Umweltverschmutzung ist nach wie vor aktuell.",
+    "translation": "toujours",
+    "skill_level": "B2"
+  },
+  {
+    "word": "nachhaltig",
+    "definition": "Mit dauerhafter Wirkung.",
+    "example": "Die Krise hat das Vertrauen in die Banken nachhaltig geschädigt.",
+    "translation": "durablement",
+    "skill_level": "B2"
+  },
+  {
+    "word": "effektiv",
+    "definition": "Tatsächlich; wirksam.",
+    "example": "Wir müssen die effektive Zeit nutzen, die uns zur Verfügung steht.",
+    "translation": "effectif",
+    "skill_level": "B2"
+  },
+  {
+    "word": "potenziell",
+    "definition": "Möglicherweise; in der Zukunft denkbar.",
+    "example": "Die neuen Maßnahmen könnten potenziell zu einer Verbesserung der Lage führen.",
+    "translation": "potentiel",
+    "skill_level": "B2"
+  },
+  {
+    "word": "virtuell",
+    "definition": "Nicht real; am Computer simuliert.",
+    "example": "Heutzutage finden viele Konferenzen nur noch virtuell statt.",
+    "translation": "virtuel",
+    "skill_level": "B2"
+  },
+  {
+    "word": "formell",
+    "definition": "Förmlich; die Form betreffend.",
+    "example": "Es gab eine formelle Einladung zur Eröffnung des neuen Gebäudes.",
+    "translation": "formel",
+    "skill_level": "B2"
+  },
+  {
+    "word": "informell",
+    "definition": "Ungezwungen; nicht förmlich.",
+    "example": "Wir haben uns zu einem informellen Gespräch getroffen.",
+    "translation": "informel",
+    "skill_level": "B2"
+  },
+  {
+    "word": "exklusiv",
+    "definition": "Ausschließlich; nur für einen bestimmten Kreis.",
+    "example": "Dieses Angebot ist exklusiv für unsere Stammkunden.",
+    "translation": "exclusif",
+    "skill_level": "B2"
+  },
+  {
+    "word": "inklusiv",
+    "definition": "Einschließlich.",
+    "example": "Der Preis versteht sich inklusiv Mehrwertsteuer und Versandkosten.",
+    "translation": "inclus / compris",
+    "skill_level": "B2"
+  },
+  {
+    "word": "relativ",
+    "definition": "Im Verhältnis zu etwas anderem gesehen.",
+    "example": "Im Vergleich zu anderen Ländern sind die Lebenshaltungskosten hier relativ hoch.",
+    "translation": "relatif",
+    "skill_level": "B2"
+  },
+  {
+    "word": "absolut",
+    "definition": "Vollkommen; ohne Einschränkung.",
+    "example": "Es ist absolut notwendig, dass wir die Sicherheitsvorschriften einhalten.",
+    "translation": "absolu",
+    "skill_level": "B2"
+  },
+  {
+    "word": "extrem",
+    "definition": "Sehr stark; außergewöhnlich.",
+    "example": "Die Wetterbedingungen waren extrem schwierig für die Expedition.",
+    "translation": "extrême",
+    "skill_level": "B2"
+  },
+  {
+    "word": "total",
+    "definition": "Vollständig; ganz und gar.",
+    "example": "Das war ein totaler Erfolg für unsere gesamte Mannschaft.",
+    "translation": "total",
+    "skill_level": "B2"
+  },
+  {
+    "word": "vollständig",
+    "definition": "Ganz; lückenlos.",
+    "example": "Die Liste der Teilnehmer ist noch nicht vollständig.",
+    "translation": "complet / intégral",
+    "skill_level": "B2"
+  },
+  {
+    "word": "umfangreich",
+    "definition": "Viel umfassend; groß.",
+    "example": "Die Bibliothek verfügt über eine umfangreiche Sammlung alter Handschriften.",
+    "translation": "vaste / étendu",
+    "skill_level": "B2"
+  },
+  {
+    "word": "intensiv",
+    "definition": "Gründlich; mit großem Einsatz.",
+    "example": "Vor der Prüfung haben wir eine intensive Lernphase eingeplant.",
+    "translation": "intensif",
+    "skill_level": "B2"
+  },
+  {
+    "word": "massiv",
+    "definition": "Sehr stark; gewaltig.",
+    "example": "Es gab massiven Widerstand gegen die geplanten Baumaßnahmen.",
+    "translation": "massif",
+    "skill_level": "B2"
+  },
+  {
+    "word": "erheblich",
+    "definition": "In beträchtlichem Maße.",
+    "example": "Die neuen Regeln haben erhebliche Auswirkungen auf unseren Arbeitsalltag.",
+    "translation": "considérable",
+    "skill_level": "B2"
+  },
+  {
+    "word": "beträchtlich",
+    "definition": "Ziemlich groß; ansehnlich.",
+    "example": "Es wurde ein beträchtlicher Teil des Budgets für Werbung ausgegeben.",
+    "translation": "considérable / notable",
+    "skill_level": "C1"
+  },
+  {
+    "word": "minimal",
+    "definition": "Sehr klein; geringfügig.",
+    "example": "Die Abweichung von den erwarteten Werten war nur minimal.",
+    "translation": "minimal",
+    "skill_level": "B2"
+  },
+  {
+    "word": "maximal",
+    "definition": "Höchstens; so viel wie möglich.",
+    "example": "Die maximale Teilnehmerzahl für den Kurs ist auf zwanzig begrenzt.",
+    "translation": "maximal",
+    "skill_level": "B2"
+  },
+  {
+    "word": "durchschnittlich",
+    "definition": "Im Mittelmaß liegend.",
+    "example": "Ein durchschnittlicher Haushalt verbraucht heute deutlich mehr Strom als früher.",
+    "translation": "moyen",
+    "skill_level": "B2"
+  },
+  {
+    "word": "optimal",
+    "definition": "Bestmöglich.",
+    "example": "Die Bedingungen für das Experiment waren optimal.",
+    "translation": "optimal",
+    "skill_level": "B2"
+  },
+  {
+    "word": "ideal",
+    "definition": "Vollkommen; wie man es sich wünscht.",
+    "example": "Das ist das ideale Wetter für einen Ausflug ins Grüne.",
+    "translation": "idéal",
+    "skill_level": "B2"
+  },
+  {
+    "word": "akzeptabel",
+    "definition": "Annehmbar; ausreichend.",
+    "example": "Das Ergebnis der Verhandlungen ist für beide Seiten akzeptabel.",
+    "translation": "acceptable",
+    "skill_level": "B2"
+  },
+  {
+    "word": "unzureichend",
+    "definition": "Nicht genug; mangelhaft.",
+    "example": "Die Vorbereitung auf den Test war leider unzureichend.",
+    "translation": "insuffisant",
+    "skill_level": "B2"
+  },
+  {
+    "word": "mangelhaft",
+    "definition": "Fehlerhaft; ungenügend.",
+    "example": "Die Qualität der gelieferten Ware war mangelhaft.",
+    "translation": "défectueux / insuffisant",
+    "skill_level": "B2"
+  },
+  {
+    "word": "hervorragend",
+    "definition": "Ausgezeichnet; sehr gut.",
+    "example": "Er hat eine hervorragende Leistung in der Prüfung gezeigt.",
+    "translation": "excellent / remarquable",
+    "skill_level": "B2"
+  },
+  {
+    "word": "ausgezeichnet",
+    "definition": "Sehr gut; exzellent.",
+    "example": "Das Essen in diesem Restaurant ist wirklich ausgezeichnet.",
+    "translation": "excellent",
+    "skill_level": "B2"
+  },
+  {
+    "word": "bedeutend",
+    "definition": "Wichtig; namhaft.",
+    "example": "Er ist ein bedeutender Wissenschaftler auf seinem Fachgebiet.",
+    "translation": "important / éminent",
+    "skill_level": "B2"
+  },
+  {
+    "word": "berühmt",
+    "definition": "Sehr bekannt.",
+    "example": "Dieser Musiker ist auf der ganzen Welt berühmt.",
+    "translation": "célèbre",
+    "skill_level": "B2"
+  },
+  {
+    "word": "bekannt",
+    "definition": "Vielen Menschen vertraut.",
+    "example": "Sein Name ist in der gesamten Branche bekannt.",
+    "translation": "connu",
+    "skill_level": "B2"
+  },
+  {
+    "word": "unbekannt",
+    "definition": "Nicht vertraut; fremd.",
+    "example": "Der Verfasser des Briefes ist leider unbekannt.",
+    "translation": "inconnu",
+    "skill_level": "B2"
+  },
+  {
+    "word": "fremd",
+    "definition": "Nicht eigen; unbekannt.",
+    "example": "In einer fremden Stadt muss man sich erst einmal orientieren.",
+    "translation": "étranger / inconnu",
+    "skill_level": "B2"
+  },
+  {
+    "word": "eigen",
+    "definition": "Zu einem selbst gehörend.",
+    "example": "Es ist wichtig, seine eigene Meinung zu haben und zu vertreten.",
+    "translation": "propre / à soi",
+    "skill_level": "B2"
+  },
+  {
+    "word": "persönlich",
+    "definition": "Den Einzelnen betreffend.",
+    "example": "Das ist meine persönliche Meinung zu diesem Thema.",
+    "translation": "personnel",
+    "skill_level": "B2"
+  },
+  {
+    "word": "individuell",
+    "definition": "Auf den Einzelnen zugeschnitten.",
+    "example": "Jeder Schüler braucht eine individuelle Förderung.",
+    "translation": "individuel",
+    "skill_level": "B2"
+  },
+  {
+    "word": "kollektiv",
+    "definition": "Die Gemeinschaft betreffend.",
+    "example": "Die Verantwortung für den Umweltschutz ist eine kollektive Aufgabe.",
+    "translation": "collectif",
+    "skill_level": "B2"
+  },
+  {
+    "word": "allgemein",
+    "definition": "Überall gültig.",
+    "example": "Das ist eine allgemeine Regel, die für alle gilt.",
+    "translation": "général",
+    "skill_level": "B2"
+  },
+  {
+    "word": "speziell",
+    "definition": "Besonders; auf ein Fachgebiet bezogen.",
+    "example": "Für diese Aufgabe braucht man ein spezielles Werkzeug.",
+    "translation": "spécial",
+    "skill_level": "B2"
+  },
+  {
+    "word": "konkret",
+    "definition": "Genau bestimmt.",
+    "example": "Wir brauchen einen konkreten Plan für die nächsten Wochen.",
+    "translation": "concret",
+    "skill_level": "B2"
+  },
+  {
+    "word": "vage",
+    "definition": "Ungenau; verschwommen.",
+    "example": "Seine Angaben waren so vage, dass wir damit nichts anfangen konnten.",
+    "translation": "vague",
+    "skill_level": "B2"
+  },
+  {
+    "word": "ungenau",
+    "definition": "Nicht präzise.",
+    "example": "Die Messung war ungenau, weshalb wir sie wiederholen mussten.",
+    "translation": "imprécis",
+    "skill_level": "B2"
+  },
+  {
+    "word": "exakt",
+    "definition": "Ganz genau.",
+    "example": "Der Ingenieur muss die Maße exakt berechnen.",
+    "translation": "exact / précis",
+    "skill_level": "B2"
+  },
+  {
+    "word": "korrekt",
+    "definition": "Fehlerfrei.",
+    "example": "Die Abrechnung war absolut korrekt.",
+    "translation": "correct",
+    "skill_level": "B2"
+  },
+  {
+    "word": "fehlerhaft",
+    "definition": "Mit Fehlern behaftet.",
+    "example": "Das Programm ist leider fehlerhaft und muss überarbeitet werden.",
+    "translation": "erroné / défectueux",
+    "skill_level": "B2"
+  },
+  {
+    "word": "vollständig",
+    "definition": "Ohne Lücken.",
+    "example": "Sind die Unterlagen jetzt vollständig?",
+    "translation": "complet",
+    "skill_level": "B2"
+  },
+  {
+    "word": "lückenhaft",
+    "definition": "Mit Lücken; unvollständig.",
+    "example": "Seine Erinnerungen an den Unfall sind nur lückenhaft.",
+    "translation": "lacunaire / incomplet",
+    "skill_level": "C1"
+  },
+  {
+    "word": "gründlich",
+    "definition": "Sorgfältig und detailliert.",
+    "example": "Vor der Operation wurde der Patient gründlich untersucht.",
+    "translation": "approfondi / minutieux",
+    "skill_level": "B2"
+  },
+  {
+    "word": "oberflächlich",
+    "definition": "Nicht in die Tiefe gehend.",
+    "example": "Seine Kenntnisse in diesem Bereich sind nur oberflächlich.",
+    "translation": "superficiel",
+    "skill_level": "B2"
+  },
+  {
+    "word": "intensiv",
+    "definition": "Mit großer Gründlichkeit.",
+    "example": "Wir haben das Thema in der letzten Sitzung intensiv besprochen.",
+    "translation": "intensif",
+    "skill_level": "B2"
+  },
+  {
+    "word": "kurz",
+    "definition": "Von geringer Dauer.",
+    "example": "Er hielt nur eine kurze Rede zur Begrüßung.",
+    "translation": "court",
+    "skill_level": "B2"
+  },
+  {
+    "word": "lang",
+    "definition": "Von großer Dauer.",
+    "example": "Der Weg zum Erfolg ist oft lang und schwierig.",
+    "translation": "long",
+    "skill_level": "B2"
+  },
+  {
+    "word": "dauerhaft",
+    "definition": "Über lange Zeit hinweg beständig.",
+    "example": "Wir suchen nach einer dauerhaften Lösung für das Problem.",
+    "translation": "durable",
+    "skill_level": "B2"
+  },
+  {
+    "word": "vorübergehend",
+    "definition": "Nur für kurze Zeit.",
+    "example": "Die Straße ist wegen Bauarbeiten vorübergehend gesperrt.",
+    "translation": "provisoire / temporaire",
+    "skill_level": "B2"
+  },
+  {
+    "word": "stetig",
+    "definition": "Gleichmäßig und ohne Unterbrechung.",
+    "example": "Die Nachfrage nach Bioprodukten steigt stetig an.",
+    "translation": "constant / régulier",
+    "skill_level": "B2"
+  },
+  {
+    "word": "diskontinuierlich",
+    "definition": "Mit Unterbrechungen.",
+    "example": "Die Entwicklung verlief diskontinuierlich, mit Phasen des Stillstands.",
+    "translation": "discontinu",
+    "skill_level": "C1"
+  },
+  {
+    "word": "rasch",
+    "definition": "Schnell; ohne Zögern.",
+    "example": "Durch rasches Handeln konnte Schlimmeres verhindert werden.",
+    "translation": "rapide",
+    "skill_level": "B2"
+  },
+  {
+    "word": "zügig",
+    "definition": "Ohne unnötige Verzögerung; flott.",
+    "example": "Die Arbeiten an der Baustelle kommen zügig voran.",
+    "translation": "rapide / soutenu",
+    "skill_level": "B2"
+  },
+  {
+    "word": "verzögert",
+    "definition": "Später als geplant.",
+    "example": "Wegen des Streiks kam es zu einer verzögerten Auslieferung der Pakete.",
+    "translation": "retardé",
+    "skill_level": "B2"
+  },
+  {
+    "word": "sofortig",
+    "definition": "Unmittelbar.",
+    "example": "Die Maßnahme führte zu einer sofortigen Verbesserung der Lage.",
+    "translation": "immédiat",
+    "skill_level": "B2"
+  },
+  {
+    "word": "baldig",
+    "definition": "In Kürze erfolgend.",
+    "example": "Wir hoffen auf eine baldige Antwort auf unseren Brief.",
+    "translation": "prochain",
+    "skill_level": "B2"
+  },
+  {
+    "word": "künftig",
+    "definition": "In der Zukunft.",
+    "example": "In künftigen Studien sollte dieser Aspekt stärker berücksichtigt werden.",
+    "translation": "futur / à l'avenir",
+    "skill_level": "B2"
+  },
+  {
+    "word": "ehemalig",
+    "definition": "Früher; nicht mehr aktuell.",
+    "example": "Er ist ein ehemaliger Student dieser Universität.",
+    "translation": "ancien / ex-",
+    "skill_level": "B2"
+  },
+  {
+    "word": "vorherig",
+    "definition": "Davor liegend.",
+    "example": "Der vorherige Versuch war leider nicht erfolgreich.",
+    "translation": "précédent",
+    "skill_level": "B2"
+  },
+  {
+    "word": "nächst",
+    "definition": "Danach folgend.",
+    "example": "Nächste Woche fangen die Ferien an.",
+    "translation": "prochain",
+    "skill_level": "B2"
+  },
+  {
+    "word": "letzte",
+    "definition": "Am Ende liegend.",
+    "example": "Das war die letzte Chance, die wir hatten.",
+    "translation": "dernier",
+    "skill_level": "B2"
+  },
+  {
+    "word": "aktuell",
+    "definition": "Gegenwärtig wichtig.",
+    "example": "Das ist ein sehr aktuelles Thema, das viele Menschen bewegt.",
+    "translation": "actuel",
+    "skill_level": "B2"
+  },
+  {
+    "word": "modern",
+    "definition": "Zeitgemäß; neuartig.",
+    "example": "Die moderne Architektur nutzt oft viel Glas und Stahl.",
+    "translation": "moderne",
+    "skill_level": "B2"
+  },
+  {
+    "word": "veraltet",
+    "definition": "Nicht mehr zeitgemäß.",
+    "example": "Diese Software ist veraltet und sollte ersetzt werden.",
+    "translation": "obsolète / périmé",
+    "skill_level": "B2"
+  },
+  {
+    "word": "traditionell",
+    "definition": "Auf Traditionen beruhend.",
+    "example": "Das ist ein traditionelles Gericht aus dieser Region.",
+    "translation": "traditionnel",
+    "skill_level": "B2"
+  },
+  {
+    "word": "ursprünglich",
+    "definition": "Anfänglich; am Anfang.",
+    "example": "Ursprünglich wollten wir fliegen, aber dann haben wir doch das Auto genommen.",
+    "translation": "originel / à l'origine",
+    "skill_level": "B2"
+  },
+  {
+    "word": "endgültig",
+    "definition": "Nicht mehr änderbar.",
+    "example": "Die Entscheidung ist endgültig und kann nicht mehr angefochten werden.",
+    "translation": "définitif",
+    "skill_level": "B2"
+  },
+  {
+    "word": "vorläufig",
+    "definition": "Vorerst; bis auf Weiteres.",
+    "example": "Das ist nur ein vorläufiges Ergebnis, das noch bestätigt werden muss.",
+    "translation": "provisoire",
+    "skill_level": "B2"
+  },
+  {
+    "word": "grundsätzlich",
+    "definition": "Prinzipiell; im Grunde.",
+    "example": "Ich bin grundsätzlich bereit zu helfen, aber heute habe ich keine Zeit.",
+    "translation": "fondamental / en principe",
+    "skill_level": "B2"
+  },
+  {
+    "word": "prinzipiell",
+    "definition": "Grundsätzlich.",
+    "example": "Prinzipiell ist das möglich, aber in der Praxis schwierig.",
+    "translation": "en principe",
+    "skill_level": "B2"
+  },
+  {
+    "word": "theoretisch",
+    "definition": "In der Theorie.",
+    "example": "Theoretisch wissen wir, wie es geht, aber wir müssen es noch ausprobieren.",
+    "translation": "théoriquement",
+    "skill_level": "B2"
+  },
+  {
+    "word": "praktisch",
+    "definition": "In der Praxis.",
+    "example": "Praktisch gesehen ist der Plan kaum umsetzbar.",
+    "translation": "pratiquement / dans la pratique",
+    "skill_level": "B2"
+  },
+  {
+    "word": "tatsächlich",
+    "definition": "In der Tat; wirklich.",
+    "example": "Er hat es tatsächlich geschafft, den Berg zu besteigen.",
+    "translation": "réellement / en fait",
+    "skill_level": "B2"
+  },
+  {
+    "word": "real",
+    "definition": "In der Wirklichkeit existierend.",
+    "example": "Wir müssen die realen Gefahren nicht unterschätzen.",
+    "translation": "réel",
+    "skill_level": "B2"
+  },
+  {
+    "word": "fiktiv",
+    "definition": "Erfunden.",
+    "example": "Der Roman spielt an einem fiktiven Ort in den Alpen.",
+    "translation": "fictif",
+    "skill_level": "B2"
+  },
+  {
+    "word": "imaginiert",
+    "definition": "In der Vorstellung existierend.",
+    "example": "Manchmal sind die imaginierten Gefahren schlimmer als die echten.",
+    "translation": "imaginé",
+    "skill_level": "C1"
+  },
+  {
+    "word": "geistig",
+    "definition": "Den Verstand oder die Seele betreffend.",
+    "example": "Lesen fördert die geistige Entwicklung von Kindern.",
+    "translation": "mental / intellectuel",
+    "skill_level": "B2"
+  },
+  {
+    "word": "körperlich",
+    "definition": "Den Körper betreffend.",
+    "example": "Körperliche Arbeit kann sehr anstrengend sein.",
+    "translation": "physique / corporel",
+    "skill_level": "B2"
+  },
+  {
+    "word": "psychisch",
+    "definition": "Die Seele betreffend.",
+    "example": "Langer Stress kann zu psychischen Problemen führen.",
+    "translation": "psychique",
+    "skill_level": "B2"
+  },
+  {
+    "word": "sozial",
+    "definition": "Die Gesellschaft oder das Miteinander betreffend.",
+    "example": "Er engagiert sich in vielen sozialen Projekten.",
+    "translation": "social",
+    "skill_level": "B2"
+  },
+  {
+    "word": "ökonomisch",
+    "definition": "Wirtschaftlich.",
+    "example": "Die ökonomische Lage des Landes hat sich verbessert.",
+    "translation": "économique",
+    "skill_level": "B2"
+  },
+  {
+    "word": "ökologisch",
+    "definition": "Die Umwelt betreffend.",
+    "example": "Der ökologische Landbau schont die Ressourcen.",
+    "translation": "écologique",
+    "skill_level": "B2"
+  },
+  {
+    "word": "politisch",
+    "definition": "Die Politik betreffend.",
+    "example": "Es gibt viele politische Gründe für diesen Konflikt.",
+    "translation": "politique",
+    "skill_level": "B2"
+  },
+  {
+    "word": "kulturell",
+    "definition": "Die Kultur betreffend.",
+    "example": "Die Stadt hat ein sehr reiches kulturelles Leben.",
+    "translation": "culturel",
+    "skill_level": "B2"
+  },
+  {
+    "word": "historisch",
+    "definition": "Die Geschichte betreffend.",
+    "example": "Das ist ein historisches Ereignis von großer Bedeutung.",
+    "translation": "historique",
+    "skill_level": "B2"
+  },
+  {
+    "word": "wissenschaftlich",
+    "definition": "Die Wissenschaft betreffend.",
+    "example": "Der Artikel wurde in einer wissenschaftlichen Zeitschrift veröffentlicht.",
+    "translation": "scientifique",
+    "skill_level": "B2"
+  },
+  {
+    "word": "technisch",
+    "definition": "Die Technik betreffend.",
+    "example": "Es gab einige technische Probleme bei der Übertragung.",
+    "translation": "technique",
+    "skill_level": "B2"
+  },
+  {
+    "word": "digital",
+    "definition": "In digitaler Form.",
+    "example": "Die digitale Welt bietet viele neue Möglichkeiten.",
+    "translation": "numérique / digital",
+    "skill_level": "B2"
+  },
+  {
+    "word": "analog",
+    "definition": "Nicht digital.",
+    "example": "Manche Menschen bevorzugen immer noch analoge Kameras.",
+    "translation": "analogique",
+    "skill_level": "B2"
+  },
+  {
+    "word": "ethisch",
+    "definition": "Die Moral betreffend.",
+    "example": "Wissenschaftler müssen ethische Grenzen respektieren.",
+    "translation": "éthique",
+    "skill_level": "B2"
+  },
+  {
+    "word": "moralisch",
+    "definition": "Die Sitten oder Werte betreffend.",
+    "example": "Es ist eine moralische Pflicht, anderen in Not zu helfen.",
+    "translation": "moral",
+    "skill_level": "B2"
+  },
+  {
+    "word": "ästhetisch",
+    "definition": "Schön; geschmackvoll.",
+    "example": "Das Design der neuen Möbel ist sehr ästhetisch.",
+    "translation": "esthétique",
+    "skill_level": "B2"
+  },
+  {
+    "word": "logisch",
+    "definition": "Den Regeln der Logik folgend.",
+    "example": "Seine Argumentation war absolut logisch und überzeugend.",
+    "translation": "logique",
+    "skill_level": "B2"
+  },
+  {
+    "word": "rational",
+    "definition": "Vernünftig; mit dem Verstand bestimmt.",
+    "example": "Man sollte versuchen, rationale Entscheidungen zu treffen.",
+    "translation": "rationnel",
+    "skill_level": "B2"
+  },
+  {
+    "word": "emotional",
+    "definition": "Gefühlsmäßig.",
+    "example": "Seine Reaktion auf die Nachricht war sehr emotional.",
+    "translation": "émotionnel",
+    "skill_level": "B2"
+  },
+  {
+    "word": "intellektuell",
+    "definition": "Den Verstand betreffend.",
+    "example": "Das ist eine intellektuelle Herausforderung für jeden Leser.",
+    "translation": "intellectuel",
+    "skill_level": "B2"
+  },
+  {
+    "word": "kreativ",
+    "definition": "Schöpferisch; einfallsreich.",
+    "example": "In der Werbebranche braucht man viel kreative Energie.",
+    "translation": "créatif",
+    "skill_level": "B2"
+  },
+  {
+    "word": "flexibel",
+    "definition": "Anpassungsfähig.",
+    "example": "Moderne Unternehmen brauchen flexible Mitarbeiter.",
+    "translation": "flexible",
+    "skill_level": "B2"
+  },
+  {
+    "word": "stabil",
+    "definition": "Fest; haltbar.",
+    "example": "Die Brücke ist sehr stabil gebaut und hält jedem Sturm stand.",
+    "translation": "stable",
+    "skill_level": "B2"
+  },
+  {
+    "word": "dynamisch",
+    "definition": "Schwungvoll; beweglich.",
+    "example": "Der Markt ist sehr dynamisch und verändert sich ständig.",
+    "translation": "dynamique",
+    "skill_level": "B2"
+  },
+  {
+    "word": "statisch",
+    "definition": "In Ruhe befindlich; unbeweglich.",
+    "example": "In einem statischen System gibt es keine Entwicklung.",
+    "translation": "statique",
+    "skill_level": "B2"
+  },
+  {
+    "word": "aktiv",
+    "definition": "Tätig.",
+    "example": "Er ist ein aktives Mitglied in unserem Verein.",
+    "translation": "actif",
+    "skill_level": "B2"
+  },
+  {
+    "word": "passiv",
+    "definition": "Tatenlos.",
+    "example": "Man sollte nicht nur passiv zuschauen, wenn Unrecht geschieht.",
+    "translation": "passif",
+    "skill_level": "B2"
+  },
+  {
+    "word": "produktiv",
+    "definition": "Viel erzeugend; schöpferisch.",
+    "example": "Heute war ein sehr produktiver Arbeitstag.",
+    "translation": "productif",
+    "skill_level": "B2"
+  },
+  {
+    "word": "effektiv",
+    "definition": "Wirksam.",
+    "example": "Die neuen Maßnahmen sind sehr effektiv.",
+    "translation": "effectif / efficace",
+    "skill_level": "B2"
+  },
+  {
+    "word": "effizient",
+    "definition": "Wirtschaftlich arbeitend.",
+    "example": "Das neue Gerät arbeitet sehr effizient.",
+    "translation": "efficace",
+    "skill_level": "B2"
+  },
+  {
+    "word": "kompetent",
+    "definition": "Sachverständig; fähig.",
+    "example": "Sie ist eine sehr kompetente Mitarbeiterin.",
+    "translation": "compétent",
+    "skill_level": "B2"
+  },
+  {
+    "word": "zuverlässig",
+    "definition": "Vertrauenswürdig.",
+    "example": "Er ist ein sehr zuverlässiger Freund.",
+    "translation": "fiable",
+    "skill_level": "B2"
+  },
+  {
+    "word": "verantwortungsbewusst",
+    "definition": "Sich seiner Verantwortung bewusst.",
+    "example": "Er handelt immer sehr verantwortungsbewusst.",
+    "translation": "responsable",
+    "skill_level": "B2"
+  },
+  {
+    "word": "engagiert",
+    "definition": "Mit großem Einsatz dabei.",
+    "example": "Sie ist eine sehr engagierte Lehrerin.",
+    "translation": "engagé",
+    "skill_level": "B2"
+  },
+  {
+    "word": "motiviert",
+    "definition": "Voll Tatendrang.",
+    "example": "Die Studenten sind sehr motiviert, etwas Neues zu lernen.",
+    "translation": "motivé",
+    "skill_level": "B2"
+  },
+  {
+    "word": "zielstrebig",
+    "definition": "Ein Ziel fest im Blick habend.",
+    "example": "Er verfolgt seine Pläne sehr zielstrebig.",
+    "translation": "déterminé / persévérant",
+    "skill_level": "B2"
+  },
+  {
+    "word": "ehrgeizig",
+    "definition": "Viel erreichen wollend.",
+    "example": "Sie ist sehr ehrgeizig und will unbedingt Karriere machen.",
+    "translation": "ambitieux",
+    "skill_level": "B2"
+  },
+  {
+    "word": "kritisch",
+    "definition": "Prüfend; tadelnd.",
+    "example": "Man sollte die Nachrichten immer kritisch hinterfragen.",
+    "translation": "critique",
+    "skill_level": "B2"
+  },
+  {
+    "word": "tolerant",
+    "definition": "Duldsam gegenüber anderen.",
+    "example": "In einer modernen Gesellschaft ist Toleranz sehr wichtig.",
+    "translation": "tolérant",
+    "skill_level": "B2"
+  },
+  {
+    "word": "offen",
+    "definition": "Aufgeschlossen; ehrlich.",
+    "example": "Wir führen eine sehr offene Kommunikation in unserem Team.",
+    "translation": "ouvert",
+    "skill_level": "B2"
+  },
+  {
+    "word": "ehrlich",
+    "definition": "Wahrheitsliebend.",
+    "example": "Ehrlichkeit ist die Basis jeder guten Beziehung.",
+    "translation": "honnête",
+    "skill_level": "B2"
+  },
+  {
+    "word": "direkt",
+    "definition": "Geradeheraus.",
+    "example": "Er hat eine sehr direkte Art, seine Meinung zu sagen.",
+    "translation": "direct",
+    "skill_level": "B2"
+  },
+  {
+    "word": "diskret",
+    "definition": "Verschwiegen; unauffällig.",
+    "example": "Man muss in diesem Beruf sehr diskret mit Informationen umgehen.",
+    "translation": "discret",
+    "skill_level": "B2"
+  },
+  {
+    "word": "professionell",
+    "definition": "Fachmännisch.",
+    "example": "Er hat die Aufgabe sehr professionell erledigt.",
+    "translation": "professionnel",
+    "skill_level": "B2"
+  },
+  {
+    "word": "seriös",
+    "definition": "Glaubwürdig; ernsthaft.",
+    "example": "Das ist ein sehr seriöses Angebot, das man ernst nehmen sollte.",
+    "translation": "sérieux",
+    "skill_level": "B2"
+  },
+  {
+    "word": "authentisch",
+    "definition": "Echt; glaubhaft.",
+    "example": "Seine Reaktion wirkte absolut authentisch.",
+    "translation": "authentique",
+    "skill_level": "B2"
+  },
+  {
+    "word": "originell",
+    "definition": "Einfallsreich; neuartig.",
+    "example": "Das ist eine sehr originelle Idee für das neue Projekt.",
+    "translation": "original",
+    "skill_level": "B2"
+  },
+  {
+    "word": "modern",
+    "definition": "Zeitgemäß.",
+    "example": "Die Stadt hat ein sehr modernes Zentrum bekommen.",
+    "translation": "moderne",
+    "skill_level": "B2"
+  },
+  {
+    "word": "klassisch",
+    "definition": "Zeitlos; bewährt.",
+    "example": "Er trägt gerne klassische Kleidung, die nie aus der Mode kommt.",
+    "translation": "classique",
+    "skill_level": "B2"
+  },
+  {
+    "word": "schlicht",
+    "definition": "Einfach; ohne viel Schmuck.",
+    "example": "Das Design des neuen Autos ist sehr schlicht und elegant.",
+    "translation": "sobre / simple",
+    "skill_level": "B2"
+  },
+  {
+    "word": "elegant",
+    "definition": "Geschmackvoll.",
+    "example": "Sie trug ein sehr elegantes Kleid bei der Abendveranstaltung.",
+    "translation": "élégant",
+    "skill_level": "B2"
+  },
+  {
+    "word": "exklusiv",
+    "definition": "Besonders; nur für wenige.",
+    "example": "Das ist ein exklusives Hotel in bester Lage.",
+    "translation": "exclusif",
+    "skill_level": "B2"
+  },
+  {
+    "word": "luxuriös",
+    "definition": "Prachtvoll; teuer.",
+    "example": "Das Haus ist sehr luxuriös ausgestattet.",
+    "translation": "luxueux",
+    "skill_level": "B2"
+  },
+  {
+    "word": "wertvoll",
+    "definition": "Kostbar; von großem Nutzen.",
+    "example": "Diese Information ist sehr wertvoll für uns.",
+    "translation": "précieux",
+    "skill_level": "B2"
+  },
+  {
+    "word": "teuer",
+    "definition": "Viel Geld kostend.",
+    "example": "Das Leben in dieser Stadt ist sehr teuer geworden.",
+    "translation": "cher / coûteux",
+    "skill_level": "B2"
+  },
+  {
+    "word": "günstig",
+    "definition": "Wenig Geld kostend; vorteilhaft.",
+    "example": "Das Angebot ist sehr günstig, wir sollten zugreifen.",
+    "translation": "bon marché / avantageux",
+    "skill_level": "B2"
+  },
+  {
+    "word": "billig",
+    "definition": "Sehr wenig Geld kostend.",
+    "example": "Billige Produkte halten oft nicht sehr lange.",
+    "translation": "bon marché / pas cher",
+    "skill_level": "B2"
+  },
+  {
+    "word": "preiswert",
+    "definition": "Seinen Preis wert.",
+    "example": "Das Buch ist sehr preiswert für das, was es bietet.",
+    "translation": "d'un bon rapport qualité-prix",
+    "skill_level": "B2"
+  },
+  {
+    "word": "reich",
+    "definition": "Viel Besitz habend.",
+    "example": "Er ist ein sehr reicher Mann, aber er lebt bescheiden.",
+    "translation": "riche",
+    "skill_level": "B2"
+  },
+  {
+    "word": "arm",
+    "definition": "Wenig Besitz habend.",
+    "example": "In vielen Ländern gibt es immer noch sehr arme Menschen.",
+    "translation": "pauvre",
+    "skill_level": "B2"
+  },
+  {
+    "word": "erfolgreich",
+    "definition": "Viel Erfolg habend.",
+    "example": "Das Unternehmen ist seit vielen Jahren sehr erfolgreich am Markt.",
+    "translation": "réussi / couronné de succès",
+    "skill_level": "B2"
+  },
+  {
+    "word": "erfolglos",
+    "definition": "Keinen Erfolg habend.",
+    "example": "Alle Versuche, ihn zu überzeugen, waren leider erfolglos.",
+    "translation": "sans succès",
+    "skill_level": "B2"
+  },
+  {
+    "word": "bekannt",
+    "definition": "Vielen Leuten ein Begriff.",
+    "example": "Dieser Schauspieler ist weltweit bekannt.",
+    "translation": "connu",
+    "skill_level": "B2"
+  },
+  {
+    "word": "unbekannt",
+    "definition": "Niemandem ein Begriff.",
+    "example": "Der Künstler war bis vor kurzem noch völlig unbekannt.",
+    "translation": "inconnu",
+    "skill_level": "B2"
+  },
+  {
+    "word": "beliebt",
+    "definition": "Gern gesehen; geschätzt.",
+    "example": "Dieses Ausflugsziel ist bei Touristen sehr beliebt.",
+    "translation": "apprécié / populaire",
+    "skill_level": "B2"
+  },
+  {
+    "word": "unbeliebt",
+    "definition": "Nicht geschätzt.",
+    "example": "Diese Entscheidung war bei den Mitarbeitern sehr unbeliebt.",
+    "translation": "impopulaire",
+    "skill_level": "B2"
+  },
+  {
+    "word": "interessant",
+    "definition": "Aufmerksamkeit erregend.",
+    "example": "Das ist ein sehr interessanter Aspekt des Problems.",
+    "translation": "intéressant",
+    "skill_level": "B2"
+  },
+  {
+    "word": "langweilig",
+    "definition": "Keine Aufmerksamkeit erregend.",
+    "example": "Der Film war so langweilig, dass ich fast eingeschlafen wäre.",
+    "translation": "ennuyeux",
+    "skill_level": "B2"
+  },
+  {
+    "word": "spannend",
+    "definition": "Sehr interessant; fesselnd.",
+    "example": "Das Buch ist so spannend, dass ich es nicht weglegen kann.",
+    "translation": "passionnant",
+    "skill_level": "B2"
+  },
+  {
+    "word": "aufregend",
+    "definition": "Mit viel Aufregung verbunden.",
+    "example": "Die Reise war ein aufregendes Abenteuer für die ganze Familie.",
+    "translation": "excitant / émouvant",
+    "skill_level": "B2"
+  },
+  {
+    "word": "ruhig",
+    "definition": "Ohne Lärm; gelassen.",
+    "example": "In der Bibliothek ist es immer sehr ruhig.",
+    "translation": "calme / tranquille",
+    "skill_level": "B2"
+  },
+  {
+    "word": "laut",
+    "definition": "Mit viel Lärm.",
+    "example": "Die Musik war so laut, dass man sein eigenes Wort nicht mehr verstand.",
+    "translation": "fort / bruyant",
+    "skill_level": "B2"
+  },
+  {
+    "word": "leise",
+    "definition": "Mit wenig Lärm.",
+    "example": "Er sprach sehr leise, damit niemand ihn hörte.",
+    "translation": "doucement / bas",
+    "skill_level": "B2"
+  },
+  {
+    "word": "hart",
+    "definition": "Fest; schwierig.",
+    "example": "Das war eine harte Zeit für uns alle.",
+    "translation": "dur",
+    "skill_level": "B2"
+  },
+  {
+    "word": "weich",
+    "definition": "Nachgiebig.",
+    "example": "Das Kissen ist wunderbar weich und bequem.",
+    "translation": "mou / doux",
+    "skill_level": "B2"
+  },
+  {
+    "word": "stark",
+    "definition": "Kräftig.",
+    "example": "Er hat einen sehr starken Willen.",
+    "translation": "fort",
+    "skill_level": "B2"
+  },
+  {
+    "word": "schwach",
+    "definition": "Kraftlos.",
+    "example": "Nach der Krankheit fühlte er sich noch sehr schwach.",
+    "translation": "faible",
+    "skill_level": "B2"
+  },
+  {
+    "word": "dick",
+    "definition": "Von großem Umfang.",
+    "example": "Das Buch ist sehr dick und schwer.",
+    "translation": "épais / gros",
+    "skill_level": "B2"
+  },
+  {
+    "word": "dünn",
+    "definition": "Von geringem Umfang.",
+    "example": "Das Papier ist sehr dünn und reißt leicht.",
+    "translation": "mince / fin",
+    "skill_level": "B2"
+  },
+  {
+    "word": "breit",
+    "definition": "Von großer Ausdehnung zur Seite.",
+    "example": "Der Fluss ist an dieser Stelle sehr breit.",
+    "translation": "large",
+    "skill_level": "B2"
+  },
+  {
+    "word": "schmal",
+    "definition": "Von geringer Ausdehnung zur Seite.",
+    "example": "Der Weg war sehr schmal und steinig.",
+    "translation": "étroit",
+    "skill_level": "B2"
+  },
+  {
+    "word": "hoch",
+    "definition": "Von großer Ausdehnung nach oben.",
+    "example": "Die Berge in dieser Region sind sehr hoch.",
+    "translation": "haut",
+    "skill_level": "B2"
+  },
+  {
+    "word": "tief",
+    "definition": "Von großer Ausdehnung nach unten.",
+    "example": "Der See ist an einigen Stellen sehr tief.",
+    "translation": "profond",
+    "skill_level": "B2"
+  },
+  {
+    "word": "nah",
+    "definition": "In geringer Entfernung.",
+    "example": "Die Schule liegt ganz nah bei uns zu Hause.",
+    "translation": "proche",
+    "skill_level": "B2"
+  },
+  {
+    "word": "fern",
+    "definition": "In großer Entfernung.",
+    "example": "Wir träumen von Reisen in ferne Länder.",
+    "translation": "lointain / éloigné",
+    "skill_level": "B2"
+  },
+  {
+    "word": "weit",
+    "definition": "In großer Entfernung; ausgedehnt.",
+    "example": "Es ist noch ein weiter Weg bis zum Ziel.",
+    "translation": "loin / vaste",
+    "skill_level": "B2"
+  },
+  {
+    "word": "kurz",
+    "definition": "In geringer Entfernung; von geringer Dauer.",
+    "example": "Ich komme gleich wieder, es dauert nur ganz kurz.",
+    "translation": "court",
+    "skill_level": "B2"
+  }
+]

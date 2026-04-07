@@ -1,0 +1,1682 @@
+[
+  {
+    "word": "Abhandlung",
+    "definition": "Eingehende Darstellung und Untersuchung eines wissenschaftlichen Themas in schriftlicher Form.",
+    "example": "Seine Abhandlung über die Erkenntnistheorie wurde vielfach zitiert.",
+    "translation": "traité / dissertation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "abstrahieren",
+    "definition": "Vom Besonderen und Einzelnen auf das Allgemeine und Wesentliche verallgemeinern.",
+    "example": "Man muss von den Details abstrahieren, um das Grundprinzip zu verstehen.",
+    "translation": "abstraire",
+    "skill_level": "C1"
+  },
+  {
+    "word": "adäquat",
+    "definition": "Den gestellten Anforderungen entsprechend; angemessen.",
+    "example": "Eine adäquate Lösung für das Problem wurde noch nicht gefunden.",
+    "translation": "adéquat",
+    "skill_level": "B2"
+  },
+  {
+    "word": "akribisch",
+    "definition": "Mit höchster Genauigkeit und Sorgfalt ausgeführt.",
+    "example": "Die Daten wurden akribisch gesammelt und analysiert.",
+    "translation": "acribique / minutieux",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Akzeptanz",
+    "definition": "Die Bereitschaft, etwas anzunehmen oder zu akzeptieren.",
+    "example": "Die gesellschaftliche Akzeptanz neuer Technologien ist entscheidend.",
+    "translation": "acceptation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Analogie",
+    "definition": "Eine Ähnlichkeit oder Übereinstimmung zwischen zwei Dingen.",
+    "example": "Es besteht eine klare Analogie zwischen diesen beiden biologischen Prozessen.",
+    "translation": "analogie",
+    "skill_level": "B2"
+  },
+  {
+    "word": "analysieren",
+    "definition": "Etwas systematisch untersuchen und in seine Bestandteile zerlegen.",
+    "example": "Wissenschaftler analysieren die Ergebnisse der neuesten Studie.",
+    "translation": "analyser",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Anhaltspunkt",
+    "definition": "Ein Hinweis oder Indiz, das zur Klärung eines Sachverhalts beitragen kann.",
+    "example": "Es gibt keine konkreten Anhaltspunkte für diese Theorie.",
+    "translation": "indice / point de repère",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Anomalie",
+    "definition": "Eine Abweichung von der Norm oder von dem, was üblich ist.",
+    "example": "In den Daten wurde eine statistische Anomalie festgestellt.",
+    "translation": "anomalie",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Antithese",
+    "definition": "Eine Behauptung, die einer anderen (These) gegenübergestellt wird.",
+    "example": "Die Antithese zum Kapitalismus ist der Sozialismus.",
+    "translation": "antithèse",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Appell",
+    "definition": "Ein dringender Aufruf oder eine Mahnung an jemanden.",
+    "example": "Der Forscher richtete einen Appell an die Politik, mehr in Bildung zu investieren.",
+    "translation": "appel",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Aspekt",
+    "definition": "Ein bestimmter Blickwinkel oder eine Teilansicht einer Sache.",
+    "example": "Wir müssen alle Aspekte dieses Problems berücksichtigen.",
+    "translation": "aspect",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Assimilation",
+    "definition": "Die Anpassung oder Angleichung an eine Umgebung oder Gruppe.",
+    "example": "Die kulturelle Assimilation von Einwanderern ist ein komplexer Prozess.",
+    "translation": "assimilation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Assoziation",
+    "definition": "Die gedankliche Verknüpfung von Vorstellungen oder Begriffen.",
+    "example": "Dieses Wort weckt bei vielen Menschen eine negative Assoziation.",
+    "translation": "association",
+    "skill_level": "B2"
+  },
+  {
+    "word": "attestieren",
+    "definition": "Jemandem etwas förmlich bestätigen oder bescheinigen.",
+    "example": "Dem Studenten wurde eine hervorragende Leistung attestiert.",
+    "translation": "attester",
+    "skill_level": "C1"
+  },
+  {
+    "word": "authentisch",
+    "definition": "Echt; den Tatsachen entsprechend; glaubwürdig.",
+    "example": "Es handelt sich um ein authentisches Dokument aus dem 18. Jahrhundert.",
+    "translation": "authentique",
+    "skill_level": "B2"
+  },
+  {
+    "word": "autonom",
+    "definition": "Selbstständig; unabhängig von äußeren Einflüssen.",
+    "example": "Die Universität ist eine autonome Institution.",
+    "translation": "autonome",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Axiom",
+    "definition": "Ein Grundsatz, der keines Beweises bedarf.",
+    "example": "In der Mathematik dient ein Axiom als Ausgangspunkt für Beweise.",
+    "translation": "axiome",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Bedingung",
+    "definition": "Eine Voraussetzung, von deren Erfüllung etwas abhängt.",
+    "example": "Die Einhaltung der Sicherheitsregeln ist eine Bedingung für die Arbeit im Labor.",
+    "translation": "condition",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Befund",
+    "definition": "Das Ergebnis einer Untersuchung oder Prüfung.",
+    "example": "Der medizinische Befund war glücklicherweise negativ.",
+    "translation": "résultat d'examen / constatation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Begrifflichkeit",
+    "definition": "Die Gesamtheit der Begriffe, die in einem Fachgebiet verwendet werden.",
+    "example": "Die philosophische Begrifflichkeit ist oft schwer zu verstehen.",
+    "translation": "terminologie / conceptualité",
+    "skill_level": "C1"
+  },
+  {
+    "word": "belegen",
+    "definition": "Etwas durch Beweise oder Dokumente stützen.",
+    "example": "Seine Behauptungen lassen sich durch Quellen belegen.",
+    "translation": "prouver / justifier",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Bestandteil",
+    "definition": "Ein einzelnes Teil eines Ganzen.",
+    "example": "Wasser ist ein wesentlicher Bestandteil des Lebens.",
+    "translation": "composant",
+    "skill_level": "B2"
+  },
+  {
+    "word": "bewältigen",
+    "definition": "Eine schwierige Aufgabe erfolgreich zu Ende bringen.",
+    "example": "Das Team musste große Herausforderungen bewältigen.",
+    "translation": "surmonter",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Bilanz",
+    "definition": "Eine abschließende Zusammenfassung oder Bewertung eines Zeitraums oder Projekts.",
+    "example": "Nach einem Jahr ziehen die Forscher eine positive Bilanz.",
+    "translation": "bilan",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Charakteristikum",
+    "definition": "Ein kennzeichnendes Merkmal einer Person oder Sache.",
+    "example": "Ein Charakteristikum dieser Epoche ist der technologische Fortschritt.",
+    "translation": "caractéristique",
+    "skill_level": "C1"
+  },
+  {
+    "word": "chronologisch",
+    "definition": "In der zeitlichen Reihenfolge aufeinanderfolgend.",
+    "example": "Die Ereignisse wurden in chronologischer Reihenfolge dokumentiert.",
+    "translation": "chronologique",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Defizit",
+    "definition": "Ein Mangel oder Fehlbetrag an etwas.",
+    "example": "Es gibt ein deutliches Defizit an Fachkräften in diesem Bereich.",
+    "translation": "déficit",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Definition",
+    "definition": "Die genaue Bestimmung der Bedeutung eines Begriffs.",
+    "example": "In der Einleitung muss eine klare Definition der Begriffe erfolgen.",
+    "translation": "définition",
+    "skill_level": "B2"
+  },
+  {
+    "word": "dekodieren",
+    "definition": "Einen verschlüsselten Text oder ein Signal wieder lesbar oder verständlich machen.",
+    "example": "Wissenschaftler versuchen, den genetischen Code zu dekodieren.",
+    "translation": "décoder",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Delegation",
+    "definition": "Die Übertragung von Aufgaben oder Kompetenzen an andere Personen.",
+    "example": "Die Delegation von Verantwortung ist wichtig für effizientes Management.",
+    "translation": "délégation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Demokratisierung",
+    "definition": "Der Prozess des Übergangs zu einer demokratischen Gesellschaft oder Struktur.",
+    "example": "Die Demokratisierung des Wissens erfolgt durch das Internet.",
+    "translation": "démocratisation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Denkansatz",
+    "definition": "Die Art und Weise, wie man an ein Problem oder Thema herangeht.",
+    "example": "Sein neuer Denkansatz führte zu überraschenden Ergebnissen.",
+    "translation": "approche / raisonnement",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Deskription",
+    "definition": "Die beschreibende Darstellung eines Sachverhalts oder Gegenstands.",
+    "example": "Die Studie beginnt mit einer Deskription der Ausgangslage.",
+    "translation": "description",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Detail",
+    "definition": "Eine kleine Einzelheit eines größeren Ganzen.",
+    "example": "Er achtete bei der Auswertung auf jedes Detail.",
+    "translation": "détail",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Determinismus",
+    "definition": "Die Auffassung, dass alle Ereignisse durch Vorbedingungen festgeschrieben sind.",
+    "example": "Der biologische Determinismus wird in der Soziologie oft kritisiert.",
+    "translation": "déterminisme",
+    "skill_level": "C1"
+  },
+  {
+    "word": "deuten",
+    "definition": "Einen Sinn oder eine Bedeutung in etwas hineinlegen; interpretieren.",
+    "example": "Die Forscher deuten die Ergebnisse als Erfolg.",
+    "translation": "interpréter",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Devise",
+    "definition": "Ein Leitspruch oder Wahlspruch, nach dem man handelt.",
+    "example": "Seine Devise lautet: 'Wissen ist Macht'.",
+    "translation": "devise",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Diagnose",
+    "definition": "Die Feststellung einer Krankheit oder eines Zustands.",
+    "example": "Nach mehreren Tests konnte der Arzt eine Diagnose stellen.",
+    "translation": "diagnostic",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Dialektik",
+    "definition": "Eine Methode der Gesprächsführung oder Erkenntnis durch These und Antithese.",
+    "example": "Die Dialektik spielt eine zentrale Rolle in Hegels Philosophie.",
+    "translation": "dialectique",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Differenzierung",
+    "definition": "Die Unterscheidung oder Abstufung von Dingen nach feinen Merkmalen.",
+    "example": "Eine genaue Differenzierung der Begriffe ist für die Analyse notwendig.",
+    "translation": "différenciation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Dimension",
+    "definition": "Ein Ausmaß oder eine Größenordnung von etwas.",
+    "example": "Das Problem hat eine globale Dimension erreicht.",
+    "translation": "dimension",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Diskurs",
+    "definition": "Ein methodisch geführtes Gespräch oder eine wissenschaftliche Auseinandersetzung.",
+    "example": "Der öffentliche Diskurs über den Klimawandel hat zugenommen.",
+    "translation": "discours",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Diskrepanz",
+    "definition": "Ein Widerspruch oder ein Missverhältnis zwischen zwei Dingen.",
+    "example": "Es besteht eine Diskrepanz zwischen Theorie und Praxis.",
+    "translation": "discrépance / écart",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Diskriminierung",
+    "definition": "Die Benachteiligung oder Herabwürdigung von Personen oder Gruppen.",
+    "example": "Diskriminierung aufgrund des Geschlechts ist gesetzlich verboten.",
+    "translation": "discrimination",
+    "skill_level": "B2"
+  },
+  {
+    "word": "dogmatisch",
+    "definition": "Starre Beibehaltung von Lehrmeinungen ohne Prüfung der Fakten.",
+    "example": "Er vertritt eine dogmatische Position, die keinen Kompromiss zulässt.",
+    "translation": "dogmatique",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Dominanz",
+    "definition": "Die Vorherrschaft oder überlegene Stellung von etwas oder jemandem.",
+    "example": "Die Dominanz des Englischen in der Wissenschaft ist unbestreitbar.",
+    "translation": "dominance",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Effizienz",
+    "definition": "Das Verhältnis zwischen dem erzielten Nutzen und dem dafür nötigen Aufwand.",
+    "example": "Die Effizienz der neuen Maschine ist beeindruckend.",
+    "translation": "efficience",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Eignung",
+    "definition": "Die Fähigkeit oder Tauglichkeit für eine bestimmte Aufgabe.",
+    "example": "Die Eignung des Bewerbers wurde in einem Test geprüft.",
+    "translation": "aptitude",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Element",
+    "definition": "Ein Grundbestandteil eines größeren Ganzen.",
+    "example": "Sauerstoff ist ein chemisches Element.",
+    "translation": "élément",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Elimination",
+    "definition": "Die Entfernung oder Ausschaltung von etwas.",
+    "example": "Die Elimination von Fehlern ist ein wichtiger Schritt in der Softwareentwicklung.",
+    "translation": "élimination",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Emanzipation",
+    "definition": "Die Befreiung aus einem Zustand der Abhängigkeit.",
+    "example": "Die Emanzipation der Frau ist ein Meilenstein der Geschichte.",
+    "translation": "émancipation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Empathie",
+    "definition": "Die Fähigkeit, sich in die Gefühle anderer hineinversetzen zu können.",
+    "example": "Empathie ist eine wichtige soziale Kompetenz im Berufsleben.",
+    "translation": "empathie",
+    "skill_level": "B2"
+  },
+  {
+    "word": "empirisch",
+    "definition": "Auf Erfahrung oder Beobachtung beruhend.",
+    "example": "Die Theorie muss durch empirische Daten gestützt werden.",
+    "translation": "empirique",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Engagement",
+    "definition": "Der persönliche Einsatz für eine Sache oder Person.",
+    "example": "Sein ehrenamtliches Engagement wurde mit einem Preis gewürdigt.",
+    "translation": "engagement",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Entität",
+    "definition": "Ein Ding oder Wesen, das als eigenständig betrachtet wird.",
+    "example": "In der Informatik ist eine Entität ein eindeutig zu identifizierendes Objekt.",
+    "translation": "entité",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Entwurf",
+    "definition": "Eine erste, vorläufige Fassung eines Plans oder Textes.",
+    "example": "Der Architekt legte den ersten Entwurf für das Gebäude vor.",
+    "translation": "ébauche / projet",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Epoche",
+    "definition": "Ein längerer Zeitraum in der Geschichte, der durch bestimmte Merkmale geprägt ist.",
+    "example": "Die Aufklärung war eine bedeutende Epoche in Europa.",
+    "translation": "époque",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Erkenntnis",
+    "definition": "Die Einsicht in einen Sachverhalt durch Denken oder Erfahrung.",
+    "example": "Die neuen Erkenntnisse führten zu einem Umdenken in der Forschung.",
+    "translation": "connaissance / découverte",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Essenz",
+    "definition": "Der wesentliche Kern oder Gehalt einer Sache.",
+    "example": "Die Essenz seines Vortrags war, dass wir mehr kooperieren müssen.",
+    "translation": "essence",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Etablierung",
+    "definition": "Die feste Einrichtung oder Gründung von etwas.",
+    "example": "Die Etablierung neuer Standards braucht oft viel Zeit.",
+    "translation": "établissement",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Ethik",
+    "definition": "Die Lehre vom richtigen Handeln und Werten.",
+    "example": "Wissenschaftliche Ethik verbietet die Manipulation von Daten.",
+    "translation": "éthique",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Evaluation",
+    "definition": "Die sachgerechte Bewertung oder Überprüfung eines Projekts oder Programms.",
+    "example": "Die Evaluation des Projekts ergab positive Ergebnisse.",
+    "translation": "évaluation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Evidenz",
+    "definition": "Die unmittelbare Einsichtigkeit oder der Beweiswert von etwas.",
+    "example": "Es gibt keine klare wissenschaftliche Evidenz für diese Behauptung.",
+    "translation": "évidence / preuve",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Evolution",
+    "definition": "Die allmähliche Entwicklung von Lebewesen oder Systemen.",
+    "example": "Die Theorie der Evolution wurde von Darwin begründet.",
+    "translation": "évolution",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Exegese",
+    "definition": "Die Auslegung oder Interpretation von Texten, besonders heiligen Schriften.",
+    "example": "Die biblische Exegese erfordert profunde Sprachkenntnisse.",
+    "translation": "exégèse",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Existenz",
+    "definition": "Das Vorhandensein oder Dasein von etwas.",
+    "example": "Die Existenz von außerirdischem Leben ist noch unbewiesen.",
+    "translation": "existence",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Expansion",
+    "definition": "Die räumliche oder mengenmäßige Ausdehnung.",
+    "example": "Die wirtschaftliche Expansion des Unternehmens hält an.",
+    "translation": "expansion",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Experiment",
+    "definition": "Ein wissenschaftlicher Versuch zur Überprüfung einer Hypothese.",
+    "example": "Das Experiment wurde unter kontrollierten Bedingungen durchgeführt.",
+    "translation": "expérience / expérimentation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "explizit",
+    "definition": "Ausdrücklich und deutlich ausgesprochen.",
+    "example": "Diese Regel wurde im Vertrag explizit erwähnt.",
+    "translation": "explicite",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Exploration",
+    "definition": "Die Untersuchung oder Erforschung eines unbekannten Gebiets.",
+    "example": "Die Exploration des Weltraums ist eine technologische Herausforderung.",
+    "translation": "exploration",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Exponent",
+    "definition": "Ein Vertreter oder eine herausragende Persönlichkeit einer Richtung.",
+    "example": "Er gilt als einer der wichtigsten Exponenten der modernen Malerei.",
+    "translation": "exposant / représentant",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Extrapolation",
+    "definition": "Die Schätzung von Werten über einen bekannten Bereich hinaus.",
+    "example": "Die Extrapolation der Daten lässt auf ein weiteres Wachstum schließen.",
+    "translation": "extrapolation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Faktor",
+    "definition": "Ein Umstand oder eine Größe, die ein Ergebnis beeinflusst.",
+    "example": "Das Wetter ist ein wichtiger Faktor für die Ernte.",
+    "translation": "facteur",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Fakultät",
+    "definition": "Ein Fachbereich an einer Universität.",
+    "example": "Die medizinische Fakultät genießt einen weltweiten Ruf.",
+    "translation": "faculté",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Falsifizierung",
+    "definition": "Der Nachweis der Ungültigkeit einer Hypothese oder Theorie.",
+    "example": "Die Falsifizierung der alten Theorie war ein Wendepunkt in der Physik.",
+    "translation": "falsification / réfutation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Fazit",
+    "definition": "Das zusammenfassende Ergebnis einer Überlegung oder Untersuchung.",
+    "example": "Das Fazit der Studie lautet, dass mehr Sport die Gesundheit fördert.",
+    "translation": "conclusion",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Fehlschluss",
+    "definition": "Eine logisch unzulässige Folgerung.",
+    "example": "Dass Korrelation auch Kausalität bedeutet, ist ein häufiger Fehlschluss.",
+    "translation": "paralogisme / conclusion erronée",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Phänomen",
+    "definition": "Eine wahrnehmbare Erscheinung oder ein ungewöhnliches Ereignis.",
+    "example": "Polarlichter sind ein faszinierendes physikalisches Phänomen.",
+    "translation": "phénomène",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Fiktion",
+    "definition": "Etwas Erfundenes; eine erdachte Darstellung.",
+    "example": "Der Roman ist eine reine Fiktion und basiert nicht auf Tatsachen.",
+    "translation": "fiction",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Flexibilität",
+    "definition": "Die Fähigkeit, sich schnell an neue Situationen anzupassen.",
+    "example": "Auf dem Arbeitsmarkt wird heute große Flexibilität verlangt.",
+    "translation": "flexibilité",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Fluktuation",
+    "definition": "Schwankungen oder wechselnde Veränderungen.",
+    "example": "Die hohe Fluktuation des Personals ist ein Problem für die Firma.",
+    "translation": "fluctuation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Fokus",
+    "definition": "Der Mittelpunkt des Interesses oder einer Untersuchung.",
+    "example": "Der Fokus der neuen Studie liegt auf der Kindergesundheit.",
+    "translation": "foyer / centre d'intérêt",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Formalität",
+    "definition": "Eine vorgeschriebene Form oder eine äußere Regel.",
+    "example": "Die Unterschrift ist nur eine reine Formalität.",
+    "translation": "formalité",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Fragment",
+    "definition": "Ein Bruchstück oder ein unvollendetes Teil eines Werkes.",
+    "example": "Von dem antiken Manuskript sind nur Fragmente erhalten.",
+    "translation": "fragment",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Funktion",
+    "definition": "Die Aufgabe oder Wirkungsweise einer Sache oder Person.",
+    "example": "Die Funktion der Lunge ist der Gasaustausch.",
+    "translation": "fonction",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Fundament",
+    "definition": "Die tragende Grundlage einer Sache.",
+    "example": "Gegenseitiges Vertrauen ist das Fundament jeder Freundschaft.",
+    "translation": "fondement",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Garantie",
+    "definition": "Eine Zusage für die Haftung oder das Bestehen von etwas.",
+    "example": "Es gibt keine Garantie für den Erfolg des Experiments.",
+    "translation": "garantie",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Gegenstand",
+    "definition": "Das Thema oder Objekt einer Untersuchung.",
+    "example": "Der Gegenstand der Vorlesung ist die Geschichte Roms.",
+    "translation": "sujet / objet",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Gattung",
+    "definition": "Eine Gruppe von Dingen oder Lebewesen mit gemeinsamen Merkmalen.",
+    "example": "Der Roman ist eine literarische Gattung.",
+    "translation": "genre / espèce",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Generierung",
+    "definition": "Die Erzeugung oder Hervorbringung von etwas.",
+    "example": "Die Generierung von Strom erfolgt durch Windkraft.",
+    "translation": "génération / production",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Gesetzmäßigkeit",
+    "definition": "Die regelmäßige Abfolge von Erscheinungen nach festen Regeln.",
+    "example": "Naturwissenschaftler suchen nach den Gesetzmäßigkeiten der Natur.",
+    "translation": "régularité / loi",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Globalisierung",
+    "definition": "Die weltweite Verflechtung in Wirtschaft, Politik und Kultur.",
+    "example": "Die Globalisierung bringt sowohl Chancen als auch Risiken.",
+    "translation": "mondialisation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Grundlage",
+    "definition": "Das, worauf etwas aufgebaut ist; Basis.",
+    "example": "Die Daten dienen als Grundlage für die weitere Planung.",
+    "translation": "base / fondement",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Gültigkeit",
+    "definition": "Der Zustand, in dem etwas rechtskräftig oder anerkannt ist.",
+    "example": "Die Gültigkeit des Passes läuft in drei Monaten ab.",
+    "translation": "validité",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Habitus",
+    "definition": "Die äußere Erscheinung oder das Auftreten einer Person.",
+    "example": "Sein vornehmer Habitus beeindruckte die Anwesenden.",
+    "translation": "habitus / allure",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Heuristik",
+    "definition": "Die Kunst, mit begrenztem Wissen zu praktikablen Lösungen zu kommen.",
+    "example": "In der Informatik werden oft Heuristiken zur Problemlösung eingesetzt.",
+    "translation": "heuristique",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Hierarchie",
+    "definition": "Eine Rangordnung von Personen oder Dingen.",
+    "example": "In großen Unternehmen herrscht meist eine klare Hierarchie.",
+    "translation": "hiérarchie",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Hypothese",
+    "definition": "Eine unbewiesene Annahme, die als Grundlage für Untersuchungen dient.",
+    "example": "Die Forscher stellten eine neue Hypothese auf.",
+    "translation": "hypothèse",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Identifikation",
+    "definition": "Die Feststellung der Identität oder das Sich-Gleichsetzen mit etwas.",
+    "example": "Die Identifikation der Opfer dauerte mehrere Tage.",
+    "translation": "identification",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Ideologie",
+    "definition": "Ein System von Weltanschauungen und Wertvorstellungen.",
+    "example": "Die politische Ideologie beeinflusst das Handeln der Regierung.",
+    "translation": "idéologie",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Illustration",
+    "definition": "Eine Abbildung zur Erläuterung oder Verschönerung eines Textes.",
+    "example": "Die Illustration verdeutlicht den komplizierten Aufbau der Zelle.",
+    "translation": "illustration",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Immanenz",
+    "definition": "Das in den Dingen Enthaltene; das Innewohnen.",
+    "example": "Die Immanenz Gottes in der Welt ist ein Thema der Theologie.",
+    "translation": "immanence",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Implementierung",
+    "definition": "Die Umsetzung oder Einführung von Plänen oder Systemen.",
+    "example": "Die Implementierung der neuen Software verlief reibungslos.",
+    "translation": "implémentation / mise en œuvre",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Implikation",
+    "definition": "Eine logische Schlussfolgerung oder Auswirkung.",
+    "example": "Diese Entscheidung hat weitreichende Implikationen für die Umwelt.",
+    "translation": "implication",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Indikator",
+    "definition": "Ein Merkmal, das als Hinweis für einen bestimmten Zustand dient.",
+    "example": "Die Arbeitslosenquote ist ein wichtiger wirtschaftlicher Indikator.",
+    "translation": "indicateur",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Individualisierung",
+    "definition": "Der Prozess, bei dem der Einzelne mehr Entscheidungsfreiheit gewinnt.",
+    "example": "Die Individualisierung der Gesellschaft führt zu neuen Lebensformen.",
+    "translation": "individualisation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Induktion",
+    "definition": "Das Schließen vom Besonderen auf das Allgemeine.",
+    "example": "Induktion ist eine wichtige Methode der wissenschaftlichen Erkenntnis.",
+    "translation": "induction",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Infrastruktur",
+    "definition": "Die notwendigen Grundlagen für das Funktionieren einer Gesellschaft.",
+    "example": "Ein gut ausgebautes Verkehrsnetz gehört zur Infrastruktur.",
+    "translation": "infrastructure",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Inhärent",
+    "definition": "Einer Sache von Natur aus innewohnend.",
+    "example": "Das Risiko ist diesem Projekt inhärent.",
+    "translation": "inhérent",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Initiative",
+    "definition": "Der erste Schritt oder Anstoß zu einer Handlung.",
+    "example": "Die Initiative für das Projekt ging von den Bürgern aus.",
+    "translation": "initiative",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Innovation",
+    "definition": "Eine Neuerung oder Erfindung, die eingeführt wird.",
+    "example": "Die Innovation in der Medizintechnik rettet viele Leben.",
+    "translation": "innovation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Instanz",
+    "definition": "Eine zuständige Stelle oder Stufe in einem Verfahren.",
+    "example": "Das Gericht ist in dieser Sache die letzte Instanz.",
+    "translation": "instance",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Integration",
+    "definition": "Die Einbeziehung oder Verbindung zu einer Einheit.",
+    "example": "Die Integration von Flüchtlingen ist eine wichtige gesellschaftliche Aufgabe.",
+    "translation": "intégration",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Integrität",
+    "definition": "Die Unversehrtheit oder moralische Makellosigkeit.",
+    "example": "Die wissenschaftliche Integrität ist die Basis jeder Forschung.",
+    "translation": "intégrité",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Interaktion",
+    "definition": "Das wechselseitige Handeln oder Einwirken.",
+    "example": "Die Interaktion zwischen Lehrern und Schülern ist entscheidend.",
+    "translation": "interaction",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Interdependenz",
+    "definition": "Die gegenseitige Abhängigkeit.",
+    "example": "In der globalisierten Welt besteht eine hohe Interdependenz der Märkte.",
+    "translation": "interdépendance",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Interpretation",
+    "definition": "Die Auslegung oder Deutung eines Werkes oder Sachverhalts.",
+    "example": "Es gibt verschiedene Interpretationen dieses Gedichts.",
+    "translation": "interprétation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Intervention",
+    "definition": "Das Eingreifen in einen Vorgang.",
+    "example": "Die staatliche Intervention verhinderte den Zusammenbruch der Bank.",
+    "translation": "intervention",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Intuition",
+    "definition": "Die Fähigkeit, Sachverhalte ohne bewusstes Nachdenken zu erfassen.",
+    "example": "Seine Intuition sagte ihm, dass etwas nicht stimmte.",
+    "translation": "intuition",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Inventar",
+    "definition": "Ein Verzeichnis aller vorhandenen Gegenstände.",
+    "example": "Das Inventar des Museums wird regelmäßig überprüft.",
+    "translation": "inventaire",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Investition",
+    "definition": "Der Einsatz von Kapital für einen langfristigen Zweck.",
+    "example": "Die Investition in Bildung zahlt sich später aus.",
+    "translation": "investissement",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Ironie",
+    "definition": "Eine Ausdrucksweise, bei der man das Gegenteil des Gemeinten sagt.",
+    "example": "Seine Worte waren voller Ironie, was zu Missverständnissen führte.",
+    "translation": "ironie",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Isolierung",
+    "definition": "Die Trennung oder Absonderung von der Umgebung.",
+    "example": "Die Isolierung des Virus war der erste Schritt zur Impfstoffentwicklung.",
+    "translation": "isolement / isolation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Justierung",
+    "definition": "Die genaue Einstellung oder Abstimmung einer Apparatur.",
+    "example": "Die Justierung der Messinstrumente muss sehr präzise erfolgen.",
+    "translation": "ajustement",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Kalkulation",
+    "definition": "Die Berechnung der Kosten oder eines Preises.",
+    "example": "Die Kalkulation ergab, dass das Projekt zu teuer wird.",
+    "translation": "calcul / estimation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Kanon",
+    "definition": "Die Gesamtheit der als gültig anerkannten Werke.",
+    "example": "Goethe gehört fest zum Kanon der Weltliteratur.",
+    "translation": "canon",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Kapazität",
+    "definition": "Das Fassungsvermögen oder die Leistungsfähigkeit.",
+    "example": "Das Stadion hat eine Kapazität von 50.000 Zuschauern.",
+    "translation": "capacité",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Kategorie",
+    "definition": "Eine Gruppe von Dingen mit gemeinsamen Merkmalen.",
+    "example": "Die Daten wurden in verschiedene Kategorien eingeteilt.",
+    "translation": "catégorie",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Kausalität",
+    "definition": "Die Beziehung zwischen Ursache und Wirkung.",
+    "example": "Die Kausalität zwischen Rauchen und Lungenkrebs ist belegt.",
+    "translation": "causalité",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Klassifikation",
+    "definition": "Die systematische Einteilung in Klassen oder Gruppen.",
+    "example": "Die Klassifikation der Pflanzen erfolgte nach ihren Merkmalen.",
+    "translation": "classification",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Kodex",
+    "definition": "Eine Sammlung von Regeln oder Normen.",
+    "example": "Der ethische Kodex der Ärzte verbietet es, Patienten zu schaden.",
+    "translation": "code / codex",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Kognition",
+    "definition": "Die Gesamtheit der Prozesse, die mit dem Erkennen zu tun haben.",
+    "example": "Die Kognition umfasst Wahrnehmung, Denken und Gedächtnis.",
+    "translation": "cognition",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Kohärenz",
+    "definition": "Der logische Zusammenhang oder Zusammenhalt.",
+    "example": "Dem Text mangelt es an Kohärenz zwischen den Abschnitten.",
+    "translation": "cohérence",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Kollaboration",
+    "definition": "Die Zusammenarbeit von Personen oder Gruppen.",
+    "example": "Die Kollaboration zwischen den Instituten war sehr erfolgreich.",
+    "translation": "collaboration",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Kollektiv",
+    "definition": "Eine Gruppe von Personen, die gemeinsam handeln.",
+    "example": "Die Entscheidung wurde vom Kollektiv getroffen.",
+    "translation": "collectif",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Kompensation",
+    "definition": "Der Ausgleich von Mängeln oder Leistungen.",
+    "example": "Die Firma zahlte eine Kompensation für den entstandenen Schaden.",
+    "translation": "compensation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Kompetenz",
+    "definition": "Die Fähigkeit oder Zuständigkeit für eine Aufgabe.",
+    "example": "Er besitzt die fachliche Kompetenz für diese Position.",
+    "translation": "compétence",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Komplexität",
+    "definition": "Die Vielschichtigkeit oder der Schwierigkeitsgrad einer Sache.",
+    "example": "Die Komplexität des Steuersystems schreckt viele Bürger ab.",
+    "translation": "complexité",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Komponente",
+    "definition": "Ein Bestandteil eines Systems oder einer Maschine.",
+    "example": "Der Computer besteht aus vielen verschiedenen Komponenten.",
+    "translation": "composant",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Kompromiss",
+    "definition": "Eine Einigung durch gegenseitiges Nachgeben.",
+    "example": "Nach langen Verhandlungen fanden sie einen Kompromiss.",
+    "translation": "compromis",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Konzept",
+    "definition": "Ein Plan oder Entwurf für ein Vorhaben.",
+    "example": "Das neue Marketing-Konzept soll den Umsatz steigern.",
+    "translation": "concept",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Konflikt",
+    "definition": "Ein Streit oder eine Auseinandersetzung.",
+    "example": "Der Konflikt zwischen den beiden Ländern konnte beigelegt werden.",
+    "translation": "conflit",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Konformität",
+    "definition": "Die Übereinstimmung mit geltenden Regeln oder Meinungen.",
+    "example": "Gruppendruck kann zu übertriebener Konformität führen.",
+    "translation": "conformité",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Kongruenz",
+    "definition": "Die Übereinstimmung oder Deckungsgleichheit.",
+    "example": "Es besteht eine Kongruenz zwischen seinen Worten und Taten.",
+    "translation": "congruence",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Konjunktur",
+    "definition": "Die gesamtwirtschaftliche Lage und deren Entwicklung.",
+    "example": "Die Konjunktur erholt sich langsam von der Krise.",
+    "translation": "conjoncture",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Konkretisierung",
+    "definition": "Die Verdeutlichung oder genauere Bestimmung einer Sache.",
+    "example": "Wir brauchen eine Konkretisierung der Ziele bis zum nächsten Treffen.",
+    "translation": "concrétisation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Konsens",
+    "definition": "Die Übereinstimmung der Meinungen.",
+    "example": "Es herrscht ein breiter Konsens über die Notwendigkeit von Reformen.",
+    "translation": "consensus",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Konsequenz",
+    "definition": "Die Folge einer Handlung oder eines Ereignisses.",
+    "example": "Sein Verhalten hatte schwerwiegende Konsequenzen.",
+    "translation": "conséquence",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Konsolidierung",
+    "definition": "Die Festigung oder Sicherung eines Zustands.",
+    "example": "Die Konsolidierung des Haushalts ist das wichtigste Ziel der Regierung.",
+    "translation": "consolidation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Konstante",
+    "definition": "Eine Größe, die über einen Zeitraum unverändert bleibt.",
+    "example": "Die Lichtgeschwindigkeit ist eine physikalische Konstante.",
+    "translation": "constante",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Konstruktion",
+    "definition": "Der Aufbau oder die Struktur einer Sache.",
+    "example": "Die gedankliche Konstruktion der Realität ist ein Thema der Soziologie.",
+    "translation": "construction",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Kontext",
+    "definition": "Der Zusammenhang, in dem eine Aussage oder ein Ereignis steht.",
+    "example": "Man muss dieses Zitat im historischen Kontext betrachten.",
+    "translation": "contexte",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Kontinuum",
+    "definition": "Etwas Lückenloses, das sich stetig fortsetzt.",
+    "example": "Raum und Zeit werden in der Physik oft als Kontinuum betrachtet.",
+    "translation": "continuum",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Kontroverse",
+    "definition": "Ein heftiger Meinungsstreit oder eine Debatte.",
+    "example": "Die Einführung der neuen Steuer löste eine heftige Kontroverse aus.",
+    "translation": "controverse",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Konvention",
+    "definition": "Eine Abmachung oder eine gesellschaftliche Regel.",
+    "example": "Es entspricht der Konvention, sich bei einer Begrüßung die Hand zu geben.",
+    "translation": "convention",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Konvergenz",
+    "definition": "Die Annäherung oder Übereinstimmung verschiedener Richtungen.",
+    "example": "In der Technik beobachtet man eine Konvergenz von Mobilfunk und Internet.",
+    "translation": "convergence",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Korrelation",
+    "definition": "Die wechselseitige Beziehung zwischen zwei Merkmalen.",
+    "example": "Es besteht eine hohe Korrelation zwischen Bildung und Einkommen.",
+    "translation": "corrélation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Kriterium",
+    "definition": "Ein Unterscheidungsmerkmal oder ein Maßstab für eine Beurteilung.",
+    "example": "Das wichtigste Kriterium für den Job ist die Berufserfahrung.",
+    "translation": "critère",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Legitimation",
+    "definition": "Die Rechtfertigung oder Begründung für eine Handlung oder Macht.",
+    "example": "Dem Herrscher fehlte die demokratische Legitimation.",
+    "translation": "légitimation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Linearität",
+    "definition": "Die Eigenschaft, in einer geraden Linie oder in direktem Verhältnis zu verlaufen.",
+    "example": "In diesem einfachen Modell wird eine Linearität der Entwicklung angenommen.",
+    "translation": "linéarité",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Manifestation",
+    "definition": "Das Sichtbarwerden oder der Ausdruck einer Sache.",
+    "example": "Die Krankheit zeigt sich in verschiedenen körperlichen Manifestationen.",
+    "translation": "manifestation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Manipulation",
+    "definition": "Die bewusste Beeinflussung von Personen oder Dingen zum eigenen Vorteil.",
+    "example": "Die Manipulation der Wahlergebnisse führte zu Protesten.",
+    "translation": "manipulation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Mechanismus",
+    "definition": "Die Funktionsweise oder der Ablauf eines Vorgangs.",
+    "example": "Der Mechanismus der Preisbildung wird durch Angebot und Nachfrage bestimmt.",
+    "translation": "mécanisme",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Medium",
+    "definition": "Ein Mittel zur Kommunikation oder Informationsübertragung.",
+    "example": "Das Internet ist das wichtigste Medium unserer Zeit.",
+    "translation": "médium / média",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Methodik",
+    "definition": "Die Gesamtheit der Methoden, die in einer Wissenschaft angewandt werden.",
+    "example": "Die Methodik der Untersuchung wurde im Vorfeld genau festgelegt.",
+    "translation": "méthodique / méthodologie",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Mobilität",
+    "definition": "Die Beweglichkeit von Personen oder Dingen.",
+    "example": "Die soziale Mobilität ist in dieser Gesellschaft sehr hoch.",
+    "translation": "mobilité",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Modifikation",
+    "definition": "Eine kleine Änderung oder Anpassung einer Sache.",
+    "example": "Nach dem Testlauf wurde eine Modifikation am Design vorgenommen.",
+    "translation": "modification",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Modul",
+    "definition": "Ein eigenständiges Bauelement in einem größeren System.",
+    "example": "Das Studium ist in verschiedene Module unterteilt.",
+    "translation": "module",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Motivation",
+    "definition": "Die Beweggründe, die jemanden zu einer Handlung veranlassen.",
+    "example": "Seine Motivation für das Studium war das große Interesse am Fach.",
+    "translation": "motivation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Nachhaltigkeit",
+    "definition": "Ein Handeln, das die Ressourcen für die Zukunft schont.",
+    "example": "Nachhaltigkeit ist ein zentrales Ziel der modernen Umweltpolitik.",
+    "translation": "durabilité / développement durable",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Norm",
+    "definition": "Eine anerkannte Regel oder ein Standard.",
+    "example": "Die sozialen Normen bestimmen unser Zusammenleben.",
+    "translation": "norme",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Objektivität",
+    "definition": "Die Unvoreingenommenheit oder Sachlichkeit einer Darstellung.",
+    "example": "Wissenschaftliche Berichte erfordern ein hohes Maß an Objektivität.",
+    "translation": "objectivité",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Option",
+    "definition": "Eine Möglichkeit, zwischen verschiedenen Dingen zu wählen.",
+    "example": "Wir haben mehrere Optionen, wie wir das Problem lösen können.",
+    "translation": "option",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Orientierung",
+    "definition": "Die Ausrichtung oder das Finden des Weges in einer Situation.",
+    "example": "Neue Mitarbeiter brauchen in den ersten Tagen eine Orientierung.",
+    "translation": "orientation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Paradigma",
+    "definition": "Ein grundlegendes Denkmodell oder eine Lehrmeinung.",
+    "example": "Die Entdeckung der Quantenphysik führte zu einem Paradigmenwechsel.",
+    "translation": "paradigme",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Parameter",
+    "definition": "Eine Größe, die das Ergebnis eines Vorgangs beeinflusst.",
+    "example": "Die Parameter des Experiments wurden im Protokoll festgehalten.",
+    "translation": "paramètre",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Partizipation",
+    "definition": "Die Beteiligung oder Mitwirkung an einem Prozess.",
+    "example": "Die politische Partizipation der Bürger ist in einer Demokratie wichtig.",
+    "translation": "participation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Perspektive",
+    "definition": "Ein Blickwinkel oder eine Aussicht auf die Zukunft.",
+    "example": "Aus dieser Perspektive sieht das Problem ganz anders aus.",
+    "translation": "perspective",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Pluralismus",
+    "definition": "Das Nebeneinander verschiedener Meinungen und Interessen in einer Gesellschaft.",
+    "example": "Der Pluralismus ist ein Kennzeichen moderner Demokratien.",
+    "translation": "pluralisme",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Polarisierung",
+    "definition": "Die Verstärkung von Gegensätzen in einer Gruppe.",
+    "example": "Die politische Polarisierung der Gesellschaft nimmt zu.",
+    "translation": "polarisation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Postulat",
+    "definition": "Eine Forderung oder ein Grundsatz, der ohne Beweis aufgestellt wird.",
+    "example": "Die Gleichheit aller Menschen ist ein moralisches Postulat.",
+    "translation": "postulat",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Prävention",
+    "definition": "Vorbeugende Maßnahmen zur Verhinderung von unerwünschten Ereignissen.",
+    "example": "Gesundheitliche Prävention spart langfristig Kosten.",
+    "translation": "prévention",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Präzision",
+    "definition": "Die Genauigkeit oder Exaktheit einer Angabe oder Arbeit.",
+    "example": "Die Präzision der Messinstrumente ist für das Experiment entscheidend.",
+    "translation": "précision",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Prämisse",
+    "definition": "Eine Voraussetzung für eine logische Schlussfolgerung.",
+    "example": "Unter der Prämisse, dass alle Menschen gleich sind, folgt daraus...",
+    "translation": "prémisse",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Priorität",
+    "definition": "Der Vorrang einer Sache vor anderen.",
+    "example": "Bildung hat für die neue Regierung oberste Priorität.",
+    "translation": "priorité",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Privileg",
+    "definition": "Ein Vorrecht, das nur einer bestimmten Gruppe zusteht.",
+    "example": "Früher war Bildung ein Privileg der reichen Oberschicht.",
+    "translation": "privilège",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Produktivität",
+    "definition": "Das Verhältnis zwischen dem Ertrag und den eingesetzten Mitteln.",
+    "example": "Durch neue Maschinen konnte die Produktivität gesteigert werden.",
+    "translation": "productivité",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Prognose",
+    "definition": "Die Vorhersage einer künftigen Entwicklung.",
+    "example": "Die wirtschaftlichen Prognosen für das nächste Jahr sind günstig.",
+    "translation": "pronostic / prévision",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Prozess",
+    "definition": "Ein Verlauf oder eine Entwicklung über einen Zeitraum.",
+    "example": "Das Lernen einer Sprache ist ein langwieriger Prozess.",
+    "translation": "processus",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Qualität",
+    "definition": "Die Beschaffenheit oder Güte einer Sache.",
+    "example": "Die Qualität der Produkte wird ständig kontrolliert.",
+    "translation": "qualité",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Quantifizierung",
+    "definition": "Die Angabe einer Sache in Zahlen oder Mengen.",
+    "example": "Die Quantifizierung der Ergebnisse erleichtert den Vergleich.",
+    "translation": "quantification",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Rationalisierung",
+    "definition": "Die Steigerung der Effizienz durch bessere Organisation.",
+    "example": "Die Rationalisierung der Abläufe führte zu Stellenabbau.",
+    "translation": "rationalisation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Reaktion",
+    "definition": "Die Antwort oder Auswirkung auf einen Reiz oder ein Ereignis.",
+    "example": "Die chemische Reaktion verlief schneller als erwartet.",
+    "translation": "réaction",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Relevanz",
+    "definition": "Die Wichtigkeit oder Bedeutung einer Sache in einem Kontext.",
+    "example": "Die Relevanz dieser Information für den Fall ist unklar.",
+    "translation": "pertinence / pertinence",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Repräsentation",
+    "definition": "Die Darstellung oder Vertretung von etwas.",
+    "example": "Die Repräsentation von Frauen in Führungspositionen ist gestiegen.",
+    "translation": "représentation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Ressource",
+    "definition": "Ein Mittel oder eine Quelle, die zur Verfügung steht.",
+    "example": "Zeit ist eine knappe Ressource in unserem Alltag.",
+    "translation": "ressource",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Sanktion",
+    "definition": "Eine Maßnahme zur Bestrafung bei Fehlverhalten.",
+    "example": "Die UN verhängte wirtschaftliche Sanktionen gegen das Land.",
+    "translation": "sanction",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Segmentierung",
+    "definition": "Die Aufteilung eines Ganzen in verschiedene Teile.",
+    "example": "Die Segmentierung des Marktes hilft bei der Zielgruppenansprache.",
+    "translation": "segmentation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Selektion",
+    "definition": "Die Auswahl oder Auslese nach bestimmten Kriterien.",
+    "example": "Die natürliche Selektion ist ein Mechanismus der Evolution.",
+    "translation": "sélection",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Signifikanz",
+    "definition": "Die Deutlichkeit oder Wichtigkeit, meist im statistischen Sinne.",
+    "example": "Die statistische Signifikanz der Ergebnisse wurde nachgewiesen.",
+    "translation": "signification / importance",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Simulation",
+    "definition": "Die Nachahmung eines realen Vorgangs mit Hilfe eines Modells.",
+    "example": "Die Simulation des Fluges half den Piloten beim Training.",
+    "translation": "simulation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Skalierung",
+    "definition": "Die Größenveränderung eines Systems unter Beibehaltung seiner Eigenschaften.",
+    "example": "Die Skalierung des Geschäftsmodells auf andere Länder ist geplant.",
+    "translation": "mise à l'échelle / scaling",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Skeptizismus",
+    "definition": "Eine kritische, zweifelnde Grundhaltung.",
+    "example": "Gesunder Skeptizismus ist wichtig für die Wissenschaft.",
+    "translation": "scepticisme",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Solidarität",
+    "definition": "Der Zusammenhalt und die gegenseitige Hilfe in einer Gruppe.",
+    "example": "Die Solidarität mit den Streikenden war sehr groß.",
+    "translation": "solidarité",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Spezifikation",
+    "definition": "Die genaue Festlegung oder Beschreibung von Merkmalen.",
+    "example": "Die Spezifikation der technischen Details dauerte mehrere Wochen.",
+    "translation": "spécification",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Stabilität",
+    "definition": "Der Zustand des Gleichgewichts oder der Beständigkeit.",
+    "example": "Die politische Stabilität des Landes ist für Investoren wichtig.",
+    "translation": "stabilité",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Standardisierung",
+    "definition": "Die Vereinheitlichung von Produkten oder Prozessen.",
+    "example": "Die Standardisierung der Bauteile senkt die Produktionskosten.",
+    "translation": "standardisation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Status",
+    "definition": "Die Stellung oder der Zustand einer Person oder Sache.",
+    "example": "Er genießt in der Fachwelt einen hohen Status.",
+    "translation": "statut",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Struktur",
+    "definition": "Die Anordnung und der Aufbau der Teile eines Ganzen.",
+    "example": "Die Struktur des Atoms wurde erst Anfang des 20. Jahrhunderts geklärt.",
+    "translation": "structure",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Subjektivität",
+    "definition": "Die persönliche, durch eigene Gefühle geprägte Sichtweise.",
+    "example": "In der Kunst spielt die Subjektivität eine große Rolle.",
+    "translation": "subjectivité",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Substitution",
+    "definition": "Die Ersetzung einer Sache durch eine andere.",
+    "example": "Die Substitution von Kohle durch erneuerbare Energien ist notwendig.",
+    "translation": "substitution",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Substanz",
+    "definition": "Der Stoff, aus dem etwas besteht, oder der wesentliche Kern.",
+    "example": "Das Medikament enthält eine hochwirksame Substanz.",
+    "translation": "substance",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Symmetrie",
+    "definition": "Die spiegelbildliche Übereinstimmung von Teilen.",
+    "example": "Die Symmetrie der Schneeflocke ist faszinierend.",
+    "translation": "symétrie",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Synergie",
+    "definition": "Das Zusammenwirken, das einen zusätzlichen Nutzen bringt.",
+    "example": "Die Fusion der beiden Firmen soll Synergieeffekte freisetzen.",
+    "translation": "synergie",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Synthese",
+    "definition": "Die Vereinigung von Elementen zu einer neuen Einheit.",
+    "example": "Die Synthese von Theorie und Praxis ist das Ziel des Studiums.",
+    "translation": "synthèse",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Systematik",
+    "definition": "Die planmäßige, geordnete Gliederung eines Wissensgebiets.",
+    "example": "Die biologische Systematik ordnet alle Lebewesen in Gruppen.",
+    "translation": "systématique",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Tendenz",
+    "definition": "Eine erkennbare Neigung oder Entwicklung in eine bestimmte Richtung.",
+    "example": "Es gibt eine Tendenz zu gesünderer Ernährung.",
+    "translation": "tendance",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Terminologie",
+    "definition": "Die Gesamtheit der Fachbegriffe eines Gebiets.",
+    "example": "Jede Wissenschaft hat ihre eigene Terminologie.",
+    "translation": "terminologie",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Theorie",
+    "definition": "Ein System von wissenschaftlich begründeten Aussagen.",
+    "example": "Einsteins Relativitätstheorie veränderte unser Weltbild.",
+    "translation": "théorie",
+    "skill_level": "B2"
+  },
+  {
+    "word": "These",
+    "definition": "Eine behauptende Aussage, die bewiesen werden muss.",
+    "example": "Der Autor stellt in seinem Buch eine gewagte These auf.",
+    "translation": "thèse",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Toleranz",
+    "definition": "Die Duldsamkeit gegenüber anderen Meinungen oder Verhalten.",
+    "example": "Religiöse Toleranz ist eine Grundlage des Friedens.",
+    "translation": "tolérance",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Tradition",
+    "definition": "Die Überlieferung von Bräuchen oder Werten über Generationen.",
+    "example": "Diese Universität blickt auf eine lange Tradition zurück.",
+    "translation": "tradition",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Transformation",
+    "definition": "Die grundlegende Umwandlung oder Veränderung.",
+    "example": "Die digitale Transformation betrifft alle Bereiche der Wirtschaft.",
+    "translation": "transformation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Transparenz",
+    "definition": "Die Durchschaubarkeit oder Nachvollziehbarkeit von Vorgängen.",
+    "example": "Die Wähler fordern mehr Transparenz in der Politik.",
+    "translation": "transparence",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Typologie",
+    "definition": "Die Einteilung von Dingen oder Personen in Typen.",
+    "example": "Die Typologie der Persönlichkeiten wird in der Psychologie oft genutzt.",
+    "translation": "typologie",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Universalität",
+    "definition": "Die allgemeine Gültigkeit oder weltweite Bedeutung.",
+    "example": "Die Universalität der Menschenrechte ist unumstritten.",
+    "translation": "universalité",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Validierung",
+    "definition": "Die Bestätigung der Gültigkeit oder Richtigkeit eines Ergebnisses.",
+    "example": "Die Validierung der Daten dauerte mehrere Wochen.",
+    "translation": "validation",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Variable",
+    "definition": "Eine veränderliche Größe in einem Experiment oder einer Gleichung.",
+    "example": "Wir müssen alle Variablen kontrollieren, um ein genaues Ergebnis zu erhalten.",
+    "translation": "variable",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Varianz",
+    "definition": "Das Maß für die Streuung von Werten um einen Mittelwert.",
+    "example": "In der Statistik ist die Varianz ein wichtiges Maß für die Abweichung.",
+    "translation": "variance",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Variation",
+    "definition": "Die Abwandlung oder Veränderung eines Themas oder Musters.",
+    "example": "Es gibt unzählige Variationen dieses bekannten Liedes.",
+    "translation": "variation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Verifizierung",
+    "definition": "Der Nachweis der Richtigkeit einer Aussage.",
+    "example": "Die Verifizierung der Quellen ist die erste Aufgabe eines Historikers.",
+    "translation": "vérification",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Vernunft",
+    "definition": "Die Fähigkeit des menschlichen Geistes, Zusammenhänge zu erkennen.",
+    "example": "Man sollte Entscheidungen auf Basis der Vernunft treffen, nicht nur nach Gefühl.",
+    "translation": "raison",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Virtuosität",
+    "definition": "Die meisterhafte Beherrschung einer Technik oder Kunst.",
+    "example": "Seine Virtuosität am Klavier begeisterte das Publikum.",
+    "translation": "virtuosité",
+    "skill_level": "C1"
+  },
+  {
+    "word": "Vision",
+    "definition": "Eine Vorstellung oder Idee von der Zukunft.",
+    "example": "Er hat eine klare Vision, wie die Stadt in zwanzig Jahren aussehen soll.",
+    "translation": "vision",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Voraussetzung",
+    "definition": "Bedingung, die im Vorfeld erfüllt sein muss.",
+    "example": "Ein Abitur ist die Voraussetzung für ein Studium.",
+    "translation": "condition préalable / prérequis",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Wahrnehmung",
+    "definition": "Der Prozess des Aufnehmens von Reizen über die Sinne.",
+    "example": "Die optische Wahrnehmung kann uns manchmal täuschen.",
+    "translation": "perception",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Widerspruch",
+    "definition": "Die gegenteilige Aussage oder das Nicht-Zusammenpassen von Aussagen.",
+    "example": "Seine Taten stehen im Widerspruch zu seinen Worten.",
+    "translation": "contradiction",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Zivilisation",
+    "definition": "Die Gesamtheit der durch Fortschritt geprägten Lebensformen.",
+    "example": "Der Fall des Römischen Reiches markierte das Ende einer antiken Zivilisation.",
+    "translation": "civilisation",
+    "skill_level": "B2"
+  },
+  {
+    "word": "Zyklus",
+    "definition": "Ein kreisförmiger Ablauf, der sich regelmäßig wiederholt.",
+    "example": "Der Zyklus der Jahreszeiten bestimmt das Leben in der Natur.",
+    "translation": "cycle",
+    "skill_level": "B2"
+  }
+]

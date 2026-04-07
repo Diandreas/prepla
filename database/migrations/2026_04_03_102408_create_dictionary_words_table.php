@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('dictionary_words', function (Blueprint $table) {
             $table->id();
             $table->string('word');
-            $table->string('language', 10);
+            $table->string('language', 2)->index(); // 'en', 'fr', 'de'
             $table->text('definition')->nullable();
             $table->text('example')->nullable();
             $table->string('translation')->nullable();

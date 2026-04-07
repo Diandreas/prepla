@@ -26,172 +26,169 @@ class DictionaryController extends Controller
     }
 
     /**
-     * Discover a new random word for the user's target language.
+     * Discover a new batch of words (5-10) for the user's target language.
+     * Uses local DB first, then AI to grow the database.
      */
     public function discover()
     {
         $user = auth()->user();
         $langName = $user->profile?->targetExam?->language?->name ?? 'English';
         
-        // Map common language names to ISO codes for APIs
         $langMap = [
-            'English' => 'en',
-            'Anglais' => 'en',
-            'German' => 'de',
-            'German (Deutsch)' => 'de',
-            'Deutsch' => 'de',
-            'Allemand' => 'de',
-            'French' => 'fr',
-            'Français' => 'fr',
-            'Spanish' => 'es',
-            'Español' => 'es',
+            'English' => 'en', 'Anglais' => 'en',
+            'German' => 'de', 'German (Deutsch)' => 'de', 'Deutsch' => 'de', 'Allemand' => 'de',
+            'French' => 'fr', 'Français' => 'fr',
+            'Spanish' => 'es', 'Español' => 'es',
         ];
-
         $isoCode = $langMap[$langName] ?? 'en';
 
-        // Find a word not yet in user's progress
+        // 1. Try to find UNREAD words in local DB
         $excludeIds = UserWordProgress::where('user_id', $user->id)->pluck('dictionary_word_id');
         
-        $newWord = DictionaryWord::where('language', $langName)
+        $newWords = DictionaryWord::where('language', $isoCode)
             ->whereNotIn('id', $excludeIds)
             ->inRandomOrder()
-            ->first();
+            ->limit(5)
+            ->get();
 
-        if (!$newWord) {
+        // 2. If not enough words, grow the database via AI
+        if ($newWords->count() < 5) {
             try {
-                \Illuminate\Support\Facades\Log::info("Dictionary Discover: Attempting API lookup for {$isoCode}");
+                \Illuminate\Support\Facades\Log::info("Dictionary: Growing local database for {$isoCode}...");
+                $mistral = app(\App\Services\AI\MistralService::class);
                 
-                // Fetch random word in target language
-                $wordRes = \Illuminate\Support\Facades\Http::get("https://random-word-api.herokuapp.com/word?number=1&lang={$isoCode}");
+                $prompt = "Génère 10 mots académiques avancés (niveaux B2-C1) en {$langName} très utiles pour des examens. Réponds UNIQUEMENT en JSON avec ce format : [{\"word\": \"...\", \"definition\": \"...\", \"example\": \"...\", \"translation\": \"...\", \"skill_level\": \"B2\"}]. La traduction doit être en français.";
                 
-                if (!$wordRes->successful()) {
-                    \Illuminate\Support\Facades\Log::warning("Random Word API Failed: " . $wordRes->status());
-                    return back()->with('error', "Le service de mots aléatoires est indisponible ({$wordRes->status()}).");
-                }
+                $response = $mistral->chat([
+                    ['role' => 'system', 'content' => "Tu es un expert en lexicographie académique. Réponds uniquement avec un JSON pur."],
+                    ['role' => 'user', 'content' => $prompt]
+                ]);
 
-                $word = $wordRes->json()[0];
-                \Illuminate\Support\Facades\Log::info("Dictionary Discover: Found word '{$word}', looking up details...");
-
-                $detailsRes = \Illuminate\Support\Facades\Http::get("https://api.dictionaryapi.dev/api/v2/entries/{$isoCode}/{$word}");
-                
-                if ($detailsRes->successful()) {
-                    $data = $detailsRes->json()[0];
-                    $newWord = DictionaryWord::create([
-                        'word' => $word,
-                        'language' => $langName,
-                        'definition' => $data['meanings'][0]['definitions'][0]['definition'] ?? 'Keine Definition verfügbar.',
-                        'example' => $data['meanings'][0]['definitions'][0]['example'] ?? 'Kein Beispiel verfügbar.',
-                        'translation' => '[À traduire]',
-                        'skill_level' => 'B2'
-                    ]);
-                    \Illuminate\Support\Facades\Log::info("Dictionary Discover: Created new word entry for '{$word}'");
-                } else {
-                    \Illuminate\Support\Facades\Log::warning("Dictionary API failed for '{$word}': " . $detailsRes->status());
-                    return back()->with('error', "Détails non trouvés pour le mot '{$word}'. Réessayez !");
+                $aiWords = json_decode($response, true);
+                if (is_array($aiWords)) {
+                    foreach ($aiWords as $w) {
+                        // Avoid duplicates in the global dictionary
+                        $exists = DictionaryWord::where('language', $isoCode)->where('word', $w['word'])->exists();
+                        if (!$exists) {
+                            DictionaryWord::create([
+                                'word' => $w['word'],
+                                'language' => $isoCode,
+                                'definition' => $w['definition'],
+                                'example' => $w['example'],
+                                'translation' => $w['translation'],
+                                'skill_level' => $w['skill_level'] ?? 'B2'
+                            ]);
+                        }
+                    }
                 }
+                
+                // Re-fetch now that database is grown
+                $newWords = DictionaryWord::where('language', $isoCode)
+                    ->whereNotIn('id', $excludeIds)
+                    ->inRandomOrder()
+                    ->limit(5)
+                    ->get();
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error("Dictionary Discovery Exception: " . $e->getMessage());
-                return back()->with('error', "Une erreur technique est survenue : " . $e->getMessage());
             }
         }
 
-        if (!$newWord) {
-            return back()->with('error', "Aucun nouveau mot trouvé pour le moment.");
+        if ($newWords->isEmpty()) {
+            return back()->with('error', "Aucun nouveau mot trouvé. Réessayez plus tard.");
         }
 
-        UserWordProgress::create([
-            'user_id' => $user->id,
-            'dictionary_word_id' => $newWord->id,
-            'status' => 'discovered'
-        ]);
-
-        return back()->with('success', "Nouveau mot découvert : {$newWord->word}");
-    }
-
-    /**
-     * Generate an AI exercise for a specific word.
-     */
-    public function review(UserWordProgress $progress)
-    {
-        $word = $progress->dictionaryWord;
-        $mistral = app(\App\Services\AI\MistralService::class);
-        
-        $prompt = "Génère une courte phrase d'exercice (max 15 mots) en {$word->language} où le mot '{$word->word}' est remplacé par un trou '_____'. La phrase doit être adaptée au niveau {$word->skill_level}. Rends uniquement un JSON avec la clé 'sentence' (ex: {\"sentence\": \"J'aime _____ les pommes.\"}) et rien d'autre.";
-        
-        $response = $mistral->chat([
-            ['role' => 'system', 'content' => "Tu es un assistant pédagogique spécialisé en {$word->language}. Réponds UNIQUEMENT en JSON brut { \"sentence\": \"...\" }."],
-            ['role' => 'user', 'content' => $prompt]
-        ]);
-
-        if (!$response) {
-            return response()->json([
-                'sentence' => "Erreur : Impossible de joindre l'IA.",
-                'word_id' => $word->id,
-                'progress_id' => $progress->id
-            ], 500);
-        }
-
-        $data = json_decode($response, true);
-        
-        if (json_last_error() !== JSON_ERROR_NONE || !isset($data['sentence'])) {
-            \Illuminate\Support\Facades\Log::error("Dictionary Review JSON Error", ['response' => $response]);
-            return response()->json([
-                'sentence' => "Complétez la phrase avec le mot correct : _____ ({$word->translation})",
-                'word_id' => $word->id,
-                'progress_id' => $progress->id,
-                'debug_response' => $response
+        foreach ($newWords as $word) {
+            UserWordProgress::create([
+                'user_id' => $user->id,
+                'dictionary_word_id' => $word->id,
+                'status' => 'discovered'
             ]);
         }
 
-        return response()->json([
-            'sentence' => $data['sentence'] ?? "Complétez la phrase avec le mot correct : _____ ({$word->translation})",
-            'word_id' => $word->id,
-            'progress_id' => $progress->id
-        ]);
+        return back()->with('success', "{$newWords->count()} nouveaux mots ajoutés à votre dictionnaire !");
     }
 
     /**
-     * Submit an exercise result and update progress.
+     * Generate TTS audio for a word.
      */
-    public function submitReview(Request $request, UserWordProgress $progress)
+    public function audio(DictionaryWord $word)
+    {
+        $tts = app(\App\Services\TTS\DeepgramTtsService::class);
+        $url = $tts->speak($word->word, $word->language);
+
+        if (!$url) {
+            return response()->json(['error' => 'Audio generation failed'], 500);
+        }
+
+        return response()->json(['url' => $url]);
+    }
+
+    /**
+     * Start a batch review session (5 or 10 words).
+     */
+    public function reviewSession(Request $request)
+    {
+        $user = auth()->user();
+        $limit = $request->get('limit', 5);
+
+        // Get words that need review (priority: oldest review date or recently discovered)
+        $wordsToReview = UserWordProgress::where('user_id', $user->id)
+            ->whereIn('status', ['discovered', 'learning'])
+            ->with('dictionaryWord')
+            ->orderBy('last_reviewed_at', 'asc')
+            ->limit($limit)
+            ->get();
+
+        if ($wordsToReview->isEmpty()) {
+            return response()->json(['message' => 'Aucun mot à réviser ! Tout est maîtrisé.'], 404);
+        }
+
+        return response()->json($wordsToReview);
+    }
+
+    /**
+     * Submit results for a batch review.
+     */
+    public function submitReviewBatch(Request $request)
     {
         $validated = $request->validate([
-            'answer' => 'required|string',
+            'results' => 'required|array',
+            'results.*.progress_id' => 'required|exists:user_word_progress,id',
+            'results.*.is_correct' => 'required|boolean',
         ]);
 
-        $isCorrect = strtolower(trim($validated['answer'])) === strtolower(trim($progress->dictionaryWord->word));
+        $xpTotal = 0;
+        foreach ($validated['results'] as $result) {
+            if ($result['is_correct']) {
+                $progress = UserWordProgress::find($result['progress_id']);
+                if ($progress->user_id !== auth()->id()) continue;
 
-        if ($isCorrect) {
-            $nextStatus = match ($progress->status) {
-                'discovered' => 'learning',
-                'learning' => 'mastered',
-                default => 'mastered',
-            };
+                $nextStatus = match ($progress->status) {
+                    'discovered' => 'learning',
+                    'learning' => 'mastered',
+                    default => 'mastered',
+                };
 
-            $progress->update([
-                'status' => $nextStatus,
-                'last_reviewed_at' => now()
-            ]);
-
-            // Award small XP bonus
-            $user = auth()->user();
-            if ($user instanceof \App\Models\User && $user->profile) {
-                $user->profile->increment('xp_total', 2);
+                $progress->update([
+                    'status' => $nextStatus,
+                    'last_reviewed_at' => now()
+                ]);
+                $xpTotal += 2;
             }
+        }
 
-            return response()->json([
-                'success' => true,
-                'status' => $nextStatus,
-                'xp_earned' => 2,
-                'message' => 'Excellent ! Progrès enregistré.'
-            ]);
+        $user = auth()->user();
+        if ($user->profile && $xpTotal > 0) {
+            $user->profile->increment('xp_total', $xpTotal);
         }
 
         return response()->json([
-            'success' => false,
-            'message' => "Ce n'est pas tout à fait ça. Réessayez !"
+            'success' => true,
+            'xp_earned' => $xpTotal,
+            'message' => "Session terminée ! +{$xpTotal} XP"
         ]);
     }
+
 
     /**
      * Look up a specific word (API/Legacy).
