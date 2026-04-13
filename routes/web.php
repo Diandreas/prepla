@@ -44,6 +44,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('exercise/{exercise}/submit', [\App\Http\Controllers\ExerciseController::class, 'submit'])->name('exercise.submit');
         Route::post('node/{node}/submit', [\App\Http\Controllers\ExerciseController::class, 'submitSession'])->name('exercise.submit_session');
         Route::get('exercise/result/{attempt}', [\App\Http\Controllers\ExerciseController::class, 'result'])->name('exercise.result');
+        Route::get('node/{node}/result', [\App\Http\Controllers\ExerciseController::class, 'sessionResult'])->name('node.session_result');
 
         // Dictionary
         Route::prefix('dictionary')->name('dictionary.')->group(function () {
@@ -58,6 +59,8 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::post('api/ai/explain', [\App\Http\Controllers\ExerciseController::class, 'explainMistake'])->name('api.ai.explain');
+        Route::post('api/ai/chat', [\App\Http\Controllers\ExerciseController::class, 'chatMistake'])->name('api.ai.chat');
+        Route::post('api/exercise/verify-single', [\App\Http\Controllers\ExerciseController::class, 'verifySingle'])->name('api.exercise.verify-single');
 
         // TTS API
         Route::post('api/tts/speak', [\App\Http\Controllers\TtsController::class, 'speak'])->name('tts.speak');
@@ -76,6 +79,7 @@ Route::middleware(['auth'])->group(function () {
         Route::prefix('vocabulary')->name('vocabulary.')->group(function () {
             Route::get('/', [VocabularyController::class, 'index'])->name('index');
             Route::get('/learn', [VocabularyController::class, 'learn'])->name('learn');
+            Route::get('/random/{languageSlug}', [VocabularyController::class, 'random'])->name('random');
             Route::get('/review', [VocabularyController::class, 'review'])->name('review');
             Route::post('/', [VocabularyController::class, 'store'])->name('store');
             Route::post('/{vocab}/review', [VocabularyController::class, 'submitReview'])->name('submit-review');
@@ -104,6 +108,14 @@ Route::middleware(['auth'])->group(function () {
         Route::get('test/sandbox', function() {
             return \Inertia\Inertia::render('test/sandbox');
         })->name('test.sandbox');
+
+        Route::get('test/exercises', function() {
+            return \Inertia\Inertia::render('test/test-exercises');
+        })->name('test.exercises');
+
+        Route::get('test/exercises/audit', function() {
+            return \Inertia\Inertia::render('test/audit');
+        })->name('test.exercises.audit');
     });
 });
 

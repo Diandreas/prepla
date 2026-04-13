@@ -13,11 +13,12 @@ interface SpeakingRecorderProps {
     onAnswer: (questionId: string, answer: string | Blob) => void;
     selectedAnswer?: string | Blob;
     disabled?: boolean;
+    lang?: string;
 }
 
 type Phase = 'prep' | 'recording' | 'done';
 
-export function SpeakingRecorder({ question, onAnswer, selectedAnswer, disabled }: SpeakingRecorderProps) {
+export function SpeakingRecorder({ question, onAnswer, selectedAnswer, disabled, lang = 'en' }: SpeakingRecorderProps) {
     const prepTime = question.prep_time ?? 30;
     const speakTime = question.speak_time ?? 60;
 
@@ -59,7 +60,9 @@ export function SpeakingRecorder({ question, onAnswer, selectedAnswer, disabled 
     // When recording done, submit the audio Blob
     useEffect(() => {
         if (audioBlob && phase === 'done' && audioBlob !== selectedAnswer) {
-            onAnswer(question.id, audioBlob);
+            // Naming the blob helps Laravel treat it as a file with extension
+            const file = new File([audioBlob], `recording-${question.id}.webm`, { type: 'audio/webm' });
+            onAnswer(question.id, file);
         }
     }, [audioBlob, phase, question.id, onAnswer, selectedAnswer]);
 
@@ -84,7 +87,7 @@ export function SpeakingRecorder({ question, onAnswer, selectedAnswer, disabled 
             <div className="relative rounded-xl border bg-muted/30 p-4">
                 <p className="text-sm font-medium leading-relaxed pr-10">{question.text}</p>
                 <button
-                    onClick={() => isSpeaking ? stop() : speak(question.text, 'en')} // Add real language later if available
+                    onClick={() => isSpeaking ? stop() : speak(question.text, lang)}
                     className="absolute right-3 top-3 rounded-full bg-white p-2 text-primary shadow hover:bg-gray-50 focus:outline-none"
                     title="Écouter avec Deepgram"
                 >

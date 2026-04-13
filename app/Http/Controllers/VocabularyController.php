@@ -45,6 +45,42 @@ class VocabularyController extends Controller
         ]);
     }
 
+    /**
+     * API for the discovery page - get a random word
+     */
+    public function random(string $languageSlug)
+    {
+        $user = auth()->user();
+        $langMap = [
+            'english' => 'en', 'french' => 'fr', 'german' => 'de', 'spanish' => 'es'
+        ];
+        $isoCode = $langMap[$languageSlug] ?? 'en';
+
+        // 1. Exclude words user already has in vocabulary
+        $excludeWords = UserVocabulary::where('user_id', $user->id)
+            ->where('language_slug', $languageSlug)
+            ->pluck('word');
+
+        $word = \App\Models\DictionaryWord::where('language', $isoCode)
+            ->whereNotIn('word', $excludeWords)
+            ->inRandomOrder()
+            ->first();
+
+        if (!$word) {
+            // Fallback: If no more words in local DB, use DictionaryController::discover logic to grow it
+            // For now, let's just return a placeholder or an error
+            return response()->json(['error' => 'No more new words available.'], 404);
+        }
+
+        return response()->json([
+            'word' => $word->word,
+            'definition' => $word->definition,
+            'example' => $word->example,
+            'translation' => $word->translation,
+            'ipa' => null, // Not yet in dictionary_words table
+        ]);
+    }
+
     // GET /vocabulary/review - review due words (spaced repetition)
     public function review(Request $request)
     {
@@ -59,32 +95,49 @@ class VocabularyController extends Controller
         ]);
     }
 
-    // POST /vocabulary - add a word
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'word' => 'required|string|max:100',
-            'language_slug' => 'required|string',
+            'word' => 'required_without:dictionary_word_id|string|max:100',
+            'dictionary_word_id' => 'required_without:word|integer|exists:dictionary_words,id',
+            'language_slug' => 'required_without:dictionary_word_id|string',
             'source' => 'string|in:exercise,manual,dictionary',
         ]);
 
         $user = $request->user();
+        $source = $validated['source'] ?? 'manual';
 
-        // Fetch definition from dictionary
-        $data = $this->dictionary->lookup($validated['word'], $validated['language_slug']);
+        if ($request->has('dictionary_word_id')) {
+            $dictWord = \App\Models\DictionaryWord::find($validated['dictionary_word_id']);
+            $word = $dictWord->word;
+            $language = $dictWord->language;
+            $data = [
+                'definitions' => [['definition' => $dictWord->definition]],
+                'phonetics' => [[]],
+                'audio' => [[]],
+                'examples' => $dictWord->example ? [$dictWord->example] : [],
+                'translation' => $dictWord->translation,
+            ];
+            $source = 'dictionary';
+        } else {
+            $word = $validated['word'];
+            $language = $validated['language_slug'];
+            // Fetch definition from dictionary AI service
+            $data = $this->dictionary->lookup($word, $language);
+        }
 
         $vocab = UserVocabulary::updateOrCreate(
             [
                 'user_id' => $user->id,
-                'word' => $validated['word'],
-                'language_slug' => $validated['language_slug'],
+                'word' => $word,
+                'language_slug' => $language,
             ],
             [
                 'definition' => $data['definitions'][0]['definition'] ?? null,
                 'ipa' => $data['phonetics'][0]['ipa'] ?? null,
                 'audio_url' => $data['audio'][0]['url'] ?? null,
                 'examples' => array_slice($data['examples'] ?? [], 0, 3),
-                'source' => $validated['source'] ?? 'manual',
+                'source' => $source,
                 'next_review_at' => now()->addDay(),
             ]
         );

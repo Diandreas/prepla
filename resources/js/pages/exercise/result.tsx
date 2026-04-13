@@ -21,14 +21,44 @@ const OXFORD = '#1A2B48';
 const SKY = '#4A90E2';
 const GOLD = '#F5A623';
 
+const nodeCode = 'de'; // Or fetch from context if available
+
 export default function ExerciseResult({ attempt, nodeProgress }: Props) {
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
 
+    const [playingTts, setPlayingTts] = useState<string | null>(null);
+
+    const playTts = async (text: string, id: string) => {
+        if (playingTts === id) return;
+        setPlayingTts(id);
+        try {
+            const response = await fetch(route('tts.speak'), {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content 
+                },
+                body: JSON.stringify({ text, lang: nodeCode })
+            });
+            const data = await response.json();
+            if (data.audio_url) {
+                const audio = new Audio(data.audio_url);
+                audio.onended = () => setPlayingTts(null);
+                audio.play();
+            } else {
+                setPlayingTts(null);
+            }
+        } catch (error) {
+            console.error('TTS error:', error);
+            setPlayingTts(null);
+        }
+    };
+
     const feedback = (attempt.feedback ?? []) as Array<{
         question_id: string;
         correct: boolean;
-        correct_answer: string | string[];
+        correct_answer: any;
         explanation?: string;
     }>;
     const exercise = attempt.exercise;
@@ -164,15 +194,39 @@ export default function ExerciseResult({ attempt, nodeProgress }: Props) {
                                         )}
                                         <div>
                                             <p className="text-sm font-bold" style={{ color: OXFORD }}>
-                                                {question?.text ?? `Question ${i + 1}`}
+                                                {question?.text ?? question?.prompt ?? `Question ${i + 1}`}
                                             </p>
                                             {!item.correct && item.correct_answer && (
-                                                <p className="mt-1 text-sm">
-                                                    Bonne réponse : <strong>{Array.isArray(item.correct_answer) ? item.correct_answer.join(', ') : item.correct_answer}</strong>
-                                                </p>
+                                                <div className="mt-2 p-2 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-between">
+                                                    <p className="text-[13px]">
+                                                        Bonne réponse : <strong className="text-green-700">{Array.isArray(item.correct_answer) ? JSON.stringify(item.correct_answer) : item.correct_answer}</strong>
+                                                    </p>
+                                                    <button 
+                                                        onClick={() => playTts(String(item.correct_answer), `correct-${i}`)}
+                                                        className="p-1 hover:bg-white rounded transition-all text-slate-400 hover:text-indigo-600"
+                                                    >
+                                                        <Icon name={playingTts === `correct-${i}` ? 'volume-2' : 'volume-1'} size={14} />
+                                                    </button>
+                                                </div>
                                             )}
                                             {item.explanation && (
-                                                <p className="mt-1 text-xs text-muted-foreground">{item.explanation}</p>
+                                                <div className="mt-3 p-4 bg-white/80 rounded-xl border border-dashed border-indigo-200/50">
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-indigo-500">
+                                                            <Icon name="sparkles" size={12} />
+                                                            Explication pédagogique
+                                                        </div>
+                                                        <button 
+                                                            onClick={() => playTts(item.explanation!, `expl-${i}`)}
+                                                            className={`p-1 rounded transition-all ${playingTts === `expl-${i}` ? 'text-indigo-600' : 'text-slate-400 hover:text-indigo-600'}`}
+                                                        >
+                                                            <Icon name={playingTts === `expl-${i}` ? 'volume-2' : 'volume-1'} size={14} />
+                                                        </button>
+                                                    </div>
+                                                    <p className="text-[13px] leading-relaxed text-slate-600">
+                                                        {item.explanation.replace(/<\/?evidence>/g, '')}
+                                                    </p>
+                                                </div>
                                             )}
                                         </div>
                                     </div>

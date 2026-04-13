@@ -15,8 +15,12 @@ class DeepgramTtsService
     // Deepgram Aura voices per language
     protected array $voices = [
         'en' => 'aura-asteria-en',
-        'fr' => 'aura-orpheus-en', // Deepgram doesn't have native FR yet, fallback
-        'de' => 'aura-orpheus-en', // Same fallback for DE
+        'fr' => 'aura-arcas-fr',
+        'de' => 'aura-perun-de',
+        'es' => 'aura-helios-es',
+        'english' => 'aura-asteria-en',
+        'french' => 'aura-arcas-fr',
+        'german' => 'aura-perun-de',
     ];
 
     public function __construct()

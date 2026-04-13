@@ -34,16 +34,24 @@ class AiToolsController extends Controller
     {
         $validated = $request->validate([
             'exam_id' => 'required|exists:exams,id',
-            'exercise_type_id' => 'required|exists:exercise_types,id',
+            'exercise_type_ids' => 'required|array',
+            'exercise_type_ids.*' => 'exists:exercise_types,id',
             'difficulty' => 'required|in:A1,A2,B1,B2,C1,C2',
         ]);
 
-        $exerciseType = ExerciseType::findOrFail($validated['exercise_type_id']);
         $exam = Exam::findOrFail($validated['exam_id']);
+        $exercises = $generator->generateBatch($validated['exercise_type_ids'], $exam, $validated['difficulty']);
 
-        $exercise = $generator->generate($exerciseType, $exam, $validated['difficulty']);
+        // Load relationships for the results page
+        foreach($exercises as $ex) {
+            $ex->load('exerciseType');
+        }
 
-        return redirect()->route('exercise.show', $exercise);
+        return Inertia::render('ai-tools/batch-results', [
+            'exercises' => $exercises,
+            'exam' => $exam->load('language'),
+            'difficulty' => $validated['difficulty'],
+        ]);
     }
 
     public function writingCorrector(): Response

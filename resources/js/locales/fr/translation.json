@@ -84,6 +84,27 @@
     "section_attempts_other": "{{count}} tentatives",
     "section_exercise_types": "{{count}} types d'exercices"
   },
+  "dictionary": {
+    "title": "Mon Dictionnaire",
+    "subtitle": "Apprentissage progressif du vocabulaire académique.",
+    "review_btn": "RÉVISER (5 MOTS)",
+    "discover_btn": "DÉCOUVRIR",
+    "loading": "CHARGEMENT...",
+    "search_placeholder": "Rechercher un mot ou une traduction...",
+    "mastery": "Maîtrise",
+    "session_title": "Session de révision",
+    "word_count": "Mot {{current}} sur {{total}}",
+    "session_done": "Session Terminée !",
+    "xp_earned": "Vous avez gagné +{{xp}} XP",
+    "fill_blank": "Complétez la phrase",
+    "listen": "ÉCOUTER",
+    "definition_label": "DÉFINITION : {{text}}",
+    "type_word": "Tapez le mot...",
+    "check": "VÉRIFIER",
+    "next": "MOT SUIVANT →",
+    "correct_answer": "Bonne réponse ! ✓",
+    "wrong_answer": "La bonne réponse était : {{word}}"
+  },
   "results": {
     "title": "Mes Résultats",
     "subtitle": "Suivez votre progression par compétence",

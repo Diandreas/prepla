@@ -231,6 +231,71 @@ export default function ExamDashboard({ exam, sectionProgress }: Props) {
                         );
                     })}
                 </div>
+
+                {/* Personalized Practice */}
+                <div className="mt-10 mb-6">
+                    <h2 className="text-lg font-black tracking-tight mb-4" style={{ color: OXFORD }}>
+                        {t('practice.personalized_title', 'Votre Espace Personnel')}
+                    </h2>
+                    <div className="grid gap-4">
+                        {/* Mistakes Card */}
+                        <Link
+                            href={route('errors.practice')}
+                            className="duo-card flex items-center gap-4 p-5 border-red-100 hover:bg-red-50/30 transition-colors"
+                        >
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-red-100 text-red-600 shadow-[0_4px_0_0_#fecaca]">
+                                <Icon name="alert-circle" size={24} />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="text-sm font-black text-red-900">
+                                    {t('practice.mistakes_review_title', 'Centre de Récupération')}
+                                </h3>
+                                <p className="text-xs font-bold text-red-600/70">
+                                    {t('practice.mistakes_review_desc', 'Révisez vos erreurs passées pour ne plus les refaire.')}
+                                </p>
+                            </div>
+                            <Icon name="chevron-right" size={16} style={{ opacity: 0.3 }} />
+                        </Link>
+
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            {/* Vocabulary Card */}
+                            <Link
+                                href={route('vocabulary.index')}
+                                className="duo-card flex flex-col gap-3 p-5 hover:bg-indigo-50/30 transition-colors"
+                            >
+                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 shadow-[0_4px_0_0_#c7d2fe]">
+                                    <Icon name="book" size={20} />
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-black text-indigo-900">
+                                        {t('practice.vocabulary_title', 'Mon Lexique')}
+                                    </h3>
+                                    <p className="text-[10px] font-bold text-indigo-600/70 uppercase tracking-wider">
+                                        {t('practice.vocabulary_desc', 'Gérer mes mots sauvegardés')}
+                                    </p>
+                                </div>
+                            </Link>
+
+                            {/* Spaced Repetition Card */}
+                            <Link
+                                href={route('vocabulary.review')}
+                                className="duo-card flex flex-col gap-3 p-5 hover:bg-emerald-50/30 transition-colors"
+                            >
+                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 shadow-[0_4px_0_0_#a7f3d0]">
+                                    <Icon name="sparkles" size={20} />
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-black text-emerald-900">
+                                        {t('practice.review_session_title', 'Session de Révision')}
+                                    </h3>
+                                    <p className="text-[10px] font-bold text-emerald-600/70 uppercase tracking-wider">
+                                        {t('practice.review_session_desc', 'Pratique intelligente (SRS)')}
+                                    </p>
+                                </div>
+                            </Link>
+                        </div>
+                    </div>
+                </div>
             </div>
         </AppLayout>
     );

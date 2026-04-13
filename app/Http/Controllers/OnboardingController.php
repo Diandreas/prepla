@@ -88,14 +88,23 @@ class OnboardingController extends Controller
         $validated = $request->validate([
             'target_score' => 'nullable|integer|min:0',
             'exam_date' => 'nullable|date|after:today',
+            'current_level' => 'nullable|string|in:A0,A1,B1,TEST',
         ]);
 
-        $request->user()->profile->update($validated);
+        $request->user()->profile->update([
+            'target_score' => $validated['target_score'],
+            'exam_date' => $validated['exam_date'],
+            'current_level' => $validated['current_level'] === 'TEST' ? null : $validated['current_level'],
+        ]);
+
+        if ($validated['current_level'] && $validated['current_level'] !== 'TEST') {
+            return redirect()->route('onboarding.result');
+        }
 
         return redirect()->route('onboarding.placement');
     }
 
-    public function placementTest(): Response
+    public function placementTest(): Response|\Illuminate\Http\RedirectResponse
     {
         $profile = auth()->user()->profile;
         $exam = $profile?->targetExam?->load('language');
@@ -161,6 +170,7 @@ class OnboardingController extends Controller
         $exam = $profile->targetExam;
 
         // Generate personalized program
+        // A0 means complete beginner — pass 'A0' so the AI can tailor the message accordingly
         $cacheKey = "study_program_{$user->id}_{$profile->current_level}";
 
         $program = Cache::remember($cacheKey, 86400, function () use ($user, $profile, $exam) {
@@ -186,11 +196,13 @@ class OnboardingController extends Controller
         $exam = $profile->targetExam;
 
         // Generate learning roadmap via Algorithm (Duolingo-style)
+        // A0 means complete beginner — treat as A1 for roadmap generation
         if ($exam) {
+            $startLevel = $profile->current_level === 'A0' ? 'A1' : ($profile->current_level ?? 'A1');
             $this->roadmapGenerator->generateForUser(
                 $request->user(),
                 $exam,
-                $profile->current_level ?? 'A1',
+                $startLevel,
                 $profile->exam_date
             );
         }

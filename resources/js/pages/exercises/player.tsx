@@ -1,9 +1,22 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
+const INLINE_SVGS: Record<string, React.ReactNode> = {
+    'volume-1': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>,
+    'volume-2': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>,
+    'plus': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+};
+
 function Icon({ name, size = 20, className, style }: { name: string; size?: number; className?: string; style?: React.CSSProperties }) {
+    if (INLINE_SVGS[name]) {
+        return (
+            <span className={className} style={{ width: size, height: size, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, ...style }}>
+                {React.cloneElement(INLINE_SVGS[name] as React.ReactElement, { width: size, height: size })}
+            </span>
+        );
+    }
     return <img src={`/icons/${name}.png`} alt="" width={size} height={size} className={className} style={{ objectFit: 'contain', ...style }} />;
 }
 
@@ -37,6 +50,7 @@ import { Synthesis } from '@/components/exercises/synthesis';
 import { IntegratedTask } from '@/components/exercises/integrated-task';
 import { VocabularyCard } from '@/components/exercises/vocabulary-card';
 import { ExerciseTimer } from '@/components/exercises/exercise-timer';
+import { AiChatFeedback } from '@/components/exercises/ai-chat-feedback';
 
 interface Exercise {
     id: number;
@@ -101,6 +115,24 @@ const componentMap: Record<string, React.ComponentType<any>> = {
 };
 
 // Segmented progress dots
+function HighlightedPassage({ text, highlight }: { text: string; highlight: string }) {
+    if (!highlight) return <p className="leading-relaxed">{text}</p>;
+    
+    const parts = text.split(new RegExp(`(${highlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
+    
+    return (
+        <p className="leading-relaxed">
+            {parts.map((part, i) => 
+                part.toLowerCase() === highlight.toLowerCase() ? (
+                    <span key={i} className="bg-yellow-200 dark:bg-yellow-900/50 px-0.5 rounded transition-all duration-500 font-medium">
+                        {part}
+                    </span>
+                ) : part
+            )}
+        </p>
+    );
+}
+
 function ProgressDots({ total, current }: { total: number; current: number }) {
     // Cap at 40 dots for readability
     const MAX = 40;
@@ -194,10 +226,55 @@ function ArcTimer({ seconds, limit, warning, critical, expired }: {
     );
 }
 
+interface ExplanationObj {
+    concept: string;
+    evidence: string;
+    hint: string;
+    french_translation?: { concept: string; evidence: string; hint: string };
+}
+
+function parseExplanation(raw: any): ExplanationObj | string | null {
+    if (!raw) return null;
+    if (typeof raw === 'object' && raw.concept !== undefined) return raw as ExplanationObj;
+    if (typeof raw === 'string') {
+        try {
+            const parsed = JSON.parse(raw);
+            if (parsed && parsed.concept !== undefined) return parsed as ExplanationObj;
+        } catch {}
+        return raw;
+    }
+    return null;
+}
+
+function getExplanationText(explanation: ExplanationObj | string | null, lang: string): string {
+    if (!explanation) return '';
+    if (typeof explanation === 'string') return explanation;
+    const useFr = lang === 'fr';
+    const src = useFr && explanation.french_translation ? explanation.french_translation : explanation;
+    const parts: string[] = [];
+    if (src.concept) parts.push(src.concept);
+    if (src.hint) parts.push(src.hint);
+    return parts.join(' — ');
+}
+
+function getEvidenceText(explanation: ExplanationObj | string | null): string | null {
+    if (!explanation) return null;
+    if (typeof explanation === 'string') {
+        const m = explanation.match(/<evidence>(.*?)<\/evidence>/);
+        return m?.[1] ?? null;
+    }
+    if (explanation.evidence) {
+        const m = explanation.evidence.match(/<evidence>(.*?)<\/evidence>/);
+        return m?.[1] ?? explanation.evidence ?? null;
+    }
+    return null;
+}
+
 export default function SessionPlayer({ node, exercises, progress }: Props) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [isReviewMode, setIsReviewMode] = useState(false);
     const [answers, setAnswers] = useState<Record<string, any>>({});
     const [isChecked, setIsChecked] = useState(false);
     const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
@@ -205,13 +282,25 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
     const [transitioning, setTransitioning] = useState(false);
     const [visible, setVisible] = useState(true);
     const [timeSpent, setTimeSpent] = useState(0);
+    const timeSpentRef = useRef(0);
     const [timerKey, setTimerKey] = useState(0);
     const [timerSeconds, setTimerSeconds] = useState(0);
-    const [explanation, setExplanation] = useState<string | null>(null);
+    const [explanation, setExplanation] = useState<ExplanationObj | string | null>(null);
     const [fetchingExplanation, setFetchingExplanation] = useState(false);
+    const [highlightedText, setHighlightedText] = useState<string | null>(null);
+    const [playingTts, setPlayingTts] = useState<string | null>(null);
+    const [isChatOpen, setIsChatOpen] = useState(false);
+    const [mistakes, setMistakes] = useState<any[]>([]);
+    const [isVerifying, setIsVerifying] = useState(false);
+    const [isDictionaryOpen, setIsDictionaryOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [isSearching, setIsSearching] = useState(false);
+    const [searchResult, setSearchResult] = useState<any>(null);
+    const [isVocabSaved, setIsVocabSaved] = useState(false);
     const contentRef = useRef<HTMLDivElement>(null);
 
     const exercise = exercises[currentExerciseIndex];
+    const nodeCode = node.exam.language.name === 'German' ? 'de' : (node.exam.language.name === 'French' ? 'fr' : 'en');
     const componentKey = exercise?.exercise_type?.component_key ?? 'mcq';
 
     const TIME_PER_QUESTION = useMemo(() => {
@@ -224,9 +313,9 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
         return 45;
     }, [componentKey]);
 
-    const questions = exercise?.questions ?? [];
+    const questions = isReviewMode ? mistakes : (exercise?.questions ?? []);
     const question = questions[currentQuestionIndex];
-    const Component = componentMap[exercise?.exercise_type?.component_key ?? 'mcq'] ?? Mcq;
+    const Component = componentMap[isReviewMode ? (question?.component_key ?? 'mcq') : (exercise?.exercise_type?.component_key ?? 'mcq')] ?? Mcq;
 
     const totalQuestionsInSession = useMemo(() =>
         exercises.reduce((acc, ex) => acc + (ex.questions?.length ?? 0), 0)
@@ -245,10 +334,65 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
         setAnswers(prev => ({ ...prev, [questionId]: answer }));
     }, [isChecked]);
 
+    const playTts = useCallback(async (text: string, id: string) => {
+        if (playingTts === id) return;
+        setPlayingTts(id);
+        try {
+            const response = await fetch(route('tts.speak'), {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content 
+                },
+                body: JSON.stringify({ text, lang: nodeCode })
+            });
+            const data = await response.json();
+            if (data.audio_url) {
+                const audio = new Audio(data.audio_url);
+                audio.onended = () => setPlayingTts(null);
+                audio.play();
+            } else {
+                setPlayingTts(null);
+            }
+        } catch (error) {
+            console.error('TTS error:', error);
+            setPlayingTts(null);
+        }
+    }, [nodeCode, playingTts]);
+
+    const fetchExplanation = useCallback(async (questionObj = question) => {
+        if (!questionObj) return;
+        setFetchingExplanation(true);
+        try {
+            const res = await fetch(route('api.ai.explain'), {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content 
+                },
+                body: JSON.stringify({
+                    prompt: questionObj.prompt ?? questionObj.text ?? '',
+                    user_answer: String(answers[questionObj.id] ?? ''),
+                    correct_answer: String(questionObj.correct_answer ?? questionObj.correct ?? ''),
+                    language: node.exam.language.name
+                })
+            });
+            const data = await res.json();
+            const parsedExpl = parseExplanation(data.explanation);
+            setExplanation(parsedExpl);
+            setHighlightedText(getEvidenceText(parsedExpl));
+        } catch (error) {
+            console.error('Failed to fetch explanation:', error);
+        } finally {
+            setFetchingExplanation(false);
+        }
+    }, [question, answers, node.exam.language.name]);
+
     const handleRetry = useCallback(() => {
         setIsChecked(false);
         setIsCorrect(null);
         setExplanation(null);
+        setHighlightedText(null);
         setAnswers(prev => {
             const next = { ...prev };
             if (question) delete next[question.id];
@@ -257,19 +401,51 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
         setTimerSeconds(TIME_PER_QUESTION); // Reset timer 
     }, [question, TIME_PER_QUESTION]);
 
-    const checkAnswer = useCallback(() => {
-        if (!question || isChecked) return;
+    const checkAnswer = useCallback(async () => {
+        if (!question || isChecked || isVerifying) return;
         const currentAnswer = answers[question.id];
+        if (currentAnswer === undefined) return;
 
-        const noScoreTypes = ['essay-editor', 'speaking-recorder', 'role-play', 'short-writing', 'graph-description', 'academic-discussion', 'synthesis', 'integrated-task'];
+        const aiTypes = ['essay-editor', 'speaking-recorder', 'role-play', 'short-writing', 'graph-description', 'academic-discussion', 'synthesis', 'integrated-task'];
         let isRight = false;
+        let aiFeedback = null;
 
-        if (noScoreTypes.includes(componentKey)) {
-            isRight = currentAnswer !== undefined && String(currentAnswer).trim() !== '';
+        if (aiTypes.includes(componentKey)) {
+            setIsVerifying(true);
+            try {
+                const formData = new FormData();
+                formData.append('exercise_id', String(exercise.id));
+                formData.append('question_id', String(question.id));
+                
+                if (currentAnswer instanceof Blob) {
+                    formData.append('answer', currentAnswer, 'recording.webm');
+                } else {
+                    formData.append('answer', String(currentAnswer));
+                }
+
+                const res = await fetch(route('api.exercise.verify-single'), {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content },
+                    body: formData
+                });
+                const data = await res.json();
+                isRight = data.correct;
+                const parsedExpl = parseExplanation(data.explanation);
+                aiFeedback = parsedExpl;
+                setExplanation(parsedExpl);
+                setHighlightedText(getEvidenceText(parsedExpl));
+
+                if (data.transcription) {
+                    setAnswers(prev => ({ ...prev, [`${question.id}_transcription`]: data.transcription }));
+                }
+            } catch (error) {
+                console.error('Verification failed:', error);
+                isRight = false;
+            } finally {
+                setIsVerifying(false);
+            }
         } else {
-            // Very naive check; works for single MCQ/TF, but backend scores partials.
             const correctAnswer = question.correct_answer ?? question.correct;
-            // Also handle array of correct answers if it's form completion
             if (Array.isArray(correctAnswer) && Array.isArray(currentAnswer)) {
                 isRight = JSON.stringify(correctAnswer) === JSON.stringify(currentAnswer);
             } else if (typeof correctAnswer === 'object' && typeof currentAnswer === 'object') {
@@ -281,21 +457,45 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
 
         setIsCorrect(isRight);
         setIsChecked(true);
-    }, [question, isChecked, answers, componentKey]);
+        
+        if (!isRight) {
+            if (!aiFeedback) fetchExplanation();
+            // Add to mistakes queue if not already a retry
+            const isAlreadyMistake = mistakes.some(m => m.id === question.id);
+            if (!isAlreadyMistake) {
+                setMistakes(prev => [...prev, { ...question, exercise_id: exercise.id, component_key: componentKey }]);
+            }
+        }
+    }, [question, isChecked, answers, componentKey, fetchExplanation, exercise.id, isVerifying, mistakes]);
 
     const nextStep = useCallback(() => {
         setIsChecked(false);
         setIsCorrect(null);
         setExplanation(null);
+        setHighlightedText(null);
 
-        const isEndOfSession = currentExerciseIndex === exercises.length - 1 && currentQuestionIndex === questions.length - 1;
+        const isEndOfExercises = currentExerciseIndex === exercises.length - 1 && currentQuestionIndex === (isReviewMode ? mistakes.length - 1 : (exercise?.questions?.length ?? 0) - 1);
 
-        if (isEndOfSession) {
+        if (isEndOfExercises) {
+            if (!isReviewMode && mistakes.length > 0) {
+                // Pedagogy: Start Review Mode for mistakes
+                setVisible(false);
+                setTransitioning(true);
+                setTimeout(() => {
+                    setIsReviewMode(true);
+                    setCurrentQuestionIndex(0);
+                    setTransitioning(false);
+                    setVisible(true);
+                    setTimerKey(k => k + 1);
+                }, 220);
+                return;
+            }
+
             setSubmitting(true);
             router.post(route('exercise.submit_session', node.id), {
                 answers,
                 node_id: node.id,
-                time_spent: timeSpent,
+                time_spent: timeSpentRef.current,
             }, {
                 forceFormData: true,
             });
@@ -305,9 +505,9 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
         setVisible(false);
         setTransitioning(true);
         setTimeout(() => {
-            if (currentQuestionIndex < questions.length - 1) {
+            if (currentQuestionIndex < (isReviewMode ? mistakes.length - 1 : questions.length - 1)) {
                 setCurrentQuestionIndex(prev => prev + 1);
-            } else {
+            } else if (!isReviewMode) {
                 setCurrentExerciseIndex(prev => prev + 1);
                 setCurrentQuestionIndex(0);
             }
@@ -315,15 +515,22 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
             setVisible(true);
             setTimerKey(k => k + 1);
         }, 220);
-    }, [currentExerciseIndex, currentQuestionIndex, exercises.length, questions.length, answers, node.id, timeSpent, isChecked]);
+    }, [currentExerciseIndex, currentQuestionIndex, exercises, questions.length, answers, node.id, mistakes, isReviewMode, exercise]);
+
+    const handleTimeUpdate = useCallback((elapsed: number) => {
+        timeSpentRef.current += 1;
+        setTimeSpent(timeSpentRef.current);
+        setTimerSeconds(TIME_PER_QUESTION - elapsed);
+    }, [TIME_PER_QUESTION]);
 
     const handleTimeExpire = useCallback(() => {
         if (!isChecked) {
             setIsChecked(true);
             setIsCorrect(false);
+            setMistakes(prev => [...prev, { ...question, component_key: componentKey }]);
         }
         setTimeout(() => nextStep(), 1200);
-    }, [isChecked, nextStep]);
+    }, [isChecked, nextStep, question, componentKey]);
 
     // Keyboard shortcut: Space / Enter
     useEffect(() => {
@@ -500,10 +707,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                                 <ExerciseTimer
                                     key={timerKey}
                                     timeLimit={TIME_PER_QUESTION}
-                                    onTimeUpdate={(elapsed) => {
-                                        setTimeSpent(prev => prev + 1);
-                                        setTimerSeconds(TIME_PER_QUESTION - elapsed);
-                                    }}
+                                    onTimeUpdate={handleTimeUpdate}
                                     onExpire={handleTimeExpire}
                                 />
                             </div>
@@ -528,12 +732,32 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                     style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
                 >
                     {exercise.content?.passage && (
-                        <div className="passage-card prose prose-slate dark:prose-invert max-w-none">
-                            {exercise.content.passage}
+                        <div className="passage-card relative overflow-hidden group">
+                           <div className="flex items-center justify-between mb-3 border-b border-indigo-100/50 pb-2">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Texte de référence</span>
+                                <button 
+                                    onClick={() => playTts(exercise.content.passage, 'passage')}
+                                    className={`p-1.5 rounded-lg transition-all ${playingTts === 'passage' ? 'bg-indigo-100 text-indigo-600 scale-110' : 'hover:bg-indigo-50 text-slate-400 hover:text-indigo-500'}`}
+                                >
+                                    <Icon name={playingTts === 'passage' ? 'volume-2' : 'volume-1'} size={18} />
+                                </button>
+                            </div>
+                            <HighlightedPassage text={exercise.content.passage} highlight={highlightedText || ''} />
                         </div>
                     )}
 
-                    <div className="player-card" style={{ padding: '24px' }}>
+                    <div className="player-card group/card" style={{ padding: '24px' }}>
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-[15px] font-bold text-slate-800">
+                                {question.text || question.prompt}
+                            </h2>
+                            <button 
+                                onClick={() => playTts(question.text || question.prompt, 'question')}
+                                className={`p-1.5 rounded-lg transition-all ${playingTts === 'question' ? 'bg-indigo-100 text-indigo-600 scale-110' : 'opacity-0 group-hover/card:opacity-100 hover:bg-slate-100 text-slate-400'}`}
+                            >
+                                <Icon name={playingTts === 'question' ? 'volume-2' : 'volume-1'} size={18} />
+                            </button>
+                        </div>
                         <Component
                             key={question.id ?? currentQuestionIndex}
                             question={{ ...exercise.content, ...question }}
@@ -598,86 +822,176 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                                         {isCorrect ? t('exercise.correct') : t('exercise.incorrect')}
                                     </div>
                                     {!isCorrect && (
-                                        <div className="flex flex-col gap-2 mt-1">
-                                            <button
-                                                onClick={async () => {
-                                                    if (fetchingExplanation) return;
-                                                    setFetchingExplanation(true);
-                                                    try {
-                                                        const res = await fetch(route('api.ai.explain'), {
-                                                            method: 'POST',
-                                                            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content },
-                                                            body: JSON.stringify({
-                                                                prompt: question.prompt ?? question.text ?? '',
-                                                                user_answer: String(answers[question.id] ?? ''),
-                                                                correct_answer: String(question.correct_answer ?? question.correct ?? ''),
-                                                                language: node.exam.language.name
-                                                            })
-                                                        });
-                                                        const data = await res.json();
-                                                        setExplanation(data.explanation);
-                                                    } catch (e) {
-                                                        setExplanation("Désolé, l'IA ne peut pas expliquer cette erreur pour le moment.");
-                                                    } finally {
-                                                        setFetchingExplanation(false);
-                                                    }
-                                                }}
-                                                className="text-left text-[13px] font-bold text-red-600 hover:text-red-700 underline underline-offset-4 transition-all disabled:opacity-50"
-                                                disabled={fetchingExplanation}
-                                            >
-                                                {fetchingExplanation ? 'Analyse en cours...' : t('exercise.why_incorrect', 'Pourquoi est-ce faux ?')}
-                                            </button>
-
-                                            {explanation && (
-                                                <div className="mt-2 p-4 rounded-2xl bg-white/60 border border-red-100 text-[13px] leading-relaxed text-red-900 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
-                                                    <div className="flex items-center gap-2 mb-2 font-black uppercase text-[10px] tracking-widest text-red-400">
-                                                        <Icon name="sparkles" size={12} />
-                                                        Explication IA
+                                        <div className="mt-1 flex items-start gap-3">
+                                            <div className="max-w-[340px]">
+                                                {fetchingExplanation ? (
+                                                    <p className="text-[13px] font-medium text-red-600/80 leading-snug italic">Analyse de votre erreur...</p>
+                                                ) : explanation && typeof explanation === 'object' ? (
+                                                    <div className="space-y-0.5">
+                                                        <p className="text-[13px] font-medium text-red-700 leading-snug">
+                                                            {(i18n.language === 'fr' && explanation.french_translation?.concept) ? explanation.french_translation.concept : explanation.concept}
+                                                        </p>
+                                                        {(i18n.language === 'fr' && explanation.french_translation?.hint ? explanation.french_translation.hint : explanation.hint) && (
+                                                            <p className="text-[12px] text-red-500/80 leading-snug">
+                                                                💡 {i18n.language === 'fr' && explanation.french_translation?.hint ? explanation.french_translation.hint : explanation.hint}
+                                                            </p>
+                                                        )}
                                                     </div>
-                                                    {explanation}
-                                                </div>
-                                            )}
+                                                ) : (
+                                                    <p className="text-[13px] font-medium text-red-600/80 leading-snug">{explanation as string}</p>
+                                                )}
+                                            </div>
+                                            <button
+                                                onClick={() => setIsChatOpen(true)}
+                                                className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 transition-colors text-xs font-bold"
+                                            >
+                                                <Icon name="message-square" size={14} />
+                                                Discuter
+                                            </button>
                                         </div>
                                     )}
                                 </div>
                             </div>
                         )}
+                        
+                        <AiChatFeedback
+                            isOpen={isChatOpen}
+                            onClose={() => setIsChatOpen(false)}
+                            initialExplanation={explanation ? getExplanationText(explanation, i18n.language) : undefined}
+                            context={{
+                                prompt: question.text || question.prompt || '',
+                                user_answer: String(answers[question.id] || ''),
+                                correct_answer: String(question.correct_answer || question.correct || ''),
+                                language: node.exam.language.name
+                            }}
+                        />
 
                         {!isChecked && (
-                            <div style={{ fontSize: '0.75rem', opacity: 0.3, userSelect: 'none' }}>
-                                <span className="kbd-hint">Space</span> {t('exercise.check', 'Check')}
+                            <div className="flex items-center gap-4">
+                                <div style={{ fontSize: '0.75rem', opacity: 0.3, userSelect: 'none' }}>
+                                    <span className="kbd-hint">Space</span> {t('exercise.check', 'Check')}
+                                </div>
+                                <button 
+                                    onClick={() => setIsDictionaryOpen(true)}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors text-xs font-bold"
+                                >
+                                    <Icon name="search" size={14} />
+                                    Dictionnaire
+                                </button>
                             </div>
                         )}
                     </div>
 
+                    {/* Dictionary Modal */}
+                    {isDictionaryOpen && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+                            <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-200">
+                                <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                                    <h3 className="font-bold text-slate-800">Dictionnaire Rapide</h3>
+                                    <button onClick={() => setIsDictionaryOpen(false)} className="p-1 hover:bg-slate-200 rounded-full transition-colors">
+                                        <Icon name="x" size={18} />
+                                    </button>
+                                </div>
+                                <div className="p-4">
+                                    <div className="relative">
+                                        <input 
+                                            autoFocus
+                                            type="text" 
+                                            placeholder="Rechercher un mot..." 
+                                            className="w-full px-4 py-3 bg-slate-100 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all font-medium"
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            onKeyDown={async (e) => {
+                                                if (e.key === 'Enter' && searchTerm.trim()) {
+                                                    setIsSearching(true);
+                                                    setSearchResult(null);
+                                                    setIsVocabSaved(false);
+                                                    try {
+                                                        const res = await fetch(route('dictionary.lookup', { language: nodeCode, word: searchTerm }));
+                                                        const data = await res.json();
+                                                        if (data.word) setSearchResult(data);
+                                                        else setSearchResult({ error: true });
+                                                    } catch (err) {
+                                                        setSearchResult({ error: true });
+                                                    } finally {
+                                                        setIsSearching(false);
+                                                    }
+                                                }
+                                            }}
+                                        />
+                                    </div>
+                                    <div className="mt-4 min-h-[120px]">
+                                        {isSearching ? (
+                                            <div className="flex flex-col items-center justify-center py-6 gap-3">
+                                                <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                                                <p className="text-xs text-slate-400 font-medium italic">Recherche intelligente en cours...</p>
+                                            </div>
+                                        ) : searchResult?.error ? (
+                                            <div className="text-center py-6 text-slate-400 text-sm">Mot non trouvé. Essayez une autre orthographe.</div>
+                                        ) : searchResult ? (
+                                            <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                                <div className="p-4 bg-indigo-50/50 rounded-xl border border-indigo-100">
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <h4 className="font-bold text-indigo-900 text-lg">{searchResult.word}</h4>
+                                                        <span className="text-[10px] font-black bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded uppercase">{searchResult.skill_level}</span>
+                                                    </div>
+                                                    <p className="text-sm text-slate-700 leading-relaxed italic mb-3">"{searchResult.definition}"</p>
+                                                    <div className="text-xs text-slate-500 font-medium">Traduction : <span className="text-indigo-600">{searchResult.translation}</span></div>
+                                                </div>
+                                                <button 
+                                                    disabled={isVocabSaved}
+                                                    onClick={async () => {
+                                                        try {
+                                                            await router.post(route('vocabulary.store'), { dictionary_word_id: searchResult.id });
+                                                            setIsVocabSaved(true);
+                                                            setTimeout(() => {
+                                                                setIsDictionaryOpen(false);
+                                                                setSearchResult(null);
+                                                                setSearchTerm('');
+                                                                setIsVocabSaved(false);
+                                                            }, 1500);
+                                                        } catch (err) { console.error(err); }
+                                                    }}
+                                                    className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${
+                                                        isVocabSaved ? 'bg-emerald-500 text-white' : 'bg-indigo-600 text-white shadow-lg shadow-indigo-100'
+                                                    }`}
+                                                >
+                                                    <Icon name={isVocabSaved ? 'check' : 'plus'} size={16} style={{ filter: 'brightness(0) invert(1)' }} />
+                                                    {isVocabSaved ? 'Ajouté au Lexique !' : 'Ajouter à mon Lexique'}
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div className="text-center py-6 text-slate-400 text-sm italic">
+                                                Entrez un mot pour voir sa définition et l'ajouter à votre lexique.
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* CTA button */}
                     <button
                         className={`btn-check ${
-                            submitting
+                            submitting || isVerifying
                                 ? 'btn-submitting'
                                 : isChecked
                                     ? isCorrect ? 'btn-correct' : 'btn-incorrect'
                                     : 'btn-default'
                         }`}
-                        disabled={!hasAnswer || submitting}
-                        onClick={isChecked ? (isCorrect ? nextStep : handleRetry) : checkAnswer}
+                        disabled={!hasAnswer || submitting || isVerifying}
+                        onClick={isChecked ? nextStep : checkAnswer}
                     >
-                        {submitting ? (
+                        {submitting || isVerifying ? (
                             <>
-                                <span style={{ opacity: 0.8 }}>{t('exercise.finish', 'Finish')}</span>
+                                <span style={{ opacity: 0.8 }}>{isVerifying ? 'Vérification...' : t('exercise.finish', 'Finish')}</span>
                             </>
                         ) : isChecked ? (
-                            isCorrect ? (
-                                <>
-                                    {isLastQuestion ? t('exercise.finish', 'Finish') : t('exercise.next', 'Next')}
-                                    <Icon name="chevron-right" size={15} style={{ filter: 'brightness(0) invert(1)' }} />
-                                </>
-                            ) : (
-                                <>
-                                    {t('exercise.retry', 'Réessayer')}
-                                    <Icon name="refresh-cw" size={15} style={{ filter: 'brightness(0) invert(1)' }} />
-                                </>
-                            )
+                            <>
+                                {isCorrect ? (isLastQuestion ? t('exercise.finish', 'Finish') : t('exercise.next', 'Next')) : 'Continuer'}
+                                <Icon name="chevron-right" size={15} style={{ filter: 'brightness(0) invert(1)' }} />
+                            </>
                         ) : (
                             <>
                                 {t('exercise.check', 'Check')}

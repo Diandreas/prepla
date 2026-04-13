@@ -84,6 +84,27 @@
     "section_attempts_other": "{{count}} attempts",
     "section_exercise_types": "{{count}} exercise types"
   },
+  "dictionary": {
+    "title": "My Dictionary",
+    "subtitle": "Progressive academic vocabulary learning.",
+    "review_btn": "REVIEW (5 WORDS)",
+    "discover_btn": "DISCOVER",
+    "loading": "LOADING...",
+    "search_placeholder": "Search for a word or translation...",
+    "mastery": "Mastery",
+    "session_title": "Review Session",
+    "word_count": "Word {{current}} of {{total}}",
+    "session_done": "Session Complete!",
+    "xp_earned": "You earned +{{xp}} XP",
+    "fill_blank": "Complete the sentence",
+    "listen": "LISTEN",
+    "definition_label": "DEFINITION: {{text}}",
+    "type_word": "Type the word...",
+    "check": "CHECK",
+    "next": "NEXT WORD →",
+    "correct_answer": "Correct! ✓",
+    "wrong_answer": "The correct answer was: {{word}}"
+  },
   "results": {
     "title": "My Results",
     "subtitle": "Track your progress across all skills",

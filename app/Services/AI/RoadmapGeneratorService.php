@@ -26,14 +26,16 @@ class RoadmapGeneratorService
         }
 
         // 2. Filtrer les nœuds selon le niveau de l'utilisateur
-        // On garde les nœuds de niveau >= niveau actuel
         $filteredNodes = $this->filterNodesByLevel($nodes, $currentLevel);
 
-        // 3. Calculer la planification temporelle
+        // 3. Appliquer la rampe pédagogique progressive
+        $filteredNodes = $this->applyProgressiveRamp($filteredNodes, $currentLevel);
+
+        // 4. Calculer la planification temporelle
         $startDate = Carbon::today();
         $targetDate = $examDate ? Carbon::parse($examDate) : Carbon::today()->addMonths(3);
         $totalDays = max(1, $startDate->diffInDays($targetDate));
-        
+
         return $this->scheduleNodes($user->id, $filteredNodes, $startDate, $totalDays);
     }
 
@@ -41,7 +43,7 @@ class RoadmapGeneratorService
     {
         $levels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
         $currentIndex = array_search($currentLevel, $levels);
-        
+
         if ($currentIndex === false) $currentIndex = 0;
 
         return $nodes->filter(function ($node) use ($levels, $currentIndex) {
@@ -51,6 +53,73 @@ class RoadmapGeneratorService
         });
     }
 
+    /**
+     * Applique une rampe pédagogique progressive :
+     * - Pour les débutants (A0/A1) : exclure les simulations d'examen du début du parcours
+     *   et remettre les exercices de production (speaking, writing) après une phase d'acquisition.
+     * - Pour tous : trier les nœuds du même niveau pour présenter les types
+     *   d'entrée (vocabulary, reading) avant les types de production (speaking, writing).
+     */
+    private function applyProgressiveRamp(Collection $nodes, string $currentLevel): Collection
+    {
+        $isBeginnerLevel = in_array($currentLevel, ['A0', 'A1']);
+
+        // Poids de skill_type pour l'ordre pédagogique :
+        // Acquisition avant production
+        $skillOrder = [
+            'vocabulary' => 1,
+            'reading'    => 2,
+            'listening'  => 3,
+            'grammar'    => 4,
+            'writing'    => 5,
+            'speaking'   => 6,
+        ];
+
+        // Pour les débutants, on sépare les nœuds en 3 phases :
+        // Phase 1 (25%) : acquisition seulement (vocab, reading, listening, grammar)
+        //   → exclure speaking/writing et les simulations d'examen
+        // Phase 2 (50%) : tous les types sauf simulation
+        // Phase 3 (25%) : tout (y compris simulations)
+
+        if ($isBeginnerLevel) {
+            $productionTypes = ['speaking', 'writing', 'production'];
+            $simulationTypes = ['exam-simulation', 'mock-exam', 'full-exam'];
+
+            $acquisition = $nodes->filter(function ($node) use ($productionTypes, $simulationTypes) {
+                return !in_array($node->skill_type, $productionTypes)
+                    && !in_array($node->node_type, $simulationTypes);
+            });
+
+            $production = $nodes->filter(function ($node) use ($productionTypes, $simulationTypes) {
+                return in_array($node->skill_type, $productionTypes)
+                    && !in_array($node->node_type, $simulationTypes);
+            });
+
+            $simulation = $nodes->filter(function ($node) use ($simulationTypes) {
+                return in_array($node->node_type, $simulationTypes);
+            });
+
+            // Trier chaque groupe par skill_type dans l'ordre pédagogique
+            $sortFn = function ($node) use ($skillOrder) {
+                return $skillOrder[$node->skill_type] ?? 9;
+            };
+
+            $nodes = $acquisition->sortBy($sortFn)
+                ->concat($production->sortBy($sortFn))
+                ->concat($simulation);
+        } else {
+            // Pour les niveaux intermédiaires+, seulement trier par skill_type
+            // au sein de chaque chapitre (conserver l'ordre des chapitres)
+            $nodes = $nodes->sortBy(function ($node) use ($skillOrder) {
+                // Tri primaire : chapter_order, secondaire : skill_order
+                $skillWeight = $skillOrder[$node->skill_type] ?? 9;
+                return $node->chapter_order * 100 + $skillWeight;
+            });
+        }
+
+        return $nodes->values();
+    }
+
     private function scheduleNodes($userId, Collection $nodes, Carbon $startDate, int $totalDays): Collection
     {
         $nodeCount = $nodes->count();
@@ -58,11 +127,10 @@ class RoadmapGeneratorService
 
         // Calculer combien de nœuds par jour (vitesse)
         $nodesPerDay = $nodeCount / $totalDays;
-        
-        $progressEntries = [];
-        $currentNodeIndex = 0;
 
-        // Supprimer l'ancienne progression pour repartir de zéro (ou archiver si nécessaire)
+        $progressEntries = [];
+
+        // Supprimer l'ancienne progression pour repartir de zéro
         UserLearningProgress::where('user_id', $userId)->delete();
 
         $nodes = $nodes->values(); // Réindexer à partir de 0

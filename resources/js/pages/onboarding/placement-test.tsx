@@ -3,6 +3,11 @@ import OnboardingLayout from '@/layouts/onboarding-layout';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { ExamWithLanguage } from '@/types';
 
+// ─── Components ──────────────────────────────────────────────────────────────
+function Icon({ name, size = 20, className, style }: { name: string; size?: number; className?: string; style?: React.CSSProperties }) {
+    return <img src={`/icons/${name}.png`} alt="" width={size} height={size} className={className} style={{ objectFit: 'contain', ...style }} />;
+}
+
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 interface MCQQuestion {
@@ -225,7 +230,7 @@ function MCQBlock({
                                 isSelected
                                     ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
                                     : 'border-border bg-card hover:border-primary/40'
-                            } disabled:opacity-50`}
+                            } disabled:opacity-30`}
                         >
                             <span
                                 className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors ${
@@ -238,6 +243,20 @@ function MCQBlock({
                         </button>
                     );
                 })}
+                
+                {/* Skip option */}
+                <button
+                    disabled={disabled}
+                    onClick={() => onAnswer(question.id, 'SKIP')}
+                    className={`flex items-center justify-center gap-2 rounded-xl border-2 border-dashed p-3 text-sm font-bold transition-all ${
+                        selectedAnswer === 'SKIP'
+                            ? 'border-amber-400 bg-amber-50 text-amber-700'
+                            : 'border-slate-200 text-slate-400 hover:border-slate-300 hover:bg-slate-50'
+                    } mt-2`}
+                >
+                    <Icon name="help-circle" size={16} />
+                    Je ne sais pas
+                </button>
             </div>
         </div>
     );

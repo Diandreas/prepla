@@ -11,6 +11,18 @@ class ExerciseGeneratorService
 {
     public function __construct(protected MistralService $mistral) {}
 
+    public function generateBatch(array $typeIds, Exam $exam, string $difficulty = 'B1'): array
+    {
+        $exercises = [];
+        foreach ($typeIds as $typeId) {
+            $exerciseType = ExerciseType::find($typeId);
+            if ($exerciseType) {
+                $exercises[] = $this->generate($exerciseType, $exam, $difficulty);
+            }
+        }
+        return $exercises;
+    }
+
     public function generate(ExerciseType $exerciseType, Exam $exam, string $difficulty = 'B1'): Exercise
     {
         $exam->loadMissing('language');

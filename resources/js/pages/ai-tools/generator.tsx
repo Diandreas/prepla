@@ -32,19 +32,25 @@ const difficulties = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
 export default function Generator({ exams, targetExamId, userLevel }: Props) {
     const [selectedExamId, setSelectedExamId] = useState<number | null>(targetExamId ?? null);
-    const [selectedTypeId, setSelectedTypeId] = useState<number | null>(null);
+    const [selectedTypeIds, setSelectedTypeIds] = useState<number[]>([]);
     const [difficulty, setDifficulty] = useState(userLevel ?? 'B1');
     const [generating, setGenerating] = useState(false);
 
     const selectedExam = exams.find((e) => e.id === selectedExamId);
     const allTypes = selectedExam?.sections.flatMap((s) => s.exercise_types ?? []) ?? [];
 
+    function toggleType(id: number) {
+        setSelectedTypeIds(prev => 
+            prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id]
+        );
+    }
+
     function handleGenerate() {
-        if (!selectedExamId || !selectedTypeId) return;
+        if (!selectedExamId || selectedTypeIds.length === 0) return;
         setGenerating(true);
         router.post(route('ai-tools.generator.store'), {
             exam_id: selectedExamId,
-            exercise_type_id: selectedTypeId,
+            exercise_type_ids: selectedTypeIds,
             difficulty,
         });
     }
@@ -52,100 +58,82 @@ export default function Generator({ exams, targetExamId, userLevel }: Props) {
     return (
         <AppLayout>
             <Head title="Générateur d'exercices IA" />
-            <div className="space-y-6 p-4 md:p-6">
-                <div>
-                    <h1 className="text-2xl font-bold">Générateur d'exercices</h1>
-                    <p className="text-muted-foreground">
-                        Générez des exercices personnalisés adaptés à vos besoins
-                    </p>
-                </div>
-
-                {targetExamId && selectedExam && (
-                    <div className="flex items-center gap-4 rounded-xl border bg-card p-4 shadow-sm">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                            {selectedExam.language?.flag && <FlagImg flag={selectedExam.language.flag} size={32} />}
-                        </div>
-                        <div>
-                            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Examen cible</p>
-                            <p className="text-lg font-bold">{selectedExam.name}</p>
-                        </div>
+            <div className="space-y-6 p-4 md:p-6 pb-32">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl font-black tracking-tight">Générateur d'exercices</h1>
+                        <p className="text-slate-500">
+                            Créez des exercices sur-mesure pour votre préparation
+                        </p>
                     </div>
-                )}
-
-                {/* Step 1: Choose Exam (Only if not pre-selected) */}
-                {!targetExamId && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-base">1. Choisir un examen</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                                {exams.map((exam) => (
-                                    <button
-                                        key={exam.id}
-                                        onClick={() => {
-                                            setSelectedExamId(exam.id);
-                                            setSelectedTypeId(null);
-                                        }}
-                                        className={`rounded-lg border p-3 text-left transition-all ${
-                                            selectedExamId === exam.id
-                                                ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                                                : 'border-border hover:border-primary/50'
-                                        }`}
-                                    >
-                                        {exam.language?.flag && <span className="mr-2 inline-flex"><FlagImg flag={exam.language.flag} size={18} /></span>}
-                                        <span className="font-medium">{exam.name}</span>
-                                    </button>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
+                    {selectedTypeIds.length > 0 && (
+                        <Badge variant="outline" className="px-4 py-2 rounded-full border-indigo-200 bg-indigo-50 text-indigo-700 font-bold">
+                            {selectedTypeIds.length} sélectionné{selectedTypeIds.length > 1 ? 's' : ''}
+                        </Badge>
+                    )}
+                </div>
 
                 {/* Step 2: Choose Exercise Type */}
                 {selectedExam && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-base">{targetExamId ? '1' : '2'}. Choisir un type d'exercice</CardTitle>
+                    <Card className={`rounded-[32px] border-none shadow-2xl shadow-slate-200/50 transition-opacity duration-300 ${generating ? 'opacity-50 pointer-events-none' : ''}`}>
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-lg font-black uppercase tracking-wider text-slate-400">1. Sélectionnez les types d'exercices</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="grid gap-2 sm:grid-cols-2">
-                                {allTypes.map((type) => (
-                                    <button
-                                        key={type.id}
-                                        onClick={() => setSelectedTypeId(type.id)}
-                                        className={`rounded-lg border p-3 text-left transition-all ${
-                                            selectedTypeId === type.id
-                                                ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                                                : 'border-border hover:border-primary/50'
-                                        }`}
-                                    >
-                                        <p className="font-medium">{type.name}</p>
-                                        <Badge variant="secondary" className="mt-1 text-xs">{type.skill_type}</Badge>
-                                    </button>
-                                ))}
+                            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                                {allTypes.map((type) => {
+                                    const isSelected = selectedTypeIds.includes(type.id);
+                                    return (
+                                        <button
+                                            key={type.id}
+                                            onClick={() => toggleType(type.id)}
+                                            disabled={generating}
+                                            className={`group relative flex flex-col items-start rounded-3xl border-2 p-5 text-left transition-all ${
+                                                isSelected
+                                                    ? 'border-indigo-600 bg-indigo-50 ring-4 ring-indigo-600/10'
+                                                    : 'border-slate-100 bg-white hover:border-indigo-200 hover:bg-slate-50'
+                                            } ${generating ? 'cursor-not-allowed' : ''}`}
+                                        >
+                                            <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-2xl transition-colors ${
+                                                isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400 group-hover:bg-indigo-100 group-hover:text-indigo-600'
+                                            }`}>
+                                                <div className="font-black text-xs">{type.skill_type.substring(0, 3).toUpperCase()}</div>
+                                            </div>
+                                            <p className={`font-black text-sm tracking-tight ${isSelected ? 'text-indigo-900' : 'text-slate-700'}`}>
+                                                {type.name}
+                                            </p>
+                                            
+                                            {isSelected && (
+                                                <div className="absolute top-4 right-4 text-indigo-600">
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6L9 17l-5-5" /></svg>
+                                                </div>
+                                            )}
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </CardContent>
                     </Card>
                 )}
 
                 {/* Step 3: Choose Difficulty */}
-                {selectedTypeId && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-base">{targetExamId ? '2' : '3'}. Choisir la difficulté</CardTitle>
+                {selectedTypeIds.length > 0 && (
+                    <Card className={`rounded-[32px] border-none shadow-2xl shadow-slate-200/50 transition-opacity duration-300 ${generating ? 'opacity-50 pointer-events-none' : ''}`}>
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-lg font-black uppercase tracking-wider text-slate-400">2. Niveau CEFR</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="flex flex-wrap gap-2">
+                            <div className="flex flex-wrap gap-3">
                                 {difficulties.map((d) => (
                                     <button
                                         key={d}
                                         onClick={() => setDifficulty(d)}
-                                        className={`rounded-lg border px-4 py-2 font-medium transition-all ${
+                                        disabled={generating}
+                                        className={`rounded-2xl border-2 px-6 py-3 font-black transition-all ${
                                             difficulty === d
-                                                ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                                                : 'border-border hover:border-primary/50'
-                                        }`}
+                                                ? 'border-indigo-600 bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
+                                                : 'border-slate-100 bg-white text-slate-500 hover:border-indigo-200'
+                                        } ${generating ? 'cursor-not-allowed' : ''}`}
                                     >
                                         {d}
                                     </button>
@@ -155,17 +143,25 @@ export default function Generator({ exams, targetExamId, userLevel }: Props) {
                     </Card>
                 )}
 
-                {/* Generate button */}
-                {selectedTypeId && (
-                    <Button
-                        size="lg"
-                        onClick={handleGenerate}
-                        disabled={generating}
-                        className="gap-2"
-                    >
-                        <img src="/icons/sparkles.png" alt="" width={16} height={16} style={{ objectFit: 'contain' }} />
-                        {generating ? 'Génération en cours...' : "Générer l'exercice"}
-                    </Button>
+                {/* Sticky Action Bar */}
+                {selectedTypeIds.length > 0 && (
+                    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 animate-in slide-in-from-bottom-10 duration-500">
+                        <Button
+                            size="lg"
+                            onClick={handleGenerate}
+                            disabled={generating}
+                            className="h-16 w-full rounded-3xl bg-indigo-600 font-black uppercase tracking-widest text-white shadow-2xl shadow-indigo-600/40 hover:bg-indigo-700 hover:shadow-indigo-600/50 disabled:bg-slate-400 disabled:shadow-none"
+                        >
+                            {generating ? (
+                                <div className="flex items-center gap-3">
+                                    <div className="h-5 w-5 animate-spin rounded-full border-4 border-white/30 border-t-white" />
+                                    <span>Génération...</span>
+                                </div>
+                            ) : (
+                                <span>Générer {selectedTypeIds.length} Exercice{selectedTypeIds.length > 1 ? 's' : ''}</span>
+                            )}
+                        </Button>
+                    </div>
                 )}
             </div>
         </AppLayout>

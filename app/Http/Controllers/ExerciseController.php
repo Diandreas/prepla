@@ -29,7 +29,91 @@ class ExerciseController extends Controller
         $user = auth()->user();
         $validated = $request->validate([
             'answers' => 'required|array',
+            'time_spent' => 'nullable|integer',
         ]);
+
+        $answers = $validated['answers'];
+        $timeSpent = $validated['time_spent'] ?? 0;
+
+        // Calculer les résultats pour le rapport final
+        // On récupère les exercices associés à ce nœud (le set de 3)
+        $exercises = \App\Models\Exercise::where('node_id', $node->id)->get();
+        $sessionResults = [];
+        $totalXp = 0;
+        $totalCorrect = 0;
+        $totalQuestions = 0;
+        $totalAccuracy = 0;
+        $exerciseCount = 0;
+
+        foreach ($exercises as $exercise) {
+            $exerciseAnswers = [];
+            foreach ($exercise->questions as $index => $question) {
+                $qId = $question['id'] ?? (string)$index;
+                if (isset($answers[$qId])) {
+                    $exerciseAnswers[$qId] = $answers[$qId];
+                    $totalQuestions++;
+                }
+            }
+
+            if (!empty($exerciseAnswers)) {
+                $result = $this->scoringService->score($exercise, $exerciseAnswers);
+                
+                // Enregistrer l'essai pour chaque exercice du set
+                UserExerciseAttempt::create([
+                    'user_id' => $user->id,
+                    'exercise_id' => $exercise->id,
+                    'answers' => $exerciseAnswers,
+                    'score' => $result['score'],
+                    'accuracy_percent' => $result['accuracy'],
+                    'time_spent' => round($timeSpent / max(1, count($exercises))),
+                    'xp_earned' => $result['xp'],
+                    'feedback' => $result['feedback'],
+                ]);
+
+                // Track errors for long-term review
+                foreach ($result['feedback'] as $qFeedback) {
+                    if (!($qFeedback['correct'] ?? false)) {
+                        $questionData = collect($exercise->questions)->firstWhere('id', $qFeedback['question_id']);
+                        \App\Models\UserError::updateOrCreate(
+                            [
+                                'user_id' => $user->id,
+                                'exercise_id' => $exercise->id,
+                                'question_id' => $qFeedback['question_id'],
+                            ],
+                            [
+                                'question_text' => $questionData['text'] ?? $questionData['prompt'] ?? 'Exercice practice',
+                                'user_answer' => is_array($exerciseAnswers[$qFeedback['question_id']] ?? '') ? json_encode($exerciseAnswers[$qFeedback['question_id']]) : (string)($exerciseAnswers[$qFeedback['question_id']] ?? ''),
+                                'correct_answer' => is_array($qFeedback['correct_answer'] ?? '') ? json_encode($qFeedback['correct_answer']) : (string)($qFeedback['correct_answer'] ?? ''),
+                                'skill_type' => $exercise->exerciseType->section->skill_type ?? 'reading',
+                                'exercise_type_slug' => $exercise->exerciseType->slug,
+                                'error_category' => 'session_mistake',
+                                'mastered' => false,
+                            ]
+                        );
+                    } else {
+                        // If it was corrected now, mark as mastered if it existed
+                        \App\Models\UserError::where('user_id', $user->id)
+                            ->where('question_id', $qFeedback['question_id'])
+                            ->update(['mastered' => true]);
+                    }
+                }
+
+                $totalXp += $result['xp'];
+                $totalCorrect += $result['score'];
+                $totalAccuracy += $result['accuracy'];
+                $exerciseCount++;
+                
+                $sessionResults[] = [
+                    'exercise_id' => $exercise->id,
+                    'title' => $exercise->title,
+                    'score' => $result['score'],
+                    'total' => count($exercise->questions),
+                    'accuracy' => $result['accuracy'],
+                    'xp' => $result['xp'],
+                    'feedback' => $result['feedback'],
+                ];
+            }
+        }
 
         // 1. Marquer le nœud comme complété
         $progress = UserLearningProgress::where('user_id', $user->id)
@@ -40,10 +124,9 @@ class ExerciseController extends Controller
             $progress->update([
                 'status' => 'completed',
                 'exercises_done' => $progress->exercises_required,
-                'exercises_required' => 3
             ]);
 
-            // 2. Débloquer le nœud suivant dans le syllabus
+            // 2. Débloquer le nœud suivant
             $nextNode = LearningPathNode::where('exam_id', $node->exam_id)
                 ->where(function($query) use ($node) {
                     $query->where('chapter_order', '>', $node->chapter_order)
@@ -64,19 +147,62 @@ class ExerciseController extends Controller
             }
         }
 
-        // 3. Ajouter de l'XP à l'utilisateur
-        $xpEarned = $node->xp_reward ?? 50;
-        $user->profile?->increment('xp_total', $xpEarned);
+        // 3. Ajouter l'XP cumulé
+        $user->profile?->increment('xp_total', $totalXp);
+        $this->incrementLeaderboard($user->id, $totalXp);
+        $this->streakService->recordActivity($user);
 
-        // 4. Mettre à jour le classement hebdomadaire
-        $this->incrementLeaderboard($user->id, $xpEarned);
+        // On stocke les résultats en session car Inertia n'aime pas les redirections complexes avec data
+        session(['last_session_report' => [
+            'node_title' => $node->title,
+            'accuracy' => $totalQuestions > 0 ? ($totalCorrect / $totalQuestions) * 100 : 0,
+            'xp_earned' => $totalXp,
+            'time_spent' => $timeSpent,
+            'details' => $sessionResults,
+        ]]);
 
-        // 5. Mettre à jour la série (streak)
-        if ($user instanceof \App\Models\User) {
-            $this->streakService->recordActivity($user);
+        return redirect()->route('node.session_result', $node->id);
+    }
+
+    public function sessionResult(LearningPathNode $node)
+    {
+        $report = session('last_session_report');
+        if (!$report) {
+            return redirect()->route('dashboard');
         }
 
-        return redirect()->route('dashboard')->with('success', "Session terminée ! +{$xpEarned} XP");
+        return Inertia::render('exercises/session-report', [
+            'node' => $node->load('exam.language'),
+            'report' => $report,
+        ]);
+    }
+
+    public function verifySingle(Request $request)
+    {
+        $validated = $request->validate([
+            'exercise_id' => 'required|exists:exercises,id',
+            'question_id' => 'required|string',
+            'answer' => 'required', // Can be string or file
+        ]);
+
+        $exercise = \App\Models\Exercise::with('exam.language')->findOrFail($validated['exercise_id']);
+        $questionId = $validated['question_id'];
+        $answer = $request->file('answer') ?? $request->input('answer');
+
+        // On simule un array answers pour le scoring service
+        $answers = [$questionId => $answer];
+        
+        $result = $this->scoringService->score($exercise, $answers);
+        
+        // On récupère le feedback spécifique à cette question
+        $questionFeedback = collect($result['feedback'])->firstWhere('question_id', $questionId);
+
+        return response()->json([
+            'correct' => $questionFeedback['correct'] ?? false,
+            'accuracy' => $questionFeedback['accuracy'] ?? 0,
+            'explanation' => $questionFeedback['explanation'] ?? '',
+            'transcription' => $questionFeedback['transcription'] ?? null,
+        ]);
     }
 
     public function show(Exercise $exercise): Response
@@ -213,6 +339,34 @@ class ExerciseController extends Controller
         );
 
         return response()->json(['explanation' => $explanation]);
+    }
+
+    public function chatMistake(Request $request)
+    {
+        $validated = $request->validate([
+            'messages' => 'required|array',
+            'context' => 'required|array',
+        ]);
+
+        $mistral = app(\App\Services\AI\MistralService::class);
+        
+        $systemPrompt = "You are a helpful language tutor. The user is practicing for an exam.
+        Context of the mistake:
+        Question: {$validated['context']['prompt']}
+        User Answer: {$validated['context']['user_answer']}
+        Correct Answer: {$validated['context']['correct_answer']}
+        Language: {$validated['context']['language']}
+        
+        Help the user understand their mistake specifically. Be concise and pedagogical.";
+
+        $messages = array_merge(
+            [['role' => 'system', 'content' => $systemPrompt]],
+            $validated['messages']
+        );
+
+        $response = $mistral->chatRaw($messages);
+
+        return response()->json(['message' => $response]);
     }
 
     private function incrementLeaderboard(int $userId, int $xp): void

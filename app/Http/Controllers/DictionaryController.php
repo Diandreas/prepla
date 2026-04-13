@@ -200,6 +200,35 @@ class DictionaryController extends Controller
             ->first();
 
         if (!$wordData) {
+            // Fallback: Use AI to define the word
+            try {
+                $mistral = app(\App\Services\AI\MistralService::class);
+                $langName = $language === 'de' ? 'allemand' : ($language === 'fr' ? 'français' : 'anglais');
+                
+                $prompt = "Définit le mot '{$word}' en {$langName}. Réponds UNIQUEMENT en JSON avec ce format : {\"word\": \"{$word}\", \"definition\": \"...\", \"example\": \"...\", \"translation\": \"...\", \"skill_level\": \"B2\"}. La traduction doit être en français.";
+                
+                $response = $mistral->chat([
+                    ['role' => 'system', 'content' => "Tu es un lexicographe expert. Réponds uniquement en JSON pur."],
+                    ['role' => 'user', 'content' => $prompt]
+                ]);
+
+                $data = json_decode($response, true);
+                if (isset($data['definition'])) {
+                    $wordData = DictionaryWord::create([
+                        'word' => $word,
+                        'language' => $language,
+                        'definition' => $data['definition'],
+                        'example' => $data['example'] ?? '',
+                        'translation' => $data['translation'] ?? '',
+                        'skill_level' => $data['skill_level'] ?? 'B2'
+                    ]);
+                }
+            } catch (\Exception $e) {
+                return response()->json(['error' => 'Generation failed'], 500);
+            }
+        }
+
+        if (!$wordData) {
             return response()->json(['error' => 'Not found'], 404);
         }
 

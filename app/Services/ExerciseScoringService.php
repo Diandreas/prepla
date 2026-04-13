@@ -54,17 +54,17 @@ class ExerciseScoringService
                     continue;
                 }
 
-                $textToEvaluate = $this->getTextToEvaluate($userAnswer);
-
-                if (empty($textToEvaluate)) {
-                    $feedback[] = $this->createEmptyFeedback($questionId, $userAnswer instanceof UploadedFile);
-                    continue;
-                }
-
-                $lang = $exercise->exam?->language?->name ?? 'English';
+                $langName = $exercise->exam?->language?->name ?? 'English';
+                $langSlug = $exercise->exam?->language?->slug ?? 'en';
                 
                 // Use specialized WritingCorrector for complex essays
                 if (in_array($questionType, ['essay', 'essay-editor', 'integrated-task', 'synthesis'])) {
+                    $textToEvaluate = $this->getTextToEvaluate($userAnswer, $langSlug);
+                    if (empty($textToEvaluate)) {
+                        $feedback[] = $this->createEmptyFeedback($questionId, $userAnswer instanceof UploadedFile);
+                        continue;
+                    }
+                    
                     $aiResult = $this->writingCorrector->correct($textToEvaluate, $question['prompt'] ?? $question['text'] ?? "Write an essay", $exercise->exam?->name ?? 'IELTS');
                     
                     $points = ($aiResult['score'] ?? 0) / 9; // Normalize IELTS 1-9 to 0-1
@@ -82,16 +82,22 @@ class ExerciseScoringService
                         'transcription' => ($userAnswer instanceof UploadedFile) ? $textToEvaluate : null,
                     ];
                 } else {
+                    $textToEvaluate = $this->getTextToEvaluate($userAnswer, $langSlug);
+                    if (empty($textToEvaluate)) {
+                        $feedback[] = $this->createEmptyFeedback($questionId, $userAnswer instanceof UploadedFile);
+                        continue;
+                    }
+
                     // Use standard evaluation for others (short answers, speaking)
                     $prompt = $question['prompt'] ?? $question['text'] ?? "Respond to the prompt";
-                    $aiResult = $this->mistralEval->evaluate($prompt, $textToEvaluate, $lang);
-                    
+                    $aiResult = $this->mistralEval->evaluate($prompt, $textToEvaluate, $langName);
+
                     $isCorrect = (bool) $aiResult['isCorrect'];
                     $feedback[] = [
                         'question_id' => $questionId,
                         'correct' => $isCorrect,
                         'accuracy' => $aiResult['accuracy'],
-                        'explanation' => $aiResult['feedback'],
+                        'explanation' => $aiResult['explanation'],
                         'transcription' => ($userAnswer instanceof UploadedFile) ? $textToEvaluate : null,
                     ];
                 }
@@ -158,8 +164,6 @@ class ExerciseScoringService
                          $exercise->exam?->language?->name ?? 'English'
                      );
                  }
-                 
-                 $feedback[count($feedback)-1]['explanation'] = $explanation;
             }
 
             if ($isCorrect) $correct++;
@@ -167,8 +171,9 @@ class ExerciseScoringService
             $feedback[] = [
                 'question_id' => $questionId,
                 'correct' => $isCorrect,
+                'accuracy' => (float)($accuracy ?? ($isCorrect ? 100 : 0)),
                 'correct_answer' => $correctAnswer,
-                'explanation' => $question['explanation'] ?? null,
+                'explanation' => $explanation ?? $question['explanation'] ?? null,
             ];
         }
 
@@ -184,11 +189,11 @@ class ExerciseScoringService
         ];
     }
 
-    protected function getTextToEvaluate($userAnswer): string
+    protected function getTextToEvaluate($userAnswer, ?string $lang = null): string
     {
         if ($userAnswer instanceof UploadedFile) {
             try {
-                return $this->stt->transcribe($userAnswer) ?? '';
+                return $this->stt->transcribe($userAnswer, $lang) ?? '';
             } catch (\Exception $e) {
                 Log::error('STT failed: ' . $e->getMessage());
                 return '';
@@ -205,5 +210,10 @@ class ExerciseScoringService
             'accuracy' => 0,
             'explanation' => $isAudio ? "L'audio n'a pas pu être retranscrit (vide ou muet)." : "Aucune réponse fournie.",
         ];
+    }
+
+    public function explainMistake(string $prompt, string $userAnswer, string $correctAnswer, string $language): string
+    {
+        return $this->mistralEval->explainMistake($prompt, $userAnswer, $correctAnswer, $language);
     }
 }

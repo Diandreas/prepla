@@ -132,55 +132,86 @@ export default function Result({ profile, program }: Props) {
         <OnboardingLayout title="Vos résultats" step={5}>
             <div className="space-y-7 pb-8">
 
-                {/* Level badge - with celebration animation */}
-                <div className="text-center" style={stagger(0)}>
-                    <div className="relative mx-auto mb-5 flex h-28 w-28 items-center justify-center">
-                        <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${gradient} opacity-20 blur-2xl transition-all duration-1000 ${showLevel ? 'scale-110' : 'scale-0'}`} />
-                        <div className={`absolute inset-0 rounded-full ring-4 ${ring} transition-all duration-700 ${showLevel ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`} />
-                        <div className={`relative flex h-full w-full flex-col items-center justify-center rounded-full bg-gradient-to-br ${gradient} shadow-xl transition-all duration-700 ${showLevel ? 'scale-100' : 'scale-0'}`}>
-                            <span className="text-4xl font-black text-white tracking-tight">{level}</span>
+                {/* Level badge */}
+                {level === 'A0' ? (
+                    <div className="text-center" style={stagger(0)}>
+                        <div className="relative mx-auto mb-5 flex h-28 w-28 items-center justify-center">
+                            <div className={`absolute inset-0 rounded-full bg-gradient-to-br from-indigo-400 to-indigo-600 opacity-20 blur-2xl transition-all duration-1000 ${showLevel ? 'scale-110' : 'scale-0'}`} />
+                            <div className={`absolute inset-0 rounded-full ring-4 ring-indigo-200 dark:ring-indigo-800 transition-all duration-700 ${showLevel ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`} />
+                            <div className={`relative flex h-full w-full flex-col items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-indigo-700 shadow-xl transition-all duration-700 ${showLevel ? 'scale-100' : 'scale-0'}`}>
+                                <CustomIcon name="rocket" className="h-12 w-12" style={{ filter: 'brightness(0) invert(1)' }} />
+                            </div>
+                            {showLevel && (
+                                <>
+                                    <div className="absolute -top-2 -right-2 animate-sparkle"><CustomIcon name="star" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(63%) sepia(31%) saturate(2078%) hue-rotate(229deg) brightness(97%) contrast(92%)' }} /></div>
+                                    <div className="absolute -bottom-1 -left-3 animate-sparkle" style={{ animationDelay: '0.3s' }}><CustomIcon name="star" className="h-3 w-3" style={{ filter: 'brightness(0) saturate(100%) invert(84%) sepia(40%) saturate(1734%) hue-rotate(353deg) brightness(94%) contrast(86%)' }} /></div>
+                                    <div className="absolute top-0 -left-4 animate-sparkle" style={{ animationDelay: '0.6s' }}><CustomIcon name="star" className="h-3.5 w-3.5" style={{ filter: 'brightness(0) saturate(100%) invert(39%) sepia(96%) saturate(1944%) hue-rotate(212deg) brightness(94%) contrast(91%)' }} /></div>
+                                </>
+                            )}
                         </div>
-                        {/* Sparkle particles */}
-                        {showLevel && (
-                            <>
-                                <div className="absolute -top-2 -right-2 animate-sparkle"><CustomIcon name="star" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(84%) sepia(40%) saturate(1734%) hue-rotate(353deg) brightness(94%) contrast(86%)' }} /></div>
-                                <div className="absolute -bottom-1 -left-3 animate-sparkle" style={{ animationDelay: '0.3s' }}><CustomIcon name="star" className="h-3 w-3" style={{ filter: 'brightness(0) saturate(100%) invert(39%) sepia(96%) saturate(1944%) hue-rotate(212deg) brightness(94%) contrast(91%)' }} /></div>
-                                <div className="absolute top-0 -left-4 animate-sparkle" style={{ animationDelay: '0.6s' }}><CustomIcon name="star" className="h-3.5 w-3.5" style={{ filter: 'brightness(0) saturate(100%) invert(63%) sepia(31%) saturate(2078%) hue-rotate(229deg) brightness(97%) contrast(92%)' }} /></div>
-                            </>
+                        <h1 className="text-2xl font-bold sm:text-3xl">Parfait point de départ !</h1>
+                        <p className="mt-2 text-sm text-muted-foreground max-w-xs mx-auto">
+                            Tu pars de zéro en {profile.target_exam?.language.name || 'cette langue'} — c'est exactement là que commence la vraie progression.
+                        </p>
+                        {profile.target_exam && (
+                            <p className="mt-1.5 text-xs text-muted-foreground inline-flex items-center gap-1">
+                                <FlagImg flag={profile.target_exam.language.flag} size={16} />{' '}
+                                {profile.target_exam.name}
+                                {profile.target_score ? ` · Score cible : ${profile.target_score}` : ''}
+                            </p>
                         )}
                     </div>
-                    <h1 className="text-2xl font-bold sm:text-3xl">Votre niveau estimé</h1>
-                    {profile.target_exam && (
-                        <p className="mt-1 text-sm text-muted-foreground inline-flex items-center gap-1">
-                            <FlagImg flag={profile.target_exam.language.flag} size={18} />{' '}
-                            {profile.target_exam.name}
-                            {profile.target_score ? ` · Score cible : ${profile.target_score}` : ''}
-                        </p>
-                    )}
-                </div>
-
-                {/* CEFR bar */}
-                <div className="rounded-2xl border border-border bg-card p-4" style={stagger(1)}>
-                    <p className="mb-2.5 text-xs font-medium text-muted-foreground uppercase tracking-wide">Progression CECRL</p>
-                    <div className="flex gap-1">
-                        {CEFR.map((l, i) => (
-                            <div key={l} className="flex flex-1 flex-col items-center gap-1">
-                                <div className="relative h-3 w-full overflow-hidden rounded-full bg-muted">
-                                    <div
-                                        className={`absolute inset-y-0 left-0 rounded-full bg-gradient-to-r ${gradient} transition-all duration-1000 ease-out`}
-                                        style={{
-                                            width: mounted ? (i <= levelIndex ? '100%' : '0%') : '0%',
-                                            transitionDelay: `${800 + i * 100}ms`,
-                                        }}
-                                    />
-                                </div>
-                                <span className={`text-xs font-semibold transition-colors duration-500 ${i === levelIndex ? 'text-foreground' : i < levelIndex ? 'text-primary' : 'text-muted-foreground'}`}>
-                                    {l}
-                                </span>
+                ) : (
+                    <div className="text-center" style={stagger(0)}>
+                        <div className="relative mx-auto mb-5 flex h-28 w-28 items-center justify-center">
+                            <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${gradient} opacity-20 blur-2xl transition-all duration-1000 ${showLevel ? 'scale-110' : 'scale-0'}`} />
+                            <div className={`absolute inset-0 rounded-full ring-4 ${ring} transition-all duration-700 ${showLevel ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`} />
+                            <div className={`relative flex h-full w-full flex-col items-center justify-center rounded-full bg-gradient-to-br ${gradient} shadow-xl transition-all duration-700 ${showLevel ? 'scale-100' : 'scale-0'}`}>
+                                <span className="text-4xl font-black text-white tracking-tight">{level}</span>
                             </div>
-                        ))}
+                            {showLevel && (
+                                <>
+                                    <div className="absolute -top-2 -right-2 animate-sparkle"><CustomIcon name="star" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(84%) sepia(40%) saturate(1734%) hue-rotate(353deg) brightness(94%) contrast(86%)' }} /></div>
+                                    <div className="absolute -bottom-1 -left-3 animate-sparkle" style={{ animationDelay: '0.3s' }}><CustomIcon name="star" className="h-3 w-3" style={{ filter: 'brightness(0) saturate(100%) invert(39%) sepia(96%) saturate(1944%) hue-rotate(212deg) brightness(94%) contrast(91%)' }} /></div>
+                                    <div className="absolute top-0 -left-4 animate-sparkle" style={{ animationDelay: '0.6s' }}><CustomIcon name="star" className="h-3.5 w-3.5" style={{ filter: 'brightness(0) saturate(100%) invert(63%) sepia(31%) saturate(2078%) hue-rotate(229deg) brightness(97%) contrast(92%)' }} /></div>
+                                </>
+                            )}
+                        </div>
+                        <h1 className="text-2xl font-bold sm:text-3xl">Votre niveau estimé</h1>
+                        {profile.target_exam && (
+                            <p className="mt-1 text-sm text-muted-foreground inline-flex items-center gap-1">
+                                <FlagImg flag={profile.target_exam.language.flag} size={18} />{' '}
+                                {profile.target_exam.name}
+                                {profile.target_score ? ` · Score cible : ${profile.target_score}` : ''}
+                            </p>
+                        )}
                     </div>
-                </div>
+                )}
+
+                {/* CEFR bar - Hidden for A0 beginners */}
+                {level !== 'A0' && (
+                    <div className="rounded-2xl border border-border bg-card p-4" style={stagger(1)}>
+                        <p className="mb-2.5 text-xs font-medium text-muted-foreground uppercase tracking-wide">Progression CECRL</p>
+                        <div className="flex gap-1">
+                            {CEFR.map((l, i) => (
+                                <div key={l} className="flex flex-1 flex-col items-center gap-1">
+                                    <div className="relative h-3 w-full overflow-hidden rounded-full bg-muted">
+                                        <div
+                                            className={`absolute inset-y-0 left-0 rounded-full bg-gradient-to-r ${gradient} transition-all duration-1000 ease-out`}
+                                            style={{
+                                                width: mounted ? (i <= levelIndex ? '100%' : '0%') : '0%',
+                                                transitionDelay: `${800 + i * 100}ms`,
+                                            }}
+                                        />
+                                    </div>
+                                    <span className={`text-xs font-semibold transition-colors duration-500 ${i === levelIndex ? 'text-foreground' : i < levelIndex ? 'text-primary' : 'text-muted-foreground'}`}>
+                                        {l}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {/* AI Summary */}
                 {program?.summary && (
@@ -349,19 +380,23 @@ export default function Result({ profile, program }: Props) {
                     <div className="flex items-center justify-center gap-2">
                         <CustomIcon name="flame" className="h-5 w-5" style={{ filter: 'brightness(0) saturate(100%) invert(50%) sepia(96%) saturate(1762%) hue-rotate(332deg) brightness(102%) contrast(96%)' }} />
                         <p className="font-semibold">
-                            Objectif : niveau {program?.next_level ?? CEFR[Math.min(levelIndex + 1, 5)]}
+                            {level === 'A0'
+                                ? 'Objectif : premiers pas vers A1'
+                                : `Objectif : niveau ${program?.next_level ?? CEFR[Math.min(levelIndex + 1, 5)]}`}
                         </p>
                     </div>
                     <p className="mt-1.5 text-sm text-muted-foreground">
-                        Votre feuille de route IA est prête. Commencez à pratiquer dès aujourd'hui !
+                        {level === 'A0'
+                            ? "Ton programme débutant est prêt. Lance-toi dès maintenant !"
+                            : "Votre feuille de route IA est prête. Commencez à pratiquer dès aujourd'hui !"}
                     </p>
                     <Button
                         size="lg"
                         onClick={handleComplete}
-                        className={`mt-4 w-full gap-2 bg-gradient-to-r ${gradient} font-semibold text-white shadow-lg hover:opacity-90 hover:shadow-xl hover:-translate-y-0.5 transition-all sm:w-auto`}
+                        className={`mt-4 w-full gap-2 bg-gradient-to-r ${level === 'A0' ? 'from-indigo-500 to-indigo-700' : gradient} font-semibold text-white shadow-lg hover:opacity-90 hover:shadow-xl hover:-translate-y-0.5 transition-all sm:w-auto`}
                     >
                         <CustomIcon name="rocket" className="h-4 w-4" />
-                        Voir ma feuille de route
+                        {level === 'A0' ? 'Commencer mon parcours' : 'Voir ma feuille de route'}
                     </Button>
                 </div>
             </div>

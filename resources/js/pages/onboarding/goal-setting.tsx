@@ -36,6 +36,7 @@ export default function GoalSetting({ exam, profile }: Props) {
         profile?.target_score?.toString() ?? ''
     );
     const [examDate, setExamDate] = useState<string>(profile?.exam_date ?? '');
+    const [currentLevel, setCurrentLevel] = useState<string | null>(null);
 
     const scorePercentage = useMemo(() => {
         if (!exam?.max_score || !targetScore) return 0;
@@ -57,6 +58,7 @@ export default function GoalSetting({ exam, profile }: Props) {
         router.post(route('onboarding.goal.store'), {
             target_score: targetScore ? parseInt(targetScore) : null,
             exam_date: examDate || null,
+            current_level: currentLevel,
         });
     }
 
@@ -124,6 +126,41 @@ export default function GoalSetting({ exam, profile }: Props) {
                                 )}
                             </div>
                         )}
+
+                        <div className="space-y-4">
+                            <Label className="flex items-center gap-2">
+                                <Icon name="brain" size={16} className="text-primary" />
+                                Quel est votre niveau actuel ?
+                            </Label>
+                            <div className="grid grid-cols-1 gap-2">
+                                {[
+                                    { id: 'A0', label: "Je n'ai jamais étudié cette langue", icon: 'sparkles' },
+                                    { id: 'A1', label: "J'ai quelques notions de base", icon: 'writing' },
+                                    { id: 'B1', label: "Je peux communiquer simplement", icon: 'message-square' },
+                                    { id: 'TEST', label: "Je ne sais pas, faites-moi passer le test", icon: 'file-edit' }
+                                ].map((choice) => (
+                                    <button
+                                        key={choice.id}
+                                        type="button"
+                                        onClick={() => setCurrentLevel(choice.id)}
+                                        className={`flex items-center gap-3 rounded-xl border-2 p-3 text-left transition-all ${
+                                            currentLevel === choice.id 
+                                            ? 'border-primary bg-primary/5 ring-2 ring-primary/20' 
+                                            : 'border-border/50 hover:border-border hover:bg-muted/50'
+                                        }`}
+                                    >
+                                        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
+                                            currentLevel === choice.id ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
+                                        }`}>
+                                            <Icon name={choice.icon} size={20} style={{ filter: currentLevel === choice.id ? 'brightness(0) invert(1)' : '' }} />
+                                        </div>
+                                        <span className={`text-sm font-bold ${currentLevel === choice.id ? 'text-primary' : 'text-foreground'}`}>
+                                            {choice.label}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
 
                         <div className="space-y-2">
                             <Label htmlFor="exam-date" className="flex items-center gap-2">

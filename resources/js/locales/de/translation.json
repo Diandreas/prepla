@@ -84,6 +84,27 @@
     "section_attempts_other": "{{count}} Versuche",
     "section_exercise_types": "{{count}} Übungstypen"
   },
+  "dictionary": {
+    "title": "Mein Wörterbuch",
+    "subtitle": "Progressives akademisches Vokabelnlernen.",
+    "review_btn": "WIEDERHOLEN (5 WÖRTER)",
+    "discover_btn": "ENTDECKEN",
+    "loading": "LADEN...",
+    "search_placeholder": "Nach einem Wort oder einer Übersetzung suchen...",
+    "mastery": "Beherrschung",
+    "session_title": "Wiederholungssession",
+    "word_count": "Wort {{current}} von {{total}}",
+    "session_done": "Session abgeschlossen!",
+    "xp_earned": "Du hast +{{xp}} XP verdient",
+    "fill_blank": "Vervollständige den Satz",
+    "listen": "ANHÖREN",
+    "definition_label": "DEFINITION: {{text}}",
+    "type_word": "Wort eingeben...",
+    "check": "PRÜFEN",
+    "next": "NÄCHSTES WORT →",
+    "correct_answer": "Richtig! ✓",
+    "wrong_answer": "Die richtige Antwort war: {{word}}"
+  },
   "results": {
     "title": "Meine Ergebnisse",
     "subtitle": "Verfolgen Sie Ihren Fortschritt in allen Bereichen",
