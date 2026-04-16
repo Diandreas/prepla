@@ -110,7 +110,7 @@ class LessonController extends Controller
         $correctCount = 0;
         foreach ($quiz as $index => $question) {
             $userAnswer = $validated['answers'][$index] ?? null;
-            $isCorrect = strtolower(trim((string)$userAnswer)) === strtolower(trim((string)($question['correct_answer'] ?? '')));
+            $isCorrect = \App\Models\Lesson::checkAnswerMatch($userAnswer, $question['correct_answer'] ?? '');
             if ($isCorrect) $correctCount++;
             $results[] = [
                 'question' => $question['question'],
@@ -125,6 +125,28 @@ class LessonController extends Controller
 
         // Record outcome for curriculum adaptation
         $outcome = $this->planner->recordLessonOutcome($user, $accuracy);
+
+        // Award XP and update streak if passed
+        if ($passed) {
+            $xpReward = $lesson->node?->xp_reward ?? 20;
+            $profile = $user->profile;
+            $profile->xp_total = ($profile->xp_total ?? 0) + $xpReward;
+
+            // Update streak
+            $today = now()->toDateString();
+            $lastDate = $profile->streak_last_date?->toDateString();
+            if ($lastDate === $today) {
+                // Already practiced today — no change
+            } elseif ($lastDate === now()->subDay()->toDateString()) {
+                // Consecutive day
+                $profile->streak_current = ($profile->streak_current ?? 0) + 1;
+            } else {
+                // Streak broken or first time
+                $profile->streak_current = 1;
+            }
+            $profile->streak_last_date = $today;
+            $profile->save();
+        }
 
         // Trigger reassessment if needed
         if ($accuracy < 60) {

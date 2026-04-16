@@ -61,6 +61,12 @@ interface Props {
             language: { name: string; flag: string; native_name: string };
         };
     };
+    exam?: {
+        id: number;
+        name: string;
+        levels: string[];
+        language: { name: string; flag: string; native_name: string };
+    } | null;
     program: StudyProgram;
 }
 
@@ -104,11 +110,18 @@ const priorityBadge: Record<string, string> = {
 
 const CEFR = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
-export default function Result({ profile, program }: Props) {
+export default function Result({ profile, exam, program }: Props) {
     const level = profile.current_level ?? 'B1';
     const gradient = levelGradients[level] ?? levelGradients['B1'];
     const ring = levelRings[level] ?? levelRings['B1'];
     const levelIndex = CEFR.indexOf(level);
+
+    // Determine target level: use highest CEFR level from the exam if available,
+    // otherwise fall back to next level after current
+    const examCefrLevels = (exam?.levels ?? []).filter(l => CEFR.includes(l));
+    const targetLevel = examCefrLevels.length > 0
+        ? examCefrLevels[examCefrLevels.length - 1]
+        : (program?.next_level ?? CEFR[Math.min(levelIndex + 1, 5)]);
 
     const [mounted, setMounted] = useState(false);
     const [showLevel, setShowLevel] = useState(false);
@@ -382,7 +395,7 @@ export default function Result({ profile, program }: Props) {
                         <p className="font-semibold">
                             {level === 'A0'
                                 ? 'Objectif : premiers pas vers A1'
-                                : `Objectif : niveau ${program?.next_level ?? CEFR[Math.min(levelIndex + 1, 5)]}`}
+                                : `Objectif : niveau ${targetLevel}`}
                         </p>
                     </div>
                     <p className="mt-1.5 text-sm text-muted-foreground">

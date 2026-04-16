@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { useEffect, useState, useCallback } from 'react';
+import axios from 'axios';
 
 interface QuizQuestion {
     question: string;
@@ -75,20 +76,13 @@ export default function LessonPage({ lesson, skeleton }: Props) {
         if (!allQuizAnswered) return;
         setSubmittingQuiz(true);
         try {
-            const res = await fetch(`/lessons/${lesson.id}/quiz`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({ answers: Object.values(quizAnswers) }),
+            const res = await axios.post(`/lessons/${lesson.id}/quiz`, {
+                answers: Object.values(quizAnswers)
             });
-            const data = await res.json();
-            setQuizResults(data);
+            setQuizResults(res.data);
             setPhase('results');
-        } catch (e) {
-            console.error('Quiz submission failed', e);
+        } catch (e: any) {
+            console.error('Quiz submission failed', e.response?.data || e.message);
         } finally {
             setSubmittingQuiz(false);
         }

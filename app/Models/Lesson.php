@@ -68,6 +68,43 @@ class Lesson extends Model
     /**
      * Check if the user passed the comprehension quiz.
      */
+    public static function checkAnswerMatch($userAnswer, $correctAnswer): bool
+    {
+        $userClean = strtolower(trim((string)$userAnswer));
+        $correctClean = strtolower(trim((string)$correctAnswer));
+        
+        if ($userClean === $correctClean) {
+            return true;
+        }
+        
+        // Extract leading letter (e.g., "A) text" -> letter "A", text "text")
+        preg_match('/^([a-z])[\)\.-]?\s*(.*)$/', $userClean, $userMatches);
+        preg_match('/^([a-z])[\)\.-]?\s*(.*)$/', $correctClean, $correctMatches);
+        
+        $userLetter = $userMatches[1] ?? $userClean;
+        $correctLetter = $correctMatches[1] ?? $correctClean;
+        
+        // Case 1: Just the letters match. (e.g., both are A, or user answered 'a) text' and correct is 'A')
+        // We only do this if correct answer is explicitly designed as a letter or if parsed letters match.
+        // Wait, if correct is "C", correctLetter is "c". userLetter is "c". Match!
+        if ($userLetter === $correctLetter) {
+            return true;
+        }
+        
+        // Case 2: The text bodies match. (e.g. user selected "B) Option 2" and correct is "A) Option 2" (typo in DB))
+        $userText = $userMatches[2] ?? $userClean;
+        $correctText = $correctMatches[2] ?? $correctClean;
+        
+        if (!empty($userText) && !empty($correctText) && $userText === $correctText) {
+            return true;
+        }
+        
+        return false;
+    }
+
+    /**
+     * Helper to verify if the user passed the comprehension quiz.
+     */
     public function isComprehensionPassed(array $answers): bool
     {
         $quiz = $this->comprehension_quiz ?? [];
@@ -77,7 +114,7 @@ class Lesson extends Model
         foreach ($quiz as $index => $question) {
             $userAnswer = $answers[$index] ?? null;
             $correctAnswer = $question['correct_answer'] ?? null;
-            if ($userAnswer !== null && strtolower(trim((string)$userAnswer)) === strtolower(trim((string)$correctAnswer))) {
+            if ($userAnswer !== null && static::checkAnswerMatch($userAnswer, $correctAnswer)) {
                 $correct++;
             }
         }

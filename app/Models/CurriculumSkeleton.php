@@ -63,7 +63,8 @@ class CurriculumSkeleton extends Model
     }
 
     /**
-     * Mark the current objective's lesson as done and advance to its practice phase.
+     * Mark the current objective's lesson as done and advance to the next objective.
+     * The old objective is marked 'current_practice' so the practice phase can still be accessed.
      */
     public function advanceToPractice(): void
     {
@@ -71,6 +72,20 @@ class CurriculumSkeleton extends Model
 
         if (isset($objectives[$this->current_objective_index])) {
             $objectives[$this->current_objective_index]['status'] = 'current_practice';
+        }
+
+        // Advance to the next pending objective so the next lesson is different
+        $nextIndex = null;
+        for ($i = $this->current_objective_index + 1; $i < count($objectives); $i++) {
+            if (in_array($objectives[$i]['status'] ?? 'pending', ['pending', 'current'])) {
+                $nextIndex = $i;
+                break;
+            }
+        }
+
+        if ($nextIndex !== null) {
+            $objectives[$nextIndex]['status'] = 'current';
+            $this->current_objective_index = $nextIndex;
         }
 
         $this->objectives = $objectives;

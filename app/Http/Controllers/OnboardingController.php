@@ -187,7 +187,17 @@ class OnboardingController extends Controller
         });
 
         return Inertia::render('onboarding/result', [
-            'profile' => $profile,
+            'profile' => $profile->append([]),
+            'exam'    => $exam ? [
+                'id'     => $exam->id,
+                'name'   => $exam->name,
+                'levels' => $exam->levels ?? [],
+                'language' => [
+                    'name'        => $exam->language?->name,
+                    'native_name' => $exam->language?->native_name,
+                    'flag'        => $exam->language?->flag,
+                ],
+            ] : null,
             'program' => $program,
         ]);
     }
