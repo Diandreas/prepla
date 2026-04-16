@@ -36,13 +36,14 @@ class DashboardController extends Controller
             $currentObjective = $skeleton->currentObjective();
             $objectives = $skeleton->objectives ?? [];
             $doneCount = collect($objectives)->filter(fn ($o) => ($o['status'] ?? '') === 'done')->count();
+            $practiceDoneCount = collect($objectives)->filter(fn ($o) => ($o['status'] ?? '') === 'current_practice')->count();
             $totalCount = count($objectives);
 
             $curriculumData = [
                 'current_objective' => $currentObjective,
                 'current_index' => $skeleton->current_objective_index,
                 'total_objectives' => $totalCount,
-                'progress_percent' => $totalCount > 0 ? (int) round(($doneCount / $totalCount) * 100) : 0,
+                'progress_percent' => $totalCount > 0 ? (int) round((($doneCount + $practiceDoneCount) / $totalCount) * 100) : 0,
                 'consecutive_failures' => $skeleton->consecutive_failures,
             ];
 
@@ -55,7 +56,7 @@ class DashboardController extends Controller
             $errorDiagnostic = UserError::categoryStats($user->id);
 
             $totalNodes = $totalCount * 2; // Each objective is 2 nodes (Lesson + Practice)
-            $completedNodes = $doneCount * 2 + (collect($objectives)->filter(fn ($o) => ($o['status'] ?? '') === 'current_practice')->count() ? 1 : 0);
+            $completedNodes = $doneCount * 2 + $practiceDoneCount; // each current_practice = lesson done (1 node)
 
             // Fetch explicitly related lessons
             $userLessons = Lesson::where('user_id', $user->id)
