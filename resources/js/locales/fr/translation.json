@@ -88,6 +88,7 @@
     "title": "Mon Dictionnaire",
     "subtitle": "Apprentissage progressif du vocabulaire académique.",
     "review_btn": "RÉVISER (5 MOTS)",
+    "review_btn_dynamic": "RÉVISER ({{count}} MOTS)",
     "discover_btn": "DÉCOUVRIR",
     "loading": "CHARGEMENT...",
     "search_placeholder": "Rechercher un mot ou une traduction...",

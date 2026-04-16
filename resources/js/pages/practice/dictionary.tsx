@@ -24,9 +24,10 @@ interface Word {
 
 interface Props {
     words: Word[];
+    reviewableCount: number;
 }
 
-export default function Dictionary({ words }: Props) {
+export default function Dictionary({ words, reviewableCount }: Props) {
     const { t, i18n } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
     const [isDiscovering, setIsDiscovering] = useState(false);
@@ -159,12 +160,13 @@ export default function Dictionary({ words }: Props) {
                     </div>
 
                     <div className="flex gap-3">
-                        <button 
+                        <button
                             onClick={() => startSession(5)}
-                            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-black rounded-2xl shadow-lg shadow-blue-200 hover:scale-105 active:scale-95 transition-all"
+                            disabled={reviewableCount === 0}
+                            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-black rounded-2xl shadow-lg shadow-blue-200 hover:scale-105 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
                         >
                             <Icon name="award" size={20} className="brightness-0 invert" />
-                            {t('dictionary.review_btn')}
+                            {t('dictionary.review_btn_dynamic', { count: reviewableCount })}
                         </button>
                         <button
                             onClick={() => {

@@ -20,8 +20,13 @@ class DictionaryController extends Controller
             ->orderBy('updated_at', 'desc')
             ->get();
 
+        $reviewableCount = UserWordProgress::where('user_id', $user->id)
+            ->whereIn('status', ['discovered', 'learning'])
+            ->count();
+
         return Inertia::render('practice/dictionary', [
-            'words' => $words
+            'words' => $words,
+            'reviewableCount' => $reviewableCount,
         ]);
     }
 

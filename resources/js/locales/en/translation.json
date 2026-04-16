@@ -88,6 +88,7 @@
     "title": "My Dictionary",
     "subtitle": "Progressive academic vocabulary learning.",
     "review_btn": "REVIEW (5 WORDS)",
+    "review_btn_dynamic": "REVIEW ({{count}} WORDS)",
     "discover_btn": "DISCOVER",
     "loading": "LOADING...",
     "search_placeholder": "Search for a word or translation...",
