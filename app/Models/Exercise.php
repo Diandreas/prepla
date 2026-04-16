@@ -14,6 +14,7 @@ class Exercise extends Model
     protected $fillable = [
         'exercise_type_id',
         'exam_id',
+        'lesson_id',
         'mock_exam_id',
         'exam_section_id',
         'content',
@@ -30,6 +31,11 @@ class Exercise extends Model
             'questions' => 'array',
             'is_ai_generated' => 'boolean',
         ];
+    }
+
+    public function lesson(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Lesson::class);
     }
 
     public function exerciseType(): BelongsTo

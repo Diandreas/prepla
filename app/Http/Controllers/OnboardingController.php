@@ -9,6 +9,7 @@ use App\Models\UserLearningProgress;
 use App\Models\UserProfile;
 use App\Services\AI\PlacementTestService;
 use App\Services\AI\RoadmapGeneratorService;
+use App\Services\Curriculum\CurriculumPlannerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
@@ -18,7 +19,8 @@ class OnboardingController extends Controller
 {
     public function __construct(
         protected PlacementTestService $placementTest,
-        protected RoadmapGeneratorService $roadmapGenerator
+        protected RoadmapGeneratorService $roadmapGenerator,
+        protected CurriculumPlannerService $curriculumPlanner
     ) {
     }
 
@@ -195,16 +197,30 @@ class OnboardingController extends Controller
         $profile = $request->user()->profile->load('targetExam.language');
         $exam = $profile->targetExam;
 
-        // Generate learning roadmap via Algorithm (Duolingo-style)
-        // A0 means complete beginner — treat as A1 for roadmap generation
         if ($exam) {
             $startLevel = $profile->current_level === 'A0' ? 'A1' : ($profile->current_level ?? 'A1');
-            $this->roadmapGenerator->generateForUser(
-                $request->user(),
-                $exam,
-                $startLevel,
-                $profile->exam_date
-            );
+
+            // Pilier 9: Use CurriculumPlannerService to build an adaptive skeleton
+            // instead of the deterministic roadmap
+            try {
+                $this->curriculumPlanner->buildSkeleton(
+                    $request->user(),
+                    $exam,
+                    $startLevel
+                );
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::warning('Curriculum skeleton generation failed, falling back to legacy roadmap', [
+                    'error' => $e->getMessage(),
+                ]);
+
+                // Fallback: generate legacy roadmap if skeleton generation fails
+                $this->roadmapGenerator->generateForUser(
+                    $request->user(),
+                    $exam,
+                    $startLevel,
+                    $profile->exam_date
+                );
+            }
         }
 
         $profile->update([

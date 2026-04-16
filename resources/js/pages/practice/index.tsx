@@ -79,6 +79,27 @@ export default function PracticeIndex({ exams, targetExamId }: Props) {
                     </div>
                 </div>
 
+                {/* AI Evaluation Section */}
+                <div className="mb-10" style={{ background: `linear-gradient(135deg, #1A2B48 0%, #4A90E2 100%)`, borderRadius: '24px', padding: '24px', position: 'relative', overflow: 'hidden', border: 'none', boxShadow: '0 10px 25px -5px rgba(74, 144, 226, 0.4)' }}>
+                    <div className="absolute -right-4 -top-8 opacity-10 rotate-12 transition-transform duration-700 hover:rotate-[24deg] hover:scale-110">
+                        <CustomIcon name="sparkles" className="h-48 w-48" style={{ filter: 'brightness(0) invert(1)' }} />
+                    </div>
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-sm -rotate-6">
+                                <Icon name="sparkles" size={24} style={{ filter: 'brightness(0) invert(1)' }} />
+                            </div>
+                            <h2 className="text-xl font-black text-white mb-0">Évaluation IA (Test de Niveau)</h2>
+                        </div>
+                        <p className="text-sm text-blue-100 mb-6 max-w-md font-medium leading-relaxed">
+                            L'intelligence artificielle analyse vos points faibles et génère un test sur mesure pour valider vos acquis hors du parcours classique.
+                        </p>
+                        <Link href={route('practice.simulate', targetExamId || 1)} className="inline-block px-8 py-3.5 bg-white text-[#1A2B48] text-center font-black rounded-xl uppercase text-sm tracking-widest shadow-[0_4px_0_0_rgba(255,255,255,0.4)] hover:shadow-[0_2px_0_0_rgba(255,255,255,0.4)] hover:translate-y-[2px] transition-all">
+                            Passer le Test
+                        </Link>
+                    </div>
+                </div>
+
                 {Object.entries(examsByLanguage).map(([langName, langExams], gIdx) => (
                     <div key={langName} className="mb-8">
                         <p

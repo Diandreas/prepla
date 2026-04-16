@@ -85,6 +85,14 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/{vocab}/review', [VocabularyController::class, 'submitReview'])->name('submit-review');
         });
 
+        // Lessons (Pilier 1 + 9: Progressive adaptive lessons)
+        Route::prefix('lessons')->name('lessons.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\LessonController::class, 'index'])->name('index');
+            Route::get('/next', [\App\Http\Controllers\LessonController::class, 'next'])->name('next');
+            Route::get('/{lesson}', [\App\Http\Controllers\LessonController::class, 'show'])->name('show');
+            Route::post('/{lesson}/quiz', [\App\Http\Controllers\LessonController::class, 'submitQuiz'])->name('quiz');
+        });
+
         // Error Review
         Route::prefix('errors')->name('errors.')->group(function () {
             Route::get('/', [ErrorReviewController::class, 'index'])->name('index');

@@ -20,6 +20,8 @@ class MistralEvaluationService
 {
   \"isCorrect\": boolean,
   \"accuracy\": integer (0-100),
+  \"error_category\": \"category.subcategory (e.g. grammar.tense, vocabulary.lexical, spelling, etc.) — only if the answer is wrong, null if correct\",
+  \"error_subcategory\": \"specific subcategory (e.g. past_simple_vs_present_perfect, article_usage) — only if wrong, null if correct\",
   \"explanation\": {
     \"concept\": \"brief explanation of the grammar/vocab rule, written in $language\",
     \"evidence\": \"the correct form or sentence — wrap the key corrected part in <evidence>...</evidence> tags\",
@@ -30,7 +32,32 @@ class MistralEvaluationService
       \"hint\": \"same hint in French\"
     }
   }
-}"
+}
+
+ERROR CATEGORIES TAXONOMY (use these exact categories):
+- grammar.tense (verb tense errors: past_simple, present_perfect, future, etc.)
+- grammar.agreement (subject-verb agreement, gender agreement, etc.)
+- grammar.word-order (incorrect word placement)
+- grammar.article (a/an/the/zero article errors)
+- grammar.preposition (wrong preposition)
+- grammar.modal (modal verb errors)
+- grammar.pronoun (pronoun reference errors)
+- vocabulary.lexical (wrong word choice)
+- vocabulary.register (wrong formality level)
+- vocabulary.collocation (unnatural word combination)
+- spelling (orthographic errors)
+- punctuation (punctuation errors)
+- coherence (logical flow issues)
+- pragmatic (inappropriate for context)
+- listening.detail (missed specific information)
+- listening.inference (failed to infer meaning)
+- reading.skim (failed to get the gist)
+- reading.scan (failed to locate specific info)
+- speaking.pronunciation (pronunciation issues)
+- speaking.fluency (hesitation, breaks)
+- speaking.accuracy (grammatical errors in speech)
+- writing.structure (poor essay/text organization)
+- writing.cohesion (weak linking between ideas)"
             ],
             [
                 'role' => 'user',
@@ -44,6 +71,8 @@ class MistralEvaluationService
             return [
                 'isCorrect' => false,
                 'accuracy' => 0,
+                'error_category' => null,
+                'error_subcategory' => null,
                 'explanation' => [
                     'concept' => "L'IA n'a pas pu évaluer la réponse.",
                     'evidence' => '',
@@ -58,6 +87,8 @@ class MistralEvaluationService
         return [
             'isCorrect' => $decoded['isCorrect'] ?? false,
             'accuracy' => (int)($decoded['accuracy'] ?? 0),
+            'error_category' => $decoded['error_category'] ?? null,
+            'error_subcategory' => $decoded['error_subcategory'] ?? null,
             'explanation' => $decoded['explanation'] ?? [
                 'concept' => "Aucun retour détaillé.",
                 'evidence' => '',

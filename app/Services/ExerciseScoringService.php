@@ -98,6 +98,8 @@ class ExerciseScoringService
                         'correct' => $isCorrect,
                         'accuracy' => $aiResult['accuracy'],
                         'explanation' => $aiResult['explanation'],
+                        'error_category' => $aiResult['error_category'] ?? null,
+                        'error_subcategory' => $aiResult['error_subcategory'] ?? null,
                         'transcription' => ($userAnswer instanceof UploadedFile) ? $textToEvaluate : null,
                     ];
                 }
@@ -174,6 +176,8 @@ class ExerciseScoringService
                 'accuracy' => (float)($accuracy ?? ($isCorrect ? 100 : 0)),
                 'correct_answer' => $correctAnswer,
                 'explanation' => $explanation ?? $question['explanation'] ?? null,
+                'error_category' => !$isCorrect ? 'session_mistake' : null,
+                'error_subcategory' => null,
             ];
         }
 

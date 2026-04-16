@@ -15,13 +15,16 @@ class ExerciseController extends Controller
 {
     protected \App\Services\ExerciseScoringService $scoringService;
     protected \App\Services\StreakService $streakService;
+    protected \App\Services\ErrorSpacedRepetitionService $errorSm2;
 
     public function __construct(
         \App\Services\ExerciseScoringService $scoringService,
-        \App\Services\StreakService $streakService
+        \App\Services\StreakService $streakService,
+        \App\Services\ErrorSpacedRepetitionService $errorSm2
     ) {
         $this->scoringService = $scoringService;
         $this->streakService = $streakService;
+        $this->errorSm2 = $errorSm2;
     }
 
     public function submitSession(Request $request, LearningPathNode $node)
@@ -74,7 +77,12 @@ class ExerciseController extends Controller
                 foreach ($result['feedback'] as $qFeedback) {
                     if (!($qFeedback['correct'] ?? false)) {
                         $questionData = collect($exercise->questions)->firstWhere('id', $qFeedback['question_id']);
-                        \App\Models\UserError::updateOrCreate(
+
+                        // Pilier 4: Use AI-generated error category if available
+                        $errorCategory = $qFeedback['error_category'] ?? 'session_mistake';
+                        $errorSubcategory = $qFeedback['error_subcategory'] ?? null;
+
+                        $error = \App\Models\UserError::updateOrCreate(
                             [
                                 'user_id' => $user->id,
                                 'exercise_id' => $exercise->id,
@@ -86,15 +94,28 @@ class ExerciseController extends Controller
                                 'correct_answer' => is_array($qFeedback['correct_answer'] ?? '') ? json_encode($qFeedback['correct_answer']) : (string)($qFeedback['correct_answer'] ?? ''),
                                 'skill_type' => $exercise->exerciseType->section->skill_type ?? 'reading',
                                 'exercise_type_slug' => $exercise->exerciseType->slug,
-                                'error_category' => 'session_mistake',
+                                'error_category' => $errorCategory,
+                                'subcategory' => $errorSubcategory,
                                 'mastered' => false,
                             ]
                         );
+
+                        // Pilier 3: Initialize SM-2 scheduling for new error
+                        if ($error->wasRecentlyCreated) {
+                            $this->errorSm2->initializeForNewError($error);
+                        } else {
+                            // Existing error encountered again — reset SM-2
+                            $this->errorSm2->schedule($error, false);
+                        }
                     } else {
-                        // If it was corrected now, mark as mastered if it existed
-                        \App\Models\UserError::where('user_id', $user->id)
+                        // If it was corrected now, update SM-2 and mark as mastered if threshold met
+                        $existingError = \App\Models\UserError::where('user_id', $user->id)
                             ->where('question_id', $qFeedback['question_id'])
-                            ->update(['mastered' => true]);
+                            ->first();
+
+                        if ($existingError) {
+                            $this->errorSm2->schedule($existingError, true);
+                        }
                     }
                 }
 
@@ -115,7 +136,7 @@ class ExerciseController extends Controller
             }
         }
 
-        // 1. Marquer le nœud comme complété
+        // 1. Marquer le nœud comme complété (Legacy)
         $progress = UserLearningProgress::where('user_id', $user->id)
             ->where('node_id', $node->id)
             ->first();
@@ -126,7 +147,7 @@ class ExerciseController extends Controller
                 'exercises_done' => $progress->exercises_required,
             ]);
 
-            // 2. Débloquer le nœud suivant
+            // 2. Débloquer le nœud suivant (Legacy)
             $nextNode = LearningPathNode::where('exam_id', $node->exam_id)
                 ->where(function($query) use ($node) {
                     $query->where('chapter_order', '>', $node->chapter_order)
@@ -144,6 +165,17 @@ class ExerciseController extends Controller
                     ['user_id' => $user->id, 'node_id' => $nextNode->id],
                     ['status' => 'available']
                 );
+            }
+        }
+
+        // --- NEW CURRICULUM INTEGRATION ---
+        $sessionAccuracy = $totalQuestions > 0 ? ($totalCorrect / $totalQuestions) * 100 : 0;
+        $skeleton = \App\Models\CurriculumSkeleton::where('user_id', $user->id)->first();
+        if ($skeleton && $sessionAccuracy >= 50) {
+            // Check if we are currently waiting for practice completion
+            $currentObjective = $skeleton->currentObjective();
+            if (($currentObjective['status'] ?? '') === 'current_practice') {
+                $skeleton->advanceToNextObjective();
             }
         }
 

@@ -37,16 +37,38 @@ function CustomIcon({ name, className, style }: { name: string; className?: stri
 
 /* ─── Types ─── */
 interface RoadmapNode {
-    id: number; title: string; description: string;
+    id: string | number; title: string; description: string;
     icon: string; skill_type: string; level: string; xp_reward: number;
     status: 'locked' | 'available' | 'in_progress' | 'completed';
     scheduled_for?: string;
+    type?: 'lesson' | 'practice';
+    action_url?: string;
 }
 
 interface Chapter {
     name: string;
     order: number;
     nodes: RoadmapNode[];
+}
+
+interface CurriculumObjective {
+    title: string;
+    concept: string;
+    status: string;
+}
+
+interface CurriculumData {
+    current_objective: CurriculumObjective | null;
+    current_index: number;
+    total_objectives: number;
+    progress_percent: number;
+    consecutive_failures: number;
+}
+
+interface ErrorDiag {
+    error_category: string;
+    subcategory: string | null;
+    count: number;
 }
 
 interface PageProps {
@@ -56,7 +78,11 @@ interface PageProps {
         total_nodes: number;
         completed_nodes: number;
         progress_percent: number;
-    }
+    };
+    curriculum?: CurriculumData | null;
+    nextLesson?: { id: number; title: string; status: string } | null;
+    errorDiagnostic?: ErrorDiag[];
+    dueErrorsCount?: number;
 }
 
 /* ─── Brand colors ─── */
@@ -101,13 +127,17 @@ function NodePath({ fromX, toX, color }: { fromX: number; toX: number; color: st
 
 export default function Dashboard() {
     const { t } = useTranslation();
-    const { auth, profile, chapters, stats } = usePage<SharedData & PageProps>().props;
+    const { auth, profile, chapters, stats, curriculum, nextLesson, errorDiagnostic, dueErrorsCount } = usePage<SharedData & PageProps>().props;
     
-    const [loadingNode, setLoadingNode] = useState<{ id: number; title: string } | null>(null);
+    const [loadingNode, setLoadingNode] = useState<{ id: string | number; title: string } | null>(null);
 
-    const handleStartNode = (id: number, title: string) => {
-        setLoadingNode({ id, title });
-        router.visit(route('node.start', id));
+    const handleStartNode = (node: RoadmapNode) => {
+        setLoadingNode({ id: node.id, title: node.title });
+        if (node.action_url) {
+            router.visit(node.action_url);
+        } else {
+            router.visit(route('node.start', node.id));
+        }
     };
 
     const allNodes = useMemo(() => chapters.flatMap(c => c.nodes), [chapters]);
@@ -250,7 +280,7 @@ export default function Dashboard() {
                                 return (
                                     <div key={chapter.name} className="space-y-6">
                                         <div className="rounded-2xl p-5 text-white" style={{ background: theme.bg, boxShadow: '0 8px 0 0 rgba(0,0,0,0.15)' }}>
-                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">{t('common.chapter', 'Chapitre')} {chapter.order}</p>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">{t('common.chapter', { order: chapter.order, defaultValue: `Chapitre ${chapter.order}` })}</p>
                                             <h2 className="text-xl font-black">{chapter.name}</h2>
                                         </div>
 
@@ -273,7 +303,7 @@ export default function Dashboard() {
                                                                 {isActiveNode && <div className="node-active-ring" />}
                                                                 <button
                                                                     disabled={isLocked}
-                                                                    onClick={() => (isAvailable || isCompleted) && handleStartNode(node.id, node.title)}
+                                                                    onClick={() => (isAvailable || isCompleted) && handleStartNode(node)}
                                                                     className={`w-[74px] h-[74px] duo-node-btn ${isCompleted ? 'duo-node-completed' : isAvailable ? 'duo-node-available' : 'duo-node-locked'}`}
                                                                     style={{ 
                                                                         animation: isActiveNode ? 'nodeFloating 2.5s ease-in-out infinite, nodePulsing 2.5s ease-in-out infinite' : undefined,
@@ -368,9 +398,63 @@ export default function Dashboard() {
                             </div>
                         </div>
 
+                        {/* Pilier 9: Next Lesson CTA */}
+                        {curriculum && (
+                            <Link
+                                href="/lessons/next"
+                                className="duo-sidebar-box group relative overflow-hidden p-5 text-white"
+                                style={{ background: `linear-gradient(135deg, ${SKY}, #3478c8)`, border: `2px solid #3a82cc`, boxShadow: '0 4px 0 0 #2563a0' }}
+                            >
+                                <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-70">▶ Prochaine leçon</p>
+                                <p className="text-sm font-black mt-1">{curriculum.current_objective?.title || 'Commencer'}</p>
+                                <p className="text-[10px] mt-0.5 opacity-70">
+                                    Objectif {curriculum.current_index + 1} / {curriculum.total_objectives}
+                                </p>
+                                {curriculum.consecutive_failures >= 2 && (
+                                    <p className="mt-2 text-[9px] font-bold bg-white/20 rounded-lg px-2 py-1 inline-block">🔄 Consolidation</p>
+                                )}
+                                <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-white/10" />
+                            </Link>
+                        )}
+
                         <div className="duo-sidebar-box">
                             <h3>Outils de Révision</h3>
                             <div className="space-y-3">
+                                {/* Pilier 9: Mon Parcours */}
+                                <Link 
+                                    href="/lessons"
+                                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 transition-colors border-2 border-transparent hover:border-blue-100"
+                                >
+                                    <div className="h-10 w-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(74,144,226,0.1)' }}>
+                                        <span className="text-lg">📘</span>
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-sm font-black" style={{ color: OXFORD }}>Mon Parcours</p>
+                                        <p className="text-[10px] uppercase font-bold opacity-50">Leçons & Programme</p>
+                                    </div>
+                                </Link>
+
+                                {/* Pilier 3: Due errors review */}
+                                <Link 
+                                    href="/errors"
+                                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 transition-colors border-2 border-transparent hover:border-red-100"
+                                >
+                                    <div className="relative h-10 w-10 rounded-xl flex items-center justify-center bg-red-50">
+                                        <span className="text-lg">🔄</span>
+                                        {(dueErrorsCount ?? 0) > 0 && (
+                                            <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 flex items-center justify-center">
+                                                <span className="text-[9px] font-black text-white">{dueErrorsCount}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-sm font-black" style={{ color: OXFORD }}>Révision SM-2</p>
+                                        <p className="text-[10px] uppercase font-bold opacity-50">
+                                            {(dueErrorsCount ?? 0) > 0 ? `${dueErrorsCount} erreur${(dueErrorsCount ?? 0) > 1 ? 's' : ''} à revoir` : 'À jour !'}
+                                        </p>
+                                    </div>
+                                </Link>
+
                                 <Link 
                                     href={route('dictionary.index')} 
                                     className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors border-2 border-transparent hover:border-slate-100"
@@ -412,16 +496,6 @@ export default function Dashboard() {
                             </div>
                         </div>
 
-                        <div className="duo-sidebar-box" style={{ background: `linear-gradient(135deg, ${OXFORD} 0%, ${SKY} 100%)`, border: 'none shadow-lg shadow-blue-900/20' }}>
-                            <div className="flex items-center gap-2 mb-2">
-                                <Icon name="sparkles" size={20} style={{ filter: 'brightness(0) invert(1)' }} />
-                                <h3 className="text-white mb-0" style={{ color: 'white' }}>Évaluation IA</h3>
-                            </div>
-                            <p className="text-xs text-blue-100 mb-4 opacity-90 leading-relaxed font-medium">L'intelligence artificielle analyse vos points faibles et génère un programme sur mesure.</p>
-                            <Link href={route('practice.simulate', (profile as any)?.target_exam?.id || 1)} className="block w-full py-3 bg-white text-[#1A2B48] text-center font-black rounded-xl uppercase text-[11px] tracking-widest shadow-xl hover:-translate-y-0.5 transition-transform">
-                                Passer le Test
-                            </Link>
-                        </div>
                     </div>
                 </div>
             </div>
