@@ -109,6 +109,7 @@ class PracticeController extends Controller
 
         $exercises = \App\Models\Exercise::where('exam_id', $exam->id)
             ->whereIn('exercise_type_id', $section->exerciseTypes->pluck('id'))
+            ->with('exerciseType')
             ->get()
             ->groupBy('difficulty');
 
