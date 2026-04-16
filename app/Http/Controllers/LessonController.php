@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CurriculumSkeleton;
+use App\Models\LeaderboardEntry;
 use App\Models\Lesson;
 use App\Models\UserError;
 use App\Services\Curriculum\CurriculumPlannerService;
@@ -146,6 +147,16 @@ class LessonController extends Controller
             }
             $profile->streak_last_date = $today;
             $profile->save();
+
+            // Update weekly leaderboard entry
+            $weekKey = now()->format('Y-\WW');
+            $entry = LeaderboardEntry::firstOrNew([
+                'user_id'     => $user->id,
+                'period_type' => 'weekly',
+                'period_key'  => $weekKey,
+            ]);
+            $entry->xp = ($entry->xp ?? 0) + $xpReward;
+            $entry->save();
         }
 
         // Trigger reassessment if needed

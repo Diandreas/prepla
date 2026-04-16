@@ -27,6 +27,7 @@ interface LessonData {
     status: string;
     generated_at: string;
     based_on_errors: any[];
+    node_id?: number | null;
 }
 
 interface SkeletonInfo {
