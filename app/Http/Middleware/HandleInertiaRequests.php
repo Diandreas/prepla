@@ -45,6 +45,11 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user()?->load('profile'),
             ],
             'userProfile' => $request->user()?->profile,
+            'flash' => [
+                'correction'  => $request->session()->get('correction'),
+                'success'     => $request->session()->get('success'),
+                'error'       => $request->session()->get('error'),
+            ],
         ]);
     }
 }
