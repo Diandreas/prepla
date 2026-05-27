@@ -207,8 +207,11 @@ class GenerateImageLibraryCommand extends Command
                     . '&nologo=true'
                     . '&seed=' . crc32($slug);
 
+                // Respect Pollinations.ai anonymous rate limit (1 req / 15s)
+                sleep(18);
+
                 try {
-                    $response = Http::timeout(60)->get($url);
+                    $response = Http::timeout(90)->get($url);
 
                     if ($response->successful() && strlen($response->body()) > 5000) {
                         Storage::disk(self::DISK)->put($path, $response->body());
