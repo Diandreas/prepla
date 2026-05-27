@@ -124,6 +124,9 @@ export interface QuestionItem {
     options?: string[];
     correct_answer: string | string[];
     explanation?: string;
+    audio_url?: string | null;
+    audio_text?: string | null;
+    passage?: string | null;
     [key: string]: unknown;
 }
 

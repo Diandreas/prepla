@@ -2,7 +2,7 @@ import { router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { ExerciseTimer } from './exercise-timer';
 import { ExerciseProgress } from './exercise-progress';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ExerciseRecord } from '@/types';
 
 // Exercise Components
@@ -38,6 +38,57 @@ import { VocabularyCard } from './vocabulary-card';
 
 interface ExercisePlayerProps {
     exercise: ExerciseRecord;
+}
+
+function AudioPlayer({ src }: { src: string }) {
+    const audioRef = useRef<HTMLAudioElement>(null);
+    const [playing, setPlaying] = useState(false);
+    const [playCount, setPlayCount] = useState(0);
+
+    useEffect(() => {
+        setPlaying(false);
+        setPlayCount(0);
+    }, [src]);
+
+    const toggle = () => {
+        const el = audioRef.current;
+        if (!el) return;
+        if (playing) {
+            el.pause();
+            setPlaying(false);
+        } else {
+            el.currentTime = 0;
+            el.play().catch(() => setPlaying(false));
+            setPlaying(true);
+        }
+    };
+
+    return (
+        <div className="flex items-center gap-3 rounded-xl border-2 border-primary bg-primary/5 px-5 py-3">
+            <audio
+                ref={audioRef}
+                src={src}
+                onEnded={() => { setPlaying(false); setPlayCount(c => c + 1); }}
+            />
+            <button
+                onClick={toggle}
+                className="flex items-center gap-2 text-primary font-medium transition hover:opacity-80"
+            >
+                {playing ? (
+                    <svg viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
+                        <path d="M5.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75A.75.75 0 007.25 3h-1.5zM12.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75a.75.75 0 00-.75-.75h-1.5z" />
+                    </svg>
+                ) : (
+                    <svg viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
+                        <path d="M6.3 2.84A1.5 1.5 0 004 4.11v11.78a1.5 1.5 0 002.3 1.27l9.344-5.891a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                    </svg>
+                )}
+                <span className="text-sm">
+                    {playing ? 'En cours...' : playCount === 0 ? 'Écouter' : `Réécouter (${playCount}×)`}
+                </span>
+            </button>
+        </div>
+    );
 }
 
 const componentMap: Record<string, React.ComponentType<any>> = {
@@ -130,6 +181,11 @@ export function ExercisePlayer({ exercise }: ExercisePlayerProps) {
                 <div className="rounded-lg border border-border bg-muted/30 p-4 text-sm leading-relaxed">
                     {exercise.content.passage}
                 </div>
+            )}
+
+            {/* Audio player for listening exercises — shown when question has a pre-generated audio_url */}
+            {question.audio_url && componentKey !== 'dictation' && (
+                <AudioPlayer src={question.audio_url} />
             )}
 
             <Component
