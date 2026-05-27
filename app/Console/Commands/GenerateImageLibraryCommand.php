@@ -203,7 +203,7 @@ class GenerateImageLibraryCommand extends Command
                 $url = self::BASE_URL . urlencode($meta['prompt'])
                     . '?width=' . self::WIDTH
                     . '&height=' . self::HEIGHT
-                    . '&model=flux'
+                    . '&model=sana'
                     . '&nologo=true'
                     . '&seed=' . crc32($slug);
 
