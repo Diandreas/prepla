@@ -124,7 +124,7 @@ function ProgressDots({ total, current }: { total: number; current: number }) {
     );
 }
 
-function ExamGlobalBanner({ totalMinutes, onExpire }: { totalMinutes: number; onExpire: () => void }) {
+function ExamGlobalBanner({ totalMinutes, started, onExpire }: { totalMinutes: number; started: boolean; onExpire: () => void }) {
     const { t } = useTranslation();
     const total = totalMinutes * 60;
     const [remaining, setRemaining] = useState(total);
@@ -132,6 +132,7 @@ function ExamGlobalBanner({ totalMinutes, onExpire }: { totalMinutes: number; on
     const OXFORD = '#1A2B48';
 
     useEffect(() => {
+        if (!started) return; // ne démarre pas le chrono avant que l'utilisateur clique sur "Commencer"
         const id = setInterval(() => {
             setRemaining(prev => {
                 const next = prev - 1;
@@ -144,7 +145,7 @@ function ExamGlobalBanner({ totalMinutes, onExpire }: { totalMinutes: number; on
             });
         }, 1000);
         return () => clearInterval(id);
-    }, [onExpire]);
+    }, [onExpire, started]);
 
     const mins = Math.floor(remaining / 60);
     const secs = remaining % 60;
@@ -179,6 +180,7 @@ export default function ExamSimulator({ exam, exercises, totalExamsTime }: Props
     const [visible, setVisible] = useState(true);
     const [timeSpent, setTimeSpent] = useState(0);
     const [examExpired, setExamExpired] = useState(false);
+    const [examStarted, setExamStarted] = useState(false);
     const OXFORD = '#1A2B48';
 
     const exercise = exercises[currentExerciseIndex];
@@ -200,11 +202,12 @@ export default function ExamSimulator({ exam, exercises, totalExamsTime }: Props
         return count + currentQuestionIndex;
     }, [currentExerciseIndex, currentQuestionIndex, exercises]);
 
-    // Track total time loosely
+    // Track total time loosely (uniquement quand l'examen est lancé)
     useEffect(() => {
+        if (!examStarted) return;
         const id = setInterval(() => setTimeSpent(t => t + 1), 1000);
         return () => clearInterval(id);
-    }, []);
+    }, [examStarted]);
 
     const handleAnswer = useCallback((questionId: string, answer: any) => {
         setAnswers(prev => ({ ...prev, [questionId]: answer }));
@@ -261,8 +264,55 @@ export default function ExamSimulator({ exam, exercises, totalExamsTime }: Props
     return (
         <AppLayout>
             <Head title={`Simulator: ${exam.name} - PrePla`} />
-            <ExamGlobalBanner totalMinutes={totalExamsTime} onExpire={handleExamExpire} />
-            
+            <ExamGlobalBanner totalMinutes={totalExamsTime} started={examStarted} onExpire={handleExamExpire} />
+
+            {/* ── Modal de pré-démarrage : explique les règles, le chrono ne démarre qu'au clic ── */}
+            {!examStarted && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+                    <div className="rounded-3xl bg-white p-8 text-center shadow-2xl max-w-md mx-4 animate-in fade-in zoom-in duration-300">
+                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full" style={{ background: 'rgba(99,102,241,0.1)' }}>
+                            <img src="/icons/clock.png" alt="" width={32} height={32} style={{ filter: 'hue-rotate(220deg) saturate(2)' }} />
+                        </div>
+                        <h2 className="text-2xl font-black mb-2" style={{ color: OXFORD }}>
+                            {t('practice.exam_ready_title', 'Prêt à commencer ?')}
+                        </h2>
+                        <p className="text-sm text-muted-foreground mb-1">
+                            {t('practice.exam_ready_exam', 'Examen')} : <strong>{exam.name}</strong>
+                        </p>
+                        <p className="text-sm text-muted-foreground mb-4">
+                            {t('practice.exam_ready_duration', 'Durée')} : <strong>{totalExamsTime} {t('practice.minutes', 'minutes')}</strong>
+                            {' · '}
+                            <strong>{totalQuestionsInSession} {t('practice.questions', 'questions')}</strong>
+                        </p>
+                        <div className="text-left bg-slate-50 rounded-2xl p-4 mb-6 text-sm space-y-2">
+                            <div className="flex items-start gap-2">
+                                <span className="text-emerald-600 font-bold">•</span>
+                                <span>{t('practice.exam_rule_timer', 'Le chrono démarre dès que tu cliques sur Commencer.')}</span>
+                            </div>
+                            <div className="flex items-start gap-2">
+                                <span className="text-emerald-600 font-bold">•</span>
+                                <span>{t('practice.exam_rule_validate', 'Utilise le bouton Suivant en bas pour valider chaque question.')}</span>
+                            </div>
+                            <div className="flex items-start gap-2">
+                                <span className="text-emerald-600 font-bold">•</span>
+                                <span>{t('practice.exam_rule_submit', 'À la dernière question, le bouton devient Soumettre.')}</span>
+                            </div>
+                            <div className="flex items-start gap-2">
+                                <span className="text-amber-600 font-bold">•</span>
+                                <span>{t('practice.exam_rule_noback', 'Tu ne pourras pas revenir en arrière une fois lancé.')}</span>
+                            </div>
+                        </div>
+                        <button
+                            className="w-full rounded-2xl py-4 text-base font-black text-white shadow-lg"
+                            style={{ background: OXFORD, boxShadow: '0 4px 0 0 #0e1a2e' }}
+                            onClick={() => setExamStarted(true)}
+                        >
+                            {t('practice.exam_start_cta', 'Commencer l\'examen')}
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {examExpired && (
                 <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-black/70 backdrop-blur-sm">
                     <div className="rounded-3xl bg-white p-8 text-center shadow-2xl max-w-sm mx-4">

@@ -1,6 +1,7 @@
 import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { useEffect, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 
 interface QuizQuestion {
@@ -50,6 +51,7 @@ const GREEN = '#48b77b';
 type Phase = 'lesson' | 'quiz' | 'results';
 
 export default function LessonPage({ lesson, skeleton }: Props) {
+    const { t } = useTranslation();
     const [mounted, setMounted] = useState(false);
     const [phase, setPhase] = useState<Phase>('lesson');
     const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
@@ -290,7 +292,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                             )}
                             {skeleton && (
                                 <p className="mt-2 text-[10px] font-bold" style={{ color: SKY }}>
-                                    Objectif {skeleton.current_index + 1} / {skeleton.total_objectives}
+                                    {t('lesson.objective_progress', 'Objectif {{current}} / {{total}}', { current: skeleton.current_index + 1, total: skeleton.total_objectives })}
                                 </p>
                             )}
                         </div>
@@ -306,7 +308,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                         {lesson.key_takeaways && lesson.key_takeaways.length > 0 && (
                             <div className="duo-card mb-6 p-5" style={{ background: 'rgba(74,144,226,0.04)' }}>
                                 <p className="text-xs font-black uppercase tracking-widest mb-3" style={{ color: SKY }}>
-                                    💡 Points clés à retenir
+                                    💡 {t('lesson.key_takeaways', 'Points clés à retenir')}
                                 </p>
                                 <div className="space-y-2">
                                     {lesson.key_takeaways.map((t: string, i: number) => (
@@ -323,7 +325,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                         {lesson.common_mistakes && lesson.common_mistakes.length > 0 && (
                             <div className="duo-card mb-6 p-5" style={{ background: 'rgba(231,76,60,0.04)' }}>
                                 <p className="text-xs font-black uppercase tracking-widest mb-3" style={{ color: '#E74C3C' }}>
-                                    ⚠️ Pièges typiques
+                                    ⚠️ {t('lesson.common_mistakes', 'Pièges typiques')}
                                 </p>
                                 <div className="space-y-3">
                                     {lesson.common_mistakes.map((m: CommonMistake, i: number) => (
@@ -511,7 +513,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                                         <div className="flex items-center justify-between">
                                             <div className="text-left">
                                                 <p className="text-[10px] font-black text-white/70 uppercase tracking-widest">Recommandé</p>
-                                                <p className="text-sm font-black text-white">🚀 Pratiquer ce concept</p>
+                                                <p className="text-sm font-black text-white">🚀 {t('lesson.practice_this_concept', 'Pratiquer ce concept')}</p>
                                             </div>
                                             <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center text-xl">
                                                 🎯

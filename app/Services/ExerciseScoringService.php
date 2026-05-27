@@ -139,6 +139,14 @@ class ExerciseScoringService
             if (is_array($correctAnswer)) {
                 $isCorrect = is_array($userAnswer) && empty(array_diff($correctAnswer, $userAnswer)) && empty(array_diff($userAnswer, $correctAnswer));
             } else {
+                // Defensive: multi-field exercises (FormCompletion, TableCompletion, FlowChart…)
+                // submit an array against a scalar correct_answer. Join the values so the cast doesn't crash.
+                if (is_array($userAnswer)) {
+                    $userAnswer = implode(' ', array_map('strval', array_filter(
+                        $userAnswer,
+                        fn ($v) => $v !== null && $v !== ''
+                    )));
+                }
                 $normalUser = strtolower(trim((string)$userAnswer));
                 $normalCorrect = strtolower(trim((string)$correctAnswer));
                 $isCorrect = $normalUser === $normalCorrect;

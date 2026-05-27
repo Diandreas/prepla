@@ -82,7 +82,23 @@
     "exam_mode_badge": "PRÜFUNGSMODUS",
     "section_attempts_one": "{{count}} Versuch",
     "section_attempts_other": "{{count}} Versuche",
-    "section_exercise_types": "{{count}} Übungstypen"
+    "section_exercise_types": "{{count}} Übungstypen",
+    "exam_ready_title": "Bereit zu beginnen?",
+    "exam_ready_exam": "Prüfung",
+    "exam_ready_duration": "Dauer",
+    "minutes": "Minuten",
+    "questions": "Fragen",
+    "exam_rule_timer": "Die Uhr startet, sobald du auf Start klickst.",
+    "exam_rule_validate": "Verwende den Weiter-Knopf unten, um jede Frage zu bestätigen.",
+    "exam_rule_submit": "Bei der letzten Frage wird der Knopf zu Abschicken.",
+    "exam_rule_noback": "Du kannst nicht zurückgehen, sobald du angefangen hast.",
+    "exam_start_cta": "Prüfung starten"
+  },
+  "lesson": {
+    "objective_progress": "Ziel {{current}} / {{total}}",
+    "key_takeaways": "Wichtige Erkenntnisse",
+    "common_mistakes": "Typische Fehler",
+    "practice_this_concept": "Dieses Konzept üben"
   },
   "dictionary": {
     "title": "Mein Wörterbuch",

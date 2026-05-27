@@ -26,3 +26,20 @@ yarn-error.log
 
 # Hostinger MCP config (contient un token API en clair)
 .mcp.json
+
+# Artefacts de déploiement (à ne JAMAIS commiter — alourdit le repo pour rien)
+/public.zip
+/public/build.zip
+/*.zip
+
+# Cache des ressources pédagogiques téléchargées (lourd, peut être re-fetché)
+/docs/resources/**/*.pdf
+/docs/resources/**/*.tsv
+/docs/resources/**/*.csv
+/docs/resources/**/*.html
+
+# Documents de test internes
+/Test-Prepla.docx
+/The test report.docx
+/PREPLA Test Report.pdf
+/ielts_writing_band_descriptors.pdf

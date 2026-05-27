@@ -143,9 +143,12 @@ export default function Generator({ exams, targetExamId, userLevel }: Props) {
                     </Card>
                 )}
 
-                {/* Sticky Action Bar */}
+                {/* Sticky Action Bar — bottom-24 sur mobile pour passer au-dessus de la bottom-nav, bottom-8 sur desktop */}
                 {selectedTypeIds.length > 0 && (
-                    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 animate-in slide-in-from-bottom-10 duration-500">
+                    <div
+                        className="fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 animate-in slide-in-from-bottom-10 duration-500"
+                        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+                    >
                         <Button
                             size="lg"
                             onClick={handleGenerate}

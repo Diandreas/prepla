@@ -82,7 +82,23 @@
     "exam_mode_badge": "EXAM MODE",
     "section_attempts_one": "{{count}} attempt",
     "section_attempts_other": "{{count}} attempts",
-    "section_exercise_types": "{{count}} exercise types"
+    "section_exercise_types": "{{count}} exercise types",
+    "exam_ready_title": "Ready to start?",
+    "exam_ready_exam": "Exam",
+    "exam_ready_duration": "Duration",
+    "minutes": "minutes",
+    "questions": "questions",
+    "exam_rule_timer": "The timer starts as soon as you click Start.",
+    "exam_rule_validate": "Use the Next button at the bottom to validate each question.",
+    "exam_rule_submit": "On the last question, the button becomes Submit.",
+    "exam_rule_noback": "You won't be able to go back once you've started.",
+    "exam_start_cta": "Start exam"
+  },
+  "lesson": {
+    "objective_progress": "Objective {{current}} / {{total}}",
+    "key_takeaways": "Key takeaways",
+    "common_mistakes": "Common mistakes",
+    "practice_this_concept": "Practice this concept"
   },
   "dictionary": {
     "title": "My Dictionary",

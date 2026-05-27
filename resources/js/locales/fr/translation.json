@@ -82,7 +82,23 @@
     "exam_mode_badge": "MODE EXAMEN",
     "section_attempts_one": "{{count}} tentative",
     "section_attempts_other": "{{count}} tentatives",
-    "section_exercise_types": "{{count}} types d'exercices"
+    "section_exercise_types": "{{count}} types d'exercices",
+    "exam_ready_title": "Prêt à commencer ?",
+    "exam_ready_exam": "Examen",
+    "exam_ready_duration": "Durée",
+    "minutes": "minutes",
+    "questions": "questions",
+    "exam_rule_timer": "Le chrono démarre dès que tu cliques sur Commencer.",
+    "exam_rule_validate": "Utilise le bouton Suivant en bas pour valider chaque question.",
+    "exam_rule_submit": "À la dernière question, le bouton devient Soumettre.",
+    "exam_rule_noback": "Tu ne pourras pas revenir en arrière une fois lancé.",
+    "exam_start_cta": "Commencer l'examen"
+  },
+  "lesson": {
+    "objective_progress": "Objectif {{current}} / {{total}}",
+    "key_takeaways": "Points clés à retenir",
+    "common_mistakes": "Pièges typiques",
+    "practice_this_concept": "Pratiquer ce concept"
   },
   "dictionary": {
     "title": "Mon Dictionnaire",
