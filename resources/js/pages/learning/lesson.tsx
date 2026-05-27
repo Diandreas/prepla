@@ -50,6 +50,50 @@ const GREEN = '#48b77b';
 
 type Phase = 'lesson' | 'quiz' | 'results';
 
+// Split markdown into paginated sections by H2 (or H1) boundary
+function splitIntoSections(md: string): { title: string | null; content: string }[] {
+    if (!md) return [];
+    const normalized = md.replace(/\r\n/g, '\n').replace(/^﻿/, '');
+    const lines = normalized.split('\n');
+    const sections: { title: string | null; content: string }[] = [];
+    let current: { title: string | null; lines: string[] } = { title: null, lines: [] };
+
+    lines.forEach(line => {
+        const trimmed = line.trim();
+        // Treat '---' as a section break too (Mistral often emits these between H2s)
+        if (trimmed === '---' || trimmed === '***') {
+            // Skip the divider but keep the current section open
+            return;
+        }
+        const h2Match = trimmed.match(/^##\s+(.+)/);
+        const h1Match = trimmed.match(/^#\s+(.+)/);
+        if (h2Match || h1Match) {
+            if (current.lines.length > 0 || current.title) {
+                sections.push({ title: current.title, content: current.lines.join('\n').trim() });
+            }
+            current = { title: (h2Match || h1Match)![1].trim(), lines: [] };
+        } else {
+            current.lines.push(line);
+        }
+    });
+
+    if (current.lines.length > 0 || current.title) {
+        sections.push({ title: current.title, content: current.lines.join('\n').trim() });
+    }
+
+    // If no H1/H2 found, treat the whole thing as a single section
+    if (sections.length === 0) {
+        return [{ title: null, content: normalized.trim() }];
+    }
+
+    // Drop empty leading section (content before first heading) if it's pure whitespace
+    if (sections[0].title === null && !sections[0].content) {
+        sections.shift();
+    }
+
+    return sections;
+}
+
 export default function LessonPage({ lesson, skeleton }: Props) {
     const { t } = useTranslation();
     const [mounted, setMounted] = useState(false);
@@ -57,8 +101,22 @@ export default function LessonPage({ lesson, skeleton }: Props) {
     const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
     const [quizResults, setQuizResults] = useState<any>(null);
     const [submittingQuiz, setSubmittingQuiz] = useState(false);
+    const [sectionIndex, setSectionIndex] = useState(0);
+
+    const sections = useState(() => splitIntoSections(lesson.theory_markdown))[0];
+    const totalSections = sections.length;
+    const currentSection = sections[sectionIndex] ?? sections[0];
+    const isLastSection = sectionIndex >= totalSections - 1;
+    const isFirstSection = sectionIndex === 0;
 
     useEffect(() => setMounted(true), []);
+    // Reset to first section when lesson changes
+    useEffect(() => { setSectionIndex(0); }, [lesson.id]);
+
+    // Scroll to top when changing section
+    useEffect(() => {
+        if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, [sectionIndex]);
 
     const stagger = (i: number) => ({
         opacity: mounted ? 1 : 0,
@@ -297,15 +355,55 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                             )}
                         </div>
 
-                        {/* Theory content */}
-                        <div className="duo-card mb-6 p-6">
-                            <div className="lesson-content">
-                                {renderMarkdown(lesson.theory_markdown)}
+                        {/* Pagination progress bar */}
+                        {totalSections > 1 && (
+                            <div className="mb-4">
+                                <div className="flex items-center justify-between text-[10px] font-bold mb-1.5" style={{ color: SKY }}>
+                                    <span>Section {sectionIndex + 1} / {totalSections}</span>
+                                    <span>{Math.round(((sectionIndex + 1) / totalSections) * 100)}%</span>
+                                </div>
+                                <div className="h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
+                                    <div
+                                        className="h-full rounded-full transition-all duration-500"
+                                        style={{ width: `${((sectionIndex + 1) / totalSections) * 100}%`, background: SKY }}
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Current section content */}
+                        <div className="duo-card mb-6 p-6" key={sectionIndex}>
+                            {currentSection?.title && (
+                                <h2 className="mb-4 text-xl font-black" style={{ color: SKY }}>{currentSection.title}</h2>
+                            )}
+                            <div className="lesson-content animate-in fade-in slide-in-from-right-2 duration-300">
+                                {renderMarkdown(currentSection?.content || '')}
                             </div>
                         </div>
 
-                        {/* Key takeaways */}
-                        {lesson.key_takeaways && lesson.key_takeaways.length > 0 && (
+                        {/* Section navigation */}
+                        {totalSections > 1 && !isLastSection && (
+                            <div className="flex justify-between items-center mb-6 gap-3">
+                                <button
+                                    onClick={() => setSectionIndex(Math.max(0, sectionIndex - 1))}
+                                    disabled={isFirstSection}
+                                    className="flex-1 rounded-2xl px-4 py-3 text-sm font-bold border-2 transition-all disabled:opacity-30"
+                                    style={{ borderColor: '#e5e7eb', color: OXFORD, background: '#fff' }}
+                                >
+                                    ← Précédent
+                                </button>
+                                <button
+                                    onClick={() => setSectionIndex(Math.min(totalSections - 1, sectionIndex + 1))}
+                                    className="flex-1 rounded-2xl px-4 py-3 text-sm font-black text-white transition-all"
+                                    style={{ background: SKY, boxShadow: '0 3px 0 0 #2a6fc0' }}
+                                >
+                                    Suivant →
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Key takeaways - only on last section */}
+                        {isLastSection && lesson.key_takeaways && lesson.key_takeaways.length > 0 && (
                             <div className="duo-card mb-6 p-5" style={{ background: 'rgba(74,144,226,0.04)' }}>
                                 <p className="text-xs font-black uppercase tracking-widest mb-3" style={{ color: SKY }}>
                                     💡 {t('lesson.key_takeaways', 'Points clés à retenir')}
@@ -321,8 +419,8 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                             </div>
                         )}
 
-                        {/* Common mistakes */}
-                        {lesson.common_mistakes && lesson.common_mistakes.length > 0 && (
+                        {/* Common mistakes - only on last section */}
+                        {isLastSection && lesson.common_mistakes && lesson.common_mistakes.length > 0 && (
                             <div className="duo-card mb-6 p-5" style={{ background: 'rgba(231,76,60,0.04)' }}>
                                 <p className="text-xs font-black uppercase tracking-widest mb-3" style={{ color: '#E74C3C' }}>
                                     ⚠️ {t('lesson.common_mistakes', 'Pièges typiques')}
@@ -347,7 +445,8 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                             </div>
                         )}
 
-                        {/* Continue to quiz */}
+                        {/* Continue to quiz - only on last section */}
+                        {isLastSection && (
                         <div className="flex justify-center">
                             {hasQuiz ? (
                                 <button
@@ -373,6 +472,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                                 </Link>
                             )}
                         </div>
+                        )}
                     </div>
                 )}
 

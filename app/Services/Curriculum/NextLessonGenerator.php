@@ -159,14 +159,15 @@ class NextLessonGenerator
     private function generateWithMistral(User $user, array $context, array $objective, bool $isConsolidation): ?array
     {
         $langKey = strtolower($context['language']);
+        $nativeKey = strtolower(preg_replace('/[^a-z]/i', '', $context['native_language']));
         $level = strtolower($context['level']);
         $concept = str_replace('.', '_', $objective['concept'] ?? 'general');
         $hasErrors = !empty($context['recent_errors']);
 
         // HYBRID CACHING LOGIC
-        // If it's a standard lesson (no major errors, no consolidation), check the static library
+        // Cache key includes native_language so a French speaker doesn't get an English-explained lesson
         if (!$isConsolidation && !$hasErrors) {
-            $cachePath = storage_path("app/lessons/{$langKey}/{$level}/{$concept}.json");
+            $cachePath = storage_path("app/lessons/{$langKey}_via_{$nativeKey}/{$level}/{$concept}.json");
             
             if (File::exists($cachePath)) {
                 $cachedJson = File::get($cachePath);
@@ -193,12 +194,41 @@ class NextLessonGenerator
             ? "\n\nIMPORTANT: This is a CONSOLIDATION lesson. The student has failed exercises on this concept 2+ times. You must:\n- Explain the concept differently than before (use more examples, simpler language)\n- Focus on the specific errors listed above\n- Add extra practice on the weak points\n- Be more encouraging and provide more scaffolding"
             : '';
 
+        // CEFR-tiered language policy for explanations:
+        //   A0/A1/A2 → explanations 100% in NATIVE language (target language only in examples)
+        //   B1/B2    → explanations 70% native, 30% target
+        //   C1/C2    → explanations primarily in target language
+        $upperLevel = strtoupper($context['level']);
+        $isBeginner = in_array($upperLevel, ['A0', 'A1', 'A2'], true);
+        $isIntermediate = in_array($upperLevel, ['B1', 'B2'], true);
+
+        if ($isBeginner) {
+            $languagePolicy = "CRITICAL: The student is a beginner ({$upperLevel}) and DOES NOT SPEAK {$context['language']} fluently. " .
+                "Write ALL explanations, instructions, headings, key points, takeaways, common mistakes, AND quiz questions ENTIRELY in {$context['native_language']}. " .
+                "Only the {$context['language']} example words/phrases themselves should be in {$context['language']}, and they MUST be followed by their {$context['native_language']} translation. " .
+                "Example format for vocabulary: \"**hello** (en {$context['language']}) = bonjour (en {$context['native_language']})\". " .
+                "DO NOT write paragraphs in {$context['language']}. A beginner cannot read them.";
+            $titleLang = $context['native_language'];
+            $quizLang = $context['native_language'];
+        } elseif ($isIntermediate) {
+            $languagePolicy = "The student is intermediate ({$upperLevel}). Write explanations 70% in {$context['native_language']} and 30% in {$context['language']}. " .
+                "Provide translations for key terms. Quiz questions in {$context['language']} with native-language instructions.";
+            $titleLang = $context['language'];
+            $quizLang = $context['language'];
+        } else {
+            $languagePolicy = "The student is advanced ({$upperLevel}). Write the lesson primarily in {$context['language']}, with {$context['native_language']} translations only for rare/technical terms.";
+            $titleLang = $context['language'];
+            $quizLang = $context['language'];
+        }
+
         $prompt = <<<PROMPT
-You are a {$context['language']} teacher for a {$context['level']} student (native: {$context['native_language']}).
+You are a {$context['language']} teacher for a {$context['level']} student whose native language is {$context['native_language']}.
 The student is preparing for: {$context['exam_name']}.
 
 Current learning objective: {$objective['title']}
 Concept: {$objective['concept']}
+
+{$languagePolicy}
 
 {$errorsText}
 {$previousText}
@@ -206,25 +236,24 @@ Concept: {$objective['concept']}
 
 Generate a complete lesson in JSON format:
 {
-  "title": "Lesson title in {$context['language']}",
+  "title": "Lesson title in {$titleLang}",
   "concept": "Brief concept description",
-  "theory_markdown": "Full lesson content in Markdown (500-800 words). Include:\n  - Clear explanation of the rule/concept\n  - 5+ practical examples with translations to {$context['native_language']}\n  - Color-coding hints using **bold** for key terms\n  - A section 'Common Mistakes' with 3 typical traps\n  - Tables for grammar rules or vocabulary when appropriate. IMPORTANT: Tables must NOT have blank lines between rows.\n  Write the lesson primarily in {$context['language']} with {$context['native_language']} translations for key terms.",
-  "key_takeaways": ["takeaway 1", "takeaway 2", "takeaway 3"],
+  "theory_markdown": "Full lesson content in Markdown (500-800 words). Follow the language policy above. Structure:\n  - 3 to 5 H2 sections separated by '## Section Title' — each section short enough to fit on one mobile screen (≈150 words max per section)\n  - Clear pedagogical explanation of the rule/concept\n  - 5+ practical examples in {$context['language']} with {$context['native_language']} translations\n  - Use **bold** for key terms\n  - Tables for grammar rules or vocabulary when appropriate. IMPORTANT: no blank lines between table rows.\n  - End with a short 'Récap' / 'Summary' section",
+  "key_takeaways": ["3 takeaways following the language policy"],
   "common_mistakes": [
-    {"mistake": "description", "correction": "correct form", "tip": "how to remember"}
+    {"mistake": "description (following language policy)", "correction": "correct form", "tip": "how to remember (in {$context['native_language']} for beginners)"}
   ],
   "comprehension_quiz": [
     {
-      "question": "Question text",
+      "question": "Question text in {$quizLang}",
       "options": ["A", "B", "C", "D"],
       "correct_answer": "B",
-      "explanation": "Why B is correct"
+      "explanation": "Why B is correct (in {$context['native_language']} for beginners)"
     }
   ]
 }
 
 Generate exactly 3 comprehension quiz questions that test understanding of the lesson content.
-The theory_markdown should be detailed, engaging, and use Markdown formatting (headers, bold, lists).
 PROMPT;
 
         $messages = [
@@ -249,7 +278,7 @@ PROMPT;
 
         // SAVE CACHE: If this was a standard lesson generation, save it to the static library
         if (!$isConsolidation && !$hasErrors) {
-            $cacheDir = storage_path("app/lessons/{$langKey}/{$level}");
+            $cacheDir = storage_path("app/lessons/{$langKey}_via_{$nativeKey}/{$level}");
             if (!File::exists($cacheDir)) {
                 File::makeDirectory($cacheDir, 0755, true);
             }
