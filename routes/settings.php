@@ -17,8 +17,9 @@ Route::middleware('auth')->group(function () {
     Route::put('settings/password', [PasswordController::class, 'update'])->name('password.update');
 
     Route::get('settings/subscription', [\App\Http\Controllers\Settings\SubscriptionController::class, 'index'])->name('subscription.index');
-    Route::post('settings/subscription/upgrade', [\App\Http\Controllers\Settings\SubscriptionController::class, 'upgrade'])->name('subscription.upgrade');
+    Route::post('settings/subscription/checkout', [\App\Http\Controllers\Settings\SubscriptionController::class, 'checkout'])->name('subscription.checkout');
     Route::post('settings/subscription/cancel', [\App\Http\Controllers\Settings\SubscriptionController::class, 'cancel'])->name('subscription.cancel');
+    Route::post('settings/subscription/resume', [\App\Http\Controllers\Settings\SubscriptionController::class, 'resume'])->name('subscription.resume');
 
     Route::get('settings/appearance', function () {
         return Inertia::render('settings/appearance');
