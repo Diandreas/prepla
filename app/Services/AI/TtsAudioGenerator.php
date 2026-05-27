@@ -139,8 +139,8 @@ class TtsAudioGenerator
     {
         return match (strtolower($language)) {
             'en', 'english' => 'aura-asteria-en',
-            'fr', 'french'  => 'aura-2-thalia-fr',     // Aura-2 multilingue (FR)
-            'de', 'german'  => 'aura-2-amalthea-de',   // Aura-2 multilingue (DE)
+            'fr', 'french'  => 'aura-2-agathe-fr',      // Aura-2 multilingue (FR)
+            'de', 'german'  => 'aura-2-julius-de',      // Aura-2 multilingue (DE)
             default         => 'aura-asteria-en',
         };
     }
