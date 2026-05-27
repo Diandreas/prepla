@@ -36,7 +36,7 @@ class TtsAudioGenerator
      *
      * @return string|null URL publique du MP3 (ex: /storage/exercise-audio/abc123.mp3) ou null en cas d'échec
      */
-    public function generate(string $text, string $voice = 'aura-asteria-en', string $model = null): ?string
+    public function generate(string $text, string $voice = 'aura-asteria-en', ?string $model = null): ?string
     {
         $text = trim($text);
         if ($text === '') {
@@ -124,7 +124,11 @@ class TtsAudioGenerator
             return $question['passage'];
         }
 
-        // Sinon: rien à dicter
+        // Fallback: question text itself (for exercises generated before audio_text was added)
+        if (!empty($question['text']) && is_string($question['text'])) {
+            return $question['text'];
+        }
+
         return null;
     }
 
