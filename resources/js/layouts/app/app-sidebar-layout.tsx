@@ -3,6 +3,7 @@ import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
 import { MobileTabBar } from '@/components/mobile-tab-bar';
+import { PwaInstallPrompt } from '@/components/pwa-install-prompt';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { type BreadcrumbItem } from '@/types';
 
@@ -23,6 +24,8 @@ export default function AppSidebarLayout({ children, breadcrumbs = [] }: { child
             
             {/* Mobile Navigation */}
             <MobileTabBar />
+
+            <PwaInstallPrompt />
         </AppShell>
     );
 }

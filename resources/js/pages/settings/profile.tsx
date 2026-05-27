@@ -1,6 +1,6 @@
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { FormEventHandler, useState } from 'react';
+import { FormEventHandler, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import * as Flags from 'country-flag-icons/react/3x2';
 
@@ -20,6 +20,16 @@ function FlagImg({ flag, size = 18 }: { flag: string; size?: number }) {
 }
 
 import DeleteUser from '@/components/delete-user';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -70,6 +80,8 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
     const { auth } = usePage<SharedData>().props;
     const getInitials = useInitials();
     const [isEditingInfo, setIsEditingInfo] = useState(false);
+    const [showExamChangeDialog, setShowExamChangeDialog] = useState(false);
+    const pendingExamId = useRef<string | null>(null);
     const { t, i18n } = useTranslation();
 
     // Profile Info Form
@@ -100,6 +112,29 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                 i18n.changeLanguage(learningForm.data.interface_language);
             }
         });
+    };
+
+    const handleExamChange = (val: string) => {
+        const currentExamId = profile?.target_exam_id?.toString() ?? '';
+        if (currentExamId && val !== currentExamId) {
+            pendingExamId.current = val;
+            setShowExamChangeDialog(true);
+        } else {
+            learningForm.setData('target_exam_id', val);
+        }
+    };
+
+    const confirmExamChange = () => {
+        if (pendingExamId.current) {
+            learningForm.setData('target_exam_id', pendingExamId.current);
+            pendingExamId.current = null;
+        }
+        setShowExamChangeDialog(false);
+    };
+
+    const cancelExamChange = () => {
+        pendingExamId.current = null;
+        setShowExamChangeDialog(false);
     };
 
     const sectionTitleStyle = "text-xs font-bold uppercase tracking-[0.1em] text-muted-foreground mb-3 px-1";
@@ -137,8 +172,8 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                         </div>
                         <div className="flex flex-col items-center rounded-2xl border bg-card px-5 py-3 shadow-sm min-w-[100px]">
                             <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">{t('profile.streak', 'Série')}</span>
-                            <div className="flex items-center gap-1.5 text-lg font-black text-orange-500">
-                                <CustomIcon name="flame" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(50%) sepia(96%) saturate(1762%) hue-rotate(332deg) brightness(102%) contrast(96%)' }} />
+                            <div className="flex items-center gap-1 text-lg font-black text-orange-500">
+                                <img src="/animation/Fire.gif" alt="Série" className="h-5 w-5 object-contain" />
                                 {profile?.streak_current ?? 0}
                             </div>
                         </div>
@@ -194,9 +229,7 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                             </div>
                             <Select
                                 value={learningForm.data.target_exam_id}
-                                onValueChange={(val) => {
-                                    learningForm.setData('target_exam_id', val);
-                                }}
+                                onValueChange={handleExamChange}
                             >
                                 <SelectTrigger className="w-full bg-muted/30 border-none h-11 font-bold">
                                     <SelectValue placeholder={t('profile.choose_exam', 'Choisir un examen')} />
@@ -394,6 +427,33 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                     PrePla v1.2.0 • {t('profile.made_with', 'Made with')} ❤️ {t('profile.for_success', 'for success')}
                 </p>
             </div>
+
+            <AlertDialog open={showExamChangeDialog} onOpenChange={setShowExamChangeDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-xl font-black">Changer d'examen ?</AlertDialogTitle>
+                        <AlertDialogDescription className="space-y-3 text-sm leading-relaxed">
+                            <span className="block">
+                                Changer d'examen va <strong>effacer toute votre progression actuelle</strong> (parcours, nœuds complétés, leçons générées) et créer un tout nouveau programme adapté au nouvel examen.
+                            </span>
+                            <span className="block text-muted-foreground">
+                                Vos XP, votre série et votre historique d'exercices seront conservés.
+                            </span>
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={cancelExamChange}>
+                            Annuler
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={confirmExamChange}
+                            className="bg-red-500 hover:bg-red-600 text-white font-bold"
+                        >
+                            Oui, changer et recommencer
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </AppLayout>
     );
 }

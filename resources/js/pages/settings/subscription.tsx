@@ -10,9 +10,10 @@ import { useState } from 'react';
 
 interface Props {
     currentPlan: string;
+    stripeEnabled: boolean;
 }
 
-export default function Subscription({ currentPlan }: Props) {
+export default function Subscription({ currentPlan, stripeEnabled }: Props) {
     const [processing, setProcessing] = useState(false);
     const isPremium = currentPlan === 'premium';
 
@@ -87,7 +88,7 @@ export default function Subscription({ currentPlan }: Props) {
                         </CardContent>
                         <CardFooter>
                             {isPremium ? (
-                                <Button variant="outline" className="w-full font-bold" onClick={handleCancel} disabled={processing}>
+                                <Button variant="outline" className="w-full font-bold" onClick={handleCancel} disabled={processing || !stripeEnabled}>
                                     Repasser au plan Standard
                                 </Button>
                             ) : (
@@ -123,7 +124,7 @@ export default function Subscription({ currentPlan }: Props) {
                                 </div>
                             ))}
                         </CardContent>
-                        <CardFooter>
+                        <CardFooter className="flex-col gap-2">
                             {isPremium ? (
                                 <div className="w-full space-y-3">
                                     <div className="flex items-center justify-center gap-2 rounded-xl bg-amber-50 p-3 text-sm font-bold text-amber-700 border border-amber-100">
@@ -133,13 +134,20 @@ export default function Subscription({ currentPlan }: Props) {
                                     <p className="text-center text-[10px] text-muted-foreground">Prochaine facturation le {new Date(new Date().setMonth(new Date().getMonth() + 1)).toLocaleDateString()}</p>
                                 </div>
                             ) : (
-                                <Button 
-                                    className="w-full h-14 bg-amber-400 hover:bg-amber-500 text-amber-950 font-black text-lg shadow-lg hover:shadow-amber-400/20 rounded-2xl"
-                                    onClick={handleUpgrade}
-                                    disabled={processing}
-                                >
-                                    {processing ? 'Chargement...' : 'Devenir Premium'}
-                                </Button>
+                                <>
+                                    <Button
+                                        className="w-full h-14 bg-amber-400 hover:bg-amber-500 text-amber-950 font-black text-lg shadow-lg hover:shadow-amber-400/20 rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed"
+                                        onClick={handleUpgrade}
+                                        disabled={processing || !stripeEnabled}
+                                    >
+                                        {processing ? 'Chargement...' : 'Devenir Premium'}
+                                    </Button>
+                                    {!stripeEnabled && (
+                                        <p className="text-center text-xs text-muted-foreground">
+                                            Paiement disponible prochainement
+                                        </p>
+                                    )}
+                                </>
                             )}
                         </CardFooter>
                     </Card>

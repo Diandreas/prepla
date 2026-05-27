@@ -11,8 +11,12 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
+use App\Models\CurriculumSkeleton;
 use App\Models\Exam;
-use App\Models\Language;
+use App\Models\Lesson;
+use App\Models\LearningPathNode;
+use App\Models\UserLearningProgress;
+use Illuminate\Support\Facades\DB;
 
 class ProfileController extends Controller
 {
@@ -62,18 +66,32 @@ class ProfileController extends Controller
             'interface_language' => 'nullable|string|in:en,fr',
         ]);
 
-        $profile = $request->user()->profile;
-        
-        // If target exam changed, we might want to regenerate roadmap
+        $user    = $request->user();
+        $profile = $user->profile;
+
         $examChanged = $profile->target_exam_id != ($validated['target_exam_id'] ?? null);
 
         $profile->update($validated);
 
         if ($examChanged && $profile->target_exam_id) {
-            // Trigger roadmap generation (algorithm style)
+            // Reset all progress tied to the old exam
+            DB::transaction(function () use ($user) {
+                // Delete adaptive curriculum skeleton
+                CurriculumSkeleton::where('user_id', $user->id)->delete();
+
+                // Delete AI-generated lessons
+                Lesson::where('user_id', $user->id)->delete();
+
+                // Delete progress on all nodes for this user
+                UserLearningProgress::where('user_id', $user->id)->delete();
+
+                // Delete AI-generated learning path nodes (node_type = 'lesson' or 'practice' generated JIT)
+                LearningPathNode::where('user_id', $user->id)->delete();
+            });
+
             $exam = Exam::find($profile->target_exam_id);
             app(\App\Services\AI\RoadmapGeneratorService::class)->generateForUser(
-                $request->user(),
+                $user,
                 $exam,
                 $profile->current_level ?? 'A1',
                 $profile->exam_date

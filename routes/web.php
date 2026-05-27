@@ -9,6 +9,7 @@ use App\Http\Controllers\VocabularyController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', LandingController::class)->name('home');
+Route::get('/offline', fn() => view('offline'))->name('offline');
 
 Route::middleware(['auth'])->group(function () {
     // Onboarding

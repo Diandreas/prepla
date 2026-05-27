@@ -112,10 +112,10 @@ export function AppSidebarHeader() {
             {/* Right: streak + XP + theme toggle */}
             <div className="flex items-center gap-2">
                 <div
-                    className="flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wider"
+                    className="flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wider"
                     style={{ background: 'rgba(249,115,22,0.08)', color: '#F97316' }}
                 >
-                    <CustomIcon name="flame" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(50%) sepia(96%) saturate(1762%) hue-rotate(332deg) brightness(102%) contrast(96%)' }} />
+                    <img src="/animation/Fire.gif" alt="Série" className="h-5 w-5 object-contain" />
                     {streak}
                 </div>
                 <div

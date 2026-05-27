@@ -70,6 +70,8 @@ export default function ExerciseResult({ attempt, nodeProgress }: Props) {
     const nodeCompleted = nodeProgress?.completed ?? false;
     const exercisesDone = nodeProgress?.exercises_done ?? 0;
     const exercisesRequired = nodeProgress?.exercises_required ?? 3;
+    const accuracy = Number(attempt.accuracy_percent ?? 0);
+    const isSuccess = accuracy >= 60;
 
     const stagger = (i: number) => ({
         opacity: mounted ? 1 : 0,
@@ -83,8 +85,17 @@ export default function ExerciseResult({ attempt, nodeProgress }: Props) {
             <div className="mx-auto max-w-2xl space-y-6 px-4 py-8">
                 {/* Header */}
                 <div className="text-center" style={stagger(0)}>
+                    {isSuccess && (
+                        <div className="flex justify-center mb-2">
+                            <img
+                                src="/animation/Trophy.gif"
+                                alt="Trophée"
+                                className="w-24 h-24 object-contain"
+                            />
+                        </div>
+                    )}
                     <h1 className="text-3xl font-black tracking-tight" style={{ color: OXFORD }}>
-                        Exercice terminé !
+                        {isSuccess ? 'Excellent !' : 'Exercice terminé !'}
                     </h1>
                     <p className="mt-2 text-sm font-bold text-muted-foreground">
                         {exercise?.exercise_type?.name} · {exercise?.exam?.name}

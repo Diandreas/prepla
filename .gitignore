@@ -23,3 +23,6 @@ Homestead.json
 Homestead.yaml
 npm-debug.log
 yarn-error.log
+
+# Hostinger MCP config (contient un token API en clair)
+.mcp.json
