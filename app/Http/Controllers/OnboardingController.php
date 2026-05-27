@@ -97,6 +97,7 @@ class OnboardingController extends Controller
             'target_score' => $validated['target_score'],
             'exam_date' => $validated['exam_date'],
             'current_level' => $validated['current_level'] === 'TEST' ? null : $validated['current_level'],
+            'level_source' => $validated['current_level'] && $validated['current_level'] !== 'TEST' ? 'declared' : null,
         ]);
 
         if ($validated['current_level'] && $validated['current_level'] !== 'TEST') {
@@ -153,7 +154,7 @@ class OnboardingController extends Controller
             $validated['essay_text'] ?? ''
         );
 
-        $request->user()->profile->update(['current_level' => $level]);
+        $request->user()->profile->update(['current_level' => $level, 'level_source' => 'tested']);
 
         Cache::put("placement_answers_{$request->user()->id}", [
             'questions'  => $validated['questions'],

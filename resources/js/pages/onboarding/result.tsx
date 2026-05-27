@@ -25,7 +25,7 @@ function CustomIcon({ name, className, style }: { name: string; className?: stri
     return (
         <img
             src={`/icons/${name}.png`}
-            alt={name}
+            alt=""
             className={className || 'h-5 w-5'}
             style={{ objectFit: 'contain', ...style }}
         />
@@ -60,6 +60,7 @@ interface Props {
             name: string;
             language: { name: string; flag: string; native_name: string };
         };
+        level_source?: 'declared' | 'tested' | null;
     };
     exam?: {
         id: number;
@@ -190,13 +191,31 @@ export default function Result({ profile, exam, program }: Props) {
                                 </>
                             )}
                         </div>
-                        <h1 className="text-2xl font-bold sm:text-3xl">Votre niveau estimé</h1>
+                        <h1 className="text-2xl font-bold sm:text-3xl">
+                            {profile.level_source === 'tested' ? 'Votre niveau estimé' : 'Votre point de départ'}
+                        </h1>
                         {profile.target_exam && (
                             <p className="mt-1 text-sm text-muted-foreground inline-flex items-center gap-1">
                                 <FlagImg flag={profile.target_exam.language.flag} size={18} />{' '}
                                 {profile.target_exam.name}
                                 {profile.target_score ? ` · Score cible : ${profile.target_score}` : ''}
                             </p>
+                        )}
+                        {profile.level_source === 'declared' && (
+                            <div className="mt-4 inline-flex flex-col items-center gap-2 rounded-xl border border-amber-300/50 bg-amber-50 dark:bg-amber-950/20 px-4 py-3 text-xs">
+                                <p className="text-amber-700 dark:text-amber-300">
+                                    Niveau auto-déclaré. Pour une vraie évaluation,
+                                </p>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => router.get(route('onboarding.placement'))}
+                                    className="gap-1.5 border-amber-300 text-amber-700 hover:bg-amber-100 dark:text-amber-300"
+                                >
+                                    <CustomIcon name="file-edit" className="h-3.5 w-3.5" />
+                                    Passer le test de niveau (5 min)
+                                </Button>
+                            </div>
                         )}
                     </div>
                 )}
