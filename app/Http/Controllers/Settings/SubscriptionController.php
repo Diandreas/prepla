@@ -34,7 +34,7 @@ class SubscriptionController extends Controller
         ]);
     }
 
-    public function checkout(Request $request): \Symfony\Component\HttpFoundation\Response
+    public function checkout(Request $request)
     {
         $request->validate(['price_id' => 'required|string|in:' . self::PRICE_MONTHLY . ',' . self::PRICE_ANNUAL]);
 
