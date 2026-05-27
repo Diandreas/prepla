@@ -201,7 +201,7 @@ export default function Result({ profile, exam, program }: Props) {
                                 {profile.target_score ? ` · Score cible : ${profile.target_score}` : ''}
                             </p>
                         )}
-                        {profile.level_source === 'declared' && (
+                        {profile.level_source !== 'tested' && (
                             <div className="mt-4 inline-flex flex-col items-center gap-2 rounded-xl border border-amber-300/50 bg-amber-50 dark:bg-amber-950/20 px-4 py-3 text-xs">
                                 <p className="text-amber-700 dark:text-amber-300">
                                     Niveau auto-déclaré. Pour une vraie évaluation,
