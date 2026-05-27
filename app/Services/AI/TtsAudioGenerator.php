@@ -52,7 +52,7 @@ class TtsAudioGenerator
             return Storage::disk(self::DISK)->url($filename);
         }
 
-        $apiKey = env('DEEPGRAM_API_KEY');
+        $apiKey = config('services.deepgram.api_key');
         if (!$apiKey) {
             Log::warning('DEEPGRAM_API_KEY missing for TTS');
             return null;
