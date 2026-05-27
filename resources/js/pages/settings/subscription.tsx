@@ -26,10 +26,25 @@ export default function Subscription({ currentPlan, stripeEnabled, isSubscribed,
     const isPremium = isSubscribed || currentPlan === 'premium';
 
     const handleCheckout = () => {
+        // Native form POST → browser follows 303 cross-origin to Stripe.
+        // Inertia would abort the cross-origin redirect.
         setProcessing(true);
-        router.post(route('subscription.checkout'), {
-            price_id: plans[selectedPlan].id,
-        }, { onFinish: () => setProcessing(false) });
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = route('subscription.checkout');
+        const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
+        const tokenInput = document.createElement('input');
+        tokenInput.type = 'hidden';
+        tokenInput.name = '_token';
+        tokenInput.value = csrf;
+        form.appendChild(tokenInput);
+        const priceInput = document.createElement('input');
+        priceInput.type = 'hidden';
+        priceInput.name = 'price_id';
+        priceInput.value = plans[selectedPlan].id;
+        form.appendChild(priceInput);
+        document.body.appendChild(form);
+        form.submit();
     };
 
     const handleCancel = () => {
