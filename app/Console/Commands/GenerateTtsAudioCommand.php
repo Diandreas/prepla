@@ -65,7 +65,7 @@ class GenerateTtsAudioCommand extends Command
                 }
 
                 if ($this->option('dry-run')) {
-                    $preview = mb_substr($question['audio_text'] ?? $question['passage'] ?? '', 0, 60);
+                    $preview = mb_substr($question['audio_text'] ?? $question['passage'] ?? $question['text'] ?? '', 0, 60);
                     $this->newLine();
                     $this->line("  [dry] ex#{$exercise->id} q#{$idx}: \"{$preview}…\" → {$voice}");
                     continue;
