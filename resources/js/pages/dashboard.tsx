@@ -417,6 +417,18 @@ export default function Dashboard() {
                             </Link>
                         )}
 
+                        {/* Quick Practice CTA — generates a fresh adaptive practice session */}
+                        <Link
+                            href={route('practice.index')}
+                            className="duo-sidebar-box group relative overflow-hidden p-5 text-white"
+                            style={{ background: `linear-gradient(135deg, #48b77b, #3a9d68)`, border: `2px solid #2d8a55`, boxShadow: '0 4px 0 0 #1f6e42' }}
+                        >
+                            <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-70">⚡ Pratique rapide</p>
+                            <p className="text-sm font-black mt-1">5 minutes d'exercices adaptés</p>
+                            <p className="text-[10px] mt-0.5 opacity-70">Mix de types · niveau ajusté</p>
+                            <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-white/10" />
+                        </Link>
+
                         <div className="duo-sidebar-box">
                             <h3>Outils de Révision</h3>
                             <div className="space-y-3">
