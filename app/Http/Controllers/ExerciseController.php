@@ -174,14 +174,23 @@ class ExerciseController extends Controller
             }
         }
 
-        // --- NEW CURRICULUM INTEGRATION ---
+        // --- MASTERY GATE (Bloom): ≥80% required to advance ---
+        // Below threshold → track failures; after 2+ consecutive failures the
+        // NextLessonGenerator switches to a 'consolidation' variant (alternate
+        // explanation, more scaffolding, easier examples).
         $sessionAccuracy = $totalQuestions > 0 ? ($totalCorrect / $totalQuestions) * 100 : 0;
+        $MASTERY_THRESHOLD = 80;
         $skeleton = \App\Models\CurriculumSkeleton::where('user_id', $user->id)->first();
-        if ($skeleton && $sessionAccuracy >= 50) {
-            // Check if we are currently waiting for practice completion
+        if ($skeleton) {
             $currentObjective = $skeleton->currentObjective();
             if (($currentObjective['status'] ?? '') === 'current_practice') {
-                $skeleton->advanceToNextObjective();
+                if ($sessionAccuracy >= $MASTERY_THRESHOLD) {
+                    $skeleton->advanceToNextObjective();
+                } else {
+                    // Strict mastery: stay on this objective + count the failure
+                    $skeleton->consecutive_failures = ($skeleton->consecutive_failures ?? 0) + 1;
+                    $skeleton->save();
+                }
             }
         }
 

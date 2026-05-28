@@ -76,18 +76,20 @@ export default function SessionReport({ node, report, userLevel }: Props) {
                                 />
                             </div>
                             <div className="flex-1 text-center md:text-left">
-                                <span className="inline-block px-3 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-bold uppercase tracking-wider mb-2">
-                                    Session Terminée
+                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2 ${
+                                    report.accuracy >= 80
+                                        ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
+                                        : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
+                                }`}>
+                                    {report.accuracy >= 80 ? '✓ Concept maîtrisé' : '↻ Maîtrise insuffisante'}
                                 </span>
                                 <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
                                     {report.node_title}
                                 </h1>
                                 <p className="text-slate-500 dark:text-slate-400">
                                     {report.accuracy >= 80
-                                        ? `Excellent travail ! Vous progressez vers votre objectif ${node.exam.name}.`
-                                        : report.accuracy >= 50
-                                          ? `Bonne session — continuez ainsi pour progresser vers ${node.exam.name}.`
-                                          : `Pas de panique : c'est en s'entraînant qu'on s'améliore. On recommence ?`}
+                                        ? `Concept validé (≥80%). Tu peux passer au suivant.`
+                                        : `Il te faut ≥80% pour valider ce concept. Tu es à ${Math.round(report.accuracy)}% — refais une session ou revois la leçon.`}
                                 </p>
                             </div>
 
@@ -184,20 +186,39 @@ export default function SessionReport({ node, report, userLevel }: Props) {
                         ))}
                     </motion.div>
 
-                    {/* Actions */}
+                    {/* Actions — adapt CTA to whether user mastered the concept */}
                     <motion.div variants={item} className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
-                        <Link 
-                            href={route('practice.index')}
-                            className="w-full sm:w-auto px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold shadow-lg shadow-indigo-200 dark:shadow-none transition-all transform hover:-translate-y-1 text-center"
-                        >
-                            Retour au Dashboard
-                        </Link>
-                        <Link 
-                            href={route('node.start', node.id)}
-                            className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white rounded-2xl font-bold border border-slate-200 dark:border-slate-700 transition-all text-center"
-                        >
-                            Refaire la session
-                        </Link>
+                        {report.accuracy >= 80 ? (
+                            <>
+                                <Link
+                                    href="/lessons/next"
+                                    className="w-full sm:w-auto px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold shadow-lg transition-all transform hover:-translate-y-1 text-center"
+                                >
+                                    ✓ Concept suivant →
+                                </Link>
+                                <Link
+                                    href="/dashboard"
+                                    className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white rounded-2xl font-bold border border-slate-200 dark:border-slate-700 transition-all text-center"
+                                >
+                                    Retour au parcours
+                                </Link>
+                            </>
+                        ) : (
+                            <>
+                                <Link
+                                    href={route('node.start', node.id)}
+                                    className="w-full sm:w-auto px-8 py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-bold shadow-lg transition-all transform hover:-translate-y-1 text-center"
+                                >
+                                    ↻ Refaire pour valider (≥80%)
+                                </Link>
+                                <Link
+                                    href={`/lessons/${node.id}`}
+                                    className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white rounded-2xl font-bold border border-slate-200 dark:border-slate-700 transition-all text-center"
+                                >
+                                    📖 Revoir la leçon
+                                </Link>
+                            </>
+                        )}
                     </motion.div>
                 </motion.div>
             </div>

@@ -47,6 +47,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('exercise/result/{attempt}', [\App\Http\Controllers\ExerciseController::class, 'result'])->name('exercise.result');
         Route::get('node/{node}/result', [\App\Http\Controllers\ExerciseController::class, 'sessionResult'])->name('node.session_result');
 
+        // Boss-level chapter synthesis
+        Route::get('chapter/{chapterOrder}/synthesis', [\App\Http\Controllers\ChapterSynthesisController::class, 'start'])
+            ->whereNumber('chapterOrder')
+            ->name('chapter.synthesis');
+
         // Dictionary
         Route::prefix('dictionary')->name('dictionary.')->group(function () {
             Route::get('/', [DictionaryController::class, 'index'])->name('index');

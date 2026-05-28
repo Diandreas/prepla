@@ -411,12 +411,17 @@ export default function Dashboard() {
                                             })}
                                         </div>
 
-                                        {/* Chapter footer: boss / synthesis preview */}
+                                        {/* Chapter footer: boss / synthesis */}
                                         {completedInChapter === totalInChapter && totalInChapter > 0 && (
-                                            <div className="mt-4 rounded-2xl border-2 border-amber-200 bg-amber-50 p-4 text-center">
-                                                <p className="text-xs font-black uppercase tracking-widest text-amber-700">🏆 Chapitre maîtrisé</p>
-                                                <p className="mt-1 text-sm text-amber-900">Tu as terminé tous les exercices de ce chapitre.</p>
-                                            </div>
+                                            <Link
+                                                href={route('chapter.synthesis', { chapterOrder: chapter.order })}
+                                                className="mt-4 block rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-amber-100 p-5 text-center transition hover:from-amber-100 hover:to-amber-200 hover:-translate-y-0.5"
+                                                style={{ boxShadow: '0 4px 0 0 #e08c10' }}
+                                            >
+                                                <p className="text-xs font-black uppercase tracking-widest text-amber-700">🏆 Boss du chapitre</p>
+                                                <p className="mt-1 text-lg font-black text-amber-900">Synthèse — Tous les concepts</p>
+                                                <p className="mt-1 text-xs text-amber-700/80">≥80% pour valider définitivement le chapitre</p>
+                                            </Link>
                                         )}
                                     </div>
                                 );

@@ -107,7 +107,29 @@ class ExerciseGeneratorService
             $title = $lessonContext['title'] ?? '';
             $concept = $lessonContext['concept'] ?? '';
             $nativeLang = $lessonContext['native_language'] ?? 'Français';
-            $lessonDirective = <<<DIRECTIVE
+            $isSynthesis = !empty($lessonContext['is_synthesis']);
+            $conceptsMixed = $lessonContext['concepts_to_mix'] ?? [];
+
+            if ($isSynthesis) {
+                $conceptsList = implode(', ', $conceptsMixed);
+                $lessonDirective = <<<DIRECTIVE
+
+CRITICAL — CHAPTER SYNTHESIS (BOSS LEVEL)
+This is the END-OF-CHAPTER synthesis. The student just completed multiple
+lessons in this chapter. The concepts covered are: {$conceptsList}.
+
+This exercise MUST mix questions covering DIFFERENT concepts from the list above.
+- Each of the 5 questions should test a DIFFERENT concept from the list (one per concept)
+- Questions must require RECALL from long-term memory (not just re-reading a passage)
+- Difficulty matches the chapter level
+- Instructions in {$nativeLang} for A0/A1/A2 students
+- This is a high-stakes test of mastery — write clear, fair, distinct questions
+
+Output 5 questions. Each question's `text` should clearly indicate which concept
+it tests (e.g. "Pronoms : ___" or "Présent simple : ___").
+DIRECTIVE;
+            } else {
+                $lessonDirective = <<<DIRECTIVE
 
 CRITICAL — LESSON-ALIGNED EXERCISE
 The student just finished the lesson: "{$title}" (concept: {$concept}).
@@ -126,6 +148,7 @@ For beginners (A0/A1/A2 native: {$nativeLang}):
 - Example sentences in {$language} with {$nativeLang} translations
 - Each gap-fill should isolate ONE concept point at a time
 DIRECTIVE;
+            }
         }
 
         $isListening = $skillType === 'listening';
