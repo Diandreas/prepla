@@ -23,13 +23,13 @@ class ExerciseGeneratorService
         return $exercises;
     }
 
-    public function generate(ExerciseType $exerciseType, Exam $exam, string $difficulty = 'B1'): Exercise
+    public function generate(ExerciseType $exerciseType, Exam $exam, string $difficulty = 'B1', ?array $lessonContext = null): Exercise
     {
         $exam->loadMissing('language');
         $language = $exam->language?->name ?? 'English';
         $languageNative = $exam->language?->native_name ?? $language;
 
-        $prompt = $this->buildPrompt($exerciseType, $exam, $difficulty, $language, $languageNative);
+        $prompt = $this->buildPrompt($exerciseType, $exam, $difficulty, $language, $languageNative, $lessonContext);
 
         $response = $this->mistral->chat([
             ['role' => 'system', 'content' => 'You are an expert language exam content creator. Always respond with valid JSON only.'],
@@ -75,10 +75,38 @@ class ExerciseGeneratorService
         ]);
     }
 
-    private function buildPrompt(ExerciseType $exerciseType, Exam $exam, string $difficulty, string $language, string $languageNative): string
+    private function buildPrompt(ExerciseType $exerciseType, Exam $exam, string $difficulty, string $language, string $languageNative, ?array $lessonContext = null): string
     {
         $componentKey = $exerciseType->component_key;
         $skillType = $exerciseType->section?->skill_type ?? 'reading';
+
+        // Lesson-aware context: when an exercise is generated AFTER a lesson, it MUST test
+        // the lesson's specific concept (e.g. "grammar.simple_present") — not random content.
+        $lessonDirective = '';
+        if ($lessonContext) {
+            $title = $lessonContext['title'] ?? '';
+            $concept = $lessonContext['concept'] ?? '';
+            $nativeLang = $lessonContext['native_language'] ?? 'Français';
+            $lessonDirective = <<<DIRECTIVE
+
+CRITICAL — LESSON-ALIGNED EXERCISE
+The student just finished the lesson: "{$title}" (concept: {$concept}).
+This exercise MUST test that specific concept. Examples:
+- If concept involves verb conjugation: gap-fills must blank out the verb to conjugate
+- If concept involves pronouns: gap-fills must blank out the pronoun
+- If concept involves vocabulary: gap-fills must blank out a vocabulary item the lesson taught
+- If concept involves grammar rule: produce sentences that require applying THAT rule
+
+FORBIDDEN: producing a generic reading-comprehension where the gap answer is
+literally findable by copying a word from the passage 1-2 sentences earlier.
+The student must apply REASONING from the lesson, not visual recall.
+
+For beginners (A0/A1/A2 native: {$nativeLang}):
+- Instructions/questions in {$nativeLang}
+- Example sentences in {$language} with {$nativeLang} translations
+- Each gap-fill should isolate ONE concept point at a time
+DIRECTIVE;
+        }
 
         $isListening = $skillType === 'listening';
         $audioField = $isListening ? ', audio_text (string: 1-2 sentences in ' . $language . ' that will be read aloud by TTS — the spoken question or instruction)' : '';
@@ -127,16 +155,28 @@ class ExerciseGeneratorService
             default => 'Array of 3 questions with: id (string), type ("mcq"), text, options (4 choices), correct_answer, explanation',
         };
 
-        // Determine content structure based on component type
+        // Determine content structure based on component type.
+        // For lesson-aligned grammar/vocab exercises (gap-fill, sentence-completion,
+        // short-answer, mcq, matching), the passage is usually a distractor: it tempts
+        // students to copy-paste instead of applying the concept. Skip the passage when
+        // we have lesson context, unless the skill is reading.
         $needsPassage = in_array($componentKey, ['mcq', 'true-false-ng', 'gap-fill', 'matching', 'sentence-completion', 'short-answer', 'open-cloze']);
+        if ($needsPassage && $lessonContext && $skillType !== 'reading') {
+            $needsPassage = false;
+        }
+
         $contentStructure = $needsPassage
-            ? '"content": {"passage": "A ' . $difficulty . '-level text in ' . $language . ' (150-200 words)", "instructions": "Instructions in ' . $language . '"}'
+            ? '"content": {"passage": "A ' . $difficulty . '-level text in ' . $language . ' (150-200 words) — questions must require INFERENCE, not literal copying from the passage", "instructions": "Instructions in ' . $language . '"}'
             : '"content": {"instructions": "Instructions in ' . $language . '"}';
+
+        $gapFillBan = $componentKey === 'gap-fill'
+            ? "\n\nCRITICAL FOR GAP-FILL:\n- The answer to each blank MUST NOT appear verbatim in the passage or in any other question.\n- Each gap tests grammar or vocabulary the student has to KNOW, not COPY.\n- Bad example: passage says 'Madrid is a big city' → gap 'Madrid is a ___ city' (answer 'big' is visible). NEVER do this.\n- Good example: passage says 'Anna lives in Madrid' → gap 'Anna ___ (live) in Madrid' (answer 'lives' — tests verb conjugation, the verb form is NOT in the passage)."
+            : '';
 
         return <<<PROMPT
 Generate a {$exerciseType->name} exercise for the {$exam->name} exam at CEFR {$difficulty} level.
 The exercise must be entirely in {$language} ({$languageNative}) — this is a {$language} language exam.
-Skill tested: {$skillType}.
+Skill tested: {$skillType}.{$lessonDirective}{$gapFillBan}
 
 Return JSON with exactly this structure:
 {

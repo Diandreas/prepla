@@ -57,16 +57,39 @@ class NodeStartController extends Controller
 
         if ($exercises->count() < 3 && !$alreadyGenerated) {
             $node->loadMissing('exam.language');
-            $exerciseType = ExerciseType::where('exam_id', $node->exam_id)->inRandomOrder()->first()
-                ?? ExerciseType::inRandomOrder()->first();
 
-            if ($exerciseType) {
+            // Variety: pick 3 DIFFERENT exercise types (so the user sees a mix of MCQ,
+            // gap-fill, matching, etc.) instead of 3 of the same type. Limit to types
+            // that aren't too long-form for a quick session (no essays/role-play here).
+            $allowedComponents = ['mcq', 'true-false-ng', 'gap-fill', 'matching', 'sentence-completion', 'short-answer', 'ordering', 'word-formation', 'multiple-matching', 'open-cloze'];
+            $variedTypes = ExerciseType::where('exam_id', $node->exam_id)
+                ->whereIn('component_key', $allowedComponents)
+                ->inRandomOrder()
+                ->limit(3)
+                ->get();
+            if ($variedTypes->isEmpty()) {
+                $variedTypes = ExerciseType::whereIn('component_key', $allowedComponents)->inRandomOrder()->limit(3)->get();
+            }
+
+            // Lesson context: when the node has an associated Lesson, pass its concept
+            // to the generator so exercises actually test what was just taught.
+            $lessonContext = null;
+            $lesson = \App\Models\Lesson::where('node_id', $node->id)->first();
+            if ($lesson) {
+                $lessonContext = [
+                    'title' => $lesson->title,
+                    'concept' => $lesson->concept ?? '',
+                    'native_language' => $user->profile?->native_language ?? 'Français',
+                ];
+            }
+
+            if ($variedTypes->isNotEmpty()) {
                 $needed = 3 - $exercises->count();
                 $generated = collect();
                 for ($i = 0; $i < $needed; $i++) {
+                    $exerciseType = $variedTypes[$i % $variedTypes->count()];
                     try {
-                        $ex = $generator->generate($exerciseType, $node->exam, $node->level);
-                        // Attacher le node_id pour ne plus régénérer la prochaine fois
+                        $ex = $generator->generate($exerciseType, $node->exam, $node->level, $lessonContext);
                         $ex->update(['node_id' => $node->id, 'order_in_node' => $i + 1]);
                         $ex->load(['exerciseType', 'exam.language']);
                         $generated->push($ex);
