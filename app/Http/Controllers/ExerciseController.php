@@ -206,6 +206,7 @@ class ExerciseController extends Controller
         return Inertia::render('exercises/session-report', [
             'node' => $node->load('exam.language'),
             'report' => $report,
+            'userLevel' => auth()->user()?->profile?->current_level ?? 'A1',
         ]);
     }
 

@@ -31,9 +31,10 @@ interface Props {
         time_spent: number;
         details: ReportDetail[];
     };
+    userLevel: string;
 }
 
-export default function SessionReport({ node, report }: Props) {
+export default function SessionReport({ node, report, userLevel }: Props) {
     const { t } = useTranslation();
 
     const container = {
@@ -120,7 +121,7 @@ export default function SessionReport({ node, report }: Props) {
                              <div>
                                  <div className="text-sm text-slate-400 font-medium">Niveau</div>
                                  <div className="text-lg font-bold text-slate-900 dark:text-white">
-                                     {node.exam.language.name} - B2
+                                     {node.exam.language.name} · {userLevel}
                                  </div>
                              </div>
                          </div>

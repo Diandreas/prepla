@@ -746,18 +746,15 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                         </div>
                     )}
 
-                    <div className="player-card group/card" style={{ padding: '24px' }}>
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-[15px] font-bold text-slate-800">
-                                {question.text || question.prompt}
-                            </h2>
-                            <button 
-                                onClick={() => playTts(question.text || question.prompt, 'question')}
-                                className={`p-1.5 rounded-lg transition-all ${playingTts === 'question' ? 'bg-indigo-100 text-indigo-600 scale-110' : 'opacity-0 group-hover/card:opacity-100 hover:bg-slate-100 text-slate-400'}`}
-                            >
-                                <Icon name={playingTts === 'question' ? 'volume-2' : 'volume-1'} size={18} />
-                            </button>
-                        </div>
+                    <div className="player-card group/card relative" style={{ padding: '24px' }}>
+                        {/* Floating TTS button — the question text itself is rendered by each Component to avoid duplication */}
+                        <button
+                            onClick={() => playTts(question.text || question.prompt, 'question')}
+                            className={`absolute top-3 right-3 p-1.5 rounded-lg transition-all z-10 ${playingTts === 'question' ? 'bg-indigo-100 text-indigo-600 scale-110' : 'opacity-50 hover:opacity-100 hover:bg-slate-100 text-slate-400'}`}
+                            aria-label="Écouter la question"
+                        >
+                            <Icon name={playingTts === 'question' ? 'volume-2' : 'volume-1'} size={18} />
+                        </button>
                         <Component
                             key={question.id ?? currentQuestionIndex}
                             question={{ ...exercise.content, ...question }}

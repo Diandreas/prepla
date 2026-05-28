@@ -17,6 +17,12 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);
+        // AI/internal API endpoints called via fetch — exempt from CSRF rotation
+        // (the user is still authenticated via session cookie)
+        $middleware->validateCsrfTokens(except: [
+            'api/ai/*',
+            'stripe/webhook',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
