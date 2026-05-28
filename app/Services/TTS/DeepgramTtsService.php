@@ -12,15 +12,15 @@ class DeepgramTtsService
     protected string $apiKey;
     protected string $baseUrl = 'https://api.deepgram.com/v1/speak';
 
-    // Deepgram Aura voices per language
+    // Deepgram voices per language — Aura-1 for EN (cheap), Aura-2 multilingual for others
     protected array $voices = [
         'en' => 'aura-asteria-en',
-        'fr' => 'aura-arcas-fr',
-        'de' => 'aura-perun-de',
-        'es' => 'aura-helios-es',
+        'fr' => 'aura-2-agathe-fr',
+        'de' => 'aura-2-julius-de',
+        'es' => 'aura-2-celeste-es',
         'english' => 'aura-asteria-en',
-        'french' => 'aura-arcas-fr',
-        'german' => 'aura-perun-de',
+        'french' => 'aura-2-agathe-fr',
+        'german' => 'aura-2-julius-de',
     ];
 
     public function __construct()
