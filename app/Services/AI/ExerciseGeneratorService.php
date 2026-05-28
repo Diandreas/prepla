@@ -9,7 +9,10 @@ use Illuminate\Support\Facades\Log;
 
 class ExerciseGeneratorService
 {
-    public function __construct(protected MistralService $mistral) {}
+    public function __construct(
+        protected MistralService $mistral,
+        protected \App\Services\ImageLibraryService $imageLibrary
+    ) {}
 
     public function generateBatch(array $typeIds, Exam $exam, string $difficulty = 'B1'): array
     {
@@ -49,6 +52,23 @@ class ExerciseGeneratorService
                     }
                     return $q;
                 }, $data['questions']);
+
+                // For visual exercise types (diagram-labeling, graph-description), pick
+                // an image from the pre-generated library instead of leaving image_url null.
+                $imageCategory = $this->imageLibrary->categoryFor($exerciseType->component_key);
+                if ($imageCategory) {
+                    $exam->loadMissing('language');
+                    $examSlug = strtolower($exam->slug ?? $exam->name);
+                    $data['questions'] = array_map(function ($q) use ($examSlug, $imageCategory) {
+                        if (empty($q['image_url'])) {
+                            $pickedUrl = $this->imageLibrary->pickFor($examSlug, $imageCategory);
+                            if ($pickedUrl) {
+                                $q['image_url'] = $pickedUrl;
+                            }
+                        }
+                        return $q;
+                    }, $data['questions']);
+                }
 
                 return Exercise::create([
                     'exercise_type_id' => $exerciseType->id,

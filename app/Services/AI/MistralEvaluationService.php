@@ -115,7 +115,9 @@ ERROR CATEGORIES TAXONOMY (use these exact categories):
         ];
 
         try {
-            return $this->mistral->chat($messages);
+            // chatRaw → no json_object response_format (explanation is free text with <evidence> tags)
+            $response = $this->mistral->chatRaw($messages);
+            return $response ?: "Une erreur est survenue lors de l'explication.";
         } catch (\Exception $e) {
             return "Une erreur est survenue lors de l'explication.";
         }
