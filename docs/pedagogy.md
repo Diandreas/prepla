@@ -337,3 +337,72 @@ Une plateforme qui veut remplacer un prof DOIT mesurer ce qui marche. À mettre 
 - Sentry : https://sentry.io
 - Gemini API : https://ai.google.dev/gemini-api/docs
 - Groq (Llama free tier) : https://groq.com
+
+---
+
+## Annexe — Framework consolidé : Mastery + Comprehensible Input + Spaced Retrieval
+*(Ajouté 2026-05-28)*
+
+### Pourquoi cette synthèse
+
+Aucune app existante (Duolingo, Babbel, Busuu, Memrise, Magoosh) ne combine les 3 cadres validés ci-dessous. C'est la valeur unique de PrePla.
+
+### Les 3 piliers
+
+**1. Mastery Learning (Bloom)** — On n'avance pas tant que la maîtrise (≥80%) n'est pas atteinte. Échec ×2 → leçon de consolidation alternative.
+
+**2. L1 → L2 progressif (Krashen + Cummins)**
+- A0/A1/A2 : explications 100% en langue maternelle, exemples en cible
+- B1/B2 : 70/30
+- C1/C2 : 100% en cible (sauf termes rares)
+
+**3. SM-2 sur les erreurs réelles** — Les fautes du student reviennent à J+1, J+3, J+7, J+21… jusqu'à mastery. Différent d'Anki qui spacing-repeat des cartes piochées.
+
+### 4 supports IA
+
+- **Tuteur IA "pourquoi"** : explique le concept, pas juste la réponse correcte
+- **Tâches d'examen réelles** : pas de drills génériques
+- **Multi-modal** : Deepgram TTS/STT + Mistral writing evaluator
+- **Boss-level synthèse** : fin de chapitre = mix de tous les concepts vus
+
+### Boucle d'apprentissage canonique
+
+```
+Diagnose → Theory (L1+L2) → Guided practice (3 types variés)
+       → Mastery check (≥80%)
+              ├── PASS → Advance + XP + errors → SM-2 queue
+              └── FAIL → Consolidation alternative
+       → End of chapter: synthesis boss-level
+```
+
+### Comparaison concurrentielle
+
+| App | Faiblesse vs PrePla |
+|-----|----------------------|
+| Duolingo | Pas de mastery, pas de théorie, pas exam-aligned |
+| Babbel | Cursus fixe, pas d'IA feedback |
+| Busuu | Lent (humain), générique |
+| Memrise | Vocab uniquement |
+| Magoosh / Cambridge | Statique, pas personnalisé |
+
+### Implémentation actuelle (état au 2026-05-28)
+
+- ✅ Mastery threshold dans `CurriculumSkeleton::advanceToNextObjective`
+- ✅ Consolidation lessons sur 2 échecs consécutifs (`NextLessonGenerator`)
+- ✅ L1 scaffolding tiered (`NextLessonGenerator::generateWithMistral`)
+- ✅ Cache lesson par `via_{native_language}`
+- ✅ SM-2 sur `UserError` (`ErrorSpacedRepetitionService`)
+- ✅ Mistral explainer (`MistralEvaluationService::explainMistake` via chatRaw)
+- ✅ Deepgram TTS/STT + Aura-2 pour FR/DE
+- ✅ Dashboard refondé : chapitre actif uniquement
+- 🔄 Boss-level synthesis : détection ✅, génération AI à câbler
+- 🔄 Mode examen immersif : à construire
+- 🔄 Pronunciation scoring phonémique : à étudier (MFA self-hosted ?)
+
+### Références académiques
+
+- Bloom, B. S. (1968). *Learning for Mastery*.
+- Krashen, S. (1985). *The Input Hypothesis*.
+- Cummins, J. (1981). *Bilingualism and Minority-Language Children*.
+- Wozniak, P. (1994). *Optimization of repetition spacing* — SM-2.
+- Roediger, H. L. & Karpicke, J. D. (2006). *Test-enhanced learning*.

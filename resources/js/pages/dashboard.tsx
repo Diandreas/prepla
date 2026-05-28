@@ -150,6 +150,25 @@ export default function Dashboard() {
 
     const lastNodeId = allNodes.length > 0 ? allNodes[allNodes.length - 1].id : null;
 
+    // Find the chapter index that contains the currently active node — that's the
+    // ONE chapter we display by default. The user can navigate to other chapters
+    // via the prev/next buttons. No more 10-chapter infinite scroll.
+    const activeChapterIdx = useMemo(() => {
+        if (!firstIncompleteNodeId) return 0;
+        const idx = chapters.findIndex(c => c.nodes.some(n => n.id === firstIncompleteNodeId));
+        return idx >= 0 ? idx : 0;
+    }, [chapters, firstIncompleteNodeId]);
+
+    const [viewedChapterIdx, setViewedChapterIdx] = useState(activeChapterIdx);
+    // Re-sync if the active chapter changes (e.g. after completing one)
+    useEffect(() => { setViewedChapterIdx(activeChapterIdx); }, [activeChapterIdx]);
+
+    const viewedChapter = chapters[viewedChapterIdx];
+    const isViewingActive = viewedChapterIdx === activeChapterIdx;
+    const completedInChapter = viewedChapter ? viewedChapter.nodes.filter(n => n.status === 'completed').length : 0;
+    const totalInChapter = viewedChapter ? viewedChapter.nodes.length : 0;
+    const chapterPct = totalInChapter > 0 ? Math.round((completedInChapter / totalInChapter) * 100) : 0;
+
     const examName = (profile as any)?.target_exam?.name;
     const examFlag = (profile as any)?.target_exam?.language?.flag;
 
@@ -270,10 +289,45 @@ export default function Dashboard() {
             <div className="mx-auto max-w-[1000px] px-4 py-8">
                 <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] gap-10">
                     
-                    {/* ROADMAP */}
+                    {/* ROADMAP — single active chapter view */}
                     <div className="flex flex-col">
-                        <div className="space-y-12">
-                            {chapters.map((chapter, cIdx) => {
+                        {/* Chapter navigator */}
+                        <div className="mb-6 flex items-center justify-between gap-3 rounded-2xl bg-white border-2 border-gray-100 p-3 shadow-sm">
+                            <button
+                                onClick={() => setViewedChapterIdx(i => Math.max(0, i - 1))}
+                                disabled={viewedChapterIdx === 0}
+                                className="rounded-xl px-3 py-2 text-sm font-black text-slate-600 hover:bg-slate-50 disabled:opacity-30"
+                                aria-label="Chapitre précédent"
+                            >
+                                ←
+                            </button>
+                            <div className="flex-1 text-center">
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                                    Chapitre {viewedChapterIdx + 1} / {chapters.length}
+                                    {isViewingActive && <span className="ml-2 inline-block rounded-full bg-emerald-100 px-2 py-0.5 text-emerald-700">EN COURS</span>}
+                                    {!isViewingActive && viewedChapterIdx < activeChapterIdx && <span className="ml-2 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-amber-700">TERMINÉ</span>}
+                                    {!isViewingActive && viewedChapterIdx > activeChapterIdx && <span className="ml-2 inline-block rounded-full bg-slate-100 px-2 py-0.5 text-slate-500">VERROUILLÉ</span>}
+                                </p>
+                                <p className="mt-0.5 text-sm font-black truncate" style={{ color: OXFORD }}>{viewedChapter?.name}</p>
+                                <div className="mt-1.5 mx-auto h-1.5 max-w-[200px] rounded-full bg-slate-100 overflow-hidden">
+                                    <div className="h-full rounded-full transition-all duration-500" style={{ width: `${chapterPct}%`, background: SKY }} />
+                                </div>
+                                <p className="mt-1 text-[10px] font-bold text-slate-400">{completedInChapter} / {totalInChapter} étapes</p>
+                            </div>
+                            <button
+                                onClick={() => setViewedChapterIdx(i => Math.min(chapters.length - 1, i + 1))}
+                                disabled={viewedChapterIdx >= chapters.length - 1 || viewedChapterIdx >= activeChapterIdx}
+                                className="rounded-xl px-3 py-2 text-sm font-black text-slate-600 hover:bg-slate-50 disabled:opacity-30"
+                                aria-label="Chapitre suivant"
+                            >
+                                →
+                            </button>
+                        </div>
+
+                        <div>
+                            {viewedChapter && (() => {
+                                const cIdx = viewedChapterIdx;
+                                const chapter = viewedChapter;
                                 const theme = chapterThemes[cIdx % chapterThemes.length];
                                 let globalNodeSum = chapters.slice(0, cIdx).reduce((acc, c) => acc + c.nodes.length, 0);
 
@@ -287,7 +341,7 @@ export default function Dashboard() {
                                         <div className="flex flex-col items-center py-4">
                                             {chapter.nodes.map((node, nIdx) => {
                                                 const currentIdx = globalNodeSum + nIdx;
-                                                const nextNode = chapter.nodes[nIdx + 1] || chapters[cIdx + 1]?.nodes[0];
+                                                const nextNode = chapter.nodes[nIdx + 1];
                                                 
                                                 const isActiveNode = node.id === firstIncompleteNodeId;
                                                 const isCompleted = node.status === 'completed';
@@ -356,9 +410,17 @@ export default function Dashboard() {
                                                 );
                                             })}
                                         </div>
+
+                                        {/* Chapter footer: boss / synthesis preview */}
+                                        {completedInChapter === totalInChapter && totalInChapter > 0 && (
+                                            <div className="mt-4 rounded-2xl border-2 border-amber-200 bg-amber-50 p-4 text-center">
+                                                <p className="text-xs font-black uppercase tracking-widest text-amber-700">🏆 Chapitre maîtrisé</p>
+                                                <p className="mt-1 text-sm text-amber-900">Tu as terminé tous les exercices de ce chapitre.</p>
+                                            </div>
+                                        )}
                                     </div>
                                 );
-                            })}
+                            })()}
                         </div>
                     </div>
 
