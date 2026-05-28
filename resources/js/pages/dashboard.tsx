@@ -429,8 +429,8 @@ export default function Dashboard() {
                         </div>
                     </div>
 
-                    {/* SIDEBAR */}
-                    <div className="hidden md:flex flex-col gap-6">
+                    {/* SIDEBAR — visible on mobile too (stacks below the roadmap) */}
+                    <div className="flex flex-col gap-6">
                         {examName && (
                             <div className="flex items-center gap-3 p-2">
                                 {examFlag && <FlagImg flag={examFlag} size={32} />}

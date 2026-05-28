@@ -1,4 +1,3 @@
-import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -252,19 +251,44 @@ export default function ExamSimulator({ exam, exercises, totalExamsTime }: Props
 
     if (!exercise || !question) {
         return (
-            <AppLayout>
-                <div className="flex flex-col items-center justify-center py-20">
-                    <Icon name="alert-circle" size={48} />
-                    <p className="mt-4 text-xl font-medium">Session non disponible</p>
-                </div>
-            </AppLayout>
+            <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-slate-900 text-white">
+                <Icon name="alert-circle" size={48} />
+                <p className="mt-4 text-xl font-medium">Session non disponible</p>
+            </div>
         );
     }
 
+    const totalQuestionsAcrossExam = exercises.reduce((acc, ex) => acc + ((ex.questions ?? []).length), 0);
+    const globalQuestionIndex = exercises.slice(0, currentExerciseIndex).reduce((acc, ex) => acc + ((ex.questions ?? []).length), 0) + currentQuestionIndex;
+    const completionPct = totalQuestionsAcrossExam > 0 ? ((globalQuestionIndex + 1) / totalQuestionsAcrossExam) * 100 : 0;
+
     return (
-        <AppLayout>
-            <Head title={`Simulator: ${exam.name} - PrePla`} />
+        <div className="fixed inset-0 z-[100] flex flex-col bg-slate-50 dark:bg-slate-950">
+            <Head title={`Examen — ${exam.name}`} />
             <ExamGlobalBanner totalMinutes={totalExamsTime} started={examStarted} onExpire={handleExamExpire} />
+
+            {/* Immersive top bar — exam-only chrome, no app navigation */}
+            {examStarted && (
+                <header className="sticky top-0 z-30 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+                    <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+                        <div className="min-w-0">
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600">📝 Mode examen</p>
+                            <p className="text-sm font-bold truncate" style={{ color: OXFORD }}>{exam.name}</p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                            <div className="rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-1 text-xs font-bold">
+                                {globalQuestionIndex + 1} / {totalQuestionsAcrossExam}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="h-1 bg-slate-100 dark:bg-slate-800">
+                        <div
+                            className="h-full transition-all duration-300"
+                            style={{ width: `${completionPct}%`, background: 'linear-gradient(90deg, #6366f1, #8b5cf6)' }}
+                        />
+                    </div>
+                </header>
+            )}
 
             {/* ── Modal de pré-démarrage : explique les règles, le chrono ne démarre qu'au clic ── */}
             {!examStarted && (
@@ -502,6 +526,6 @@ export default function ExamSimulator({ exam, exercises, totalExamsTime }: Props
                     </button>
                 </div>
             </div>
-        </AppLayout>
+        </div>
     );
 }
