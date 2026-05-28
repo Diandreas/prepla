@@ -65,6 +65,16 @@ export default function SessionReport({ node, report, userLevel }: Props) {
                     <motion.div variants={item} className="relative overflow-hidden bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-xl border border-slate-200 dark:border-slate-800">
                         <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl" />
                         <div className="relative flex flex-col md:flex-row items-center gap-8">
+                            {/* Animated trophy / encouragement based on accuracy */}
+                            <div className="flex-shrink-0">
+                                <img
+                                    src={report.accuracy >= 60 ? '/animation/Trophy.gif' : '/animation/Fire.gif'}
+                                    alt=""
+                                    width={130}
+                                    height={130}
+                                    className="drop-shadow-xl"
+                                />
+                            </div>
                             <div className="flex-1 text-center md:text-left">
                                 <span className="inline-block px-3 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-bold uppercase tracking-wider mb-2">
                                     Session Terminée
@@ -73,10 +83,14 @@ export default function SessionReport({ node, report, userLevel }: Props) {
                                     {report.node_title}
                                 </h1>
                                 <p className="text-slate-500 dark:text-slate-400">
-                                    Excellent travail ! Vous progressez vers votre objectif {node.exam.name}.
+                                    {report.accuracy >= 80
+                                        ? `Excellent travail ! Vous progressez vers votre objectif ${node.exam.name}.`
+                                        : report.accuracy >= 50
+                                          ? `Bonne session — continuez ainsi pour progresser vers ${node.exam.name}.`
+                                          : `Pas de panique : c'est en s'entraînant qu'on s'améliore. On recommence ?`}
                                 </p>
                             </div>
-                            
+
                             <div className="flex gap-4">
                                 <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 text-center min-w-[120px]">
                                     <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{Math.round(report.accuracy)}%</div>
@@ -84,7 +98,7 @@ export default function SessionReport({ node, report, userLevel }: Props) {
                                 </div>
                                 <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 text-center min-w-[120px]">
                                     <div className="text-2xl font-bold text-yellow-500">+{report.xp_earned}</div>
-                                    <div className="text-xs font-medium text-slate-400 uppercase mt-1">XP Gangés</div>
+                                    <div className="text-xs font-medium text-slate-400 uppercase mt-1">XP Gagnés</div>
                                 </div>
                             </div>
                         </div>
