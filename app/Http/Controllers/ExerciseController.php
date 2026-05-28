@@ -33,14 +33,20 @@ class ExerciseController extends Controller
         $validated = $request->validate([
             'answers' => 'required|array',
             'time_spent' => 'nullable|integer',
+            'exercise_ids' => 'nullable|array',
+            'exercise_ids.*' => 'integer|exists:exercises,id',
         ]);
 
         $answers = $validated['answers'];
         $timeSpent = $validated['time_spent'] ?? 0;
 
-        // Calculer les résultats pour le rapport final
-        // On récupère les exercices associés à ce nœud (le set de 3)
-        $exercises = \App\Models\Exercise::where('node_id', $node->id)->get();
+        // Prefer the exact list of exercise IDs the player rendered (covers generic fallback
+        // exercises not yet linked via node_id). Fall back to node_id lookup for legacy flow.
+        if (!empty($validated['exercise_ids'])) {
+            $exercises = \App\Models\Exercise::whereIn('id', $validated['exercise_ids'])->get();
+        } else {
+            $exercises = \App\Models\Exercise::where('node_id', $node->id)->get();
+        }
         $sessionResults = [];
         $totalXp = 0;
         $totalCorrect = 0;

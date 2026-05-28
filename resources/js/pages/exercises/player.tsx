@@ -496,6 +496,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                 answers,
                 node_id: node.id,
                 time_spent: timeSpentRef.current,
+                exercise_ids: exercises.map((e: any) => e.id),
             }, {
                 forceFormData: true,
             });
