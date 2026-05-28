@@ -37,8 +37,12 @@ class NodeStartController extends Controller
             ->limit(3)
             ->get();
 
-        // 3. Fallback : Piocher des exercices génériques par difficulté si pas assez de statiques
-        if ($exercises->count() < 3) {
+        // 3. Fallback générique : SAUTÉ pour les nodes de type 'lesson' car les exercices
+        // génériques pris au hasard sont rarement alignés avec le concept de la leçon
+        // (ex: leçon "Simple Present" + exercice générique sur Madrid = aucun rapport).
+        // Pour les nodes de pratique générale (non-lesson) le fallback reste utile.
+        $isLessonNode = $node->node_type === 'lesson';
+        if ($exercises->count() < 3 && !$isLessonNode) {
             $needed = 3 - $exercises->count();
             $generic = Exercise::where('exam_id', $node->exam_id)
                 ->where('difficulty', $node->level)
