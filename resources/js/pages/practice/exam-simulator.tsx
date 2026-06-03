@@ -272,7 +272,10 @@ export default function ExamSimulator({ exam, exercises, totalExamsTime }: Props
                 <header className="sticky top-0 z-30 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
                     <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
                         <div className="min-w-0">
-                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600">📝 Mode examen</p>
+                            <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600">
+                                <Icon name="file-edit" size={12} style={{ filter: 'brightness(0) saturate(100%) invert(40%) sepia(98%) saturate(1900%) hue-rotate(228deg)' }} />
+                                Mode examen
+                            </p>
                             <p className="text-sm font-bold truncate" style={{ color: OXFORD }}>{exam.name}</p>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">

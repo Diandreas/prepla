@@ -20,11 +20,16 @@ class SubscriptionController extends Controller
         $isSubscribed = $user->subscribed('default');
         $subscription = $user->subscription('default');
 
+        $onTrial    = $user->isOnTrial();
+        $trialDaysLeft = $user->trialDaysLeft();
+
         return Inertia::render('settings/subscription', [
-            'currentPlan'       => $isSubscribed ? 'premium' : ($profile->plan ?? 'free'),
+            'currentPlan'       => ($isSubscribed || $onTrial) ? 'premium' : 'free',
             'stripeEnabled'     => true,
             'stripeKey'         => config('cashier.key'),
             'isSubscribed'      => $isSubscribed,
+            'onTrial'           => $onTrial,
+            'trialDaysLeft'     => $trialDaysLeft,
             'cancelAtPeriodEnd' => $subscription?->onGracePeriod() ?? false,
             'renewsAt'          => $subscription?->asStripeSubscription()->current_period_end ?? null,
             'plans' => [

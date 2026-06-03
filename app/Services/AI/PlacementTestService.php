@@ -367,69 +367,65 @@ PROMPT;
     }
 
     /**
-     * Évalue le niveau combiné MCQ + essay (sans appel IA supplémentaire).
+     * Évalue le niveau de départ : A0, A1, ou B1.
+     *
+     * Le placement ne mesure PAS le niveau final CEFR — il détermine uniquement
+     * d'où l'utilisateur doit commencer dans le programme :
+     *   A0 = débutant complet (jamais étudié la langue)
+     *   A1 = quelques bases, peut suivre le programme depuis A1
+     *   B1 = intermédiaire, peut sauter les modules A1/A2
+     *
+     * Seuils volontairement stricts : mieux vaut démarrer trop bas que trop haut.
      */
     public function evaluateFullLevel(array $questions, array $answers, string $essayText): string
     {
-        // 1. Score MCQ (60 % du poids)
-        $levelScores = [];
-        $levelCounts = [];
+        // 1. Compter les bonnes réponses sur les questions de niveau A1/A2 seulement
+        //    (Les questions B2/C1 du test servent à disqualifier les faux-B1, pas à attribuer un niveau élevé)
+        $totalQuestions = count($questions);
+        $correctA1A2 = 0;
+        $correctB1   = 0;
+        $totalA1A2   = 0;
+        $totalB1     = 0;
+
         foreach ($questions as $q) {
-            $level = $q['level'] ?? 'B1';
-            $levelCounts[$level] = ($levelCounts[$level] ?? 0) + 1;
-            $given = strtoupper(trim($answers[$q['id']] ?? ''));
+            $level   = $q['level'] ?? 'B1';
+            $given   = strtoupper(trim($answers[$q['id']] ?? ''));
             $correct = strtoupper(trim($q['correct_answer'] ?? $q['correct'] ?? ''));
-            if ($given === $correct && $given !== '') {
-                $levelScores[$level] = ($levelScores[$level] ?? 0) + 1;
+            $isCorrect = ($given === $correct && $given !== '');
+
+            if (in_array($level, ['A1', 'A2'])) {
+                $totalA1A2++;
+                if ($isCorrect) $correctA1A2++;
+            } elseif ($level === 'B1') {
+                $totalB1++;
+                if ($isCorrect) $correctB1++;
             }
         }
 
-        $totalCorrect = array_sum($levelScores);
-        $mcqLevel = match (true) {
-            $totalCorrect >= 7 => 'C1',
-            $totalCorrect >= 5 => 'B2',
-            $totalCorrect >= 3 => 'B1',
-            $totalCorrect >= 1 => 'A2',
-            default            => 'A1',
-        };
+        // 2. Décision — seuils stricts
+        //    B1 : doit maîtriser les questions A1/A2 ET au moins la moitié des B1
+        $a1a2Rate = $totalA1A2 > 0 ? $correctA1A2 / $totalA1A2 : 0;
+        $b1Rate   = $totalB1   > 0 ? $correctB1   / $totalB1   : 0;
 
-        // 2. Score essay heuristique (40 % du poids) — aucun appel IA
-        if (trim($essayText) === '') {
-            return $mcqLevel;
+        if ($a1a2Rate >= 0.75 && $b1Rate >= 0.5) {
+            $startLevel = 'B1';
+        } elseif ($a1a2Rate >= 0.5) {
+            $startLevel = 'A1';
+        } else {
+            $startLevel = 'A0';
         }
 
-        $words = preg_split('/\s+/', trim($essayText), -1, PREG_SPLIT_NO_EMPTY);
-        $wordCount = count($words);
-
-        $wordLevel = match (true) {
-            $wordCount >= 140 => 'B2',
-            $wordCount >= 100 => 'B1',
-            $wordCount >= 40  => 'A2',
-            default           => 'A1',
-        };
-
-        // Bonus connecteurs avancés
-        $advancedConnectors = [
-            'although','however','nevertheless','furthermore','consequently', 'moreover',
-            'en outre','néanmoins','cependant','bien que','par conséquent', 'ainsi',
-            'sin embargo','además','no obstante','aunque','por lo tanto',
-        ];
-        $essay = strtolower($essayText);
-        $bonusCount = 0;
-        foreach ($advancedConnectors as $c) {
-            if (str_contains($essay, $c)) $bonusCount++;
+        // 3. Essay : uniquement pour confirmer B1 (pas pour monter au-dessus)
+        //    Un essay vide = on conserve la décision MCQ
+        if ($startLevel === 'B1' && trim($essayText) !== '') {
+            $words = preg_split('/\s+/', trim($essayText), -1, PREG_SPLIT_NO_EMPTY);
+            // Moins de 40 mots = l'utilisateur ne maîtrise pas assez → on redescend à A1
+            if (count($words) < 40) {
+                $startLevel = 'A1';
+            }
         }
-        $cefrOrder = ['A1', 'A2', 'B1', 'B2', 'C1'];
-        $levelIdx = array_search($wordLevel, $cefrOrder) ?: 0;
-        $levelIdx = min(4, $levelIdx + intdiv($bonusCount, 2));
-        $essayLevel = $cefrOrder[$levelIdx];
 
-        // 3. Combinaison 70 % MCQ + 30 % essay (MCQ is more reliable)
-        $mcqIdx   = array_search($mcqLevel, $cefrOrder) ?: 0;
-        $essayIdx = array_search($essayLevel, $cefrOrder) ?: 0;
-        $combined = (int) round($mcqIdx * 0.7 + $essayIdx * 0.3);
-
-        return $cefrOrder[min(4, max(0, $combined))];
+        return $startLevel;
     }
 
     private function getFallbackFullTest(string $language, string $examName): array

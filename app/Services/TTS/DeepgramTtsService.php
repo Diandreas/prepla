@@ -2,7 +2,6 @@
 
 namespace App\Services\TTS;
 
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -12,15 +11,14 @@ class DeepgramTtsService
     protected string $apiKey;
     protected string $baseUrl = 'https://api.deepgram.com/v1/speak';
 
-    // Deepgram voices per language — Aura-1 for EN (cheap), Aura-2 multilingual for others
+    // Only EN, FR, DE are supported
     protected array $voices = [
-        'en' => 'aura-asteria-en',
-        'fr' => 'aura-2-agathe-fr',
-        'de' => 'aura-2-julius-de',
-        'es' => 'aura-2-celeste-es',
-        'english' => 'aura-asteria-en',
-        'french' => 'aura-2-agathe-fr',
-        'german' => 'aura-2-julius-de',
+        'en'      => 'aura-2-thalia-en',
+        'fr'      => 'aura-2-agathe-fr',
+        'de'      => 'aura-2-julius-de',
+        'english' => 'aura-2-thalia-en',
+        'french'  => 'aura-2-agathe-fr',
+        'german'  => 'aura-2-julius-de',
     ];
 
     public function __construct()
@@ -43,7 +41,7 @@ class DeepgramTtsService
 
         // Return cached file if exists
         if (Storage::disk('public')->exists($filename)) {
-            return Storage::disk('public')->url($filename);
+            return Storage::url($filename);
         }
 
         try {
@@ -65,7 +63,7 @@ class DeepgramTtsService
                 // Save the audio file
                 Storage::disk('public')->put($filename, $response->body());
 
-                return Storage::disk('public')->url($filename);
+                return Storage::url($filename);
             }
 
             Log::warning('Deepgram TTS API error', [

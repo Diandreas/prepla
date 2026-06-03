@@ -11,8 +11,10 @@
     "require": {
         "php": "^8.2",
         "inertiajs/inertia-laravel": "^2.0",
+        "laravel-notification-channels/webpush": "*",
         "laravel/cashier": "*",
         "laravel/framework": "^12.0",
+        "laravel/socialite": "*",
         "laravel/tinker": "^2.10.1",
         "tightenco/ziggy": "^2.4"
     },

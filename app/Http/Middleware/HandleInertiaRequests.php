@@ -45,6 +45,10 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user()?->load('profile'),
             ],
             'userProfile' => $request->user()?->profile,
+            'isPremium' => $request->user()?->hasPremiumAccess() ?? false,
+            'onTrial' => $request->user()?->isOnTrial() ?? false,
+            'trialDaysLeft' => $request->user()?->trialDaysLeft() ?? 0,
+            'vapidPublicKey' => config('webpush.vapid.public_key'),
             'flash' => [
                 'correction'  => $request->session()->get('correction'),
                 'success'     => $request->session()->get('success'),

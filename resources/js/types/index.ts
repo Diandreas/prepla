@@ -29,6 +29,9 @@ export interface SharedData {
     quote: { message: string; author: string };
     auth: Auth;
     userProfile?: UserProfile | null;
+    isPremium: boolean;
+    onTrial: boolean;
+    trialDaysLeft: number;
     [key: string]: unknown;
 }
 
@@ -55,6 +58,7 @@ export interface UserProfile {
     streak_current: number;
     streak_last_date: string | null;
     onboarding_completed_at: string | null;
+    trial_ends_at: string | null;
     target_exam?: ExamWithLanguage | null;
 }
 

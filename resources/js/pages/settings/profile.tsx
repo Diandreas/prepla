@@ -20,6 +20,7 @@ function FlagImg({ flag, size = 18 }: { flag: string; size?: number }) {
 }
 
 import DeleteUser from '@/components/delete-user';
+import PushNotificationToggle from '@/components/push-notification-toggle';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -416,7 +417,12 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                     </div>
                 </div>
 
-                {/* 6. Danger Zone */}
+                {/* 6. Notifications */}
+                <div className="px-4">
+                    <PushNotificationToggle />
+                </div>
+
+                {/* 7. Danger Zone */}
                 <div className="px-4 opacity-70">
                     <div className="overflow-hidden rounded-2xl border border-red-200 bg-red-50/50 shadow-sm">
                         <DeleteUser />

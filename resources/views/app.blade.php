@@ -4,6 +4,14 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        {{-- Apply dark mode before first paint to avoid FOUC --}}
+        <script>
+            (function() {
+                var a = localStorage.getItem('appearance') || 'system';
+                var isDark = a === 'dark' || (a === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                if (isDark) document.documentElement.classList.add('dark');
+            })();
+        </script>
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
@@ -22,13 +30,6 @@
         <meta name="apple-mobile-web-app-title" content="PrePla">
         <link rel="apple-touch-icon" href="/favicon.ico">
 
-        <script>
-            if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('/sw.js');
-                });
-            }
-        </script>
     </head>
     <body class="font-sans antialiased">
         @inertia

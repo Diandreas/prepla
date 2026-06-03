@@ -129,7 +129,7 @@ export default function GoalSetting({ exam, profile }: Props) {
 
                         <div className="space-y-4">
                             <Label className="flex items-center gap-2">
-                                <Icon name="brain" size={16} className="text-primary" />
+                                <Icon name="lightbulb" size={16} className="text-primary" />
                                 Quel est votre niveau actuel ?
                             </Label>
                             <div className="grid grid-cols-1 gap-2">

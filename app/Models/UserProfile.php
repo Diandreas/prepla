@@ -24,6 +24,7 @@ class UserProfile extends Model
         'streak_current',
         'streak_last_date',
         'onboarding_completed_at',
+        'trial_ends_at',
     ];
 
     protected function casts(): array
@@ -32,6 +33,7 @@ class UserProfile extends Model
             'exam_date' => 'date',
             'streak_last_date' => 'date',
             'onboarding_completed_at' => 'datetime',
+            'trial_ends_at' => 'datetime',
         ];
     }
 

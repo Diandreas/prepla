@@ -1,9 +1,10 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
+import type { SharedData } from '@/types';
 
 interface Plan {
     id: string;
@@ -15,15 +16,18 @@ interface Props {
     currentPlan: string;
     stripeEnabled: boolean;
     isSubscribed: boolean;
+    onTrial: boolean;
+    trialDaysLeft: number;
     cancelAtPeriodEnd: boolean;
     renewsAt: number | null;
     plans: { monthly: Plan; annual: Plan };
 }
 
-export default function Subscription({ currentPlan, stripeEnabled, isSubscribed, cancelAtPeriodEnd, renewsAt, plans }: Props) {
+export default function Subscription({ currentPlan, stripeEnabled, isSubscribed, onTrial, trialDaysLeft, cancelAtPeriodEnd, renewsAt, plans }: Props) {
     const [processing, setProcessing] = useState(false);
     const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('monthly');
-    const isPremium = isSubscribed || currentPlan === 'premium';
+    const isPremium = isSubscribed;
+    const hasAccess = isSubscribed || onTrial;
 
     const handleCheckout = () => {
         // Native form POST → browser follows 303 cross-origin to Stripe.
@@ -86,31 +90,33 @@ export default function Subscription({ currentPlan, stripeEnabled, isSubscribed,
                     <p className="text-muted-foreground">Boostez votre préparation et réussissez votre examen</p>
                 </div>
 
-                {/* Plan gratuit */}
-                <Card className={`border-2 transition-all ${!isPremium ? 'border-primary ring-1 ring-primary' : 'border-border opacity-70'}`}>
-                    {!isPremium && <Badge className="absolute top-3 right-3">PLAN ACTUEL</Badge>}
-                    <CardHeader>
-                        <CardTitle>Standard</CardTitle>
-                        <CardDescription>Pour découvrir la plateforme</CardDescription>
-                        <div className="mt-2 flex items-baseline gap-1">
-                            <span className="text-3xl font-black">0€</span>
-                            <span className="text-sm text-muted-foreground">/mois</span>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="space-y-2 text-sm text-muted-foreground">
-                        <p>✓ 1 examen au choix</p>
-                        <p>✓ Exercices de base</p>
-                        <p className="opacity-50">✗ Pas de correction IA avancée</p>
-                    </CardContent>
-                </Card>
+                {/* Bandeau essai */}
+                {onTrial && (
+                    <div className="rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3 text-center">
+                        <p className="text-sm font-bold text-amber-800">
+                            Essai gratuit en cours — il vous reste <span className="text-amber-600">{trialDaysLeft} jour{trialDaysLeft > 1 ? 's' : ''}</span>
+                        </p>
+                        <p className="text-xs text-amber-700 mt-0.5">Abonnez-vous maintenant pour continuer après la fin de l'essai</p>
+                    </div>
+                )}
 
-                {/* Plan Premium */}
-                <Card className={`relative border-2 shadow-xl transition-all ${isPremium ? 'border-amber-400 ring-1 ring-amber-400' : 'border-border hover:border-amber-400/50'}`}>
+                {/* Plan Premium — toujours affiché en premier */}
+                <Card className={`relative border-2 shadow-xl transition-all ${hasAccess ? 'border-amber-400 ring-1 ring-amber-400' : 'border-border hover:border-amber-400/50'}`}>
                     <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent pointer-events-none rounded-xl" />
-                    {isPremium && <Badge className="absolute top-3 right-3 bg-amber-400 text-amber-950 font-bold">ACTIF</Badge>}
+                    {onTrial && (
+                        <Badge className="absolute top-3 right-3 bg-amber-100 text-amber-800 border border-amber-300">
+                            ESSAI EN COURS
+                        </Badge>
+                    )}
+                    {isPremium && !onTrial && (
+                        <Badge className="absolute top-3 right-3 bg-amber-400 text-amber-950 font-bold">ACTIF</Badge>
+                    )}
 
                     <CardHeader>
-                        <div className="text-amber-600 font-bold text-xs uppercase tracking-widest mb-1">⭐ Recommandé</div>
+                        <div className="flex items-center gap-1.5 text-amber-600 font-bold text-xs uppercase tracking-widest mb-1">
+                            <img src="/icons/star.png" alt="" width={12} height={12} style={{ objectFit: 'contain', filter: 'brightness(0) saturate(100%) invert(52%) sepia(72%) saturate(640%) hue-rotate(2deg)' }} />
+                            Recommandé
+                        </div>
                         <CardTitle className="text-2xl font-black">PrePla Plus</CardTitle>
                         <CardDescription>L'expérience complète sans limites</CardDescription>
 
@@ -118,14 +124,14 @@ export default function Subscription({ currentPlan, stripeEnabled, isSubscribed,
                             <div className="mt-4 flex gap-2">
                                 <button
                                     onClick={() => setSelectedPlan('monthly')}
-                                    className={`flex-1 rounded-xl border-2 p-3 text-center transition-all ${selectedPlan === 'monthly' ? 'border-amber-400 bg-amber-50' : 'border-border'}`}
+                                    className={`flex-1 rounded-xl border-2 p-3 text-center transition-all ${selectedPlan === 'monthly' ? 'border-amber-400 bg-amber-50 dark:bg-amber-950/30' : 'border-border'}`}
                                 >
                                     <div className="text-2xl font-black text-amber-600">9.99€</div>
                                     <div className="text-xs text-muted-foreground">/ mois</div>
                                 </button>
                                 <button
                                     onClick={() => setSelectedPlan('annual')}
-                                    className={`flex-1 rounded-xl border-2 p-3 text-center transition-all relative ${selectedPlan === 'annual' ? 'border-amber-400 bg-amber-50' : 'border-border'}`}
+                                    className={`flex-1 rounded-xl border-2 p-3 text-center transition-all relative ${selectedPlan === 'annual' ? 'border-amber-400 bg-amber-50 dark:bg-amber-950/30' : 'border-border'}`}
                                 >
                                     <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-[10px] font-bold px-2 rounded-full">-33%</div>
                                     <div className="text-2xl font-black text-amber-600">79.99€</div>
@@ -139,7 +145,7 @@ export default function Subscription({ currentPlan, stripeEnabled, isSubscribed,
                         <div className="h-px bg-border my-2" />
                         {features.map((f, i) => (
                             <div key={i} className="flex gap-2 text-sm font-medium">
-                                <span className="text-amber-500">✓</span>
+                                <img src="/icons/check-circle.png" alt="" width={16} height={16} style={{ objectFit: 'contain', filter: 'brightness(0) saturate(100%) invert(66%) sepia(55%) saturate(500%) hue-rotate(2deg)' }} className="mt-0.5 shrink-0" />
                                 <span>{f}</span>
                             </div>
                         ))}
@@ -148,8 +154,8 @@ export default function Subscription({ currentPlan, stripeEnabled, isSubscribed,
                     <CardFooter className="flex-col gap-3">
                         {isPremium ? (
                             <>
-                                <div className="w-full rounded-xl bg-amber-50 border border-amber-100 p-3 text-center text-sm font-bold text-amber-700">
-                                    ✓ Abonnement Premium actif
+                                <div className="w-full rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-800 p-3 text-center text-sm font-bold text-amber-700 dark:text-amber-300">
+                                    Abonnement Premium actif
                                 </div>
                                 {renewDate && !cancelAtPeriodEnd && (
                                     <p className="text-xs text-muted-foreground text-center">Prochain renouvellement : {renewDate}</p>

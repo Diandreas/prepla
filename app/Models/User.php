@@ -10,11 +10,12 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Cashier\Billable;
+use NotificationChannels\WebPush\HasPushSubscriptions;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, Billable;
+    use HasFactory, Notifiable, Billable, HasPushSubscriptions;
 
     /**
      * The attributes that are mass assignable.
@@ -25,6 +26,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'google_id',
+        'avatar',
     ];
 
     /**
@@ -48,6 +51,39 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function hasPremiumAccess(): bool
+    {
+        if ($this->subscribed('default')) {
+            return true;
+        }
+
+        $trialEndsAt = $this->profile?->trial_ends_at;
+
+        return $trialEndsAt && now()->lt($trialEndsAt);
+    }
+
+    public function isOnTrial(): bool
+    {
+        if ($this->subscribed('default')) {
+            return false;
+        }
+
+        $trialEndsAt = $this->profile?->trial_ends_at;
+
+        return $trialEndsAt && now()->lt($trialEndsAt);
+    }
+
+    public function trialDaysLeft(): int
+    {
+        $trialEndsAt = $this->profile?->trial_ends_at;
+
+        if (!$trialEndsAt || now()->gte($trialEndsAt)) {
+            return 0;
+        }
+
+        return (int) now()->diffInDays($trialEndsAt, false);
     }
 
     public function profile(): HasOne

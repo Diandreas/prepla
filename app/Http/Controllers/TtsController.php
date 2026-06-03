@@ -12,7 +12,7 @@ class TtsController extends Controller
     {
         $validated = $request->validate([
             'text' => 'required|string|max:5000',
-            'lang' => 'sometimes|string|in:en,fr,de,es,english,french,german',
+            'lang' => 'sometimes|string|in:en,fr,de,english,french,german',
         ]);
 
         $url = $tts->speak($validated['text'], $validated['lang'] ?? 'en');

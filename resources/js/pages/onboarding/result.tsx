@@ -1,6 +1,7 @@
 import { router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import OnboardingLayout from '@/layouts/onboarding-layout';
+import PushNotificationToggle from '@/components/push-notification-toggle';
 import { useEffect, useState } from 'react';
 import * as Flags from 'country-flag-icons/react/3x2';
 import type { UserProfile } from '@/types';
@@ -407,8 +408,13 @@ export default function Result({ profile, exam, program }: Props) {
                     </div>
                 )}
 
+                {/* Push notifications opt-in */}
+                <div style={stagger(8)}>
+                    <PushNotificationToggle />
+                </div>
+
                 {/* CTA */}
-                <div className={`rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-6 text-center`} style={stagger(8)}>
+                <div className={`rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-6 text-center`} style={stagger(9)}>
                     <div className="flex items-center justify-center gap-2">
                         <CustomIcon name="flame" className="h-5 w-5" style={{ filter: 'brightness(0) saturate(100%) invert(50%) sepia(96%) saturate(1762%) hue-rotate(332deg) brightness(102%) contrast(96%)' }} />
                         <p className="font-semibold">

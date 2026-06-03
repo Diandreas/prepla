@@ -300,7 +300,8 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
     const contentRef = useRef<HTMLDivElement>(null);
 
     const exercise = exercises[currentExerciseIndex];
-    const nodeCode = node.exam.language.name === 'German' ? 'de' : (node.exam.language.name === 'French' ? 'fr' : 'en');
+    const LANG_CODES: Record<string, string> = { 'English': 'en', 'French': 'fr', 'German': 'de' };
+    const nodeCode = LANG_CODES[node.exam.language.name] ?? 'en';
     const componentKey = exercise?.exercise_type?.component_key ?? 'mcq';
 
     const TIME_PER_QUESTION = useMemo(() => {

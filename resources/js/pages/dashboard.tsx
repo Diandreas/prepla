@@ -418,7 +418,10 @@ export default function Dashboard() {
                                                 className="mt-4 block rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-amber-100 p-5 text-center transition hover:from-amber-100 hover:to-amber-200 hover:-translate-y-0.5"
                                                 style={{ boxShadow: '0 4px 0 0 #e08c10' }}
                                             >
-                                                <p className="text-xs font-black uppercase tracking-widest text-amber-700">🏆 Boss du chapitre</p>
+                                                <p className="flex items-center justify-center gap-1.5 text-xs font-black uppercase tracking-widest text-amber-700">
+                                                    <CustomIcon name="trophy" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(52%) sepia(72%) saturate(640%) hue-rotate(2deg)' }} />
+                                                    Boss du chapitre
+                                                </p>
                                                 <p className="mt-1 text-lg font-black text-amber-900">Synthèse — Tous les concepts</p>
                                                 <p className="mt-1 text-xs text-amber-700/80">≥80% pour valider définitivement le chapitre</p>
                                             </Link>
@@ -478,7 +481,10 @@ export default function Dashboard() {
                                     Objectif {curriculum.current_index + 1} / {curriculum.total_objectives}
                                 </p>
                                 {curriculum.consecutive_failures >= 2 && (
-                                    <p className="mt-2 text-[9px] font-bold bg-white/20 rounded-lg px-2 py-1 inline-block">🔄 Consolidation</p>
+                                    <p className="mt-2 inline-flex items-center gap-1 text-[9px] font-bold bg-white/20 rounded-lg px-2 py-1">
+                                        <Icon name="review" size={11} style={{ filter: 'brightness(0) invert(1)' }} />
+                                        Consolidation
+                                    </p>
                                 )}
                                 <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-white/10" />
                             </Link>
@@ -490,7 +496,10 @@ export default function Dashboard() {
                             className="duo-sidebar-box group relative overflow-hidden p-5 text-white"
                             style={{ background: `linear-gradient(135deg, #48b77b, #3a9d68)`, border: `2px solid #2d8a55`, boxShadow: '0 4px 0 0 #1f6e42' }}
                         >
-                            <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-70">⚡ Pratique rapide</p>
+                            <p className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.2em] opacity-70">
+                                <Icon name="zap" size={11} style={{ filter: 'brightness(0) invert(1)' }} />
+                                Pratique rapide
+                            </p>
                             <p className="text-sm font-black mt-1">5 minutes d'exercices adaptés</p>
                             <p className="text-[10px] mt-0.5 opacity-70">Mix de types · niveau ajusté</p>
                             <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-white/10" />
@@ -505,7 +514,7 @@ export default function Dashboard() {
                                     className="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 transition-colors border-2 border-transparent hover:border-blue-100"
                                 >
                                     <div className="h-10 w-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(74,144,226,0.1)' }}>
-                                        <span className="text-lg">📘</span>
+                                        <Icon name="book" size={20} />
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-sm font-black" style={{ color: OXFORD }}>Mon Parcours</p>
@@ -519,7 +528,7 @@ export default function Dashboard() {
                                     className="flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 transition-colors border-2 border-transparent hover:border-red-100"
                                 >
                                     <div className="relative h-10 w-10 rounded-xl flex items-center justify-center bg-red-50">
-                                        <span className="text-lg">🔄</span>
+                                        <Icon name="review" size={20} style={{ filter: 'brightness(0) saturate(100%) invert(38%) sepia(93%) saturate(1352%) hue-rotate(338deg)' }} />
                                         {(dueErrorsCount ?? 0) > 0 && (
                                             <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 flex items-center justify-center">
                                                 <span className="text-[9px] font-black text-white">{dueErrorsCount}</span>
