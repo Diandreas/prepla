@@ -20,22 +20,21 @@ export function MultipleMatching({ question, onAnswer, selectedAnswer, disabled 
         setValues(next);
     };
 
+    const texts = Array.isArray(question.texts) ? question.texts : [];
+    const statements = Array.isArray(question.statements) ? question.statements : [];
+    const textIds = texts.map((t) => t.id);
+
     const handleSubmit = () => {
-        if (Object.keys(values).length === question.statements.length) {
+        if (Object.keys(values).length === statements.length) {
             onAnswer(question.id, values);
         }
     };
-
-    const texts = question.texts || [];
-    const statements = question.statements || [];
-
-    const textIds = texts.map((t) => t.id);
 
     return (
         <div className="space-y-5">
             {/* Texts */}
             <div className="grid gap-3 sm:grid-cols-2">
-                {question.texts.map((text) => (
+                {texts.map((text) => (
                     <div key={text.id} className="rounded-xl border bg-muted/30 p-4">
                         <div className="mb-2 flex items-center gap-2">
                             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">
@@ -53,7 +52,7 @@ export function MultipleMatching({ question, onAnswer, selectedAnswer, disabled 
                 <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     Associez chaque affirmation au texte correspondant
                 </p>
-                {question.statements.map((stmt, i) => {
+                {statements.map((stmt, i) => {
                     const selected = values[stmt.id];
                     return (
                         <div key={stmt.id} className="flex items-center gap-3 rounded-xl border bg-background p-3">
@@ -83,7 +82,7 @@ export function MultipleMatching({ question, onAnswer, selectedAnswer, disabled 
             {!disabled && (
                 <button
                     onClick={handleSubmit}
-                    disabled={Object.keys(values).length < question.statements.length}
+                    disabled={Object.keys(values).length < statements.length}
                     className="rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground disabled:opacity-50"
                 >
                     Valider

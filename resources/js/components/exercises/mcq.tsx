@@ -5,8 +5,8 @@ interface McqProps {
         id: string;
         text: string;
         options: string[];
-        correct_answer?: string;
-        correct?: string;
+        correct_answer?: unknown;
+        correct?: unknown;
     };
     onAnswer: (questionId: string, answer: string) => void;
     selectedAnswer?: string;
@@ -14,7 +14,11 @@ interface McqProps {
 }
 
 export function Mcq({ question, onAnswer, selectedAnswer, disabled }: McqProps) {
-    const correctAnswer = (question.correct_answer ?? question.correct ?? '').trim().toUpperCase();
+    // correct_answer peut arriver sous forme de string, tableau ou objet selon le
+    // générateur IA. On coerce en string de façon défensive pour éviter un crash
+    // (.trim is not a function) qui blanchirait toute la page d'exercice.
+    const rawCorrect = question.correct_answer ?? question.correct ?? '';
+    const correctAnswer = (Array.isArray(rawCorrect) ? rawCorrect[0] ?? '' : String(rawCorrect)).trim().toUpperCase();
 
     return (
         <div className="space-y-4">

@@ -109,8 +109,12 @@ class ExerciseScoringService
             }
 
             // ─── RECORD-BASED OR MULTI-FIELD BRANCH ───
+            // correct_answers est une map clé→réponse (note/form/table/summary…).
+            // On NE filtre PAS sur array_is_list : des clés numériques séquentielles
+            // (0,1,2 — note-completion, form-completion, summary-completion) sont
+            // détectées comme "liste" par PHP mais restent bien une map de réponses.
             $correctAnswers = $question['correct_answers'] ?? null;
-            if (is_array($correctAnswers) && is_array($userAnswer) && !array_is_list($correctAnswers)) {
+            if (is_array($correctAnswers) && !empty($correctAnswers) && is_array($userAnswer)) {
                 $fieldCorrect = 0;
                 $fieldTotal = count($correctAnswers);
                 foreach ($correctAnswers as $key => $expected) {

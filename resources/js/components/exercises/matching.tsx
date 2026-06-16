@@ -6,8 +6,8 @@ interface MatchingProps {
         text: string;
         options: string[];
         items?: string[];
-        correct_answer?: string;
-        correct?: string;
+        correct_answer?: unknown;
+        correct?: unknown;
     };
     onAnswer: (questionId: string, answer: string) => void;
     selectedAnswer?: string;
@@ -16,7 +16,10 @@ interface MatchingProps {
 
 export function Matching({ question, onAnswer, selectedAnswer, disabled }: MatchingProps) {
     const options = question.options ?? [];
-    const correctAnswer = (question.correct_answer ?? question.correct ?? '').trim().toUpperCase();
+    // correct_answer peut être string/tableau/objet selon le générateur IA :
+    // coerce défensivement pour éviter un crash (.trim is not a function).
+    const rawCorrect = question.correct_answer ?? question.correct ?? '';
+    const correctAnswer = (Array.isArray(rawCorrect) ? rawCorrect[0] ?? '' : typeof rawCorrect === 'object' ? '' : String(rawCorrect)).trim().toUpperCase();
 
     return (
         <div className="space-y-4">

@@ -51,9 +51,9 @@ export function TableCompletion({ question, onAnswer, selectedAnswer, disabled }
                         </tr>
                     </thead>
                     <tbody>
-                        {question.rows.map((row, ri) => (
+                        {rows.map((row, ri) => (
                             <tr key={ri} className="border-b last:border-b-0">
-                                {row.cells.map((cell, ci) => {
+                                {(row.cells || []).map((cell, ci) => {
                                     const key = `${ri}-${ci}`;
                                     return (
                                         <td key={ci} className={`px-4 py-3 ${cell.blank ? 'bg-primary/5' : ''}`}>

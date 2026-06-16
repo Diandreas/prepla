@@ -19,11 +19,12 @@ interface IntegratedTaskProps {
     onAnswer: (questionId: string, answer: string) => void;
     selectedAnswer?: string;
     disabled?: boolean;
+    lang?: string;
 }
 
 type Step = 'reading' | 'listening' | 'responding';
 
-export function IntegratedTask({ question, onAnswer, selectedAnswer, disabled }: IntegratedTaskProps) {
+export function IntegratedTask({ question, onAnswer, selectedAnswer, disabled, lang = 'en' }: IntegratedTaskProps) {
     const hasReading = !!question.reading_passage;
     const hasAudio = !!(question.audio_text || question.audio_url);
 
@@ -57,7 +58,8 @@ export function IntegratedTask({ question, onAnswer, selectedAnswer, disabled }:
 
     const handlePlayAudio = () => {
         if (question.audio_text && isSupported) {
-            speak(question.audio_text, question.audio_lang ?? 'en');
+            // Priorité au audio_lang explicite de la question, sinon langue de l'examen.
+            speak(question.audio_text, question.audio_lang ?? lang);
         }
     };
 

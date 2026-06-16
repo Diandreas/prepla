@@ -205,9 +205,15 @@ const AUDIT_EXERCISES = [
         name: 'AI Role Play (Beta)',
         question: {
             id: 'role-1',
-            scenario: 'Im Restaurant: Reservieren Sie einen Tisch.',
-            ai_role: 'Kellner',
-            user_goal: 'Tisch für 2 Personen um 19 Uhr.'
+            scenario: 'Im Restaurant: Reservieren Sie einen Tisch für zwei Personen.',
+            role: 'Gast, der einen Tisch reservieren möchte',
+            dialogue_turns: [
+                { speaker: 'examiner', text: 'Guten Abend! Willkommen in unserem Restaurant. Wie kann ich Ihnen helfen?' },
+                { speaker: 'candidate', prompt: 'Sagen Sie, dass Sie einen Tisch reservieren möchten.' },
+                { speaker: 'examiner', text: 'Sehr gerne. Für wie viele Personen und um wie viel Uhr?' },
+                { speaker: 'candidate', prompt: 'Antworten Sie: zwei Personen, um 19 Uhr.' },
+                { speaker: 'examiner', text: 'Perfekt, der Tisch ist reserviert. Bis später!' },
+            ],
         }
     },
     {
@@ -440,7 +446,7 @@ export default function AuditPage() {
                     </div>
 
                     <div className="min-h-[300px]">
-                        <Component 
+                        <Component
                             key={audit?.type}
                             question={audit?.question}
                             onAnswer={handleAnswer}
@@ -448,6 +454,7 @@ export default function AuditPage() {
                             disabled={isChecked}
                             isChecked={isChecked}
                             isCorrect={isCorrect}
+                            lang="de"
                         />
                     </div>
 
@@ -466,9 +473,18 @@ export default function AuditPage() {
                                             </span>
                                         </div>
                                         <p className={`text-[15px] font-medium leading-relaxed ${isCorrect ? 'text-emerald-900' : 'text-red-900'}`}>
-                                            {isCorrect 
-                                                ? `Vous avez parfaitement identifié la réponse : ${audit.question.correct_answer}.` 
-                                                : `Attention ! La réponse correcte était "${audit.question.correct_answer}". Voulez-vous approfondir pour ne plus refaire cette erreur ?`}
+                                            {(() => {
+                                                const ca = audit.question.correct_answer;
+                                                // Exercices notés par l'IA (rédaction, oral) : pas de réponse "correcte".
+                                                const hasCorrect = ca !== undefined && ca !== null && ca !== '';
+                                                if (!hasCorrect) {
+                                                    return 'Cet exercice est évalué par l\'IA selon la qualité de votre production (pas de réponse unique).';
+                                                }
+                                                const display = typeof ca === 'object' ? JSON.stringify(ca) : String(ca);
+                                                return isCorrect
+                                                    ? `Vous avez parfaitement identifié la réponse : ${display}.`
+                                                    : `Attention ! La réponse correcte était "${display}". Voulez-vous approfondir pour ne plus refaire cette erreur ?`;
+                                            })()}
                                         </p>
                                     </div>
                                     {!isCorrect && (

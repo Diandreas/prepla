@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAudioRecorder } from '@/hooks/use-audio-recorder';
+import { useTts } from '@/hooks/use-tts';
+import { SpeakButton } from './speak-button';
 
 interface DialogueTurn {
     speaker: 'examiner' | 'candidate';
@@ -10,25 +12,41 @@ interface DialogueTurn {
 interface RolePlayProps {
     question: {
         id: string;
-        scenario: string;
-        role: string;
-        dialogue_turns: DialogueTurn[];
+        scenario?: string;
+        role?: string;
+        dialogue_turns?: DialogueTurn[];
         prep_time?: number;
         speak_time_per_turn?: number;
     };
     onAnswer: (questionId: string, answer: string) => void;
     selectedAnswer?: string;
     disabled?: boolean;
+    lang?: string;
 }
 
-export function RolePlay({ question, onAnswer, selectedAnswer, disabled }: RolePlayProps) {
+export function RolePlay({ question, onAnswer, selectedAnswer, disabled, lang = 'en' }: RolePlayProps) {
+    const { speak, stop } = useTts();
     const [currentTurn, setCurrentTurn] = useState(0);
     const [recordings, setRecordings] = useState<string[]>([]);
     const { isRecording, audioUrl, startRecording, stopRecording, error } = useAudioRecorder();
 
-    const turns = question.dialogue_turns || [];
-    const candidateTurns = turns.filter((t) => t.speaker === 'candidate');
+    // Défensif : le générateur IA peut omettre dialogue_turns ou l'envoyer mal formé.
+    const turns = Array.isArray(question.dialogue_turns) ? question.dialogue_turns : [];
+    const candidateTurns = turns.filter((t) => t?.speaker === 'candidate');
     const allDone = selectedAnswer || recordings.length >= candidateTurns.length;
+
+    // Lit automatiquement la réplique de l'examinateur quand on arrive à son tour.
+    useEffect(() => {
+        if (disabled || allDone) return;
+        const turn = turns[currentTurn];
+        if (turn?.speaker === 'examiner' && turn.text) {
+            speak(turn.text, lang);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentTurn]);
+
+    // Stoppe le TTS en quittant le composant.
+    useEffect(() => () => stop(), [stop]);
 
     const handleRecord = async () => {
         if (isRecording) {
@@ -39,7 +57,9 @@ export function RolePlay({ question, onAnswer, selectedAnswer, disabled }: RoleP
     };
 
     const handleNextTurn = () => {
-        if (audioUrl) {
+        stop(); // coupe l'audio de l'examinateur en cours
+        // N'enregistre l'audio que si le tour courant est une réplique du candidat.
+        if (turns[currentTurn]?.speaker === 'candidate' && audioUrl) {
             setRecordings([...recordings, audioUrl]);
         }
 
@@ -63,6 +83,12 @@ export function RolePlay({ question, onAnswer, selectedAnswer, disabled }: RoleP
 
             {error && (
                 <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</div>
+            )}
+
+            {turns.length === 0 && (
+                <div className="rounded-xl border border-border bg-muted/50 px-6 py-4 text-sm text-muted-foreground">
+                    Dialogue non disponible pour cet exercice.
+                </div>
             )}
 
             {/* Dialogue */}
@@ -92,7 +118,20 @@ export function RolePlay({ question, onAnswer, selectedAnswer, disabled }: RoleP
                                 </p>
 
                                 {isExaminer ? (
-                                    <p className="text-sm">{turn.text}</p>
+                                    <div className="space-y-2">
+                                        <div className="flex items-start gap-2">
+                                            <p className="flex-1 text-sm">{turn.text}</p>
+                                            {turn.text && <SpeakButton text={turn.text} lang={lang} compact />}
+                                        </div>
+                                        {isCurrent && !disabled && !allDone && (
+                                            <button
+                                                onClick={handleNextTurn}
+                                                className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
+                                            >
+                                                Continuer
+                                            </button>
+                                        )}
+                                    </div>
                                 ) : isPast || allDone ? (
                                     <div className="space-y-2">
                                         {turn.prompt && <p className="text-xs italic text-muted-foreground">{turn.prompt}</p>}

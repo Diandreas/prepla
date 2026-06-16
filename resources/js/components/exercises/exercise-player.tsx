@@ -35,6 +35,7 @@ import { AcademicDiscussion } from './academic-discussion';
 import { RolePlay } from './role-play';
 import { Synthesis } from './synthesis';
 import { VocabularyCard } from './vocabulary-card';
+import { SpeakButton } from './speak-button';
 
 interface ExercisePlayerProps {
     exercise: ExerciseRecord;
@@ -135,6 +136,7 @@ export function ExercisePlayer({ exercise }: ExercisePlayerProps) {
     const Component = componentMap[componentKey] ?? Mcq;
     const isLast = currentIndex === questions.length - 1;
     const lang = exercise.exam?.language?.slug ?? 'en';
+    const skillType = exercise.exercise_type?.skill_type;
 
     const handleAnswer = useCallback((questionId: string, answer: any) => {
         setAnswers((prev) => ({ ...prev, [questionId]: answer }));
@@ -186,6 +188,14 @@ export function ExercisePlayer({ exercise }: ExercisePlayerProps) {
             {/* Audio player for listening exercises — shown when question has a pre-generated audio_url */}
             {question.audio_url && componentKey !== 'dictation' && (
                 <AudioPlayer src={question.audio_url} />
+            )}
+
+            {/* Fallback TTS : exercice d'écoute sans audio pré-généré mais avec un texte à dire.
+                Évite un listening totalement muet ; lit le texte via Deepgram dans la bonne langue. */}
+            {!question.audio_url && skillType === 'listening' && typeof question.audio_text === 'string' && question.audio_text.trim() !== '' && (
+                <div className="flex items-center gap-3 rounded-xl border-2 border-primary bg-primary/5 px-5 py-3">
+                    <SpeakButton text={question.audio_text} lang={lang} label="Écouter l'enregistrement" />
+                </div>
             )}
 
             <Component
