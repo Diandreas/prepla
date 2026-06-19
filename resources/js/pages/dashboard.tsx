@@ -231,8 +231,8 @@ export default function Dashboard() {
 
                 {/* ── Chapter Hero Card ── */}
                 {viewedChapter && (
-                    <div className="mb-4 rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden">
-                        <div className="flex items-center p-4 gap-3">
+                    <div className="mb-4 rounded-2xl bg-white border border-gray-100 shadow-sm relative" style={{ minHeight: 130, overflow: 'visible' }}>
+                        <div className="flex items-center p-5 pr-[130px] gap-3">
                             {/* Prev */}
                             <button
                                 onClick={() => setViewedChapterIdx(i => Math.max(0, i - 1))}
@@ -258,21 +258,11 @@ export default function Dashboard() {
                                         <span className="rounded-full px-2 py-0.5 text-[10px] font-black" style={{ background: '#f3f4f6', color: '#9ca3af' }}>VERROUILLÉ</span>
                                     )}
                                 </div>
-                                <h2 className="text-lg font-black truncate" style={{ color: OXFORD }}>{viewedChapter.name}</h2>
-                                <div className="mt-2 h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
+                                <h2 className="text-xl font-black" style={{ color: OXFORD }}>{viewedChapter.name}</h2>
+                                <div className="mt-2 h-1.5 w-full max-w-[180px] rounded-full bg-gray-100 overflow-hidden">
                                     <div className="h-full rounded-full transition-all duration-700" style={{ width: `${chapterPct}%`, background: SKY }} />
                                 </div>
-                                <p className="mt-1 text-[10px] font-bold text-gray-400">{completedInChapter} / {totalInChapter} étapes</p>
-                            </div>
-
-                            {/* 3D Illustration */}
-                            <div className="flex-shrink-0 w-24 h-20 flex items-center justify-center">
-                                <img
-                                    src="/icons/chapter-hero.png"
-                                    alt=""
-                                    className="chapter-hero-img"
-                                    style={{ width: 80, height: 80, objectFit: 'contain', filter: 'drop-shadow(0 8px 20px rgba(74,144,226,0.25))' }}
-                                />
+                                <p className="mt-1 text-[11px] font-bold text-gray-400">{completedInChapter} / {totalInChapter} étapes</p>
                             </div>
 
                             {/* Next */}
@@ -284,6 +274,16 @@ export default function Dashboard() {
                             >
                                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke={OXFORD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                             </button>
+                        </div>
+
+                        {/* 3D Illustration — déborde en bas à droite */}
+                        <div className="absolute bottom-0 right-0 pointer-events-none" style={{ width: 140, height: 140 }}>
+                            <img
+                                src="/icons/chapter-hero.png"
+                                alt=""
+                                className="chapter-hero-img"
+                                style={{ width: 140, height: 140, objectFit: 'contain', objectPosition: 'bottom right', filter: 'drop-shadow(0 8px 20px rgba(74,144,226,0.3))' }}
+                            />
                         </div>
                     </div>
                 )}
@@ -329,25 +329,39 @@ export default function Dashboard() {
                             </Link>
                         </div>
 
-                        <div className="relative">
-                            {/* Vertical connector line */}
-                            <div className="absolute left-6 top-8 bottom-8 w-0.5 rounded-full" style={{ background: 'linear-gradient(to bottom, #e5e7eb 0%, #e5e7eb 100%)' }} />
+                        {/* Zigzag roadmap — cercles qui alternent gauche/droite + ligne pointillée courbe */}
+                        <div className="relative py-2">
+                            {viewedChapter.nodes.map((node, idx) => {
+                                const isActive = node.status === 'available' || node.status === 'in_progress';
+                                const isCompleted = node.status === 'completed';
+                                const isLocked = node.status === 'locked';
+                                const canClick = isActive || isCompleted;
+                                const isLeft = idx % 2 === 0; // alterne gauche / droite
+                                const hasNext = idx < viewedChapter.nodes.length - 1;
+                                const nextIsLeft = (idx + 1) % 2 === 0;
 
-                            <div className="flex flex-col gap-3">
-                                {viewedChapter.nodes.map((node, idx) => {
-                                    const isActive = node.status === 'available' || node.status === 'in_progress';
-                                    const isCompleted = node.status === 'completed';
-                                    const isLocked = node.status === 'locked';
-                                    const canClick = isActive || isCompleted;
+                                // Position X du cercle : gauche ~30px, droite ~calc(100%-78px)
+                                const circleLeft = isLeft ? 30 : undefined;
+                                const circleRight = !isLeft ? 30 : undefined;
 
-                                    return (
-                                        <div key={node.id} className="flex items-center gap-4 relative">
-                                            {/* Circle on the line */}
-                                            <div className="flex-shrink-0 z-10">
-                                                <StepCircleIcon icon={node.icon} status={node.status} size={48} />
+                                // SVG de la ligne pointillée courbe entre ce cercle et le suivant
+                                // Le cercle courant est à (isLeft ? 54px : W-54px), le suivant à l'inverse
+                                const CIRCLE_R = 27; // rayon du cercle (54/2)
+                                const ROW_H = 100; // hauteur estimée d'une row (card ~84px + gap ~16px)
+
+                                return (
+                                    <div key={node.id} className="relative" style={{ marginBottom: hasNext ? 16 : 0 }}>
+                                        {/* Row : cercle + card */}
+                                        <div className="flex items-center gap-3" style={{
+                                            flexDirection: isLeft ? 'row' : 'row-reverse',
+                                            paddingLeft: isLeft ? 0 : 0,
+                                        }}>
+                                            {/* Cercle */}
+                                            <div className="flex-shrink-0 z-10" style={{ marginLeft: isLeft ? 8 : 0, marginRight: !isLeft ? 8 : 0 }}>
+                                                <StepCircleIcon icon={node.icon} status={node.status} size={54} />
                                             </div>
 
-                                            {/* Step Card */}
+                                            {/* Card */}
                                             <button
                                                 disabled={isLocked}
                                                 onClick={() => canClick && handleStartNode(node)}
@@ -356,7 +370,7 @@ export default function Dashboard() {
                                                         ? 'bg-white border-blue-100 step-card-active hover:border-blue-200 hover:scale-[1.01]'
                                                         : isCompleted
                                                         ? 'bg-white border-gray-100 hover:bg-gray-50'
-                                                        : 'bg-gray-50 border-gray-100 cursor-not-allowed'
+                                                        : 'bg-gray-50/80 border-gray-100 cursor-not-allowed'
                                                 }`}
                                             >
                                                 <div className="min-w-0 flex-1">
@@ -370,7 +384,7 @@ export default function Dashboard() {
                                                         {stepDescription(node, idx)}
                                                     </p>
                                                 </div>
-                                                <div className="flex items-center gap-2 flex-shrink-0 ml-3">
+                                                <div className="flex items-center gap-2 flex-shrink-0 ml-2">
                                                     <StatusBadge status={node.status} />
                                                     {isLocked
                                                         ? <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="4" y="7" width="8" height="6" rx="1.5" fill="#d1d5db" /><path d="M6 7V5a2 2 0 0 1 4 0v2" stroke="#d1d5db" strokeWidth="1.5" /></svg>
@@ -379,9 +393,29 @@ export default function Dashboard() {
                                                 </div>
                                             </button>
                                         </div>
-                                    );
-                                })}
-                            </div>
+
+                                        {/* Ligne pointillée courbe SVG vers le cercle suivant */}
+                                        {hasNext && (
+                                            <div className="absolute left-0 right-0 pointer-events-none" style={{ top: 54, height: 60, zIndex: 0 }}>
+                                                <svg width="100%" height="60" viewBox="0 0 300 60" preserveAspectRatio="none">
+                                                    {/* de bas du cercle courant (isLeft→x≈35, sinon x≈265) vers haut du suivant (inverse) */}
+                                                    <path
+                                                        d={isLeft
+                                                            ? "M 35 0 C 35 40, 265 20, 265 60"
+                                                            : "M 265 0 C 265 40, 35 20, 35 60"
+                                                        }
+                                                        fill="none"
+                                                        stroke="#cbd5e1"
+                                                        strokeWidth="2.5"
+                                                        strokeDasharray="7 6"
+                                                        strokeLinecap="round"
+                                                    />
+                                                </svg>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
 
                         {/* Chapter boss */}
