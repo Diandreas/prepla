@@ -329,93 +329,93 @@ export default function Dashboard() {
                             </Link>
                         </div>
 
-                        {/* Zigzag roadmap — cercles qui alternent gauche/droite + ligne pointillée courbe */}
+                        {/* Roadmap — cercles décalés + ligne pointillée DERRIÈRE les cards (z-index) */}
                         <div className="relative py-2">
-                            {viewedChapter.nodes.map((node, idx) => {
-                                const isActive = node.status === 'available' || node.status === 'in_progress';
-                                const isCompleted = node.status === 'completed';
-                                const isLocked = node.status === 'locked';
-                                const canClick = isActive || isCompleted;
-                                const isLeft = idx % 2 === 0; // alterne gauche / droite
-                                const hasNext = idx < viewedChapter.nodes.length - 1;
-                                const nextIsLeft = (idx + 1) % 2 === 0;
+                            {(() => {
+                                const offsets = [0, 40, 70, 50, 20, 50, 70, 40];
+                                const CIRCLE_SIZE = 54;
+                                const ROW_HEIGHT = 84; // hauteur estimée d'une row (card)
+                                const GAP = 16;        // gap entre rows
 
-                                // Position X du cercle : gauche ~30px, droite ~calc(100%-78px)
-                                const circleLeft = isLeft ? 30 : undefined;
-                                const circleRight = !isLeft ? 30 : undefined;
+                                return viewedChapter.nodes.map((node, idx) => {
+                                    const isActive = node.status === 'available' || node.status === 'in_progress';
+                                    const isCompleted = node.status === 'completed';
+                                    const isLocked = node.status === 'locked';
+                                    const canClick = isActive || isCompleted;
+                                    const hasNext = idx < viewedChapter.nodes.length - 1;
+                                    const circleOffsetX = offsets[idx % offsets.length];
+                                    const nextOffsetX = offsets[(idx + 1) % offsets.length];
 
-                                // SVG de la ligne pointillée courbe entre ce cercle et le suivant
-                                // Le cercle courant est à (isLeft ? 54px : W-54px), le suivant à l'inverse
-                                const CIRCLE_R = 27; // rayon du cercle (54/2)
-                                const ROW_H = 100; // hauteur estimée d'une row (card ~84px + gap ~16px)
+                                    return (
+                                        <div key={node.id} style={{ marginBottom: hasNext ? GAP : 0, position: 'relative' }}>
 
-                                return (
-                                    <div key={node.id} className="relative" style={{ marginBottom: hasNext ? 16 : 0 }}>
-                                        {/* Row : cercle + card */}
-                                        <div className="flex items-center gap-3" style={{
-                                            flexDirection: isLeft ? 'row' : 'row-reverse',
-                                            paddingLeft: isLeft ? 0 : 0,
-                                        }}>
-                                            {/* Cercle */}
-                                            <div className="flex-shrink-0 z-10" style={{ marginLeft: isLeft ? 8 : 0, marginRight: !isLeft ? 8 : 0 }}>
-                                                <StepCircleIcon icon={node.icon} status={node.status} size={54} />
-                                            </div>
-
-                                            {/* Card */}
-                                            <button
-                                                disabled={isLocked}
-                                                onClick={() => canClick && handleStartNode(node)}
-                                                className={`flex-1 flex items-center justify-between rounded-2xl p-4 text-left transition border-2 ${
-                                                    isActive
-                                                        ? 'bg-white border-blue-100 step-card-active hover:border-blue-200 hover:scale-[1.01]'
-                                                        : isCompleted
-                                                        ? 'bg-white border-gray-100 hover:bg-gray-50'
-                                                        : 'bg-gray-50/80 border-gray-100 cursor-not-allowed'
-                                                }`}
-                                            >
-                                                <div className="min-w-0 flex-1">
-                                                    <p className="text-[10px] font-black uppercase tracking-widest mb-0.5" style={{ color: isActive ? SKY : '#9ca3af' }}>
-                                                        Étape {idx + 1}
-                                                    </p>
-                                                    <p className="text-sm font-black" style={{ color: isLocked ? '#9ca3af' : OXFORD }}>
-                                                        {stepLabel(node, idx)}
-                                                    </p>
-                                                    <p className="text-xs mt-0.5" style={{ color: isLocked ? '#d1d5db' : '#6b7280' }}>
-                                                        {stepDescription(node, idx)}
-                                                    </p>
+                                            {/* Ligne pointillée en absolute, z=0, derrière tout */}
+                                            {hasNext && (
+                                                <div
+                                                    className="pointer-events-none"
+                                                    style={{
+                                                        position: 'absolute',
+                                                        left: 0, right: 0,
+                                                        top: CIRCLE_SIZE,
+                                                        height: ROW_HEIGHT + GAP,
+                                                        zIndex: 0,
+                                                    }}
+                                                >
+                                                    <svg width="100%" height="100%" preserveAspectRatio="none" viewBox={`0 0 300 ${ROW_HEIGHT + GAP}`}>
+                                                        <path
+                                                            d={`M ${circleOffsetX + CIRCLE_SIZE / 2} 0 C ${circleOffsetX + CIRCLE_SIZE / 2} ${(ROW_HEIGHT + GAP) * 0.6}, ${nextOffsetX + CIRCLE_SIZE / 2} ${(ROW_HEIGHT + GAP) * 0.4}, ${nextOffsetX + CIRCLE_SIZE / 2} ${ROW_HEIGHT + GAP}`}
+                                                            fill="none"
+                                                            stroke="#cbd5e1"
+                                                            strokeWidth="2.5"
+                                                            strokeDasharray="7 6"
+                                                            strokeLinecap="round"
+                                                        />
+                                                    </svg>
                                                 </div>
-                                                <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-                                                    <StatusBadge status={node.status} />
-                                                    {isLocked
-                                                        ? <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="4" y="7" width="8" height="6" rx="1.5" fill="#d1d5db" /><path d="M6 7V5a2 2 0 0 1 4 0v2" stroke="#d1d5db" strokeWidth="1.5" /></svg>
-                                                        : <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke={isActive ? SKY : '#d1d5db'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                                                    }
-                                                </div>
-                                            </button>
-                                        </div>
+                                            )}
 
-                                        {/* Ligne pointillée courbe SVG vers le cercle suivant */}
-                                        {hasNext && (
-                                            <div className="absolute left-0 right-0 pointer-events-none" style={{ top: 54, height: 60, zIndex: 0 }}>
-                                                <svg width="100%" height="60" viewBox="0 0 300 60" preserveAspectRatio="none">
-                                                    {/* de bas du cercle courant (isLeft→x≈35, sinon x≈265) vers haut du suivant (inverse) */}
-                                                    <path
-                                                        d={isLeft
-                                                            ? "M 35 0 C 35 40, 265 20, 265 60"
-                                                            : "M 265 0 C 265 40, 35 20, 35 60"
+                                            {/* Row : cercle + card — au dessus de la ligne (z=1) */}
+                                            <div className="flex items-center gap-3" style={{ position: 'relative', zIndex: 1 }}>
+                                                <div className="flex-shrink-0" style={{ marginLeft: circleOffsetX }}>
+                                                    <StepCircleIcon icon={node.icon} status={node.status} size={CIRCLE_SIZE} />
+                                                </div>
+
+                                                <button
+                                                    disabled={isLocked}
+                                                    onClick={() => canClick && handleStartNode(node)}
+                                                    className={`flex-1 flex items-center justify-between rounded-2xl p-4 text-left transition border-2 ${
+                                                        isActive
+                                                            ? 'bg-white border-blue-100 step-card-active hover:border-blue-200 hover:scale-[1.01]'
+                                                            : isCompleted
+                                                            ? 'bg-white border-gray-100 hover:bg-gray-50'
+                                                            : 'bg-gray-50/80 border-gray-100 cursor-not-allowed'
+                                                    }`}
+                                                >
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="text-[10px] font-black uppercase tracking-widest mb-0.5" style={{ color: isActive ? SKY : '#9ca3af' }}>
+                                                            Étape {idx + 1}
+                                                        </p>
+                                                        <p className="text-sm font-black" style={{ color: isLocked ? '#9ca3af' : OXFORD }}>
+                                                            {stepLabel(node, idx)}
+                                                        </p>
+                                                        <p className="text-xs mt-0.5" style={{ color: isLocked ? '#d1d5db' : '#6b7280' }}>
+                                                            {stepDescription(node, idx)}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                                                        <StatusBadge status={node.status} />
+                                                        {isLocked
+                                                            ? <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="4" y="7" width="8" height="6" rx="1.5" fill="#d1d5db" /><path d="M6 7V5a2 2 0 0 1 4 0v2" stroke="#d1d5db" strokeWidth="1.5" /></svg>
+                                                            : <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke={isActive ? SKY : '#d1d5db'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
                                                         }
-                                                        fill="none"
-                                                        stroke="#cbd5e1"
-                                                        strokeWidth="2.5"
-                                                        strokeDasharray="7 6"
-                                                        strokeLinecap="round"
-                                                    />
-                                                </svg>
+                                                    </div>
+                                                </button>
                                             </div>
-                                        )}
-                                    </div>
-                                );
-                            })}
+
+                                        </div>
+                                    );
+                                });
+                            })()}
                         </div>
 
                         {/* Chapter boss */}
