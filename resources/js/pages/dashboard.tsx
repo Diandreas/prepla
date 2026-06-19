@@ -229,24 +229,6 @@ export default function Dashboard() {
 
             <div className="mx-auto max-w-lg px-4 py-6">
 
-                {/* ── Page title + stats ── */}
-                <div className="mb-5 flex items-center justify-between">
-                    <h1 className="text-2xl font-black" style={{ color: OXFORD }}>Mon Parcours</h1>
-                    <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-1.5 rounded-full px-3 py-1.5 bg-orange-50 border border-orange-100">
-                            <span className="text-base">🔥</span>
-                            <span className="text-sm font-black text-orange-600">{profile?.streak_current ?? 0}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 rounded-full px-3 py-1.5 bg-amber-50 border border-amber-100">
-                            <span className="text-base">🏆</span>
-                            <span className="text-sm font-black text-amber-600">{profile?.xp_total ?? 0}</span>
-                        </div>
-                        <div className="h-9 w-9 rounded-full bg-gray-900 flex items-center justify-center text-white text-sm font-black flex-shrink-0 overflow-hidden">
-                            {auth?.user?.name?.[0]?.toUpperCase() ?? '?'}
-                        </div>
-                    </div>
-                </div>
-
                 {/* ── Chapter Hero Card ── */}
                 {viewedChapter && (
                     <div className="mb-4 rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden">
@@ -286,10 +268,10 @@ export default function Dashboard() {
                             {/* 3D Illustration */}
                             <div className="flex-shrink-0 w-24 h-20 flex items-center justify-center">
                                 <img
-                                    src="/icons/target.png"
+                                    src="/icons/chapter-hero.png"
                                     alt=""
                                     className="chapter-hero-img"
-                                    style={{ width: 72, height: 72, objectFit: 'contain', filter: 'drop-shadow(0 8px 16px rgba(74,144,226,0.3))' }}
+                                    style={{ width: 80, height: 80, objectFit: 'contain', filter: 'drop-shadow(0 8px 20px rgba(74,144,226,0.25))' }}
                                 />
                             </div>
 
