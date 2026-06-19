@@ -24,17 +24,6 @@ function FlagImg({ flag, size = 20 }: { flag: string; size?: number }) {
     return <span>{flag}</span>;
 }
 
-function CustomIcon({ name, className, style }: { name: string; className?: string; style?: React.CSSProperties }) {
-    return (
-        <img
-            src={`/icons/${name}.png`}
-            alt={name}
-            className={className || 'h-5 w-5'}
-            style={{ objectFit: 'contain', ...style }}
-        />
-    );
-}
-
 /* ─── Types ─── */
 interface RoadmapNode {
     id: string | number; title: string; description: string;
@@ -90,45 +79,79 @@ const OXFORD = '#1A2B48';
 const SKY = '#4A90E2';
 const GOLD = '#F5A623';
 
-/* ─── Custom node icons ─── */
-function NodeIcon({ name, size, color = 'white' }: { name: string; size: number; color?: string }) {
-    const s = size;
-    switch (name) {
-        case 'trophy': return <svg width={s} height={s} viewBox="0 0 24 24" fill="none"><path d="M6 9V2h12v7c0 2.5-2 4.5-4.5 4.5h-3C8 13.5 6 11.5 6 9z" fill={color} opacity="0.9" /><path d="M6 5H2v2c0 2 2 2 2 2h2V5zM18 5h4v2c0 2-2 2-2 2h-2V5z" fill={color} opacity="0.6" /><path d="M12 14v5M8 22h8" stroke={color} strokeWidth="2" strokeLinecap="round" /></svg>;
-        case 'book': return <svg width={s} height={s} viewBox="0 0 24 24" fill="none"><path d="M4 4h7a1 1 0 0 1 1 1v14a1 1 0 0 0-1-1H4V4z" fill={color} opacity="0.9" /><path d="M20 4h-7a1 1 0 0 0-1 1v14a1 1 0 0 1 1-1h7V4z" fill={color} opacity="0.5" /><line x1="12" y1="5" x2="12" y2="19" stroke={color} strokeWidth="1.5" /></svg>;
-        case 'headphones': return <svg width={s} height={s} viewBox="0 0 24 24" fill="none"><path d="M12 3a9 9 0 0 0-9 9v3h3a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-7a10 10 0 0 1 20 0v7a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2h3v-3a9 9 0 0 0-9-9z" fill={color} opacity="0.85" /></svg>;
-        case 'pen': return <svg width={s} height={s} viewBox="0 0 24 24" fill="none"><path d="M17 3l4 4-12 12H5v-4L17 3z" fill={color} opacity="0.9" /><path d="M15 5l4 4" stroke={color} strokeWidth="1.5" opacity="0.5" /><line x1="5" y1="20" x2="19" y2="20" stroke={color} strokeWidth="2" strokeLinecap="round" opacity="0.4" /></svg>;
-        case 'mic': return <svg width={s} height={s} viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="12" rx="3" fill={color} opacity="0.9" /><path d="M5 10a7 7 0 0 0 14 0" stroke={color} strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.7" /><line x1="12" y1="17" x2="12" y2="21" stroke={color} strokeWidth="2" strokeLinecap="round" opacity="0.7" /><line x1="9" y1="21" x2="15" y2="21" stroke={color} strokeWidth="2" strokeLinecap="round" opacity="0.7" /></svg>;
-        case 'brain': return <svg width={s} height={s} viewBox="0 0 24 24" fill="none"><path d="M12 3a6 6 0 0 1 4 10.5V16a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.5A6 6 0 0 1 12 3z" fill={color} opacity="0.9" /><rect x="9" y="17" width="6" height="1.5" rx="0.75" fill={color} opacity="0.6" /><rect x="10" y="19.5" width="4" height="1.5" rx="0.75" fill={color} opacity="0.4" /></svg>;
-        case 'target': return <svg width={s} height={s} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke={color} strokeWidth="2" opacity="0.4" /><circle cx="12" cy="12" r="5.5" stroke={color} strokeWidth="2" opacity="0.7" /><circle cx="12" cy="12" r="2.5" fill={color} /></svg>;
-        default: return <img src="/icons/zap.png" alt="" width={s} height={s} style={{ objectFit: 'contain' }} />;
-    }
+/* ─── Step icon per node type ─── */
+function StepCircleIcon({ icon, status, size = 48 }: { icon: string; status: RoadmapNode['status']; size?: number }) {
+    const isCompleted = status === 'completed';
+    const isLocked = status === 'locked';
+    const isActive = status === 'available' || status === 'in_progress';
+
+    const bg = isCompleted ? SKY : isActive ? SKY : '#e5e7eb';
+    const iconFilter = isLocked ? 'grayscale(1) opacity(0.4)' : 'brightness(0) invert(1)';
+
+    const iconMap: Record<string, string> = {
+        book: 'book', headphones: 'headphones', pen: 'writing', mic: 'mic',
+        brain: 'lightbulb', target: 'target', trophy: 'trophy',
+    };
+    const iconName = iconMap[icon] ?? icon;
+
+    return (
+        <div
+            className="flex items-center justify-center rounded-full flex-shrink-0"
+            style={{
+                width: size, height: size,
+                background: isActive ? `linear-gradient(135deg, ${SKY}, #3478c8)` : isCompleted ? `linear-gradient(135deg, ${SKY} 0%, #2a6fc0 100%)` : '#e5e7eb',
+                boxShadow: isActive ? `0 4px 12px rgba(74,144,226,0.4)` : isCompleted ? '0 2px 8px rgba(74,144,226,0.25)' : 'none',
+                border: isActive ? '3px solid #3a82cc' : isCompleted ? '3px solid #3a82cc' : '3px solid #d1d5db',
+                position: 'relative',
+            }}
+        >
+            {isLocked
+                ? <svg width={size * 0.38} height={size * 0.38} viewBox="0 0 24 24" fill="none"><rect x="6" y="11" width="12" height="9" rx="2" fill="#9ca3af" /><path d="M8 11V7a4 4 0 0 1 8 0v4" stroke="#9ca3af" strokeWidth="2" /></svg>
+                : <img src={`/icons/${iconName}.png`} alt="" width={size * 0.42} height={size * 0.42} style={{ objectFit: 'contain', filter: iconFilter }} />
+            }
+            {isCompleted && (
+                <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center border-2 border-white" style={{ background: GOLD }}>
+                    <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5l2.5 2.5L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" /></svg>
+                </div>
+            )}
+        </div>
+    );
 }
 
-const chapterThemes = [
-    { bg: `linear-gradient(135deg, ${OXFORD} 0%, #2a3f6a 100%)`, pathColor: OXFORD },
-    { bg: `linear-gradient(135deg, ${SKY} 0%, #2a6fc0 100%)`, pathColor: SKY },
-    { bg: `linear-gradient(135deg, ${OXFORD} 0%, ${SKY} 100%)`, pathColor: '#3070b0' },
-    { bg: `linear-gradient(135deg, #2a6fc0 0%, ${OXFORD} 100%)`, pathColor: '#2a6fc0' },
-    { bg: `linear-gradient(135deg, ${GOLD} 0%, #e08c10 100%)`, pathColor: GOLD },
-];
+/* ─── Step label → display name ─── */
+function stepLabel(node: RoadmapNode, idx: number): string {
+    const labels = ['Théorie', 'Pratique', 'Quiz', 'Exercice', 'Révision', 'Examen'];
+    return labels[idx] ?? node.title;
+}
 
-const zigzagX = [0, 55, 90, 55, 0, -55, -90, -55];
+function stepDescription(node: RoadmapNode, idx: number): string {
+    const descs = [
+        'Comprends les bases essentielles.',
+        'Mets en pratique ce que tu as appris.',
+        'Teste tes connaissances.',
+        'Entraîne-toi avec des exercices ciblés.',
+        'Révise et consolide tes acquis.',
+        'Évalue ton niveau global.',
+    ];
+    if (node.description && node.description.length > 3) return node.description;
+    return descs[idx] ?? 'Continue ta progression.';
+}
 
-function NodePath({ fromX, toX, color }: { fromX: number; toX: number; color: string }) {
-    const w = 260; const cx = w / 2;
-    const x1 = cx + fromX; const x2 = cx + toX;
-    return (
-        <svg width={w} height={88} className="mx-auto block" style={{ overflow: 'visible' }}>
-            <path d={`M${x1},0 C${x1},30 ${x2},58 ${x2},88`} fill="none" stroke={color} strokeWidth="5" strokeLinecap="round" className="roadmap-path" opacity="0.35" />
-        </svg>
-    );
+/* ─── Status badge ─── */
+function StatusBadge({ status }: { status: RoadmapNode['status'] }) {
+    if (status === 'completed') {
+        return <span className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-black" style={{ background: '#dcfce7', color: '#16a34a' }}>Terminé</span>;
+    }
+    if (status === 'available' || status === 'in_progress') {
+        return <span className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-black" style={{ background: '#dcfce7', color: '#16a34a' }}>À faire</span>;
+    }
+    return <span className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-black" style={{ background: '#f3f4f6', color: '#9ca3af' }}>À venir</span>;
 }
 
 export default function Dashboard() {
     const { t } = useTranslation();
     const { auth, profile, chapters, stats, curriculum, nextLesson, errorDiagnostic, dueErrorsCount } = usePage<SharedData & PageProps>().props;
-    
+
     const [loadingNode, setLoadingNode] = useState<{ id: string | number; title: string } | null>(null);
 
     const handleStartNode = (node: RoadmapNode) => {
@@ -142,17 +165,11 @@ export default function Dashboard() {
 
     const allNodes = useMemo(() => chapters.flatMap(c => c.nodes), [chapters]);
     const firstIncompleteNodeId = useMemo(() => {
-        // Find the first node that is either available, in_progress, or just not completed
         return allNodes.find(n => n.status === 'in_progress')?.id
             ?? allNodes.find(n => n.status === 'available')?.id
             ?? allNodes.find(n => n.status === 'locked')?.id;
     }, [allNodes]);
 
-    const lastNodeId = allNodes.length > 0 ? allNodes[allNodes.length - 1].id : null;
-
-    // Find the chapter index that contains the currently active node — that's the
-    // ONE chapter we display by default. The user can navigate to other chapters
-    // via the prev/next buttons. No more 10-chapter infinite scroll.
     const activeChapterIdx = useMemo(() => {
         if (!firstIncompleteNodeId) return 0;
         const idx = chapters.findIndex(c => c.nodes.some(n => n.id === firstIncompleteNodeId));
@@ -160,7 +177,6 @@ export default function Dashboard() {
     }, [chapters, firstIncompleteNodeId]);
 
     const [viewedChapterIdx, setViewedChapterIdx] = useState(activeChapterIdx);
-    // Re-sync if the active chapter changes (e.g. after completing one)
     useEffect(() => { setViewedChapterIdx(activeChapterIdx); }, [activeChapterIdx]);
 
     const viewedChapter = chapters[viewedChapterIdx];
@@ -172,9 +188,14 @@ export default function Dashboard() {
     const examName = (profile as any)?.target_exam?.name;
     const examFlag = (profile as any)?.target_exam?.language?.flag;
 
+    /* First active (or first available) node in viewed chapter */
+    const firstActiveInChapter = viewedChapter?.nodes.find(
+        n => n.status === 'in_progress' || n.status === 'available'
+    ) ?? viewedChapter?.nodes[0];
+
     return (
         <AppLayout>
-            <Head title="Dashboard" />
+            <Head title="Mon Parcours" />
 
             {/* Loading overlay */}
             {loadingNode && (
@@ -182,7 +203,6 @@ export default function Dashboard() {
                     <style>{`
                         @keyframes spinRing { to { transform: rotate(360deg); } }
                         @keyframes pulseGlow { 0%,100% { opacity:0.6; transform:scale(1); } 50% { opacity:1; transform:scale(1.08); } }
-                        @keyframes dotBounce { 0%,80%,100% { transform:translateY(0); opacity:0.4; } 40% { transform:translateY(-8px); opacity:1; } }
                     `}</style>
                     <div className="relative flex items-center justify-center" style={{ width: 88, height: 88 }}>
                         <svg className="absolute inset-0" style={{ animation: 'spinRing 1.2s linear infinite' }} width="88" height="88" viewBox="0 0 88 88">
@@ -195,397 +215,279 @@ export default function Dashboard() {
                         </div>
                     </div>
                     <div className="text-center">
-                        <p className="text-base font-bold" style={{ color: OXFORD }}>{t('dashboard.preparing_session', 'Préparation en cours')}</p>
-                        <p className="mt-1 text-sm font-medium" style={{ color: '#6b7280' }}>{loadingNode.title}</p>
+                        <p className="text-base font-bold" style={{ color: OXFORD }}>Préparation en cours</p>
+                        <p className="mt-1 text-sm font-medium text-gray-500">{loadingNode.title}</p>
                     </div>
                 </div>
             )}
-            
+
             <style>{`
-                @keyframes nodeFloating { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
-                @keyframes nodePulsing { 0%, 100% { box-shadow: 0 8px 0 0 rgba(74, 144, 226, 1); } 50% { box-shadow: 0 8px 0 0 rgba(74, 144, 226, 0.4), 0 0 15px rgba(74, 144, 226, 0.4); } }
-                @keyframes floatingBadge { 0%, 100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, -6px); } }
-
-                @keyframes dashMove { from { stroke-dashoffset: 20; } to { stroke-dashoffset: 0; } }
-                .roadmap-path { stroke-dasharray: 10 12; animation: dashMove 3s linear infinite; }
-
-                .duo-sidebar-box {
-                    border: 2px solid #e5e7eb;
-                    border-radius: 20px;
-                    padding: 20px;
-                    background: white;
-                }
-                .duo-sidebar-box h3 {
-                    font-weight: 900;
-                    font-size: 1.05rem;
-                    color: ${OXFORD};
-                    margin-bottom: 12px;
-                }
-
-                .duo-node-btn {
-                    position: relative;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    border-radius: 50%;
-                    transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.1s ease;
-                    cursor: pointer;
-                    margin-bottom: 6px;
-                }
-
-                .duo-node-available {
-                    background: ${SKY};
-                    border: 4px solid #3a82cc;
-                    box-shadow: 0 8px 0 0 #2563a0;
-                }
-                .duo-node-available:active {
-                    transform: translateY(8px) scale(0.98);
-                    box-shadow: 0 0 0 0 #2563a0;
-                }
-
-                .duo-node-completed {
-                    background: ${GOLD};
-                    border: 4px solid #e08c10;
-                    box-shadow: 0 8px 0 0 #b36e05;
-                }
-                .duo-node-completed:active {
-                    transform: translateY(8px) scale(0.98);
-                    box-shadow: 0 0 0 0 #b36e05;
-                }
-
-                .duo-node-locked {
-                    background: #e5e7eb;
-                    border: 4px solid #d1d5db;
-                    box-shadow: 0 8px 0 0 #9ca3af;
-                    cursor: not-allowed;
-                }
-
-                .node-badge {
-                    position: absolute;
-                    bottom: -5px;
-                    right: -5px;
-                    width: 26px;
-                    height: 26px;
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    border: 3px solid white;
-                }
-
-                .node-active-ring {
-                    position: absolute;
-                    inset: -8px;
-                    border: 2px dashed ${SKY};
-                    border-radius: 50%;
-                    animation: spin 8s linear infinite;
-                    opacity: 0.3;
-                    pointer-events: none;
-                }
-                
-                @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+                @keyframes floatUp { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-5px); } }
+                .chapter-hero-img { animation: floatUp 3.5s ease-in-out infinite; }
+                .step-card-active { box-shadow: 0 2px 16px rgba(74,144,226,0.12); }
             `}</style>
 
-            <div className="mx-auto max-w-[1000px] px-4 py-8">
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] gap-10">
-                    
-                    {/* ROADMAP — single active chapter view */}
-                    <div className="flex flex-col">
-                        {/* Chapter navigator */}
-                        <div className="mb-6 flex items-center justify-between gap-3 rounded-2xl bg-white border-2 border-gray-100 p-3 shadow-sm">
+            <div className="mx-auto max-w-lg px-4 py-6">
+
+                {/* ── Page title + stats ── */}
+                <div className="mb-5 flex items-center justify-between">
+                    <h1 className="text-2xl font-black" style={{ color: OXFORD }}>Mon Parcours</h1>
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1.5 rounded-full px-3 py-1.5 bg-orange-50 border border-orange-100">
+                            <span className="text-base">🔥</span>
+                            <span className="text-sm font-black text-orange-600">{profile?.streak_current ?? 0}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 rounded-full px-3 py-1.5 bg-amber-50 border border-amber-100">
+                            <span className="text-base">🏆</span>
+                            <span className="text-sm font-black text-amber-600">{profile?.xp_total ?? 0}</span>
+                        </div>
+                        <div className="h-9 w-9 rounded-full bg-gray-900 flex items-center justify-center text-white text-sm font-black flex-shrink-0 overflow-hidden">
+                            {auth?.user?.name?.[0]?.toUpperCase() ?? '?'}
+                        </div>
+                    </div>
+                </div>
+
+                {/* ── Chapter Hero Card ── */}
+                {viewedChapter && (
+                    <div className="mb-4 rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden">
+                        <div className="flex items-center p-4 gap-3">
+                            {/* Prev */}
                             <button
                                 onClick={() => setViewedChapterIdx(i => Math.max(0, i - 1))}
                                 disabled={viewedChapterIdx === 0}
-                                className="rounded-xl px-3 py-2 text-sm font-black text-slate-600 hover:bg-slate-50 disabled:opacity-30"
+                                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 disabled:opacity-20 transition flex-shrink-0"
                                 aria-label="Chapitre précédent"
                             >
-                                ←
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke={OXFORD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                             </button>
-                            <div className="flex-1 text-center">
-                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                                    Chapitre {viewedChapterIdx + 1} / {chapters.length}
-                                    {isViewingActive && <span className="ml-2 inline-block rounded-full bg-emerald-100 px-2 py-0.5 text-emerald-700">EN COURS</span>}
-                                    {!isViewingActive && viewedChapterIdx < activeChapterIdx && <span className="ml-2 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-amber-700">TERMINÉ</span>}
-                                    {!isViewingActive && viewedChapterIdx > activeChapterIdx && <span className="ml-2 inline-block rounded-full bg-slate-100 px-2 py-0.5 text-slate-500">VERROUILLÉ</span>}
-                                </p>
-                                <p className="mt-0.5 text-sm font-black truncate" style={{ color: OXFORD }}>{viewedChapter?.name}</p>
-                                <div className="mt-1.5 mx-auto h-1.5 max-w-[200px] rounded-full bg-slate-100 overflow-hidden">
-                                    <div className="h-full rounded-full transition-all duration-500" style={{ width: `${chapterPct}%`, background: SKY }} />
+
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                                        Chapitre {viewedChapterIdx + 1} / {chapters.length}
+                                    </span>
+                                    {isViewingActive && (
+                                        <span className="rounded-full px-2 py-0.5 text-[10px] font-black" style={{ background: '#dcfce7', color: '#16a34a' }}>EN COURS</span>
+                                    )}
+                                    {!isViewingActive && viewedChapterIdx < activeChapterIdx && (
+                                        <span className="rounded-full px-2 py-0.5 text-[10px] font-black" style={{ background: '#fef3c7', color: '#d97706' }}>TERMINÉ</span>
+                                    )}
+                                    {!isViewingActive && viewedChapterIdx > activeChapterIdx && (
+                                        <span className="rounded-full px-2 py-0.5 text-[10px] font-black" style={{ background: '#f3f4f6', color: '#9ca3af' }}>VERROUILLÉ</span>
+                                    )}
                                 </div>
-                                <p className="mt-1 text-[10px] font-bold text-slate-400">{completedInChapter} / {totalInChapter} étapes</p>
+                                <h2 className="text-lg font-black truncate" style={{ color: OXFORD }}>{viewedChapter.name}</h2>
+                                <div className="mt-2 h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
+                                    <div className="h-full rounded-full transition-all duration-700" style={{ width: `${chapterPct}%`, background: SKY }} />
+                                </div>
+                                <p className="mt-1 text-[10px] font-bold text-gray-400">{completedInChapter} / {totalInChapter} étapes</p>
                             </div>
+
+                            {/* 3D Illustration */}
+                            <div className="flex-shrink-0 w-24 h-20 flex items-center justify-center">
+                                <img
+                                    src="/icons/target.png"
+                                    alt=""
+                                    className="chapter-hero-img"
+                                    style={{ width: 72, height: 72, objectFit: 'contain', filter: 'drop-shadow(0 8px 16px rgba(74,144,226,0.3))' }}
+                                />
+                            </div>
+
+                            {/* Next */}
                             <button
                                 onClick={() => setViewedChapterIdx(i => Math.min(chapters.length - 1, i + 1))}
                                 disabled={viewedChapterIdx >= chapters.length - 1 || viewedChapterIdx >= activeChapterIdx}
-                                className="rounded-xl px-3 py-2 text-sm font-black text-slate-600 hover:bg-slate-50 disabled:opacity-30"
+                                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 disabled:opacity-20 transition flex-shrink-0"
                                 aria-label="Chapitre suivant"
                             >
-                                →
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke={OXFORD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                             </button>
                         </div>
-
-                        <div>
-                            {viewedChapter && (() => {
-                                const cIdx = viewedChapterIdx;
-                                const chapter = viewedChapter;
-                                const theme = chapterThemes[cIdx % chapterThemes.length];
-                                let globalNodeSum = chapters.slice(0, cIdx).reduce((acc, c) => acc + c.nodes.length, 0);
-
-                                return (
-                                    <div key={chapter.name} className="space-y-6">
-                                        <div className="rounded-2xl p-5 text-white" style={{ background: theme.bg, boxShadow: '0 8px 0 0 rgba(0,0,0,0.15)' }}>
-                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">{t('common.chapter', { order: chapter.order, defaultValue: `Chapitre ${chapter.order}` })}</p>
-                                            <h2 className="text-xl font-black">{chapter.name}</h2>
-                                        </div>
-
-                                        <div className="flex flex-col items-center py-4">
-                                            {chapter.nodes.map((node, nIdx) => {
-                                                const currentIdx = globalNodeSum + nIdx;
-                                                const nextNode = chapter.nodes[nIdx + 1];
-                                                
-                                                const isActiveNode = node.id === firstIncompleteNodeId;
-                                                const isCompleted = node.status === 'completed';
-                                                const isAvailable = node.status === 'available' || node.status === 'in_progress';
-                                                const isLocked = node.status === 'locked';
-                                                const isFinalNode = node.id === lastNodeId;
-                                                const offsetX = zigzagX[currentIdx % zigzagX.length] ?? 0;
-
-                                                return (
-                                                    <div key={node.id} className="flex flex-col items-center w-full">
-                                                        <div className="flex flex-col items-center" style={{ transform: `translateX(${offsetX}px)` }}>
-                                                            <div className="relative">
-                                                                {isActiveNode && <div className="node-active-ring" />}
-                                                                <button
-                                                                    disabled={isLocked}
-                                                                    onClick={() => (isAvailable || isCompleted) && handleStartNode(node)}
-                                                                    className={`w-[74px] h-[74px] duo-node-btn ${isCompleted ? 'duo-node-completed' : isAvailable ? 'duo-node-available' : 'duo-node-locked'}`}
-                                                                    style={{ 
-                                                                        animation: isActiveNode ? 'nodeFloating 2.5s ease-in-out infinite, nodePulsing 2.5s ease-in-out infinite' : undefined,
-                                                                        transform: isActiveNode ? 'scale(1.05)' : undefined
-                                                                    }}
-                                                                >
-                                                                    <NodeIcon 
-                                                                        name={isFinalNode && isCompleted ? 'trophy' : (isFinalNode ? 'target' : node.icon)} 
-                                                                        size={30} 
-                                                                        color={isLocked ? '#9ca3af' : 'white'} 
-                                                                    />
-                                                                    {isCompleted && (
-                                                                        <div className="node-badge" style={{ background: GOLD }}>
-                                                                            <Icon name="check" size={14} style={{ filter: 'brightness(0) invert(1)' }} />
-                                                                        </div>
-                                                                    )}
-                                                                    {isLocked && (
-                                                                        <div className="node-badge" style={{ background: '#d1d5db' }}>
-                                                                            <Icon name="lock" size={12} style={{ filter: 'brightness(0) invert(1)', opacity: 0.8 }} />
-                                                                        </div>
-                                                                    )}
-                                                                </button>
-                                                                
-                                                                {isActiveNode && (
-                                                                    <div className="absolute -top-[52px] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-2xl px-4 py-2.5 text-[12px] font-black text-white tracking-widest z-10"
-                                                                        style={{ 
-                                                                            background: SKY, 
-                                                                            boxShadow: `0 4px 0 0 #2563a0`, 
-                                                                            border: '2px solid #3a82cc',
-                                                                            animation: 'floatingBadge 2s ease-in-out infinite'
-                                                                        }}>
-                                                                        {t('common.start', 'COMMENCER').toUpperCase()}
-                                                                        <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 h-2.5 w-2.5 rotate-45" style={{ background: SKY, borderRight: '2px solid #3a82cc', borderBottom: '2px solid #3a82cc' }} />
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                            <p className="mt-4 max-w-[110px] text-center text-[12px] font-black uppercase tracking-tight" style={{ color: (isLocked && !isActiveNode) ? 'rgba(26,43,72,0.3)' : OXFORD }}>
-                                                                {node.title}
-                                                            </p>
-                                                        </div>
-
-                                                        {nextNode && (
-                                                            <NodePath
-                                                                fromX={zigzagX[currentIdx % zigzagX.length]}
-                                                                toX={zigzagX[(currentIdx + 1) % zigzagX.length]}
-                                                                color={theme.pathColor}
-                                                            />
-                                                        )}
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-
-                                        {/* Chapter footer: boss / synthesis */}
-                                        {completedInChapter === totalInChapter && totalInChapter > 0 && (
-                                            <Link
-                                                href={route('chapter.synthesis', { chapterOrder: chapter.order })}
-                                                className="mt-4 block rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-amber-100 p-5 text-center transition hover:from-amber-100 hover:to-amber-200 hover:-translate-y-0.5"
-                                                style={{ boxShadow: '0 4px 0 0 #e08c10' }}
-                                            >
-                                                <p className="flex items-center justify-center gap-1.5 text-xs font-black uppercase tracking-widest text-amber-700">
-                                                    <CustomIcon name="trophy" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(52%) sepia(72%) saturate(640%) hue-rotate(2deg)' }} />
-                                                    Boss du chapitre
-                                                </p>
-                                                <p className="mt-1 text-lg font-black text-amber-900">Synthèse — Tous les concepts</p>
-                                                <p className="mt-1 text-xs text-amber-700/80">≥80% pour valider définitivement le chapitre</p>
-                                            </Link>
-                                        )}
-                                    </div>
-                                );
-                            })()}
-                        </div>
                     </div>
+                )}
 
-                    {/* SIDEBAR — visible on mobile too (stacks below the roadmap) */}
-                    <div className="flex flex-col gap-6">
-                        {examName && (
-                            <div className="flex items-center gap-3 p-2">
-                                {examFlag && <FlagImg flag={examFlag} size={32} />}
-                                <div>
-                                    <h2 className="text-lg font-black" style={{ color: OXFORD }}>{examName}</h2>
-                                </div>
+                {/* ── CTA Card : Start / Continue chapter ── */}
+                {firstActiveInChapter && (isViewingActive || viewedChapterIdx <= activeChapterIdx) && (
+                    <button
+                        onClick={() => handleStartNode(firstActiveInChapter)}
+                        className="mb-6 w-full rounded-2xl text-left flex items-center gap-4 p-4 text-white transition hover:brightness-105 active:scale-[0.98]"
+                        style={{
+                            background: `linear-gradient(135deg, ${OXFORD} 0%, #2a3f6a 100%)`,
+                            boxShadow: '0 4px 0 0 rgba(0,0,0,0.25)',
+                        }}
+                    >
+                        <div className="h-12 w-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.12)' }}>
+                            <Icon name="book" size={26} style={{ filter: 'brightness(0) invert(1)' }} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Chapitre {viewedChapterIdx + 1}</p>
+                            <p className="text-base font-black truncate">{viewedChapter?.name}</p>
+                        </div>
+                        <div className="flex-shrink-0 rounded-xl px-4 py-2 font-black text-sm flex items-center gap-1.5" style={{ background: SKY }}>
+                            COMMENCER
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M8 4l3 3-3 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                        </div>
+                    </button>
+                )}
+
+                {/* ── Steps List ── */}
+                {viewedChapter && (
+                    <div>
+                        <div className="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 className="text-base font-black" style={{ color: OXFORD }}>Ton parcours</h3>
+                                <p className="text-xs text-gray-400 font-medium">Apprends pas à pas</p>
                             </div>
-                        )}
+                            <Link
+                                href="/lessons"
+                                className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-black border border-gray-200 text-gray-600 hover:bg-gray-50 transition"
+                            >
+                                Voir le chapitre
+                                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1" y="2" width="10" height="1.5" rx="0.75" fill="currentColor" /><rect x="1" y="5.25" width="10" height="1.5" rx="0.75" fill="currentColor" /><rect x="1" y="8.5" width="10" height="1.5" rx="0.75" fill="currentColor" /></svg>
+                            </Link>
+                        </div>
 
-                        <div className="duo-sidebar-box grid grid-cols-2 gap-4">
-                            <div className="flex flex-col items-center group cursor-help">
-                                <div className="relative">
-                                    <CustomIcon name="medal" className="h-7 w-7 transition-transform group-hover:scale-110" />
-                                    {(profile?.streak_current ?? 0) > 0 && (
-                                        <div className="absolute -top-1 -right-1">
-                                            <div className="relative">
-                                                <div className="absolute inset-0 bg-orange-500 blur-md animate-pulse rounded-full opacity-50" />
-                                                <div className="relative h-4 w-4 bg-gradient-to-t from-red-600 to-orange-400 rounded-full flex items-center justify-center border border-white shadow-lg">
-                                                    <div className="h-1.5 w-1.5 bg-yellow-200 rounded-full animate-bounce" />
-                                                </div>
+                        <div className="relative">
+                            {/* Vertical connector line */}
+                            <div className="absolute left-6 top-8 bottom-8 w-0.5 rounded-full" style={{ background: 'linear-gradient(to bottom, #e5e7eb 0%, #e5e7eb 100%)' }} />
+
+                            <div className="flex flex-col gap-3">
+                                {viewedChapter.nodes.map((node, idx) => {
+                                    const isActive = node.status === 'available' || node.status === 'in_progress';
+                                    const isCompleted = node.status === 'completed';
+                                    const isLocked = node.status === 'locked';
+                                    const canClick = isActive || isCompleted;
+
+                                    return (
+                                        <div key={node.id} className="flex items-center gap-4 relative">
+                                            {/* Circle on the line */}
+                                            <div className="flex-shrink-0 z-10">
+                                                <StepCircleIcon icon={node.icon} status={node.status} size={48} />
                                             </div>
+
+                                            {/* Step Card */}
+                                            <button
+                                                disabled={isLocked}
+                                                onClick={() => canClick && handleStartNode(node)}
+                                                className={`flex-1 flex items-center justify-between rounded-2xl p-4 text-left transition border-2 ${
+                                                    isActive
+                                                        ? 'bg-white border-blue-100 step-card-active hover:border-blue-200 hover:scale-[1.01]'
+                                                        : isCompleted
+                                                        ? 'bg-white border-gray-100 hover:bg-gray-50'
+                                                        : 'bg-gray-50 border-gray-100 cursor-not-allowed'
+                                                }`}
+                                            >
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="text-[10px] font-black uppercase tracking-widest mb-0.5" style={{ color: isActive ? SKY : '#9ca3af' }}>
+                                                        Étape {idx + 1}
+                                                    </p>
+                                                    <p className="text-sm font-black" style={{ color: isLocked ? '#9ca3af' : OXFORD }}>
+                                                        {stepLabel(node, idx)}
+                                                    </p>
+                                                    <p className="text-xs mt-0.5" style={{ color: isLocked ? '#d1d5db' : '#6b7280' }}>
+                                                        {stepDescription(node, idx)}
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center gap-2 flex-shrink-0 ml-3">
+                                                    <StatusBadge status={node.status} />
+                                                    {isLocked
+                                                        ? <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="4" y="7" width="8" height="6" rx="1.5" fill="#d1d5db" /><path d="M6 7V5a2 2 0 0 1 4 0v2" stroke="#d1d5db" strokeWidth="1.5" /></svg>
+                                                        : <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke={isActive ? SKY : '#d1d5db'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                                    }
+                                                </div>
+                                            </button>
                                         </div>
-                                    )}
-                                </div>
-                                <span className="font-black text-[#ef4444] text-xl mt-1">{profile?.streak_current ?? 0}</span>
-                                <span className="text-[10px] uppercase font-black opacity-40">Jours</span>
-                            </div>
-                            <div className="flex flex-col items-center group">
-                                <CustomIcon name="trophy" className="h-7 w-7 transition-transform group-hover:rotate-12" />
-                                <span className="font-black text-[#F5A623] text-xl mt-1">{profile?.xp_total ?? 0}</span>
-                                <span className="text-[10px] uppercase font-black opacity-40">Total XP</span>
+                                    );
+                                })}
                             </div>
                         </div>
 
-                        {/* Pilier 9: Next Lesson CTA */}
-                        {curriculum && (
+                        {/* Chapter boss */}
+                        {completedInChapter === totalInChapter && totalInChapter > 0 && (
                             <Link
-                                href="/lessons/next"
-                                className="duo-sidebar-box group relative overflow-hidden p-5 text-white"
-                                style={{ background: `linear-gradient(135deg, ${SKY}, #3478c8)`, border: `2px solid #3a82cc`, boxShadow: '0 4px 0 0 #2563a0' }}
+                                href={route('chapter.synthesis', { chapterOrder: viewedChapter.order })}
+                                className="mt-6 flex items-center gap-4 rounded-2xl p-4 border-2 border-amber-200 transition hover:border-amber-300 hover:scale-[1.01]"
+                                style={{ background: 'linear-gradient(135deg, #fffbeb, #fef3c7)', boxShadow: '0 4px 0 0 #e08c10' }}
                             >
-                                <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-70">▶ Prochaine leçon</p>
-                                <p className="text-sm font-black mt-1">{curriculum.current_objective?.title || 'Commencer'}</p>
-                                <p className="text-[10px] mt-0.5 opacity-70">
-                                    Objectif {curriculum.current_index + 1} / {curriculum.total_objectives}
-                                </p>
-                                {curriculum.consecutive_failures >= 2 && (
-                                    <p className="mt-2 inline-flex items-center gap-1 text-[9px] font-bold bg-white/20 rounded-lg px-2 py-1">
-                                        <Icon name="review" size={11} style={{ filter: 'brightness(0) invert(1)' }} />
-                                        Consolidation
-                                    </p>
-                                )}
-                                <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-white/10" />
+                                <div className="h-12 w-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(245,166,35,0.15)' }}>
+                                    <Icon name="trophy" size={26} style={{ filter: 'brightness(0) saturate(100%) invert(52%) sepia(72%) saturate(640%) hue-rotate(2deg)' }} />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-amber-600">Boss du chapitre</p>
+                                    <p className="text-sm font-black text-amber-900">Synthèse — Tous les concepts</p>
+                                    <p className="text-xs text-amber-700/70 mt-0.5">≥80% pour valider définitivement</p>
+                                </div>
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M7 5l5 5-5 5" stroke="#d97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                             </Link>
                         )}
+                    </div>
+                )}
 
-                        {/* Quick Practice CTA — generates a fresh adaptive practice session */}
+                {/* ── Quick actions ── */}
+                <div className="mt-8 grid grid-cols-2 gap-3">
+                    {curriculum && (
                         <Link
-                            href={route('practice.index')}
-                            className="duo-sidebar-box group relative overflow-hidden p-5 text-white"
-                            style={{ background: `linear-gradient(135deg, #48b77b, #3a9d68)`, border: `2px solid #2d8a55`, boxShadow: '0 4px 0 0 #1f6e42' }}
+                            href="/lessons/next"
+                            className="col-span-2 rounded-2xl p-4 text-white flex items-center gap-3 relative overflow-hidden transition hover:brightness-105 active:scale-[0.98]"
+                            style={{ background: `linear-gradient(135deg, ${SKY}, #3478c8)`, boxShadow: '0 4px 0 0 #2563a0', border: '2px solid #3a82cc' }}
                         >
-                            <p className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.2em] opacity-70">
-                                <Icon name="zap" size={11} style={{ filter: 'brightness(0) invert(1)' }} />
-                                Pratique rapide
-                            </p>
-                            <p className="text-sm font-black mt-1">5 minutes d'exercices adaptés</p>
-                            <p className="text-[10px] mt-0.5 opacity-70">Mix de types · niveau ajusté</p>
+                            <div className="h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.15)' }}>
+                                <Icon name="lightbulb" size={22} style={{ filter: 'brightness(0) invert(1)' }} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-[9px] font-black uppercase tracking-widest opacity-70">▶ Prochaine leçon</p>
+                                <p className="text-sm font-black truncate">{curriculum.current_objective?.title || 'Commencer'}</p>
+                                <p className="text-[10px] opacity-70">Objectif {curriculum.current_index + 1} / {curriculum.total_objectives}</p>
+                            </div>
                             <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-white/10" />
                         </Link>
+                    )}
 
-                        <div className="duo-sidebar-box">
-                            <h3>Outils de Révision</h3>
-                            <div className="space-y-3">
-                                {/* Pilier 9: Mon Parcours */}
-                                <Link 
-                                    href="/lessons"
-                                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 transition-colors border-2 border-transparent hover:border-blue-100"
-                                >
-                                    <div className="h-10 w-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(74,144,226,0.1)' }}>
-                                        <Icon name="book" size={20} />
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="text-sm font-black" style={{ color: OXFORD }}>Mon Parcours</p>
-                                        <p className="text-[10px] uppercase font-bold opacity-50">Leçons & Programme</p>
-                                    </div>
-                                </Link>
-
-                                {/* Pilier 3: Due errors review */}
-                                <Link 
-                                    href="/errors"
-                                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 transition-colors border-2 border-transparent hover:border-red-100"
-                                >
-                                    <div className="relative h-10 w-10 rounded-xl flex items-center justify-center bg-red-50">
-                                        <Icon name="review" size={20} style={{ filter: 'brightness(0) saturate(100%) invert(38%) sepia(93%) saturate(1352%) hue-rotate(338deg)' }} />
-                                        {(dueErrorsCount ?? 0) > 0 && (
-                                            <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 flex items-center justify-center">
-                                                <span className="text-[9px] font-black text-white">{dueErrorsCount}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="text-sm font-black" style={{ color: OXFORD }}>Révision SM-2</p>
-                                        <p className="text-[10px] uppercase font-bold opacity-50">
-                                            {(dueErrorsCount ?? 0) > 0 ? `${dueErrorsCount} erreur${(dueErrorsCount ?? 0) > 1 ? 's' : ''} à revoir` : 'À jour !'}
-                                        </p>
-                                    </div>
-                                </Link>
-
-                                <Link 
-                                    href={route('dictionary.index')} 
-                                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors border-2 border-transparent hover:border-slate-100"
-                                >
-                                    <div className="h-10 w-10 bg-blue-50 rounded-xl flex items-center justify-center">
-                                        <Icon name="book" size={20} />
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="text-sm font-black" style={{ color: OXFORD }}>Mon Dictionnaire</p>
-                                        <p className="text-[10px] uppercase font-bold opacity-50">Exploration & Vocabulaire</p>
-                                    </div>
-                                </Link>
-
-                                <button 
-                                    onClick={() => router.post(route('dictionary.discover'))}
-                                    className="w-full flex items-center gap-3 p-3 rounded-xl bg-orange-50 hover:bg-orange-100 transition-colors border-2 border-orange-100 group"
-                                >
-                                    <div className="h-10 w-10 bg-orange-400 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110">
-                                        <Icon name="sparkles" size={20} style={{ filter: 'brightness(0) invert(1)' }} />
-                                    </div>
-                                    <div className="text-left">
-                                        <p className="text-sm font-black text-orange-900">Découvrir un mot</p>
-                                        <p className="text-[10px] uppercase font-bold text-orange-700/60">+5 XP Bonus</p>
-                                    </div>
-                                </button>
-                            </div>
+                    <Link
+                        href={route('practice.index')}
+                        className="rounded-2xl p-4 text-white flex flex-col gap-2 relative overflow-hidden transition hover:brightness-105 active:scale-[0.98]"
+                        style={{ background: 'linear-gradient(135deg, #48b77b, #3a9d68)', boxShadow: '0 4px 0 0 #1f6e42', border: '2px solid #2d8a55' }}
+                    >
+                        <Icon name="zap" size={22} style={{ filter: 'brightness(0) invert(1)' }} />
+                        <div>
+                            <p className="text-sm font-black">Pratique rapide</p>
+                            <p className="text-[10px] opacity-70">5 min · adapté</p>
                         </div>
+                    </Link>
 
-                        <div className="duo-sidebar-box">
-                            <h3>Progression</h3>
-                            <div className="mb-3 flex items-center justify-between text-xs font-black uppercase tracking-wider">
-                                <span className="opacity-60">{stats.completed_nodes} / {stats.total_nodes}</span>
-                                <span className="text-blue-600">{stats.progress_percent}%</span>
-                            </div>
-                            <div className="h-4 w-full bg-slate-100 rounded-full overflow-hidden p-1 shadow-inner">
-                                <div className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full transition-all duration-1000 relative" style={{ width: `${stats.progress_percent}%` }}>
-                                    <div className="absolute inset-0 bg-white/20 animate-[pulse_2s_infinite]" />
+                    <Link
+                        href="/errors"
+                        className="rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden transition hover:bg-red-50 border-2 border-red-100 bg-white active:scale-[0.98]"
+                    >
+                        <div className="relative w-fit">
+                            <Icon name="review" size={22} style={{ filter: 'brightness(0) saturate(100%) invert(38%) sepia(93%) saturate(1352%) hue-rotate(338deg)' }} />
+                            {(dueErrorsCount ?? 0) > 0 && (
+                                <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 flex items-center justify-center">
+                                    <span className="text-[8px] font-black text-white">{dueErrorsCount}</span>
                                 </div>
-                            </div>
+                            )}
                         </div>
-
-                    </div>
+                        <div>
+                            <p className="text-sm font-black" style={{ color: OXFORD }}>Révision SM-2</p>
+                            <p className="text-[10px] text-gray-400">{(dueErrorsCount ?? 0) > 0 ? `${dueErrorsCount} à revoir` : 'À jour !'}</p>
+                        </div>
+                    </Link>
                 </div>
+
+                {/* ── Overall progress ── */}
+                <div className="mt-4 rounded-2xl bg-white border border-gray-100 p-4">
+                    <div className="flex items-center justify-between mb-2 text-xs font-black uppercase tracking-wider">
+                        <span className="text-gray-400">Progression globale</span>
+                        <span style={{ color: SKY }}>{stats.progress_percent}%</span>
+                    </div>
+                    <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-1000 relative" style={{ width: `${stats.progress_percent}%`, background: `linear-gradient(to right, ${SKY}, #3478c8)` }}>
+                            <div className="absolute inset-0 bg-white/20" style={{ animation: 'pulse 2s infinite' }} />
+                        </div>
+                    </div>
+                    <p className="mt-1.5 text-[10px] font-bold text-gray-400">{stats.completed_nodes} / {stats.total_nodes} étapes complétées</p>
+                </div>
+
             </div>
         </AppLayout>
     );
