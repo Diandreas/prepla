@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { normalizeOptions } from './normalize-options';
 
 interface Definition {
     part_of_speech: string;
@@ -32,13 +33,14 @@ interface VocabularyCardProps {
         word: string;
         language: string;
         hint?: string;
-        options?: string[];
+        options?: unknown;
     };
     onAnswer: (questionId: string, answer: string) => void;
     selectedAnswer?: string;
 }
 
 export function VocabularyCard({ question, onAnswer, selectedAnswer }: VocabularyCardProps) {
+    const vocabOptions = normalizeOptions(question.options);
     const [wordData, setWordData] = useState<WordData | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -166,9 +168,9 @@ export function VocabularyCard({ question, onAnswer, selectedAnswer }: Vocabular
             )}
 
             {/* Answer options (MCQ style) */}
-            {question.options && question.options.length > 0 && (
+            {vocabOptions.length > 0 && (
                 <div className="grid gap-2">
-                    {question.options.map((option, i) => {
+                    {vocabOptions.map((option, i) => {
                         const letter = String.fromCharCode(65 + i);
                         return (
                             <button

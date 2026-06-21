@@ -1,10 +1,11 @@
 import { useState } from 'react';
+import { normalizeOptions } from './normalize-options';
 
 interface MatchingProps {
     question: {
         id: string;
         text: string;
-        options: string[];
+        options: unknown;
         items?: string[];
         correct_answer?: unknown;
         correct?: unknown;
@@ -15,7 +16,7 @@ interface MatchingProps {
 }
 
 export function Matching({ question, onAnswer, selectedAnswer, disabled }: MatchingProps) {
-    const options = question.options ?? [];
+    const options = normalizeOptions(question.options);
     // correct_answer peut être string/tableau/objet selon le générateur IA :
     // coerce défensivement pour éviter un crash (.trim is not a function).
     const rawCorrect = question.correct_answer ?? question.correct ?? '';
