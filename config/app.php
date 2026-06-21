@@ -41,6 +41,9 @@ return [
 
     'debug' => (bool) env('APP_DEBUG', false),
 
+    // Token guarding the test-only day-simulation endpoints (App\Http\Controllers\Test\SimController)
+    'sim_test_token' => env('SIM_TEST_TOKEN'),
+
     /*
     |--------------------------------------------------------------------------
     | Application URL
