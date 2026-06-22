@@ -279,6 +279,42 @@ function getEvidenceText(explanation: ExplanationObj | string | null): string | 
     return null;
 }
 
+// Render light markdown coming from the AI feedback (**bold**, <evidence> tags,
+// bullet "-" lines) as real elements instead of showing the raw asterisks/tags.
+function FormattedFeedback({ text, className }: { text: string; className?: string }) {
+    if (!text) return null;
+    // Pull out <evidence>…</evidence> to show it as a highlighted quote.
+    const evidenceMatch = text.match(/<evidence>([\s\S]*?)<\/evidence>/i);
+    const evidence = evidenceMatch?.[1]?.trim();
+    const body = text.replace(/<\/?evidence>/gi, '').trim();
+
+    const renderInline = (s: string, keyPrefix: string) =>
+        s.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+            part.startsWith('**') && part.endsWith('**')
+                ? <strong key={`${keyPrefix}-${i}`}>{part.slice(2, -2)}</strong>
+                : <React.Fragment key={`${keyPrefix}-${i}`}>{part}</React.Fragment>
+        );
+
+    const lines = body.split('\n').map(l => l.trim()).filter(Boolean);
+
+    return (
+        <div className={className}>
+            {lines.map((line, i) => {
+                const isBullet = line.startsWith('- ') || line.startsWith('* ');
+                const content = isBullet ? line.slice(2) : line;
+                return (
+                    <p key={i} className={isBullet ? 'pl-3 leading-snug' : 'leading-snug'}>
+                        {isBullet ? '• ' : ''}{renderInline(content, `l${i}`)}
+                    </p>
+                );
+            })}
+            {evidence && (
+                <p className="mt-1 border-l-2 border-red-300 pl-2 italic opacity-80">{renderInline(evidence, 'ev')}</p>
+            )}
+        </div>
+    );
+}
+
 export default function SessionPlayer({ node, exercises, progress }: Props) {
     const { t, i18n } = useTranslation();
     const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
@@ -342,10 +378,19 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
         return count + currentQuestionIndex;
     }, [currentExerciseIndex, currentQuestionIndex, exercises]);
 
+    // Answers are keyed by a composite "exerciseIndex::questionId" so that two
+    // questions sharing the same id (AI-generated questions sometimes do) don't
+    // leak each other's answer into the input. We strip the prefix before sending
+    // to the backend, which expects a plain { questionId: answer } map.
+    const answerKey = useCallback(
+        (qid: string | undefined, exIdx = currentExerciseIndex) => `${exIdx}::${qid ?? ''}`,
+        [currentExerciseIndex]
+    );
+
     const handleAnswer = useCallback((questionId: string, answer: any) => {
         if (isChecked) return;
-        setAnswers(prev => ({ ...prev, [questionId]: answer }));
-    }, [isChecked]);
+        setAnswers(prev => ({ ...prev, [answerKey(questionId)]: answer }));
+    }, [isChecked, answerKey]);
 
     const playTts = useCallback(async (text: string, id: string) => {
         if (playingTts === id) return;
@@ -386,7 +431,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                 },
                 body: JSON.stringify({
                     prompt: questionObj.prompt ?? questionObj.text ?? '',
-                    user_answer: String(answers[questionObj.id] ?? ''),
+                    user_answer: String(answers[answerKey(questionObj.id)] ?? ''),
                     correct_answer: String(questionObj.correct_answer ?? questionObj.correct ?? ''),
                     language: node.exam.language.name
                 })
@@ -400,7 +445,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
         } finally {
             setFetchingExplanation(false);
         }
-    }, [question, answers, node.exam.language.name]);
+    }, [question, answers, answerKey, node.exam.language.name]);
 
     const handleRetry = useCallback(() => {
         setIsChecked(false);
@@ -417,7 +462,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
 
     const checkAnswer = useCallback(async () => {
         if (!question || isChecked || isVerifying) return;
-        const currentAnswer = answers[question.id];
+        const currentAnswer = answers[answerKey(question.id)];
         if (currentAnswer === undefined) return;
 
         const aiTypes = ['essay-editor', 'speaking-recorder', 'role-play', 'short-writing', 'graph-description', 'academic-discussion', 'synthesis', 'integrated-task'];
@@ -481,7 +526,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                 setMistakes(prev => [...prev, { ...question, exercise_id: exercise.id, component_key: componentKey }]);
             }
         }
-    }, [question, isChecked, answers, componentKey, fetchExplanation, exercise.id, isVerifying, mistakes, isReviewMode]);
+    }, [question, isChecked, answers, answerKey, componentKey, fetchExplanation, exercise.id, isVerifying, mistakes, isReviewMode]);
 
     const nextStep = useCallback(() => {
         setIsChecked(false);
@@ -508,9 +553,17 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                 return;
             }
 
+            // Strip the "exerciseIndex::" prefix so the backend gets the plain
+            // { questionId: answer } map it expects for scoring.
+            const submittedAnswers: Record<string, any> = {};
+            for (const [k, v] of Object.entries(answers)) {
+                const qid = k.includes('::') ? k.slice(k.indexOf('::') + 2) : k;
+                submittedAnswers[qid] = v;
+            }
+
             setSubmitting(true);
             router.post(route('exercise.submit_session', node.id), {
-                answers,
+                answers: submittedAnswers,
                 node_id: node.id,
                 time_spent: timeSpentRef.current,
                 exercise_ids: exercises.map((e: any) => e.id),
@@ -533,7 +586,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
             setVisible(true);
             setTimerKey(k => k + 1);
         }, 220);
-    }, [currentExerciseIndex, currentQuestionIndex, exercises, questions.length, answers, node.id, mistakes, reviewQueue, isReviewMode, exercise]);
+    }, [currentExerciseIndex, currentQuestionIndex, exercises, questions.length, answers, answerKey, node.id, mistakes, reviewQueue, isReviewMode, exercise]);
 
     const handleTimeUpdate = useCallback((elapsed: number) => {
         timeSpentRef.current += 1;
@@ -557,19 +610,19 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
             if (e.code === 'Space' || e.code === 'Enter') {
                 e.preventDefault();
                 if (isChecked) nextStep();
-                else if (answers[question?.id] !== undefined) checkAnswer();
+                else if (answers[answerKey(question?.id)] !== undefined) checkAnswer();
             }
         };
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
-    }, [isChecked, nextStep, checkAnswer, answers, question]);
+    }, [isChecked, nextStep, checkAnswer, answers, answerKey, question]);
 
     const timerWarning = timerSeconds <= TIME_PER_QUESTION * 0.2 && timerSeconds > 0;
     const timerCritical = timerSeconds <= 10 && timerSeconds > 0;
     const timerExpired = timerSeconds === 0 && timerKey > 0;
 
     const isLastQuestion = currentExerciseIndex === exercises.length - 1 && currentQuestionIndex === questions.length - 1;
-    const hasAnswer = answers[question?.id] !== undefined;
+    const hasAnswer = answers[answerKey(question?.id)] !== undefined;
 
     if (!exercise || !question) {
         return (
@@ -805,8 +858,8 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                             // left the previous answer stuck in the text field).
                             key={`${isReviewMode ? 'r' : 'q'}-${currentExerciseIndex}-${currentQuestionIndex}-${question.id ?? ''}`}
                             question={{ ...exercise.content, ...question }}
-                            onAnswer={(childId: string, ans: any) => handleAnswer(childId ?? String(currentQuestionIndex), ans)}
-                            selectedAnswer={answers[question.id ?? String(currentQuestionIndex)]}
+                            onAnswer={(_childId: string, ans: any) => handleAnswer(question.id ?? String(currentQuestionIndex), ans)}
+                            selectedAnswer={answers[answerKey(question.id ?? String(currentQuestionIndex))]}
                             disabled={isChecked}
                         />
                     </div>
@@ -882,7 +935,10 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                                                         )}
                                                     </div>
                                                 ) : (
-                                                    <p className="text-[13px] font-medium text-red-600/80 leading-snug">{explanation as string}</p>
+                                                    <FormattedFeedback
+                                                        text={explanation as string}
+                                                        className="text-[13px] font-medium text-red-600/90 space-y-0.5"
+                                                    />
                                                 )}
                                             </div>
                                             <button
@@ -904,7 +960,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                             initialExplanation={explanation ? getExplanationText(explanation, i18n.language) : undefined}
                             context={{
                                 prompt: question.text || question.prompt || '',
-                                user_answer: String(answers[question.id] || ''),
+                                user_answer: String(answers[answerKey(question.id)] || ''),
                                 correct_answer: String(question.correct_answer || question.correct || ''),
                                 language: node.exam.language.name
                             }}
