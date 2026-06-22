@@ -341,10 +341,20 @@ export default function Dashboard() {
                                 const ROW_HEIGHT = 84; // hauteur estimée d'une row (card)
                                 const GAP = 16;        // gap entre rows
 
+                                // Only ONE step should read as "the next thing to do".
+                                // Steps unlocked *after* it are shown as waiting (locked-looking)
+                                // until the current one is done, so the UI isn't confusing.
+                                const firstActionableIdx = viewedChapter.nodes.findIndex(
+                                    n => n.status === 'available' || n.status === 'in_progress' || n.status === 'attempted'
+                                );
+
                                 return viewedChapter.nodes.map((node, idx) => {
-                                    const isActive = node.status === 'available' || node.status === 'in_progress' || node.status === 'attempted';
+                                    const rawActive = node.status === 'available' || node.status === 'in_progress' || node.status === 'attempted';
+                                    // Active only if it's the first actionable step; later unlocked steps wait.
+                                    const isActive = rawActive && idx === firstActionableIdx;
+                                    const isWaiting = rawActive && idx !== firstActionableIdx;
                                     const isCompleted = node.status === 'completed';
-                                    const isLocked = node.status === 'locked';
+                                    const isLocked = node.status === 'locked' || isWaiting;
                                     const canClick = isActive || isCompleted;
                                     const hasNext = idx < viewedChapter.nodes.length - 1;
                                     const circleOffsetX = offsets[idx % offsets.length];
@@ -381,7 +391,7 @@ export default function Dashboard() {
                                             {/* Row : cercle + card — au dessus de la ligne (z=1) */}
                                             <div className="flex items-center gap-3" style={{ position: 'relative', zIndex: 1 }}>
                                                 <div className="flex-shrink-0" style={{ marginLeft: circleOffsetX }}>
-                                                    <StepCircleIcon icon={node.icon} status={node.status} size={CIRCLE_SIZE} />
+                                                    <StepCircleIcon icon={node.icon} status={isWaiting ? 'locked' : node.status} size={CIRCLE_SIZE} />
                                                 </div>
 
                                                 <button
@@ -408,7 +418,7 @@ export default function Dashboard() {
                                                         </p>
                                                     </div>
                                                     <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-                                                        <StatusBadge status={node.status} />
+                                                        <StatusBadge status={isWaiting ? 'locked' : node.status} />
                                                         {isLocked
                                                             ? <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="4" y="7" width="8" height="6" rx="1.5" fill="#d1d5db" /><path d="M6 7V5a2 2 0 0 1 4 0v2" stroke="#d1d5db" strokeWidth="1.5" /></svg>
                                                             : <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke={isActive ? SKY : '#d1d5db'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>

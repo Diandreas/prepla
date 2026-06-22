@@ -145,7 +145,8 @@ export function SpeakingRecorder({ question, onAnswer, selectedAnswer, disabled,
                 {phase === 'prep' && !disabled && (
                     <button
                         onClick={handleStartEarly}
-                        className="rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground transition-all hover:opacity-90"
+                        className="duo-press rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground"
+                        style={{ boxShadow: '0 4px 0 0 rgba(0,0,0,0.25)' }}
                     >
                         Commencer maintenant
                     </button>
@@ -154,7 +155,8 @@ export function SpeakingRecorder({ question, onAnswer, selectedAnswer, disabled,
                 {phase === 'recording' && !disabled && (
                     <button
                         onClick={handleStopEarly}
-                        className="rounded-xl bg-red-500 px-6 py-3 text-sm font-bold text-white transition-all hover:opacity-90"
+                        className="duo-press rounded-xl bg-red-500 px-6 py-3 text-sm font-bold text-white"
+                        style={{ boxShadow: '0 4px 0 0 #b91c1c' }}
                     >
                         Arrêter l'enregistrement
                     </button>
