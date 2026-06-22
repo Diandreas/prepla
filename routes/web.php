@@ -130,10 +130,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('test/exercises/audit', function() {
             return \Inertia\Inertia::render('test/audit');
         })->name('test.exercises.audit');
-
-        // Test-only: simulate days passing for E2E 7-day journey (guarded by token/debug)
-        Route::post('test/sim/advance-day', [\App\Http\Controllers\Test\SimController::class, 'advanceDay'])->name('test.sim.advance-day');
-        Route::post('test/sim/reset-character', [\App\Http\Controllers\Test\SimController::class, 'resetCharacter'])->name('test.sim.reset-character');
     });
 });
 
