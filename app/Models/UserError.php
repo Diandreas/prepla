@@ -84,6 +84,40 @@ class UserError extends Model
         return self::classifyFamily($this->exercise_type_slug, $this->skill_type) === 'concept';
     }
 
+    /**
+     * Derive a pedagogical category + subcategory for the diagnostic, from the
+     * lesson concept (e.g. "grammar.tense.past_simple" → ['grammar','tense']) or,
+     * failing that, from the skill / component. Returns [category, subcategory].
+     */
+    public static function deriveCategory(?string $lessonConcept, ?string $skillType, ?string $componentSlug): array
+    {
+        if ($lessonConcept) {
+            $parts = explode('.', strtolower(trim($lessonConcept)));
+            $category = $parts[0] ?? null;
+            $sub = $parts[1] ?? null;
+            // Keep only recognised top-level families.
+            if (in_array($category, ['grammar', 'vocabulary', 'spelling', 'punctuation', 'coherence', 'writing', 'listening', 'reading', 'speaking'], true)) {
+                return [$category, $sub];
+            }
+        }
+
+        // Fallbacks by component, then skill.
+        $byComponent = [
+            'word-formation' => ['vocabulary', 'word-formation'],
+            'open-cloze' => ['grammar', 'cloze'],
+            'mcq-cloze' => ['vocabulary', 'cloze'],
+            'key-word-transformation' => ['grammar', 'transformation'],
+            'vocabulary-card' => ['vocabulary', 'lexical'],
+        ];
+        if ($componentSlug && isset($byComponent[$componentSlug])) {
+            return $byComponent[$componentSlug];
+        }
+
+        $skill = in_array($skillType, ['grammar', 'vocabulary', 'writing', 'reading', 'listening', 'speaking'], true)
+            ? $skillType : 'grammar';
+        return [$skill, null];
+    }
+
     public function scopeConcept($query, $userId)
     {
         return $query->where('user_id', $userId)->where('mastered', false)

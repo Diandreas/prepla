@@ -259,8 +259,9 @@ export default function ExamDashboard({ exam, sectionProgress }: Props) {
 
                         <div className="grid gap-4 sm:grid-cols-2">
                             {/* Vocabulary Card */}
+                            {/* Vocabulaire + Dictionnaire fusionnés en une seule entrée */}
                             <Link
-                                href={route('vocabulary.index')}
+                                href={route('dictionary.index')}
                                 className="duo-card flex flex-col gap-3 p-5 hover:bg-indigo-50/30 transition-colors"
                             >
                                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 shadow-[0_4px_0_0_#c7d2fe]">
@@ -268,28 +269,10 @@ export default function ExamDashboard({ exam, sectionProgress }: Props) {
                                 </div>
                                 <div>
                                     <h3 className="text-sm font-black text-indigo-900">
-                                        {t('practice.vocabulary_title', 'Mon Lexique')}
+                                        {t('practice.dictionary_title', 'Mon Dictionnaire')}
                                     </h3>
                                     <p className="text-[10px] font-bold text-indigo-600/70 uppercase tracking-wider">
-                                        {t('practice.vocabulary_desc', 'Gérer mes mots sauvegardés')}
-                                    </p>
-                                </div>
-                            </Link>
-
-                            {/* Spaced Repetition Card */}
-                            <Link
-                                href={route('vocabulary.review')}
-                                className="duo-card flex flex-col gap-3 p-5 hover:bg-emerald-50/30 transition-colors"
-                            >
-                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 shadow-[0_4px_0_0_#a7f3d0]">
-                                    <Icon name="sparkles" size={20} />
-                                </div>
-                                <div>
-                                    <h3 className="text-sm font-black text-emerald-900">
-                                        {t('practice.review_session_title', 'Session de Révision')}
-                                    </h3>
-                                    <p className="text-[10px] font-bold text-emerald-600/70 uppercase tracking-wider">
-                                        {t('practice.review_session_desc', 'Pratique intelligente (SRS)')}
+                                        {t('practice.dictionary_desc', 'Mots sauvegardés + révision (SRS)')}
                                     </p>
                                 </div>
                             </Link>

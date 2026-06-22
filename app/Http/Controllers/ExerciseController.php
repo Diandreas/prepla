@@ -91,9 +91,16 @@ class ExerciseController extends Controller
                         // (grammar/vocab/writing…) can be re-practised; 'comprehension'
                         // errors (reading/listening on a passage) feed the diagnostic only.
                         $family = \App\Models\UserError::classifyFamily($slug, $skillType);
-                        // Prefer the AI category when present, else fall back to the family.
-                        $errorCategory = $qFeedback['error_category'] ?? $family;
-                        $errorSubcategory = $qFeedback['error_subcategory'] ?? null;
+
+                        // Derive a real category/subcategory for the diagnostic. Prefer the
+                        // AI-provided one; else derive from the linked lesson's concept.
+                        if (!empty($qFeedback['error_category'])) {
+                            $errorCategory = $qFeedback['error_category'];
+                            $errorSubcategory = $qFeedback['error_subcategory'] ?? null;
+                        } else {
+                            $lessonConcept = \App\Models\Lesson::where('node_id', $exercise->node_id)->value('concept');
+                            [$errorCategory, $errorSubcategory] = \App\Models\UserError::deriveCategory($lessonConcept, $skillType, $slug);
+                        }
 
                         // Store the explanation text so the Review Center can show *why*.
                         $explanationText = $qFeedback['explanation'] ?? null;

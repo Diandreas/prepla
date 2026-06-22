@@ -21,15 +21,10 @@ function CustomIcon({ name, className, style }: { name: string; className?: stri
     );
 }
 
+// Outils IA volontairement réduits à 2 : le Générateur d'exercices et les
+// Recommandations faisaient doublon avec le parcours et le dashboard. On garde
+// les deux outils réellement uniques.
 const tools = [
-    {
-        title: 'Générateur d\'exercices',
-        description: 'Générez des exercices illimités adaptés à votre examen et votre niveau',
-        icon: 'sparkles',
-        href: '/ai-tools/generator',
-        bg: `linear-gradient(135deg, ${SKY}, #3478c8)`,
-        shadow: '#2a6fc0',
-    },
     {
         title: 'Correcteur de rédaction',
         description: 'Soumettez vos essais et obtenez des corrections détaillées avec scores',
@@ -45,14 +40,6 @@ const tools = [
         href: '/ai-tools/explainer',
         bg: `linear-gradient(135deg, #48b77b, #3a9d68)`,
         shadow: '#2d7d52',
-    },
-    {
-        title: 'Recommandations',
-        description: 'Obtenez des recommandations personnalisées basées sur vos performances',
-        icon: 'target',
-        href: '/ai-tools/recommendations',
-        bg: `linear-gradient(135deg, ${GOLD}, #e08c10)`,
-        shadow: '#c07a0e',
     },
 ];
 

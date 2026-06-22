@@ -81,12 +81,14 @@ Route::middleware(['auth'])->group(function () {
         Route::post('ai-tools/explainer/ask', [\App\Http\Controllers\AiToolsController::class, 'askExplainer'])->name('ai-tools.explainer.ask');
         Route::get('ai-tools/recommendations', [\App\Http\Controllers\AiToolsController::class, 'recommendations'])->name('ai-tools.recommendations');
 
-        // Vocabulary
+        // Vocabulary — fusionné avec le Dictionnaire : les pages "Mon Lexique" /
+        // "Session de Révision" redirigent vers le Dictionnaire (point d'entrée
+        // unique). On conserve les endpoints POST utilisés par les composants.
         Route::prefix('vocabulary')->name('vocabulary.')->group(function () {
-            Route::get('/', [VocabularyController::class, 'index'])->name('index');
-            Route::get('/learn', [VocabularyController::class, 'learn'])->name('learn');
+            Route::get('/', fn() => redirect()->route('dictionary.index'))->name('index');
+            Route::get('/learn', fn() => redirect()->route('dictionary.index'))->name('learn');
             Route::get('/random/{languageSlug}', [VocabularyController::class, 'random'])->name('random');
-            Route::get('/review', [VocabularyController::class, 'review'])->name('review');
+            Route::get('/review', fn() => redirect()->route('dictionary.review_session'))->name('review');
             Route::post('/', [VocabularyController::class, 'store'])->name('store');
             Route::post('/{vocab}/review', [VocabularyController::class, 'submitReview'])->name('submit-review');
         });
