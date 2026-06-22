@@ -69,11 +69,12 @@ class NodeStartController extends Controller
             // Components kept short enough for a quick session (no essays here).
             $shortComponents = ['mcq', 'true-false-ng', 'gap-fill', 'matching', 'sentence-completion', 'short-answer', 'ordering', 'word-formation', 'multiple-matching', 'open-cloze', 'note-completion', 'dictation', 'speaking-recorder'];
 
-            $pickBySkill = function (array $skills, array $excludeIds = []) use ($node, $shortComponents) {
-                return ExerciseType::where('exam_id', $node->exam_id)
-                    ->whereIn('component_key', $shortComponents)
+            // skill_type is a direct column on exercise_types (not via section), and
+            // the types aren't scoped by exam_id — so we filter on the column directly.
+            $pickBySkill = function (array $skills, array $excludeIds = []) use ($shortComponents) {
+                return ExerciseType::whereIn('component_key', $shortComponents)
+                    ->whereIn('skill_type', $skills)
                     ->whereNotIn('id', $excludeIds)
-                    ->whereHas('section', fn ($q) => $q->whereIn('skill_type', $skills))
                     ->inRandomOrder()
                     ->first();
             };
@@ -84,21 +85,20 @@ class NodeStartController extends Controller
                 $picked->push($listening);
             }
             // 2) one reading/grammar exercise
-            if ($reading = $pickBySkill(['reading', 'grammar', 'use-of-english'], $picked->pluck('id')->all())) {
+            if ($reading = $pickBySkill(['reading', 'grammar'], $picked->pluck('id')->all())) {
                 $picked->push($reading);
             }
             // 3) round it out: ~1 in 3 sessions ends with a speaking turn, else any skill
             $thirdSkills = random_int(1, 3) === 1
                 ? ['speaking']
-                : ['reading', 'grammar', 'listening', 'use-of-english'];
+                : ['reading', 'grammar', 'listening'];
             if ($third = $pickBySkill($thirdSkills, $picked->pluck('id')->all())) {
                 $picked->push($third);
             }
 
             $variedTypes = $picked->shuffle()->values();
 
-            // Fallback: if the exam has no sections wired to skill_type, just grab any
-            // short types so the session is never empty.
+            // Fallback: never leave the session empty.
             if ($variedTypes->isEmpty()) {
                 $variedTypes = ExerciseType::whereIn('component_key', $shortComponents)->inRandomOrder()->limit(3)->get();
             }
