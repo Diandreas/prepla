@@ -45,14 +45,18 @@ export default function ErrorsPractice({ errors }: Props) {
     const markReviewed = async (error: UserError, correct: boolean) => {
         setLoading(error.id);
         try {
-            await fetch(route('errors.review', error.id), {
+            const xsrf = document.cookie.split('; ').find(c => c.startsWith('XSRF-TOKEN='));
+            const token = xsrf ? decodeURIComponent(xsrf.split('=')[1]) : '';
+            const res = await fetch(route('errors.review', error.id), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content,
+                    'X-XSRF-TOKEN': token,
+                    'X-Requested-With': 'XMLHttpRequest',
                 },
                 body: JSON.stringify({ correct }),
             });
+            if (!res.ok) throw new Error('review failed ' + res.status);
             setReviewed(prev => new Set([...prev, error.id]));
         } catch (e) {
             console.error('Failed to mark error as reviewed');

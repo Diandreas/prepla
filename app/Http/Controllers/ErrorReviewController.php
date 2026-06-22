@@ -21,8 +21,22 @@ class ErrorReviewController extends Controller
     {
         $user = $request->user();
 
-        $errors = UserError::unmastered($user->id)
-            ->paginate(20);
+        $errors = UserError::unmastered($user->id)->paginate(20);
+        // Normalise field names for the frontend (reviewed_count → review_count,
+        // question_text → prompt) and expose the pedagogical family.
+        $errors->getCollection()->transform(fn ($e) => [
+            'id' => $e->id,
+            'skill_type' => $e->skill_type,
+            'prompt' => $e->question_text,
+            'user_answer' => $e->user_answer,
+            'correct_answer' => $e->correct_answer,
+            'explanation' => $e->explanation,
+            'mastered' => $e->mastered,
+            'review_count' => $e->reviewed_count ?? 0,
+            'next_review_at' => $e->next_review_at,
+            'created_at' => $e->created_at,
+            'family' => UserError::classifyFamily($e->exercise_type_slug, $e->skill_type),
+        ]);
 
         $errorsBySkill = UserError::where('user_id', $user->id)
             ->where('mastered', false)
@@ -44,19 +58,26 @@ class ErrorReviewController extends Controller
         ]);
     }
 
-    // GET /errors/practice - personalized error review session
+    // GET /errors/practice - personalized error review session.
+    // Only CONCEPT errors are re-practised here (grammar/vocab/writing…): re-testing
+    // a comprehension question would just make the learner memorise that one passage.
     public function practice(Request $request)
     {
         $user = $request->user();
         $skillType = $request->query('skill');
 
-        // Pilier 3: Prioritize SM-2 due errors
-        $dueErrors = $this->sm2->getDueErrors($user->id, $skillType, 5);
+        // Pilier 3: SM-2 due errors first, then recent unmastered — concept only.
+        $dueErrors = UserError::dueForReview($user->id)
+            ->where(function ($q) {
+                $q->whereIn('exercise_type_slug', UserError::CONCEPT_SLUGS)
+                  ->orWhereIn('skill_type', ['grammar', 'vocabulary', 'use-of-english', 'writing']);
+            })
+            ->when($skillType, fn($q) => $q->where('skill_type', $skillType))
+            ->limit(10)
+            ->get();
 
         if ($dueErrors->isEmpty()) {
-            // Fall back to recent unmastered errors
-            $dueErrors = UserError::where('user_id', $user->id)
-                ->where('mastered', false)
+            $dueErrors = UserError::concept($user->id)
                 ->when($skillType, fn($q) => $q->where('skill_type', $skillType))
                 ->orderByDesc('created_at')
                 ->limit(10)
@@ -64,7 +85,17 @@ class ErrorReviewController extends Controller
         }
 
         return Inertia::render('errors/practice', [
-            'errors' => $dueErrors,
+            'errors' => $dueErrors->map(fn ($e) => [
+                'id' => $e->id,
+                'skill_type' => $e->skill_type,
+                'prompt' => $e->question_text,
+                'user_answer' => $e->user_answer,
+                'correct_answer' => $e->correct_answer,
+                'explanation' => $e->explanation,
+                'mastered' => $e->mastered,
+                'review_count' => $e->reviewed_count,
+                'created_at' => $e->created_at,
+            ])->values(),
         ]);
     }
 

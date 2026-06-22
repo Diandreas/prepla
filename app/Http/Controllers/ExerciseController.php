@@ -84,9 +84,22 @@ class ExerciseController extends Controller
                     if (!($qFeedback['correct'] ?? false)) {
                         $questionData = collect($exercise->questions)->firstWhere('id', $qFeedback['question_id']);
 
-                        // Pilier 4: Use AI-generated error category if available
-                        $errorCategory = $qFeedback['error_category'] ?? 'session_mistake';
+                        $skillType = $exercise->exerciseType->section->skill_type ?? 'reading';
+                        $slug = $exercise->exerciseType->slug;
+
+                        // Pedagogical family drives the Review Center: 'concept' errors
+                        // (grammar/vocab/writing…) can be re-practised; 'comprehension'
+                        // errors (reading/listening on a passage) feed the diagnostic only.
+                        $family = \App\Models\UserError::classifyFamily($slug, $skillType);
+                        // Prefer the AI category when present, else fall back to the family.
+                        $errorCategory = $qFeedback['error_category'] ?? $family;
                         $errorSubcategory = $qFeedback['error_subcategory'] ?? null;
+
+                        // Store the explanation text so the Review Center can show *why*.
+                        $explanationText = $qFeedback['explanation'] ?? null;
+                        if (is_array($explanationText)) {
+                            $explanationText = $explanationText['concept'] ?? json_encode($explanationText);
+                        }
 
                         $error = \App\Models\UserError::updateOrCreate(
                             [
@@ -98,8 +111,9 @@ class ExerciseController extends Controller
                                 'question_text' => $questionData['text'] ?? $questionData['prompt'] ?? 'Exercice practice',
                                 'user_answer' => is_array($exerciseAnswers[$qFeedback['question_id']] ?? '') ? json_encode($exerciseAnswers[$qFeedback['question_id']]) : (string)($exerciseAnswers[$qFeedback['question_id']] ?? ''),
                                 'correct_answer' => is_array($qFeedback['correct_answer'] ?? '') ? json_encode($qFeedback['correct_answer']) : (string)($qFeedback['correct_answer'] ?? ''),
-                                'skill_type' => $exercise->exerciseType->section->skill_type ?? 'reading',
-                                'exercise_type_slug' => $exercise->exerciseType->slug,
+                                'explanation' => $explanationText,
+                                'skill_type' => $skillType,
+                                'exercise_type_slug' => $slug,
                                 'error_category' => $errorCategory,
                                 'subcategory' => $errorSubcategory,
                                 'mastered' => false,
