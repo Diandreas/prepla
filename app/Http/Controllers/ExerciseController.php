@@ -182,10 +182,14 @@ class ExerciseController extends Controller
         $MASTERY_THRESHOLD = 80;
         $skeleton = \App\Models\CurriculumSkeleton::where('user_id', $user->id)->first();
         if ($skeleton) {
-            $currentObjective = $skeleton->currentObjective();
-            if (($currentObjective['status'] ?? '') === 'current_practice') {
+            // The objective being practiced is the one in 'current_practice', which is
+            // usually *behind* current_objective_index (advanceToPractice already moved
+            // the pointer to the next lesson). Target it explicitly so finishing a
+            // practice actually marks it done and the journey progresses.
+            $practiceIndex = $skeleton->practiceObjectiveIndex();
+            if ($practiceIndex !== null) {
                 if ($sessionAccuracy >= $MASTERY_THRESHOLD) {
-                    $skeleton->advanceToNextObjective();
+                    $skeleton->completePractice($practiceIndex);
                 } else {
                     // Strict mastery: stay on this objective + count the failure
                     $skeleton->consecutive_failures = ($skeleton->consecutive_failures ?? 0) + 1;

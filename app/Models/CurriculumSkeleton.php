@@ -93,6 +93,53 @@ class CurriculumSkeleton extends Model
     }
 
     /**
+     * Find the objective currently in its practice phase (status 'current_practice'),
+     * regardless of where current_objective_index points — advanceToPractice() moves
+     * the index forward to the next lesson as soon as the theory is done, so the
+     * practice that's being completed is usually *behind* the current index.
+     */
+    public function practiceObjectiveIndex(): ?int
+    {
+        foreach (($this->objectives ?? []) as $i => $o) {
+            if (($o['status'] ?? '') === 'current_practice') {
+                return $i;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Mark a successfully-practiced objective as done. Pass the index returned by
+     * practiceObjectiveIndex(). Ensures there is still a 'current' objective to work on.
+     */
+    public function completePractice(int $index): void
+    {
+        $objectives = $this->objectives;
+        if (!isset($objectives[$index])) {
+            return;
+        }
+
+        $objectives[$index]['status'] = 'done';
+
+        // Make sure at least one objective is 'current' so the journey keeps moving.
+        $hasCurrent = collect($objectives)->contains(fn ($o) => ($o['status'] ?? '') === 'current');
+        if (!$hasCurrent) {
+            foreach ($objectives as $i => $o) {
+                if (($o['status'] ?? 'pending') === 'pending') {
+                    $objectives[$i]['status'] = 'current';
+                    $this->current_objective_index = $i;
+                    break;
+                }
+            }
+        }
+
+        $this->objectives = $objectives;
+        $this->consecutive_successes = 0;
+        $this->consecutive_failures = 0;
+        $this->save();
+    }
+
+    /**
      * Mark the current objective as done and advance.
      */
     public function advanceToNextObjective(): void

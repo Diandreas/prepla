@@ -62,17 +62,45 @@ class NodeStartController extends Controller
         if ($exercises->count() < 3 && !$alreadyGenerated) {
             $node->loadMissing('exam.language');
 
-            // Variety: pick 3 DIFFERENT exercise types (so the user sees a mix of MCQ,
-            // gap-fill, matching, etc.) instead of 3 of the same type. Limit to types
-            // that aren't too long-form for a quick session (no essays/role-play here).
-            $allowedComponents = ['mcq', 'true-false-ng', 'gap-fill', 'matching', 'sentence-completion', 'short-answer', 'ordering', 'word-formation', 'multiple-matching', 'open-cloze'];
-            $variedTypes = ExerciseType::where('exam_id', $node->exam_id)
-                ->whereIn('component_key', $allowedComponents)
-                ->inRandomOrder()
-                ->limit(3)
-                ->get();
+            // Variety: a quick session of 3 exercises should mix SKILLS, not just
+            // reading/grammar. We deliberately compose: 1 listening + 1 reading/grammar
+            // + 1 of either (with an occasional speaking turn) so a learner actually
+            // meets listening and speaking exercises across their journey.
+            // Components kept short enough for a quick session (no essays here).
+            $shortComponents = ['mcq', 'true-false-ng', 'gap-fill', 'matching', 'sentence-completion', 'short-answer', 'ordering', 'word-formation', 'multiple-matching', 'open-cloze', 'note-completion', 'dictation', 'speaking-recorder'];
+
+            $pickBySkill = function (array $skills, array $excludeIds = []) use ($node, $shortComponents) {
+                return ExerciseType::where('exam_id', $node->exam_id)
+                    ->whereIn('component_key', $shortComponents)
+                    ->whereNotIn('id', $excludeIds)
+                    ->whereHas('section', fn ($q) => $q->whereIn('skill_type', $skills))
+                    ->inRandomOrder()
+                    ->first();
+            };
+
+            $picked = collect();
+            // 1) one listening exercise
+            if ($listening = $pickBySkill(['listening'])) {
+                $picked->push($listening);
+            }
+            // 2) one reading/grammar exercise
+            if ($reading = $pickBySkill(['reading', 'grammar', 'use-of-english'], $picked->pluck('id')->all())) {
+                $picked->push($reading);
+            }
+            // 3) round it out: ~1 in 3 sessions ends with a speaking turn, else any skill
+            $thirdSkills = random_int(1, 3) === 1
+                ? ['speaking']
+                : ['reading', 'grammar', 'listening', 'use-of-english'];
+            if ($third = $pickBySkill($thirdSkills, $picked->pluck('id')->all())) {
+                $picked->push($third);
+            }
+
+            $variedTypes = $picked->shuffle()->values();
+
+            // Fallback: if the exam has no sections wired to skill_type, just grab any
+            // short types so the session is never empty.
             if ($variedTypes->isEmpty()) {
-                $variedTypes = ExerciseType::whereIn('component_key', $allowedComponents)->inRandomOrder()->limit(3)->get();
+                $variedTypes = ExerciseType::whereIn('component_key', $shortComponents)->inRandomOrder()->limit(3)->get();
             }
 
             // Lesson context: when the node has an associated Lesson, pass its concept
