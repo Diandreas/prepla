@@ -296,10 +296,10 @@ export default function Dashboard() {
                 {firstActiveInChapter && (isViewingActive || viewedChapterIdx <= activeChapterIdx) && (
                     <button
                         onClick={() => handleStartNode(firstActiveInChapter)}
-                        className="mb-6 w-full rounded-2xl text-left flex items-center gap-4 p-4 text-white transition hover:brightness-105 active:scale-[0.98]"
+                        className="duo-press mb-6 w-full rounded-2xl text-left flex items-center gap-4 p-4 text-white"
                         style={{
                             background: `linear-gradient(135deg, ${OXFORD} 0%, #2a3f6a 100%)`,
-                            boxShadow: '0 4px 0 0 rgba(0,0,0,0.25)',
+                            boxShadow: '0 5px 0 0 rgba(0,0,0,0.25)',
                         }}
                     >
                         <div className="h-12 w-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.12)' }}>
@@ -448,8 +448,8 @@ export default function Dashboard() {
                     {curriculum && (
                         <Link
                             href="/lessons/next"
-                            className="col-span-2 rounded-2xl p-4 text-white flex items-center gap-3 relative overflow-hidden transition hover:brightness-105 active:scale-[0.98]"
-                            style={{ background: `linear-gradient(135deg, ${SKY}, #3478c8)`, boxShadow: '0 4px 0 0 #2563a0', border: '2px solid #3a82cc' }}
+                            className="duo-press col-span-2 rounded-2xl p-4 text-white flex items-center gap-3 relative overflow-hidden"
+                            style={{ background: `linear-gradient(135deg, ${SKY}, #3478c8)`, boxShadow: '0 5px 0 0 #2563a0', border: '2px solid #3a82cc' }}
                         >
                             <div className="h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.15)' }}>
                                 <Icon name="lightbulb" size={22} style={{ filter: 'brightness(0) invert(1)' }} />
@@ -465,8 +465,8 @@ export default function Dashboard() {
 
                     <Link
                         href={route('practice.index')}
-                        className="rounded-2xl p-4 text-white flex flex-col gap-2 relative overflow-hidden transition hover:brightness-105 active:scale-[0.98]"
-                        style={{ background: 'linear-gradient(135deg, #48b77b, #3a9d68)', boxShadow: '0 4px 0 0 #1f6e42', border: '2px solid #2d8a55' }}
+                        className="duo-press rounded-2xl p-4 text-white flex flex-col gap-2 relative overflow-hidden"
+                        style={{ background: 'linear-gradient(135deg, #48b77b, #3a9d68)', boxShadow: '0 5px 0 0 #1f6e42', border: '2px solid #2d8a55' }}
                     >
                         <Icon name="zap" size={22} style={{ filter: 'brightness(0) invert(1)' }} />
                         <div>
@@ -477,7 +477,8 @@ export default function Dashboard() {
 
                     <Link
                         href="/errors"
-                        className="rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden transition hover:bg-red-50 border-2 border-red-100 bg-white active:scale-[0.98]"
+                        className="duo-press rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden hover:bg-red-50 border-2 border-red-100 bg-white"
+                        style={{ boxShadow: '0 5px 0 0 #fecaca' }}
                     >
                         <div className="relative w-fit">
                             <Icon name="review" size={22} style={{ filter: 'brightness(0) saturate(100%) invert(38%) sepia(93%) saturate(1352%) hue-rotate(338deg)' }} />

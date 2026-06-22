@@ -50,6 +50,16 @@ const GREEN = '#48b77b';
 
 type Phase = 'lesson' | 'quiz' | 'results';
 
+// Render light inline markdown (**bold**, *italic*, `code`) to HTML. Used for the
+// key-takeaways / common-mistakes blocks, which are plain strings from the AI and
+// would otherwise show raw ** asterisks.
+function inlineMd(text: string): string {
+    return (text ?? '')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/`(.*?)`/g, '<code class="bg-black/5 px-1 rounded text-[0.9em]">$1</code>');
+}
+
 // Split markdown into paginated sections by H2 (or H1) boundary
 function splitIntoSections(md: string): { title: string | null; content: string }[] {
     if (!md) return [];
@@ -412,7 +422,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                                     {lesson.key_takeaways.map((t: string, i: number) => (
                                         <div key={i} className="flex items-start gap-2">
                                             <div className="mt-1 h-2 w-2 rounded-full shrink-0" style={{ background: SKY }} />
-                                            <p className="text-sm font-semibold" style={{ color: OXFORD }}>{t}</p>
+                                            <p className="text-sm font-semibold" style={{ color: OXFORD }} dangerouslySetInnerHTML={{ __html: inlineMd(t) }} />
                                         </div>
                                     ))}
                                 </div>
@@ -429,14 +439,14 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                                     {lesson.common_mistakes.map((m: CommonMistake, i: number) => (
                                         <div key={i} className="rounded-xl bg-white p-3" style={{ border: '1px solid rgba(231,76,60,0.15)' }}>
                                             <p className="text-xs font-bold" style={{ color: '#E74C3C' }}>
-                                                ✗ {m.mistake}
+                                                ✗ <span dangerouslySetInnerHTML={{ __html: inlineMd(m.mistake) }} />
                                             </p>
                                             <p className="text-xs font-bold mt-1" style={{ color: GREEN }}>
-                                                ✓ {m.correction}
+                                                ✓ <span dangerouslySetInnerHTML={{ __html: inlineMd(m.correction) }} />
                                             </p>
                                             {m.tip && (
                                                 <p className="text-[10px] text-muted-foreground mt-1 italic">
-                                                    💡 {m.tip}
+                                                    💡 <span dangerouslySetInnerHTML={{ __html: inlineMd(m.tip) }} />
                                                 </p>
                                             )}
                                         </div>
