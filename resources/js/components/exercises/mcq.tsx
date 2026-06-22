@@ -38,15 +38,16 @@ export function Mcq({ question, onAnswer, selectedAnswer, disabled }: McqProps) 
                             key={i}
                             onClick={() => !disabled && onAnswer(question.id, letter)}
                             disabled={disabled}
-                            className={`rounded-lg border p-4 text-left transition-all ${
+                            className={`rounded-lg border-2 p-4 text-left ${!disabled ? 'duo-press' : 'transition-all'} ${
                                 isCorrect
                                     ? 'border-emerald-400 bg-emerald-50 ring-1 ring-emerald-400 dark:bg-emerald-950/20'
                                     : isWrong
                                     ? 'border-red-400 bg-red-50 ring-1 ring-red-400 dark:bg-red-950/20'
                                     : isSelected
-                                    ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                                    : 'border-border hover:border-primary/50 disabled:opacity-50'
+                                    ? 'border-primary bg-primary/5'
+                                    : 'border-border disabled:opacity-50'
                             }`}
+                            style={!disabled ? { boxShadow: isSelected ? '0 4px 0 0 var(--primary, #4A90E2)' : '0 3px 0 0 #e5e7eb' } : undefined}
                         >
                             <span className={`mr-3 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium ${
                                 isCorrect ? 'bg-emerald-500 text-white' : isWrong ? 'bg-red-500 text-white' : 'bg-muted'

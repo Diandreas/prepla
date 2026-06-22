@@ -22,11 +22,12 @@ export function TrueFalseNg({ question, onAnswer, selectedAnswer }: TrueFalseNgP
                     <button
                         key={value}
                         onClick={() => onAnswer(question.id, value)}
-                        className={`flex-1 rounded-lg border p-3 text-center font-medium transition-all ${
+                        className={`duo-press flex-1 rounded-lg border-2 p-3 text-center font-medium ${
                             selectedAnswer === value
-                                ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                                : 'border-border hover:border-primary/50'
+                                ? 'border-primary bg-primary/5'
+                                : 'border-border'
                         }`}
+                        style={{ boxShadow: selectedAnswer === value ? '0 4px 0 0 var(--primary, #4A90E2)' : '0 3px 0 0 #e5e7eb' }}
                     >
                         {label}
                     </button>

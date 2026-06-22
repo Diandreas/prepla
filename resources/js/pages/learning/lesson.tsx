@@ -505,7 +505,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                                         <span className="text-xs font-black mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full text-white" style={{ background: SKY }}>
                                             {qIndex + 1}
                                         </span>
-                                        {q.question}
+                                        <span dangerouslySetInnerHTML={{ __html: inlineMd(q.question) }} />
                                     </p>
                                     <div className="space-y-2">
                                         {q.options.map((opt: string, oIndex: number) => {
@@ -514,18 +514,18 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                                                 <button
                                                     key={oIndex}
                                                     onClick={() => handleQuizAnswer(qIndex, opt)}
-                                                    className="w-full rounded-xl px-4 py-3 text-left text-sm font-semibold transition-all"
+                                                    className="duo-press w-full rounded-xl px-4 py-3 text-left text-sm font-semibold"
                                                     style={{
                                                         background: selected ? 'rgba(74,144,226,0.1)' : '#f9fafb',
                                                         border: `2px solid ${selected ? SKY : '#e5e7eb'}`,
+                                                        boxShadow: `0 4px 0 0 ${selected ? '#2a6fc0' : '#e5e7eb'}`,
                                                         color: selected ? SKY : OXFORD,
-                                                        transform: selected ? 'scale(1.01)' : 'scale(1)',
                                                     }}
                                                 >
                                                     <span className="mr-2 text-xs font-black opacity-40">
                                                         {String.fromCharCode(65 + oIndex)}.
                                                     </span>
-                                                    {opt}
+                                                    <span dangerouslySetInnerHTML={{ __html: inlineMd(opt) }} />
                                                 </button>
                                             );
                                         })}

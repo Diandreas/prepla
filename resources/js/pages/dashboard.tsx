@@ -387,13 +387,14 @@ export default function Dashboard() {
                                                 <button
                                                     disabled={isLocked}
                                                     onClick={() => canClick && handleStartNode(node)}
-                                                    className={`flex-1 flex items-center justify-between rounded-2xl p-4 text-left transition border-2 ${
+                                                    className={`flex-1 flex items-center justify-between rounded-2xl p-4 text-left border-2 ${canClick ? 'duo-press' : 'transition'} ${
                                                         isActive
-                                                            ? 'bg-white border-blue-100 step-card-active hover:border-blue-200 hover:scale-[1.01]'
+                                                            ? 'bg-white border-blue-100'
                                                             : isCompleted
-                                                            ? 'bg-white border-gray-100 hover:bg-gray-50'
+                                                            ? 'bg-white border-gray-100'
                                                             : 'bg-gray-50/80 border-gray-100 cursor-not-allowed'
                                                     }`}
+                                                    style={canClick ? { boxShadow: isActive ? '0 4px 0 0 #bfdbfe' : '0 3px 0 0 #e5e7eb' } : undefined}
                                                 >
                                                     <div className="min-w-0 flex-1">
                                                         <p className="text-[10px] font-black uppercase tracking-widest mb-0.5" style={{ color: isActive ? SKY : '#9ca3af' }}>
