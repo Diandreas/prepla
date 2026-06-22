@@ -4,7 +4,7 @@ export default function AppLogo() {
             <div className="flex aspect-square size-9 items-center justify-center rounded-lg overflow-hidden shrink-0"
                 style={{ background: 'linear-gradient(135deg, #1A2B48 0%, #2a3f6a 100%)' }}>
                 <img
-                    src="/icons/logo.png"
+                    src="/icons/logo.png?v=2"
                     alt="PrePla Logo"
                     className="h-7 w-7"
                     style={{ objectFit: 'contain', filter: 'brightness(0) saturate(100%) invert(100%)' }}

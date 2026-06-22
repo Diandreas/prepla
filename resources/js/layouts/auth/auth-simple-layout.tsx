@@ -78,7 +78,7 @@ export default function AuthSimpleLayout({ children, title, description }: AuthL
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             boxShadow: '0 4px 20px rgba(26,43,72,0.4)',
                         }}>
-                            <img src="/icons/logo.png" alt="PrePla" width={30} height={30} style={{ objectFit: 'contain', filter: 'brightness(0) saturate(100%) invert(100%)' }} />
+                            <img src="/icons/logo.png?v=2" alt="PrePla" width={30} height={30} style={{ objectFit: 'contain', filter: 'brightness(0) saturate(100%) invert(100%)' }} />
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: 0 }}>

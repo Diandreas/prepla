@@ -47,7 +47,7 @@ export default function ErrorsPractice({ errors }: Props) {
         try {
             const xsrf = document.cookie.split('; ').find(c => c.startsWith('XSRF-TOKEN='));
             const token = xsrf ? decodeURIComponent(xsrf.split('=')[1]) : '';
-            const res = await fetch(route('errors.review', error.id), {
+            const res = await fetch(`/errors/${error.id}/review`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
