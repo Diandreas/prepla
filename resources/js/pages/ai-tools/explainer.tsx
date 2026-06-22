@@ -1,4 +1,5 @@
 import { Head } from '@inertiajs/react';
+import axios from 'axios';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -29,8 +30,7 @@ export default function Explainer() {
         setInput('');
 
         try {
-            // @ts-ignore
-            const res = await window.axios.post(route('ai-tools.explainer.ask'), {
+            const res = await axios.post(route('ai-tools.explainer.ask'), {
                 messages: newMessages.slice(1) // exclude local greeting
             });
             setMessages((prev) => [
