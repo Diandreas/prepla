@@ -127,11 +127,12 @@ export default function LearningIndex({ lessons, skeleton, errorStats }: Props) 
                 <div className="mb-6" style={stagger(1)}>
                     <Link
                         href="/lessons/next"
-                        className="group relative block overflow-hidden rounded-2xl p-6 text-white"
+                        className="duo-press group relative block overflow-hidden rounded-2xl p-6 text-white"
                         style={{
                             background: `linear-gradient(135deg, ${SKY}, #3478c8)`,
-                            boxShadow: `0 4px 0 0 #2a6fc0, 0 8px 24px rgba(74,144,226,0.3)`,
-                        }}
+                            '--duo-shadow': '#2a6fc0',
+                            boxShadow: `0 5px 0 0 #2a6fc0, 0 8px 24px rgba(74,144,226,0.3)`,
+                        } as React.CSSProperties}
                     >
                         <div className="relative z-10 flex items-center justify-between">
                             <div>
@@ -294,12 +295,12 @@ export default function LearningIndex({ lessons, skeleton, errorStats }: Props) 
                             </p>
                         </div>
                     ) : (
-                        <div className="divide-y divide-gray-100">
+                        <div className="flex flex-col gap-2.5 p-4">
                             {lessons.data.map((lesson, i) => (
                                 <Link
                                     key={lesson.id}
                                     href={`/lessons/${lesson.id}`}
-                                    className="flex items-center justify-between px-5 py-3.5 transition-colors hover:bg-gray-50"
+                                    className="duo-row group flex items-center justify-between px-4 py-3"
                                 >
                                     <div className="flex items-center gap-3">
                                         <div
@@ -326,7 +327,7 @@ export default function LearningIndex({ lessons, skeleton, errorStats }: Props) 
                                             </p>
                                         </div>
                                     </div>
-                                    <span className="text-xs font-bold" style={{ color: SKY }}>→</span>
+                                    <span className="text-base font-black transition-transform group-hover:translate-x-1" style={{ color: SKY }}>→</span>
                                 </Link>
                             ))}
                         </div>

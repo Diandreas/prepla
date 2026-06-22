@@ -644,6 +644,52 @@
         box-shadow: 0 4px 0 0 hsl(218, 30%, 12%);
     }
 
+    /* Duo Press – makes any clickable element feel like a Duolingo 3D button.
+       Set --duo-shadow to the color of the bottom edge. Used on /lessons CTA
+       and list rows so clickable things visibly depress on click. */
+    .duo-press {
+        --duo-shadow: #d1d5db;
+        cursor: pointer;
+        transition: transform 0.12s cubic-bezier(.2,.8,.4,1),
+                    box-shadow 0.12s cubic-bezier(.2,.8,.4,1),
+                    filter 0.12s ease;
+    }
+    .duo-press:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.03);
+    }
+    .duo-press:active {
+        transform: translateY(4px);
+        filter: brightness(0.98);
+    }
+
+    /* Duo Row – a list row that reads as a pressable button (block shadow edge). */
+    .duo-row {
+        position: relative;
+        background: #ffffff;
+        border: 2px solid #e5e7eb;
+        border-radius: 0.875rem;
+        box-shadow: 0 3px 0 0 #e5e7eb;
+        cursor: pointer;
+        transition: transform 0.12s cubic-bezier(.2,.8,.4,1),
+                    box-shadow 0.12s cubic-bezier(.2,.8,.4,1),
+                    background 0.12s ease;
+    }
+    .duo-row:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 0 0 #d8dde4;
+        background: #f8fafc;
+    }
+    .duo-row:active {
+        transform: translateY(3px);
+        box-shadow: 0 1px 0 0 #d8dde4;
+    }
+    .dark .duo-row {
+        background: hsl(218, 40%, 16%);
+        border-color: hsl(218, 30%, 24%);
+        box-shadow: 0 3px 0 0 hsl(218, 30%, 12%);
+    }
+
     /* Duo Badge – smaller block shadow for inline badges */
     .duo-badge {
         background: #ffffff;
