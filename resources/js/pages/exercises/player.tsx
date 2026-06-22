@@ -866,6 +866,19 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                             selectedAnswer={answers[answerKey(question.id ?? String(currentQuestionIndex))]}
                             disabled={isChecked}
                         />
+
+                        {/* Speaking: show what the AI heard (the transcription) so the
+                            learner can tell a real mistake from a mis-transcription. */}
+                        {isChecked && answers[`${question.id}_transcription`] && (
+                            <div className="mt-4 rounded-xl border-2 border-indigo-100 bg-indigo-50/60 p-4">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-1.5">
+                                    🎤 {t('exercise.heard', 'Ce que l’IA a entendu')}
+                                </p>
+                                <p className="text-sm font-medium italic text-slate-700">
+                                    « {answers[`${question.id}_transcription`]} »
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
