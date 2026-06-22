@@ -64,6 +64,13 @@ class DashboardController extends Controller
                 ->get()
                 ->keyBy('skeleton_objective_index');
 
+            // Practice nodes the user has actually started/finished, so a practice
+            // that was attempted but not yet mastered shows 'attempted' instead of
+            // staying 'À faire' forever.
+            $practiceProgressByNode = UserLearningProgress::where('user_id', $user->id)
+                ->whereIn('status', ['in_progress', 'completed'])
+                ->pluck('status', 'node_id');
+
             // --- PILOT 9: GENERATE ROADMAP FROM CURRICULUM SKELETON ---
             $chapterIndex = 1;
             // Group by 3 objectives per "chapter" visually
@@ -125,6 +132,13 @@ class DashboardController extends Controller
                         'action_url' => $lessonUrl,
                     ];
                     
+                    // If the practice is available but already attempted (started or
+                    // completed a session) without mastering it yet, mark it as such
+                    // so the UI can show "déjà fait / à améliorer" rather than "À faire".
+                    if ($practiceStatus === 'available' && isset($practiceProgressByNode[$nodeEntity->id])) {
+                        $practiceStatus = 'attempted';
+                    }
+
                     // Nœud Pratique (Exercice)
                     $nodes[] = [
                         'id' => 'p_' . $globalIndex,

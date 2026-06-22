@@ -28,7 +28,7 @@ function FlagImg({ flag, size = 20 }: { flag: string; size?: number }) {
 interface RoadmapNode {
     id: string | number; title: string; description: string;
     icon: string; skill_type: string; level: string; xp_reward: number;
-    status: 'locked' | 'available' | 'in_progress' | 'completed';
+    status: 'locked' | 'available' | 'in_progress' | 'completed' | 'attempted';
     scheduled_for?: string;
     type?: 'lesson' | 'practice';
     action_url?: string;
@@ -83,7 +83,7 @@ const GOLD = '#F5A623';
 function StepCircleIcon({ icon, status, size = 48 }: { icon: string; status: RoadmapNode['status']; size?: number }) {
     const isCompleted = status === 'completed';
     const isLocked = status === 'locked';
-    const isActive = status === 'available' || status === 'in_progress';
+    const isActive = status === 'available' || status === 'in_progress' || status === 'attempted';
 
     const bg = isCompleted ? SKY : isActive ? SKY : '#e5e7eb';
     const iconFilter = isLocked ? 'grayscale(1) opacity(0.4)' : 'brightness(0) invert(1)';
@@ -142,6 +142,9 @@ function StatusBadge({ status }: { status: RoadmapNode['status'] }) {
     if (status === 'completed') {
         return <span className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-black" style={{ background: '#dcfce7', color: '#16a34a' }}>Terminé</span>;
     }
+    if (status === 'attempted') {
+        return <span className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-black" style={{ background: '#fef9c3', color: '#ca8a04' }}>À améliorer</span>;
+    }
     if (status === 'available' || status === 'in_progress') {
         return <span className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-black" style={{ background: '#dcfce7', color: '#16a34a' }}>À faire</span>;
     }
@@ -166,6 +169,7 @@ export default function Dashboard() {
     const allNodes = useMemo(() => chapters.flatMap(c => c.nodes), [chapters]);
     const firstIncompleteNodeId = useMemo(() => {
         return allNodes.find(n => n.status === 'in_progress')?.id
+            ?? allNodes.find(n => n.status === 'attempted')?.id
             ?? allNodes.find(n => n.status === 'available')?.id
             ?? allNodes.find(n => n.status === 'locked')?.id;
     }, [allNodes]);
@@ -190,7 +194,7 @@ export default function Dashboard() {
 
     /* First active (or first available) node in viewed chapter */
     const firstActiveInChapter = viewedChapter?.nodes.find(
-        n => n.status === 'in_progress' || n.status === 'available'
+        n => n.status === 'in_progress' || n.status === 'attempted' || n.status === 'available'
     ) ?? viewedChapter?.nodes[0];
 
     return (
@@ -338,7 +342,7 @@ export default function Dashboard() {
                                 const GAP = 16;        // gap entre rows
 
                                 return viewedChapter.nodes.map((node, idx) => {
-                                    const isActive = node.status === 'available' || node.status === 'in_progress';
+                                    const isActive = node.status === 'available' || node.status === 'in_progress' || node.status === 'attempted';
                                     const isCompleted = node.status === 'completed';
                                     const isLocked = node.status === 'locked';
                                     const canClick = isActive || isCompleted;

@@ -3,6 +3,15 @@ import { Head, router } from '@inertiajs/react';
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
+// Read the freshest CSRF token. The XSRF-TOKEN cookie tracks the live session,
+// whereas the <meta> tag is frozen at page load and goes stale on a long-running
+// session — which caused 419s on /api/tts/speak and the AI endpoints.
+function csrfToken(): string {
+    const cookie = document.cookie.split('; ').find(c => c.startsWith('XSRF-TOKEN='));
+    if (cookie) return decodeURIComponent(cookie.split('=')[1]);
+    return (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
+}
+
 const INLINE_SVGS: Record<string, React.ReactNode> = {
     'volume-1': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>,
     'volume-2': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>,
@@ -291,6 +300,9 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
     const [playingTts, setPlayingTts] = useState<string | null>(null);
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [mistakes, setMistakes] = useState<any[]>([]);
+    // Frozen snapshot of the mistakes list when entering review mode, so the
+    // review never grows while you retry (which used to loop forever).
+    const [reviewQueue, setReviewQueue] = useState<any[]>([]);
     const [isVerifying, setIsVerifying] = useState(false);
     const [isDictionaryOpen, setIsDictionaryOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -314,7 +326,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
         return 45;
     }, [componentKey]);
 
-    const questions = isReviewMode ? mistakes : (exercise?.questions ?? []);
+    const questions = isReviewMode ? reviewQueue : (exercise?.questions ?? []);
     const question = questions[currentQuestionIndex];
     const Component = componentMap[isReviewMode ? (question?.component_key ?? 'mcq') : (exercise?.exercise_type?.component_key ?? 'mcq')] ?? Mcq;
 
@@ -341,12 +353,13 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
         try {
             const response = await fetch(route('tts.speak'), {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json', 
-                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content 
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-XSRF-TOKEN': csrfToken(),
                 },
                 body: JSON.stringify({ text, lang: nodeCode })
             });
+            if (!response.ok) throw new Error(`TTS HTTP ${response.status}`);
             const data = await response.json();
             if (data.audio_url) {
                 const audio = new Audio(data.audio_url);
@@ -367,9 +380,9 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
         try {
             const res = await fetch(route('api.ai.explain'), {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json', 
-                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content 
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-XSRF-TOKEN': csrfToken(),
                 },
                 body: JSON.stringify({
                     prompt: questionObj.prompt ?? questionObj.text ?? '',
@@ -426,7 +439,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
 
                 const res = await fetch(route('api.exercise.verify-single'), {
                     method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content },
+                    headers: { 'X-XSRF-TOKEN': csrfToken() },
                     body: formData
                 });
                 const data = await res.json();
@@ -459,15 +472,16 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
         setIsCorrect(isRight);
         setIsChecked(true);
         
-        if (!isRight) {
+        if (!isRight && !isReviewMode) {
             if (!aiFeedback) fetchExplanation();
-            // Add to mistakes queue if not already a retry
+            // Add to mistakes queue if not already a retry. We never grow the queue
+            // during review mode itself, otherwise the end condition recedes forever.
             const isAlreadyMistake = mistakes.some(m => m.id === question.id);
             if (!isAlreadyMistake) {
                 setMistakes(prev => [...prev, { ...question, exercise_id: exercise.id, component_key: componentKey }]);
             }
         }
-    }, [question, isChecked, answers, componentKey, fetchExplanation, exercise.id, isVerifying, mistakes]);
+    }, [question, isChecked, answers, componentKey, fetchExplanation, exercise.id, isVerifying, mistakes, isReviewMode]);
 
     const nextStep = useCallback(() => {
         setIsChecked(false);
@@ -475,14 +489,16 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
         setExplanation(null);
         setHighlightedText(null);
 
-        const isEndOfExercises = currentExerciseIndex === exercises.length - 1 && currentQuestionIndex === (isReviewMode ? mistakes.length - 1 : (exercise?.questions?.length ?? 0) - 1);
+        const isEndOfExercises = currentExerciseIndex === exercises.length - 1 && currentQuestionIndex === (isReviewMode ? reviewQueue.length - 1 : (exercise?.questions?.length ?? 0) - 1);
 
         if (isEndOfExercises) {
             if (!isReviewMode && mistakes.length > 0) {
-                // Pedagogy: Start Review Mode for mistakes
+                // Pedagogy: Start Review Mode for mistakes. Freeze the queue now so
+                // retrying a wrong answer can't keep extending the session.
                 setVisible(false);
                 setTransitioning(true);
                 setTimeout(() => {
+                    setReviewQueue(mistakes);
                     setIsReviewMode(true);
                     setCurrentQuestionIndex(0);
                     setTransitioning(false);
@@ -507,7 +523,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
         setVisible(false);
         setTransitioning(true);
         setTimeout(() => {
-            if (currentQuestionIndex < (isReviewMode ? mistakes.length - 1 : questions.length - 1)) {
+            if (currentQuestionIndex < (isReviewMode ? reviewQueue.length - 1 : questions.length - 1)) {
                 setCurrentQuestionIndex(prev => prev + 1);
             } else if (!isReviewMode) {
                 setCurrentExerciseIndex(prev => prev + 1);
@@ -517,7 +533,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
             setVisible(true);
             setTimerKey(k => k + 1);
         }, 220);
-    }, [currentExerciseIndex, currentQuestionIndex, exercises, questions.length, answers, node.id, mistakes, isReviewMode, exercise]);
+    }, [currentExerciseIndex, currentQuestionIndex, exercises, questions.length, answers, node.id, mistakes, reviewQueue, isReviewMode, exercise]);
 
     const handleTimeUpdate = useCallback((elapsed: number) => {
         timeSpentRef.current += 1;
@@ -692,6 +708,26 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            {/* Quit session */}
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (window.confirm(t('exercise.quit_confirm', 'Quitter la session ? Ta progression sur cette session ne sera pas enregistrée.'))) {
+                                        router.visit(route('dashboard'));
+                                    }
+                                }}
+                                title={t('exercise.quit', 'Quitter')}
+                                aria-label={t('exercise.quit', 'Quitter')}
+                                style={{
+                                    width: 32, height: 32, borderRadius: 8,
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    background: 'rgba(0,0,0,0.04)', border: 'none', cursor: 'pointer',
+                                    opacity: 0.6,
+                                }}
+                            >
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+
                             {/* Question counter */}
                             <div style={{
                                 fontSize: '0.8125rem',
@@ -699,9 +735,15 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                                 fontVariantNumeric: 'tabular-nums',
                                 opacity: 0.55,
                             }}>
-                                {overallProgressCount + 1}
-                                <span style={{ opacity: 0.5, margin: '0 3px' }}>/</span>
-                                {totalQuestionsInSession}
+                                {isReviewMode ? (
+                                    <span>{t('exercise.review', 'Révision')} {currentQuestionIndex + 1}/{reviewQueue.length}</span>
+                                ) : (
+                                    <>
+                                        {Math.min(overallProgressCount + 1, totalQuestionsInSession)}
+                                        <span style={{ opacity: 0.5, margin: '0 3px' }}>/</span>
+                                        {totalQuestionsInSession}
+                                    </>
+                                )}
                             </div>
 
                             {/* Arc timer — hidden ExerciseTimer drives the state */}
@@ -758,7 +800,10 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                             <Icon name={playingTts === 'question' ? 'volume-2' : 'volume-1'} size={18} />
                         </button>
                         <Component
-                            key={question.id ?? currentQuestionIndex}
+                            // Always-unique key so the input component fully remounts between
+                            // questions (AI-generated questions can share/duplicate ids, which
+                            // left the previous answer stuck in the text field).
+                            key={`${isReviewMode ? 'r' : 'q'}-${currentExerciseIndex}-${currentQuestionIndex}-${question.id ?? ''}`}
                             question={{ ...exercise.content, ...question }}
                             onAnswer={(childId: string, ans: any) => handleAnswer(childId ?? String(currentQuestionIndex), ans)}
                             selectedAnswer={answers[question.id ?? String(currentQuestionIndex)]}
