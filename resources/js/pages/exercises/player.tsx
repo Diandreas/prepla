@@ -356,11 +356,15 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
         const writingTypes = ['essay-editor', 'short-writing', 'graph-description', 'academic-discussion', 'synthesis', 'integrated-task'];
         const speakingTypes = ['speaking-recorder', 'role-play'];
         const longTypes = ['gapped-text', 'insert-text', 'table-completion', 'flow-chart-completion', 'summary-completion', 'form-completion', 'diagram-labeling', 'multiple-matching'];
+        // Timers kept tight enough to feel the effort, but long enough not to
+        // punish reading: exercises with a reference passage get extra time to read it.
+        const hasPassage = !!exercise?.content?.passage;
         if (writingTypes.includes(componentKey)) return 600;
         if (speakingTypes.includes(componentKey)) return 300;
-        if (longTypes.includes(componentKey)) return 120;
-        return 45;
-    }, [componentKey]);
+        if (longTypes.includes(componentKey)) return 180;
+        if (hasPassage) return 120;
+        return 75;
+    }, [componentKey, exercise]);
 
     const questions = isReviewMode ? reviewQueue : (exercise?.questions ?? []);
     const question = questions[currentQuestionIndex];
