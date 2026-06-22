@@ -114,7 +114,18 @@ export default function LessonPage({ lesson, skeleton }: Props) {
     const [sectionIndex, setSectionIndex] = useState(0);
 
     const sections = useState(() => splitIntoSections(lesson.theory_markdown))[0];
-    const totalSections = sections.length;
+    // Key takeaways and common mistakes become their own paginated sections at the
+    // end (instead of being stacked at the bottom of the last theory section, which
+    // forced a long scroll).
+    const hasTakeaways = !!(lesson.key_takeaways && lesson.key_takeaways.length);
+    const hasMistakes = !!(lesson.common_mistakes && lesson.common_mistakes.length);
+    const extras: ('takeaways' | 'mistakes')[] = [
+        ...(hasTakeaways ? ['takeaways' as const] : []),
+        ...(hasMistakes ? ['mistakes' as const] : []),
+    ];
+    const totalSections = sections.length + extras.length;
+    const inExtras = sectionIndex >= sections.length;
+    const currentExtra = inExtras ? extras[sectionIndex - sections.length] : null;
     const currentSection = sections[sectionIndex] ?? sections[0];
     const isLastSection = sectionIndex >= totalSections - 1;
     const isFirstSection = sectionIndex === 0;
@@ -290,7 +301,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
     };
 
     return (
-        <AppLayout>
+        <AppLayout focusMode>
             <Head title={lesson.title} />
             <div className="mx-auto max-w-2xl px-4 py-8">
                 {/* Header back link */}
@@ -381,15 +392,54 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                             </div>
                         )}
 
-                        {/* Current section content */}
-                        <div className="duo-card mb-6 p-6" key={sectionIndex}>
-                            {currentSection?.title && (
-                                <h2 className="mb-4 text-xl font-black" style={{ color: SKY }}>{currentSection.title}</h2>
-                            )}
-                            <div className="lesson-content animate-in fade-in slide-in-from-right-2 duration-300">
-                                {renderMarkdown(currentSection?.content || '')}
+                        {/* Current section content (theory, or a dedicated key-takeaways / mistakes section) */}
+                        {currentExtra === 'takeaways' ? (
+                            <div className="duo-card mb-6 p-6 animate-in fade-in slide-in-from-right-2 duration-300" key={sectionIndex} style={{ background: 'rgba(74,144,226,0.04)' }}>
+                                <p className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: SKY }}>
+                                    💡 {t('lesson.key_takeaways', 'Points clés à retenir')}
+                                </p>
+                                <div className="space-y-3">
+                                    {(lesson.key_takeaways || []).map((tk: string, i: number) => (
+                                        <div key={i} className="flex items-start gap-2">
+                                            <div className="mt-1.5 h-2 w-2 rounded-full shrink-0" style={{ background: SKY }} />
+                                            <p className="text-sm font-semibold" style={{ color: OXFORD }} dangerouslySetInnerHTML={{ __html: inlineMd(tk) }} />
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        ) : currentExtra === 'mistakes' ? (
+                            <div className="duo-card mb-6 p-6 animate-in fade-in slide-in-from-right-2 duration-300" key={sectionIndex} style={{ background: 'rgba(231,76,60,0.04)' }}>
+                                <p className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: '#E74C3C' }}>
+                                    ⚠️ {t('lesson.common_mistakes', 'Pièges typiques')}
+                                </p>
+                                <div className="space-y-3">
+                                    {(lesson.common_mistakes || []).map((m: CommonMistake, i: number) => (
+                                        <div key={i} className="rounded-xl bg-white p-3" style={{ border: '1px solid rgba(231,76,60,0.15)' }}>
+                                            <p className="text-xs font-bold" style={{ color: '#E74C3C' }}>
+                                                ✗ <span dangerouslySetInnerHTML={{ __html: inlineMd(m.mistake) }} />
+                                            </p>
+                                            <p className="text-xs font-bold mt-1" style={{ color: GREEN }}>
+                                                ✓ <span dangerouslySetInnerHTML={{ __html: inlineMd(m.correction) }} />
+                                            </p>
+                                            {m.tip && (
+                                                <p className="text-[10px] text-muted-foreground mt-1 italic">
+                                                    💡 <span dangerouslySetInnerHTML={{ __html: inlineMd(m.tip) }} />
+                                                </p>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="duo-card mb-6 p-6" key={sectionIndex}>
+                                {currentSection?.title && (
+                                    <h2 className="mb-4 text-xl font-black" style={{ color: SKY }}>{currentSection.title}</h2>
+                                )}
+                                <div className="lesson-content animate-in fade-in slide-in-from-right-2 duration-300">
+                                    {renderMarkdown(currentSection?.content || '')}
+                                </div>
+                            </div>
+                        )}
 
                         {/* Section navigation */}
                         {totalSections > 1 && !isLastSection && (
@@ -409,49 +459,6 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                                 >
                                     Suivant →
                                 </button>
-                            </div>
-                        )}
-
-                        {/* Key takeaways - only on last section */}
-                        {isLastSection && lesson.key_takeaways && lesson.key_takeaways.length > 0 && (
-                            <div className="duo-card mb-6 p-5" style={{ background: 'rgba(74,144,226,0.04)' }}>
-                                <p className="text-xs font-black uppercase tracking-widest mb-3" style={{ color: SKY }}>
-                                    💡 {t('lesson.key_takeaways', 'Points clés à retenir')}
-                                </p>
-                                <div className="space-y-2">
-                                    {lesson.key_takeaways.map((t: string, i: number) => (
-                                        <div key={i} className="flex items-start gap-2">
-                                            <div className="mt-1 h-2 w-2 rounded-full shrink-0" style={{ background: SKY }} />
-                                            <p className="text-sm font-semibold" style={{ color: OXFORD }} dangerouslySetInnerHTML={{ __html: inlineMd(t) }} />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Common mistakes - only on last section */}
-                        {isLastSection && lesson.common_mistakes && lesson.common_mistakes.length > 0 && (
-                            <div className="duo-card mb-6 p-5" style={{ background: 'rgba(231,76,60,0.04)' }}>
-                                <p className="text-xs font-black uppercase tracking-widest mb-3" style={{ color: '#E74C3C' }}>
-                                    ⚠️ {t('lesson.common_mistakes', 'Pièges typiques')}
-                                </p>
-                                <div className="space-y-3">
-                                    {lesson.common_mistakes.map((m: CommonMistake, i: number) => (
-                                        <div key={i} className="rounded-xl bg-white p-3" style={{ border: '1px solid rgba(231,76,60,0.15)' }}>
-                                            <p className="text-xs font-bold" style={{ color: '#E74C3C' }}>
-                                                ✗ <span dangerouslySetInnerHTML={{ __html: inlineMd(m.mistake) }} />
-                                            </p>
-                                            <p className="text-xs font-bold mt-1" style={{ color: GREEN }}>
-                                                ✓ <span dangerouslySetInnerHTML={{ __html: inlineMd(m.correction) }} />
-                                            </p>
-                                            {m.tip && (
-                                                <p className="text-[10px] text-muted-foreground mt-1 italic">
-                                                    💡 <span dangerouslySetInnerHTML={{ __html: inlineMd(m.tip) }} />
-                                                </p>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
                             </div>
                         )}
 

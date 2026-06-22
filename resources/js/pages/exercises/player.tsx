@@ -630,7 +630,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
 
     if (!exercise || !question) {
         return (
-            <AppLayout>
+            <AppLayout focusMode>
                 <div className="flex flex-col items-center justify-center py-20">
                     <Icon name="alert-circle" size={48} />
                     <p className="mt-4 text-xl font-medium">Session non disponible</p>
@@ -640,7 +640,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
     }
 
     return (
-        <AppLayout>
+        <AppLayout focusMode>
             <Head title={`${node.title} - PrePla`} />
             <style>{`
                 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@400;500;600;700&display=swap');

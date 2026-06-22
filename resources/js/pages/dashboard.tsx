@@ -175,7 +175,9 @@ export default function Dashboard() {
     }, [allNodes]);
 
     const activeChapterIdx = useMemo(() => {
-        if (!firstIncompleteNodeId) return 0;
+        // No incomplete node left = whole journey done → point to the last chapter
+        // (otherwise we'd snap back to chapter 0 and lock navigation forward).
+        if (!firstIncompleteNodeId) return Math.max(0, chapters.length - 1);
         const idx = chapters.findIndex(c => c.nodes.some(n => n.id === firstIncompleteNodeId));
         return idx >= 0 ? idx : 0;
     }, [chapters, firstIncompleteNodeId]);
