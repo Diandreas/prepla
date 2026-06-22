@@ -9,6 +9,17 @@ use Inertia\Inertia;
 
 class DictionaryController extends Controller
 {
+    /** CEFR levels at or below the given level (so we never suggest words above the learner). */
+    private static function levelsUpTo(string $level): array
+    {
+        $order = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+        $idx = array_search(strtoupper($level), $order, true);
+        if ($idx === false) {
+            $idx = 0;
+        }
+        return array_slice($order, 0, $idx + 1);
+    }
+
     /**
      * Display the user's learned/discovered words.
      */
@@ -47,10 +58,15 @@ class DictionaryController extends Controller
         ];
         $isoCode = $langMap[$langName] ?? 'en';
 
-        // 1. Try to find UNREAD words in local DB
+        // Only suggest words at or below the learner's CEFR level — never above.
+        $userLevel = $user->profile?->current_level ?? 'A1';
+        $allowedLevels = self::levelsUpTo($userLevel);
+
+        // 1. Try to find UNREAD words in local DB, at the learner's level
         $excludeIds = UserWordProgress::where('user_id', $user->id)->pluck('dictionary_word_id');
-        
+
         $newWords = DictionaryWord::where('language', $isoCode)
+            ->whereIn('skill_level', $allowedLevels)
             ->whereNotIn('id', $excludeIds)
             ->inRandomOrder()
             ->limit(5)
@@ -62,7 +78,7 @@ class DictionaryController extends Controller
                 \Illuminate\Support\Facades\Log::info("Dictionary: Growing local database for {$isoCode}...");
                 $mistral = app(\App\Services\AI\MistralService::class);
                 
-                $prompt = "Génère 10 mots académiques avancés (niveaux B2-C1) en {$langName} très utiles pour des examens. Réponds UNIQUEMENT en JSON avec ce format : [{\"word\": \"...\", \"definition\": \"...\", \"example\": \"...\", \"translation\": \"...\", \"skill_level\": \"B2\"}]. La traduction doit être en français.";
+                $prompt = "Génère 10 mots utiles en {$langName} adaptés à un apprenant de niveau {$userLevel} (CECRL) — des mots de ce niveau ou légèrement en dessous, JAMAIS au-dessus de {$userLevel}. Réponds UNIQUEMENT en JSON avec ce format : [{\"word\": \"...\", \"definition\": \"...\", \"example\": \"...\", \"translation\": \"...\", \"skill_level\": \"{$userLevel}\"}]. La 'definition' est dans la langue cible, 'example' est une phrase contenant le mot, 'translation' est en français.";
                 
                 $response = $mistral->chat([
                     ['role' => 'system', 'content' => "Tu es un expert en lexicographie académique. Réponds uniquement avec un JSON pur."],
@@ -148,7 +164,19 @@ class DictionaryController extends Controller
             return response()->json(['message' => 'Aucun mot à réviser ! Tout est maîtrisé.'], 404);
         }
 
-        return response()->json($wordsToReview);
+        // Provide a small pool of distractors (other words' translations/definitions)
+        // so the frontend can build varied MCQ / matching exercises without extra calls.
+        $isoCode = $wordsToReview->first()->dictionaryWord?->language ?? 'en';
+        $distractors = DictionaryWord::where('language', $isoCode)
+            ->whereNotIn('id', $wordsToReview->pluck('dictionary_word_id'))
+            ->inRandomOrder()
+            ->limit(12)
+            ->get(['word', 'translation', 'definition']);
+
+        return response()->json([
+            'words' => $wordsToReview,
+            'distractors' => $distractors,
+        ]);
     }
 
     /**

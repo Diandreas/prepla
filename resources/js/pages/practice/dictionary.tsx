@@ -2,6 +2,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
+import { VocabReviewSession } from '@/components/vocab-review-session';
 
 function Icon({ name, size = 20, className }: { name: string; size?: number; className?: string }) {
     return <img src={`/icons/${name}.png`} alt="" width={size} height={size} className={className} style={{ objectFit: 'contain' }} />;
@@ -34,10 +35,8 @@ export default function Dictionary({ words, reviewableCount }: Props) {
     
     // Session states
     const [sessionWords, setSessionWords] = useState<Word[] | null>(null);
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [answer, setAnswer] = useState('');
+    const [distractors, setDistractors] = useState<any[]>([]);
     const [results, setResults] = useState<{ progress_id: number; is_correct: boolean }[]>([]);
-    const [feedback, setFeedback] = useState<{ success: boolean; message: string } | null>(null);
     const [isFinished, setIsFinished] = useState(false);
 
     const filteredWords = words.filter(w => 
@@ -63,75 +62,34 @@ export default function Dictionary({ words, reviewableCount }: Props) {
             const res = await fetch(`${route('dictionary.review_session')}?limit=${limit}`);
             if (!res.ok) throw new Error("Not enough words");
             const data = await res.json();
-            setSessionWords(data);
-            setCurrentIndex(0);
+            // Backend now returns { words, distractors }.
+            setSessionWords(data.words ?? data);
+            setDistractors(data.distractors ?? []);
             setResults([]);
-            setFeedback(null);
             setIsFinished(false);
-
-            if (data.length > 0) {
-                playAudio(data[0].dictionary_word_id);
-            }
         } catch (e) {
             alert(t('dictionary.not_enough_words', "Vous n'avez pas encore assez de mots à réviser. Découvrez-en de nouveaux !"));
         }
     };
 
-    const submitAnswer = () => {
-        if (!sessionWords || !answer) return;
-        
-        const currentWord = sessionWords[currentIndex];
-        const isCorrect = answer.toLowerCase().trim() === currentWord.dictionary_word.word.toLowerCase().trim();
-        
-        const newResults = [...results, { progress_id: currentWord.id, is_correct: isCorrect }];
-        setResults(newResults);
-        
-        setFeedback({
-            success: isCorrect,
-            message: isCorrect
-                ? t('dictionary.correct_answer')
-                : t('dictionary.wrong_answer', { word: currentWord.dictionary_word.word }),
-        });
-
-        setTimeout(() => {
-            if (currentIndex < sessionWords.length - 1) {
-                setCurrentIndex(currentIndex + 1);
-                setAnswer('');
-                setFeedback(null);
-                // Play audio for next word
-                playAudio(sessionWords[currentIndex + 1].dictionary_word_id);
-            } else {
-                finishSession(newResults);
-            }
-        }, 2000);
-    };
-
-    const finishSession = async (finalResults: any[]) => {
+    const finishSession = async (finalResults: { progress_id: number; is_correct: boolean }[]) => {
+        setResults(finalResults);
         setIsFinished(true);
         try {
+            const xsrf = document.cookie.split('; ').find(c => c.startsWith('XSRF-TOKEN='));
+            const token = xsrf ? decodeURIComponent(xsrf.split('=')[1]) : '';
             await fetch(route('dictionary.submit_review_batch'), {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content 
-                },
+                headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': token, 'X-Requested-With': 'XMLHttpRequest' },
                 body: JSON.stringify({ results: finalResults })
             });
             setTimeout(() => {
                 setSessionWords(null);
                 router.reload();
-            }, 3000);
+            }, 2500);
         } catch (e) {
             console.error("Erreur lors de la validation");
         }
-    };
-
-    const getDisplayExercise = (word: Word) => {
-        const example = word.dictionary_word.example;
-        const target = word.dictionary_word.word;
-        // Create a regex to replace the word (case insensitive) with blanks
-        const regex = new RegExp(`\\b${target}\\b`, 'gi');
-        return example.replace(regex, '__________');
     };
 
     const getStatusPercent = (status: string) => {
@@ -163,7 +121,8 @@ export default function Dictionary({ words, reviewableCount }: Props) {
                         <button
                             onClick={() => startSession(5)}
                             disabled={reviewableCount === 0}
-                            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-black rounded-2xl shadow-lg shadow-blue-200 hover:scale-105 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+                            className="duo-press flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-black rounded-2xl disabled:opacity-40 disabled:cursor-not-allowed"
+                            style={{ boxShadow: '0 4px 0 0 #1e4fa0' }}
                         >
                             <Icon name="award" size={20} className="brightness-0 invert" />
                             {t('dictionary.review_btn_dynamic', { count: reviewableCount })}
@@ -176,7 +135,8 @@ export default function Dictionary({ words, reviewableCount }: Props) {
                                 });
                             }}
                             disabled={isDiscovering}
-                            className="flex items-center gap-2 px-6 py-3 bg-orange-500 text-white font-black rounded-2xl shadow-lg shadow-orange-200 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+                            className="duo-press flex items-center gap-2 px-6 py-3 bg-orange-500 text-white font-black rounded-2xl disabled:opacity-50"
+                            style={{ boxShadow: '0 4px 0 0 #c2620a' }}
                         >
                             <Icon name="sparkles" size={20} className="brightness-0 invert" />
                             {isDiscovering ? t('dictionary.loading') : t('dictionary.discover_btn')}
@@ -199,7 +159,7 @@ export default function Dictionary({ words, reviewableCount }: Props) {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {filteredWords.map((item) => (
-                        <div key={item.id} className="group p-6 bg-white border-2 border-slate-100 rounded-3xl hover:border-blue-500 transition-all hover:shadow-xl hover:shadow-blue-500/5 relative overflow-hidden">
+                        <div key={item.id} className="duo-row group p-6 rounded-3xl relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-3 flex gap-2">
                                 <span className="px-2 py-1 bg-slate-50 text-slate-400 text-[10px] font-black rounded-lg uppercase tracking-wider">
                                     {item.dictionary_word.skill_level}
@@ -249,31 +209,14 @@ export default function Dictionary({ words, reviewableCount }: Props) {
                 </div>
             </div>
 
-            {/* Session Modal */}
+            {/* Session Modal — mixed review (several exercise types) */}
             {sessionWords && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
-                    <div className="w-full max-w-2xl bg-white rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto">
-                        {/* Progress Header */}
-                        <div className="bg-slate-50 px-8 py-6 border-b-2 border-slate-100 flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                                <div className="h-10 w-10 bg-blue-600 rounded-xl flex items-center justify-center">
-                                    <Icon name="flame" size={24} className="brightness-0 invert" />
-                                </div>
-                                <div>
-                                    <h2 className="text-lg font-black text-slate-900">{t('dictionary.session_title')}</h2>
-                                    <p className="text-xs font-bold text-slate-400">{t('dictionary.word_count', { current: currentIndex + 1, total: sessionWords.length })}</p>
-                                </div>
-                            </div>
-                            <button onClick={() => setSessionWords(null)} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
+                    <div className="w-full max-w-2xl bg-white rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[92vh] overflow-y-auto">
+                        <div className="flex justify-end p-3">
+                            <button onClick={() => setSessionWords(null)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
                                 <Icon name="x" size={20} className="opacity-40" />
                             </button>
-                        </div>
-
-                        <div className="h-2 w-full bg-slate-100">
-                            <div 
-                                className="h-full bg-blue-500 transition-all duration-500" 
-                                style={{ width: `${((currentIndex + 1) / sessionWords.length) * 100}%` }}
-                            />
                         </div>
 
                         {isFinished ? (
@@ -281,72 +224,23 @@ export default function Dictionary({ words, reviewableCount }: Props) {
                                 <div className="h-24 w-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto animate-bounce">
                                     <Icon name="check-circle" size={48} />
                                 </div>
-                                <h2 className="text-3xl font-black text-slate-900">{t('dictionary.session_done')}</h2>
+                                <h2 className="text-3xl font-black text-slate-900">{t('dictionary.session_done', 'Session terminée !')}</h2>
                                 <p className="text-slate-500 font-bold text-lg">
-                                    <span className="text-orange-500">{t('dictionary.xp_earned', { xp: results.filter(r => r.is_correct).length * 2 })}</span>
+                                    <span className="text-orange-500">+{results.filter(r => r.is_correct).length * 2} XP</span>
                                 </p>
-                                <div className="flex justify-center gap-2">
+                                <div className="flex justify-center gap-2 flex-wrap">
                                     {results.map((r, i) => (
                                         <div key={i} className={`h-3 w-3 rounded-full ${r.is_correct ? 'bg-green-500' : 'bg-red-500'}`} />
                                     ))}
                                 </div>
                             </div>
                         ) : (
-                            <div className="p-10 space-y-8">
-                                <div className="space-y-4">
-                                    <p className="text-xs font-black uppercase text-slate-400 tracking-widest text-center">{t('dictionary.fill_blank')}</p>
-                                    <div className="p-8 bg-slate-50 rounded-[32px] border-2 border-slate-100 relative">
-                                        <p className="text-2xl font-medium text-slate-800 leading-relaxed text-center italic">
-                                            "{getDisplayExercise(sessionWords[currentIndex])}"
-                                        </p>
-                                        <div className="mt-6 flex justify-center gap-4">
-                                            <button 
-                                                onClick={() => sessionWords && playAudio(sessionWords[currentIndex].dictionary_word_id)}
-                                                className="flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-600 rounded-xl text-xs font-black hover:bg-blue-200 transition-colors"
-                                            >
-                                                <Icon name="headphones" size={14} />
-                                                {t('dictionary.listen')}
-                                            </button>
-                                            <span className="px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-400">
-                                                {t('dictionary.definition_label', { text: sessionWords[currentIndex].dictionary_word.definition })}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <input 
-                                        autoFocus
-                                        type="text" 
-                                        value={answer}
-                                        onChange={(e) => setAnswer(e.target.value)}
-                                        onKeyDown={(e) => e.key === 'Enter' && !feedback && submitAnswer()}
-                                        placeholder={t('dictionary.type_word')}
-                                        className={`w-full px-6 py-6 bg-slate-50 border-2 rounded-[24px] focus:ring-0 font-black text-2xl text-center transition-all ${
-                                            feedback 
-                                            ? (feedback.success ? 'border-green-500 bg-green-50 text-green-700' : 'border-red-500 bg-red-50 text-red-700')
-                                            : 'border-transparent focus:border-blue-500'
-                                        }`}
-                                        disabled={!!feedback}
-                                    />
-
-                                    {feedback && (
-                                        <div className={`p-4 rounded-2xl font-black text-center animate-in slide-in-from-top-2 duration-300 ${feedback.success ? 'text-green-600' : 'text-red-600'}`}>
-                                            {feedback.message}
-                                        </div>
-                                    )}
-
-                                    {!feedback && (
-                                        <button
-                                            onClick={submitAnswer}
-                                            disabled={!answer}
-                                            className="w-full py-5 bg-blue-600 text-white font-black rounded-[24px] shadow-xl shadow-blue-200 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 text-xl"
-                                        >
-                                            {t('dictionary.check')}
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
+                            <VocabReviewSession
+                                words={sessionWords as any}
+                                distractors={distractors}
+                                onPlayAudio={(wid) => playAudio(wid)}
+                                onFinish={finishSession}
+                            />
                         )}
                     </div>
                 </div>
