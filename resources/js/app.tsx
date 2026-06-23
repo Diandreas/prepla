@@ -28,7 +28,10 @@ createInertiaApp({
         root.render(<App {...props} />);
     },
     progress: {
-        color: '#4B5563',
+        // Visible top loading bar (brand blue) so navigation feels responsive.
+        color: '#4A90E2',
+        showSpinner: false,
+        delay: 120,
     },
 });
 
