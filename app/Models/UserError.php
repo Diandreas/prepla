@@ -69,13 +69,20 @@ class UserError extends Model
      */
     public static function classifyFamily(?string $exerciseTypeSlug, ?string $skillType): string
     {
-        if ($exerciseTypeSlug && in_array($exerciseTypeSlug, self::CONCEPT_SLUGS, true)) {
-            return 'concept';
+        // Reading/listening errors depend on a specific passage the learner no longer
+        // has — they can NEVER be re-posed (you'd just memorise that text). The skill
+        // wins over the component slug here: a gap-fill *about a reading text*
+        // ("Emma lives in a ___ town") is comprehension, not a grammar concept.
+        if (in_array($skillType, ['reading', 'listening'], true)) {
+            return 'comprehension';
         }
+        // Genuine concept skills, or concept-style components (grammar/vocab/writing).
         if (in_array($skillType, ['grammar', 'vocabulary', 'use-of-english', 'writing'], true)) {
             return 'concept';
         }
-        // reading / listening comprehension, speaking, etc.
+        if ($exerciseTypeSlug && in_array($exerciseTypeSlug, self::CONCEPT_SLUGS, true)) {
+            return 'concept';
+        }
         return 'comprehension';
     }
 
@@ -120,7 +127,10 @@ class UserError extends Model
 
     public function scopeConcept($query, $userId)
     {
+        // Exclude reading/listening (comprehension of a one-off passage) — those
+        // can't be re-posed. Keep genuine concept skills or concept-style components.
         return $query->where('user_id', $userId)->where('mastered', false)
+            ->whereNotIn('skill_type', ['reading', 'listening'])
             ->where(function ($q) {
                 $q->whereIn('exercise_type_slug', self::CONCEPT_SLUGS)
                   ->orWhereIn('skill_type', ['grammar', 'vocabulary', 'use-of-english', 'writing']);

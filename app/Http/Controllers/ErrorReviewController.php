@@ -67,7 +67,10 @@ class ErrorReviewController extends Controller
         $skillType = $request->query('skill');
 
         // Pilier 3: SM-2 due errors first, then recent unmastered — concept only.
+        // Comprehension errors (reading/listening on a passage) are excluded: they
+        // can't be re-posed without the original text.
         $dueErrors = UserError::dueForReview($user->id)
+            ->whereNotIn('skill_type', ['reading', 'listening'])
             ->where(function ($q) {
                 $q->whereIn('exercise_type_slug', UserError::CONCEPT_SLUGS)
                   ->orWhereIn('skill_type', ['grammar', 'vocabulary', 'use-of-english', 'writing']);
