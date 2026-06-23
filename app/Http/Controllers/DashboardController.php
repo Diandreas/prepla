@@ -39,12 +39,18 @@ class DashboardController extends Controller
             $practiceDoneCount = collect($objectives)->filter(fn ($o) => ($o['status'] ?? '') === 'current_practice')->count();
             $totalCount = count($objectives);
 
+            // The journey is complete when every objective is done — used to show a
+            // "goal reached" screen + maintenance mode instead of endless generation.
+            $journeyComplete = $totalCount > 0 && $doneCount === $totalCount;
+
             $curriculumData = [
                 'current_objective' => $currentObjective,
                 'current_index' => $skeleton->current_objective_index,
                 'total_objectives' => $totalCount,
                 'progress_percent' => $totalCount > 0 ? (int) round((($doneCount + $practiceDoneCount) / $totalCount) * 100) : 0,
                 'consecutive_failures' => $skeleton->consecutive_failures,
+                'journey_complete' => $journeyComplete,
+                'target_level' => $profile?->target_score ?? null,
             ];
 
             // Get the most recent lesson

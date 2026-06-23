@@ -458,7 +458,23 @@ export default function Dashboard() {
 
                 {/* ── Quick actions ── */}
                 <div className="mt-8 grid grid-cols-2 gap-3">
-                    {curriculum && (
+                    {curriculum && (curriculum as any).journey_complete ? (
+                        /* Journey finished: celebrate + offer maintenance (review) instead
+                           of generating endless new lessons. */
+                        <Link
+                            href="/dictionary/review"
+                            className="duo-press col-span-2 rounded-2xl p-5 text-white flex items-center gap-3 relative overflow-hidden"
+                            style={{ background: 'linear-gradient(135deg, #48b77b, #2d7d52)', boxShadow: '0 5px 0 0 #1f6e42', border: '2px solid #3a9d68' }}
+                        >
+                            <div className="text-3xl flex-shrink-0">🎉</div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-[9px] font-black uppercase tracking-widest opacity-80">Objectif atteint</p>
+                                <p className="text-sm font-black">Bravo, ton parcours est terminé !</p>
+                                <p className="text-[10px] opacity-80">Continue en mode entretien : révise ton vocabulaire et tes erreurs.</p>
+                            </div>
+                            <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-white/10" />
+                        </Link>
+                    ) : curriculum && (
                         <Link
                             href="/lessons/next"
                             className="duo-press col-span-2 rounded-2xl p-4 text-white flex items-center gap-3 relative overflow-hidden"
