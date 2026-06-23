@@ -3,6 +3,7 @@ import AppLayout from '@/layouts/app-layout';
 import * as Flags from 'country-flag-icons/react/3x2';
 import { useEffect, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { LoadingAnimation } from '@/components/loading-animation';
 import type { SharedData, UserProfile } from '@/types';
 
 function Icon({ name, size = 20, style, className }: { name: string; size?: number; style?: React.CSSProperties; className?: string }) {
@@ -205,21 +206,8 @@ export default function Dashboard() {
 
             {/* Loading overlay */}
             {loadingNode && (
-                <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-background/90 backdrop-blur-md">
-                    <style>{`
-                        @keyframes spinRing { to { transform: rotate(360deg); } }
-                        @keyframes pulseGlow { 0%,100% { opacity:0.6; transform:scale(1); } 50% { opacity:1; transform:scale(1.08); } }
-                    `}</style>
-                    <div className="relative flex items-center justify-center" style={{ width: 88, height: 88 }}>
-                        <svg className="absolute inset-0" style={{ animation: 'spinRing 1.2s linear infinite' }} width="88" height="88" viewBox="0 0 88 88">
-                            <circle cx="44" cy="44" r="38" fill="none" stroke="#e5e7eb" strokeWidth="6" />
-                            <circle cx="44" cy="44" r="38" fill="none" stroke={SKY} strokeWidth="6"
-                                strokeLinecap="round" strokeDasharray="60 180" />
-                        </svg>
-                        <div className="flex items-center justify-center rounded-2xl" style={{ width: 56, height: 56, background: SKY, animation: 'pulseGlow 1.8s ease-in-out infinite' }}>
-                            <Icon name="sparkles" size={28} style={{ filter: 'brightness(0) invert(1)' }} />
-                        </div>
-                    </div>
+                <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-background/90 backdrop-blur-md">
+                    <LoadingAnimation size={140} />
                     <div className="text-center">
                         <p className="text-base font-bold text-foreground">Préparation en cours</p>
                         <p className="mt-1 text-sm font-medium text-muted-foreground">{loadingNode.title}</p>
