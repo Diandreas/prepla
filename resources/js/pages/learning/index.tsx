@@ -134,12 +134,12 @@ export default function LearningIndex({ lessons, skeleton, errorStats }: Props) 
                             boxShadow: `0 5px 0 0 #2a6fc0, 0 8px 24px rgba(74,144,226,0.3)`,
                         } as React.CSSProperties}
                     >
-                        <div className="relative z-10 flex items-center justify-between">
-                            <div>
+                        <div className="relative z-10 flex items-center justify-between gap-3">
+                            <div className="min-w-0 flex-1">
                                 <p className="text-xs font-black uppercase tracking-widest opacity-80">
                                     Prochaine leçon
                                 </p>
-                                <p className="mt-1 text-lg font-black">
+                                <p className="mt-1 text-lg font-black break-words">
                                     {skeleton?.current_objective?.title || 'Commencer mon apprentissage'}
                                 </p>
                                 {skeleton?.current_objective?.concept && (
@@ -149,7 +149,7 @@ export default function LearningIndex({ lessons, skeleton, errorStats }: Props) 
                                 )}
                             </div>
                             <div
-                                className="flex h-14 w-14 items-center justify-center rounded-2xl transition-transform group-hover:scale-110"
+                                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl transition-transform group-hover:scale-110"
                                 style={{
                                     background: 'rgba(255,255,255,0.2)',
                                     backdropFilter: 'blur(4px)',
@@ -214,7 +214,7 @@ export default function LearningIndex({ lessons, skeleton, errorStats }: Props) 
                                             {isDone ? '✓' : isSkipped ? '—' : (obj.order !== undefined ? obj.order + 1 : i + 1)}
                                         </div>
                                         <p
-                                            className="text-xs font-bold truncate"
+                                            className="min-w-0 flex-1 text-xs font-bold truncate"
                                             style={{
                                                 color: isDone ? '#9ca3af' : isCurrent ? SKY : OXFORD,
                                                 textDecoration: isDone || isSkipped ? 'line-through' : 'none',

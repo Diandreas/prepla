@@ -34,6 +34,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('practice', [\App\Http\Controllers\PracticeController::class, 'index'])->name('practice.index');
         Route::get('practice/{exam}', [\App\Http\Controllers\PracticeController::class, 'examDashboard'])->name('practice.exam');
         Route::get('practice/{exam}/section/{section}', [\App\Http\Controllers\PracticeController::class, 'sectionDrills'])->name('practice.section');
+        Route::post('practice/{exam}/section/{section}/generate', [\App\Http\Controllers\PracticeController::class, 'generateSection'])->name('practice.section.generate');
         Route::get('practice/{exam}/simulate', [\App\Http\Controllers\PracticeController::class, 'simulate'])->name('practice.simulate');
         Route::post('practice/{exam}/simulate', [\App\Http\Controllers\PracticeController::class, 'submitSimulation'])->name('practice.simulate.store');
 
@@ -61,8 +62,6 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/review-session', [DictionaryController::class, 'reviewSession'])->name('review_session');
             Route::post('/review-batch/submit', [DictionaryController::class, 'submitReviewBatch'])->name('submit_review_batch');
             Route::get('/audio/{word}', [DictionaryController::class, 'audio'])->name('audio');
-            Route::get('/review/{progress}', [DictionaryController::class, 'review'])->name('review');
-            Route::post('/review/{progress}/submit', [DictionaryController::class, 'submitReview'])->name('submit_review');
         });
 
         Route::post('api/ai/explain', [\App\Http\Controllers\ExerciseController::class, 'explainMistake'])->name('api.ai.explain');

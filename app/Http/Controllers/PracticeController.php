@@ -120,6 +120,28 @@ class PracticeController extends Controller
         ]);
     }
 
+    /**
+     * Generate a few exercises for this section on the spot (the generator is no
+     * longer a separate tool — it's embedded where it's needed).
+     */
+    public function generateSection(Exam $exam, ExamSection $section, \App\Services\AI\ExerciseGeneratorService $generator)
+    {
+        $section->load('exerciseTypes');
+        $level = auth()->user()->profile?->current_level ?? 'B1';
+
+        // Pick up to 3 varied types from this section and generate one each.
+        $types = $section->exerciseTypes->shuffle()->take(3);
+        foreach ($types as $type) {
+            try {
+                $generator->generate($type, $exam, $level);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Section generate failed', ['error' => $e->getMessage()]);
+            }
+        }
+
+        return back()->with('success', 'Exercices générés !');
+    }
+
     public function simulate(Exam $exam, Request $request): Response
     {
         $exam->load(['language', 'sections.exerciseTypes']);

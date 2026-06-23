@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import * as Flags from 'country-flag-icons/react/3x2';
 import { useEffect, useState } from 'react';
@@ -46,6 +46,7 @@ export default function SectionDrills({ exam, section, exercisesByDifficulty }: 
     const difficulties = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
     const hasExercises = Object.keys(exercisesByDifficulty).length > 0;
     const [mounted, setMounted] = useState(false);
+    const [generating, setGenerating] = useState(false);
     useEffect(() => setMounted(true), []);
 
     return (
@@ -72,14 +73,21 @@ export default function SectionDrills({ exam, section, exercisesByDifficulty }: 
                             Aucun exercice pour l'instant
                         </p>
                         <p className="mt-2 text-sm font-bold text-muted-foreground">
-                            Utilisez le générateur IA pour créer des exercices pour cette section
+                            Génère des exercices IA adaptés à ton niveau pour cette section.
                         </p>
-                        <Link
-                            href="/ai-tools"
-                            className="duo-btn-primary mt-5"
+                        <button
+                            onClick={() => {
+                                setGenerating(true);
+                                router.post(`/practice/${exam.id}/section/${section.id}/generate`, {}, {
+                                    onFinish: () => setGenerating(false),
+                                });
+                            }}
+                            disabled={generating}
+                            className="duo-press mt-5 rounded-2xl px-6 py-3 text-sm font-black text-white disabled:opacity-50"
+                            style={{ background: SKY, boxShadow: '0 4px 0 0 #2a6fc0' }}
                         >
-                            Accéder aux outils IA
-                        </Link>
+                            {generating ? 'Génération en cours…' : '✨ Générer des exercices'}
+                        </button>
                     </div>
                 ) : (
                     <div className="space-y-8">
