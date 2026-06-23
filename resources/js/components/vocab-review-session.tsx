@@ -242,7 +242,16 @@ export function VocabReviewSession({ words, distractors, onPlayAudio, onFinish }
                 {type === 'word2def' && <p className="text-2xl font-black" style={{ color: OXFORD }}>{dw.word}</p>}
                 {type === 'def2word' && <p className="text-base font-semibold" style={{ color: OXFORD }}>{dw.definition}</p>}
                 {type === 'translation' && <p className="text-2xl font-black" style={{ color: OXFORD }}>{dw.word}</p>}
-                {type === 'gapfill' && <p className="text-base font-semibold" style={{ color: OXFORD }}>{gapText}</p>}
+                {type === 'gapfill' && (
+                    <>
+                        <p className="text-base font-semibold" style={{ color: OXFORD }}>{gapText}</p>
+                        {/* Hint: the definition of the word to find, so the learner
+                            retrieves it from meaning rather than guessing blindly. */}
+                        <p className="mt-3 text-xs italic text-muted-foreground border-t border-gray-100 pt-3">
+                            💡 {dw.definition}
+                        </p>
+                    </>
+                )}
                 {type === 'dictation' && (
                     <button
                         type="button"

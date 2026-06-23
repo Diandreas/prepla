@@ -57,6 +57,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/', [DictionaryController::class, 'index'])->name('index');
             Route::post('/discover', [DictionaryController::class, 'discover'])->name('discover');
             Route::get('/lookup/{language}/{word}', [DictionaryController::class, 'lookup'])->name('lookup');
+            Route::get('/review', [DictionaryController::class, 'reviewPage'])->name('review_page');
             Route::get('/review-session', [DictionaryController::class, 'reviewSession'])->name('review_session');
             Route::post('/review-batch/submit', [DictionaryController::class, 'submitReviewBatch'])->name('submit_review_batch');
             Route::get('/audio/{word}', [DictionaryController::class, 'audio'])->name('audio');

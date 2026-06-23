@@ -2,7 +2,6 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
-import { VocabReviewSession } from '@/components/vocab-review-session';
 
 function Icon({ name, size = 20, className }: { name: string; size?: number; className?: string }) {
     return <img src={`/icons/${name}.png`} alt="" width={size} height={size} className={className} style={{ objectFit: 'contain' }} />;
@@ -33,16 +32,14 @@ export default function Dictionary({ words, reviewableCount }: Props) {
     const [searchTerm, setSearchTerm] = useState('');
     const [isDiscovering, setIsDiscovering] = useState(false);
     
-    // Session states
-    const [sessionWords, setSessionWords] = useState<Word[] | null>(null);
-    const [distractors, setDistractors] = useState<any[]>([]);
-    const [results, setResults] = useState<{ progress_id: number; is_correct: boolean }[]>([]);
-    const [isFinished, setIsFinished] = useState(false);
 
-    const filteredWords = words.filter(w => 
+    const filteredWords = words.filter(w =>
         w.dictionary_word.word.toLowerCase().includes(searchTerm.toLowerCase()) ||
         w.dictionary_word.translation.toLowerCase().includes(searchTerm.toLowerCase())
     );
+    // Split: words still being learned vs. mastered (shown in a separate section).
+    const learningWords = filteredWords.filter(w => w.status !== 'mastered');
+    const masteredWords = filteredWords.filter(w => w.status === 'mastered');
 
     const playAudio = async (wordId: number) => {
         try {
@@ -54,41 +51,6 @@ export default function Dictionary({ words, reviewableCount }: Props) {
             }
         } catch (e) {
             console.error("Erreur audio");
-        }
-    };
-
-    const startSession = async (limit: number = 5) => {
-        try {
-            const res = await fetch(`${route('dictionary.review_session')}?limit=${limit}`);
-            if (!res.ok) throw new Error("Not enough words");
-            const data = await res.json();
-            // Backend now returns { words, distractors }.
-            setSessionWords(data.words ?? data);
-            setDistractors(data.distractors ?? []);
-            setResults([]);
-            setIsFinished(false);
-        } catch (e) {
-            alert(t('dictionary.not_enough_words', "Vous n'avez pas encore assez de mots à réviser. Découvrez-en de nouveaux !"));
-        }
-    };
-
-    const finishSession = async (finalResults: { progress_id: number; is_correct: boolean }[]) => {
-        setResults(finalResults);
-        setIsFinished(true);
-        try {
-            const xsrf = document.cookie.split('; ').find(c => c.startsWith('XSRF-TOKEN='));
-            const token = xsrf ? decodeURIComponent(xsrf.split('=')[1]) : '';
-            await fetch(route('dictionary.submit_review_batch'), {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': token, 'X-Requested-With': 'XMLHttpRequest' },
-                body: JSON.stringify({ results: finalResults })
-            });
-            setTimeout(() => {
-                setSessionWords(null);
-                router.reload();
-            }, 2500);
-        } catch (e) {
-            console.error("Erreur lors de la validation");
         }
     };
 
@@ -119,7 +81,7 @@ export default function Dictionary({ words, reviewableCount }: Props) {
 
                     <div className="flex gap-3">
                         <button
-                            onClick={() => startSession(5)}
+                            onClick={() => router.visit(route('dictionary.review_page'))}
                             disabled={reviewableCount === 0}
                             className="duo-press flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-black rounded-2xl disabled:opacity-40 disabled:cursor-not-allowed"
                             style={{ boxShadow: '0 4px 0 0 #1e4fa0' }}
@@ -157,94 +119,85 @@ export default function Dictionary({ words, reviewableCount }: Props) {
                     />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {filteredWords.map((item) => (
-                        <div key={item.id} className="duo-row group p-6 rounded-3xl relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-3 flex gap-2">
-                                <span className="px-2 py-1 bg-slate-50 text-slate-400 text-[10px] font-black rounded-lg uppercase tracking-wider">
-                                    {item.dictionary_word.skill_level}
-                                </span>
-                                <span className={`px-2 py-1 text-[10px] font-black rounded-lg uppercase tracking-wider ${item.status === 'mastered' ? 'bg-green-50 text-green-600' : 'bg-blue-50 text-blue-600'}`}>
-                                    {item.status}
-                                </span>
-                            </div>
-
-                            <div className="flex items-start gap-4 mb-4">
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-3">
-                                        <h3 className="text-2xl font-black text-slate-900 group-hover:text-blue-600 transition-colors uppercase">
-                                            {item.dictionary_word.word}
-                                        </h3>
-                                        <button 
-                                            onClick={() => playAudio(item.dictionary_word_id)}
-                                            className="p-1.5 hover:bg-blue-50 text-blue-400 rounded-lg transition-colors"
-                                        >
-                                            <Icon name="headphones" size={16} />
-                                        </button>
-                                    </div>
-                                    <p className="text-blue-500 font-bold text-sm">
-                                        {item.dictionary_word.translation}
-                                    </p>
-                                </div>
-                            </div>
-                            
-                            <p className="text-sm text-slate-600 leading-relaxed italic line-clamp-2 mb-4">
-                                "{item.dictionary_word.definition}"
-                            </p>
-
-                            <div className="mt-auto border-t border-slate-50 pt-4">
-                                <div className="flex items-center justify-between mb-2">
-                                    <p className="text-[10px] font-black uppercase text-slate-300 tracking-[0.1em]">{t('dictionary.mastery')}</p>
-                                    <p className="text-[10px] font-black text-blue-600">{getStatusPercent(item.status)}%</p>
-                                </div>
-                                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                                    <div 
-                                        className={`h-full transition-all duration-700 ${item.status === 'mastered' ? 'bg-green-500' : 'bg-blue-500'}`} 
-                                        style={{ width: `${getStatusPercent(item.status)}%` }} 
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* Session Modal — mixed review (several exercise types) */}
-            {sessionWords && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
-                    <div className="w-full max-w-2xl bg-white rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[92vh] overflow-y-auto">
-                        <div className="flex justify-end p-3">
-                            <button onClick={() => setSessionWords(null)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-                                <Icon name="x" size={20} className="opacity-40" />
-                            </button>
-                        </div>
-
-                        {isFinished ? (
-                            <div className="p-12 text-center space-y-6">
-                                <div className="h-24 w-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto animate-bounce">
-                                    <Icon name="check-circle" size={48} />
-                                </div>
-                                <h2 className="text-3xl font-black text-slate-900">{t('dictionary.session_done', 'Session terminée !')}</h2>
-                                <p className="text-slate-500 font-bold text-lg">
-                                    <span className="text-orange-500">+{results.filter(r => r.is_correct).length * 2} XP</span>
-                                </p>
-                                <div className="flex justify-center gap-2 flex-wrap">
-                                    {results.map((r, i) => (
-                                        <div key={i} className={`h-3 w-3 rounded-full ${r.is_correct ? 'bg-green-500' : 'bg-red-500'}`} />
-                                    ))}
-                                </div>
-                            </div>
-                        ) : (
-                            <VocabReviewSession
-                                words={sessionWords as any}
-                                distractors={distractors}
-                                onPlayAudio={(wid) => playAudio(wid)}
-                                onFinish={finishSession}
-                            />
-                        )}
+                {/* En cours d'apprentissage */}
+                {learningWords.length > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {learningWords.map(renderCard)}
                     </div>
-                </div>
-            )}
+                )}
+
+                {/* Mots maîtrisés — section séparée, repliée visuellement */}
+                {masteredWords.length > 0 && (
+                    <div className="mt-10">
+                        <div className="flex items-center gap-2 mb-4">
+                            <Icon name="check-circle" size={18} />
+                            <h2 className="text-sm font-black uppercase tracking-widest text-green-600">
+                                Maîtrisés ({masteredWords.length})
+                            </h2>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 opacity-70">
+                            {masteredWords.map(renderCard)}
+                        </div>
+                    </div>
+                )}
+
+                {learningWords.length === 0 && masteredWords.length === 0 && (
+                    <p className="text-center text-slate-400 font-medium py-12">
+                        Aucun mot pour l'instant. Clique sur « Découvrir » pour commencer.
+                    </p>
+                )}
+            </div>
         </AppLayout>
     );
+
+    function renderCard(item: Word) {
+        return (
+            <div key={item.id} className="duo-row group p-6 rounded-3xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-3 flex gap-2">
+                    <span className="px-2 py-1 bg-slate-50 text-slate-400 text-[10px] font-black rounded-lg uppercase tracking-wider">
+                        {item.dictionary_word.skill_level}
+                    </span>
+                    <span className={`px-2 py-1 text-[10px] font-black rounded-lg uppercase tracking-wider ${item.status === 'mastered' ? 'bg-green-50 text-green-600' : 'bg-blue-50 text-blue-600'}`}>
+                        {item.status}
+                    </span>
+                </div>
+
+                <div className="flex items-start gap-4 mb-4">
+                    <div className="flex-1">
+                        <div className="flex items-center gap-3">
+                            <h3 className="text-2xl font-black text-slate-900 group-hover:text-blue-600 transition-colors uppercase">
+                                {item.dictionary_word.word}
+                            </h3>
+                            <button
+                                onClick={() => playAudio(item.dictionary_word_id)}
+                                className="p-1.5 hover:bg-blue-50 text-blue-400 rounded-lg transition-colors"
+                            >
+                                <Icon name="headphones" size={16} />
+                            </button>
+                        </div>
+                        <p className="text-blue-500 font-bold text-sm">
+                            {item.dictionary_word.translation}
+                        </p>
+                    </div>
+                </div>
+
+                <p className="text-sm text-slate-600 leading-relaxed italic line-clamp-2 mb-4">
+                    "{item.dictionary_word.definition}"
+                </p>
+
+                <div className="mt-auto border-t border-slate-50 pt-4">
+                    <div className="flex items-center justify-between mb-2">
+                        <p className="text-[10px] font-black uppercase text-slate-300 tracking-[0.1em]">{t('dictionary.mastery')}</p>
+                        <p className="text-[10px] font-black text-blue-600">{getStatusPercent(item.status)}%</p>
+                    </div>
+                    <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                        <div
+                            className={`h-full transition-all duration-700 ${item.status === 'mastered' ? 'bg-green-500' : 'bg-blue-500'}`}
+                            style={{ width: `${getStatusPercent(item.status)}%` }}
+                        />
+                    </div>
+                </div>
+            </div>
+        );
+    }
 }

@@ -145,6 +145,14 @@ class DictionaryController extends Controller
     }
 
     /**
+     * Dedicated full-screen (focus mode) review page.
+     */
+    public function reviewPage()
+    {
+        return Inertia::render('practice/vocab-review');
+    }
+
+    /**
      * Start a batch review session (5 or 10 words).
      */
     public function reviewSession(Request $request)
