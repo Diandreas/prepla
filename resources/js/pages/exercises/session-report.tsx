@@ -1,6 +1,7 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
+import { ConfettiBurst } from '@/components/confetti-burst';
 import { motion } from 'framer-motion';
 
 function Icon({ name, size = 20, className, style }: { name: string; size?: number; className?: string; style?: React.CSSProperties }) {
@@ -53,7 +54,8 @@ export default function SessionReport({ node, report, userLevel }: Props) {
     return (
         <AppLayout>
             <Head title={`Résultats : ${report.node_title}`} />
-            
+            {report.accuracy >= 80 && <ConfettiBurst />}
+
             <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
                 <motion.div 
                     variants={container}

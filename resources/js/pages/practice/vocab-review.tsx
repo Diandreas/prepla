@@ -2,6 +2,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { VocabReviewSession } from '@/components/vocab-review-session';
+import { ConfettiBurst } from '@/components/confetti-burst';
 
 const SKY = '#4A90E2';
 
@@ -67,7 +68,17 @@ export default function VocabReviewPage() {
                 </div>
 
                 <div className="flex-1 flex items-center justify-center">
-                    {loading && <p className="text-sm text-slate-400 font-medium">Chargement…</p>}
+                    {loading && (
+                        <div className="mx-auto w-full max-w-lg px-4 py-8 space-y-4">
+                            <div className="skeleton-shimmer h-2 w-1/3 rounded-full" />
+                            <div className="skeleton-shimmer h-24 w-full rounded-2xl" />
+                            <div className="grid gap-2.5">
+                                <div className="skeleton-shimmer h-12 w-full rounded-xl" />
+                                <div className="skeleton-shimmer h-12 w-full rounded-xl" />
+                                <div className="skeleton-shimmer h-12 w-full rounded-xl" />
+                            </div>
+                        </div>
+                    )}
 
                     {empty && (
                         <div className="text-center px-6 py-16 space-y-4">
@@ -80,6 +91,7 @@ export default function VocabReviewPage() {
                         </div>
                     )}
 
+                    {finished && <ConfettiBurst />}
                     {finished && (
                         <div className="text-center px-6 py-16 space-y-5">
                             <div className="h-24 w-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto animate-bounce text-4xl">✓</div>
