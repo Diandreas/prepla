@@ -41,28 +41,39 @@ export default function ErrorsPractice({ errors }: Props) {
     const { t } = useTranslation();
     const [reviewed, setReviewed] = useState<Set<number>>(new Set());
     const [loading, setLoading] = useState<number | null>(null);
+    // Active recall: the learner must re-answer BEFORE seeing the solution.
+    const [typed, setTyped] = useState<Record<number, string>>({});
+    const [revealed, setRevealed] = useState<Record<number, boolean>>({});
+    const [wasCorrect, setWasCorrect] = useState<Record<number, boolean>>({});
 
-    const markReviewed = async (error: UserError, correct: boolean) => {
+    const sm2Schedule = async (error: UserError, correct: boolean) => {
+        const xsrf = document.cookie.split('; ').find(c => c.startsWith('XSRF-TOKEN='));
+        const token = xsrf ? decodeURIComponent(xsrf.split('=')[1]) : '';
+        await fetch(`/errors/${error.id}/review`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': token, 'X-Requested-With': 'XMLHttpRequest' },
+            body: JSON.stringify({ correct }),
+        });
+    };
+
+    // Step 1: learner submits their recall attempt → grade it, reveal solution,
+    // and feed SM-2 with the real result (no more self-assessment).
+    const attemptRecall = async (error: UserError) => {
+        const ans = (typed[error.id] ?? '').trim();
+        if (!ans) return;
         setLoading(error.id);
+        const ok = ans.toLowerCase() === (error.correct_answer ?? '').trim().toLowerCase();
+        setWasCorrect(prev => ({ ...prev, [error.id]: ok }));
+        setRevealed(prev => ({ ...prev, [error.id]: true }));
         try {
-            const xsrf = document.cookie.split('; ').find(c => c.startsWith('XSRF-TOKEN='));
-            const token = xsrf ? decodeURIComponent(xsrf.split('=')[1]) : '';
-            const res = await fetch(`/errors/${error.id}/review`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-XSRF-TOKEN': token,
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                body: JSON.stringify({ correct }),
-            });
-            if (!res.ok) throw new Error('review failed ' + res.status);
-            setReviewed(prev => new Set([...prev, error.id]));
-        } catch (e) {
-            console.error('Failed to mark error as reviewed');
-        } finally {
-            setLoading(null);
-        }
+            await sm2Schedule(error, ok);
+        } catch { /* non-blocking */ }
+        finally { setLoading(null); }
+    };
+
+    // Step 2: after seeing the solution, move the card out of the pending list.
+    const dismiss = (error: UserError) => {
+        setReviewed(prev => new Set([...prev, error.id]));
     };
 
     const pending = errors.filter(e => !reviewed.has(e.id));
@@ -119,46 +130,67 @@ export default function ErrorsPractice({ errors }: Props) {
                                 </div>
                             )}
 
-                            {/* User answer vs correct */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-800/30">
-                                    <p className="text-xs font-bold text-red-400 uppercase tracking-wide mb-1">{t('errors.your_answer', 'Votre réponse')}</p>
-                                    <p className="text-sm text-red-700 dark:text-red-300 font-medium">{error.user_answer}</p>
-                                </div>
-                                <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-100 dark:border-green-800/30">
-                                    <p className="text-xs font-bold text-green-400 uppercase tracking-wide mb-1">{t('errors.correct_answer', 'Bonne réponse')}</p>
-                                    <p className="text-sm text-green-700 dark:text-green-300 font-medium">{error.correct_answer}</p>
-                                </div>
-                            </div>
-
-                            {/* Explanation */}
-                            {error.explanation && (
-                                <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800/30">
-                                    <p className="text-xs font-bold text-indigo-400 uppercase tracking-wide mb-1 flex items-center gap-1">
-                                        <Icon name="sparkles" size={11} />
-                                        {t('errors.explanation', 'Explication')}
+                            {!revealed[error.id] ? (
+                                <>
+                                    {/* Active recall: re-answer BEFORE seeing the solution */}
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">
+                                        {t('errors.try_again', 'Réessaie de répondre')}
                                     </p>
-                                    <p className="text-sm text-indigo-700 dark:text-indigo-300 leading-relaxed">{error.explanation}</p>
-                                </div>
-                            )}
+                                    <input
+                                        value={typed[error.id] ?? ''}
+                                        onChange={(e) => setTyped(prev => ({ ...prev, [error.id]: e.target.value }))}
+                                        onKeyDown={(e) => e.key === 'Enter' && attemptRecall(error)}
+                                        placeholder={t('errors.your_recall', 'Ta réponse…')}
+                                        className="w-full rounded-xl border-2 border-slate-200 px-4 py-3 font-semibold focus:border-blue-400 focus:outline-none"
+                                    />
+                                    <button
+                                        onClick={() => attemptRecall(error)}
+                                        disabled={loading === error.id || !(typed[error.id] ?? '').trim()}
+                                        className="duo-press w-full py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm disabled:opacity-40"
+                                        style={{ boxShadow: '0 4px 0 0 #1e4fa0' }}
+                                    >
+                                        {loading === error.id ? '...' : t('errors.check', 'Vérifier')}
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    {/* Result of the recall attempt */}
+                                    <div className={`rounded-xl p-3 text-center font-black ${wasCorrect[error.id] ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                                        {wasCorrect[error.id]
+                                            ? t('errors.recall_ok', '✓ Bravo, tu as retenu !')
+                                            : t('errors.recall_ko', '✗ Pas encore — revois ci-dessous')}
+                                    </div>
 
-                            {/* Actions */}
-                            <div className="flex items-center gap-3 pt-1">
-                                <button
-                                    onClick={() => markReviewed(error, false)}
-                                    disabled={loading === error.id}
-                                    className="flex-1 py-2.5 rounded-xl border-2 border-red-200 dark:border-red-800/50 text-red-600 font-bold text-sm hover:bg-red-50 transition-colors disabled:opacity-50"
-                                >
-                                    {t('errors.still_unsure', 'Pas encore compris')}
-                                </button>
-                                <button
-                                    onClick={() => markReviewed(error, true)}
-                                    disabled={loading === error.id}
-                                    className="flex-1 py-2.5 rounded-xl bg-green-500 text-white font-bold text-sm hover:bg-green-600 transition-colors disabled:opacity-50"
-                                >
-                                    {loading === error.id ? '...' : t('errors.got_it', 'Compris ✓')}
-                                </button>
-                            </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-800/30">
+                                            <p className="text-xs font-bold text-red-400 uppercase tracking-wide mb-1">{t('errors.your_answer', 'Ta réponse')}</p>
+                                            <p className="text-sm text-red-700 dark:text-red-300 font-medium">{typed[error.id] || error.user_answer}</p>
+                                        </div>
+                                        <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-100 dark:border-green-800/30">
+                                            <p className="text-xs font-bold text-green-400 uppercase tracking-wide mb-1">{t('errors.correct_answer', 'Bonne réponse')}</p>
+                                            <p className="text-sm text-green-700 dark:text-green-300 font-medium">{error.correct_answer}</p>
+                                        </div>
+                                    </div>
+
+                                    {error.explanation && (
+                                        <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800/30">
+                                            <p className="text-xs font-bold text-indigo-400 uppercase tracking-wide mb-1 flex items-center gap-1">
+                                                <Icon name="sparkles" size={11} />
+                                                {t('errors.explanation', 'Explication')}
+                                            </p>
+                                            <p className="text-sm text-indigo-700 dark:text-indigo-300 leading-relaxed">{error.explanation}</p>
+                                        </div>
+                                    )}
+
+                                    <button
+                                        onClick={() => dismiss(error)}
+                                        className="duo-press w-full py-2.5 rounded-xl bg-green-500 text-white font-bold text-sm"
+                                        style={{ boxShadow: '0 4px 0 0 #2d7d52' }}
+                                    >
+                                        {t('errors.continue', 'Continuer')}
+                                    </button>
+                                </>
+                            )}
                         </div>
                     </div>
                 ))}
