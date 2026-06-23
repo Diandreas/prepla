@@ -644,6 +644,35 @@
         box-shadow: 0 4px 0 0 hsl(218, 30%, 12%);
     }
 
+    /* Answer feedback animations */
+    @keyframes answer-shake {
+        0%, 100% { transform: translateX(0); }
+        20% { transform: translateX(-7px); }
+        40% { transform: translateX(7px); }
+        60% { transform: translateX(-5px); }
+        80% { transform: translateX(5px); }
+    }
+    .answer-shake { animation: answer-shake 0.4s cubic-bezier(.36,.07,.19,.97); }
+
+    @keyframes answer-pop {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.04); }
+        100% { transform: scale(1); }
+    }
+    .answer-pop { animation: answer-pop 0.35s ease; }
+
+    /* Count-up / value bump when a number changes (XP, streak) */
+    @keyframes value-bump {
+        0% { transform: scale(1); }
+        40% { transform: scale(1.35); }
+        100% { transform: scale(1); }
+    }
+    .value-bump { animation: value-bump 0.4s cubic-bezier(.34,1.56,.64,1); }
+
+    @media (prefers-reduced-motion: reduce) {
+        .answer-shake, .answer-pop, .value-bump { animation: none; }
+    }
+
     /* Page transition — subtle fade + slide-up replayed on each navigation
        (the content div is re-keyed by URL). Respects reduced-motion. */
     @keyframes page-enter {

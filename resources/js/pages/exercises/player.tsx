@@ -847,7 +847,10 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                         </div>
                     )}
 
-                    <div className="player-card group/card relative" style={{ padding: '24px' }}>
+                    <div
+                        className={`player-card group/card relative ${isChecked ? (isCorrect ? 'answer-pop' : 'answer-shake') : ''}`}
+                        style={{ padding: '24px' }}
+                    >
                         {/* Floating TTS button — the question text itself is rendered by each Component to avoid duplication */}
                         <button
                             onClick={() => playTts(question.text || question.prompt, 'question')}

@@ -2,6 +2,7 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import { usePage } from '@inertiajs/react';
 import type { SharedData } from '@/types';
 import { useAppearance } from '@/hooks/use-appearance';
+import { useState, useEffect, useRef } from 'react';
 
 const GOLD = '#F5A623';
 
@@ -86,6 +87,20 @@ export function AppSidebarHeader() {
     const streak = (userProfile as any)?.streak_current ?? 0;
     const xp = (userProfile as any)?.xp_total ?? 0;
 
+    // Bump the XP / streak chips briefly when their value increases.
+    const [xpBump, setXpBump] = useState(false);
+    const [streakBump, setStreakBump] = useState(false);
+    const prevXp = useRef(xp);
+    const prevStreak = useRef(streak);
+    useEffect(() => {
+        if (xp > prevXp.current) { setXpBump(true); const t = setTimeout(() => setXpBump(false), 450); prevXp.current = xp; return () => clearTimeout(t); }
+        prevXp.current = xp;
+    }, [xp]);
+    useEffect(() => {
+        if (streak > prevStreak.current) { setStreakBump(true); const t = setTimeout(() => setStreakBump(false), 450); prevStreak.current = streak; return () => clearTimeout(t); }
+        prevStreak.current = streak;
+    }, [streak]);
+
     return (
         <header
             className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between border-b border-border/60 bg-background/80 px-4 backdrop-blur-xl md:static md:h-14"
@@ -103,12 +118,12 @@ export function AppSidebarHeader() {
             {/* Right: a single discreet stat group + theme toggle */}
             <div className="flex items-center gap-2">
                 <div className="flex items-center gap-3 rounded-full border border-border/60 bg-card/60 px-3 py-1">
-                    <span className="flex items-center gap-1 text-xs font-black tabular-nums" style={{ color: '#F97316' }}>
+                    <span className={`flex items-center gap-1 text-xs font-black tabular-nums ${streakBump ? 'value-bump' : ''}`} style={{ color: '#F97316' }}>
                         <img src="/animation/Fire.gif" alt="Série" className="h-4 w-4 object-contain" />
                         {streak}
                     </span>
                     <span className="h-3 w-px bg-border" />
-                    <span className="flex items-center gap-1 text-xs font-black tabular-nums" style={{ color: GOLD }}>
+                    <span className={`flex items-center gap-1 text-xs font-black tabular-nums ${xpBump ? 'value-bump' : ''}`} style={{ color: GOLD }}>
                         <CustomIcon name="trophy" className="h-3.5 w-3.5" style={{ filter: 'brightness(0) saturate(100%) invert(84%) sepia(40%) saturate(1734%) hue-rotate(353deg) brightness(94%) contrast(86%)' }} />
                         {xp}
                     </span>
