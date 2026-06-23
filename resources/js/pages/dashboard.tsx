@@ -235,87 +235,69 @@ export default function Dashboard() {
 
             <div className="mx-auto max-w-lg px-4 py-6">
 
-                {/* ── Chapter Hero Card ── */}
+                {/* ── Chapter card (compact): navigation + progress + Commencer ── */}
                 {viewedChapter && (
-                    <div className="mb-4 rounded-2xl bg-white border border-gray-100 shadow-sm relative" style={{ minHeight: 130, overflow: 'visible' }}>
-                        <div className="flex items-center p-5 pr-[130px] gap-3">
+                    <div className="mb-4 rounded-2xl bg-white border border-gray-100 shadow-sm p-3.5">
+                        <div className="flex items-center gap-2">
                             {/* Prev */}
                             <button
                                 onClick={() => setViewedChapterIdx(i => Math.max(0, i - 1))}
                                 disabled={viewedChapterIdx === 0}
-                                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 disabled:opacity-20 transition flex-shrink-0"
+                                className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 disabled:opacity-20 transition flex-shrink-0"
                                 aria-label="Chapitre précédent"
                             >
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke={OXFORD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke={OXFORD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                             </button>
 
                             <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                                        Chapitre {viewedChapterIdx + 1} / {chapters.length}
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 truncate">
+                                        Ch. {viewedChapterIdx + 1}/{chapters.length}
                                     </span>
                                     {isViewingActive && (
-                                        <span className="rounded-full px-2 py-0.5 text-[10px] font-black" style={{ background: '#dcfce7', color: '#16a34a' }}>EN COURS</span>
+                                        <span className="rounded-full px-1.5 py-0.5 text-[9px] font-black" style={{ background: '#dcfce7', color: '#16a34a' }}>EN COURS</span>
                                     )}
                                     {!isViewingActive && viewedChapterIdx < activeChapterIdx && (
-                                        <span className="rounded-full px-2 py-0.5 text-[10px] font-black" style={{ background: '#fef3c7', color: '#d97706' }}>TERMINÉ</span>
+                                        <span className="rounded-full px-1.5 py-0.5 text-[9px] font-black" style={{ background: '#fef3c7', color: '#d97706' }}>TERMINÉ</span>
                                     )}
                                     {!isViewingActive && viewedChapterIdx > activeChapterIdx && (
-                                        <span className="rounded-full px-2 py-0.5 text-[10px] font-black" style={{ background: '#f3f4f6', color: '#9ca3af' }}>VERROUILLÉ</span>
+                                        <span className="rounded-full px-1.5 py-0.5 text-[9px] font-black" style={{ background: '#f3f4f6', color: '#9ca3af' }}>VERROUILLÉ</span>
                                     )}
                                 </div>
-                                <h2 className="text-xl font-black" style={{ color: OXFORD }}>{viewedChapter.name}</h2>
-                                <div className="mt-2 h-1.5 w-full max-w-[180px] rounded-full bg-gray-100 overflow-hidden">
-                                    <div className="h-full rounded-full transition-all duration-700" style={{ width: `${chapterPct}%`, background: SKY }} />
-                                </div>
-                                <p className="mt-1 text-[11px] font-bold text-gray-400">{completedInChapter} / {totalInChapter} étapes</p>
+                                <h2 className="text-base font-black truncate" style={{ color: OXFORD }}>{viewedChapter.name}</h2>
                             </div>
 
                             {/* Next */}
                             <button
                                 onClick={() => setViewedChapterIdx(i => Math.min(chapters.length - 1, i + 1))}
                                 disabled={viewedChapterIdx >= chapters.length - 1 || viewedChapterIdx >= activeChapterIdx}
-                                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 disabled:opacity-20 transition flex-shrink-0"
+                                className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-gray-100 disabled:opacity-20 transition flex-shrink-0"
                                 aria-label="Chapitre suivant"
                             >
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke={OXFORD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke={OXFORD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                             </button>
                         </div>
 
-                        {/* 3D Illustration — déborde en bas à droite */}
-                        <div className="absolute bottom-0 right-0 pointer-events-none" style={{ width: 140, height: 140 }}>
-                            <img
-                                src="/icons/chapter-hero.png"
-                                alt=""
-                                className="chapter-hero-img"
-                                style={{ width: 140, height: 140, objectFit: 'contain', objectPosition: 'bottom right', filter: 'drop-shadow(0 8px 20px rgba(74,144,226,0.3))' }}
-                            />
+                        {/* Progress + Commencer on one compact row */}
+                        <div className="mt-3 flex items-center gap-3">
+                            <div className="flex-1 min-w-0">
+                                <div className="h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
+                                    <div className="h-full rounded-full transition-all duration-700" style={{ width: `${chapterPct}%`, background: SKY }} />
+                                </div>
+                                <p className="mt-1 text-[10px] font-bold text-gray-400">{completedInChapter} / {totalInChapter} étapes</p>
+                            </div>
+                            {firstActiveInChapter && (isViewingActive || viewedChapterIdx <= activeChapterIdx) && (
+                                <button
+                                    onClick={() => handleStartNode(firstActiveInChapter)}
+                                    className="duo-press flex-shrink-0 rounded-xl px-4 py-2.5 font-black text-xs text-white flex items-center gap-1.5"
+                                    style={{ background: SKY, boxShadow: '0 4px 0 0 #2563a0' }}
+                                >
+                                    COMMENCER
+                                    <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M8 4l3 3-3 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                </button>
+                            )}
                         </div>
                     </div>
-                )}
-
-                {/* ── CTA Card : Start / Continue chapter ── */}
-                {firstActiveInChapter && (isViewingActive || viewedChapterIdx <= activeChapterIdx) && (
-                    <button
-                        onClick={() => handleStartNode(firstActiveInChapter)}
-                        className="duo-press mb-6 w-full rounded-2xl text-left flex items-center gap-4 p-4 text-white"
-                        style={{
-                            background: `linear-gradient(135deg, ${OXFORD} 0%, #2a3f6a 100%)`,
-                            boxShadow: '0 5px 0 0 rgba(0,0,0,0.25)',
-                        }}
-                    >
-                        <div className="h-12 w-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(255,255,255,0.12)' }}>
-                            <Icon name="book" size={26} style={{ filter: 'brightness(0) invert(1)' }} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Chapitre {viewedChapterIdx + 1}</p>
-                            <p className="text-base font-black truncate">{viewedChapter?.name}</p>
-                        </div>
-                        <div className="flex-shrink-0 rounded-xl px-4 py-2 font-black text-sm flex items-center gap-1.5" style={{ background: SKY }}>
-                            COMMENCER
-                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M8 4l3 3-3 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                        </div>
-                    </button>
                 )}
 
                 {/* ── Steps List ── */}
