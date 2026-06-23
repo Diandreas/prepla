@@ -6,6 +6,7 @@ import { MobileTabBar } from '@/components/mobile-tab-bar';
 import { PwaInstallPrompt } from '@/components/pwa-install-prompt';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { type BreadcrumbItem } from '@/types';
+import { usePage } from '@inertiajs/react';
 
 export default function AppSidebarLayout({
     children,
@@ -19,6 +20,8 @@ export default function AppSidebarLayout({
     focusMode?: boolean;
 }) {
     const isMobile = useIsMobile();
+    // Re-key the content by URL so it replays a subtle enter animation on each navigation.
+    const { url } = usePage();
 
     return (
         <AppShell variant="sidebar">
@@ -27,7 +30,7 @@ export default function AppSidebarLayout({
 
             <AppContent variant="sidebar">
                 {!focusMode && <AppSidebarHeader breadcrumbs={breadcrumbs} />}
-                <div className={`w-full min-w-0 overflow-x-hidden ${focusMode ? '' : 'pb-24 md:pb-6'}`}>
+                <div key={url} className={`page-transition w-full min-w-0 overflow-x-hidden ${focusMode ? '' : 'pb-24 md:pb-6'}`}>
                     {children}
                 </div>
             </AppContent>

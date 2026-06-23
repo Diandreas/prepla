@@ -644,6 +644,19 @@
         box-shadow: 0 4px 0 0 hsl(218, 30%, 12%);
     }
 
+    /* Page transition — subtle fade + slide-up replayed on each navigation
+       (the content div is re-keyed by URL). Respects reduced-motion. */
+    @keyframes page-enter {
+        from { opacity: 0; transform: translateY(8px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    .page-transition {
+        animation: page-enter 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .page-transition { animation: none; }
+    }
+
     /* Duo Press – makes any clickable element feel like a Duolingo 3D button.
        Set --duo-shadow to the color of the bottom edge. Used on /lessons CTA
        and list rows so clickable things visibly depress on click. */

@@ -77,11 +77,8 @@ function ThemeToggleButton() {
 
 export function AppSidebarHeader() {
     const page = usePage<SharedData & { userProfile?: any }>();
-    const { auth, userProfile } = page.props;
+    const { userProfile } = page.props;
     const url = page.url ?? '';
-    const { appearance } = useAppearance();
-
-    const isDark = appearance === 'dark' || (appearance === 'system' && typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
     // Find current page title
     const pageTitle = Object.entries(PAGE_TITLES).find(([path]) => url === path || url.startsWith(path + '/'))?.[1] ?? 'PrePla';
@@ -89,41 +86,32 @@ export function AppSidebarHeader() {
     const streak = (userProfile as any)?.streak_current ?? 0;
     const xp = (userProfile as any)?.xp_total ?? 0;
 
-    const headerBg = isDark ? '#0f1623' : '#ffffff';
-    const borderColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(26,43,72,0.08)';
-    const shadow = isDark ? '0 1px 8px rgba(0,0,0,0.3)' : '0 1px 8px rgba(26,43,72,0.06)';
-    const titleColor = isDark ? '#e8e4db' : '#1A2B48';
-
     return (
         <header
-            className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between border-b px-4 md:static md:h-14"
-            style={{ background: headerBg, borderColor, boxShadow: shadow }}
+            className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between border-b border-border/60 bg-background/80 px-4 backdrop-blur-xl md:static md:h-14"
         >
             {/* Left: sidebar toggle (desktop only) + page title */}
             <div className="flex items-center gap-3">
                 <div className="hidden md:block">
                     <SidebarTrigger className="-ml-1" />
                 </div>
-                <span className="text-base font-bold tracking-tight md:text-lg" style={{ color: titleColor }}>
+                <span className="text-base font-bold tracking-tight text-foreground md:text-lg">
                     {pageTitle}
                 </span>
             </div>
 
-            {/* Right: streak + XP + theme toggle */}
+            {/* Right: a single discreet stat group + theme toggle */}
             <div className="flex items-center gap-2">
-                <div
-                    className="flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wider"
-                    style={{ background: 'rgba(249,115,22,0.08)', color: '#F97316' }}
-                >
-                    <img src="/animation/Fire.gif" alt="Série" className="h-5 w-5 object-contain" />
-                    {streak}
-                </div>
-                <div
-                    className="flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wider"
-                    style={{ background: 'rgba(245,166,35,0.1)', color: GOLD }}
-                >
-                    <CustomIcon name="trophy" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(84%) sepia(40%) saturate(1734%) hue-rotate(353deg) brightness(94%) contrast(86%)' }} />
-                    {xp}
+                <div className="flex items-center gap-3 rounded-full border border-border/60 bg-card/60 px-3 py-1">
+                    <span className="flex items-center gap-1 text-xs font-black tabular-nums" style={{ color: '#F97316' }}>
+                        <img src="/animation/Fire.gif" alt="Série" className="h-4 w-4 object-contain" />
+                        {streak}
+                    </span>
+                    <span className="h-3 w-px bg-border" />
+                    <span className="flex items-center gap-1 text-xs font-black tabular-nums" style={{ color: GOLD }}>
+                        <CustomIcon name="trophy" className="h-3.5 w-3.5" style={{ filter: 'brightness(0) saturate(100%) invert(84%) sepia(40%) saturate(1734%) hue-rotate(353deg) brightness(94%) contrast(86%)' }} />
+                        {xp}
+                    </span>
                 </div>
                 <ThemeToggleButton />
             </div>
