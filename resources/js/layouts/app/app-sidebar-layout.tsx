@@ -27,7 +27,7 @@ export default function AppSidebarLayout({
 
             <AppContent variant="sidebar">
                 {!focusMode && <AppSidebarHeader breadcrumbs={breadcrumbs} />}
-                <div className={focusMode ? '' : 'pb-24 md:pb-6'}>
+                <div className={`w-full min-w-0 overflow-x-hidden ${focusMode ? '' : 'pb-24 md:pb-6'}`}>
                     {children}
                 </div>
             </AppContent>
