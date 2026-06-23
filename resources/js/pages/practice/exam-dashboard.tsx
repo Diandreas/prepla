@@ -132,48 +132,37 @@ export default function ExamDashboard({ exam, sectionProgress }: Props) {
                 </div>
             )}
 
-            <div className="mx-auto max-w-2xl px-4 py-8">
+            <div className="mx-auto max-w-2xl px-4 py-5">
                 {/* Header */}
-                <div className="mb-6">
-                    <div className="flex items-center gap-2">
-                        {exam.language?.flag && <FlagImg flag={exam.language.flag} size={28} />}
-                        <h1 className="text-2xl font-black tracking-tight" style={{ color: OXFORD }}>
-                            {exam.name}
-                        </h1>
-                    </div>
-                    <p className="mt-1 text-sm font-bold text-muted-foreground">
-                        {t('practice.all_sections', { name: exam.name })}
-                    </p>
+                <div className="mb-4 flex items-center gap-2">
+                    {exam.language?.flag && <FlagImg flag={exam.language.flag} size={24} />}
+                    <h1 className="text-xl font-black tracking-tight text-foreground">
+                        {exam.name}
+                    </h1>
                 </div>
 
-                {/* Exam mode banner */}
-                <div
-                    className="duo-card mb-6 flex items-center justify-between gap-4 p-4"
-                    style={{ background: examMode ? 'rgba(26,43,72,0.04)' : undefined }}
-                >
-                    <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ background: OXFORD }}>
-                            <img src="/icons/clock.png" alt="" width={18} height={18} style={{ filter: 'brightness(0) invert(1)' }} />
+                {/* Exam mode banner — compact */}
+                <div className="duo-card mb-4 flex items-center justify-between gap-3 p-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" style={{ background: OXFORD }}>
+                            <img src="/icons/clock.png" alt="" width={16} height={16} style={{ filter: 'brightness(0) invert(1)' }} />
                         </div>
-                        <div>
-                            <p className="text-sm font-black" style={{ color: OXFORD }}>{t('practice.exam_mode_title')}</p>
-                            <p className="text-xs text-muted-foreground">{t('practice.exam_mode_desc', { minutes: totalExamMinutes })}</p>
+                        <div className="min-w-0">
+                            <p className="text-sm font-black text-foreground truncate">{t('practice.exam_mode_title')}</p>
+                            <p className="text-[11px] text-muted-foreground">{t('practice.exam_mode_desc', { minutes: totalExamMinutes })}</p>
                         </div>
                     </div>
                     <Link
                         href={route('practice.simulate', exam.id)}
-                        className="rounded-xl px-4 py-2 text-xs font-black text-white transition-all"
-                        style={{
-                            background: SKY,
-                            boxShadow: `0 3px 0 0 #2a6fc0`,
-                        }}
+                        className="duo-press shrink-0 rounded-xl px-4 py-2 text-xs font-black text-white"
+                        style={{ background: SKY, boxShadow: `0 3px 0 0 #2a6fc0` }}
                     >
                         {t('practice.exam_mode_start')}
                     </Link>
                 </div>
 
                 {/* Section Cards */}
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-3 sm:grid-cols-2">
                     {exam.sections.map((section, i) => {
                         const iconName = skillIcons[section.skill_type] ?? 'book';
                         const theme = skillThemes[section.skill_type] ?? skillThemes.reading;
@@ -183,7 +172,7 @@ export default function ExamDashboard({ exam, sectionProgress }: Props) {
                             <Link
                                 key={section.id}
                                 href={route('practice.section', [exam.id, section.id])}
-                                className="duo-card flex items-center gap-4 p-5"
+                                className="duo-card flex items-center gap-3 p-3"
                                 style={{
                                     opacity: mounted ? 1 : 0,
                                     transform: mounted ? 'translateY(0)' : 'translateY(12px)',
@@ -192,7 +181,7 @@ export default function ExamDashboard({ exam, sectionProgress }: Props) {
                             >
                                 {/* Icon */}
                                 <div
-                                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl"
+                                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl"
                                     style={{
                                         background: theme.bg,
                                         boxShadow: `0 4px 0 0 ${theme.shadow}`,
@@ -201,28 +190,15 @@ export default function ExamDashboard({ exam, sectionProgress }: Props) {
                                     <Icon name={iconName} size={20} style={{ filter: 'brightness(0) invert(1)' }} />
                                 </div>
 
-                                {/* Content */}
+                                {/* Content — name + meta on two lines (the skill badge was redundant with the name) */}
                                 <div className="flex-1 min-w-0">
-                                    <h3 className="text-sm font-black" style={{ color: OXFORD }}>
+                                    <h3 className="text-sm font-black text-foreground truncate">
                                         {section.name}
                                     </h3>
-                                    <p className="text-[10px] font-bold text-muted-foreground">
+                                    <p className="text-[11px] font-bold text-muted-foreground">
                                         {section.time_limit} min · {t('practice.section_exercise_types', { count: section.exercise_types?.length ?? 0 })}
+                                        {attempts > 0 && <> · {t('practice.section_attempts_one', { count: attempts })}</>}
                                     </p>
-                                    <div className="mt-2 flex items-center justify-between">
-                                        <span className="text-[10px] font-bold text-muted-foreground">
-                                            {t('practice.section_attempts_one', { count: attempts })}
-                                        </span>
-                                        <span
-                                            className="rounded-md px-2 py-0.5 text-[10px] font-black uppercase tracking-wider"
-                                            style={{
-                                                background: 'rgba(26,43,72,0.06)',
-                                                color: OXFORD,
-                                            }}
-                                        >
-                                            {section.skill_type}
-                                        </span>
-                                    </div>
                                 </div>
 
                                 {/* Chevron */}
@@ -232,51 +208,49 @@ export default function ExamDashboard({ exam, sectionProgress }: Props) {
                     })}
                 </div>
 
-                {/* Personalized Practice */}
-                <div className="mt-10 mb-6">
-                    <h2 className="text-lg font-black tracking-tight mb-4" style={{ color: OXFORD }}>
+                {/* Personalized Practice — compact */}
+                <div className="mt-6">
+                    <h2 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-3">
                         {t('practice.personalized_title', 'Votre Espace Personnel')}
                     </h2>
-                    <div className="grid gap-4">
-                        {/* Mistakes Card */}
+                    <div className="grid gap-3">
+                        {/* Mistakes */}
                         <Link
                             href={route('errors.practice')}
-                            className="duo-card flex items-center gap-4 p-5 border-red-100 hover:bg-red-50/30 transition-colors"
+                            className="duo-card flex items-center gap-3 p-3 hover:bg-red-50/30 transition-colors"
                         >
-                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-red-100 text-red-600 shadow-[0_4px_0_0_#fecaca]">
-                                <Icon name="alert-circle" size={24} />
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-red-100 text-red-600 shadow-[0_4px_0_0_#fecaca]">
+                                <Icon name="alert-circle" size={20} />
                             </div>
-                            <div className="flex-1">
-                                <h3 className="text-sm font-black text-red-900">
+                            <div className="flex-1 min-w-0">
+                                <h3 className="text-sm font-black text-red-900 dark:text-red-300">
                                     {t('practice.mistakes_review_title', 'Centre de Récupération')}
                                 </h3>
-                                <p className="text-xs font-bold text-red-600/70">
-                                    {t('practice.mistakes_review_desc', 'Révisez vos erreurs passées pour ne plus les refaire.')}
+                                <p className="text-[11px] font-bold text-red-600/70 truncate">
+                                    {t('practice.mistakes_review_desc', 'Révise tes erreurs passées.')}
                                 </p>
                             </div>
                             <Icon name="chevron-right" size={16} style={{ opacity: 0.3 }} />
                         </Link>
 
-                        <div className="grid gap-4 sm:grid-cols-2">
-                            {/* Vocabulary Card */}
-                            {/* Vocabulaire + Dictionnaire fusionnés en une seule entrée */}
-                            <Link
-                                href={route('dictionary.index')}
-                                className="duo-card flex flex-col gap-3 p-5 hover:bg-indigo-50/30 transition-colors"
-                            >
-                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 shadow-[0_4px_0_0_#c7d2fe]">
-                                    <Icon name="book" size={20} />
-                                </div>
-                                <div>
-                                    <h3 className="text-sm font-black text-indigo-900">
-                                        {t('practice.dictionary_title', 'Mon Dictionnaire')}
-                                    </h3>
-                                    <p className="text-[10px] font-bold text-indigo-600/70 uppercase tracking-wider">
-                                        {t('practice.dictionary_desc', 'Mots sauvegardés + révision (SRS)')}
-                                    </p>
-                                </div>
-                            </Link>
-                        </div>
+                        {/* Dictionary */}
+                        <Link
+                            href={route('dictionary.index')}
+                            className="duo-card flex items-center gap-3 p-3 hover:bg-indigo-50/30 transition-colors"
+                        >
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-600 shadow-[0_4px_0_0_#c7d2fe]">
+                                <Icon name="book" size={20} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <h3 className="text-sm font-black text-indigo-900 dark:text-indigo-300">
+                                    {t('practice.dictionary_title', 'Mon Dictionnaire')}
+                                </h3>
+                                <p className="text-[11px] font-bold text-indigo-600/70 truncate">
+                                    {t('practice.dictionary_desc', 'Mots sauvegardés + révision (SRS)')}
+                                </p>
+                            </div>
+                            <Icon name="chevron-right" size={16} style={{ opacity: 0.3 }} />
+                        </Link>
                     </div>
                 </div>
             </div>

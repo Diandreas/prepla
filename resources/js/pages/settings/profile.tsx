@@ -138,8 +138,8 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
         setShowExamChangeDialog(false);
     };
 
-    const sectionTitleStyle = "text-xs font-bold uppercase tracking-[0.1em] text-muted-foreground mb-3 px-1";
-    const itemStyle = "flex items-center justify-between w-full p-4 text-left transition-colors active:bg-muted/50 group";
+    const sectionTitleStyle = "text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground mb-2 px-1";
+    const itemStyle = "flex items-center justify-between w-full px-3.5 py-3 text-left transition-colors active:bg-muted/50 group";
     const itemIconBg = "flex h-9 w-9 items-center justify-center rounded-xl mr-3";
 
     return (
@@ -190,7 +190,7 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                 </Link>
 
                 {/* 3. Learning Settings */}
-                <div className="px-4">
+                <div>
                     <h3 className={sectionTitleStyle}>{t('profile.study_settings', 'Paramètres d\'étude')}</h3>
                     <div className="overflow-hidden rounded-2xl border bg-card shadow-sm divide-y">
                         {/* Target Exam */}
@@ -309,7 +309,7 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                 </div>
 
                 {/* 4. Personal Information */}
-                <div className="px-4">
+                <div>
                     <h3 className={sectionTitleStyle}>{t('profile.personal_info', 'Informations Personnelles')}</h3>
                     <div className="overflow-hidden rounded-2xl border bg-card shadow-sm divide-y">
                         <button
@@ -361,7 +361,7 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                 </div>
 
                 {/* 5. App Settings */}
-                <div className="px-4">
+                <div>
                     <h3 className={sectionTitleStyle}>{t('profile.app_settings', 'Application')}</h3>
                     <div className="overflow-hidden rounded-2xl border bg-card shadow-sm divide-y">
                         <Link href={route('appearance')} className={itemStyle}>
@@ -394,7 +394,7 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                 </div>
 
                 {/* 6. Notifications */}
-                <div className="px-4">
+                <div>
                     <PushNotificationToggle />
                 </div>
 
