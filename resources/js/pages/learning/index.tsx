@@ -189,7 +189,7 @@ export default function LearningIndex({ lessons, skeleton, errorStats }: Props) 
                         </div>
 
                         {/* Objectives timeline */}
-                        <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
+                        <div className="space-y-1.5 max-h-64 overflow-y-auto overflow-x-hidden pr-1">
                             {skeleton.objectives.map((obj, i) => {
                                 const isDone = obj.status === 'done';
                                 const isCurrent = obj.status === 'current';
@@ -197,7 +197,7 @@ export default function LearningIndex({ lessons, skeleton, errorStats }: Props) 
                                 return (
                                     <div
                                         key={i}
-                                        className="flex items-center gap-3 rounded-xl px-3 py-2 transition-all"
+                                        className="flex items-center gap-3 rounded-xl px-3 py-2 transition-all min-w-0 overflow-hidden"
                                         style={{
                                             background: isCurrent ? 'rgba(74,144,226,0.08)' : 'transparent',
                                             borderLeft: isCurrent ? `3px solid ${SKY}` : isDone ? `3px solid ${GREEN}` : '3px solid #e5e7eb',
