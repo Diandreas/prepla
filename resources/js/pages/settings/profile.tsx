@@ -173,37 +173,21 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                     </div>
                 </div>
 
-                {/* 2. Subscription Card */}
-                <div className="px-4">
-                    <Card className="overflow-hidden border-none bg-gradient-to-br from-[#1A2B48] to-[#2a3f6a] text-white shadow-lg">
-                        <CardHeader className="pb-2">
-                            <div className="flex items-center justify-between">
-                                <Badge className={`font-bold ${profile?.plan === 'premium' ? 'bg-amber-400 text-amber-950' : 'bg-neutral-500 text-white'}`}>
-                                    {profile?.plan === 'premium' ? 'PREMIUM' : 'STANDARD'}
-                                </Badge>
-                                <CustomIcon name="credit-card" className="h-4 w-4 opacity-50" style={{ filter: 'brightness(0) saturate(100%) invert(100%)' }} />
-                            </div>
-                            <CardTitle className="text-xl mt-2 font-black">
-                                {profile?.plan === 'premium' ? 'PrePla Plus' : 'PrePla Standard'}
-                            </CardTitle>
-                            <CardDescription className="text-blue-100/70">
-                                {profile?.plan === 'premium'
-                                    ? t('profile.premium_desc', 'Accès illimité à tous les examens et correction IA avancée.')
-                                    : t('profile.standard_desc', 'Passez au Premium pour débloquer toutes les fonctionnalités.')}
-                            </CardDescription>
-                        </CardHeader>
-                        <CardFooter className="pt-0">
-                            <Link href={route('subscription.index')} className="w-full">
-                                <Button
-                                    variant="secondary"
-                                    className="w-full mt-4 bg-white/10 hover:bg-white/20 border-white/20 text-white font-bold"
-                                >
-                                    {t('profile.manage_subscription', 'Gérer mon abonnement')}
-                                </Button>
-                            </Link>
-                        </CardFooter>
-                    </Card>
-                </div>
+                {/* 2. Subscription — compact row */}
+                <Link
+                    href={route('subscription.index')}
+                    className="flex items-center justify-between gap-3 rounded-2xl p-3.5 text-white"
+                    style={{ background: 'linear-gradient(135deg, #1A2B48, #2a3f6a)' }}
+                >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                        <CustomIcon name="credit-card" className="h-5 w-5 shrink-0 opacity-70" style={{ filter: 'brightness(0) saturate(100%) invert(100%)' }} />
+                        <div className="min-w-0">
+                            <p className="text-sm font-black truncate">{profile?.plan === 'premium' ? 'PrePla Plus' : 'PrePla Standard'}</p>
+                            <p className="text-[10px] font-bold opacity-70">{profile?.plan === 'premium' ? 'Premium actif' : 'Passe au Premium'}</p>
+                        </div>
+                    </div>
+                    <span className="shrink-0 rounded-lg bg-white/15 px-3 py-1.5 text-[11px] font-black">Gérer</span>
+                </Link>
 
                 {/* 3. Learning Settings */}
                 <div className="px-4">

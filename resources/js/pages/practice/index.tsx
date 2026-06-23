@@ -44,16 +44,6 @@ export default function PracticeIndex({ exams, targetExamId }: Props) {
         <AppLayout>
             <Head title="Pratiquer" />
             <div className="mx-auto max-w-2xl px-4 py-5">
-                {/* Header */}
-                <div className="mb-4">
-                    <h1 className="text-xl font-black tracking-tight text-foreground">
-                        Pratiquer
-                    </h1>
-                    <p className="text-xs font-bold text-muted-foreground">
-                        Choisis un examen pour t'entraîner
-                    </p>
-                </div>
-
                 {/* Two compact action tiles: Dictionnaire + Test IA */}
                 <div className="mb-5 grid grid-cols-2 gap-3">
                     <Link

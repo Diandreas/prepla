@@ -70,14 +70,9 @@ export default function ResultsIndex({ profile, skillStats, recentAttempts }: Pr
         <AppLayout>
             <Head title="Résultats" />
             <div className="mx-auto max-w-2xl px-4 py-5">
-                {/* Header */}
+                {/* Sub-header (the page title is already shown in the top bar) */}
                 <div className="mb-4 flex items-center justify-between gap-3" style={stagger(0)}>
-                    <div className="min-w-0">
-                        <h1 className="text-xl font-black tracking-tight text-foreground">
-                            Résultats
-                        </h1>
-                        <p className="text-xs font-bold text-muted-foreground">Ta progression par compétence</p>
-                    </div>
+                    <p className="text-sm font-bold text-muted-foreground">Ta progression par compétence</p>
                     <Link href="/results/attempts" className="duo-btn-secondary text-xs shrink-0">
                         Historique
                         <Icon name="arrow-right" size={14} />
