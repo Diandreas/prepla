@@ -196,7 +196,7 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                         {/* Target Exam */}
                         <div className="p-4 space-y-4">
                             <div className="flex items-center mb-1">
-                                <div className={itemIconBg + " bg-blue-100 text-blue-600"}>
+                                <div className={itemIconBg + " bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300"}>
                                     <CustomIcon name="book" className="h-4 w-4" />
                                 </div>
                                 <div className="flex-1">
@@ -254,7 +254,7 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                         {/* Exam Date */}
                         <div className="p-4 flex items-center justify-between">
                             <div className="flex items-center">
-                                <div className={itemIconBg + " bg-purple-100 text-purple-600"}>
+                                <div className={itemIconBg + " bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-300"}>
                                     <CustomIcon name="calendar" className="h-4 w-4" />
                                 </div>
                                 <div>
@@ -273,7 +273,7 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                         {/* Interface Language */}
                         <div className="p-4 flex items-center justify-between">
                             <div className="flex items-center">
-                                <div className={itemIconBg + " bg-orange-100 text-orange-600"}>
+                                <div className={itemIconBg + " bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-300"}>
                                     <CustomIcon name="languages" className="h-4 w-4" />
                                 </div>
                                 <div>
@@ -317,7 +317,7 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                             className={itemStyle}
                         >
                             <div className="flex items-center">
-                                <div className={itemIconBg + " bg-neutral-100 text-neutral-600"}>
+                                <div className={itemIconBg + " bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300"}>
                                     <CustomIcon name="user" className="h-4 w-4" />
                                 </div>
                                 <div>
@@ -347,7 +347,7 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
 
                         <div className={itemStyle}>
                             <div className="flex items-center">
-                                <div className={itemIconBg + " bg-neutral-100 text-neutral-600"}>
+                                <div className={itemIconBg + " bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300"}>
                                     <CustomIcon name="shield" className="h-4 w-4" />
                                 </div>
                                 <div>
@@ -366,7 +366,7 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                     <div className="overflow-hidden rounded-2xl border bg-card shadow-sm divide-y">
                         <Link href={route('appearance')} className={itemStyle}>
                             <div className="flex items-center">
-                                <div className={itemIconBg + " bg-neutral-100 text-neutral-600"}>
+                                <div className={itemIconBg + " bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300"}>
                                     <CustomIcon name="moon" className="h-4 w-4" />
                                 </div>
                                 <p className="text-sm font-bold">{t('profile.appearance', 'Apparence')}</p>
@@ -375,7 +375,7 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                         </Link>
                         <Link href={route('password.edit')} className={itemStyle}>
                             <div className="flex items-center">
-                                <div className={itemIconBg + " bg-neutral-100 text-neutral-600"}>
+                                <div className={itemIconBg + " bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300"}>
                                     <CustomIcon name="lock" className="h-4 w-4" />
                                 </div>
                                 <p className="text-sm font-bold">{t('profile.security_password', 'Sécurité & Mot de passe')}</p>
@@ -384,7 +384,7 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                         </Link>
                         <Link href={route('logout')} method="post" as="button" className={itemStyle}>
                             <div className="flex items-center text-red-600">
-                                <div className={itemIconBg + " bg-red-50 text-red-600"}>
+                                <div className={itemIconBg + " bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-300"}>
                                     <CustomIcon name="log-out" className="h-4 w-4" />
                                 </div>
                                 <p className="text-sm font-bold">{t('profile.logout', 'Déconnexion')}</p>
