@@ -43,65 +43,44 @@ export default function PracticeIndex({ exams, targetExamId }: Props) {
     return (
         <AppLayout>
             <Head title="Pratiquer" />
-            <div className="mx-auto max-w-2xl px-4 py-8">
+            <div className="mx-auto max-w-2xl px-4 py-5">
                 {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-2xl font-black tracking-tight" style={{ color: OXFORD }}>
+                <div className="mb-4">
+                    <h1 className="text-xl font-black tracking-tight text-foreground">
                         Pratiquer
                     </h1>
-                    <p className="mt-1 text-sm font-bold text-muted-foreground">
-                        Choisissez un examen pour commencer vos exercices
+                    <p className="text-xs font-bold text-muted-foreground">
+                        Choisis un examen pour t'entraîner
                     </p>
                 </div>
 
-                {/* Dictionary Section */}
-                <div className="mb-10 p-6 rounded-[24px] bg-indigo-50 border-2 border-indigo-100 flex items-center justify-between gap-6 shadow-sm overflow-hidden relative group">
-                    <div className="absolute -top-4 -right-4 opacity-10 rotate-12 transition-transform group-hover:scale-110 duration-500">
-                        <CustomIcon name="book" className="h-28 w-28" />
-                    </div>
-                    <div className="flex-1 relative z-10">
-                        <h2 className="text-xl font-black text-indigo-900 mb-1 flex items-center gap-2">
-                             <CustomIcon name="book" className="h-6 w-6" />
-                             Mon Dictionnaire
-                        </h2>
-                        <p className="text-sm font-bold text-indigo-700/60 mb-5 tracking-tight max-w-[280px]">Réviser vos mots appris et découvrir du vocabulaire académique ciblé.</p>
-                        <div className="flex flex-wrap gap-2">
-                             <Link href={route('dictionary.index')} className="px-5 py-2.5 bg-white text-indigo-600 font-black rounded-xl text-[11px] uppercase shadow-sm border border-indigo-200/50 hover:bg-slate-50 transition-all">
-                                 Consulter
-                             </Link>
-                             <button 
-                                onClick={() => router.post(route('dictionary.discover'))}
-                                className="px-5 py-2.5 bg-indigo-600 text-white font-black rounded-xl text-[11px] uppercase shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all border-b-4 border-indigo-800 active:border-b-0 active:translate-y-[4px]"
-                             >
-                                 Découvrir (+5 XP)
-                             </button>
+                {/* Two compact action tiles: Dictionnaire + Test IA */}
+                <div className="mb-5 grid grid-cols-2 gap-3">
+                    <Link
+                        href={route('dictionary.index')}
+                        className="duo-press flex flex-col gap-2 rounded-2xl p-3.5 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900"
+                    >
+                        <CustomIcon name="book" className="h-6 w-6" />
+                        <div>
+                            <p className="text-sm font-black text-indigo-900 dark:text-indigo-200">Dictionnaire</p>
+                            <p className="text-[10px] font-bold text-indigo-600/70">Réviser le vocabulaire</p>
                         </div>
-                    </div>
-                </div>
-
-                {/* AI Evaluation Section */}
-                <div className="mb-10" style={{ background: `linear-gradient(135deg, #1A2B48 0%, #4A90E2 100%)`, borderRadius: '24px', padding: '24px', position: 'relative', overflow: 'hidden', border: 'none', boxShadow: '0 10px 25px -5px rgba(74, 144, 226, 0.4)' }}>
-                    <div className="absolute -right-4 -top-8 opacity-10 rotate-12 transition-transform duration-700 hover:rotate-[24deg] hover:scale-110">
-                        <CustomIcon name="sparkles" className="h-48 w-48" style={{ filter: 'brightness(0) invert(1)' }} />
-                    </div>
-                    <div className="relative z-10">
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-sm -rotate-6">
-                                <Icon name="sparkles" size={24} style={{ filter: 'brightness(0) invert(1)' }} />
-                            </div>
-                            <h2 className="text-xl font-black text-white mb-0">Évaluation IA (Test de Niveau)</h2>
+                    </Link>
+                    <Link
+                        href={route('practice.simulate', targetExamId || 1)}
+                        className="duo-press flex flex-col gap-2 rounded-2xl p-3.5 text-white"
+                        style={{ background: `linear-gradient(135deg, #1A2B48 0%, #4A90E2 100%)`, boxShadow: '0 4px 0 0 #2a6fc0' }}
+                    >
+                        <Icon name="sparkles" size={24} style={{ filter: 'brightness(0) invert(1)' }} />
+                        <div>
+                            <p className="text-sm font-black">Test de niveau</p>
+                            <p className="text-[10px] font-bold opacity-80">Évaluation IA</p>
                         </div>
-                        <p className="text-sm text-blue-100 mb-6 max-w-md font-medium leading-relaxed">
-                            L'intelligence artificielle analyse vos points faibles et génère un test sur mesure pour valider vos acquis hors du parcours classique.
-                        </p>
-                        <Link href={route('practice.simulate', targetExamId || 1)} className="inline-block px-8 py-3.5 bg-white text-[#1A2B48] text-center font-black rounded-xl uppercase text-sm tracking-widest shadow-[0_4px_0_0_rgba(255,255,255,0.4)] hover:shadow-[0_2px_0_0_rgba(255,255,255,0.4)] hover:translate-y-[2px] transition-all">
-                            Passer le Test
-                        </Link>
-                    </div>
+                    </Link>
                 </div>
 
                 {Object.entries(examsByLanguage).map(([langName, langExams], gIdx) => (
-                    <div key={langName} className="mb-8">
+                    <div key={langName} className="mb-5">
                         <p
                             className="mb-3 text-xs font-black uppercase tracking-widest"
                             style={{ color: OXFORD, opacity: 0.5 }}
@@ -115,10 +94,10 @@ export default function PracticeIndex({ exams, targetExamId }: Props) {
                                     <Link
                                         key={exam.id}
                                         href={route('practice.exam', exam.id)}
-                                        className="duo-card flex items-center gap-4 p-4"
+                                        className="duo-card flex items-center gap-3 p-3"
                                         style={{
                                             borderColor: isTarget ? SKY : undefined,
-                                            background: isTarget ? 'rgba(74,144,226,0.04)' : '#ffffff',
+                                            background: isTarget ? 'rgba(74,144,226,0.06)' : undefined,
                                             opacity: mounted ? 1 : 0,
                                             transform: mounted ? 'translateY(0)' : 'translateY(12px)',
                                             transition: `all 0.4s ease ${(gIdx * 3 + i) * 80}ms`,
@@ -144,7 +123,7 @@ export default function PracticeIndex({ exams, targetExamId }: Props) {
                                         {/* Content */}
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2">
-                                                <h3 className="font-black text-sm truncate" style={{ color: OXFORD }}>
+                                                <h3 className="font-black text-sm truncate text-foreground">
                                                     {exam.name}
                                                 </h3>
                                                 {isTarget && (

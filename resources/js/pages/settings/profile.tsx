@@ -146,37 +146,29 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={t('profile.title', 'Profil')} />
 
-            <div className="mx-auto max-w-2xl space-y-8 py-6 pb-24 md:py-10 px-4">
-                {/* 1. User Profile Header */}
-                <div className="flex flex-col items-center px-4 text-center">
-                    <div className="relative mb-4">
-                        <Avatar className="h-24 w-24 border-4 border-background shadow-xl">
+            <div className="mx-auto max-w-2xl space-y-4 py-5 pb-24 md:py-8 px-4">
+                {/* 1. User Profile Header — compact row (XP/streak already shown in top bar) */}
+                <div className="flex items-center gap-4 px-1">
+                    <div className="relative shrink-0">
+                        <Avatar className="h-16 w-16 border-2 border-background shadow-md">
                             <AvatarImage src={auth.user.avatar} />
-                            <AvatarFallback className="text-2xl font-bold bg-primary text-primary-foreground">
+                            <AvatarFallback className="text-xl font-bold bg-primary text-primary-foreground">
                                 {getInitials(auth.user.name)}
                             </AvatarFallback>
                         </Avatar>
-                        <div className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white shadow-lg border-4 border-background">
-                            <CustomIcon name="sparkles" className="h-3.5 w-3.5" style={{ filter: 'brightness(0) saturate(100%) invert(100%)' }} />
-                        </div>
                     </div>
-                    <h2 className="text-2xl font-black tracking-tight">{auth.user.name}</h2>
-                    <p className="text-sm text-muted-foreground">{auth.user.email}</p>
-
-                    <div className="mt-6 flex gap-3">
-                        <div className="flex flex-col items-center rounded-2xl border bg-card px-5 py-3 shadow-sm min-w-[100px]">
-                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">{t('profile.xp_points', 'Points XP')}</span>
-                            <div className="flex items-center gap-1.5 text-lg font-black text-primary">
-                                <CustomIcon name="zap" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(84%) sepia(40%) saturate(1734%) hue-rotate(353deg) brightness(94%) contrast(86%)' }} />
+                    <div className="min-w-0">
+                        <h2 className="text-lg font-black tracking-tight truncate">{auth.user.name}</h2>
+                        <p className="text-xs text-muted-foreground truncate">{auth.user.email}</p>
+                        <div className="mt-1 flex items-center gap-3 text-xs font-black">
+                            <span className="flex items-center gap-1 text-primary">
+                                <CustomIcon name="zap" className="h-3.5 w-3.5" style={{ filter: 'brightness(0) saturate(100%) invert(84%) sepia(40%) saturate(1734%) hue-rotate(353deg) brightness(94%) contrast(86%)' }} />
                                 {profile?.xp_total ?? 0}
-                            </div>
-                        </div>
-                        <div className="flex flex-col items-center rounded-2xl border bg-card px-5 py-3 shadow-sm min-w-[100px]">
-                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">{t('profile.streak', 'Série')}</span>
-                            <div className="flex items-center gap-1 text-lg font-black text-orange-500">
-                                <img src="/animation/Fire.gif" alt="Série" className="h-5 w-5 object-contain" />
+                            </span>
+                            <span className="flex items-center gap-1 text-orange-500">
+                                <img src="/animation/Fire.gif" alt="Série" className="h-4 w-4 object-contain" />
                                 {profile?.streak_current ?? 0}
-                            </div>
+                            </span>
                         </div>
                     </div>
                 </div>

@@ -69,28 +69,23 @@ export default function ResultsIndex({ profile, skillStats, recentAttempts }: Pr
     return (
         <AppLayout>
             <Head title="Résultats" />
-            <div className="mx-auto max-w-2xl px-4 py-8">
+            <div className="mx-auto max-w-2xl px-4 py-5">
                 {/* Header */}
-                <div className="mb-8 flex items-center justify-between" style={stagger(0)}>
-                    <div>
-                        <h1 className="text-2xl font-black tracking-tight" style={{ color: OXFORD }}>
-                            Résultats & Analyses
+                <div className="mb-4 flex items-center justify-between gap-3" style={stagger(0)}>
+                    <div className="min-w-0">
+                        <h1 className="text-xl font-black tracking-tight text-foreground">
+                            Résultats
                         </h1>
-                        <p className="mt-1 text-sm font-bold text-muted-foreground">
-                            Suivez votre progression dans toutes les compétences
-                        </p>
+                        <p className="text-xs font-bold text-muted-foreground">Ta progression par compétence</p>
                     </div>
-                    <Link
-                        href="/results/attempts"
-                        className="duo-btn-secondary text-xs"
-                    >
+                    <Link href="/results/attempts" className="duo-btn-secondary text-xs shrink-0">
                         Historique
                         <Icon name="arrow-right" size={14} />
                     </Link>
                 </div>
 
                 {/* Skill breakdown cards */}
-                <div className="mb-6 grid gap-3 grid-cols-2 lg:grid-cols-4">
+                <div className="mb-5 grid gap-3 grid-cols-2 lg:grid-cols-4">
                     {skills.map((skill, i) => {
                         const stat = skillStats[skill];
                         const skillIconName = skillIcons[skill] ?? 'book';
@@ -103,7 +98,7 @@ export default function ResultsIndex({ profile, skillStats, recentAttempts }: Pr
                             >
                                 <div className="p-4 pb-3">
                                     <div className="mb-3 flex items-center justify-between">
-                                        <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: OXFORD, opacity: 0.5 }}>
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                                             {skillLabels[skill]}
                                         </span>
                                         <div
@@ -118,7 +113,7 @@ export default function ResultsIndex({ profile, skillStats, recentAttempts }: Pr
                                     </div>
                                     {stat ? (
                                         <>
-                                            <div className="text-2xl font-black" style={{ color: OXFORD }}>
+                                            <div className="text-2xl font-black text-foreground">
                                                 {Number(stat.avg_accuracy).toFixed(0)}%
                                             </div>
                                             <p className="text-[10px] font-bold text-muted-foreground">
@@ -150,37 +145,10 @@ export default function ResultsIndex({ profile, skillStats, recentAttempts }: Pr
                     })}
                 </div>
 
-                {/* Overview stats */}
-                <div className="mb-6 grid gap-3 grid-cols-3">
-                    {[
-                        { label: 'Niveau actuel', value: profile?.current_level ?? '—', icon: 'target', color: SKY, shadow: '#2a6fc0' },
-                        { label: 'XP Total', value: profile?.xp_total ?? 0, icon: 'trophy', color: GOLD, shadow: '#c07a0e' },
-                        { label: 'Exercices récents', value: recentAttempts.length, icon: 'statistics', color: '#48b77b', shadow: '#2d7d52' },
-                    ].map((item, i) => (
-                        <div
-                            key={item.label}
-                            className="duo-card flex flex-col items-center p-4"
-                            style={stagger(i + 5)}
-                        >
-                            <div
-                                className="mb-2 flex h-10 w-10 items-center justify-center rounded-2xl"
-                                style={{
-                                    background: `linear-gradient(135deg, ${item.color}, ${item.shadow})`,
-                                    boxShadow: `0 3px 0 0 ${item.shadow}`,
-                                }}
-                            >
-                                <CustomIcon name={item.icon} className="h-5 w-5" style={{ filter: 'brightness(0) saturate(100%) invert(100%)' }} />
-                            </div>
-                            <p className="text-xl font-black" style={{ color: OXFORD }}>{item.value}</p>
-                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{item.label}</p>
-                        </div>
-                    ))}
-                </div>
-
                 {/* Recent attempts */}
-                <div className="duo-card overflow-hidden p-0" style={stagger(8)}>
-                    <div className="border-b-2 border-gray-100 px-5 py-3">
-                        <p className="text-xs font-black uppercase tracking-widest" style={{ color: OXFORD, opacity: 0.5 }}>
+                <div className="duo-card overflow-hidden p-0" style={stagger(5)}>
+                    <div className="border-b-2 border-border px-5 py-3">
+                        <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">
                             Tentatives récentes
                         </p>
                     </div>
@@ -189,7 +157,7 @@ export default function ResultsIndex({ profile, skillStats, recentAttempts }: Pr
                             Aucune tentative. Commencez à pratiquer pour voir vos résultats ici.
                         </p>
                     ) : (
-                        <div className="divide-y divide-gray-100">
+                        <div className="divide-y divide-border">
                             {recentAttempts.map((attempt, i) => {
                                 const acc = Number(attempt.accuracy_percent ?? 0);
                                 const isGood = acc >= 80;
@@ -204,7 +172,7 @@ export default function ResultsIndex({ profile, skillStats, recentAttempts }: Pr
                                         }}
                                     >
                                         <div>
-                                            <p className="text-sm font-bold" style={{ color: OXFORD }}>
+                                            <p className="text-sm font-bold text-foreground">
                                                 {attempt.exercise?.exercise_type?.name ?? 'Exercice'}
                                             </p>
                                             <p className="text-[10px] font-medium text-muted-foreground">
