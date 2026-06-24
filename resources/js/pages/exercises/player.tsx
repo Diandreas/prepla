@@ -886,6 +886,34 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                 </div>
             </div>
 
+            {/* ── Explanation panel (above the bar) — gives long AI feedback room to
+                breathe and scroll instead of being crushed into the action bar ── */}
+            {isChecked && !isCorrect && (explanation || fetchingExplanation) && (
+                <div className="fixed bottom-[76px] left-0 right-0 z-40 px-3">
+                    <div className="player-font mx-auto max-h-[40vh] overflow-y-auto rounded-2xl border-2 border-red-200 bg-card p-4 shadow-xl" style={{ maxWidth: 672 }}>
+                        {fetchingExplanation ? (
+                            <p className="text-sm font-medium text-red-600/80 italic">Analyse de ton erreur…</p>
+                        ) : explanation && typeof explanation === 'object' ? (
+                            <div className="space-y-2">
+                                <p className="text-sm font-bold text-red-700 dark:text-red-300 leading-relaxed">
+                                    {(i18n.language === 'fr' && explanation.french_translation?.concept) ? explanation.french_translation.concept : explanation.concept}
+                                </p>
+                                {(i18n.language === 'fr' && explanation.french_translation?.hint ? explanation.french_translation.hint : explanation.hint) && (
+                                    <p className="text-sm text-muted-foreground leading-relaxed">
+                                        💡 {i18n.language === 'fr' && explanation.french_translation?.hint ? explanation.french_translation.hint : explanation.hint}
+                                    </p>
+                                )}
+                            </div>
+                        ) : (
+                            <FormattedFeedback
+                                text={explanation as string}
+                                className="text-sm font-medium text-foreground leading-relaxed space-y-1.5"
+                            />
+                        )}
+                    </div>
+                </div>
+            )}
+
             {/* ── Bottom Action Bar ── */}
             <div
                 className={`fixed bottom-0 left-0 right-0 transition-all duration-300 ${
@@ -939,28 +967,10 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                                         {isCorrect ? t('exercise.correct') : t('exercise.incorrect')}
                                     </div>
                                     {!isCorrect && (
-                                        <div className="mt-1 flex items-start gap-3">
-                                            <div className="max-w-[340px]">
-                                                {fetchingExplanation ? (
-                                                    <p className="text-[13px] font-medium text-red-600/80 leading-snug italic">Analyse de votre erreur...</p>
-                                                ) : explanation && typeof explanation === 'object' ? (
-                                                    <div className="space-y-0.5">
-                                                        <p className="text-[13px] font-medium text-red-700 leading-snug">
-                                                            {(i18n.language === 'fr' && explanation.french_translation?.concept) ? explanation.french_translation.concept : explanation.concept}
-                                                        </p>
-                                                        {(i18n.language === 'fr' && explanation.french_translation?.hint ? explanation.french_translation.hint : explanation.hint) && (
-                                                            <p className="text-[12px] text-red-500/80 leading-snug">
-                                                                💡 {i18n.language === 'fr' && explanation.french_translation?.hint ? explanation.french_translation.hint : explanation.hint}
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                ) : (
-                                                    <FormattedFeedback
-                                                        text={explanation as string}
-                                                        className="text-[13px] font-medium text-red-600/90 space-y-0.5"
-                                                    />
-                                                )}
-                                            </div>
+                                        <div className="mt-1 flex items-center gap-3">
+                                            <span className="text-[12px] font-medium text-red-600/80">
+                                                {fetchingExplanation ? 'Analyse…' : 'Vois l’explication ci-dessus'}
+                                            </span>
                                             <button
                                                 onClick={() => setIsChatOpen(true)}
                                                 className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 transition-colors text-xs font-bold"

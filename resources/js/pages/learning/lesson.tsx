@@ -3,6 +3,7 @@ import AppLayout from '@/layouts/app-layout';
 import { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
+import { ConfettiBurst } from '@/components/confetti-burst';
 
 interface QuizQuestion {
     question: string;
@@ -206,6 +207,21 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                 } else {
                     blocks.push({ type: 'table', lines: [trimmed] });
                 }
+            }
+            // Tab-separated (or 2+ spaces) row → treat as a table too. AI sometimes
+            // emits tables with tabs instead of pipes; normalize them to pipe rows.
+            else if ((raw.includes('\t') || /\S {2,}\S/.test(raw)) && !/^[-*>#]/.test(trimmed)) {
+                const cells = raw.split(/\t+| {2,}/).map(c => c.trim()).filter((c, idx, arr) => !(c === '' && (idx === 0 || idx === arr.length - 1)));
+                if (cells.length >= 2) {
+                    const pipeLine = '| ' + cells.join(' | ') + ' |';
+                    if (lastBlock?.type === 'table') {
+                        lastBlock.lines.push(pipeLine);
+                    } else {
+                        blocks.push({ type: 'table', lines: [pipeLine] });
+                    }
+                } else {
+                    blocks.push({ type: 'text', lines: [trimmed] });
+                }
             } else if (/^[-*]\s+/.test(trimmed)) {
                 const content = trimmed.replace(/^[-*]\s+/, '');
                 if (lastBlock?.type === 'list') {
@@ -272,22 +288,21 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                     });
                     
                     return (
-                        <div key={bi} className="my-8 overflow-x-auto rounded-2xl border-2 border-gray-100 bg-white shadow-sm">
+                        <div key={bi} className="my-8 overflow-x-auto rounded-2xl border-2 border-border bg-card shadow-sm">
                             <table className="w-full text-left text-xs border-collapse">
-                                <thead className="bg-gray-50/80">
+                                <thead className="bg-muted/50">
                                     <tr>
                                         {tableData[0].map((h, hi) => (
-                                            <th key={hi} className="px-5 py-4 font-black border-b border-gray-100" style={{ color: SKY }}>
-                                                {h}
-                                            </th>
+                                            <th key={hi} className="px-4 py-3 font-black border-b border-border" style={{ color: SKY }}
+                                                dangerouslySetInnerHTML={{ __html: parseInline(h) }} />
                                         ))}
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100">
+                                <tbody className="divide-y divide-border">
                                     {tableData.slice(1).map((row, ri) => (
-                                        <tr key={ri} className="hover:bg-gray-50/50 transition-colors">
+                                        <tr key={ri} className="hover:bg-muted/30 transition-colors">
                                             {row.map((cell, ci) => (
-                                                <td key={ci} className="px-5 py-3.5" style={{ color: OXFORD }} dangerouslySetInnerHTML={{ __html: parseInline(cell || '') }} />
+                                                <td key={ci} className="px-4 py-3 text-foreground" dangerouslySetInnerHTML={{ __html: parseInline(cell || '') }} />
                                             ))}
                                         </tr>
                                     ))}
@@ -567,9 +582,10 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                 {/* ─── PHASE: RESULTS ─── */}
                 {phase === 'results' && quizResults && (
                     <div style={stagger(0)}>
-                        {/* Result banner */}
+                        {quizResults.passed && <ConfettiBurst />}
+                        {/* Result banner — clearly different for success vs. retry */}
                         <div
-                            className="duo-card mb-6 p-6 text-center text-white"
+                            className={`duo-card mb-6 p-6 text-center text-white ${quizResults.passed ? 'answer-pop' : 'answer-shake'}`}
                             style={{
                                 background: quizResults.passed
                                     ? `linear-gradient(135deg, ${GREEN}, #3a9d68)`
@@ -579,8 +595,11 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                                     : `0 4px 0 0 #962d22`,
                             }}
                         >
-                            <p className="text-5xl mb-3">{quizResults.passed ? '🎉' : '📖'}</p>
-                            <p className="text-2xl font-black">{quizResults.accuracy}%</p>
+                            <p className="text-5xl mb-3">{quizResults.passed ? '🎉' : '🔁'}</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest opacity-80">
+                                {quizResults.passed ? 'Réussi' : 'À retravailler'}
+                            </p>
+                            <p className="text-3xl font-black mt-1">{quizResults.accuracy}%</p>
                             <p className="text-sm font-bold opacity-90 mt-1">
                                 {quizResults.message}
                             </p>
