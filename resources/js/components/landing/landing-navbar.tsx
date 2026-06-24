@@ -132,19 +132,22 @@ export function LandingNavbar() {
                 className="flex h-16 items-center justify-between"
             >
                 {/* Logo */}
-                <Link href="/" className="flex items-baseline gap-0.5 select-none" style={{ textDecoration: 'none' }}>
-                    <span style={{
-                        fontFamily: '"Cormorant Garamond", Georgia, serif',
-                        fontSize: '1.65rem', fontWeight: 700, fontStyle: 'italic',
-                        color: T.text, lineHeight: 1, letterSpacing: '-0.02em',
-                    }}>Pre</span>
-                    <span style={{
-                        fontFamily: '"Cormorant Garamond", Georgia, serif',
-                        fontSize: '1.65rem', fontWeight: 700, fontStyle: 'italic',
-                        color: T.gold, lineHeight: 1, letterSpacing: '-0.02em',
-                    }}>Pla</span>
-                    <span className="ml-1.5 rounded-sm px-1 py-0.5 text-[9px] font-bold uppercase tracking-widest"
-                        style={{ background: `${T.gold}18`, color: T.gold, letterSpacing: '0.1em' }}>
+                <Link href="/" className="flex items-center gap-2 select-none" style={{ textDecoration: 'none' }}>
+                    <img src="/icons/logo.png?v=3" alt="PrePla" width={32} height={32} style={{ objectFit: 'contain' }} />
+                    <span className="flex items-baseline gap-0.5">
+                        <span style={{
+                            fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif',
+                            fontSize: '1.35rem', fontWeight: 800,
+                            color: T.text, lineHeight: 1, letterSpacing: '-0.02em',
+                        }}>Pre</span>
+                        <span style={{
+                            fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif',
+                            fontSize: '1.35rem', fontWeight: 800,
+                            color: T.sky, lineHeight: 1, letterSpacing: '-0.02em',
+                        }}>Pla</span>
+                    </span>
+                    <span className="rounded-md px-1 py-0.5 text-[9px] font-bold uppercase tracking-widest"
+                        style={{ background: `${T.gold}1a`, color: T.gold, letterSpacing: '0.1em' }}>
                         IA
                     </span>
                 </Link>
