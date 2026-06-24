@@ -196,10 +196,20 @@ export default function LessonPage({ lesson, skeleton }: Props) {
             if (trimmed.startsWith('#')) {
                 const level = (trimmed.match(/^#+/) || ['#'])[0].length;
                 blocks.push({ type: `h${Math.min(level, 3)}`, lines: [trimmed.replace(/^#+\s*/, '')] });
-            } 
-            // Handle Numbered Headers (e.g., "1. Title") - common in AI output
-            else if (/^\d+\.\s+[A-Z\u00C0-\u017F]/.test(trimmed) && trimmed.length < 100) {
-                 blocks.push({ type: 'h2', lines: [trimmed] });
+            }
+            // Numbered list item ("1. ...", "2. ...") \u2192 ordered list, NOT a heading.
+            // (A short numbered line that reads like a title and has no sentence
+            // punctuation is treated as a heading instead.)
+            else if (/^\d+\.\s+/.test(trimmed)) {
+                const content = trimmed.replace(/^\d+\.\s+/, '');
+                const looksLikeTitle = trimmed.length < 60 && !/[.?!:,]/.test(content) && /^[A-Z\u00C0-\u017F]/.test(content);
+                if (looksLikeTitle) {
+                    blocks.push({ type: 'h2', lines: [trimmed] });
+                } else if (lastBlock?.type === 'olist') {
+                    lastBlock.lines.push(content);
+                } else {
+                    blocks.push({ type: 'olist', lines: [content] });
+                }
             }
             else if (trimmed.startsWith('|')) {
                 if (lastBlock?.type === 'table') {
@@ -245,7 +255,10 @@ export default function LessonPage({ lesson, skeleton }: Props) {
             return text
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                 .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                .replace(/`(.*?)`/g, '<code class="bg-gray-100 px-1 rounded text-[10px]">$1</code>');
+                .replace(/`(.*?)`/g, '<code class="bg-gray-100 px-1 rounded text-[10px]">$1</code>')
+                // Strip any leftover unmatched markdown asterisks (AI sometimes opens
+                // emphasis it never closes, e.g. *"I'm not so sure...).
+                .replace(/\*/g, '');
         };
 
         return blocks.map((block, bi) => {
@@ -274,6 +287,16 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                             </li>
                         ))}
                     </ul>
+                );
+                case 'olist': return (
+                    <ol key={bi} className="space-y-3 my-5 ml-1">
+                        {block.lines.map((l, li) => (
+                            <li key={li} className="flex gap-3">
+                                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-black text-white" style={{ background: SKY }}>{li + 1}</span>
+                                <p className="text-sm leading-relaxed pt-0.5" style={{ color: OXFORD }} dangerouslySetInnerHTML={{ __html: parseInline(l) }} />
+                            </li>
+                        ))}
+                    </ol>
                 );
                 case 'table':
                     const headerRows = block.lines.filter(l => !l.includes('---'));
@@ -595,7 +618,11 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                                     : `0 4px 0 0 #962d22`,
                             }}
                         >
-                            <p className="text-5xl mb-3">{quizResults.passed ? '🎉' : '🔁'}</p>
+                            {quizResults.passed ? (
+                                <img src="/animation/Trophy.gif" alt="" width={96} height={96} className="mx-auto mb-2 drop-shadow-lg" />
+                            ) : (
+                                <p className="text-5xl mb-3">🔁</p>
+                            )}
                             <p className="text-[10px] font-black uppercase tracking-widest opacity-80">
                                 {quizResults.passed ? 'Réussi' : 'À retravailler'}
                             </p>

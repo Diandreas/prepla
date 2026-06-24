@@ -221,7 +221,10 @@ export default function Dashboard() {
                 .step-card-active { box-shadow: 0 2px 16px rgba(74,144,226,0.12); }
             `}</style>
 
-            <div className="mx-auto max-w-lg px-4 py-6">
+            <div className="mx-auto max-w-lg lg:max-w-5xl px-4 py-6 lg:grid lg:grid-cols-3 lg:gap-6 lg:items-start">
+
+                {/* ─── Left column: chapter + steps ─── */}
+                <div className="lg:col-span-2">
 
                 {/* ── Chapter card (compact): navigation + progress + Commencer ── */}
                 {viewedChapter && (
@@ -288,9 +291,10 @@ export default function Dashboard() {
                     </div>
                 )}
 
-                {/* ── Quick actions (compact) — right under the chapter card so the
-                    learner sees what to do without scrolling ── */}
-                <div className="mb-5 grid grid-cols-3 gap-2">
+                {/* ── Quick actions (compact, MOBILE) — right under the chapter card
+                    so the learner sees what to do without scrolling. On desktop they
+                    move to the right column. ── */}
+                <div className="mb-5 grid grid-cols-3 gap-2 lg:hidden">
                     <Link
                         href="/lessons/next"
                         className="duo-press flex flex-col items-center gap-1.5 rounded-2xl p-3 text-white text-center"
@@ -473,19 +477,43 @@ export default function Dashboard() {
                     </Link>
                 )}
 
-                {/* ── Overall progress ── */}
-                <div className="mt-4 rounded-2xl bg-card border border-border p-4">
-                    <div className="flex items-center justify-between mb-2 text-xs font-black uppercase tracking-wider">
-                        <span className="text-muted-foreground">Progression globale</span>
-                        <span style={{ color: SKY }}>{stats.progress_percent}%</span>
+                </div>{/* /left column */}
+
+                {/* ─── Right column (desktop): actions + progress, sticky ─── */}
+                <aside className="lg:col-span-1 lg:sticky lg:top-20 space-y-4">
+                    {/* Desktop quick actions */}
+                    <div className="hidden lg:grid grid-cols-1 gap-2">
+                        <Link href="/lessons/next" className="duo-press flex items-center gap-3 rounded-2xl p-3.5 text-white"
+                            style={{ background: `linear-gradient(135deg, ${SKY}, #3478c8)`, boxShadow: '0 4px 0 0 #2563a0' }}>
+                            <Icon name="lightbulb" size={22} style={{ filter: 'brightness(0) invert(1)' }} />
+                            <span className="text-sm font-black">Prochaine leçon</span>
+                        </Link>
+                        <Link href={route('practice.index')} className="duo-press flex items-center gap-3 rounded-2xl p-3.5 text-white"
+                            style={{ background: 'linear-gradient(135deg, #48b77b, #3a9d68)', boxShadow: '0 4px 0 0 #1f6e42' }}>
+                            <Icon name="zap" size={22} style={{ filter: 'brightness(0) invert(1)' }} />
+                            <span className="text-sm font-black">Pratique rapide</span>
+                        </Link>
+                        <Link href="/errors" className="duo-press flex items-center gap-3 rounded-2xl border-2 border-border bg-card p-3.5"
+                            style={{ boxShadow: '0 4px 0 0 var(--border)' }}>
+                            <Icon name="review" size={22} style={{ filter: 'brightness(0) saturate(100%) invert(38%) sepia(93%) saturate(1352%) hue-rotate(338deg)' }} />
+                            <span className="text-sm font-black text-foreground">Révision{(dueErrorsCount ?? 0) > 0 ? ` (${dueErrorsCount})` : ''}</span>
+                        </Link>
                     </div>
-                    <div className="h-3 w-full bg-muted rounded-full overflow-hidden">
-                        <div className="h-full rounded-full transition-all duration-1000 relative" style={{ width: `${stats.progress_percent}%`, background: `linear-gradient(to right, ${SKY}, #3478c8)` }}>
-                            <div className="absolute inset-0 bg-white/20" style={{ animation: 'pulse 2s infinite' }} />
+
+                    {/* Overall progress */}
+                    <div className="mt-4 lg:mt-0 rounded-2xl bg-card border border-border p-4">
+                        <div className="flex items-center justify-between mb-2 text-xs font-black uppercase tracking-wider">
+                            <span className="text-muted-foreground">Progression globale</span>
+                            <span style={{ color: SKY }}>{stats.progress_percent}%</span>
                         </div>
+                        <div className="h-3 w-full bg-muted rounded-full overflow-hidden">
+                            <div className="h-full rounded-full transition-all duration-1000 relative" style={{ width: `${stats.progress_percent}%`, background: `linear-gradient(to right, ${SKY}, #3478c8)` }}>
+                                <div className="absolute inset-0 bg-white/20" style={{ animation: 'pulse 2s infinite' }} />
+                            </div>
+                        </div>
+                        <p className="mt-1.5 text-[10px] font-bold text-muted-foreground">{stats.completed_nodes} / {stats.total_nodes} étapes complétées</p>
                     </div>
-                    <p className="mt-1.5 text-[10px] font-bold text-muted-foreground">{stats.completed_nodes} / {stats.total_nodes} étapes complétées</p>
-                </div>
+                </aside>
 
             </div>
         </AppLayout>
