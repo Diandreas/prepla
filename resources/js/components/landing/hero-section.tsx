@@ -164,11 +164,10 @@ export function HeroSection() {
                 <div className="absolute bottom-0 right-1/4 h-80 w-80 rounded-full blur-3xl" style={{ background: T.glowGold }} />
             </div>
 
-            {/* Decorative letter */}
-            <div className="pointer-events-none absolute -left-8 top-16 select-none text-[20rem] font-black leading-none"
-                style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', color: `${T.gold}08`, lineHeight: 1 }}>
-                P
-            </div>
+            {/* Decorative logo watermark */}
+            <img src="/icons/logo.png?v=3" alt="" aria-hidden
+                className="pointer-events-none absolute -left-16 top-10 select-none"
+                style={{ width: 380, height: 'auto', opacity: T.dark ? 0.06 : 0.05 }} />
 
             <div className="relative mx-auto max-w-7xl px-6 py-20 sm:py-28 lg:px-12">
                 <div className="grid items-center gap-16 lg:grid-cols-2 lg:gap-20">
@@ -177,7 +176,7 @@ export function HeroSection() {
                         {/* Badge */}
                         <div className="mb-8 inline-flex items-center gap-2.5 rounded-full border px-4 py-1.5 text-xs font-semibold tracking-widest uppercase"
                             style={{
-                                borderColor: `${T.gold}30`, background: `${T.gold}0a`, color: T.gold,
+                                borderColor: `${T.sky}30`, background: `${T.sky}0d`, color: T.sky,
                                 opacity: mounted ? 1 : 0,
                                 transform: mounted ? 'translateY(0)' : 'translateY(12px)',
                                 transition: 'all 0.6s ease 0.1s',
@@ -188,15 +187,15 @@ export function HeroSection() {
 
                         {/* Headline */}
                         <h1 style={{
-                            fontFamily: '"Cormorant Garamond", Georgia, serif',
-                            fontSize: 'clamp(2.6rem, 5vw, 4.5rem)',
-                            fontWeight: 700, lineHeight: 1.08, color: T.text,
+                            fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif',
+                            fontSize: 'clamp(2.4rem, 5vw, 4.2rem)',
+                            fontWeight: 800, lineHeight: 1.08, letterSpacing: '-0.02em', color: T.text,
                             opacity: mounted ? 1 : 0,
                             transform: mounted ? 'translateY(0)' : 'translateY(20px)',
                             transition: 'all 0.7s ease 0.2s',
                         }}>
                             {t('landing.hero_headline').split(' ').slice(0, -2).join(' ')}{' '}
-                            <span style={{ fontStyle: 'italic', color: T.gold }}>
+                            <span style={{ color: T.sky }}>
                                 {t('landing.hero_headline').split(' ').slice(-2).join(' ')}
                             </span>
                         </h1>
