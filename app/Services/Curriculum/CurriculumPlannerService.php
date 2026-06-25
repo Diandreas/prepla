@@ -129,27 +129,36 @@ class CurriculumPlannerService
     /**
      * Record a lesson outcome and decide what happens next.
      */
-    public function recordLessonOutcome(User $user, float $accuracyPercent): string
+    public function recordLessonOutcome(User $user, float $accuracyPercent, ?bool $passed = null): string
     {
         $skeleton = CurriculumSkeleton::where('user_id', $user->id)->first();
         if (!$skeleton)
             return 'no_skeleton';
 
-        if ($accuracyPercent >= 80) {
+        // "Passed" is decided by the lesson quiz (2/3 threshold, see
+        // Lesson::isComprehensionPassed). The UI shows the "Practice this concept"
+        // CTA for any passing score, so the skeleton MUST move the objective into
+        // its practice phase for any passing score too — otherwise the practice
+        // session has no 'current_practice' objective to complete and the journey
+        // gets stuck. Fall back to the 80% band only when the caller didn't pass
+        // an explicit verdict (legacy callers).
+        $isPass = $passed ?? ($accuracyPercent >= 80);
+
+        if ($isPass) {
             // Success
             $skeleton->consecutive_successes++;
             $skeleton->consecutive_failures = 0;
             $skeleton->save();
 
-            if ($skeleton->consecutive_successes >= 3) {
-                // High performer: they still need to practice this objective, but the next one after could be skipped
-                $skeleton->advanceToPractice();
+            // Always open the practice phase for the just-learned concept.
+            $skeleton->advanceToPractice();
+
+            // A strong streak of high scores (≥80%) lets us skip the *next* lesson.
+            if ($accuracyPercent >= 80 && $skeleton->consecutive_successes >= 3) {
                 return 'skip_ahead';
-            } else {
-                // Normal progression goes to practice phase
-                $skeleton->advanceToPractice();
-                return 'advance';
             }
+
+            return 'advance';
         } else {
             // Failure
             $skeleton->consecutive_failures++;

@@ -48,7 +48,7 @@ export default function OnboardingLayout({
                 </header>
 
                 {/* Step indicators */}
-                <div className="mx-auto w-full max-w-2xl px-4 pt-5">
+                <div className="mx-auto w-full max-w-2xl px-4 pt-3 sm:pt-5">
                     <div className="flex items-start gap-1.5 sm:gap-2.5">
                         {steps.map((s, i) => {
                             const stepNum = i + 1;
@@ -111,7 +111,7 @@ export default function OnboardingLayout({
                 </div>
 
                 {/* Content */}
-                <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 py-7">
+                <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 py-4 sm:py-7">
                     {children}
                 </main>
             </div>

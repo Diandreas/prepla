@@ -208,6 +208,19 @@ class ExerciseController extends Controller
             // the pointer to the next lesson). Target it explicitly so finishing a
             // practice actually marks it done and the journey progresses.
             $practiceIndex = $skeleton->practiceObjectiveIndex();
+
+            // Fallback: if no objective is in its practice phase (e.g. the lesson was
+            // only borderline-passed, or the user navigated straight to the node), map
+            // this node back to its originating lesson objective so finishing the
+            // practice still advances the journey instead of silently doing nothing.
+            if ($practiceIndex === null) {
+                $lessonIndex = \App\Models\Lesson::where('node_id', $node->id)
+                    ->value('skeleton_objective_index');
+                if ($lessonIndex !== null && isset(($skeleton->objectives ?? [])[$lessonIndex])) {
+                    $practiceIndex = (int) $lessonIndex;
+                }
+            }
+
             if ($practiceIndex !== null) {
                 if ($sessionAccuracy >= $MASTERY_THRESHOLD) {
                     $skeleton->completePractice($practiceIndex);

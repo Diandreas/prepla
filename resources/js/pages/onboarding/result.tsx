@@ -69,7 +69,9 @@ interface Props {
         levels: string[];
         language: { name: string; flag: string; native_name: string };
     } | null;
-    program: StudyProgram;
+    // null on first visit — the page fetches it asynchronously behind a loader so
+    // the onboarding never appears frozen while the AI builds the program.
+    program: StudyProgram | null;
 }
 
 const levelGradients: Record<string, string> = {
@@ -112,11 +114,30 @@ const priorityBadge: Record<string, string> = {
 
 const CEFR = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
-export default function Result({ profile, exam, program }: Props) {
+export default function Result({ profile, exam, program: initialProgram }: Props) {
     const level = profile.current_level ?? 'B1';
     const gradient = levelGradients[level] ?? levelGradients['B1'];
     const ring = levelRings[level] ?? levelRings['B1'];
     const levelIndex = CEFR.indexOf(level);
+
+    // The AI program is fetched asynchronously when not already cached server-side.
+    const [program, setProgram] = useState<StudyProgram | null>(initialProgram);
+    const [loadingProgram, setLoadingProgram] = useState(!initialProgram);
+    const [completing, setCompleting] = useState(false);
+
+    useEffect(() => {
+        if (initialProgram) return;
+        let cancelled = false;
+        setLoadingProgram(true);
+        fetch(route('onboarding.program'), {
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        })
+            .then(res => res.json())
+            .then(data => { if (!cancelled) setProgram(data.program ?? null); })
+            .catch(() => { /* leave program null — the page still renders the level + CTA */ })
+            .finally(() => { if (!cancelled) setLoadingProgram(false); });
+        return () => { cancelled = true; };
+    }, [initialProgram]);
 
     // Determine target level: use highest CEFR level from the exam if available,
     // otherwise fall back to next level after current
@@ -133,7 +154,12 @@ export default function Result({ profile, exam, program }: Props) {
     }, []);
 
     function handleComplete() {
-        router.post(route('onboarding.complete'));
+        // Building the curriculum is another AI call; show a loading state on the
+        // button so the user knows it's working and the dashboard redirect is coming.
+        setCompleting(true);
+        router.post(route('onboarding.complete'), {}, {
+            onError: () => setCompleting(false),
+        });
     }
 
     const stagger = (i: number) => ({
@@ -145,12 +171,12 @@ export default function Result({ profile, exam, program }: Props) {
 
     return (
         <OnboardingLayout title="Vos résultats" step={5}>
-            <div className="space-y-7 pb-8">
+            <div className="space-y-4 sm:space-y-7 pb-6 sm:pb-8">
 
                 {/* Level badge */}
                 {level === 'A0' ? (
                     <div className="text-center" style={stagger(0)}>
-                        <div className="relative mx-auto mb-5 flex h-28 w-28 items-center justify-center">
+                        <div className="relative mx-auto mb-3 sm:mb-5 flex h-20 w-20 sm:h-28 sm:w-28 items-center justify-center">
                             <div className={`absolute inset-0 rounded-full bg-gradient-to-br from-indigo-400 to-indigo-600 opacity-20 blur-2xl transition-all duration-1000 ${showLevel ? 'scale-110' : 'scale-0'}`} />
                             <div className={`absolute inset-0 rounded-full ring-4 ring-indigo-200 dark:ring-indigo-800 transition-all duration-700 ${showLevel ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`} />
                             <div className={`relative flex h-full w-full flex-col items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-indigo-700 shadow-xl transition-all duration-700 ${showLevel ? 'scale-100' : 'scale-0'}`}>
@@ -178,7 +204,7 @@ export default function Result({ profile, exam, program }: Props) {
                     </div>
                 ) : (
                     <div className="text-center" style={stagger(0)}>
-                        <div className="relative mx-auto mb-5 flex h-28 w-28 items-center justify-center">
+                        <div className="relative mx-auto mb-3 sm:mb-5 flex h-20 w-20 sm:h-28 sm:w-28 items-center justify-center">
                             <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${gradient} opacity-20 blur-2xl transition-all duration-1000 ${showLevel ? 'scale-110' : 'scale-0'}`} />
                             <div className={`absolute inset-0 rounded-full ring-4 ${ring} transition-all duration-700 ${showLevel ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`} />
                             <div className={`relative flex h-full w-full flex-col items-center justify-center rounded-full bg-gradient-to-br ${gradient} shadow-xl transition-all duration-700 ${showLevel ? 'scale-100' : 'scale-0'}`}>
@@ -246,9 +272,28 @@ export default function Result({ profile, exam, program }: Props) {
                     </div>
                 )}
 
+                {/* AI program loader — shown while the personalized program is generated */}
+                {loadingProgram && (
+                    <div className="rounded-2xl border border-primary/25 bg-primary/5 p-6 text-center" style={stagger(2)}>
+                        <img
+                            src="/animation/loading.gif"
+                            alt=""
+                            width={64}
+                            height={64}
+                            className="mx-auto mb-3"
+                        />
+                        <p className="text-sm font-semibold text-primary">
+                            Préparation de ton programme personnalisé…
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                            L'IA analyse ton niveau pour bâtir ta feuille de route
+                        </p>
+                    </div>
+                )}
+
                 {/* AI Summary */}
                 {program?.summary && (
-                    <div className="rounded-2xl border border-primary/25 bg-primary/5 p-5" style={stagger(2)}>
+                    <div className="rounded-2xl border border-primary/25 bg-primary/5 p-4 sm:p-5" style={stagger(2)}>
                         <div className="flex items-start gap-3">
                             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/15 animate-pulse-soft">
                                 <CustomIcon name="sparkles" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(65%) sepia(60%) saturate(600%) hue-rotate(195deg)' }} />
@@ -264,8 +309,8 @@ export default function Result({ profile, exam, program }: Props) {
                 )}
 
                 {/* Strengths */}
-                {program?.strengths?.length > 0 && (
-                    <div className="rounded-2xl border border-border bg-card p-5" style={stagger(3)}>
+                {program && (program.strengths?.length ?? 0) > 0 && (
+                    <div className="rounded-2xl border border-border bg-card p-4 sm:p-5" style={stagger(3)}>
                         <h2 className="mb-3 flex items-center gap-2 font-semibold">
                             <CustomIcon name="trophy" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(84%) sepia(40%) saturate(1734%) hue-rotate(353deg) brightness(94%) contrast(86%)' }} />
                             Vos points forts
@@ -291,8 +336,8 @@ export default function Result({ profile, exam, program }: Props) {
                 )}
 
                 {/* Focus Areas */}
-                {program?.focus_areas?.length > 0 && (
-                    <div className="rounded-2xl border border-border bg-card p-5" style={stagger(4)}>
+                {program && (program.focus_areas?.length ?? 0) > 0 && (
+                    <div className="rounded-2xl border border-border bg-card p-4 sm:p-5" style={stagger(4)}>
                         <h2 className="mb-4 flex items-center gap-2 font-semibold">
                             <CustomIcon name="target" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(39%) sepia(96%) saturate(1944%) hue-rotate(212deg) brightness(94%) contrast(91%)' }} />
                             Programme personnalisé par compétence
@@ -332,7 +377,7 @@ export default function Result({ profile, exam, program }: Props) {
 
                 {/* Weekly Plan */}
                 {program?.weekly_plan && (
-                    <div className="rounded-2xl border border-border bg-card p-5" style={stagger(5)}>
+                    <div className="rounded-2xl border border-border bg-card p-4 sm:p-5" style={stagger(5)}>
                         <h2 className="mb-4 flex items-center gap-2 font-semibold">
                             <CustomIcon name="zap" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(84%) sepia(40%) saturate(1734%) hue-rotate(353deg) brightness(94%) contrast(86%)' }} />
                             Plan hebdomadaire recommandé
@@ -363,8 +408,8 @@ export default function Result({ profile, exam, program }: Props) {
                 )}
 
                 {/* Milestones */}
-                {program?.milestones?.length > 0 && (
-                    <div className="rounded-2xl border border-border bg-card p-5" style={stagger(6)}>
+                {program && (program.milestones?.length ?? 0) > 0 && (
+                    <div className="rounded-2xl border border-border bg-card p-4 sm:p-5" style={stagger(6)}>
                         <h2 className="mb-4 flex items-center gap-2 font-semibold">
                             <CustomIcon name="trending-up" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(47%) sepia(58%) saturate(392%) hue-rotate(96deg) brightness(97%) contrast(86%)' }} />
                             Objectifs étape par étape
@@ -414,7 +459,7 @@ export default function Result({ profile, exam, program }: Props) {
                 </div>
 
                 {/* CTA */}
-                <div className={`rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-6 text-center`} style={stagger(9)}>
+                <div className={`rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-4 sm:p-6 text-center`} style={stagger(9)}>
                     <div className="flex items-center justify-center gap-2">
                         <CustomIcon name="flame" className="h-5 w-5" style={{ filter: 'brightness(0) saturate(100%) invert(50%) sepia(96%) saturate(1762%) hue-rotate(332deg) brightness(102%) contrast(96%)' }} />
                         <p className="font-semibold">
@@ -431,10 +476,20 @@ export default function Result({ profile, exam, program }: Props) {
                     <Button
                         size="lg"
                         onClick={handleComplete}
-                        className={`mt-4 w-full gap-2 bg-gradient-to-r ${level === 'A0' ? 'from-indigo-500 to-indigo-700' : gradient} font-semibold text-white shadow-lg hover:opacity-90 hover:shadow-xl hover:-translate-y-0.5 transition-all sm:w-auto`}
+                        disabled={completing}
+                        className={`mt-4 w-full gap-2 bg-gradient-to-r ${level === 'A0' ? 'from-indigo-500 to-indigo-700' : gradient} font-semibold text-white shadow-lg hover:opacity-90 hover:shadow-xl hover:-translate-y-0.5 transition-all disabled:opacity-70 sm:w-auto`}
                     >
-                        <CustomIcon name="rocket" className="h-4 w-4" />
-                        {level === 'A0' ? 'Commencer mon parcours' : 'Voir ma feuille de route'}
+                        {completing ? (
+                            <>
+                                <img src="/animation/loading.gif" alt="" width={18} height={18} className="-my-1" />
+                                Préparation de ton parcours…
+                            </>
+                        ) : (
+                            <>
+                                <CustomIcon name="rocket" className="h-4 w-4" />
+                                {level === 'A0' ? 'Commencer mon parcours' : 'Voir ma feuille de route'}
+                            </>
+                        )}
                     </Button>
                 </div>
             </div>

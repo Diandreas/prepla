@@ -263,23 +263,23 @@ export default function LessonPage({ lesson, skeleton }: Props) {
 
         return blocks.map((block, bi) => {
             switch (block.type) {
-                case 'h1': return <h1 key={bi} className="mt-8 mb-4 text-2xl font-black" style={{ color: OXFORD }}>{block.lines[0]}</h1>;
-                case 'h2': return <h2 key={bi} className="mt-7 mb-3 text-xl font-black" style={{ color: SKY }}>{block.lines[0]}</h2>;
-                case 'h3': return <h3 key={bi} className="mt-6 mb-2 text-lg font-black" style={{ color: OXFORD }}>{block.lines[0]}</h3>;
-                case 'empty': return <div key={bi} className="h-4" />;
+                case 'h1': return <h1 key={bi} className="mt-5 sm:mt-8 mb-3 sm:mb-4 text-xl sm:text-2xl font-black" style={{ color: OXFORD }}>{block.lines[0]}</h1>;
+                case 'h2': return <h2 key={bi} className="mt-4 sm:mt-7 mb-2 sm:mb-3 text-lg sm:text-xl font-black" style={{ color: SKY }}>{block.lines[0]}</h2>;
+                case 'h3': return <h3 key={bi} className="mt-3 sm:mt-6 mb-2 text-base sm:text-lg font-black" style={{ color: OXFORD }}>{block.lines[0]}</h3>;
+                case 'empty': return <div key={bi} className="h-2 sm:h-4" />;
                 case 'text': return (
-                    <p key={bi} className="text-sm leading-relaxed mb-3" style={{ color: OXFORD }} 
+                    <p key={bi} className="text-sm leading-relaxed mb-2 sm:mb-3" style={{ color: OXFORD }}
                        dangerouslySetInnerHTML={{ __html: parseInline(block.lines[0]) }} />
                 );
                 case 'quote': return (
-                    <div key={bi} className="border-l-4 pl-5 py-2 my-5 rounded-r-2xl shadow-sm" style={{ borderColor: GOLD, background: 'rgba(245,166,35,0.06)' }}>
+                    <div key={bi} className="border-l-4 pl-4 sm:pl-5 py-2 my-3 sm:my-5 rounded-r-2xl shadow-sm" style={{ borderColor: GOLD, background: 'rgba(245,166,35,0.06)' }}>
                         {block.lines.map((l, li) => (
                             <p key={li} className="text-sm italic mb-1" style={{ color: OXFORD }} dangerouslySetInnerHTML={{ __html: parseInline(l) }} />
                         ))}
                     </div>
                 );
                 case 'list': return (
-                    <ul key={bi} className="space-y-3 my-5 ml-4">
+                    <ul key={bi} className="space-y-2 sm:space-y-3 my-3 sm:my-5 ml-4">
                         {block.lines.map((l, li) => (
                             <li key={li} className="flex gap-3">
                                 <span className="mt-1.5 h-2 w-2 rounded-full shrink-0 shadow-sm" style={{ background: SKY }} />
@@ -289,7 +289,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                     </ul>
                 );
                 case 'olist': return (
-                    <ol key={bi} className="space-y-3 my-5 ml-1">
+                    <ol key={bi} className="space-y-2 sm:space-y-3 my-3 sm:my-5 ml-1">
                         {block.lines.map((l, li) => (
                             <li key={li} className="flex gap-3">
                                 <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-black text-white" style={{ background: SKY }}>{li + 1}</span>
@@ -341,7 +341,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
     return (
         <AppLayout focusMode>
             <Head title={lesson.title} />
-            <div className="mx-auto max-w-2xl px-4 py-8">
+            <div className="mx-auto max-w-2xl px-3 py-4 sm:px-4 sm:py-8">
                 {/* Header back link */}
                 <div className="mb-4" style={stagger(0)}>
                     <Link href="/lessons" className="text-xs font-bold flex items-center gap-1" style={{ color: SKY }}>
@@ -366,7 +366,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                 )}
 
                 {/* Phase indicator */}
-                <div className="flex items-center gap-2 mb-6" style={stagger(1)}>
+                <div className="flex items-center gap-2 mb-4 sm:mb-6" style={stagger(1)}>
                     {['lesson', 'quiz', 'results'].map((p, i) => (
                         <div key={p} className="flex items-center gap-2">
                             <div
@@ -394,7 +394,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                 {phase === 'lesson' && (
                     <div style={stagger(2)}>
                         {/* Title card */}
-                        <div className="duo-card mb-6 p-6" style={{
+                        <div className="duo-card mb-4 sm:mb-6 p-4 sm:p-6" style={{
                             borderTop: `4px solid ${lesson.status === 'consolidation' ? '#E74C3C' : SKY}`
                         }}>
                             <h1 className="text-xl font-black mb-1" style={{ color: OXFORD }}>
@@ -432,7 +432,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
 
                         {/* Current section content (theory, or a dedicated key-takeaways / mistakes section) */}
                         {currentExtra === 'takeaways' ? (
-                            <div className="duo-card mb-6 p-6 animate-in fade-in slide-in-from-right-2 duration-300" key={sectionIndex} style={{ background: 'rgba(74,144,226,0.04)' }}>
+                            <div className="duo-card mb-4 sm:mb-6 p-4 sm:p-6 animate-in fade-in slide-in-from-right-2 duration-300" key={sectionIndex} style={{ background: 'rgba(74,144,226,0.04)' }}>
                                 <p className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: SKY }}>
                                     💡 {t('lesson.key_takeaways', 'Points clés à retenir')}
                                 </p>
@@ -446,7 +446,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                                 </div>
                             </div>
                         ) : currentExtra === 'mistakes' ? (
-                            <div className="duo-card mb-6 p-6 animate-in fade-in slide-in-from-right-2 duration-300" key={sectionIndex} style={{ background: 'rgba(231,76,60,0.04)' }}>
+                            <div className="duo-card mb-4 sm:mb-6 p-4 sm:p-6 animate-in fade-in slide-in-from-right-2 duration-300" key={sectionIndex} style={{ background: 'rgba(231,76,60,0.04)' }}>
                                 <p className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: '#E74C3C' }}>
                                     ⚠️ {t('lesson.common_mistakes', 'Pièges typiques')}
                                 </p>
@@ -469,7 +469,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                                 </div>
                             </div>
                         ) : (
-                            <div className="duo-card mb-6 p-6" key={sectionIndex}>
+                            <div className="duo-card mb-4 sm:mb-6 p-4 sm:p-6" key={sectionIndex}>
                                 {currentSection?.title && (
                                     <h2 className="mb-4 text-xl font-black" style={{ color: SKY }}>{currentSection.title}</h2>
                                 )}
@@ -534,7 +534,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                 {/* ─── PHASE: QUIZ ─── */}
                 {phase === 'quiz' && (
                     <div style={stagger(0)}>
-                        <div className="duo-card mb-6 p-5" style={{ borderTop: `4px solid ${GOLD}` }}>
+                        <div className="duo-card mb-4 sm:mb-6 p-4 sm:p-5" style={{ borderTop: `4px solid ${GOLD}` }}>
                             <p className="text-xs font-black uppercase tracking-widest mb-1" style={{ color: GOLD }}>
                                 Quiz de compréhension
                             </p>
@@ -543,9 +543,9 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                             </p>
                         </div>
 
-                        <div className="space-y-4">
+                        <div className="space-y-3 sm:space-y-4">
                             {quiz.map((q: QuizQuestion, qIndex: number) => (
-                                <div key={qIndex} className="duo-card p-5">
+                                <div key={qIndex} className="duo-card p-4 sm:p-5">
                                     <p className="text-sm font-bold mb-3" style={{ color: OXFORD }}>
                                         <span className="text-xs font-black mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full text-white" style={{ background: SKY }}>
                                             {qIndex + 1}
@@ -608,7 +608,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                         {quizResults.passed && <ConfettiBurst />}
                         {/* Result banner — clearly different for success vs. retry */}
                         <div
-                            className={`duo-card mb-6 p-6 text-center text-white ${quizResults.passed ? 'answer-pop' : 'answer-shake'}`}
+                            className={`duo-card mb-4 sm:mb-6 p-4 sm:p-6 text-center text-white ${quizResults.passed ? 'answer-pop' : 'answer-shake'}`}
                             style={{
                                 background: quizResults.passed
                                     ? `linear-gradient(135deg, ${GREEN}, #3a9d68)`

@@ -124,8 +124,10 @@ class LessonController extends Controller
 
         $accuracy = count($quiz) > 0 ? round(($correctCount / count($quiz)) * 100) : 100;
 
-        // Record outcome for curriculum adaptation
-        $outcome = $this->planner->recordLessonOutcome($user, $accuracy);
+        // Record outcome for curriculum adaptation. Pass the explicit quiz verdict
+        // ($passed, 2/3 threshold) so the practice phase opens for any passing score,
+        // matching the "Pratiquer ce concept" CTA the UI shows on success.
+        $outcome = $this->planner->recordLessonOutcome($user, $accuracy, $passed);
 
         // Award XP and update streak if passed
         if ($passed) {

@@ -479,6 +479,7 @@ export default function ExamSimulator({ exam, exercises, totalExamsTime }: Props
                         <Component
                             key={question.id ?? currentQuestionIndex}
                             question={{ ...exercise.content, ...question }}
+                            lang={exam.language?.slug ?? 'en'}
                             onAnswer={(childId: string, ans: any) => handleAnswer(childId ?? String(currentQuestionIndex), ans)}
                             selectedAnswer={answers[question.id ?? String(currentQuestionIndex)]}
                             disabled={false} // Exams don't lock inputs immediately!

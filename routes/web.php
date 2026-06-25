@@ -23,6 +23,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/placement', [OnboardingController::class, 'placementTest'])->name('placement');
         Route::post('/placement', [OnboardingController::class, 'submitPlacement'])->name('placement.store');
         Route::get('/result', [OnboardingController::class, 'result'])->name('result');
+        // Async program generation — keeps the result page instant; the heavy AI
+        // call runs here and the page fetches it client-side behind a loader.
+        Route::get('/program', [OnboardingController::class, 'programData'])->name('program');
         Route::post('/complete', [OnboardingController::class, 'complete'])->name('complete');
     });
 

@@ -210,49 +210,55 @@ function MCQBlock({
     disabled: boolean;
 }) {
     return (
-        <div className="space-y-4">
-            <p className="text-base font-semibold leading-relaxed">{question.text}</p>
+        <div className="space-y-3 sm:space-y-4">
+            <p className="text-sm sm:text-base font-bold leading-snug" style={{ color: OXFORD }}>{question.text}</p>
             {question.sentence && (
-                <div className="rounded-xl bg-muted/60 px-4 py-3">
-                    <p className="text-center italic text-muted-foreground">{question.sentence}</p>
+                <div className="rounded-xl bg-muted/60 px-4 py-2.5">
+                    <p className="text-center italic text-sm text-muted-foreground">{question.sentence}</p>
                 </div>
             )}
-            <div className="grid gap-2.5">
+            <div className="grid gap-2 sm:gap-2.5">
                 {question.options.map((option, i) => {
                     const letter = String.fromCharCode(65 + i);
                     const isSelected = selectedAnswer === letter;
+                    // Duolingo-style answer button: chunky rounded card with a 3D
+                    // bottom shadow that "presses" when selected.
                     return (
                         <button
                             key={i}
                             disabled={disabled}
                             onClick={() => onAnswer(question.id, letter)}
-                            className={`flex items-center gap-3 rounded-xl border p-4 text-left text-sm transition-all ${
-                                isSelected
-                                    ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
-                                    : 'border-border bg-card hover:border-primary/40'
-                            } disabled:opacity-30`}
+                            className="duo-press flex items-center gap-3 rounded-2xl px-3.5 py-3 text-left text-sm transition-all disabled:opacity-40"
+                            style={{
+                                background: isSelected ? 'rgba(74,144,226,0.1)' : '#fff',
+                                border: `2px solid ${isSelected ? SKY : '#e5e7eb'}`,
+                                boxShadow: `0 4px 0 0 ${isSelected ? '#2a6fc0' : '#e5e7eb'}`,
+                                color: isSelected ? SKY : OXFORD,
+                            }}
                         >
                             <span
-                                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors ${
-                                    isSelected ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
-                                }`}
+                                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-black transition-colors"
+                                style={{
+                                    background: isSelected ? SKY : '#f1f5f9',
+                                    color: isSelected ? '#fff' : '#94a3b8',
+                                }}
                             >
                                 {letter}
                             </span>
-                            <span className={`font-medium ${isSelected ? 'text-primary' : ''}`}>{option}</span>
+                            <span className="font-bold">{option}</span>
                         </button>
                     );
                 })}
-                
+
                 {/* Skip option */}
                 <button
                     disabled={disabled}
                     onClick={() => onAnswer(question.id, 'SKIP')}
-                    className={`flex items-center justify-center gap-2 rounded-xl border-2 border-dashed p-3 text-sm font-bold transition-all ${
+                    className={`mt-1 flex items-center justify-center gap-2 rounded-2xl border-2 border-dashed p-2.5 text-sm font-bold transition-all ${
                         selectedAnswer === 'SKIP'
                             ? 'border-amber-400 bg-amber-50 text-amber-700'
                             : 'border-slate-200 text-slate-400 hover:border-slate-300 hover:bg-slate-50'
-                    } mt-2`}
+                    }`}
                 >
                     <Icon name="help-circle" size={16} />
                     Je ne sais pas
@@ -418,7 +424,7 @@ export default function PlacementTest({ exam, sectionA, sectionB, sectionC }: Pr
     if (section === 'C') {
         return (
             <OnboardingLayout title="Test de placement" step={4}>
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                     {/* Section progress */}
                     <div className="flex items-center gap-2">
                         <SectionBar label="Section A" state="done" />
@@ -507,7 +513,7 @@ export default function PlacementTest({ exam, sectionA, sectionB, sectionC }: Pr
 
     return (
         <OnboardingLayout title="Test de placement" step={4}>
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
                 {/* Section mini-progress */}
                 <div className="flex items-center gap-2">
                     <SectionBar label="Section A" state={sectionState('A')} />

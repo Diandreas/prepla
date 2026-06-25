@@ -16,6 +16,7 @@ const INLINE_SVGS: Record<string, React.ReactNode> = {
     'volume-1': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>,
     'volume-2': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>,
     'plus': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+    'info': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>,
 };
 
 function Icon({ name, size = 20, className, style }: { name: string; size?: number; className?: string; style?: React.CSSProperties }) {
@@ -121,6 +122,42 @@ const componentMap: Record<string, React.ComponentType<any>> = {
     'synthesis': Synthesis,
     'integrated-task': IntegratedTask,
     'vocabulary-card': VocabularyCard,
+};
+
+// Short action instruction per exercise type — answers the user's complaint that
+// some exercises only show a "submit"/"validate" button with no cue about what to
+// do. Rendered as a small badge above each question card so every type is covered
+// consistently (instead of patching 30 components individually).
+const INSTRUCTIONS: Record<string, string> = {
+    'mcq': 'Choisis la bonne réponse',
+    'true-false-ng': 'Choisis : Vrai, Faux ou Non mentionné',
+    'gap-fill': 'Complète avec le mot manquant',
+    'matching': 'Associe chaque élément à sa correspondance',
+    'multiple-matching': 'Associe chaque élément à sa correspondance',
+    'sentence-completion': 'Complète la phrase',
+    'short-answer': 'Écris ta réponse, puis valide',
+    'note-completion': 'Complète les notes',
+    'ordering': 'Remets les éléments dans le bon ordre',
+    'dictation': 'Écoute puis écris ce que tu entends',
+    'open-cloze': 'Complète le texte avec le mot juste',
+    'word-formation': 'Forme le mot correct',
+    'key-word-transformation': 'Réécris la phrase avec le mot imposé',
+    'short-writing': 'Rédige ta réponse, puis valide',
+    'essay-editor': 'Rédige ton texte, puis valide',
+    'form-completion': 'Complète le formulaire',
+    'summary-completion': 'Complète le résumé',
+    'table-completion': 'Complète le tableau',
+    'flow-chart-completion': 'Complète le schéma',
+    'insert-text': 'Insère la phrase au bon endroit',
+    'gapped-text': 'Replace chaque paragraphe au bon endroit',
+    'graph-description': 'Décris le graphique, puis valide',
+    'academic-discussion': 'Rédige ta contribution, puis valide',
+    'speaking-recorder': 'Enregistre ta réponse à voix haute',
+    'role-play': 'Réponds à voix haute, puis valide',
+    'diagram-labeling': 'Étiquette le schéma',
+    'synthesis': 'Rédige ta synthèse, puis valide',
+    'integrated-task': 'Lis/écoute puis rédige ta réponse',
+    'vocabulary-card': 'Mémorise puis valide',
 };
 
 // Segmented progress dots
@@ -847,6 +884,16 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                         </div>
                     )}
 
+                    {/* Action instruction — tells the learner what to do (select / write / record…) */}
+                    {INSTRUCTIONS[componentKey] && (
+                        <div className="flex items-center gap-1.5 px-1" style={{ color: 'var(--player-accent)' }}>
+                            <Icon name="info" size={14} style={{ opacity: 0.7 }} />
+                            <span style={{ fontSize: '0.8125rem', fontWeight: 600 }}>
+                                {INSTRUCTIONS[componentKey]}
+                            </span>
+                        </div>
+                    )}
+
                     <div
                         className={`player-card group/card relative ${isChecked ? (isCorrect ? 'answer-pop' : 'answer-shake') : ''}`}
                         style={{ padding: '24px' }}
@@ -865,6 +912,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                             // left the previous answer stuck in the text field).
                             key={`${isReviewMode ? 'r' : 'q'}-${currentExerciseIndex}-${currentQuestionIndex}-${question.id ?? ''}`}
                             question={{ ...exercise.content, ...question }}
+                            lang={nodeCode}
                             onAnswer={(_childId: string, ans: any) => handleAnswer(question.id ?? String(currentQuestionIndex), ans)}
                             selectedAnswer={answers[answerKey(question.id ?? String(currentQuestionIndex))]}
                             disabled={isChecked}
@@ -943,20 +991,32 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                     <div style={{ flex: 1, minHeight: 48, display: 'flex', alignItems: 'center' }}>
                         {isChecked && (
                             <div className="feedback-enter" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                <div
-                                    className="check-pop"
-                                    style={{
-                                        width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        background: isCorrect ? '#10b981' : '#ef4444',
-                                    }}
-                                >
-                                    <Icon
-                                        name={isCorrect ? 'check' : 'x'}
-                                        size={22}
-                                        style={{ filter: 'brightness(0) invert(1)' }}
+                                {isCorrect ? (
+                                    // Celebratory GIF on a correct answer.
+                                    <img
+                                        src="/animation/Trophy.gif"
+                                        alt=""
+                                        width={48}
+                                        height={48}
+                                        className="check-pop"
+                                        style={{ flexShrink: 0, objectFit: 'contain' }}
                                     />
-                                </div>
+                                ) : (
+                                    <div
+                                        className="check-pop"
+                                        style={{
+                                            width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            background: '#ef4444',
+                                        }}
+                                    >
+                                        <Icon
+                                            name="x"
+                                            size={22}
+                                            style={{ filter: 'brightness(0) invert(1)' }}
+                                        />
+                                    </div>
+                                )}
                                 <div>
                                     <div style={{
                                         fontWeight: 700,
