@@ -162,7 +162,7 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                         <p className="text-xs text-muted-foreground truncate">{auth.user.email}</p>
                         <div className="mt-1 flex items-center gap-3 text-xs font-black">
                             <span className="flex items-center gap-1 text-primary">
-                                <CustomIcon name="zap" className="h-3.5 w-3.5" style={{ filter: 'brightness(0) saturate(100%) invert(84%) sepia(40%) saturate(1734%) hue-rotate(353deg) brightness(94%) contrast(86%)' }} />
+                                <CustomIcon name="zap" className="h-3.5 w-3.5" style={{ }} />
                                 {profile?.xp_total ?? 0}
                             </span>
                             <span className="flex items-center gap-1 text-orange-500">
@@ -406,7 +406,7 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                 </div>
 
                 <p className="text-center text-[10px] text-muted-foreground uppercase tracking-widest font-black opacity-40">
-                    PrePla v1.2.0 • {t('profile.made_with', 'Made with')} ❤️ {t('profile.for_success', 'for success')}
+                    PrePla v1.2.0 • {t('profile.made_with', 'Made with')}  {t('profile.for_success', 'for success')}
                 </p>
             </div>
 

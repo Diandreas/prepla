@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useTokens } from './landing-theme';
 
 const socialLinks = [
-    { icon: '✉', href: '#', label: 'Email' },
+    { icon: '', href: '#', label: 'Email' },
     { icon: '◈', href: '#', label: 'Discord' },
     { icon: '✕', href: '#', label: 'Twitter / X' },
 ];
@@ -110,7 +110,7 @@ export function LandingFooter() {
                         {t('landing.footer_copyright', { year: new Date().getFullYear() })}
                     </p>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <span style={{ fontSize: '0.8rem', color: '#22c55e', opacity: 0.6 }}>🛡</span>
+                        <span style={{ fontSize: '0.8rem', color: '#22c55e', opacity: 0.6 }}></span>
                         <span style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '0.7rem', color: T.textDim }}>
                             {t('landing.footer_gdpr')}
                         </span>

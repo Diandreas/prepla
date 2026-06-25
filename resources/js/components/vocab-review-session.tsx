@@ -221,7 +221,7 @@ export function VocabReviewSession({ words, distractors, onPlayAudio, onFinish }
         : type === 'def2word' ? 'Quel mot correspond à cette définition ?'
         : type === 'translation' ? 'Quelle est la bonne traduction ?'
         : type === 'gapfill' ? 'Complète la phrase avec le bon mot'
-        : '🎧 Écoute et écris le mot';
+        : ' Écoute et écris le mot';
 
     return (
         <div className="mx-auto max-w-lg px-4 py-8">
@@ -248,7 +248,7 @@ export function VocabReviewSession({ words, distractors, onPlayAudio, onFinish }
                         {/* Hint: the definition of the word to find, so the learner
                             retrieves it from meaning rather than guessing blindly. */}
                         <p className="mt-3 text-xs italic text-muted-foreground border-t border-gray-100 pt-3">
-                            💡 {dw.definition}
+                             {dw.definition}
                         </p>
                     </>
                 )}
@@ -259,7 +259,7 @@ export function VocabReviewSession({ words, distractors, onPlayAudio, onFinish }
                         className="duo-press inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-black text-white"
                         style={{ background: SKY, boxShadow: '0 4px 0 0 #2a6fc0' }}
                     >
-                        🔊 Réécouter
+                         Réécouter
                     </button>
                 )}
             </div>

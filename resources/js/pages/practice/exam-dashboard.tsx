@@ -118,7 +118,7 @@ export default function ExamDashboard({ exam, sectionProgress }: Props) {
             {examExpired && (
                 <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-black/70 backdrop-blur-sm">
                     <div className="rounded-3xl bg-white p-8 text-center shadow-2xl max-w-sm mx-4">
-                        <img src="/icons/clock.png" alt="" width={48} height={48} className="mx-auto mb-3" style={{ filter: 'brightness(0) saturate(100%) invert(30%) sepia(80%) saturate(600%) hue-rotate(330deg)' }} />
+                        <img src="/icons/clock.png" alt="" width={48} height={48} className="mx-auto mb-3" style={{ }} />
                         <h2 className="text-xl font-black" style={{ color: OXFORD }}>{t('practice.exam_expired_title')}</h2>
                         <p className="mt-2 text-sm text-muted-foreground">{t('practice.exam_expired_desc')}</p>
                         <button

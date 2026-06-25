@@ -188,7 +188,7 @@ export default function ResultsIndex({ profile, skillStats, recentAttempts }: Pr
                                                 {acc.toFixed(0)}%
                                             </span>
                                             <span className="flex items-center gap-0.5 text-xs font-black" style={{ color: GOLD }}>
-                                                <CustomIcon name="trophy" className="h-3 w-3" style={{ filter: 'brightness(0) saturate(100%) invert(84%) sepia(40%) saturate(1734%) hue-rotate(353deg) brightness(94%) contrast(86%)' }} />
+                                                <CustomIcon name="trophy" className="h-3 w-3" style={{ }} />
                                                 +{attempt.xp_earned}
                                             </span>
                                         </div>

@@ -791,7 +791,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 flexShrink: 0,
                             }}>
-                                <Icon name="sparkles" size={18} style={{ opacity: 0.8, filter: 'hue-rotate(20deg) saturate(1.5)' }} />
+                                <Icon name="sparkles" size={18} style={{ opacity: 0.8, }} />
                             </div>
                             <div>
                                 <div style={{ fontWeight: 700, fontSize: '0.9375rem', lineHeight: 1.2 }}>{node.title}</div>
@@ -923,7 +923,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                         {isChecked && answers[`${question.id}_transcription`] && (
                             <div className="mt-4 rounded-xl border-2 border-indigo-100 bg-indigo-50/60 p-4">
                                 <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-1.5">
-                                    🎤 {t('exercise.heard', 'Ce que l’IA a entendu')}
+                                    {t('exercise.heard', 'Ce que l’IA a entendu')}
                                 </p>
                                 <p className="text-sm font-medium italic text-slate-700">
                                     « {answers[`${question.id}_transcription`]} »
@@ -948,7 +948,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                                 </p>
                                 {(i18n.language === 'fr' && explanation.french_translation?.hint ? explanation.french_translation.hint : explanation.hint) && (
                                     <p className="text-sm text-muted-foreground leading-relaxed">
-                                        💡 {i18n.language === 'fr' && explanation.french_translation?.hint ? explanation.french_translation.hint : explanation.hint}
+                                        {i18n.language === 'fr' && explanation.french_translation?.hint ? explanation.french_translation.hint : explanation.hint}
                                     </p>
                                 )}
                             </div>

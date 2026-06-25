@@ -103,7 +103,7 @@ export default function AiToolsIndex() {
                                 >
                                     Commencer
                                 </span>
-                                <Icon name="chevron-right" size={14} style={{ filter: 'brightness(0) saturate(100%) invert(47%) sepia(85%) saturate(562%) hue-rotate(183deg) brightness(101%) contrast(96%)' }} />
+                                <Icon name="chevron-right" size={14} style={{ }} />
                             </div>
                         </Link>
                     ))}

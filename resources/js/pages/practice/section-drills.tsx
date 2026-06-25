@@ -86,7 +86,7 @@ export default function SectionDrills({ exam, section, exercisesByDifficulty }: 
                             className="duo-press mt-5 rounded-2xl px-6 py-3 text-sm font-black text-white disabled:opacity-50"
                             style={{ background: SKY, boxShadow: '0 4px 0 0 #2a6fc0' }}
                         >
-                            {generating ? 'Génération en cours…' : '✨ Générer des exercices'}
+                            {generating ? 'Génération en cours…' : ' Générer des exercices'}
                         </button>
                     </div>
                 ) : (

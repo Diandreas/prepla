@@ -114,7 +114,7 @@ export default function Subscription({ currentPlan, stripeEnabled, isSubscribed,
 
                     <CardHeader>
                         <div className="flex items-center gap-1.5 text-amber-600 font-bold text-xs uppercase tracking-widest mb-1">
-                            <img src="/icons/star.png" alt="" width={12} height={12} style={{ objectFit: 'contain', filter: 'brightness(0) saturate(100%) invert(52%) sepia(72%) saturate(640%) hue-rotate(2deg)' }} />
+                            <img src="/icons/star.png" alt="" width={12} height={12} style={{ objectFit: 'contain', }} />
                             Recommandé
                         </div>
                         <CardTitle className="text-2xl font-black">PrePla Plus</CardTitle>
@@ -145,7 +145,7 @@ export default function Subscription({ currentPlan, stripeEnabled, isSubscribed,
                         <div className="h-px bg-border my-2" />
                         {features.map((f, i) => (
                             <div key={i} className="flex gap-2 text-sm font-medium">
-                                <img src="/icons/check-circle.png" alt="" width={16} height={16} style={{ objectFit: 'contain', filter: 'brightness(0) saturate(100%) invert(66%) sepia(55%) saturate(500%) hue-rotate(2deg)' }} className="mt-0.5 shrink-0" />
+                                <img src="/icons/check-circle.png" alt="" width={16} height={16} style={{ objectFit: 'contain', }} className="mt-0.5 shrink-0" />
                                 <span>{f}</span>
                             </div>
                         ))}

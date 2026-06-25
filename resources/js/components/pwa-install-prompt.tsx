@@ -9,7 +9,7 @@ export function PwaInstallPrompt() {
         <div className="fixed bottom-20 left-4 right-4 z-50 md:bottom-6 md:left-auto md:right-6 md:w-80">
             <div className="rounded-2xl border border-border bg-background shadow-2xl overflow-hidden">
                 <div className="bg-gradient-to-r from-amber-500/10 to-transparent px-4 py-3 flex items-center gap-3">
-                    <img src="/favicon.ico" alt="PrePla" width={36} height={36} className="rounded-lg" />
+                    <img src="/icons/pwa-192.png" alt="PrePla" width={36} height={36} className="rounded-lg" />
                     <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold leading-tight">Installer PrePla</p>
                         <p className="text-xs text-muted-foreground">Accès rapide depuis votre écran d'accueil</p>

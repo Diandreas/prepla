@@ -57,7 +57,7 @@ function ThemeToggleButton() {
                     height={18}
                     style={{
                         objectFit: 'contain',
-                        filter: 'brightness(0) saturate(100%) invert(84%) sepia(40%) saturate(1734%) hue-rotate(353deg) brightness(94%) contrast(86%)',
+                        
                     }}
                 />
             ) : (
@@ -68,7 +68,7 @@ function ThemeToggleButton() {
                     height={18}
                     style={{
                         objectFit: 'contain',
-                        filter: 'brightness(0) saturate(100%) invert(10%) sepia(50%) saturate(1400%) hue-rotate(195deg) brightness(75%) contrast(95%)',
+                        
                     }}
                 />
             )}
@@ -124,7 +124,7 @@ export function AppSidebarHeader() {
                     </span>
                     <span className="h-3 w-px bg-border" />
                     <span className={`flex items-center gap-1 text-xs font-black tabular-nums ${xpBump ? 'value-bump' : ''}`} style={{ color: GOLD }}>
-                        <CustomIcon name="trophy" className="h-3.5 w-3.5" style={{ filter: 'brightness(0) saturate(100%) invert(84%) sepia(40%) saturate(1734%) hue-rotate(353deg) brightness(94%) contrast(86%)' }} />
+                        <CustomIcon name="trophy" className="h-3.5 w-3.5" style={{ }} />
                         {xp}
                     </span>
                 </div>

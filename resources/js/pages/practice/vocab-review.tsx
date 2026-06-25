@@ -82,7 +82,7 @@ export default function VocabReviewPage() {
 
                     {empty && (
                         <div className="text-center px-6 py-16 space-y-4">
-                            <p className="text-5xl">🎉</p>
+                            <p className="text-5xl"></p>
                             <h1 className="text-2xl font-black" style={{ color: '#1A2B48' }}>Rien à réviser</h1>
                             <p className="text-sm text-slate-500">Découvre de nouveaux mots dans le dictionnaire pour les réviser ensuite.</p>
                             <Link href="/dictionary" className="duo-press inline-block rounded-xl px-6 py-3 text-sm font-black text-white" style={{ background: SKY, boxShadow: '0 4px 0 0 #2a6fc0' }}>

@@ -71,7 +71,7 @@ export default function Leaderboard({ entries, currentUserId }: Props) {
                                 >
                                     {/* Crown for 1st */}
                                     {isFirst && (
-                                        <div className="mb-1 animate-bounce-soft text-2xl">👑</div>
+                                        <div className="mb-1 animate-bounce-soft text-2xl"></div>
                                     )}
                                     {/* Avatar circle */}
                                     <div
@@ -176,7 +176,7 @@ export default function Leaderboard({ entries, currentUserId }: Props) {
                                     </span>
                                     {/* XP */}
                                     <div className="flex items-center gap-1">
-                                        <CustomIcon name="trophy" className="h-3.5 w-3.5" style={{ filter: 'brightness(0) saturate(100%) invert(84%) sepia(40%) saturate(1734%) hue-rotate(353deg) brightness(94%) contrast(86%)' }} />
+                                        <CustomIcon name="trophy" className="h-3.5 w-3.5" style={{ }} />
                                         <span className="text-sm font-black" style={{ color: GOLD }}>
                                             {entry.xp}
                                         </span>

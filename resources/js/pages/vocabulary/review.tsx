@@ -31,7 +31,7 @@ export default function VocabularyReview({ words }: Props) {
             <AppLayout>
                 <Head title="Révision SM-2" />
                 <div className="mx-auto max-w-lg px-4 py-16 text-center">
-                    <p className="text-5xl mb-4">🎉</p>
+                    <p className="text-5xl mb-4"></p>
                     <h1 className="text-2xl font-black mb-2" style={{ color: OXFORD }}>
                         {words.length === 0 ? 'Aucun mot à réviser' : 'Révision terminée !'}
                     </h1>

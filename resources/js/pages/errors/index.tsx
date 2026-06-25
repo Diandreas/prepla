@@ -105,7 +105,7 @@ export default function ErrorsIndex({ errors, errorsBySkill, errorsByCategory, d
                 {totalErrors === 0 && (
                     <div className="text-center py-20 space-y-4">
                         <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto" style={{ background: '#f0fdf4' }}>
-                            <Icon name="check-circle" size={40} style={{ filter: 'invert(55%) sepia(60%) saturate(400%) hue-rotate(96deg)' }} />
+                            <Icon name="check-circle" size={40} style={{ }} />
                         </div>
                         <h2 className="text-xl font-black" style={{ color: OXFORD }}>Aucune erreur !</h2>
                         <p className="text-sm text-muted-foreground">Continuez à pratiquer pour identifier vos points à améliorer.</p>

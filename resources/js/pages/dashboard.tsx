@@ -316,7 +316,7 @@ export default function Dashboard() {
                         className="duo-press relative flex flex-col items-center gap-1.5 rounded-2xl border-2 border-border bg-card p-3 text-center"
                         style={{ boxShadow: '0 4px 0 0 var(--border)' }}
                     >
-                        <Icon name="review" size={22} style={{ filter: 'brightness(0) saturate(100%) invert(38%) sepia(93%) saturate(1352%) hue-rotate(338deg)' }} />
+                        <Icon name="review" size={22} style={{ }} />
                         <span className="text-[10px] font-black leading-tight text-foreground">Révision{(dueErrorsCount ?? 0) > 0 ? ` (${dueErrorsCount})` : ''}</span>
                     </Link>
                 </div>
@@ -446,7 +446,7 @@ export default function Dashboard() {
                                 style={{ background: 'linear-gradient(135deg, #fffbeb, #fef3c7)', boxShadow: '0 4px 0 0 #e08c10' }}
                             >
                                 <div className="h-12 w-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(245,166,35,0.15)' }}>
-                                    <Icon name="trophy" size={26} style={{ filter: 'brightness(0) saturate(100%) invert(52%) sepia(72%) saturate(640%) hue-rotate(2deg)' }} />
+                                    <Icon name="trophy" size={26} style={{ }} />
                                 </div>
                                 <div className="flex-1">
                                     <p className="text-[10px] font-black uppercase tracking-widest text-amber-600">Boss du chapitre</p>
@@ -467,7 +467,6 @@ export default function Dashboard() {
                         style={{ background: 'linear-gradient(135deg, #48b77b, #2d7d52)', boxShadow: '0 5px 0 0 #1f6e42' }}
                     >
                         <div className="flex items-center gap-3">
-                            <div className="text-3xl flex-shrink-0">🎉</div>
                             <div className="flex-1 min-w-0">
                                 <p className="text-[9px] font-black uppercase tracking-widest opacity-80">Objectif atteint</p>
                                 <p className="text-sm font-black">Bravo, ton parcours est terminé !</p>
@@ -495,7 +494,7 @@ export default function Dashboard() {
                         </Link>
                         <Link href="/errors" className="duo-press flex items-center gap-3 rounded-2xl border-2 border-border bg-card p-3.5"
                             style={{ boxShadow: '0 4px 0 0 var(--border)' }}>
-                            <Icon name="review" size={22} style={{ filter: 'brightness(0) saturate(100%) invert(38%) sepia(93%) saturate(1352%) hue-rotate(338deg)' }} />
+                            <Icon name="review" size={22} style={{ }} />
                             <span className="text-sm font-black text-foreground">Révision{(dueErrorsCount ?? 0) > 0 ? ` (${dueErrorsCount})` : ''}</span>
                         </Link>
                     </div>

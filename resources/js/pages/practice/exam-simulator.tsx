@@ -273,7 +273,7 @@ export default function ExamSimulator({ exam, exercises, totalExamsTime }: Props
                     <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
                         <div className="min-w-0">
                             <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600">
-                                <Icon name="file-edit" size={12} style={{ filter: 'brightness(0) saturate(100%) invert(40%) sepia(98%) saturate(1900%) hue-rotate(228deg)' }} />
+                                <Icon name="file-edit" size={12} style={{ }} />
                                 Mode examen
                             </p>
                             <p className="text-sm font-bold truncate" style={{ color: OXFORD }}>{exam.name}</p>
@@ -298,7 +298,7 @@ export default function ExamSimulator({ exam, exercises, totalExamsTime }: Props
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
                     <div className="rounded-3xl bg-white p-8 text-center shadow-2xl max-w-md mx-4 animate-in fade-in zoom-in duration-300">
                         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full" style={{ background: 'rgba(99,102,241,0.1)' }}>
-                            <img src="/icons/clock.png" alt="" width={32} height={32} style={{ filter: 'hue-rotate(220deg) saturate(2)' }} />
+                            <img src="/icons/clock.png" alt="" width={32} height={32} style={{ }} />
                         </div>
                         <h2 className="text-2xl font-black mb-2" style={{ color: OXFORD }}>
                             {t('practice.exam_ready_title', 'Prêt à commencer ?')}
@@ -343,7 +343,7 @@ export default function ExamSimulator({ exam, exercises, totalExamsTime }: Props
             {examExpired && (
                 <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-black/70 backdrop-blur-sm">
                     <div className="rounded-3xl bg-white p-8 text-center shadow-2xl max-w-sm mx-4">
-                        <img src="/icons/clock.png" alt="" width={48} height={48} className="mx-auto mb-3" style={{ filter: 'brightness(0) saturate(100%) invert(30%) sepia(80%) saturate(600%) hue-rotate(330deg)' }} />
+                        <img src="/icons/clock.png" alt="" width={48} height={48} className="mx-auto mb-3" style={{ }} />
                         <h2 className="text-xl font-black" style={{ color: OXFORD }}>{t('practice.exam_expired_title', 'Temps écoulé !')}</h2>
                         <p className="mt-2 text-sm text-muted-foreground">{t('practice.exam_expired_desc', 'Vous avez atteint la limite de temps.')}</p>
                         <button
@@ -435,7 +435,7 @@ export default function ExamSimulator({ exam, exercises, totalExamsTime }: Props
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 flexShrink: 0,
                             }}>
-                                <Icon name="book" size={18} style={{ opacity: 0.8, filter: 'hue-rotate(20deg) saturate(1.5)' }} />
+                                <Icon name="book" size={18} style={{ opacity: 0.8, }} />
                             </div>
                             <div>
                                 <div style={{ fontWeight: 700, fontSize: '0.9375rem', lineHeight: 1.2 }}>Examen: {exam.name}</div>

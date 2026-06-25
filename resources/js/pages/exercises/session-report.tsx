@@ -83,7 +83,7 @@ export default function SessionReport({ node, report, userLevel }: Props) {
                                         ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
                                         : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
                                 }`}>
-                                    {report.accuracy >= 80 ? '✓ Concept maîtrisé' : '↻ Maîtrise insuffisante'}
+                                    {report.accuracy >= 80 ? 'Concept maîtrisé' : 'Maîtrise insuffisante'}
                                 </span>
                                 <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
                                     {report.node_title}
@@ -196,7 +196,7 @@ export default function SessionReport({ node, report, userLevel }: Props) {
                                     href="/lessons/next"
                                     className="w-full sm:w-auto px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold shadow-lg transition-all transform hover:-translate-y-1 text-center"
                                 >
-                                    ✓ Concept suivant →
+                                    Concept suivant →
                                 </Link>
                                 <Link
                                     href="/dashboard"
@@ -217,7 +217,7 @@ export default function SessionReport({ node, report, userLevel }: Props) {
                                     href={`/lessons/${node.id}`}
                                     className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white rounded-2xl font-bold border border-slate-200 dark:border-slate-700 transition-all text-center"
                                 >
-                                    📖 Revoir la leçon
+                                    Revoir la leçon
                                 </Link>
                             </>
                         )}

@@ -87,7 +87,7 @@ export default function ErrorsPractice({ errors }: Props) {
                 {/* Header */}
                 <div className="flex items-center gap-4">
                     <div className="h-12 w-12 bg-red-100 dark:bg-red-900/30 rounded-2xl flex items-center justify-center">
-                        <Icon name="x-circle" size={28} style={{ filter: 'invert(30%) sepia(80%) saturate(700%) hue-rotate(330deg)' }} />
+                        <Icon name="x-circle" size={28} style={{ }} />
                     </div>
                     <div>
                         <h1 className="text-2xl font-black text-slate-900 dark:text-white">
@@ -103,7 +103,7 @@ export default function ErrorsPractice({ errors }: Props) {
                 {errors.length === 0 && (
                     <div className="text-center py-20 space-y-4">
                         <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-2xl flex items-center justify-center mx-auto">
-                            <Icon name="check-circle" size={32} style={{ filter: 'invert(55%) sepia(60%) saturate(400%) hue-rotate(96deg)' }} />
+                            <Icon name="check-circle" size={32} style={{ }} />
                         </div>
                         <p className="text-slate-500 font-medium">{t('errors.no_errors', 'Aucune erreur à réviser. Excellent travail !')}</p>
                     </div>
@@ -201,7 +201,7 @@ export default function ErrorsPractice({ errors }: Props) {
                         <p className="text-xs font-bold uppercase tracking-wide text-slate-400">{t('errors.reviewed', 'Révisé')}</p>
                         {done.map((error) => (
                             <div key={error.id} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700 opacity-60 flex items-center gap-3">
-                                <Icon name="check-circle" size={18} style={{ filter: 'invert(55%) sepia(60%) saturate(400%) hue-rotate(96deg)' }} />
+                                <Icon name="check-circle" size={18} style={{ }} />
                                 <p className="text-sm font-medium text-slate-600 dark:text-slate-400 truncate">{error.correct_answer}</p>
                             </div>
                         ))}
@@ -212,7 +212,7 @@ export default function ErrorsPractice({ errors }: Props) {
                 {errors.length > 0 && pending.length === 0 && (
                     <div className="text-center py-10 space-y-3">
                         <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-2xl flex items-center justify-center mx-auto animate-bounce">
-                            <Icon name="trophy" size={32} style={{ filter: 'invert(55%) sepia(60%) saturate(400%) hue-rotate(96deg)' }} />
+                            <Icon name="trophy" size={32} style={{ }} />
                         </div>
                         <p className="font-black text-slate-900 dark:text-white text-lg">{t('errors.all_done', 'Session terminée !')}</p>
                         <p className="text-slate-500 text-sm">{t('errors.keep_practicing', 'Continuez à pratiquer pour consolider vos acquis.')}</p>

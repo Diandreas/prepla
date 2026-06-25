@@ -355,7 +355,6 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                         className="mb-4 rounded-2xl p-4 flex items-center gap-3"
                         style={{ background: 'rgba(231,76,60,0.08)', border: '2px solid rgba(231,76,60,0.2)' }}
                     >
-                        <span className="text-2xl">🔄</span>
                         <div>
                             <p className="text-sm font-black" style={{ color: '#E74C3C' }}>Leçon de consolidation</p>
                             <p className="text-xs text-muted-foreground">
@@ -434,7 +433,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                         {currentExtra === 'takeaways' ? (
                             <div className="duo-card mb-4 sm:mb-6 p-4 sm:p-6 animate-in fade-in slide-in-from-right-2 duration-300" key={sectionIndex} style={{ background: 'rgba(74,144,226,0.04)' }}>
                                 <p className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: SKY }}>
-                                    💡 {t('lesson.key_takeaways', 'Points clés à retenir')}
+                                    {t('lesson.key_takeaways', 'Points clés à retenir')}
                                 </p>
                                 <div className="space-y-3">
                                     {(lesson.key_takeaways || []).map((tk: string, i: number) => (
@@ -448,20 +447,20 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                         ) : currentExtra === 'mistakes' ? (
                             <div className="duo-card mb-4 sm:mb-6 p-4 sm:p-6 animate-in fade-in slide-in-from-right-2 duration-300" key={sectionIndex} style={{ background: 'rgba(231,76,60,0.04)' }}>
                                 <p className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: '#E74C3C' }}>
-                                    ⚠️ {t('lesson.common_mistakes', 'Pièges typiques')}
+                                    {t('lesson.common_mistakes', 'Pièges typiques')}
                                 </p>
                                 <div className="space-y-3">
                                     {(lesson.common_mistakes || []).map((m: CommonMistake, i: number) => (
                                         <div key={i} className="rounded-xl bg-white p-3" style={{ border: '1px solid rgba(231,76,60,0.15)' }}>
                                             <p className="text-xs font-bold" style={{ color: '#E74C3C' }}>
-                                                ✗ <span dangerouslySetInnerHTML={{ __html: inlineMd(m.mistake) }} />
+                                                <span className="opacity-70">À éviter : </span><span dangerouslySetInnerHTML={{ __html: inlineMd(m.mistake) }} />
                                             </p>
                                             <p className="text-xs font-bold mt-1" style={{ color: GREEN }}>
-                                                ✓ <span dangerouslySetInnerHTML={{ __html: inlineMd(m.correction) }} />
+                                                <span className="opacity-70">Correct : </span><span dangerouslySetInnerHTML={{ __html: inlineMd(m.correction) }} />
                                             </p>
                                             {m.tip && (
                                                 <p className="text-[10px] text-muted-foreground mt-1 italic">
-                                                    💡 <span dangerouslySetInnerHTML={{ __html: inlineMd(m.tip) }} />
+                                                    <span className="not-italic font-bold">Astuce : </span><span dangerouslySetInnerHTML={{ __html: inlineMd(m.tip) }} />
                                                 </p>
                                             )}
                                         </div>
@@ -596,7 +595,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                                     boxShadow: allQuizAnswered ? `0 4px 0 0 #2d7d52` : 'none',
                                 }}
                             >
-                                {submittingQuiz ? 'Envoi…' : 'Valider le quiz ✓'}
+                                {submittingQuiz ? 'Envoi…' : 'Valider le quiz'}
                             </button>
                         </div>
                     </div>
@@ -621,7 +620,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                             {quizResults.passed ? (
                                 <img src="/animation/Trophy.gif" alt="" width={96} height={96} className="mx-auto mb-2 drop-shadow-lg" />
                             ) : (
-                                <p className="text-5xl mb-3">🔁</p>
+                                <p className="text-2xl font-black mb-3 tracking-widest">{quizResults.accuracy}%</p>
                             )}
                             <p className="text-[10px] font-black uppercase tracking-widest opacity-80">
                                 {quizResults.passed ? 'Réussi' : 'À retravailler'}
@@ -641,7 +640,12 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                                     style={{ borderLeft: `3px solid ${r.correct ? GREEN : '#E74C3C'}` }}
                                 >
                                     <div className="flex items-start gap-2 mb-2">
-                                        <span className="text-base">{r.correct ? '✅' : '❌'}</span>
+                                        <span
+                                            className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-black text-white"
+                                            style={{ background: r.correct ? GREEN : '#E74C3C' }}
+                                        >
+                                            {r.correct ? '✓' : '✕'}
+                                        </span>
                                         <p className="text-sm font-bold" style={{ color: OXFORD }}>{r.question}</p>
                                     </div>
                                     {!r.correct && (
@@ -653,7 +657,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                                                 Bonne réponse : <span className="font-bold" style={{ color: GREEN }}>{r.correct_answer}</span>
                                             </p>
                                             {r.explanation && (
-                                                <p className="text-xs text-muted-foreground mt-1 italic">💡 {r.explanation}</p>
+                                                <p className="text-xs text-muted-foreground mt-1 italic"> {r.explanation}</p>
                                             )}
                                         </div>
                                     )}
@@ -661,66 +665,42 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                             ))}
                         </div>
 
-                        {/* Next actions */}
-                        <div className="flex flex-col items-center gap-6 w-full ">
+                        {/* Next actions — on success we go BACK to the path (the learner
+                            continues the practice from the parcours, not from here). */}
+                        <div className="flex flex-col items-center gap-4 w-full">
                             {quizResults.passed ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-                                    <Link
-                                        href={lesson.node_id ? `/node/${lesson.node_id}/start` : '/lessons/next'}
-                                        className="group relative rounded-2xl px-6 py-5 transition-all hover:scale-[1.02] active:scale-[0.98]"
-                                        style={{
-                                            background: `linear-gradient(135deg, ${GOLD}, #e08c10)`,
-                                            boxShadow: `0 5px 0 0 #b36e05`,
-                                        }}
-                                    >
-                                        <div className="flex items-center justify-between">
-                                            <div className="text-left">
-                                                <p className="text-[10px] font-black text-white/70 uppercase tracking-widest">Recommandé</p>
-                                                <p className="text-sm font-black text-white">🚀 {t('lesson.practice_this_concept', 'Pratiquer ce concept')}</p>
-                                            </div>
-                                            <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center text-xl">
-                                                🎯
-                                            </div>
-                                        </div>
-                                    </Link>
-
-                                    <Link
-                                        href="/lessons/next"
-                                        className="group relative rounded-2xl px-6 py-5 transition-all hover:scale-[1.02] active:scale-[0.98] border-2 bg-white"
-                                        style={{ borderColor: '#e5e7eb', boxShadow: '0 4px 0 0 #e5e7eb' }}
-                                    >
-                                        <div className="flex items-center justify-between">
-                                            <div className="text-left">
-                                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Progression</p>
-                                                <p className="text-sm font-black" style={{ color: OXFORD }}>📖 Leçon suivante</p>
-                                            </div>
-                                            <div className="h-10 w-10 rounded-xl bg-gray-50 flex items-center justify-center text-xl">
-                                                ➡️
-                                            </div>
-                                        </div>
-                                    </Link>
-                                </div>
-                            ) : (
                                 <Link
-                                    href="/lessons/next"
-                                    className="w-full rounded-2xl px-8 py-4 text-sm font-black text-white transition-all hover:scale-[1.02]"
+                                    href="/lessons"
+                                    className="w-full rounded-2xl px-8 py-4 text-center text-sm font-black text-white transition-all hover:scale-[1.02]"
                                     style={{
                                         background: `linear-gradient(135deg, ${SKY}, #3478c8)`,
                                         boxShadow: `0 5px 0 0 #2a6fc0`,
                                     }}
                                 >
-                                    {quizResults.outcome === 'consolidation'
-                                        ? '🔄 Essayer une autre leçon'
-                                        : '▶ Réessayer la leçon'}
+                                    Revenir au parcours
                                 </Link>
+                            ) : (
+                                <>
+                                    <Link
+                                        href="/lessons/next"
+                                        className="w-full rounded-2xl px-8 py-4 text-center text-sm font-black text-white transition-all hover:scale-[1.02]"
+                                        style={{
+                                            background: `linear-gradient(135deg, ${SKY}, #3478c8)`,
+                                            boxShadow: `0 5px 0 0 #2a6fc0`,
+                                        }}
+                                    >
+                                        {quizResults.outcome === 'consolidation'
+                                            ? 'Essayer une autre leçon'
+                                            : 'Réessayer la leçon'}
+                                    </Link>
+                                    <Link
+                                        href="/lessons"
+                                        className="text-xs font-bold text-muted-foreground hover:text-sky-600 transition-colors"
+                                    >
+                                        Revenir au parcours
+                                    </Link>
+                                </>
                             )}
-
-                            <Link
-                                href="/lessons"
-                                className="text-xs font-bold text-muted-foreground hover:text-sky-600 transition-colors flex items-center gap-1"
-                            >
-                                🗺️ Retour au parcours complet
-                            </Link>
                         </div>
                     </div>
                 )}

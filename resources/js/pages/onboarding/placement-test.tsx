@@ -185,7 +185,7 @@ function SectionTransition({ label, onDone }: { label: string; onDone: () => voi
                     alt=""
                     width={32}
                     height={32}
-                    style={{ filter: `brightness(0) saturate(100%) invert(47%) sepia(80%) saturate(600%) hue-rotate(195deg)`, objectFit: 'contain' }}
+                    style={{  objectFit: 'contain' }}
                 />
             </div>
             <p className="text-lg font-black" style={{ color: OXFORD }}>
@@ -396,7 +396,7 @@ export default function PlacementTest({ exam, sectionA, sectionB, sectionC }: Pr
             <OnboardingLayout title="Test de placement" step={4}>
                 <div className="flex flex-col items-center justify-center py-20 text-center">
                     <img src="/icons/loader.png" alt="" width={40} height={40} className="animate-spin mb-4"
-                        style={{ filter: `brightness(0) saturate(100%) invert(47%) sepia(80%) saturate(600%) hue-rotate(195deg)` }} />
+                        style={{ }} />
                     <p className="text-lg font-black" style={{ color: OXFORD }}>Analyse de votre niveau…</p>
                     <p className="mt-1 text-sm text-muted-foreground">L'IA évalue votre grammaire, lecture et expression écrite</p>
                 </div>

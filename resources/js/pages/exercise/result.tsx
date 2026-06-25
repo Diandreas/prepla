@@ -118,7 +118,7 @@ export default function ExerciseResult({ attempt, nodeProgress }: Props) {
                             >
                                 <Icon name="award" size={40} style={{ color: GOLD }} />
                                 <p className="text-lg font-black" style={{ color: OXFORD }}>Étape complétée !</p>
-                                <p className="text-sm font-bold text-muted-foreground">La prochaine étape est débloquée 🎉</p>
+                                <p className="text-sm font-bold text-muted-foreground">La prochaine étape est débloquée</p>
                             </div>
                         ) : (
                             <div className="flex flex-col items-center gap-2 p-5">

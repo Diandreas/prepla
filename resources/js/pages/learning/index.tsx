@@ -116,7 +116,7 @@ export default function LearningIndex({ lessons, skeleton, errorStats }: Props) 
                 {/* Header */}
                 <div className="mb-8" style={stagger(0)}>
                     <h1 className="text-2xl font-black tracking-tight" style={{ color: OXFORD }}>
-                        📘 Mon Parcours
+                         Mon Parcours
                     </h1>
                     <p className="mt-1 text-sm font-bold text-muted-foreground">
                         Ton programme adaptatif — chaque leçon s'adapte à tes progrès
@@ -155,7 +155,7 @@ export default function LearningIndex({ lessons, skeleton, errorStats }: Props) 
                                     backdropFilter: 'blur(4px)',
                                 }}
                             >
-                                <span className="text-3xl">▶</span>
+                                <span className="text-3xl"></span>
                             </div>
                         </div>
                         {/* Decorative */}
@@ -239,7 +239,7 @@ export default function LearningIndex({ lessons, skeleton, errorStats }: Props) 
                     <div className="duo-card mb-6 overflow-hidden p-0" style={stagger(3)}>
                         <div className="border-b-2 border-gray-100 px-5 py-3 flex items-center justify-between">
                             <p className="text-xs font-black uppercase tracking-widest" style={{ color: OXFORD, opacity: 0.5 }}>
-                                ⚠️ Tes points faibles
+                                 Tes points faibles
                             </p>
                             <Link href="/errors" className="text-[10px] font-bold" style={{ color: SKY }}>
                                 Voir tout →
@@ -289,7 +289,7 @@ export default function LearningIndex({ lessons, skeleton, errorStats }: Props) 
                     </div>
                     {lessons.data.length === 0 ? (
                         <div className="py-12 text-center">
-                            <p className="text-4xl mb-3">📚</p>
+                            <p className="text-4xl mb-3"></p>
                             <p className="text-sm font-bold text-muted-foreground">
                                 Aucune leçon encore. Clique sur "Prochaine leçon" pour commencer !
                             </p>
@@ -304,14 +304,15 @@ export default function LearningIndex({ lessons, skeleton, errorStats }: Props) 
                                 >
                                     <div className="flex items-center gap-3">
                                         <div
-                                            className="flex h-9 w-9 items-center justify-center rounded-xl text-sm"
+                                            className="flex h-9 w-9 items-center justify-center rounded-xl text-sm font-black"
                                             style={{
                                                 background: lesson.status === 'consolidation'
                                                     ? 'rgba(231,76,60,0.1)'
                                                     : 'rgba(74,144,226,0.1)',
+                                                color: lesson.status === 'consolidation' ? '#E74C3C' : SKY,
                                             }}
                                         >
-                                            {lesson.status === 'consolidation' ? '🔄' : '📝'}
+                                            {(lesson.title || '?').charAt(0).toUpperCase()}
                                         </div>
                                         <div>
                                             <p className="text-sm font-bold" style={{ color: OXFORD }}>

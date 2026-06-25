@@ -4,7 +4,7 @@ import { useTokens } from './landing-theme';
 
 const featureKeys = [
     { icon: '✦', accentKey: 'sky' as const, labelKey: 'landing.feature_ai_label', titleKey: 'landing.feature_ai_title', descKey: 'landing.feature_ai_desc' },
-    { icon: '⚡', accentKey: 'gold' as const, labelKey: 'landing.feature_instant_label', titleKey: 'landing.feature_instant_title', descKey: 'landing.feature_instant_desc' },
+    { icon: '', accentKey: 'gold' as const, labelKey: 'landing.feature_instant_label', titleKey: 'landing.feature_instant_title', descKey: 'landing.feature_instant_desc' },
     { icon: '◎', accentKey: 'green' as const, labelKey: 'landing.feature_adaptive_label', titleKey: 'landing.feature_adaptive_title', descKey: 'landing.feature_adaptive_desc' },
     { icon: '↗', accentKey: 'violet' as const, labelKey: 'landing.feature_analytics_label', titleKey: 'landing.feature_analytics_title', descKey: 'landing.feature_analytics_desc' },
 ];

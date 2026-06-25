@@ -184,9 +184,9 @@ export default function Result({ profile, exam, program: initialProgram }: Props
                             </div>
                             {showLevel && (
                                 <>
-                                    <div className="absolute -top-2 -right-2 animate-sparkle"><CustomIcon name="star" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(63%) sepia(31%) saturate(2078%) hue-rotate(229deg) brightness(97%) contrast(92%)' }} /></div>
-                                    <div className="absolute -bottom-1 -left-3 animate-sparkle" style={{ animationDelay: '0.3s' }}><CustomIcon name="star" className="h-3 w-3" style={{ filter: 'brightness(0) saturate(100%) invert(84%) sepia(40%) saturate(1734%) hue-rotate(353deg) brightness(94%) contrast(86%)' }} /></div>
-                                    <div className="absolute top-0 -left-4 animate-sparkle" style={{ animationDelay: '0.6s' }}><CustomIcon name="star" className="h-3.5 w-3.5" style={{ filter: 'brightness(0) saturate(100%) invert(39%) sepia(96%) saturate(1944%) hue-rotate(212deg) brightness(94%) contrast(91%)' }} /></div>
+                                    <div className="absolute -top-2 -right-2 animate-sparkle"><CustomIcon name="star" className="h-4 w-4" style={{ }} /></div>
+                                    <div className="absolute -bottom-1 -left-3 animate-sparkle" style={{ animationDelay: '0.3s' }}><CustomIcon name="star" className="h-3 w-3" style={{ }} /></div>
+                                    <div className="absolute top-0 -left-4 animate-sparkle" style={{ animationDelay: '0.6s' }}><CustomIcon name="star" className="h-3.5 w-3.5" style={{ }} /></div>
                                 </>
                             )}
                         </div>
@@ -212,9 +212,9 @@ export default function Result({ profile, exam, program: initialProgram }: Props
                             </div>
                             {showLevel && (
                                 <>
-                                    <div className="absolute -top-2 -right-2 animate-sparkle"><CustomIcon name="star" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(84%) sepia(40%) saturate(1734%) hue-rotate(353deg) brightness(94%) contrast(86%)' }} /></div>
-                                    <div className="absolute -bottom-1 -left-3 animate-sparkle" style={{ animationDelay: '0.3s' }}><CustomIcon name="star" className="h-3 w-3" style={{ filter: 'brightness(0) saturate(100%) invert(39%) sepia(96%) saturate(1944%) hue-rotate(212deg) brightness(94%) contrast(91%)' }} /></div>
-                                    <div className="absolute top-0 -left-4 animate-sparkle" style={{ animationDelay: '0.6s' }}><CustomIcon name="star" className="h-3.5 w-3.5" style={{ filter: 'brightness(0) saturate(100%) invert(63%) sepia(31%) saturate(2078%) hue-rotate(229deg) brightness(97%) contrast(92%)' }} /></div>
+                                    <div className="absolute -top-2 -right-2 animate-sparkle"><CustomIcon name="star" className="h-4 w-4" style={{ }} /></div>
+                                    <div className="absolute -bottom-1 -left-3 animate-sparkle" style={{ animationDelay: '0.3s' }}><CustomIcon name="star" className="h-3 w-3" style={{ }} /></div>
+                                    <div className="absolute top-0 -left-4 animate-sparkle" style={{ animationDelay: '0.6s' }}><CustomIcon name="star" className="h-3.5 w-3.5" style={{ }} /></div>
                                 </>
                             )}
                         </div>
@@ -296,7 +296,7 @@ export default function Result({ profile, exam, program: initialProgram }: Props
                     <div className="rounded-2xl border border-primary/25 bg-primary/5 p-4 sm:p-5" style={stagger(2)}>
                         <div className="flex items-start gap-3">
                             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/15 animate-pulse-soft">
-                                <CustomIcon name="sparkles" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(65%) sepia(60%) saturate(600%) hue-rotate(195deg)' }} />
+                                <CustomIcon name="sparkles" className="h-4 w-4" style={{ }} />
                             </div>
                             <div>
                                 <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-primary">
@@ -312,7 +312,7 @@ export default function Result({ profile, exam, program: initialProgram }: Props
                 {program && (program.strengths?.length ?? 0) > 0 && (
                     <div className="rounded-2xl border border-border bg-card p-4 sm:p-5" style={stagger(3)}>
                         <h2 className="mb-3 flex items-center gap-2 font-semibold">
-                            <CustomIcon name="trophy" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(84%) sepia(40%) saturate(1734%) hue-rotate(353deg) brightness(94%) contrast(86%)' }} />
+                            <CustomIcon name="trophy" className="h-4 w-4" style={{ }} />
                             Vos points forts
                         </h2>
                         <ul className="space-y-2">
@@ -327,7 +327,7 @@ export default function Result({ profile, exam, program: initialProgram }: Props
                                         transitionDelay: `${1000 + i * 100}ms`,
                                     }}
                                 >
-                                    <CustomIcon name="check-circle" className="mt-0.5 h-4 w-4 shrink-0" style={{ filter: 'brightness(0) saturate(100%) invert(47%) sepia(58%) saturate(392%) hue-rotate(96deg) brightness(97%) contrast(86%)' }} />
+                                    <CustomIcon name="check-circle" className="mt-0.5 h-4 w-4 shrink-0" style={{ }} />
                                     {s}
                                 </li>
                             ))}
@@ -339,7 +339,7 @@ export default function Result({ profile, exam, program: initialProgram }: Props
                 {program && (program.focus_areas?.length ?? 0) > 0 && (
                     <div className="rounded-2xl border border-border bg-card p-4 sm:p-5" style={stagger(4)}>
                         <h2 className="mb-4 flex items-center gap-2 font-semibold">
-                            <CustomIcon name="target" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(39%) sepia(96%) saturate(1944%) hue-rotate(212deg) brightness(94%) contrast(91%)' }} />
+                            <CustomIcon name="target" className="h-4 w-4" style={{ }} />
                             Programme personnalisé par compétence
                         </h2>
                         <div className="grid gap-3 sm:grid-cols-2">
@@ -379,7 +379,7 @@ export default function Result({ profile, exam, program: initialProgram }: Props
                 {program?.weekly_plan && (
                     <div className="rounded-2xl border border-border bg-card p-4 sm:p-5" style={stagger(5)}>
                         <h2 className="mb-4 flex items-center gap-2 font-semibold">
-                            <CustomIcon name="zap" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(84%) sepia(40%) saturate(1734%) hue-rotate(353deg) brightness(94%) contrast(86%)' }} />
+                            <CustomIcon name="zap" className="h-4 w-4" style={{ }} />
                             Plan hebdomadaire recommandé
                         </h2>
                         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -411,7 +411,7 @@ export default function Result({ profile, exam, program: initialProgram }: Props
                 {program && (program.milestones?.length ?? 0) > 0 && (
                     <div className="rounded-2xl border border-border bg-card p-4 sm:p-5" style={stagger(6)}>
                         <h2 className="mb-4 flex items-center gap-2 font-semibold">
-                            <CustomIcon name="trending-up" className="h-4 w-4" style={{ filter: 'brightness(0) saturate(100%) invert(47%) sepia(58%) saturate(392%) hue-rotate(96deg) brightness(97%) contrast(86%)' }} />
+                            <CustomIcon name="trending-up" className="h-4 w-4" style={{ }} />
                             Objectifs étape par étape
                         </h2>
                         <div className="relative space-y-4 pl-7">
@@ -444,7 +444,7 @@ export default function Result({ profile, exam, program: initialProgram }: Props
                 {program?.daily_tip && (
                     <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-800/30 dark:bg-amber-900/10" style={stagger(7)}>
                         <div className="flex items-start gap-3">
-                            <CustomIcon name="lightbulb" className="mt-0.5 h-5 w-5 shrink-0 animate-bounce-soft" style={{ filter: 'brightness(0) saturate(100%) invert(84%) sepia(40%) saturate(1734%) hue-rotate(353deg) brightness(94%) contrast(86%)' }} />
+                            <CustomIcon name="lightbulb" className="mt-0.5 h-5 w-5 shrink-0 animate-bounce-soft" style={{ }} />
                             <div>
                                 <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">Conseil du jour</p>
                                 <p className="mt-0.5 text-sm text-amber-700 dark:text-amber-400">{program.daily_tip}</p>
@@ -461,7 +461,7 @@ export default function Result({ profile, exam, program: initialProgram }: Props
                 {/* CTA */}
                 <div className={`rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 p-4 sm:p-6 text-center`} style={stagger(9)}>
                     <div className="flex items-center justify-center gap-2">
-                        <CustomIcon name="flame" className="h-5 w-5" style={{ filter: 'brightness(0) saturate(100%) invert(50%) sepia(96%) saturate(1762%) hue-rotate(332deg) brightness(102%) contrast(96%)' }} />
+                        <CustomIcon name="flame" className="h-5 w-5" style={{ }} />
                         <p className="font-semibold">
                             {level === 'A0'
                                 ? 'Objectif : premiers pas vers A1'

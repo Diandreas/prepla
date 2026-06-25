@@ -107,9 +107,9 @@ export function CtaSection() {
 
                 <div style={{ marginTop: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
                     {[
-                        { icon: '🛡', key: 'landing.cta_trust1' },
+                        { icon: '', key: 'landing.cta_trust1' },
                         { icon: '✓', key: 'landing.cta_trust2' },
-                        { icon: '⚡', key: 'landing.cta_trust3' },
+                        { icon: '', key: 'landing.cta_trust3' },
                     ].map((item) => (
                         <div key={item.key} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                             <span style={{ fontSize: '0.875rem', color: '#22c55e', opacity: 0.8 }}>{item.icon}</span>
