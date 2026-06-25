@@ -133,7 +133,7 @@ export function LandingNavbar() {
             >
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2 select-none" style={{ textDecoration: 'none' }}>
-                    <img src="/icons/logo.png?v=3" alt="PrePla" width={32} height={32} style={{ objectFit: 'contain' }} />
+                    <img src="/icons/logo.png?v=4" alt="PrePla" width={32} height={32} style={{ objectFit: 'contain' }} />
                     <span className="flex items-baseline gap-0.5">
                         <span style={{
                             fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif',

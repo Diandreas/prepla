@@ -82,6 +82,7 @@ interface Props {
             name: string;
             language: {
                 name: string;
+                slug?: string;
             }
         }
     };
@@ -385,8 +386,19 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
     const contentRef = useRef<HTMLDivElement>(null);
 
     const exercise = exercises[currentExerciseIndex];
-    const LANG_CODES: Record<string, string> = { 'English': 'en', 'French': 'fr', 'German': 'de' };
-    const nodeCode = LANG_CODES[node.exam.language.name] ?? 'en';
+    // TTS language for this node. Prefer the language SLUG ("english"/"french"/
+    // "german") which use-tts normalizes reliably. The display name can't be used
+    // as a lookup key: the DB stores localized names ("Allemand"/"Français"), so a
+    // map keyed on English names ("German"/"French") silently fell through to 'en'
+    // — which is why a German reading passage was read with an English voice.
+    const NAME_TO_SLUG: Record<string, string> = {
+        English: 'english', Anglais: 'english',
+        French: 'french', Français: 'french', Francais: 'french',
+        German: 'german', Allemand: 'german', Deutsch: 'german',
+    };
+    const nodeCode = node.exam.language.slug
+        ?? NAME_TO_SLUG[node.exam.language.name]
+        ?? 'en';
     const componentKey = exercise?.exercise_type?.component_key ?? 'mcq';
 
     const TIME_PER_QUESTION = useMemo(() => {

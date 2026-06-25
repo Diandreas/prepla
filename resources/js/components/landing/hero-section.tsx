@@ -165,7 +165,7 @@ export function HeroSection() {
             </div>
 
             {/* Decorative logo watermark */}
-            <img src="/icons/logo.png?v=3" alt="" aria-hidden
+            <img src="/icons/logo.png?v=4" alt="" aria-hidden
                 className="pointer-events-none absolute -left-16 top-10 select-none"
                 style={{ width: 380, height: 'auto', opacity: T.dark ? 0.06 : 0.05 }} />
 

@@ -1,4 +1,7 @@
-const CACHE_NAME = 'prepla-v1';
+// Bump this version on every deploy that ships new front-end assets so the
+// activate handler purges the previous cache. Cache-first on hashed Vite assets
+// is fine, but the SW itself must not pin users to a stale bundle.
+const CACHE_NAME = 'prepla-v2';
 const OFFLINE_URL = '/offline';
 
 const PRECACHE_ASSETS = [
@@ -37,16 +40,23 @@ self.addEventListener('fetch', (event) => {
     // Skip API / Inertia XHR requests — always network
     if (request.headers.get('X-Inertia')) return;
 
-    // Static assets (js, css, images, fonts) → cache-first
+    // Static assets (js, css, images, fonts) → stale-while-revalidate.
+    // Serve the cached copy instantly for speed, but ALWAYS refetch in the
+    // background and update the cache, so a new deploy is picked up on the next
+    // load instead of pinning the user to an old bundle (which made icon/emoji
+    // changes appear to "not change" after deploy).
     if (url.pathname.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff2?|ttf)$/)) {
         event.respondWith(
-            caches.match(request).then((cached) =>
-                cached || fetch(request).then((response) => {
-                    const clone = response.clone();
-                    caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+            caches.match(request).then((cached) => {
+                const network = fetch(request).then((response) => {
+                    if (response && response.ok) {
+                        const clone = response.clone();
+                        caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+                    }
                     return response;
-                })
-            )
+                }).catch(() => cached);
+                return cached || network;
+            })
         );
         return;
     }
@@ -96,8 +106,8 @@ self.addEventListener('push', (event) => {
     const title = payload.title || 'PrePla';
     const options = {
         body: payload.body || 'Temps de pratiquer !',
-        icon: payload.icon || '/icons/icon-192.png',
-        badge: payload.badge || '/icons/icon-72.png',
+        icon: payload.icon || '/icons/pwa-192.png',
+        badge: payload.badge || '/icons/pwa-192.png',
         data: { url: payload.data?.url || '/' },
         actions: payload.actions || [],
         requireInteraction: false,

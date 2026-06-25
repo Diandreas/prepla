@@ -19,7 +19,7 @@ export function MobileTabBar() {
 
                     if (tab.isCenter) {
                         return (
-                            <Link key={tab.href} href={tab.href} prefetch cacheFor="30s" className="flex -translate-y-3 flex-col items-center gap-1">
+                            <Link key={tab.href} href={tab.href} prefetch={['mount', 'hover']} cacheFor="1m" className="flex -translate-y-3 flex-col items-center gap-1">
                                 <div
                                     className="flex items-center justify-center rounded-2xl transition-transform duration-200 active:scale-90"
                                     style={{
@@ -38,8 +38,8 @@ export function MobileTabBar() {
                         <Link
                             key={tab.href}
                             href={tab.href}
-                            prefetch
-                            cacheFor="30s"
+                            prefetch={['mount', 'hover']}
+                            cacheFor="1m"
                             className="group flex flex-1 flex-col items-center gap-1"
                         >
                             {/* Active pill behind the icon */}
