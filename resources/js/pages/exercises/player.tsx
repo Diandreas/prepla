@@ -2,6 +2,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { playSound } from '@/hooks/use-sound';
 
 // Read the freshest CSRF token. The XSRF-TOKEN cookie tracks the live session,
 // whereas the <meta> tag is frozen at page load and goes stale on a long-running
@@ -569,6 +570,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
 
         setIsCorrect(isRight);
         setIsChecked(true);
+        playSound(isRight ? 'correct' : 'incorrect');
         
         if (!isRight && !isReviewMode) {
             if (!aiFeedback) fetchExplanation();
@@ -615,6 +617,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
             }
 
             setSubmitting(true);
+            playSound('complete');
             router.post(route('exercise.submit_session', node.id), {
                 answers: submittedAnswers,
                 node_id: node.id,
@@ -1004,9 +1007,10 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                         {isChecked && (
                             <div className="feedback-enter" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                                 {isCorrect ? (
-                                    // Celebratory GIF on a correct answer.
+                                    // Light "win" GIF on a correct answer (the big trophy is
+                                    // reserved for end-of-session results).
                                     <img
-                                        src="/animation/Trophy.gif"
+                                        src="/animation/star.gif"
                                         alt=""
                                         width={48}
                                         height={48}

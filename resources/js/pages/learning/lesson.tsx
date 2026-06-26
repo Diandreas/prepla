@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { ConfettiBurst } from '@/components/confetti-burst';
+import { playSound } from '@/hooks/use-sound';
 
 interface QuizQuestion {
     question: string;
@@ -164,6 +165,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
             });
             setQuizResults(res.data);
             setPhase('results');
+            playSound(res.data?.passed ? 'complete' : 'incorrect');
         } catch (e: any) {
             console.error('Quiz submission failed', e.response?.data || e.message);
         } finally {
@@ -618,7 +620,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                             }}
                         >
                             {quizResults.passed ? (
-                                <img src="/animation/Trophy.gif" alt="" width={96} height={96} className="mx-auto mb-2 drop-shadow-lg" />
+                                <img src="/animation/winner.gif" alt="" width={120} height={120} className="mx-auto mb-2 drop-shadow-lg" />
                             ) : (
                                 <p className="text-2xl font-black mb-3 tracking-widest">{quizResults.accuracy}%</p>
                             )}

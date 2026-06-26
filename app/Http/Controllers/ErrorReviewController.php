@@ -21,7 +21,13 @@ class ErrorReviewController extends Controller
     {
         $user = $request->user();
 
-        $errors = UserError::unmastered($user->id)->paginate(20);
+        // Only CONCEPT errors are listed here (grammar/vocab/writing…) — they're the
+        // ones the learner can actually re-practise. Comprehension errors (reading/
+        // listening on a one-off passage) can't be re-posed, so they feed the
+        // diagnostic stats below but never appear as practisable items.
+        $errors = UserError::concept($user->id)
+            ->orderByDesc('created_at')
+            ->paginate(20);
         // Normalise field names for the frontend (reviewed_count → review_count,
         // question_text → prompt) and expose the pedagogical family.
         $errors->getCollection()->transform(fn ($e) => [

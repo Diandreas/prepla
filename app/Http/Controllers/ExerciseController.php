@@ -92,9 +92,15 @@ class ExerciseController extends Controller
                         // errors (reading/listening on a passage) feed the diagnostic only.
                         $family = \App\Models\UserError::classifyFamily($slug, $skillType);
 
-                        // Derive a real category/subcategory for the diagnostic. Prefer the
-                        // AI-provided one; else derive from the linked lesson's concept.
-                        if (!empty($qFeedback['error_category'])) {
+                        if ($family === 'comprehension') {
+                            // A reading/listening mistake is about understanding a specific
+                            // passage, NOT a grammar concept. Force the category to the actual
+                            // comprehension skill so it never gets mislabelled "grammar" (the AI
+                            // and the deriveCategory fallback both lean toward 'grammar').
+                            $errorCategory = in_array($skillType, ['reading', 'listening'], true) ? $skillType : 'reading';
+                            $errorSubcategory = $qFeedback['error_subcategory'] ?? null;
+                        } elseif (!empty($qFeedback['error_category'])) {
+                            // Concept error: prefer the AI-provided category, else derive it.
                             $errorCategory = $qFeedback['error_category'];
                             $errorSubcategory = $qFeedback['error_subcategory'] ?? null;
                         } else {

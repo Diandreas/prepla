@@ -153,7 +153,10 @@ class ExerciseScoringService
                 }
                 $normalUser = strtolower(trim((string)$userAnswer));
                 $normalCorrect = strtolower(trim((string)$correctAnswer));
-                $isCorrect = $normalUser === $normalCorrect;
+                // An empty user answer is NEVER correct, even if the expected answer
+                // is also empty/missing (malformed exercise). This stopped multi-field
+                // exercises like form-completion from showing "success" with nothing entered.
+                $isCorrect = $normalUser !== '' && $normalUser === $normalCorrect;
 
                 // Index-based matching fallback
                 if (!$isCorrect && preg_match('/^[a-d]$/', $normalUser) && isset($question['options'])) {

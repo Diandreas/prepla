@@ -1,7 +1,9 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ConfettiBurst } from '@/components/confetti-burst';
+import { playSound } from '@/hooks/use-sound';
 import { motion } from 'framer-motion';
 
 function Icon({ name, size = 20, className, style }: { name: string; size?: number; className?: string; style?: React.CSSProperties }) {
@@ -38,6 +40,11 @@ interface Props {
 export default function SessionReport({ node, report, userLevel }: Props) {
     const { t } = useTranslation();
 
+    // Victory sound + haptics on arrival (xp gained when the concept is mastered).
+    useEffect(() => {
+        playSound(report.accuracy >= 80 ? 'complete' : 'xp');
+    }, [report.accuracy]);
+
     const container = {
         hidden: { opacity: 0 },
         show: {
@@ -70,10 +77,10 @@ export default function SessionReport({ node, report, userLevel }: Props) {
                             {/* Animated trophy / encouragement based on accuracy */}
                             <div className="flex-shrink-0">
                                 <img
-                                    src={report.accuracy >= 60 ? '/animation/Trophy.gif' : '/animation/Fire.gif'}
+                                    src={report.accuracy >= 80 ? '/animation/winner.gif' : report.accuracy >= 60 ? '/animation/big-trophy.gif' : '/animation/Fire.gif'}
                                     alt=""
-                                    width={130}
-                                    height={130}
+                                    width={150}
+                                    height={150}
                                     className="drop-shadow-xl"
                                 />
                             </div>

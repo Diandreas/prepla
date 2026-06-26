@@ -34,6 +34,7 @@ export function RolePlay({ question, onAnswer, selectedAnswer, disabled, lang = 
     const turns = Array.isArray(question.dialogue_turns) ? question.dialogue_turns : [];
     const candidateTurns = turns.filter((t) => t?.speaker === 'candidate');
     const allDone = selectedAnswer || recordings.length >= candidateTurns.length;
+    const isMyTurn = !disabled && !allDone && turns[currentTurn]?.speaker === 'candidate';
 
     // Lit automatiquement la réplique de l'examinateur quand on arrive à son tour.
     useEffect(() => {
@@ -80,6 +81,25 @@ export function RolePlay({ question, onAnswer, selectedAnswer, disabled, lang = 
                 <p className="text-sm">{question.scenario}</p>
                 <p className="mt-2 text-sm font-medium italic text-primary">Votre rôle : {question.role}</p>
             </div>
+
+            {/* Whose turn is it — makes it obvious WHEN the user should speak. */}
+            {turns.length > 0 && !allDone && !disabled && (
+                isMyTurn ? (
+                    <div className="flex items-center gap-2 rounded-xl border-2 border-emerald-300 bg-emerald-50 px-4 py-2.5 animate-pulse">
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4"/></svg>
+                        </span>
+                        <p className="text-sm font-black text-emerald-700">À vous de parler — appuyez sur « Enregistrer »</p>
+                    </div>
+                ) : (
+                    <div className="flex items-center gap-2 rounded-xl border border-border bg-muted/50 px-4 py-2.5">
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+                        </span>
+                        <p className="text-sm font-bold text-muted-foreground">L'examinateur parle — écoutez puis « Continuer »</p>
+                    </div>
+                )
+            )}
 
             {error && (
                 <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</div>
