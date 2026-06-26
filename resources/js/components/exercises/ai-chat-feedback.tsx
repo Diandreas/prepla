@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { Markdown } from '@/components/markdown';
 
 interface Message {
     role: 'user' | 'assistant';
@@ -96,11 +97,13 @@ export function AiChatFeedback({ isOpen, onClose, context, initialExplanation }:
                     {messages.map((msg, i) => (
                         <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
                             <div className={`max-w-[85%] rounded-2xl p-4 text-sm shadow-sm ${
-                                msg.role === 'user' 
-                                ? 'bg-indigo-600 text-white rounded-tr-none' 
+                                msg.role === 'user'
+                                ? 'bg-indigo-600 text-white rounded-tr-none'
                                 : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200 rounded-tl-none border dark:border-slate-700'
                             }`}>
-                                {msg.content}
+                                {msg.role === 'assistant'
+                                    ? <Markdown content={msg.content} />
+                                    : msg.content}
                             </div>
                         </div>
                     ))}

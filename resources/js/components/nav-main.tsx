@@ -19,7 +19,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                                 isActive={isActive}
                                 className="h-10 gap-3 rounded-lg transition-all"
                             >
-                                <Link href={item.url} prefetch>
+                                <Link href={item.url} prefetch={['mount', 'hover']} cacheFor="1m">
                                     {item.icon && (
                                         <span className="flex items-center justify-center w-7 h-7 shrink-0">
                                             <item.icon />

@@ -708,7 +708,8 @@
         to   { opacity: 1; transform: translateY(0); }
     }
     .page-transition {
-        animation: page-enter 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+        /* Kept short so prefetched navigations feel instant/native, not animated. */
+        animation: page-enter 0.18s cubic-bezier(0.22, 1, 0.36, 1);
     }
     @media (prefers-reduced-motion: reduce) {
         .page-transition { animation: none; }

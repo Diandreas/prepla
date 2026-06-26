@@ -3,6 +3,7 @@ import axios from 'axios';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Markdown } from '@/components/markdown';
 function Icon({ name, size = 20, style, className }: { name: string; size?: number; style?: React.CSSProperties; className?: string }) {
     return <img src={`/icons/${name}.png`} alt="" width={size} height={size} style={{ objectFit: 'contain', ...style }} className={className} />;
 }
@@ -75,7 +76,9 @@ export default function Explainer() {
                                                 : 'bg-muted'
                                         }`}
                                     >
-                                        {msg.content}
+                                        {msg.role === 'assistant'
+                                            ? <Markdown content={msg.content} />
+                                            : msg.content}
                                     </div>
                                     {msg.role === 'user' && (
                                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">

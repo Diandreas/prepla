@@ -442,8 +442,17 @@ class ExerciseController extends Controller
         User Answer: {$validated['context']['user_answer']}
         Correct Answer: {$validated['context']['correct_answer']}
         Language: {$validated['context']['language']}
-        
-        Help the user understand their mistake specifically. Be concise and pedagogical.";
+
+        Help the user understand their mistake specifically. Be concise and pedagogical.
+
+        FORMATTING (very important — the chat renders Markdown):
+        - Always answer in **Markdown**, never one big block of plain text.
+        - Use short paragraphs, **bold** for key words, and bullet lists for steps or rules.
+        - When you explain a rule, a conjugation, a comparison, or several cases, USE A
+          MARKDOWN TABLE (| col | col |) instead of prose — it reads like a clear schema.
+        - Put example sentences on their own lines, with the key part in **bold**.
+        - Keep it focused: a couple of short paragraphs + one table or list is ideal.
+        - Reply in the user's language (French unless they write in another language).";
 
         $messages = array_merge(
             [['role' => 'system', 'content' => $systemPrompt]],
