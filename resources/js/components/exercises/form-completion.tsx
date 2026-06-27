@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 interface FormField {
     label: string;
@@ -38,29 +38,6 @@ export function FormCompletion({ question, onAnswer, selectedAnswer, disabled }:
     // the generator's `correct_answers` map ({"0": "...", "1": "..."}).
     const blankCount = fields.filter(isBlankField).length;
 
-    const handleChange = (key: string, val: string) => {
-        const next = { ...values, [key]: val };
-        setValues(next);
-        // Report up only once every blank has a non-empty value. This prevents the
-        // player's Check button from ever scoring an empty/partial form as a
-        // "success" (the previous version auto-submitted {} when no blank was
-        // detected, marking nothing-entered as correct).
-        const filled = Object.values(next).filter((v) => v.trim() !== '').length;
-        if (blankCount > 0 && filled >= blankCount) {
-            onAnswer(question.id, next);
-        }
-    };
-
-    // If the data is malformed (no blanks at all) we must NOT report an answer,
-    // otherwise the exercise would be gradable with nothing to fill.
-    useEffect(() => {
-        if (blankCount === 0) {
-            // leave the answer unset so the player keeps the Check button disabled
-        }
-    }, [blankCount]);
-
-    let blankIdx = 0;
-
     return (
         <div className="space-y-4">
             {(question.title || question.text) && (
@@ -75,8 +52,28 @@ export function FormCompletion({ question, onAnswer, selectedAnswer, disabled }:
                 <div className="overflow-hidden rounded-xl border">
                     {fields.map((field, i) => {
                         const blank = isBlankField(field);
-                        const key = blank ? String(blankIdx++) : '';
+                        // Key answers by BOTH the absolute field index (i) and the
+                        // blank-relative index. The generator's correct_answers map is
+                        // sometimes keyed by absolute position, sometimes by blank order
+                        // — writing both keys (same value) makes scoring match either way
+                        // and fixes correct answers being marked 0%.
+                        const relKey = blank ? String(blankIdx++) : '';
+                        const absKey = String(i);
                         const display = field.answer ?? field.value ?? '—';
+                        const setBoth = (val: string) => {
+                            setValues((prev) => {
+                                const next = { ...prev, [absKey]: val, [relKey]: val };
+                                const filled = new Set(
+                                    Object.entries(next).filter(([, v]) => v.trim() !== '').map(([k]) => k)
+                                );
+                                // Count distinct blanks filled (abs keys only, to avoid double-count).
+                                const blanksFilled = fields.filter((f, fi) => isBlankField(f) && (next[String(fi)] ?? '').trim() !== '').length;
+                                if (blankCount > 0 && blanksFilled >= blankCount) {
+                                    onAnswer(question.id, next);
+                                }
+                                return next;
+                            });
+                        };
 
                         return (
                             <div
@@ -89,8 +86,8 @@ export function FormCompletion({ question, onAnswer, selectedAnswer, disabled }:
                                 {blank ? (
                                     field.type === 'select' && field.options ? (
                                         <select
-                                            value={values[key] ?? ''}
-                                            onChange={(e) => handleChange(key, e.target.value)}
+                                            value={values[absKey] ?? ''}
+                                            onChange={(e) => setBoth(e.target.value)}
                                             disabled={disabled}
                                             className="flex-1 rounded border border-border bg-background px-3 py-1.5 text-sm focus:border-primary focus:outline-none disabled:opacity-50"
                                         >
@@ -100,13 +97,17 @@ export function FormCompletion({ question, onAnswer, selectedAnswer, disabled }:
                                             ))}
                                         </select>
                                     ) : (
+                                        // Always a plain text input. We deliberately do NOT use
+                                        // <input type="date">: the AI mislabels many text fields as
+                                        // "date", and a native date picker forces a locale format
+                                        // that never matches the expected answer string → 0%.
                                         <input
-                                            type={field.type === 'date' ? 'date' : 'text'}
-                                            value={values[key] ?? ''}
-                                            onChange={(e) => handleChange(key, e.target.value)}
+                                            type="text"
+                                            value={values[absKey] ?? ''}
+                                            onChange={(e) => setBoth(e.target.value)}
                                             disabled={disabled}
                                             className="flex-1 rounded border border-border bg-background px-3 py-1.5 text-sm focus:border-primary focus:outline-none disabled:opacity-50"
-                                            placeholder="À compléter…"
+                                            placeholder={field.type === 'date' ? 'JJ/MM/AAAA…' : 'À compléter…'}
                                         />
                                     )
                                 ) : (

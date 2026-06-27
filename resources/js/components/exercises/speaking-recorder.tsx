@@ -164,8 +164,20 @@ export function SpeakingRecorder({ question, onAnswer, selectedAnswer, disabled,
 
                 {/* Playback */}
                 {phase === 'done' && (audioUrl || selectedAnswer) && (() => {
-                    // Si selectedAnswer est un Blob, on crée une URL locale pour la lecture
-                    const src = audioUrl || (selectedAnswer instanceof Blob ? URL.createObjectURL(selectedAnswer) : selectedAnswer);
+                    // Si selectedAnswer est un Blob, on crée une URL locale pour la lecture.
+                    // Défensif : createObjectURL peut lever si l'objet n'est pas un Blob
+                    // valide → on évite ainsi la page blanche après l'envoi du vocal.
+                    let src: string | undefined = audioUrl ?? undefined;
+                    if (!src) {
+                        try {
+                            src = selectedAnswer instanceof Blob
+                                ? URL.createObjectURL(selectedAnswer)
+                                : (typeof selectedAnswer === 'string' ? selectedAnswer : undefined);
+                        } catch {
+                            src = undefined;
+                        }
+                    }
+                    if (!src) return null;
                     return (
                         <div className="flex w-full max-w-sm flex-col items-center gap-3">
                             <audio controls src={src as string} className="w-full rounded-lg" />

@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 
 import AppearanceTabs from '@/components/appearance-tabs';
+import { SoundToggle } from '@/components/sound-toggle';
 import { type BreadcrumbItem } from '@/types';
 
 import AppLayout from '@/layouts/app-layout';
@@ -43,6 +44,9 @@ export default function Appearance() {
                 <div className="overflow-hidden rounded-2xl border bg-card shadow-sm p-4 md:p-6">
                     <AppearanceTabs />
                 </div>
+
+                {/* Sound effects toggle */}
+                <SoundToggle />
             </div>
         </AppLayout>
     );

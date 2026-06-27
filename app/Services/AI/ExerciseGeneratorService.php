@@ -216,10 +216,22 @@ DIRECTIVE;
             ? "\n\nCRITICAL FOR GAP-FILL:\n- The answer to each blank MUST NOT appear verbatim in the passage or in any other question.\n- Each gap tests grammar or vocabulary the student has to KNOW, not COPY.\n- Bad example: passage says 'Madrid is a big city' → gap 'Madrid is a ___ city' (answer 'big' is visible). NEVER do this.\n- Good example: passage says 'Anna lives in Madrid' → gap 'Anna ___ (live) in Madrid' (answer 'lives' — tests verb conjugation, the verb form is NOT in the passage)."
             : '';
 
+        // Comprehension grounding: for reading/listening, EVERY question must be
+        // answerable from the passage/recording alone. This stops the recurring
+        // problem of questions asking about facts that are not in the text.
+        $isComprehension = in_array($skillType, ['reading', 'listening'], true);
+        $comprehensionGuard = $isComprehension
+            ? "\n\nCRITICAL FOR THIS COMPREHENSION EXERCISE:\n- EVERY question's correct answer MUST be explicitly stated in, or directly inferable from, the passage/recording. NEVER ask about a detail, name, number or fact that is not present in the text.\n- Distractors must be plausible but clearly wrong according to the text.\n- For listening, the passage IS the transcript that will be read aloud (the student does NOT see it) — questions must be answerable by ear, so keep them concrete and not dependent on exact spelling.\n- Do NOT require outside/world knowledge the text doesn't provide."
+            : '';
+
+        // Level guard: keep vocabulary and structures within the target CEFR level so
+        // the learner isn't tested on notions far beyond what they're learning.
+        $levelGuard = "\n\nLEVEL: Keep vocabulary, grammar and topics appropriate for CEFR {$difficulty}. Do not use structures or rare vocabulary clearly above {$difficulty}.";
+
         return <<<PROMPT
 Generate a {$exerciseType->name} exercise for the {$exam->name} exam at CEFR {$difficulty} level.
 The exercise must be entirely in {$language} ({$languageNative}) — this is a {$language} language exam.
-Skill tested: {$skillType}.{$lessonDirective}{$gapFillBan}
+Skill tested: {$skillType}.{$lessonDirective}{$gapFillBan}{$comprehensionGuard}{$levelGuard}
 
 Return JSON with exactly this structure:
 {

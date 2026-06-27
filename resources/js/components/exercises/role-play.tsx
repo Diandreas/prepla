@@ -31,16 +31,30 @@ export function RolePlay({ question, onAnswer, selectedAnswer, disabled, lang = 
     const { isRecording, audioUrl, startRecording, stopRecording, error } = useAudioRecorder();
 
     // Défensif : le générateur IA peut omettre dialogue_turns ou l'envoyer mal formé.
-    const turns = Array.isArray(question.dialogue_turns) ? question.dialogue_turns : [];
-    const candidateTurns = turns.filter((t) => t?.speaker === 'candidate');
+    // Le `speaker` arrive parfois sous des libellés inattendus ("student", "you",
+    // "user", "client"…), ce qui cassait la détection du tour → l'utilisateur
+    // n'avait jamais la main et la session restait bloquée. On normalise donc :
+    // est "examinateur" tout tour explicitement marqué examiner/interviewer/teacher
+    // OU qui porte un `text` à lire ; tout le reste est un tour du candidat (à parler).
+    const rawTurns = Array.isArray(question.dialogue_turns) ? question.dialogue_turns : [];
+    const isExaminerTurn = (t?: DialogueTurn): boolean => {
+        if (!t) return false;
+        const s = (t.speaker ?? '').toLowerCase();
+        if (['examiner', 'interviewer', 'teacher', 'examinateur', 'prof', 'professeur', 'agent', 'system'].some(k => s.includes(k))) return true;
+        if (['candidate', 'student', 'you', 'user', 'me', 'candidat', 'élève', 'eleve', 'client'].some(k => s.includes(k))) return false;
+        // Unknown label: a line WITH text to read is the examiner; otherwise it's the user's turn.
+        return !!(t.text && t.text.trim());
+    };
+    const turns = rawTurns;
+    const candidateTurns = turns.filter((t) => !isExaminerTurn(t));
     const allDone = selectedAnswer || recordings.length >= candidateTurns.length;
-    const isMyTurn = !disabled && !allDone && turns[currentTurn]?.speaker === 'candidate';
+    const isMyTurn = !disabled && !allDone && !isExaminerTurn(turns[currentTurn]);
 
     // Lit automatiquement la réplique de l'examinateur quand on arrive à son tour.
     useEffect(() => {
         if (disabled || allDone) return;
         const turn = turns[currentTurn];
-        if (turn?.speaker === 'examiner' && turn.text) {
+        if (isExaminerTurn(turn) && turn?.text) {
             speak(turn.text, lang);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -60,7 +74,7 @@ export function RolePlay({ question, onAnswer, selectedAnswer, disabled, lang = 
     const handleNextTurn = () => {
         stop(); // coupe l'audio de l'examinateur en cours
         // N'enregistre l'audio que si le tour courant est une réplique du candidat.
-        if (turns[currentTurn]?.speaker === 'candidate' && audioUrl) {
+        if (!isExaminerTurn(turns[currentTurn]) && audioUrl) {
             setRecordings([...recordings, audioUrl]);
         }
 
@@ -117,7 +131,7 @@ export function RolePlay({ question, onAnswer, selectedAnswer, disabled, lang = 
                     const isPast = i < currentTurn;
                     const isCurrent = i === currentTurn;
                     const isFuture = i > currentTurn;
-                    const isExaminer = turn.speaker === 'examiner';
+                    const isExaminer = isExaminerTurn(turn);
 
                     if (isFuture && !allDone) return null;
 
@@ -155,10 +169,10 @@ export function RolePlay({ question, onAnswer, selectedAnswer, disabled, lang = 
                                 ) : isPast || allDone ? (
                                     <div className="space-y-2">
                                         {turn.prompt && <p className="text-xs italic text-muted-foreground">{turn.prompt}</p>}
-                                        {recordings[turns.filter((t, idx) => t.speaker === 'candidate' && idx <= i).length - 1] && (
+                                        {recordings[turns.filter((t, idx) => !isExaminerTurn(t) && idx <= i).length - 1] && (
                                             <audio
                                                 controls
-                                                src={recordings[turns.filter((t, idx) => t.speaker === 'candidate' && idx <= i).length - 1]}
+                                                src={recordings[turns.filter((t, idx) => !isExaminerTurn(t) && idx <= i).length - 1]}
                                                 className="h-8 w-full"
                                             />
                                         )}

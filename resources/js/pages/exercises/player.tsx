@@ -68,6 +68,7 @@ interface Exercise {
     exercise_type: {
         component_key: string;
         name: string;
+        skill_type?: string;
     };
     questions: any[];
     content: any;
@@ -281,13 +282,40 @@ interface ExplanationObj {
     french_translation?: { concept: string; evidence: string; hint: string };
 }
 
+// Coerce any value to a renderable string. Guards against React error #31
+// (rendering an object/array as a child) which white-screened the page when the
+// AI returned a structured explanation (e.g. nested concept/feedback objects).
+function asText(v: any): string {
+    if (v == null) return '';
+    if (typeof v === 'string') return v;
+    if (typeof v === 'number' || typeof v === 'boolean') return String(v);
+    if (Array.isArray(v)) return v.map(asText).filter(Boolean).join(' ');
+    if (typeof v === 'object') return String(v.text ?? v.message ?? v.value ?? '');
+    return '';
+}
+
+function normalizeExplObj(o: any): ExplanationObj {
+    const ft = o.french_translation && typeof o.french_translation === 'object' ? o.french_translation : undefined;
+    return {
+        concept: asText(o.concept),
+        evidence: asText(o.evidence),
+        hint: asText(o.hint),
+        french_translation: ft ? {
+            concept: asText(ft.concept),
+            evidence: asText(ft.evidence),
+            hint: asText(ft.hint),
+        } : undefined,
+    };
+}
+
 function parseExplanation(raw: any): ExplanationObj | string | null {
     if (!raw) return null;
-    if (typeof raw === 'object' && raw.concept !== undefined) return raw as ExplanationObj;
+    if (typeof raw === 'object' && raw.concept !== undefined) return normalizeExplObj(raw);
+    if (typeof raw === 'object') return asText(raw) || null; // some other object shape → flatten to text
     if (typeof raw === 'string') {
         try {
             const parsed = JSON.parse(raw);
-            if (parsed && parsed.concept !== undefined) return parsed as ExplanationObj;
+            if (parsed && parsed.concept !== undefined) return normalizeExplObj(parsed);
         } catch {}
         return raw;
     }
@@ -384,6 +412,8 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
     const [isSearching, setIsSearching] = useState(false);
     const [searchResult, setSearchResult] = useState<any>(null);
     const [isVocabSaved, setIsVocabSaved] = useState(false);
+    // Listening: how many times the recording was played (exam-realistic cap of 2).
+    const [listenCount, setListenCount] = useState(0);
     const contentRef = useRef<HTMLDivElement>(null);
 
     const exercise = exercises[currentExerciseIndex];
@@ -401,6 +431,12 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
         ?? NAME_TO_SLUG[node.exam.language.name]
         ?? 'en';
     const componentKey = exercise?.exercise_type?.component_key ?? 'mcq';
+    // Listening skill → the passage is a TRANSCRIPT that must NOT be shown (the
+    // learner has to LISTEN, not read). We render an audio-only card instead and
+    // play the passage/audio_text via TTS. (listeningAudioText is computed below,
+    // once `question` is available.)
+    const skillType = exercise?.exercise_type?.skill_type ?? '';
+    const isListening = skillType === 'listening';
 
     const TIME_PER_QUESTION = useMemo(() => {
         const writingTypes = ['essay-editor', 'short-writing', 'graph-description', 'academic-discussion', 'synthesis', 'integrated-task'];
@@ -419,6 +455,13 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
     const questions = isReviewMode ? reviewQueue : (exercise?.questions ?? []);
     const question = questions[currentQuestionIndex];
     const Component = componentMap[isReviewMode ? (question?.component_key ?? 'mcq') : (exercise?.exercise_type?.component_key ?? 'mcq')] ?? Mcq;
+
+    // Listening audio source (transcript that stays hidden) — see isListening above.
+    const listeningAudioText: string =
+        exercise?.content?.audio_text || question?.audio_text || exercise?.content?.passage || '';
+
+    // Reset the play counter each time we move to a new question.
+    useEffect(() => { setListenCount(0); }, [currentExerciseIndex, currentQuestionIndex]);
 
     const totalQuestionsInSession = useMemo(() =>
         exercises.reduce((acc, ex) => acc + (ex.questions?.length ?? 0), 0)
@@ -884,11 +927,41 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                     className={visible ? 'question-enter' : 'question-exit'}
                     style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
                 >
-                    {exercise.content?.passage && (
+                    {/* LISTENING: audio-only card — the transcript is NEVER shown, the
+                        learner must listen. Replays capped at 2 (exam-realistic). */}
+                    {isListening && listeningAudioText ? (
+                        <div className="passage-card relative overflow-hidden">
+                            <div className="flex items-center gap-2 mb-3 border-b border-indigo-100/50 pb-2">
+                                <Icon name="headphones" size={16} />
+                                <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Enregistrement audio</span>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    if (listenCount >= 2 || playingTts === 'passage') return;
+                                    setListenCount(c => c + 1);
+                                    playTts(listeningAudioText, 'passage');
+                                }}
+                                disabled={listenCount >= 2 && playingTts !== 'passage'}
+                                className="flex w-full items-center justify-center gap-3 rounded-xl border-2 border-indigo-200 bg-indigo-50/40 px-4 py-3.5 text-indigo-600 transition-all hover:bg-indigo-50 disabled:opacity-40"
+                            >
+                                <Icon name={playingTts === 'passage' ? 'volume-2' : 'volume-1'} size={20} />
+                                <span className="text-sm font-bold">
+                                    {playingTts === 'passage'
+                                        ? 'Lecture…'
+                                        : listenCount === 0
+                                            ? 'Écouter l’enregistrement'
+                                            : listenCount >= 2
+                                                ? 'Limite d’écoutes atteinte'
+                                                : `Réécouter (${2 - listenCount} restante${2 - listenCount > 1 ? 's' : ''})`}
+                                </span>
+                            </button>
+                            <p className="mt-2 text-center text-[11px] text-muted-foreground">Écoute attentivement — le texte n’est pas affiché.</p>
+                        </div>
+                    ) : exercise.content?.passage && (
                         <div className="passage-card relative overflow-hidden group">
                            <div className="flex items-center justify-between mb-3 border-b border-indigo-100/50 pb-2">
                                 <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Texte de référence</span>
-                                <button 
+                                <button
                                     onClick={() => playTts(exercise.content.passage, 'passage')}
                                     className={`p-1.5 rounded-lg transition-all ${playingTts === 'passage' ? 'bg-indigo-100 text-indigo-600 scale-110' : 'hover:bg-indigo-50 text-slate-400 hover:text-indigo-500'}`}
                                 >
