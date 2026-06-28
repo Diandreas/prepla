@@ -58,11 +58,12 @@ class ProfileController extends Controller
      */
     public function updateLearning(Request $request): RedirectResponse
     {
+        // NOTE: current_level n'est PAS modifiable ici — il est défini par le test
+        // de placement / l'onboarding. On l'ignore volontairement même s'il est posté.
         $validated = $request->validate([
             'target_exam_id' => 'nullable|exists:exams,id',
             'target_score' => 'nullable|numeric|min:0',
             'exam_date' => 'nullable|date',
-            'current_level' => 'nullable|string|in:A1,A2,B1,B2,C1,C2',
             'interface_language' => 'nullable|string|in:en,fr',
         ]);
 

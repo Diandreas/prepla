@@ -161,16 +161,23 @@ class PracticeController extends Controller
         $section->load('exerciseTypes');
         $exam->load('language');
 
-        $exercises = \App\Models\Exercise::where('exam_id', $exam->id)
-            ->whereIn('exercise_type_id', $section->exerciseTypes->pluck('id'))
-            ->with('exerciseType')
-            ->get()
-            ->groupBy('difficulty');
+        // Galerie : les TYPES d'exercices de cette compétence. Cliquer un type →
+        // drillByType (un exo au niveau du profil, biblio d'abord sinon généré).
+        $exerciseTypes = $section->exerciseTypes
+            ->reject(fn ($t) => $t->component_key === 'diagram-labeling')
+            ->unique('id')
+            ->map(fn ($t) => [
+                'id' => $t->id,
+                'name' => $t->name,
+                'skill_type' => $t->skill_type,
+                'component_key' => $t->component_key,
+            ])
+            ->values();
 
         return Inertia::render('practice/section-drills', [
             'exam' => $exam,
             'section' => $section,
-            'exercisesByDifficulty' => $exercises,
+            'exerciseTypes' => $exerciseTypes,
         ]);
     }
 

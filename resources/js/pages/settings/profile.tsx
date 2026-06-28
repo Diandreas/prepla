@@ -225,19 +225,17 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                         <div className="p-4 grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">{t('profile.current_level', 'Niveau actuel')}</Label>
-                                <Select
-                                    value={learningForm.data.current_level}
-                                    onValueChange={(val) => learningForm.setData('current_level', val)}
-                                >
-                                    <SelectTrigger className="bg-muted/30 border-none h-11 font-bold">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map(lv => (
-                                            <SelectItem key={lv} value={lv}>{lv}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                {/* Niveau en lecture seule : défini par le test de placement,
+                                    non modifiable ici. */}
+                                <div className="flex h-11 items-center justify-between rounded-md bg-muted/30 px-3">
+                                    <span className="text-base font-black">{learningForm.data.current_level}</span>
+                                    <Link
+                                        href={route('onboarding.placement')}
+                                        className="text-[10px] font-bold text-primary hover:underline"
+                                    >
+                                        Repasser le test
+                                    </Link>
+                                </div>
                             </div>
                             <div className="space-y-2">
                                 <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">{t('profile.target_score', 'Score visé')}</Label>
