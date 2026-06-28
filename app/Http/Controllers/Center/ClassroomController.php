@@ -65,7 +65,7 @@ class ClassroomController extends Controller
         return back()->with('success', "Classe « {$classroom->name} » créée. Code : {$classroom->invite_code}");
     }
 
-    public function show(Request $request, Classroom $classroom): Response
+    public function show(Request $request, Classroom $classroom, \App\Services\Center\ClassStatsService $stats): Response
     {
         $this->authorizeCenter($request, $classroom);
 
@@ -85,6 +85,7 @@ class ClassroomController extends Controller
                 'invite_code' => $classroom->invite_code,
             ],
             'students' => $students,
+            'stats' => $stats->forClassroom($classroom),
         ]);
     }
 

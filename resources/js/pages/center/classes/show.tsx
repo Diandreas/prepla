@@ -11,8 +11,15 @@ interface Classroom {
     invite_code: string;
 }
 interface Student { id: number; name: string; email: string }
+interface Weakness { category: string; subcategory: string | null; count: number }
+interface Stats {
+    student_count: number;
+    class_avg_accuracy: number | null;
+    dropouts: { user_id: number; name: string; attempts: number }[];
+    common_weaknesses: Weakness[];
+}
 
-export default function ClassShow({ classroom, students }: { classroom: Classroom; students: Student[] }) {
+export default function ClassShow({ classroom, students, stats }: { classroom: Classroom; students: Student[]; stats: Stats }) {
     const { flash } = usePage().props as any;
 
     function regenerate() {
@@ -55,6 +62,47 @@ export default function ClassShow({ classroom, students }: { classroom: Classroo
                         <Button variant="outline" onClick={regenerate}>Régénérer</Button>
                     </CardContent>
                 </Card>
+
+                {/* Vue agrégée de la classe */}
+                <div className="grid gap-3 sm:grid-cols-3">
+                    <Card><CardContent className="p-4"><p className="text-2xl font-bold">{stats.student_count}</p><p className="text-sm text-muted-foreground">Élèves</p></CardContent></Card>
+                    <Card><CardContent className="p-4"><p className="text-2xl font-bold">{stats.class_avg_accuracy != null ? `${stats.class_avg_accuracy}%` : '—'}</p><p className="text-sm text-muted-foreground">Précision moyenne</p></CardContent></Card>
+                    <Card><CardContent className="p-4"><p className="text-2xl font-bold text-rose-500">{stats.dropouts.length}</p><p className="text-sm text-muted-foreground">Décrocheurs</p></CardContent></Card>
+                </div>
+
+                {stats.common_weaknesses.length > 0 && (
+                    <Card>
+                        <CardHeader><CardTitle className="text-base">Faiblesses communes de la classe</CardTitle></CardHeader>
+                        <CardContent className="space-y-2">
+                            {stats.common_weaknesses.map((w, i) => (
+                                <div key={i} className="flex items-center justify-between rounded-lg border border-border p-2.5 text-sm">
+                                    <span className="capitalize">{w.category.replace(/[._]/g, ' ')}{w.subcategory && <span className="text-muted-foreground"> · {w.subcategory}</span>}</span>
+                                    <Badge variant="secondary">{w.count}</Badge>
+                                </div>
+                            ))}
+                        </CardContent>
+                    </Card>
+                )}
+
+                {stats.dropouts.length > 0 && (
+                    <Card>
+                        <CardHeader><CardTitle className="text-base">À relancer ({stats.dropouts.length})</CardTitle></CardHeader>
+                        <CardContent className="space-y-2">
+                            {stats.dropouts.map((d) => (
+                                <div key={d.user_id} className="flex items-center justify-between rounded-lg border border-border p-2.5 text-sm">
+                                    <Link href={route('center.students.show', d.user_id)} className="font-medium hover:underline">{d.name}</Link>
+                                    <span className="text-xs text-muted-foreground">{d.attempts === 0 ? 'Aucune activité' : 'Inactif ≥ 7 j'}</span>
+                                </div>
+                            ))}
+                        </CardContent>
+                    </Card>
+                )}
+
+                <div className="flex justify-end">
+                    <a href={route('center.classes.export', classroom.id)}>
+                        <Button variant="outline">Exporter en CSV</Button>
+                    </a>
+                </div>
 
                 <Card>
                     <CardHeader>

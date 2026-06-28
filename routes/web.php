@@ -166,6 +166,7 @@ Route::middleware(['auth', \App\Http\Middleware\EnsureCenterStaff::class])
         Route::get('classes/{classroom}', [\App\Http\Controllers\Center\ClassroomController::class, 'show'])->name('classes.show');
         Route::patch('classes/{classroom}', [\App\Http\Controllers\Center\ClassroomController::class, 'update'])->name('classes.update');
         Route::post('classes/{classroom}/regenerate-code', [\App\Http\Controllers\Center\ClassroomController::class, 'regenerateCode'])->name('classes.regenerate-code');
+        Route::get('classes/{classroom}/export.csv', [\App\Http\Controllers\Center\ProgressController::class, 'exportCsv'])->name('classes.export');
         Route::delete('classes/{classroom}/students/{user}', [\App\Http\Controllers\Center\StudentController::class, 'remove'])->name('classes.students.remove');
 
         // Élèves
