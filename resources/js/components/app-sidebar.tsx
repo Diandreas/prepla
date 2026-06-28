@@ -3,7 +3,7 @@ import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import AppLogo from './app-logo';
 
@@ -23,34 +23,36 @@ function SidebarIcon({ name }: { name: string }) {
 
 export function AppSidebar() {
     const { t } = useTranslation();
+    const { auth } = usePage().props as any;
+    const role: string | undefined = auth?.role;
+    const centerRole: string | undefined = auth?.center?.role;
 
-    const mainNavItems: NavItem[] = [
-        {
-            title: t('sidebar.home', 'Accueil'),
-            url: '/dashboard',
-            icon: () => <SidebarIcon name="home" />,
-        },
-        {
-            title: t('sidebar.practice', 'Pratiquer'),
-            url: '/practice',
-            icon: () => <SidebarIcon name="puzzle" />,
-        },
-        {
-            title: t('sidebar.ai_tools', 'Outils IA'),
-            url: '/ai-tools',
-            icon: () => <SidebarIcon name="sparkles" />,
-        },
-        {
-            title: t('sidebar.results', 'Résultats'),
-            url: '/results',
-            icon: () => <SidebarIcon name="statistics" />,
-        },
-        {
-            title: t('sidebar.leaderboard', 'Classement'),
-            url: '/leaderboard',
-            icon: () => <SidebarIcon name="trophy" />,
-        },
-    ];
+    // Super-admin → back-office. Center staff → center management. Otherwise the
+    // regular learner navigation. (Students of a center keep the learner nav;
+    // their assignments surface on the dashboard.)
+    let mainNavItems: NavItem[];
+
+    if (role === 'super_admin') {
+        mainNavItems = [
+            { title: 'Centres', url: '/admin/centers', icon: () => <SidebarIcon name="layout-grid" /> },
+        ];
+    } else if (centerRole === 'center_admin' || centerRole === 'teacher') {
+        mainNavItems = [
+            { title: 'Tableau de bord', url: '/center', icon: () => <SidebarIcon name="home" /> },
+            { title: 'Classes', url: '/center/classes', icon: () => <SidebarIcon name="layout-grid" /> },
+            { title: 'Élèves', url: '/center/students', icon: () => <SidebarIcon name="profile" /> },
+            { title: 'Contenu', url: '/center/exercises', icon: () => <SidebarIcon name="puzzle" /> },
+            { title: 'Devoirs', url: '/center/assignments', icon: () => <SidebarIcon name="tasks" /> },
+        ];
+    } else {
+        mainNavItems = [
+            { title: t('sidebar.home', 'Accueil'), url: '/dashboard', icon: () => <SidebarIcon name="home" /> },
+            { title: t('sidebar.practice', 'Pratiquer'), url: '/practice', icon: () => <SidebarIcon name="puzzle" /> },
+            { title: t('sidebar.ai_tools', 'Outils IA'), url: '/ai-tools', icon: () => <SidebarIcon name="sparkles" /> },
+            { title: t('sidebar.results', 'Résultats'), url: '/results', icon: () => <SidebarIcon name="statistics" /> },
+            { title: t('sidebar.leaderboard', 'Classement'), url: '/leaderboard', icon: () => <SidebarIcon name="trophy" /> },
+        ];
+    }
 
     const footerNavItems: NavItem[] = [
         {

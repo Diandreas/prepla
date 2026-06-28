@@ -28,6 +28,7 @@ class User extends Authenticatable
         'password',
         'google_id',
         'avatar',
+        'role',
     ];
 
     /**
@@ -116,5 +117,61 @@ class User extends Authenticatable
     public function aiConversations(): HasMany
     {
         return $this->hasMany(AiConversation::class);
+    }
+
+    // ───────────────────────── B2B « centre de langue » ─────────────────────────
+
+    /** Centers this user belongs to (one in this lot, but kept as a relation). */
+    public function centers(): BelongsToMany
+    {
+        // Pivot uses center_id (not the inferred language_center_id).
+        return $this->belongsToMany(LanguageCenter::class, 'center_user', 'user_id', 'center_id')
+            ->withPivot('role', 'joined_at')
+            ->withTimestamps();
+    }
+
+    /** Classrooms this user is enrolled in (as student or teacher). */
+    public function classrooms(): BelongsToMany
+    {
+        return $this->belongsToMany(Classroom::class, 'classroom_user')
+            ->withPivot('role_in_class')
+            ->withTimestamps();
+    }
+
+    /** The single center membership (or null). Eager-loadable via 'centerMembership'. */
+    public function centerMembership(): HasOne
+    {
+        return $this->hasOne(CenterUser::class);
+    }
+
+    public function center(): ?LanguageCenter
+    {
+        return $this->centers()->first();
+    }
+
+    /** Center-scoped role: center_admin | teacher | student | null. */
+    public function centerRole(): ?string
+    {
+        return $this->centerMembership?->role;
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'super_admin';
+    }
+
+    public function isCenterStaff(): bool
+    {
+        return in_array($this->centerRole(), ['center_admin', 'teacher'], true);
+    }
+
+    public function isCenterStudent(): bool
+    {
+        return $this->centerRole() === 'student';
+    }
+
+    public function centerRoleIs(string $role): bool
+    {
+        return $this->centerRole() === $role;
     }
 }

@@ -143,6 +143,42 @@ Route::middleware(['auth'])->group(function () {
     });
 });
 
+// ───────────────────────── B2B « Centre de langue » ─────────────────────────
+// Super-admin : création/gestion manuelle des centres (réservé role super_admin).
+Route::middleware(['auth', \App\Http\Middleware\EnsureSuperAdmin::class])
+    ->prefix('admin')->name('admin.')->group(function () {
+        Route::get('centers', [\App\Http\Controllers\SuperAdmin\CenterController::class, 'index'])->name('centers.index');
+        Route::get('centers/create', [\App\Http\Controllers\SuperAdmin\CenterController::class, 'create'])->name('centers.create');
+        Route::post('centers', [\App\Http\Controllers\SuperAdmin\CenterController::class, 'store'])->name('centers.store');
+        Route::get('centers/{center}', [\App\Http\Controllers\SuperAdmin\CenterController::class, 'show'])->name('centers.show');
+        Route::patch('centers/{center}', [\App\Http\Controllers\SuperAdmin\CenterController::class, 'update'])->name('centers.update');
+        Route::delete('centers/{center}', [\App\Http\Controllers\SuperAdmin\CenterController::class, 'destroy'])->name('centers.destroy');
+    });
+
+// Staff du centre (center_admin + teacher). Le middleware injecte le centre courant.
+Route::middleware(['auth', \App\Http\Middleware\EnsureCenterStaff::class])
+    ->prefix('center')->name('center.')->group(function () {
+        Route::get('/', \App\Http\Controllers\Center\DashboardController::class)->name('dashboard');
+
+        // Classes
+        Route::get('classes', [\App\Http\Controllers\Center\ClassroomController::class, 'index'])->name('classes.index');
+        Route::post('classes', [\App\Http\Controllers\Center\ClassroomController::class, 'store'])->name('classes.store');
+        Route::get('classes/{classroom}', [\App\Http\Controllers\Center\ClassroomController::class, 'show'])->name('classes.show');
+        Route::patch('classes/{classroom}', [\App\Http\Controllers\Center\ClassroomController::class, 'update'])->name('classes.update');
+        Route::post('classes/{classroom}/regenerate-code', [\App\Http\Controllers\Center\ClassroomController::class, 'regenerateCode'])->name('classes.regenerate-code');
+        Route::delete('classes/{classroom}/students/{user}', [\App\Http\Controllers\Center\StudentController::class, 'remove'])->name('classes.students.remove');
+
+        // Élèves
+        Route::get('students', [\App\Http\Controllers\Center\StudentController::class, 'index'])->name('students.index');
+        Route::get('students/{user}', [\App\Http\Controllers\Center\StudentController::class, 'show'])->name('students.show');
+    });
+
+// Élève — rejoindre un centre via code d'invitation.
+Route::middleware('auth')->group(function () {
+    Route::get('join', [\App\Http\Controllers\JoinCenterController::class, 'show'])->name('center.join');
+    Route::post('join', [\App\Http\Controllers\JoinCenterController::class, 'store'])->name('center.join.store');
+});
+
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
 
