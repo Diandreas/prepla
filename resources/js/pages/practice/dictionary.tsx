@@ -67,16 +67,16 @@ export default function Dictionary({ words, reviewableCount }: Props) {
         <AppLayout>
             <Head title={t('dictionary.title')} />
             
-            <div className="mx-auto max-w-4xl px-3 py-4 sm:px-4 sm:py-8">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6 mb-4 sm:mb-8">
+            <div className="mx-auto max-w-5xl px-3 py-3 sm:px-4 sm:py-6">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6 mb-3 sm:mb-5">
                     <div>
-                        <h1 className="text-xl sm:text-3xl font-black text-slate-900 flex items-center gap-2.5">
-                            <div className="h-9 w-9 sm:h-12 sm:w-12 bg-blue-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200">
-                                <Icon name="book" size={22} className="brightness-0 invert" />
+                        <h1 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2.5">
+                            <div className="h-9 w-9 sm:h-10 sm:w-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
+                                <Icon name="book" size={20} className="brightness-0 invert" />
                             </div>
                             {t('dictionary.title')}
                         </h1>
-                        <p className="mt-1 text-sm text-slate-500 font-medium">{t('dictionary.subtitle')}</p>
+                        <p className="mt-0.5 text-sm text-slate-500 font-medium">{t('dictionary.subtitle')}</p>
                     </div>
 
                     <div className="flex gap-2 sm:gap-3">
@@ -106,36 +106,36 @@ export default function Dictionary({ words, reviewableCount }: Props) {
                     </div>
                 </div>
 
-                <div className="relative mb-4 sm:mb-6">
-                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none opacity-40">
-                        <Icon name="search" size={18} />
+                <div className="relative mb-3 sm:mb-4">
+                    <div className="absolute inset-y-0 left-3.5 flex items-center pointer-events-none opacity-40">
+                        <Icon name="search" size={16} />
                     </div>
                     <input
                         type="text"
                         placeholder={t('dictionary.search_placeholder')}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-11 pr-4 py-3 bg-white border-2 border-slate-100 rounded-xl sm:rounded-2xl focus:border-blue-500 focus:ring-0 font-bold transition-all shadow-sm"
+                        className="w-full pl-10 pr-4 py-2.5 bg-white border-2 border-slate-100 rounded-xl focus:border-blue-500 focus:ring-0 font-bold text-sm transition-all shadow-sm"
                     />
                 </div>
 
                 {/* En cours d'apprentissage */}
                 {learningWords.length > 0 && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
                         {learningWords.map(renderCard)}
                     </div>
                 )}
 
                 {/* Mots maîtrisés — section séparée, repliée visuellement */}
                 {masteredWords.length > 0 && (
-                    <div className="mt-6 sm:mt-8">
-                        <div className="flex items-center gap-2 mb-3">
-                            <Icon name="check-circle" size={18} />
-                            <h2 className="text-sm font-black uppercase tracking-widest text-green-600">
+                    <div className="mt-5 sm:mt-6">
+                        <div className="flex items-center gap-2 mb-2.5">
+                            <Icon name="check-circle" size={16} />
+                            <h2 className="text-xs font-black uppercase tracking-widest text-green-600">
                                 Maîtrisés ({masteredWords.length})
                             </h2>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 opacity-70">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 opacity-70">
                             {masteredWords.map(renderCard)}
                         </div>
                     </div>
@@ -152,50 +152,45 @@ export default function Dictionary({ words, reviewableCount }: Props) {
 
     function renderCard(item: Word) {
         return (
-            <div key={item.id} className="duo-row group p-4 sm:p-5 rounded-2xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-2.5 flex gap-1.5">
-                    <span className="px-2 py-0.5 bg-slate-50 text-slate-400 text-[10px] font-black rounded-lg uppercase tracking-wider">
-                        {item.dictionary_word.skill_level}
-                    </span>
-                    <span className={`px-2 py-0.5 text-[10px] font-black rounded-lg uppercase tracking-wider ${item.status === 'mastered' ? 'bg-green-50 text-green-600' : 'bg-blue-50 text-blue-600'}`}>
-                        {item.status}
-                    </span>
-                </div>
-
-                <div className="flex items-start gap-4 mb-3">
-                    <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                            <h3 className="text-xl font-black text-slate-900 group-hover:text-blue-600 transition-colors uppercase">
+            <div key={item.id} className="duo-row group p-3 rounded-xl relative overflow-hidden">
+                {/* Header: word + translation on the left, audio + level on the right */}
+                <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                            <h3 className="text-base font-black text-slate-900 group-hover:text-blue-600 transition-colors uppercase truncate">
                                 {item.dictionary_word.word}
                             </h3>
                             <button
                                 onClick={() => playAudio(item.dictionary_word_id)}
-                                className="p-1.5 hover:bg-blue-50 text-blue-400 rounded-lg transition-colors"
+                                className="shrink-0 p-1 hover:bg-blue-50 text-blue-400 rounded-md transition-colors"
                             >
-                                <Icon name="headphones" size={16} />
+                                <Icon name="headphones" size={14} />
                             </button>
                         </div>
-                        <p className="text-blue-500 font-bold text-sm">
+                        <p className="text-blue-500 font-bold text-xs truncate">
                             {item.dictionary_word.translation}
                         </p>
                     </div>
+                    <span className="shrink-0 px-1.5 py-0.5 bg-slate-50 text-slate-400 text-[9px] font-black rounded uppercase tracking-wider">
+                        {item.dictionary_word.skill_level}
+                    </span>
                 </div>
 
-                <p className="text-sm text-slate-600 leading-relaxed italic line-clamp-2 mb-3">
+                <p className="mt-1.5 text-xs text-slate-500 leading-snug italic line-clamp-1">
                     "{item.dictionary_word.definition}"
                 </p>
 
-                <div className="mt-auto border-t border-slate-50 pt-3">
-                    <div className="flex items-center justify-between mb-1.5">
-                        <p className="text-[10px] font-black uppercase text-slate-300 tracking-[0.1em]">{t('dictionary.mastery')}</p>
-                        <p className="text-[10px] font-black text-blue-600">{getStatusPercent(item.status)}%</p>
-                    </div>
-                    <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                {/* Slim mastery bar with inline percentage */}
+                <div className="mt-2 flex items-center gap-2">
+                    <div className="h-1.5 flex-1 bg-slate-100 rounded-full overflow-hidden">
                         <div
                             className={`h-full transition-all duration-700 ${item.status === 'mastered' ? 'bg-green-500' : 'bg-blue-500'}`}
                             style={{ width: `${getStatusPercent(item.status)}%` }}
                         />
                     </div>
+                    <span className={`text-[10px] font-black ${item.status === 'mastered' ? 'text-green-600' : 'text-blue-600'}`}>
+                        {getStatusPercent(item.status)}%
+                    </span>
                 </div>
             </div>
         );

@@ -81,21 +81,49 @@ class NodeStartController extends Controller
                     ->first();
             };
 
+            // The exercise-type pool is hugely skewed toward reading (≈65 reading vs
+            // ≈4 grammar), so a naive inRandomOrder() over ['reading','grammar'] almost
+            // never picks grammar → every session became reading comprehension, never
+            // the concept being taught (the "trop de compréhension de texte" complaint).
+            // For a LESSON node we therefore prioritise grammar/applied practice that
+            // tests the concept, and use reading only as a fallback. General-practice
+            // nodes keep the broader reading-led mix.
             $picked = collect();
-            // 1) one listening exercise
-            if ($listening = $pickBySkill(['listening'])) {
-                $picked->push($listening);
-            }
-            // 2) one reading/grammar exercise
-            if ($reading = $pickBySkill(['reading', 'grammar'], $picked->pluck('id')->all())) {
-                $picked->push($reading);
-            }
-            // 3) round it out: ~1 in 3 sessions ends with a speaking turn, else any skill
-            $thirdSkills = random_int(1, 3) === 1
-                ? ['speaking']
-                : ['reading', 'grammar', 'listening'];
-            if ($third = $pickBySkill($thirdSkills, $picked->pluck('id')->all())) {
-                $picked->push($third);
+
+            if ($isLessonNode) {
+                // 1) a concept exercise (grammar) — the heart of a lesson practice.
+                $concept = $pickBySkill(['grammar'])
+                    ?? $pickBySkill(['reading']); // fallback if no grammar type exists
+                if ($concept) {
+                    $picked->push($concept);
+                }
+                // 2) a second concept exercise, different component if possible.
+                if ($concept2 = $pickBySkill(['grammar', 'reading'], $picked->pluck('id')->all())) {
+                    $picked->push($concept2);
+                }
+                // 3) round it out with a different skill so the session isn't monotone:
+                //    a listening turn, or ~1 in 3 a speaking turn.
+                $thirdSkills = random_int(1, 3) === 1 ? ['speaking'] : ['listening'];
+                if ($third = $pickBySkill($thirdSkills, $picked->pluck('id')->all())) {
+                    $picked->push($third);
+                }
+            } else {
+                // General practice: mix skills broadly.
+                // 1) one listening exercise
+                if ($listening = $pickBySkill(['listening'])) {
+                    $picked->push($listening);
+                }
+                // 2) one reading/grammar exercise
+                if ($reading = $pickBySkill(['reading', 'grammar'], $picked->pluck('id')->all())) {
+                    $picked->push($reading);
+                }
+                // 3) round it out: ~1 in 3 sessions ends with a speaking turn, else any skill
+                $thirdSkills = random_int(1, 3) === 1
+                    ? ['speaking']
+                    : ['reading', 'grammar', 'listening'];
+                if ($third = $pickBySkill($thirdSkills, $picked->pluck('id')->all())) {
+                    $picked->push($third);
+                }
             }
 
             $variedTypes = $picked->shuffle()->values();
@@ -105,14 +133,23 @@ class NodeStartController extends Controller
                 $variedTypes = ExerciseType::whereIn('component_key', $shortComponents)->inRandomOrder()->limit(3)->get();
             }
 
-            // Lesson context: when the node has an associated Lesson, pass its concept
-            // to the generator so exercises actually test what was just taught.
-            $lessonContext = null;
+            // Lesson context: ground the generated exercises in what's being taught so
+            // they actually test the concept instead of producing random reading
+            // comprehension. Prefer an associated Lesson; otherwise fall back to the
+            // node's own title — it IS the learning objective in this curriculum
+            // (e.g. "Einfache Vorstellungsgespräche führen"). Without any context the
+            // generator drifts to generic passages unrelated to the node.
             $lesson = \App\Models\Lesson::where('node_id', $node->id)->first();
             if ($lesson) {
                 $lessonContext = [
                     'title' => $lesson->title,
-                    'concept' => $lesson->concept ?? '',
+                    'concept' => $lesson->concept ?: $node->title,
+                    'native_language' => $user->profile?->native_language ?? 'Français',
+                ];
+            } else {
+                $lessonContext = [
+                    'title' => $node->title,
+                    'concept' => $node->title,
                     'native_language' => $user->profile?->native_language ?? 'Français',
                 ];
             }

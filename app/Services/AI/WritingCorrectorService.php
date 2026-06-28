@@ -11,10 +11,21 @@ class WritingCorrectorService
         $this->mistral = $mistral;
     }
 
-    public function correct(string $text, string $taskDescription, string $examType = 'IELTS'): array
+    public function correct(string $text, string $taskDescription, string $examType = 'IELTS', string $feedbackLanguage = 'Français'): array
     {
         $systemPrompt = "You are an expert $examType examiner. Evaluate the user's writing text based on the standard $examType grading criteria.
 Task description: $taskDescription
+
+IMPORTANT — language of feedback:
+- Write ALL feedback, explanations and the `explanation` of every correction in {$feedbackLanguage} (the learner's native language). Do NOT write the feedback in English unless {$feedbackLanguage} is English.
+- Keep the `original` and `corrected` fields in the SAME language as the learner's text (do not translate the text itself).
+
+IMPORTANT — corrections (for inline highlighting):
+- The `corrections` array MUST list EVERY concrete mistake: spelling, grammar, word form, punctuation, capitalisation, word choice.
+- Each `original` MUST be an EXACT substring copied verbatim from the learner's text (so it can be located and highlighted). Never paraphrase it.
+- `corrected` is the fixed version of that exact span.
+- If the text is short, still return at least one correction per mistake found. Return an empty array ONLY if the text is genuinely error-free.
+
 Output your evaluation as a JSON object with the following structure:
 {
     \"score\": 0.0, // overall band score 1-9
@@ -26,12 +37,12 @@ Output your evaluation as a JSON object with the following structure:
     },
     \"corrections\": [
         {
-            \"original\": \"incorrect string\",
-            \"corrected\": \"corrected string\",
-            \"explanation\": \"why it was corrected\"
+            \"original\": \"exact substring from the learner's text\",
+            \"corrected\": \"corrected version of that span\",
+            \"explanation\": \"why it was corrected, in {$feedbackLanguage}\"
         }
     ],
-    \"feedback\": \"Detailed overall feedback about strengths and weaknesses.\"
+    \"feedback\": \"Detailed overall feedback (strengths and weaknesses), written in {$feedbackLanguage}.\"
 }";
 
         $response = $this->mistral->chat([

@@ -1,14 +1,18 @@
 import { useState } from 'react';
+import { coerceOption } from './normalize-options';
 
 interface OrderingProps {
-    question: { id: string; text: string; items: string[] };
+    question: { id: string; text: string; items: unknown };
     onAnswer: (questionId: string, answer: string[]) => void;
     selectedAnswer?: string[];
 }
 
 export function Ordering({ question, onAnswer, selectedAnswer }: OrderingProps) {
     const [ordered, setOrdered] = useState<string[]>(selectedAnswer ?? []);
-    const items = question.items || [];
+    // Le générateur IA renvoie parfois les items sous forme d'objets {id, text}
+    // au lieu de strings. Rendre un objet comme enfant React provoque l'erreur #31
+    // (page d'exercice blanche). On normalise donc systématiquement en string[].
+    const items = (Array.isArray(question.items) ? question.items : []).map(coerceOption);
     const remaining = items.filter((item) => !ordered.includes(item));
 
     const addItem = (item: string) => {

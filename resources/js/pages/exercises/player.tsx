@@ -695,18 +695,27 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                 return;
             }
 
-            // Strip the "exerciseIndex::" prefix so the backend gets the plain
-            // { questionId: answer } map it expects for scoring.
-            const submittedAnswers: Record<string, any> = {};
+            // Group answers by exercise. Several exercises in a single set reuse the
+            // SAME question ids (q1/q2/q3), so a flat { questionId: answer } map made
+            // the last exercise's answers overwrite all the others — every exercise
+            // was then scored against those, giving wrong grades AND polluting the
+            // error-review log. We send { exerciseId: { questionId: answer } } instead.
+            // The internal key is "exerciseIndex::questionId"; map the index → real id.
+            const answersByExercise: Record<string, Record<string, any>> = {};
             for (const [k, v] of Object.entries(answers)) {
-                const qid = k.includes('::') ? k.slice(k.indexOf('::') + 2) : k;
-                submittedAnswers[qid] = v;
+                const sep = k.indexOf('::');
+                if (sep === -1) continue; // skip non-namespaced keys (e.g. transcriptions)
+                const exIdx = Number(k.slice(0, sep));
+                const qid = k.slice(sep + 2);
+                const exId = exercises[exIdx]?.id;
+                if (exId === undefined) continue;
+                (answersByExercise[exId] ??= {})[qid] = v;
             }
 
             setSubmitting(true);
             playSound('complete');
             router.post(route('exercise.submit_session', node.id), {
-                answers: submittedAnswers,
+                answers_by_exercise: answersByExercise,
                 node_id: node.id,
                 time_spent: timeSpentRef.current,
                 exercise_ids: exercises.map((e: any) => e.id),

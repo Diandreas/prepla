@@ -7,6 +7,7 @@ use App\Models\ExerciseType;
 use App\Services\AI\ExerciseGeneratorService;
 use App\Services\AI\WritingCorrectorService;
 use App\Services\AI\ExplainerService;
+use App\Services\AI\MistralService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -66,12 +67,42 @@ class AiToolsController extends Controller
             'task_description' => 'nullable|string',
         ]);
 
+        $nativeLanguage = auth()->user()->profile?->native_language ?: 'Français';
+
         $result = $corrector->correct(
             $validated['text'],
             $validated['task_description'] ?? '',
+            'IELTS',
+            $nativeLanguage,
         );
 
+        // Keep the submitted text so the result page can render it with inline
+        // highlights on each corrected span.
+        $result['submitted_text'] = $validated['text'];
+
         return back()->with('correction', $result);
+    }
+
+    public function extractWritingImage(Request $request, MistralService $mistral)
+    {
+        $validated = $request->validate([
+            'image' => 'required|image|mimes:jpeg,jpg,png,webp|max:8192',
+        ]);
+
+        $file = $request->file('image');
+        $dataUrl = 'data:' . $file->getMimeType() . ';base64,' . base64_encode(
+            file_get_contents($file->getRealPath())
+        );
+
+        $text = $mistral->ocr($dataUrl);
+
+        if ($text === null) {
+            return response()->json([
+                'error' => "Impossible de lire le texte sur l'image. Réessayez avec une photo plus nette et bien cadrée.",
+            ], 422);
+        }
+
+        return response()->json(['text' => $text]);
     }
 
     public function explainer(): Response

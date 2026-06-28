@@ -31,13 +31,18 @@ class ExerciseController extends Controller
     {
         $user = auth()->user();
         $validated = $request->validate([
-            'answers' => 'required|array',
+            // New payload: answers grouped by exercise id, so exercises that reuse the
+            // same question ids (q1/q2/q3) don't overwrite each other. The old flat
+            // 'answers' map is still accepted for backward compatibility.
+            'answers_by_exercise' => 'nullable|array',
+            'answers' => 'required_without:answers_by_exercise|array',
             'time_spent' => 'nullable|integer',
             'exercise_ids' => 'nullable|array',
             'exercise_ids.*' => 'integer|exists:exercises,id',
         ]);
 
-        $answers = $validated['answers'];
+        $answersByExercise = $validated['answers_by_exercise'] ?? null;
+        $answers = $validated['answers'] ?? [];
         $timeSpent = $validated['time_spent'] ?? 0;
 
         // Prefer the exact list of exercise IDs the player rendered (covers generic fallback
@@ -55,11 +60,16 @@ class ExerciseController extends Controller
         $exerciseCount = 0;
 
         foreach ($exercises as $exercise) {
+            // Prefer this exercise's own answer group (keyed by real exercise id) so
+            // question ids shared across exercises never collide. Fall back to the flat
+            // map for old clients still posting 'answers'.
+            $sourceAnswers = $answersByExercise[$exercise->id] ?? $answersByExercise[(string) $exercise->id] ?? $answers;
+
             $exerciseAnswers = [];
             foreach ($exercise->questions as $index => $question) {
                 $qId = $question['id'] ?? (string)$index;
-                if (isset($answers[$qId])) {
-                    $exerciseAnswers[$qId] = $answers[$qId];
+                if (isset($sourceAnswers[$qId])) {
+                    $exerciseAnswers[$qId] = $sourceAnswers[$qId];
                     $totalQuestions++;
                 }
             }
