@@ -71,10 +71,17 @@ class NodeStartController extends Controller
             // Components kept short enough for a quick session (no essays here).
             $shortComponents = ['mcq', 'true-false-ng', 'gap-fill', 'matching', 'sentence-completion', 'short-answer', 'ordering', 'word-formation', 'multiple-matching', 'open-cloze', 'note-completion', 'dictation', 'speaking-recorder'];
 
+            // Components qui marchent vraiment en ÉCOUTE : on répond À l'oreille sur
+            // un audio (texte caché). On EXCLUT matching (associer des termes écrits =
+            // ce n'est pas de l'écoute) et les types texte-only.
+            $listeningComponents = ['mcq', 'true-false-ng', 'note-completion', 'dictation', 'short-answer'];
+
             // skill_type is a direct column on exercise_types (not via section), and
             // the types aren't scoped by exam_id — so we filter on the column directly.
-            $pickBySkill = function (array $skills, array $excludeIds = []) use ($shortComponents) {
-                return ExerciseType::whereIn('component_key', $shortComponents)
+            $pickBySkill = function (array $skills, array $excludeIds = []) use ($shortComponents, $listeningComponents) {
+                // En listening pur, restreindre aux composants adaptés à l'écoute.
+                $pool = ($skills === ['listening']) ? $listeningComponents : $shortComponents;
+                return ExerciseType::whereIn('component_key', $pool)
                     ->whereIn('skill_type', $skills)
                     ->whereNotIn('id', $excludeIds)
                     ->inRandomOrder()

@@ -53,6 +53,35 @@ class ExerciseGeneratorService
                     return $q;
                 }, $data['questions']);
 
+                // SHUFFLE options so the correct answer isn't ALWAYS in position A.
+                // Mistral systematically writes the right option first → the learner
+                // just clicks A every time. We shuffle and re-point the letter answer.
+                $data['questions'] = array_map(function ($q) {
+                    $opts = $q['options'] ?? null;
+                    $ca = $q['correct_answer'] ?? null;
+                    if (!is_array($opts) || count($opts) < 2 || !is_string($ca)) {
+                        return $q;
+                    }
+                    $letter = strtoupper(trim($ca));
+                    if (!preg_match('/^[A-Z]$/', $letter)) {
+                        return $q; // answer isn't a letter (free text) → leave as is
+                    }
+                    $correctIdx = ord($letter) - 65;
+                    if ($correctIdx < 0 || $correctIdx >= count($opts)) {
+                        return $q;
+                    }
+                    $correctValue = $opts[$correctIdx];
+                    // Fisher–Yates shuffle
+                    for ($i = count($opts) - 1; $i > 0; $i--) {
+                        $j = random_int(0, $i);
+                        [$opts[$i], $opts[$j]] = [$opts[$j], $opts[$i]];
+                    }
+                    $newIdx = array_search($correctValue, $opts, true);
+                    $q['options'] = $opts;
+                    $q['correct_answer'] = chr(65 + ($newIdx === false ? 0 : $newIdx));
+                    return $q;
+                }, $data['questions']);
+
                 // For visual exercise types (diagram-labeling, graph-description), pick
                 // an image from the pre-generated library instead of leaving image_url null.
                 $imageCategory = $this->imageLibrary->categoryFor($exerciseType->component_key);
@@ -149,7 +178,15 @@ DIRECTIVE;
         }
 
         $isListening = $skillType === 'listening';
-        $audioField = $isListening ? ', audio_text (string: 1-2 sentences in ' . $language . ' that will be read aloud by TTS — the spoken question or instruction)' : '';
+        // In LISTENING, the audio is the CONTENT to understand (a 60-100-word
+        // dialogue/monologue), and questions test comprehension of it by ear. The
+        // spoken passage must carry the same audio_text on EACH question so the
+        // player can play it. The questions must NOT restate the audio in writing.
+        $audioField = $isListening ? ', audio_text (string: the SAME spoken passage of 60-100 words in ' . $language . ' — a short dialogue or monologue — repeated identically on every question; questions ask about details/intentions/facts that can only be answered by listening, NOT by reading the question)' : '';
+
+        $listeningDirective = $isListening
+            ? "\n\nLISTENING RULES:\n- audio_text is the recording (a 60-100-word dialogue/monologue). It is the SAME on every question.\n- Questions test comprehension BY EAR (who, what, where, why, intention). Do NOT write the answer in the question.\n- Never just name a term and ask to match it to its definition — that's not listening."
+            : '';
 
         $questionFormat = match ($componentKey) {
             // --- Original components ---
@@ -228,7 +265,7 @@ DIRECTIVE;
         return <<<PROMPT
 Generate a {$exerciseType->name} exercise for the {$exam->name} exam at CEFR {$difficulty} level.
 The exercise must be entirely in {$language} ({$languageNative}) — this is a {$language} language exam.
-Skill tested: {$skillType}.{$lessonDirective}{$gapFillBan}{$comprehensionGuard}{$levelGuard}
+Skill tested: {$skillType}.{$lessonDirective}{$gapFillBan}{$comprehensionGuard}{$levelGuard}{$listeningDirective}
 
 Return JSON with exactly this structure:
 {
