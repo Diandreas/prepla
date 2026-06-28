@@ -6,10 +6,18 @@ import { useState, useEffect, useRef } from 'react';
 
 const GOLD = '#F5A623';
 
+// Order matters: more specific paths must come before their parent prefix so the
+// first match wins (e.g. /ai-tools/writing-corrector before /ai-tools).
 const PAGE_TITLES: Record<string, string> = {
     '/dashboard': 'Mon Parcours',
     '/practice': 'Pratiquer',
+    '/dictionary': 'Dictionnaire',
+    '/ai-tools/writing-corrector': 'Correcteur de rédaction',
+    '/ai-tools/explainer': 'Explicateur IA',
+    '/ai-tools/generator': "Générateur d'exercices",
+    '/ai-tools/recommendations': 'Recommandations',
     '/ai-tools': 'Outils IA',
+    '/errors': 'Centre de Récupération',
     '/results': 'Résultats',
     '/settings/profile': 'Profil',
     '/leaderboard': 'Classement',

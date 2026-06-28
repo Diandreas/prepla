@@ -67,43 +67,33 @@ export default function Dictionary({ words, reviewableCount }: Props) {
         <AppLayout>
             <Head title={t('dictionary.title')} />
             
-            <div className="mx-auto max-w-5xl px-3 py-3 sm:px-4 sm:py-6">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6 mb-3 sm:mb-5">
-                    <div>
-                        <h1 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2.5">
-                            <div className="h-9 w-9 sm:h-10 sm:w-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
-                                <Icon name="book" size={20} className="brightness-0 invert" />
-                            </div>
-                            {t('dictionary.title')}
-                        </h1>
-                        <p className="mt-0.5 text-sm text-slate-500 font-medium">{t('dictionary.subtitle')}</p>
-                    </div>
-
-                    <div className="flex gap-2 sm:gap-3">
-                        <button
-                            onClick={() => router.visit(route('dictionary.review_page'))}
-                            disabled={reviewableCount === 0}
-                            className="duo-press flex flex-1 items-center justify-center gap-2 px-4 py-2.5 sm:px-6 sm:py-3 bg-blue-600 text-white text-sm font-black rounded-xl sm:rounded-2xl disabled:opacity-40 disabled:cursor-not-allowed"
-                            style={{ boxShadow: '0 4px 0 0 #1e4fa0' }}
-                        >
-                            <Icon name="award" size={18} className="brightness-0 invert" />
-                            {t('dictionary.review_btn_dynamic', { count: reviewableCount })}
-                        </button>
-                        <button
-                            onClick={() => {
-                                setIsDiscovering(true);
-                                router.post(route('dictionary.discover'), {}, {
-                                    onFinish: () => setIsDiscovering(false)
-                                });
-                            }}
-                            disabled={isDiscovering}
-                            className="duo-press flex flex-1 items-center justify-center gap-2 px-4 py-2.5 sm:px-6 sm:py-3 bg-orange-500 text-white text-sm font-black rounded-xl sm:rounded-2xl disabled:opacity-50"
-                            style={{ boxShadow: '0 4px 0 0 #c2620a' }}
-                        >
-                            <Icon name="sparkles" size={18} className="brightness-0 invert" />
-                            {isDiscovering ? t('dictionary.loading') : t('dictionary.discover_btn')}
-                        </button>
-                    </div>
+            <div className="mx-auto max-w-5xl px-3 py-3 sm:px-4 sm:py-5">
+                {/* Title moved to the global header → only the actions remain here,
+                    freeing the vertical space for the word list. */}
+                <div className="flex gap-2 sm:gap-3 mb-3 sm:mb-4">
+                    <button
+                        onClick={() => router.visit(route('dictionary.review_page'))}
+                        disabled={reviewableCount === 0}
+                        className="duo-press flex flex-1 items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-black rounded-xl disabled:opacity-40 disabled:cursor-not-allowed"
+                        style={{ boxShadow: '0 4px 0 0 #1e4fa0' }}
+                    >
+                        <Icon name="award" size={18} className="brightness-0 invert" />
+                        {t('dictionary.review_btn_dynamic', { count: reviewableCount })}
+                    </button>
+                    <button
+                        onClick={() => {
+                            setIsDiscovering(true);
+                            router.post(route('dictionary.discover'), {}, {
+                                onFinish: () => setIsDiscovering(false)
+                            });
+                        }}
+                        disabled={isDiscovering}
+                        className="duo-press flex flex-1 items-center justify-center gap-2 px-4 py-2.5 bg-orange-500 text-white text-sm font-black rounded-xl disabled:opacity-50"
+                        style={{ boxShadow: '0 4px 0 0 #c2620a' }}
+                    >
+                        <Icon name="sparkles" size={18} className="brightness-0 invert" />
+                        {isDiscovering ? t('dictionary.loading') : t('dictionary.discover_btn')}
+                    </button>
                 </div>
 
                 <div className="relative mb-3 sm:mb-4">
