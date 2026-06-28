@@ -35,9 +35,10 @@ class ExerciseScoringService
 
         // Exercise types that require AI evaluation
         $aiEvaluatedTypes = [
-            'essay', 'essay-editor', 'speaking', 'writing', 'short-writing', 
-            'graph-description', 'academic-discussion', 'speaking-recorder', 
-            'role-play', 'synthesis', 'integrated-task'
+            'essay', 'essay-editor', 'speaking', 'writing', 'short-writing',
+            'graph-description', 'academic-discussion', 'speaking-recorder',
+            'role-play', 'synthesis', 'integrated-task',
+            'guided-rewrite', 'text-continuation', 'synthesis-essay',
         ];
 
         foreach ($questions as $index => $question) {

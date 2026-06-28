@@ -84,6 +84,15 @@ class ExamSeeder extends Seeder
         'negotiation'             => ['name' => 'Négociation / se mettre d\'accord', 'component' => 'role-play'],
         'speaking-elicitation'    => ['name' => 'Poser des questions',          'component' => 'role-play'],
         'listen-repeat'           => ['name' => 'Écouter et répéter',           'component' => 'listen-repeat'],
+        'picture-mcq'             => ['name' => 'Choisir la bonne image',        'component' => 'picture-mcq'],
+        // ── TOEFL 2026 ──
+        'complete-the-words'      => ['name' => 'Compléter les mots',            'component' => 'complete-the-words'],
+        'build-a-sentence'        => ['name' => 'Construire la phrase',          'component' => 'build-a-sentence'],
+        'listen-choose-response'  => ['name' => 'Écouter et répondre',           'component' => 'listen-choose-response'],
+        'read-daily-life'         => ['name' => 'Lecture du quotidien',          'component' => 'mcq'],
+        // ── Genres d'écrit (écriture guidée, AI-évaluée) ──
+        'guided-rewrite'          => ['name' => 'Réécriture / résumé guidé',     'component' => 'guided-writing'],
+        'text-continuation'       => ['name' => 'Continuer le texte',            'component' => 'guided-writing'],
     ];
 
     public function run(): void

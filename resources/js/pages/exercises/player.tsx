@@ -61,6 +61,11 @@ import { Synthesis } from '@/components/exercises/synthesis';
 import { IntegratedTask } from '@/components/exercises/integrated-task';
 import { VocabularyCard } from '@/components/exercises/vocabulary-card';
 import { ListenRepeat } from '@/components/exercises/listen-repeat';
+import { PictureMcq } from '@/components/exercises/picture-mcq';
+import { CompleteTheWords } from '@/components/exercises/complete-the-words';
+import { BuildASentence } from '@/components/exercises/build-a-sentence';
+import { ListenChooseResponse } from '@/components/exercises/listen-choose-response';
+import { GuidedWriting } from '@/components/exercises/guided-writing';
 import { ExerciseTimer } from '@/components/exercises/exercise-timer';
 import { AiChatFeedback } from '@/components/exercises/ai-chat-feedback';
 
@@ -127,6 +132,11 @@ const componentMap: Record<string, React.ComponentType<any>> = {
     'integrated-task': IntegratedTask,
     'vocabulary-card': VocabularyCard,
     'listen-repeat': ListenRepeat,
+    'picture-mcq': PictureMcq,
+    'complete-the-words': CompleteTheWords,
+    'build-a-sentence': BuildASentence,
+    'listen-choose-response': ListenChooseResponse,
+    'guided-writing': GuidedWriting,
 };
 
 // Short action instruction per exercise type — answers the user's complaint that

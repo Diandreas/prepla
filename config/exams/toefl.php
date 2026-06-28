@@ -4,8 +4,9 @@
  * TOEFL iBT - Test of English as a Foreign Language (Internet-Based Test)
  * Source: ets.org
  *
- * Format updated July 2023 (shorter test, "Academic Discussion" replaces Independent Essay)
- * Scoring: 0-30 per section, 0-120 total
+ * Format REFONDU pour la réforme ETS du 21 janvier 2026 : test plus court (<2h),
+ * adaptatif, nouvelles tâches (Complete the Words, Build a Sentence, Listen and
+ * Choose a Response, Listen and Repeat, Read in Daily Life). Score 0-120 + bande 1-6.
  */
 
 return [
@@ -24,58 +25,58 @@ return [
     'variants' => null, // Single variant
 
     'sections' => [
-        // ─── READING ───
+        // ─── READING (2026: adaptatif, ~27 min) ───
         [
             'slug' => 'reading',
             'name' => 'Reading',
             'skill_type' => 'reading',
-            'time_limit' => 35,
-            'question_count' => 20,
+            'time_limit' => 27,
+            'question_count' => 40,
             'scoring_weight' => 25,
             'parts' => [
                 [
                     'part' => 1,
-                    'description' => '2 academic passages (approximately 700 words each), 10 questions per passage',
-                    'passages' => 2,
-                    'questions_per_passage' => 10,
+                    'description' => 'Read in Daily Life — textes pratiques courts (e-mails, annonces, posts, 15-150 mots) + questions.',
+                ],
+                [
+                    'part' => 2,
+                    'description' => 'Academic Reading — passages académiques + questions (format adaptatif).',
+                ],
+                [
+                    'part' => 3,
+                    'description' => 'Complete the Words — compléter des mots à lettres manquantes dans un paragraphe.',
                 ],
             ],
             'exercise_types' => [
-                'mcq',                  // Factual information, negative factual, inference, rhetorical purpose, vocabulary
-                'insert-text',          // Insert a sentence into the passage
-                'prose-summary',        // Select 3 of 6 sentences that summarize the passage
-                'fill-table',           // Categorize information into a table
+                'mcq',                  // Factual, inference, rhetorical purpose, vocabulary
+                'read-daily-life',      // 2026: textes pratiques courts (rendu mcq)
+                'complete-the-words',   // 2026: lettres manquantes
+                'insert-text',          // Insert a sentence
+                'prose-summary',        // Select 3 of 6 sentences
             ],
         ],
 
-        // ─── LISTENING ───
+        // ─── LISTENING (2026: tâches dynamiques) ───
         [
             'slug' => 'listening',
             'name' => 'Listening',
             'skill_type' => 'listening',
-            'time_limit' => 36,
+            'time_limit' => 30,
             'question_count' => 28,
             'scoring_weight' => 25,
             'parts' => [
                 [
                     'part' => 1,
-                    'description' => '3 academic lectures (3-5 minutes each), 6 questions per lecture',
-                    'type' => 'lecture',
-                    'count' => 3,
-                    'questions_per_item' => 6,
+                    'description' => 'Listen and Choose a Response — entendre une phrase/question, choisir la bonne réponse (pragmatique).',
                 ],
                 [
                     'part' => 2,
-                    'description' => '2 conversations (3 minutes each), 5 questions per conversation',
-                    'type' => 'conversation',
-                    'count' => 2,
-                    'questions_per_item' => 5,
+                    'description' => 'Listen to a Conversation / Announcement / Lecture + questions QCM.',
                 ],
             ],
             'exercise_types' => [
-                'mcq',                  // Gist-content, gist-purpose, detail, inference, attitude
-                'ordering',             // Put events/steps in order
-                'matching',             // Match items (e.g. categorize statements)
+                'listen-choose-response', // 2026: choisir la réponse à un énoncé
+                'mcq',                    // Conversations, annonces, lectures
             ],
         ],
 
@@ -87,7 +88,17 @@ return [
             'time_limit' => 16,
             'question_count' => 4,
             'scoring_weight' => 25,
+            // Types practisables (le seeder lit 'exercise_types' ; 'tasks' = métadonnée examen).
+            'exercise_types' => ['listen-repeat', 'speaking-response', 'integrated-task'],
             'tasks' => [
+                [
+                    'task' => 0,
+                    'name' => 'Listen and Repeat',
+                    'description' => '2026 : écouter et répéter des phrases (campus/vie quotidienne), noté sur la prononciation.',
+                    'prep_time' => 0,
+                    'response_time' => 30,
+                    'exercise_type' => 'listen-repeat',
+                ],
                 [
                     'task' => 1,
                     'name' => 'Independent Speaking',
@@ -139,6 +150,7 @@ return [
             'time_limit' => 29,
             'question_count' => 2,
             'scoring_weight' => 25,
+            'exercise_types' => ['build-a-sentence', 'integrated-writing', 'academic-discussion'],
             'tasks' => [
                 [
                     'task' => 1,

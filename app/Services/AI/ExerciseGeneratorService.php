@@ -70,15 +70,24 @@ class ExerciseGeneratorService
                     if ($correctIdx < 0 || $correctIdx >= count($opts)) {
                         return $q;
                     }
-                    $correctValue = $opts[$correctIdx];
-                    // Fisher–Yates shuffle
-                    for ($i = count($opts) - 1; $i > 0; $i--) {
+                    // Build a permutation of indices (Fisher–Yates) so we can reorder
+                    // options AND any parallel arrays (image_prompts/image_options for
+                    // picture-mcq) in LOCKSTEP, keeping image↔label paired.
+                    $order = range(0, count($opts) - 1);
+                    for ($i = count($order) - 1; $i > 0; $i--) {
                         $j = random_int(0, $i);
-                        [$opts[$i], $opts[$j]] = [$opts[$j], $opts[$i]];
+                        [$order[$i], $order[$j]] = [$order[$j], $order[$i]];
                     }
-                    $newIdx = array_search($correctValue, $opts, true);
-                    $q['options'] = $opts;
-                    $q['correct_answer'] = chr(65 + ($newIdx === false ? 0 : $newIdx));
+                    $reorder = fn ($arr) => (is_array($arr) && count($arr) === count($order))
+                        ? array_map(fn ($k) => $arr[$k], $order) : $arr;
+
+                    $q['options'] = $reorder($opts);
+                    if (isset($q['image_prompts'])) $q['image_prompts'] = $reorder($q['image_prompts']);
+                    if (isset($q['image_options'])) $q['image_options'] = $reorder($q['image_options']);
+
+                    // New position of the originally-correct index.
+                    $newPos = array_search($correctIdx, $order, true);
+                    $q['correct_answer'] = chr(65 + ($newPos === false ? 0 : $newPos));
                     return $q;
                 }, $data['questions']);
 
@@ -229,6 +238,14 @@ DIRECTIVE;
             'negotiation' => 'Array of 1 question with: id (string), type ("role-play"), scenario (a situation requiring agreement, e.g. planning an outing together / sharing tasks, in ' . $language . '), role (candidate role), dialogue_turns (array of 6 objects ALTERNATING: examiner text = a proposal or objection in ' . $language . '; candidate prompt = "Propose une alternative et justifie" / "Trouve un compromis"), correct_answer (null)',
             'speaking-elicitation' => 'Array of 1 question with: id (string), type ("role-play"), scenario (a context where the candidate must OBTAIN information, e.g. about a job ad / a course, in ' . $language . '), role ("Tu poses des questions pour obtenir des informations"), dialogue_turns (array of 5 objects: each examiner turn text = a brief setup/answer in ' . $language . ', each candidate prompt = "Pose une question pour savoir : [horaires/prix/lieu/…]"), correct_answer (null)',
             'listen-repeat' => 'Array of 3 items, each with: id (string), type ("listen-repeat"), audio_text (a sentence of 8-15 words in ' . $language . ' to be read aloud and repeated), correct_answer (the same sentence exactly — used to score pronunciation fidelity)',
+            'picture-mcq' => 'Array of 3 questions, each with: id (string), type ("picture-mcq"), text (the question/instruction in ' . $language . '), image_prompts (array of EXACTLY 4 short English scene descriptions for image generation, e.g. "a woman drinking coffee at a café", "a man riding a bicycle"; concrete, distinct, simple), options (array of 4 short ' . $language . ' labels matching each image), correct_answer (the letter "A","B","C" or "D" of the right picture)' . ($isListening ? ', audio_text (the SAME spoken passage on each question — what the student hears and must match to a picture)' : ''),
+            // TOEFL 2026
+            'complete-the-words' => 'Array of 1 question with: id (string), type ("complete-the-words"), text (an academic paragraph of 60-90 words in ' . $language . ' where 6-10 words have MISSING LETTERS shown as the first 2-3 letters followed by underscores for each missing letter, e.g. "The eco___ grew while gov______ spending fell"), correct_answers (object mapping "0","1",… in reading order to the FULL correct word for each blanked word)',
+            'build-a-sentence' => 'Array of 3 questions, each with: id (string), type ("build-a-sentence"), text (the preceding line of a short student exchange in ' . $language . ', for context), words (array of the sentence tokens IN CORRECT ORDER — the UI shuffles them), correct_answer (the full correct sentence string)',
+            'listen-choose-response' => 'Array of 3 questions, each with: id (string), type ("listen-choose-response"), audio_text (a single short spoken sentence or question in ' . $language . ' — e.g. "Do you know where the library is?"), options (array of 4 possible spoken replies in ' . $language . ', one pragmatically correct, three plausible but wrong), correct_answer (the letter of the best reply)',
+            // Écriture guidée (AI-évaluée)
+            'guided-rewrite' => 'Array of 1 question with: id (string), type ("guided-rewrite"), source_text (a passage of 80-120 words in ' . $language . '), text (instruction in ' . $language . ': reformuler/résumer le passage en utilisant les mots imposés), must_use (array of 3-5 mandatory words/expressions in ' . $language . '), min_words (40), max_words (80), correct_answer (null — scored by AI)',
+            'text-continuation' => 'Array of 1 question with: id (string), type ("text-continuation"), source_text (the BEGINNING of a story/fait divers, 2-3 sentences in ' . $language . '), text (instruction: continuer le texte de façon cohérente), min_words (80), max_words (120), correct_answer (null — scored by AI)',
 
             // --- Sprint 5: Complex components ---
             'diagram-labeling' => 'Array of 1 question with: id (string), type ("diagram-labeling"), text (instruction in ' . $language . '), image_url (null — will use placeholder), labels (array of 4-6 objects {id: "l1"-"l6", x: number 10-90, y: number 10-90, answer: correct label string}), correct_answers (object mapping label id to correct text)',

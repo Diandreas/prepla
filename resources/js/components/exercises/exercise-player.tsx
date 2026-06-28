@@ -36,6 +36,11 @@ import { RolePlay } from './role-play';
 import { Synthesis } from './synthesis';
 import { VocabularyCard } from './vocabulary-card';
 import { ListenRepeat } from './listen-repeat';
+import { PictureMcq } from './picture-mcq';
+import { CompleteTheWords } from './complete-the-words';
+import { BuildASentence } from './build-a-sentence';
+import { ListenChooseResponse } from './listen-choose-response';
+import { GuidedWriting } from './guided-writing';
 import { SpeakButton } from './speak-button';
 
 interface ExercisePlayerProps {
@@ -124,6 +129,11 @@ const componentMap: Record<string, React.ComponentType<any>> = {
     'synthesis': Synthesis,
     'vocabulary-card': VocabularyCard,
     'listen-repeat': ListenRepeat,
+    'picture-mcq': PictureMcq,
+    'complete-the-words': CompleteTheWords,
+    'build-a-sentence': BuildASentence,
+    'listen-choose-response': ListenChooseResponse,
+    'guided-writing': GuidedWriting,
 };
 
 export function ExercisePlayer({ exercise }: ExercisePlayerProps) {

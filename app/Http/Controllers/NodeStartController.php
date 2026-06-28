@@ -69,12 +69,16 @@ class NodeStartController extends Controller
             // + 1 of either (with an occasional speaking turn) so a learner actually
             // meets listening and speaking exercises across their journey.
             // Components kept short enough for a quick session (no essays here).
-            $shortComponents = ['mcq', 'true-false-ng', 'gap-fill', 'matching', 'sentence-completion', 'short-answer', 'ordering', 'word-formation', 'multiple-matching', 'open-cloze', 'note-completion', 'dictation', 'speaking-recorder'];
+            // Types "courts" piochés pour une session rapide de nœud. Inclut les
+            // nouveaux types (picture-mcq, listen-repeat, complete-the-words,
+            // build-a-sentence, oraux interactifs) → ils profitent AUSSI aux parcours
+            // déjà commencés, car chaque session génère à la demande.
+            $shortComponents = ['mcq', 'true-false-ng', 'gap-fill', 'matching', 'sentence-completion', 'short-answer', 'ordering', 'word-formation', 'multiple-matching', 'open-cloze', 'note-completion', 'dictation', 'speaking-recorder', 'picture-mcq', 'listen-repeat', 'complete-the-words', 'build-a-sentence', 'oral-debate', 'negotiation', 'speaking-elicitation'];
 
             // Components qui marchent vraiment en ÉCOUTE : on répond À l'oreille sur
             // un audio (texte caché). On EXCLUT matching (associer des termes écrits =
             // ce n'est pas de l'écoute) et les types texte-only.
-            $listeningComponents = ['mcq', 'true-false-ng', 'note-completion', 'dictation', 'short-answer'];
+            $listeningComponents = ['mcq', 'true-false-ng', 'note-completion', 'dictation', 'short-answer', 'picture-mcq', 'listen-choose-response', 'listen-repeat'];
 
             // skill_type is a direct column on exercise_types (not via section), and
             // the types aren't scoped by exam_id — so we filter on the column directly.

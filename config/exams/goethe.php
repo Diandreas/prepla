@@ -47,7 +47,7 @@ return [
                     'time_limit' => 20,
                     'scoring_weight' => 25,
                     'description' => 'Comprendre des dialogues et annonces courtes de la vie quotidienne.',
-                    'exercise_types' => ['mcq', 'true-false-not-given', 'matching'],
+                    'exercise_types' => ['mcq', 'true-false-not-given', 'picture-mcq'],
                 ],
                 [
                     'slug' => 'schreiben',
@@ -96,7 +96,7 @@ return [
                     'time_limit' => 20,
                     'scoring_weight' => 25,
                     'description' => 'Comprendre des annonces, conversations téléphoniques et dialogues courants.',
-                    'exercise_types' => ['mcq', 'true-false-not-given', 'matching'],
+                    'exercise_types' => ['mcq', 'true-false-not-given', 'picture-mcq', 'multiple-matching'],
                 ],
                 [
                     'slug' => 'schreiben',
@@ -315,7 +315,7 @@ return [
                     'time_limit' => 80,
                     'scoring_weight' => 25,
                     'description' => '2 tâches : texte argumentatif complexe + réécriture/correction de texte.',
-                    'exercise_types' => ['essay', 'summary-writing'],
+                    'exercise_types' => ['essay', 'summary-writing', 'guided-rewrite'],
                     'rubric' => [
                         'criteria' => [
                             ['name' => 'Inhalt (Content)', 'slug' => 'content', 'max' => 25],

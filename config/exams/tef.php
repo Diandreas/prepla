@@ -142,6 +142,7 @@ return [
             'question_count' => 2,
             'max_score' => 450,
             'scoring_weight' => 20,
+            'exercise_types' => ['text-continuation', 'essay'],
             'tasks' => [
                 [
                     'task' => 1,

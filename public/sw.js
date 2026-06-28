@@ -1,7 +1,7 @@
 // Bump this version on every deploy that ships new front-end assets so the
 // activate handler purges the previous cache. Cache-first on hashed Vite assets
 // is fine, but the SW itself must not pin users to a stale bundle.
-const CACHE_NAME = 'prepla-v10';
+const CACHE_NAME = 'prepla-v11';
 const OFFLINE_URL = '/offline';
 
 const PRECACHE_ASSETS = [
