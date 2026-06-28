@@ -279,15 +279,15 @@ class ExerciseController extends Controller
             'answer' => 'required', // Can be string or file
         ]);
 
-        $exercise = \App\Models\Exercise::with('exam.language')->findOrFail($validated['exercise_id']);
+        $exercise = \App\Models\Exercise::with(['exam.language', 'exerciseType'])->findOrFail($validated['exercise_id']);
         $questionId = $validated['question_id'];
         $answer = $request->file('answer') ?? $request->input('answer');
 
         // On simule un array answers pour le scoring service
         $answers = [$questionId => $answer];
-        
+
         $result = $this->scoringService->score($exercise, $answers);
-        
+
         // On récupère le feedback spécifique à cette question
         $questionFeedback = collect($result['feedback'])->firstWhere('question_id', $questionId);
 
@@ -296,6 +296,8 @@ class ExerciseController extends Controller
             'accuracy' => $questionFeedback['accuracy'] ?? 0,
             'explanation' => $questionFeedback['explanation'] ?? '',
             'transcription' => $questionFeedback['transcription'] ?? null,
+            'covered_points' => $questionFeedback['covered_points'] ?? [],
+            'missing_points' => $questionFeedback['missing_points'] ?? [],
         ]);
     }
 

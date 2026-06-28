@@ -88,20 +88,42 @@ class ExerciseScoringService
                         continue;
                     }
 
-                    // Use standard evaluation for others (short answers, speaking)
                     $prompt = $question['prompt'] ?? $question['text'] ?? "Respond to the prompt";
-                    $aiResult = $this->mistralEval->evaluate($prompt, $textToEvaluate, $langName);
 
-                    $isCorrect = (bool) $aiResult['isCorrect'];
-                    $feedback[] = [
-                        'question_id' => $questionId,
-                        'correct' => $isCorrect,
-                        'accuracy' => $aiResult['accuracy'],
-                        'explanation' => $aiResult['explanation'],
-                        'error_category' => $aiResult['error_category'] ?? null,
-                        'error_subcategory' => $aiResult['error_subcategory'] ?? null,
-                        'transcription' => ($userAnswer instanceof UploadedFile) ? $textToEvaluate : null,
-                    ];
+                    // SPEAKING (audio answer) → formative evaluation: transcript checked
+                    // for relevance/coverage, PASS at >= 50%, always returns
+                    // covered/missing points + tips to continue.
+                    $isSpeaking = ($userAnswer instanceof UploadedFile)
+                        || in_array($questionType, ['speaking-recorder', 'role-play', 'speaking'], true);
+
+                    if ($isSpeaking) {
+                        $aiResult = $this->mistralEval->evaluateSpeaking($prompt, $textToEvaluate, $langName);
+                        $isCorrect = (bool) $aiResult['isCorrect'];
+                        $feedback[] = [
+                            'question_id' => $questionId,
+                            'correct' => $isCorrect,
+                            'accuracy' => $aiResult['accuracy'],
+                            'explanation' => $aiResult['explanation'],
+                            'covered_points' => $aiResult['covered_points'] ?? [],
+                            'missing_points' => $aiResult['missing_points'] ?? [],
+                            'error_category' => $aiResult['error_category'] ?? null,
+                            'error_subcategory' => $aiResult['error_subcategory'] ?? null,
+                            'transcription' => $textToEvaluate,
+                        ];
+                    } else {
+                        // Standard evaluation for typed short answers.
+                        $aiResult = $this->mistralEval->evaluate($prompt, $textToEvaluate, $langName);
+                        $isCorrect = (bool) $aiResult['isCorrect'];
+                        $feedback[] = [
+                            'question_id' => $questionId,
+                            'correct' => $isCorrect,
+                            'accuracy' => $aiResult['accuracy'],
+                            'explanation' => $aiResult['explanation'],
+                            'error_category' => $aiResult['error_category'] ?? null,
+                            'error_subcategory' => $aiResult['error_subcategory'] ?? null,
+                            'transcription' => ($userAnswer instanceof UploadedFile) ? $textToEvaluate : null,
+                        ];
+                    }
                 }
 
                 if ($isCorrect) $correct++;

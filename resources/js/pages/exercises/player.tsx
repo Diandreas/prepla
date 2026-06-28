@@ -403,6 +403,8 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
     const [playingTts, setPlayingTts] = useState<string | null>(null);
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [mistakes, setMistakes] = useState<any[]>([]);
+    // Speaking formative feedback: points covered / still to add.
+    const [speakingPoints, setSpeakingPoints] = useState<{ covered: string[]; missing: string[] } | null>(null);
     // Frozen snapshot of the mistakes list when entering review mode, so the
     // review never grows while you retry (which used to loop forever).
     const [reviewQueue, setReviewQueue] = useState<any[]>([]);
@@ -549,6 +551,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
         setIsCorrect(null);
         setExplanation(null);
         setHighlightedText(null);
+        setSpeakingPoints(null);
         setAnswers(prev => {
             const next = { ...prev };
             if (question) delete next[question.id];
@@ -594,6 +597,12 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                 if (data.transcription) {
                     setAnswers(prev => ({ ...prev, [`${question.id}_transcription`]: data.transcription }));
                 }
+                // Speaking: capture covered/missing points to show continuation help.
+                if ((data.covered_points && data.covered_points.length) || (data.missing_points && data.missing_points.length)) {
+                    setSpeakingPoints({ covered: data.covered_points ?? [], missing: data.missing_points ?? [] });
+                } else {
+                    setSpeakingPoints(null);
+                }
             } catch (error) {
                 console.error('Verification failed:', error);
                 isRight = false;
@@ -631,6 +640,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
         setIsCorrect(null);
         setExplanation(null);
         setHighlightedText(null);
+        setSpeakingPoints(null);
 
         const isEndOfExercises = currentExerciseIndex === exercises.length - 1 && currentQuestionIndex === (isReviewMode ? reviewQueue.length - 1 : (exercise?.questions?.length ?? 0) - 1);
 
@@ -1016,6 +1026,36 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                                 <p className="text-sm font-medium italic text-slate-700">
                                     « {answers[`${question.id}_transcription`]} »
                                 </p>
+                            </div>
+                        )}
+
+                        {/* Speaking formative feedback: what you covered + what to add to go further */}
+                        {isChecked && speakingPoints && (speakingPoints.covered.length > 0 || speakingPoints.missing.length > 0) && (
+                            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                                {speakingPoints.covered.length > 0 && (
+                                    <div className="rounded-xl border-2 border-emerald-100 bg-emerald-50/60 p-3">
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-emerald-500 mb-1.5">Bien dit</p>
+                                        <ul className="space-y-1">
+                                            {speakingPoints.covered.map((p, i) => (
+                                                <li key={i} className="text-xs font-medium text-slate-700 flex gap-1.5">
+                                                    <span className="text-emerald-500">✓</span>{p}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                {speakingPoints.missing.length > 0 && (
+                                    <div className="rounded-xl border-2 border-amber-100 bg-amber-50/60 p-3">
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-amber-500 mb-1.5">Pour aller plus loin</p>
+                                        <ul className="space-y-1">
+                                            {speakingPoints.missing.map((p, i) => (
+                                                <li key={i} className="text-xs font-medium text-slate-700 flex gap-1.5">
+                                                    <span className="text-amber-500">+</span>{p}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>

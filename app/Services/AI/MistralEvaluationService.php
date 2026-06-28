@@ -99,6 +99,87 @@ ERROR CATEGORIES TAXONOMY (use these exact categories):
     }
 
     /**
+     * Formative evaluation for SPEAKING answers (transcribed from the learner's
+     * audio). Unlike the strict evaluate(), this is encouraging: a relevant answer
+     * that covers the task passes at >= 50%, and we ALWAYS return concrete
+     * "what you did well" + "how to go further" tips so the learner can continue.
+     *
+     * @param string $transcript  The speech-to-text of what the learner said.
+     * @param string $prompt      The speaking task / what they were asked to say.
+     */
+    public function evaluateSpeaking(string $prompt, string $transcript, string $language = 'German'): array
+    {
+        $messages = [
+            [
+                'role' => 'system',
+                'content' => "You are a friendly speaking examiner for $language. You receive the TRANSCRIPT of what a student said out loud (speech-to-text — minor transcription noise is normal, do NOT penalise spelling/punctuation).
+
+Evaluate FORMATIVELY and ENCOURAGINGLY:
+- Did the student address the task and produce relevant content in $language?
+- Did they cover the key points the task asked for?
+- Is it broadly understandable (don't over-penalise small grammar slips)?
+
+SCORING: a relevant attempt that covers the task should score 50-100. Reserve scores below 50 for off-topic, empty, wrong-language, or unintelligible answers. PASS threshold is 50: set isCorrect=true when accuracy >= 50.
+
+ALWAYS, even when the answer passes, give continuation help: what they said well, and 1-2 concrete things to add/improve to go further (richer vocabulary, a connector, a missing point).
+
+Reply in valid JSON ONLY:
+{
+  \"isCorrect\": boolean,            // true if accuracy >= 50
+  \"accuracy\": integer 0-100,
+  \"covered_points\": [\"...\"],      // task points the student covered
+  \"missing_points\": [\"...\"],      // task points still missing (can be empty)
+  \"error_category\": \"speaking.fluency|speaking.accuracy|vocabulary.lexical|null\",
+  \"error_subcategory\": \"string|null\",
+  \"explanation\": {
+    \"concept\": \"1-2 sentences in $language: what was good + the main thing to improve\",
+    \"evidence\": \"a better/example phrase in $language, key part in <evidence>...</evidence>\",
+    \"hint\": \"one concrete tip in $language to go further\",
+    \"french_translation\": { \"concept\": \"...in French\", \"evidence\": \"...in French\", \"hint\": \"...in French\" }
+  }
+}"
+            ],
+            [
+                'role' => 'user',
+                'content' => "Speaking task: $prompt\n\nStudent transcript: $transcript"
+            ]
+        ];
+
+        $jsonString = $this->mistral->chat($messages);
+
+        $fallback = [
+            'isCorrect' => false,
+            'accuracy' => 0,
+            'covered_points' => [],
+            'missing_points' => [],
+            'error_category' => null,
+            'error_subcategory' => null,
+            'explanation' => [
+                'concept' => "L'IA n'a pas pu évaluer ta réponse orale.",
+                'evidence' => '',
+                'hint' => 'Réessaie en parlant un peu plus longtemps et clairement.',
+                'french_translation' => ['concept' => "L'IA n'a pas pu évaluer ta réponse orale.", 'evidence' => '', 'hint' => 'Réessaie en parlant un peu plus longtemps et clairement.'],
+            ],
+        ];
+
+        if (!$jsonString) return $fallback;
+        $decoded = json_decode($jsonString, true);
+        if (!is_array($decoded)) return $fallback;
+
+        $accuracy = (int)($decoded['accuracy'] ?? 0);
+        return [
+            // Hard rule: >= 50 always validates, regardless of what the model put in isCorrect.
+            'isCorrect' => $accuracy >= 50,
+            'accuracy' => $accuracy,
+            'covered_points' => $decoded['covered_points'] ?? [],
+            'missing_points' => $decoded['missing_points'] ?? [],
+            'error_category' => $decoded['error_category'] ?? null,
+            'error_subcategory' => $decoded['error_subcategory'] ?? null,
+            'explanation' => $decoded['explanation'] ?? $fallback['explanation'],
+        ];
+    }
+
+    /**
      * Explains a mistake conceptually.
      */
     public function explainMistake(string $prompt, string $userAnswer, string $correctAnswer, string $language): string
