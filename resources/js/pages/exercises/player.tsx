@@ -461,6 +461,9 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
     // Listening audio source (transcript that stays hidden) — see isListening above.
     const listeningAudioText: string =
         exercise?.content?.audio_text || question?.audio_text || exercise?.content?.passage || '';
+    // Pre-generated audio file (built before the exercise loads) → instant play.
+    const listeningAudioUrl: string | undefined =
+        question?.audio_url || exercise?.content?.audio_url || undefined;
 
     // Reset the play counter each time we move to a new question.
     useEffect(() => { setListenCount(0); }, [currentExerciseIndex, currentQuestionIndex]);
@@ -517,6 +520,21 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
             setPlayingTts(null);
         }
     }, [nodeCode, playingTts]);
+
+    // Play a listening recording: prefer the pre-generated audio file (instant),
+    // fall back to live TTS only if the file wasn't pre-built.
+    const playListening = useCallback((url: string | undefined, text: string) => {
+        if (playingTts === 'passage') return;
+        if (url) {
+            setPlayingTts('passage');
+            const audio = new Audio(url);
+            audio.onended = () => setPlayingTts(null);
+            audio.onerror = () => { setPlayingTts(null); if (text) playTts(text, 'passage'); };
+            audio.play().catch(() => { setPlayingTts(null); if (text) playTts(text, 'passage'); });
+            return;
+        }
+        if (text) playTts(text, 'passage');
+    }, [playingTts, playTts]);
 
     const fetchExplanation = useCallback(async (questionObj = question) => {
         if (!questionObj) return;
@@ -939,7 +957,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                 >
                     {/* LISTENING: audio-only card — the transcript is NEVER shown, the
                         learner must listen. Replays capped at 2 (exam-realistic). */}
-                    {isListening && listeningAudioText ? (
+                    {isListening && (listeningAudioUrl || listeningAudioText) ? (
                         <div className="passage-card relative overflow-hidden">
                             <div className="flex items-center gap-2 mb-3 border-b border-indigo-100/50 pb-2">
                                 <Icon name="headphones" size={16} />
@@ -949,7 +967,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                                 onClick={() => {
                                     if (listenCount >= 2 || playingTts === 'passage') return;
                                     setListenCount(c => c + 1);
-                                    playTts(listeningAudioText, 'passage');
+                                    playListening(listeningAudioUrl, listeningAudioText);
                                 }}
                                 disabled={listenCount >= 2 && playingTts !== 'passage'}
                                 className="flex w-full items-center justify-center gap-3 rounded-xl border-2 border-indigo-200 bg-indigo-50/40 px-4 py-3.5 text-indigo-600 transition-all hover:bg-indigo-50 disabled:opacity-40"

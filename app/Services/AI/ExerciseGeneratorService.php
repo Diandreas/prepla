@@ -82,17 +82,14 @@ class ExerciseGeneratorService
             }
         }
 
-        // Fallback to mock if AI fails
-        Log::warning('ExerciseGenerator: AI failed, using mock content');
-        return Exercise::create([
-            'exercise_type_id' => $exerciseType->id,
+        // AI failed: do NOT persist a meaningless placeholder exercise ("What is
+        // this exercise about?") — that junk was being shown to learners. Throw so
+        // the caller can skip this type / retry / show a clean message instead.
+        Log::warning('ExerciseGenerator: AI failed, no exercise generated', [
+            'exercise_type' => $exerciseType->component_key,
             'exam_id' => $exam->id,
-            'content' => $this->getFallbackContent($language),
-            'questions' => $this->getFallbackQuestions($exerciseType->component_key, $language),
-            'difficulty' => $difficulty,
-            'xp_reward' => $this->calculateXpReward($difficulty),
-            'is_ai_generated' => true,
         ]);
+        throw new \RuntimeException('AI exercise generation failed for ' . $exerciseType->component_key);
     }
 
     private function buildPrompt(ExerciseType $exerciseType, Exam $exam, string $difficulty, string $language, string $languageNative, ?array $lessonContext = null): string

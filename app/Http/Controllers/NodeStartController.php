@@ -7,6 +7,8 @@ use App\Models\ExerciseType;
 use App\Models\LearningPathNode;
 use App\Models\UserLearningProgress;
 use App\Services\AI\ExerciseGeneratorService;
+use App\Services\AI\TtsAudioGenerator;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -16,7 +18,7 @@ class NodeStartController extends Controller
      * Lance une session d'apprentissage pour un nœud spécifique (Le "Set de 3").
      * Cette version implémente la vision "Duolingo" : session rapide de 3 exercices.
      */
-    public function __invoke(LearningPathNode $node, ExerciseGeneratorService $generator): Response
+    public function __invoke(LearningPathNode $node, ExerciseGeneratorService $generator, TtsAudioGenerator $ttsAudio): Response|RedirectResponse
     {
         $user = auth()->user();
         
@@ -126,8 +128,9 @@ class NodeStartController extends Controller
                         $ex->load(['exerciseType', 'exam.language']);
                         $generated->push($ex);
                     } catch (\Throwable $e) {
+                        // One type failed → try the next instead of aborting the whole set.
                         \Illuminate\Support\Facades\Log::error('NodeStart: exercise generation failed', ['error' => $e->getMessage()]);
-                        break;
+                        continue;
                     }
                 }
                 $exercises = $exercises->concat($generated);
@@ -141,6 +144,18 @@ class NodeStartController extends Controller
             $exercises = $existing;
         }
 
+        // 4-bis. Pré-générer l'audio TTS des exercices d'ÉCOUTE avant d'afficher le
+        // player, pour que le son soit prêt instantanément (plus de latence au clic
+        // sur "Écouter"). Idempotent : ignore les questions qui ont déjà un audio_url.
+        $this->pregenerateListeningAudio($exercises, $ttsAudio);
+
+        // 4-ter. Garde-fou : si la génération a totalement échoué (aucun exercice
+        // réel), ne PAS afficher le player avec du contenu bidon → retour propre.
+        if ($exercises->isEmpty()) {
+            return redirect()->route('dashboard')
+                ->with('error', "La génération des exercices a échoué. Réessaie dans un instant.");
+        }
+
         // 5. Mettre à jour le statut du nœud
         if ($progress->status === 'available') {
             $progress->update(['status' => 'in_progress']);
@@ -152,5 +167,42 @@ class NodeStartController extends Controller
             'exercises' => $exercises,
             'progress' => $progress,
         ]);
+    }
+
+    /**
+     * Pre-generate Deepgram TTS for listening exercises and store audio_url on each
+     * question, so the player plays it instantly instead of calling TTS at click time.
+     */
+    private function pregenerateListeningAudio($exercises, TtsAudioGenerator $ttsAudio): void
+    {
+        foreach ($exercises as $exercise) {
+            if (($exercise->exerciseType->skill_type ?? null) !== 'listening') {
+                continue;
+            }
+            $questions = $exercise->questions ?? [];
+            if (empty($questions)) {
+                continue;
+            }
+            $language = strtolower($exercise->exam?->language?->slug ?? 'english');
+            $modified = false;
+            foreach ($questions as $idx => $question) {
+                if (!empty($question['audio_url'])) {
+                    continue; // already generated
+                }
+                try {
+                    $url = $ttsAudio->generateForQuestion($question, $language);
+                    if ($url) {
+                        $questions[$idx]['audio_url'] = $url;
+                        $modified = true;
+                    }
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning('Listening pre-gen TTS failed', ['error' => $e->getMessage()]);
+                }
+            }
+            if ($modified) {
+                $exercise->questions = $questions;
+                $exercise->save();
+            }
+        }
     }
 }

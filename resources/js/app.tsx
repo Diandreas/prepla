@@ -6,6 +6,7 @@ import { createRoot } from 'react-dom/client';
 import { route as routeFn } from 'ziggy-js';
 import { initializeTheme } from './hooks/use-appearance';
 import i18n from './lib/i18n/i18n';
+import { preloadAssets } from './lib/preload-assets';
 
 declare global {
     const route: typeof routeFn;
@@ -51,6 +52,8 @@ if ('serviceWorker' in navigator) {
     });
 
     window.addEventListener('load', () => {
+        // Warm the cache with sounds/animations/icons so they're ready when needed.
+        preloadAssets();
         navigator.serviceWorker.register('/sw.js', { scope: '/' }).then((reg) => {
             // Poll for updates on load and periodically.
             reg.update().catch(() => {});
