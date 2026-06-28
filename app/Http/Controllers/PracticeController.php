@@ -98,24 +98,9 @@ class PracticeController extends Controller
             $sectionProgress[$section->id] = $totalAttempts;
         }
 
-        // Galerie de types : tous les types d'exercices de l'examen (dédupliqués),
-        // pour "pratiquer par type". On exclut diagram-labeling (retiré).
-        $exerciseTypes = $exam->sections
-            ->flatMap(fn ($s) => $s->exerciseTypes)
-            ->reject(fn ($t) => $t->component_key === 'diagram-labeling')
-            ->unique('id')
-            ->map(fn ($t) => [
-                'id' => $t->id,
-                'name' => $t->name,
-                'skill_type' => $t->skill_type,
-                'component_key' => $t->component_key,
-            ])
-            ->values();
-
         return Inertia::render('practice/exam-dashboard', [
             'exam' => $exam,
             'sectionProgress' => $sectionProgress,
-            'exerciseTypes' => $exerciseTypes,
         ]);
     }
 
