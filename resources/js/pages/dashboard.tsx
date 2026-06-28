@@ -152,9 +152,66 @@ function StatusBadge({ status }: { status: RoadmapNode['status'] }) {
     return <span className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-black" style={{ background: '#f3f4f6', color: '#9ca3af' }}>À venir</span>;
 }
 
+interface CenterAssignment {
+    id: number;
+    title: string;
+    instructions: string | null;
+    due_at: string | null;
+    overdue: boolean;
+    total: number;
+    done: number;
+    next_exercise_id: number | null;
+}
+
+function CenterAssignmentsBanner({ assignments }: { assignments: CenterAssignment[] }) {
+    return (
+        <div className="mx-auto w-full max-w-3xl px-4 pt-4">
+            <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
+                <h2 className="mb-3 flex items-center gap-2 text-sm font-black uppercase tracking-widest text-primary">
+                    <Icon name="tasks" size={16} /> Devoirs de votre centre
+                </h2>
+                {assignments.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Aucun devoir en cours. 🎉</p>
+                ) : (
+                    <div className="space-y-2">
+                        {assignments.map((a) => {
+                            const complete = a.total > 0 && a.done >= a.total;
+                            return (
+                                <div key={a.id} className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background p-3">
+                                    <div className="min-w-0">
+                                        <p className="truncate text-sm font-bold">{a.title}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {a.done}/{a.total} exercice(s)
+                                            {a.due_at && (
+                                                <span className={a.overdue && !complete ? 'text-rose-500' : ''}>
+                                                    {' · '}échéance {new Date(a.due_at).toLocaleDateString()}
+                                                </span>
+                                            )}
+                                        </p>
+                                    </div>
+                                    {complete ? (
+                                        <span className="shrink-0 text-xs font-bold text-emerald-600">✓ Terminé</span>
+                                    ) : a.next_exercise_id ? (
+                                        <button
+                                            onClick={() => router.visit(route('exercise.show', a.next_exercise_id!))}
+                                            className="shrink-0 rounded-lg bg-primary px-3 py-1.5 text-xs font-black text-primary-foreground"
+                                        >
+                                            Continuer
+                                        </button>
+                                    ) : null}
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
 export default function Dashboard() {
     const { t } = useTranslation();
-    const { auth, profile, chapters, stats, curriculum, nextLesson, errorDiagnostic, dueErrorsCount } = usePage<SharedData & PageProps>().props;
+    const { auth, profile, chapters, stats, curriculum, nextLesson, errorDiagnostic, dueErrorsCount, centerMode, centerAssignments } = usePage<SharedData & PageProps>().props as any;
 
     const [loadingNode, setLoadingNode] = useState<{ id: string | number; title: string } | null>(null);
 
@@ -203,6 +260,12 @@ export default function Dashboard() {
     return (
         <AppLayout>
             <Head title="Mon Parcours" />
+
+            {/* B2B: a center student sees their assigned work FIRST. The personal
+                AI journey stays below. */}
+            {centerMode && (
+                <CenterAssignmentsBanner assignments={centerAssignments ?? []} />
+            )}
 
             {/* Loading overlay — marked data-page-loader so the global NavigationOverlay
                 stays hidden and we never stack two hourglasses. */}

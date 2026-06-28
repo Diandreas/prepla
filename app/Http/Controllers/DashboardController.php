@@ -224,6 +224,63 @@ class DashboardController extends Controller
             'nextLesson' => $nextLesson,
             'errorDiagnostic' => $errorDiagnostic,
             'dueErrorsCount' => $dueErrorsCount,
+            // B2B: when the learner belongs to a center, their assignments take
+            // priority over the personal AI journey.
+            'centerMode' => $user->isCenterStudent(),
+            'centerAssignments' => $this->centerAssignments($user),
         ]);
+    }
+
+    /**
+     * Active published assignments for a center student, with their own
+     * completion derived from existing attempts.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function centerAssignments($user): array
+    {
+        if (! $user->isCenterStudent()) {
+            return [];
+        }
+
+        $classroomIds = $user->classrooms()->pluck('classrooms.id');
+        if ($classroomIds->isEmpty()) {
+            return [];
+        }
+
+        $assignments = \App\Models\Assignment::whereIn('classroom_id', $classroomIds)
+            ->whereNotNull('published_at')
+            ->where('published_at', '<=', now())
+            ->with('items')
+            ->orderByRaw('due_at is null, due_at asc')
+            ->get();
+
+        return $assignments->map(function (\App\Models\Assignment $a) use ($user) {
+            $exerciseIds = $a->items
+                ->where('itemable_type', \App\Models\Exercise::class)
+                ->pluck('itemable_id');
+            $total = $exerciseIds->count();
+
+            $done = \App\Models\UserExerciseAttempt::where('user_id', $user->id)
+                ->whereIn('exercise_id', $exerciseIds)
+                ->where('created_at', '>=', $a->published_at)
+                ->distinct('exercise_id')
+                ->count('exercise_id');
+
+            return [
+                'id' => $a->id,
+                'title' => $a->title,
+                'instructions' => $a->instructions,
+                'due_at' => $a->due_at,
+                'overdue' => $a->isOverdue(),
+                'total' => $total,
+                'done' => $done,
+                // First not-yet-attempted exercise → entry point for the player.
+                'next_exercise_id' => $exerciseIds->first(fn ($id) => ! \App\Models\UserExerciseAttempt::where('user_id', $user->id)
+                    ->where('exercise_id', $id)
+                    ->where('created_at', '>=', $a->published_at)
+                    ->exists()),
+            ];
+        })->all();
     }
 }

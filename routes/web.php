@@ -171,6 +171,26 @@ Route::middleware(['auth', \App\Http\Middleware\EnsureCenterStaff::class])
         // Élèves
         Route::get('students', [\App\Http\Controllers\Center\StudentController::class, 'index'])->name('students.index');
         Route::get('students/{user}', [\App\Http\Controllers\Center\StudentController::class, 'show'])->name('students.show');
+
+        // Médiathèque (upload images / audio en local)
+        Route::get('media', [\App\Http\Controllers\Center\MediaController::class, 'index'])->name('media.index');
+        Route::post('media', [\App\Http\Controllers\Center\MediaController::class, 'store'])->name('media.store');
+        Route::delete('media/{medium}', [\App\Http\Controllers\Center\MediaController::class, 'destroy'])->name('media.destroy');
+
+        // Builder de contenu (manuel + IA assistée)
+        Route::get('exercises', [\App\Http\Controllers\Center\ExerciseBuilderController::class, 'index'])->name('exercises.index');
+        Route::get('exercises/create', [\App\Http\Controllers\Center\ExerciseBuilderController::class, 'create'])->name('exercises.create');
+        Route::post('exercises/ai-draft', [\App\Http\Controllers\Center\ExerciseBuilderController::class, 'aiDraft'])->name('exercises.ai-draft');
+        Route::post('exercises', [\App\Http\Controllers\Center\ExerciseBuilderController::class, 'store'])->name('exercises.store');
+        Route::get('exercises/{exercise}/edit', [\App\Http\Controllers\Center\ExerciseBuilderController::class, 'edit'])->name('exercises.edit');
+        Route::patch('exercises/{exercise}', [\App\Http\Controllers\Center\ExerciseBuilderController::class, 'update'])->name('exercises.update');
+
+        // Devoirs / assignations
+        Route::get('assignments', [\App\Http\Controllers\Center\AssignmentController::class, 'index'])->name('assignments.index');
+        Route::get('assignments/create', [\App\Http\Controllers\Center\AssignmentController::class, 'create'])->name('assignments.create');
+        Route::post('assignments', [\App\Http\Controllers\Center\AssignmentController::class, 'store'])->name('assignments.store');
+        Route::get('assignments/{assignment}', [\App\Http\Controllers\Center\AssignmentController::class, 'show'])->name('assignments.show');
+        Route::delete('assignments/{assignment}', [\App\Http\Controllers\Center\AssignmentController::class, 'destroy'])->name('assignments.destroy');
     });
 
 // Élève — rejoindre un centre via code d'invitation.

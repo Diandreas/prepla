@@ -107,7 +107,13 @@ class ExerciseScoringService
                         || in_array($questionType, ['speaking-recorder', 'role-play', 'speaking'], true);
 
                     if ($isSpeaking) {
-                        $aiResult = $this->mistralEval->evaluateSpeaking($prompt, $textToEvaluate, $langName);
+                        // Center-authored exercises can specify exact expected points
+                        // the oral answer must cover; pass them so the AI evaluates
+                        // coverage against the teacher's list.
+                        $expectedPoints = is_array($question['expected_points'] ?? null)
+                            ? $question['expected_points']
+                            : [];
+                        $aiResult = $this->mistralEval->evaluateSpeaking($prompt, $textToEvaluate, $langName, $expectedPoints);
                         $isCorrect = (bool) $aiResult['isCorrect'];
                         $feedback[] = [
                             'question_id' => $questionId,

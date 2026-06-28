@@ -107,8 +107,16 @@ ERROR CATEGORIES TAXONOMY (use these exact categories):
      * @param string $transcript  The speech-to-text of what the learner said.
      * @param string $prompt      The speaking task / what they were asked to say.
      */
-    public function evaluateSpeaking(string $prompt, string $transcript, string $language = 'German'): array
+    public function evaluateSpeaking(string $prompt, string $transcript, string $language = 'German', array $expectedPoints = []): array
     {
+        // When a teacher (B2B center) authored explicit expected points, evaluate
+        // coverage against THOSE points specifically, not just generic task points.
+        $expectedBlock = '';
+        if (! empty($expectedPoints)) {
+            $list = implode("\n", array_map(fn ($p) => '- ' . $p, $expectedPoints));
+            $expectedBlock = "\n\nThe response is expected to cover these specific points (evaluate covered_points / missing_points against THIS list):\n{$list}";
+        }
+
         $messages = [
             [
                 'role' => 'system',
@@ -141,7 +149,7 @@ Reply in valid JSON ONLY:
             ],
             [
                 'role' => 'user',
-                'content' => "Speaking task: $prompt\n\nStudent transcript: $transcript"
+                'content' => "Speaking task: $prompt{$expectedBlock}\n\nStudent transcript: $transcript"
             ]
         ];
 
