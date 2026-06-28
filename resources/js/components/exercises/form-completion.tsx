@@ -37,6 +37,9 @@ export function FormCompletion({ question, onAnswer, selectedAnswer, disabled }:
     // Blank indices keyed by their position among blanks (0,1,2…) to line up with
     // the generator's `correct_answers` map ({"0": "...", "1": "..."}).
     const blankCount = fields.filter(isBlankField).length;
+    // Counter for the blank-relative key (must be declared before the .map below;
+    // its absence was crashing the component with "blankIdx is not defined").
+    let blankIdx = 0;
 
     return (
         <div className="space-y-4">
@@ -62,10 +65,8 @@ export function FormCompletion({ question, onAnswer, selectedAnswer, disabled }:
                         const display = field.answer ?? field.value ?? '—';
                         const setBoth = (val: string) => {
                             setValues((prev) => {
-                                const next = { ...prev, [absKey]: val, [relKey]: val };
-                                const filled = new Set(
-                                    Object.entries(next).filter(([, v]) => v.trim() !== '').map(([k]) => k)
-                                );
+                                const next = { ...prev, [absKey]: val };
+                                if (relKey) next[relKey] = val;
                                 // Count distinct blanks filled (abs keys only, to avoid double-count).
                                 const blanksFilled = fields.filter((f, fi) => isBlankField(f) && (next[String(fi)] ?? '').trim() !== '').length;
                                 if (blankCount > 0 && blanksFilled >= blankCount) {

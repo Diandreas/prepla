@@ -45,7 +45,24 @@ export function RolePlay({ question, onAnswer, selectedAnswer, disabled, lang = 
         // Unknown label: a line WITH text to read is the examiner; otherwise it's the user's turn.
         return !!(t.text && t.text.trim());
     };
-    const turns = rawTurns;
+    // CRITICAL FIX (ex. /exercise/366): the AI often emits EVERY turn as
+    // speaker:"examiner" and hides the candidate's expected reply in `prompt`.
+    // That left zero candidate turns → no mic button, stuck forever. If there is
+    // no genuine candidate turn but examiner turns carry prompts, expand each
+    // examiner turn into [examiner, candidate(prompt)] so the user actually speaks.
+    const hasRealCandidate = rawTurns.some((t) => !isExaminerTurn(t));
+    const turns: DialogueTurn[] = (() => {
+        if (hasRealCandidate) return rawTurns;
+        const expanded: DialogueTurn[] = [];
+        for (const t of rawTurns) {
+            expanded.push(t);
+            if (t?.prompt && t.prompt.trim()) {
+                // Synthesize the candidate's speaking turn from the examiner's prompt.
+                expanded.push({ speaker: 'candidate', prompt: t.prompt });
+            }
+        }
+        return expanded.length ? expanded : rawTurns;
+    })();
     const candidateTurns = turns.filter((t) => !isExaminerTurn(t));
     const allDone = selectedAnswer || recordings.length >= candidateTurns.length;
     const isMyTurn = !disabled && !allDone && !isExaminerTurn(turns[currentTurn]);

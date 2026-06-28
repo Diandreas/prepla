@@ -178,8 +178,9 @@ export function ExercisePlayer({ exercise }: ExercisePlayerProps) {
                 <ExerciseTimer onTimeUpdate={handleTimeUpdate} />
             </div>
 
-            {/* Passage / Content */}
-            {typeof exercise.content?.passage === 'string' && (
+            {/* Passage / Content — hidden for LISTENING (the passage is the transcript
+                that must be heard, not read; audio is played via AudioPlayer/SpeakButton). */}
+            {skillType !== 'listening' && typeof exercise.content?.passage === 'string' && (
                 <div className="rounded-lg border border-border bg-muted/30 p-4 text-sm leading-relaxed">
                     {exercise.content.passage}
                 </div>

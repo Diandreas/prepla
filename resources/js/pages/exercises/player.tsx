@@ -955,7 +955,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                                                 : `Réécouter (${2 - listenCount} restante${2 - listenCount > 1 ? 's' : ''})`}
                                 </span>
                             </button>
-                            <p className="mt-2 text-center text-[11px] text-muted-foreground">Écoute attentivement — le texte n’est pas affiché.</p>
+                            <p className="mt-2 text-center text-[11px] text-muted-foreground">Écoute l’enregistrement, puis réponds à la question ci-dessous.</p>
                         </div>
                     ) : exercise.content?.passage && (
                         <div className="passage-card relative overflow-hidden group">

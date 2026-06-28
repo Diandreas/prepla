@@ -38,9 +38,36 @@ createInertiaApp({
 // This will set light / dark mode on load...
 initializeTheme();
 
-// Register service worker for PWA + push notifications
+// Register service worker for PWA + push notifications.
+// CRITICAL: also detect when a new SW takes control and reload ONCE, so a deploy
+// is picked up immediately instead of being pinned to the old cached bundle until
+// every tab is closed (the "I deployed but see nothing" problem).
 if ('serviceWorker' in navigator) {
+    let reloading = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (reloading) return;
+        reloading = true;
+        window.location.reload();
+    });
+
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});
+        navigator.serviceWorker.register('/sw.js', { scope: '/' }).then((reg) => {
+            // Poll for updates on load and periodically.
+            reg.update().catch(() => {});
+            setInterval(() => reg.update().catch(() => {}), 60 * 60 * 1000);
+
+            reg.addEventListener('updatefound', () => {
+                const newWorker = reg.installing;
+                if (!newWorker) return;
+                newWorker.addEventListener('statechange', () => {
+                    // A new worker is installed AND an old one already controls the
+                    // page → a fresh deploy is ready. skipWaiting() in sw.js will
+                    // activate it, triggering controllerchange → reload above.
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        newWorker.postMessage?.({ type: 'SKIP_WAITING' });
+                    }
+                });
+            });
+        }).catch(() => {});
     });
 }

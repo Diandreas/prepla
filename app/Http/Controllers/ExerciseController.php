@@ -206,7 +206,9 @@ class ExerciseController extends Controller
         // NextLessonGenerator switches to a 'consolidation' variant (alternate
         // explanation, more scaffolding, easier examples).
         $sessionAccuracy = $totalQuestions > 0 ? ($totalCorrect / $totalQuestions) * 100 : 0;
-        $MASTERY_THRESHOLD = 80;
+        // 60% = pass. 80% was too punishing (forces redoing sessions over and over).
+        // Aligned with the lesson quiz pass band (~2/3).
+        $MASTERY_THRESHOLD = 60;
         $skeleton = \App\Models\CurriculumSkeleton::where('user_id', $user->id)->first();
         if ($skeleton) {
             // The objective being practiced is the one in 'current_practice', which is

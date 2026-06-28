@@ -5,6 +5,18 @@ function Icon({ name, size = 20, className, style }: { name: string; size?: numb
 import { useEffect, useState } from 'react';
 import type { ExerciseAttempt } from '@/types';
 
+// The AI sometimes returns `explanation` as an object ({concept,evidence,hint})
+// instead of a string. Rendering/`.replace()` on it crashed the page
+// ("explanation.replace is not a function"). Coerce anything to a safe string.
+function asText(v: any): string {
+    if (v == null) return '';
+    if (typeof v === 'string') return v;
+    if (typeof v === 'number' || typeof v === 'boolean') return String(v);
+    if (Array.isArray(v)) return v.map(asText).filter(Boolean).join(' ');
+    if (typeof v === 'object') return asText(v.concept ?? v.text ?? v.message ?? v.hint ?? v.value ?? Object.values(v)[0]);
+    return '';
+}
+
 interface NodeProgress {
     node_id: number;
     exercises_done: number;
@@ -227,15 +239,15 @@ export default function ExerciseResult({ attempt, nodeProgress }: Props) {
                                                             <Icon name="sparkles" size={12} />
                                                             Explication pédagogique
                                                         </div>
-                                                        <button 
-                                                            onClick={() => playTts(item.explanation!, `expl-${i}`)}
+                                                        <button
+                                                            onClick={() => playTts(asText(item.explanation), `expl-${i}`)}
                                                             className={`p-1 rounded transition-all ${playingTts === `expl-${i}` ? 'text-indigo-600' : 'text-slate-400 hover:text-indigo-600'}`}
                                                         >
                                                             <Icon name={playingTts === `expl-${i}` ? 'volume-2' : 'volume-1'} size={14} />
                                                         </button>
                                                     </div>
                                                     <p className="text-[13px] leading-relaxed text-slate-600">
-                                                        {item.explanation.replace(/<\/?evidence>/g, '')}
+                                                        {asText(item.explanation).replace(/<\/?evidence>/g, '')}
                                                     </p>
                                                 </div>
                                             )}

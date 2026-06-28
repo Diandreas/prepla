@@ -140,9 +140,10 @@ class CurriculumPlannerService
         // CTA for any passing score, so the skeleton MUST move the objective into
         // its practice phase for any passing score too — otherwise the practice
         // session has no 'current_practice' objective to complete and the journey
-        // gets stuck. Fall back to the 80% band only when the caller didn't pass
-        // an explicit verdict (legacy callers).
-        $isPass = $passed ?? ($accuracyPercent >= 80);
+        // gets stuck. Fall back to the 60% band only when the caller didn't pass
+        // an explicit verdict (legacy callers). 60% aligns with the practice
+        // mastery threshold (was 80%, too punishing).
+        $isPass = $passed ?? ($accuracyPercent >= 60);
 
         if ($isPass) {
             // Success

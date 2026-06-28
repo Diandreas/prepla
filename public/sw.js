@@ -1,7 +1,7 @@
 // Bump this version on every deploy that ships new front-end assets so the
 // activate handler purges the previous cache. Cache-first on hashed Vite assets
 // is fine, but the SW itself must not pin users to a stale bundle.
-const CACHE_NAME = 'prepla-v2';
+const CACHE_NAME = 'prepla-v3';
 const OFFLINE_URL = '/offline';
 
 const PRECACHE_ASSETS = [
@@ -61,25 +61,34 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Navigation requests → network-first, fallback to cache then offline page
+    // Navigation requests → network-first with a 3s timeout. The HTML document
+    // embeds the current Vite asset hashes, so we MUST prefer the network to pick
+    // up a new deploy. The timeout means a slow network falls back to cache (or the
+    // offline page) instead of hanging, without pinning users to a stale document.
     if (request.mode === 'navigate') {
         event.respondWith(
-            fetch(request)
-                .then((response) => {
+            Promise.race([
+                fetch(request).then((response) => {
                     const clone = response.clone();
                     caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
                     return response;
-                })
-                .catch(() =>
-                    caches.match(request).then((cached) => cached || caches.match(OFFLINE_URL))
-                )
+                }),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('nav-timeout')), 3000)),
+            ]).catch(() =>
+                caches.match(request).then((cached) => cached || caches.match(OFFLINE_URL))
+            )
         );
         return;
     }
 });
 
-// Listen for preload messages from the app
+// Listen for messages from the app
 self.addEventListener('message', (event) => {
+    // Activate a freshly-installed worker immediately (deploy picked up at once).
+    if (event.data?.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+        return;
+    }
     if (event.data?.type === 'PRELOAD_URLS') {
         const urls = event.data.urls || [];
         caches.open(CACHE_NAME).then((cache) => {

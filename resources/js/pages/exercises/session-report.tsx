@@ -86,19 +86,19 @@ export default function SessionReport({ node, report, userLevel }: Props) {
                             </div>
                             <div className="flex-1 text-center md:text-left">
                                 <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2 ${
-                                    report.accuracy >= 80
+                                    report.accuracy >= 60
                                         ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
                                         : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
                                 }`}>
-                                    {report.accuracy >= 80 ? 'Concept maîtrisé' : 'Maîtrise insuffisante'}
+                                    {report.accuracy >= 60 ? 'Concept maîtrisé' : 'Maîtrise insuffisante'}
                                 </span>
                                 <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
                                     {report.node_title}
                                 </h1>
                                 <p className="text-slate-500 dark:text-slate-400">
-                                    {report.accuracy >= 80
-                                        ? `Concept validé (≥80%). Tu peux passer au suivant.`
-                                        : `Il te faut ≥80% pour valider ce concept. Tu es à ${Math.round(report.accuracy)}% — refais une session ou revois la leçon.`}
+                                    {report.accuracy >= 60
+                                        ? `Concept validé (≥60%). Tu peux passer au suivant.`
+                                        : `Il te faut ≥60% pour valider ce concept. Tu es à ${Math.round(report.accuracy)}% — refais une session ou revois la leçon.`}
                                 </p>
                             </div>
 
@@ -135,7 +135,7 @@ export default function SessionReport({ node, report, userLevel }: Props) {
                              <div>
                                  <div className="text-sm text-slate-400 font-medium">Réussite</div>
                                  <div className="text-lg font-bold text-slate-900 dark:text-white">
-                                     {report.details.filter(d => d.accuracy >= 80).length} / {report.details.length} Exercices
+                                     {report.details.filter(d => d.accuracy >= 60).length} / {report.details.length} Exercices
                                  </div>
                              </div>
                          </div>
@@ -166,7 +166,7 @@ export default function SessionReport({ node, report, userLevel }: Props) {
                                             <div className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-tight">{detail.type}</div>
                                         </div>
                                     </div>
-                                    <div className={`text-sm font-bold px-3 py-1 rounded-full ${detail.accuracy >= 80 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                    <div className={`text-sm font-bold px-3 py-1 rounded-full ${detail.accuracy >= 60 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                                         {Math.round(detail.accuracy)}%
                                     </div>
                                 </div>
@@ -197,7 +197,7 @@ export default function SessionReport({ node, report, userLevel }: Props) {
 
                     {/* Actions — adapt CTA to whether user mastered the concept */}
                     <motion.div variants={item} className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
-                        {report.accuracy >= 80 ? (
+                        {report.accuracy >= 60 ? (
                             <>
                                 <Link
                                     href="/lessons/next"

@@ -3,6 +3,7 @@ import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
 import { MobileTabBar } from '@/components/mobile-tab-bar';
+import { NavigationOverlay } from '@/components/navigation-overlay';
 import { PwaInstallPrompt } from '@/components/pwa-install-prompt';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { type BreadcrumbItem } from '@/types';
@@ -37,6 +38,9 @@ export default function AppSidebarLayout({
 
             {/* Mobile Navigation — hidden in focus mode */}
             {!focusMode && <MobileTabBar />}
+
+            {/* Branded hourglass loader during page transitions (silent if instant) */}
+            <NavigationOverlay />
 
             <PwaInstallPrompt />
         </AppShell>

@@ -108,6 +108,51 @@ class ExerciseScoringService
                 continue;
             }
 
+            // ─── ORDER-BASED BRANCH (ordering, gapped-text) ───
+            // The expected answer is a SEQUENCE (correct_order). The array-diff
+            // branch below would ignore order (any permutation would pass), so we
+            // compare position by position here.
+            $correctOrder = $question['correct_order'] ?? null;
+            if (is_array($correctOrder) && !empty($correctOrder)) {
+                // Build the user's ordered sequence:
+                //  - ordering: userAnswer is already an ordered array of item texts;
+                //    compare against $question['items'] (given in correct order).
+                //  - gapped-text: userAnswer is a {gapIndex: key} map → order by gap index.
+                $userSeq = [];
+                if (is_array($userAnswer)) {
+                    $isList = array_keys($userAnswer) === range(0, count($userAnswer) - 1);
+                    if ($isList) {
+                        $userSeq = array_values($userAnswer);
+                    } else {
+                        ksort($userAnswer, SORT_NATURAL);
+                        $userSeq = array_values($userAnswer);
+                    }
+                }
+                // Expected sequence: prefer items (texts) for ordering, else correct_order (ids).
+                $expectedSeq = $correctOrder;
+                if (isset($question['items']) && is_array($question['items']) && count($question['items']) === count($userSeq)) {
+                    $expectedSeq = $question['items'];
+                }
+                $n = min(count($expectedSeq), count($userSeq));
+                $hit = 0;
+                for ($i = 0; $i < $n; $i++) {
+                    if (strtolower(trim((string)($userSeq[$i] ?? ''))) === strtolower(trim((string)($expectedSeq[$i] ?? '')))) {
+                        $hit++;
+                    }
+                }
+                $accuracy = count($expectedSeq) > 0 ? ($hit / count($expectedSeq)) * 100 : 0;
+                $isCorrect = $accuracy >= 70;
+                if ($isCorrect) $correct++;
+                $feedback[] = [
+                    'question_id' => $questionId,
+                    'correct' => $isCorrect,
+                    'accuracy' => $accuracy,
+                    'correct_answer' => $correctOrder,
+                    'explanation' => $question['explanation'] ?? null,
+                ];
+                continue;
+            }
+
             // ─── RECORD-BASED OR MULTI-FIELD BRANCH ───
             // correct_answers est une map clé→réponse (note/form/table/summary…).
             // On NE filtre PAS sur array_is_list : des clés numériques séquentielles

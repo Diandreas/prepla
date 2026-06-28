@@ -48,10 +48,12 @@ class PracticeController extends Controller
             ->limit(3)
             ->get();
 
-        // Si pas d'exercices liés au nœud, on en pioche des génériques par difficulté et type
+        // Si pas d'exercices liés au nœud, on en pioche des génériques par difficulté et type.
+        // On exclut les types retirés de la rotation (diagram-labeling : pas de vraie image).
         if ($exercises->count() < 3) {
             $exercises = Exercise::where('exam_id', $node->exam_id)
                 ->where('difficulty', $node->level)
+                ->whereDoesntHave('exerciseType', fn ($q) => $q->whereIn('component_key', ['diagram-labeling']))
                 ->with('exerciseType')
                 ->inRandomOrder()
                 ->limit(3)
