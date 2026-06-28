@@ -14,6 +14,8 @@ class Exercise extends Model
     protected $fillable = [
         'exercise_type_id',
         'exam_id',
+        'center_id',
+        'creator_id',
         'lesson_id',
         'mock_exam_id',
         'exam_section_id',
@@ -61,5 +63,15 @@ class Exercise extends Model
     public function attempts(): HasMany
     {
         return $this->hasMany(UserExerciseAttempt::class);
+    }
+
+    public function center(): BelongsTo
+    {
+        return $this->belongsTo(LanguageCenter::class, 'center_id');
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'creator_id');
     }
 }

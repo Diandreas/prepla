@@ -10,6 +10,8 @@ class Lesson extends Model
 {
     protected $fillable = [
         'user_id',
+        'center_id',
+        'creator_id',
         'node_id',
         'skeleton_objective_index',
         'title',
@@ -42,6 +44,16 @@ class Lesson extends Model
     public function node(): BelongsTo
     {
         return $this->belongsTo(LearningPathNode::class, 'node_id');
+    }
+
+    public function center(): BelongsTo
+    {
+        return $this->belongsTo(LanguageCenter::class, 'center_id');
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'creator_id');
     }
 
     public function exercises(): HasMany

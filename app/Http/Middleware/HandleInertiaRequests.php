@@ -38,11 +38,27 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
+        $user = $request->user()?->load('profile', 'centerMembership.center');
+
+        // Compact B2B context for conditional navigation / dashboard priority.
+        $center = null;
+        if ($user?->centerMembership?->center) {
+            $c = $user->centerMembership->center;
+            $center = [
+                'id' => $c->id,
+                'name' => $c->name,
+                'slug' => $c->slug,
+                'role' => $user->centerMembership->role, // center_admin | teacher | student
+            ];
+        }
+
         return array_merge(parent::share($request), [
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
-                'user' => $request->user()?->load('profile'),
+                'user' => $user,
+                'role' => $user?->role,        // global role (super_admin | student)
+                'center' => $center,           // null if the user has no center
             ],
             'userProfile' => $request->user()?->profile,
             'isPremium' => $request->user()?->hasPremiumAccess() ?? false,

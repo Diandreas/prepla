@@ -1,7 +1,9 @@
 import { Link, usePage } from '@inertiajs/react';
 import { playSound } from '@/hooks/use-sound';
 
-const tabs = [
+interface Tab { label: string; href: string; icon: string; isCenter?: boolean }
+
+const LEARNER_TABS: Tab[] = [
     { label: 'Accueil', href: '/dashboard', icon: 'home' },
     { label: 'Pratiquer', href: '/practice', icon: 'puzzle' },
     { label: 'IA', href: '/ai-tools', icon: 'sparkles', isCenter: true },
@@ -9,8 +11,31 @@ const tabs = [
     { label: 'Profil', href: '/settings/profile', icon: 'profile' },
 ];
 
+const CENTER_TABS: Tab[] = [
+    { label: 'Accueil', href: '/center', icon: 'home' },
+    { label: 'Classes', href: '/center/classes', icon: 'layout-grid' },
+    { label: 'Devoirs', href: '/center/assignments', icon: 'tasks', isCenter: true },
+    { label: 'Élèves', href: '/center/students', icon: 'profile' },
+    { label: 'Contenu', href: '/center/exercises', icon: 'puzzle' },
+];
+
+const ADMIN_TABS: Tab[] = [
+    { label: 'Centres', href: '/admin/centers', icon: 'layout-grid' },
+    { label: 'Profil', href: '/settings/profile', icon: 'profile' },
+];
+
 export function MobileTabBar() {
-    const { url } = usePage();
+    const { url, props } = usePage();
+    const auth = (props as any)?.auth;
+    const role: string | undefined = auth?.role;
+    const centerRole: string | undefined = auth?.center?.role;
+
+    const tabs =
+        role === 'super_admin'
+            ? ADMIN_TABS
+            : centerRole === 'center_admin' || centerRole === 'teacher'
+              ? CENTER_TABS
+              : LEARNER_TABS;
 
     return (
         <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/60 bg-background/85 backdrop-blur-xl md:hidden">
