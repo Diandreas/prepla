@@ -21,6 +21,14 @@ const PAGE_TITLES: Record<string, string> = {
     '/results': 'Résultats',
     '/settings/profile': 'Profil',
     '/leaderboard': 'Classement',
+    // B2B — back-office & espace centre
+    '/admin/centers': 'Centres',
+    '/center/classes': 'Classes',
+    '/center/students': 'Élèves',
+    '/center/exercises': 'Contenu',
+    '/center/assignments': 'Devoirs',
+    '/center': 'Espace centre',
+    '/join': 'Rejoindre un centre',
 };
 
 // Custom icon component using icons from /public/icons
