@@ -20,7 +20,12 @@ export function NavigationOverlay() {
 
         const offStart = router.on('start', () => {
             clear();
-            timer.current = setTimeout(() => setActive(true), 220);
+            timer.current = setTimeout(() => {
+                // Don't stack on top of a page that already shows its own loader
+                // (e.g. the dashboard "Préparation en cours" when generating a node).
+                if (document.querySelector('[data-page-loader]')) return;
+                setActive(true);
+            }, 220);
         });
         const stop = () => { clear(); setActive(false); };
         const offFinish = router.on('finish', stop);

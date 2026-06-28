@@ -204,9 +204,10 @@ export default function Dashboard() {
         <AppLayout>
             <Head title="Mon Parcours" />
 
-            {/* Loading overlay */}
+            {/* Loading overlay — marked data-page-loader so the global NavigationOverlay
+                stays hidden and we never stack two hourglasses. */}
             {loadingNode && (
-                <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-background/90 backdrop-blur-md">
+                <div data-page-loader className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-background/90 backdrop-blur-md">
                     <LoadingAnimation size={140} />
                     <div className="text-center">
                         <p className="text-base font-bold text-foreground">Préparation en cours</p>
