@@ -60,6 +60,7 @@ import { DiagramLabeling } from '@/components/exercises/diagram-labeling';
 import { Synthesis } from '@/components/exercises/synthesis';
 import { IntegratedTask } from '@/components/exercises/integrated-task';
 import { VocabularyCard } from '@/components/exercises/vocabulary-card';
+import { ListenRepeat } from '@/components/exercises/listen-repeat';
 import { ExerciseTimer } from '@/components/exercises/exercise-timer';
 import { AiChatFeedback } from '@/components/exercises/ai-chat-feedback';
 
@@ -125,6 +126,7 @@ const componentMap: Record<string, React.ComponentType<any>> = {
     'synthesis': Synthesis,
     'integrated-task': IntegratedTask,
     'vocabulary-card': VocabularyCard,
+    'listen-repeat': ListenRepeat,
 };
 
 // Short action instruction per exercise type — answers the user's complaint that
@@ -583,13 +585,13 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
         const currentAnswer = answers[answerKey(question.id)];
         if (currentAnswer === undefined) return;
 
-        // Role-play is already evaluated turn-by-turn inside the component; the answer
-        // arrives as "completed:NN" (average accuracy). Don't re-score via the API.
-        if (componentKey === 'role-play') {
-            const avg = parseInt(String(currentAnswer).split(':')[1] ?? '0', 10) || 0;
-            setIsCorrect(avg >= 50);
+        // Role-play & listen-repeat self-evaluate inside the component; the answer
+        // arrives as "completed:NN" / "repeat:NN". Don't re-score via the API.
+        if (componentKey === 'role-play' || componentKey === 'listen-repeat') {
+            const sc = parseInt(String(currentAnswer).split(':')[1] ?? '0', 10) || 0;
+            setIsCorrect(sc >= 50);
             setIsChecked(true);
-            playSound(avg >= 50 ? 'correct' : 'incorrect');
+            playSound(sc >= 50 ? 'correct' : 'incorrect');
             return;
         }
 

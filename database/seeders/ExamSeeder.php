@@ -79,6 +79,11 @@ class ExamSeeder extends Seeder
         'speaking-long-turn'      => ['name' => 'Speaking Long Turn',           'component' => 'speaking-recorder'],
         'speaking-discussion'     => ['name' => 'Speaking Discussion',          'component' => 'speaking-recorder'],
         'role-play'               => ['name' => 'Role Play',                    'component' => 'role-play'],
+        // ── Interactive speaking (live per-turn correction, render via role-play) ──
+        'oral-debate'             => ['name' => 'Débat argumenté',              'component' => 'role-play'],
+        'negotiation'             => ['name' => 'Négociation / se mettre d\'accord', 'component' => 'role-play'],
+        'speaking-elicitation'    => ['name' => 'Poser des questions',          'component' => 'role-play'],
+        'listen-repeat'           => ['name' => 'Écouter et répéter',           'component' => 'listen-repeat'],
     ];
 
     public function run(): void

@@ -35,6 +35,7 @@ import { AcademicDiscussion } from './academic-discussion';
 import { RolePlay } from './role-play';
 import { Synthesis } from './synthesis';
 import { VocabularyCard } from './vocabulary-card';
+import { ListenRepeat } from './listen-repeat';
 import { SpeakButton } from './speak-button';
 
 interface ExercisePlayerProps {
@@ -122,6 +123,7 @@ const componentMap: Record<string, React.ComponentType<any>> = {
     'role-play': RolePlay,
     'synthesis': Synthesis,
     'vocabulary-card': VocabularyCard,
+    'listen-repeat': ListenRepeat,
 };
 
 export function ExercisePlayer({ exercise }: ExercisePlayerProps) {

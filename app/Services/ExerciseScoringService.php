@@ -46,6 +46,15 @@ class ExerciseScoringService
             $correctAnswer = $question['correct_answer'] ?? null;
             $questionType = $question['type'] ?? $exercise->exerciseType->slug ?? '';
 
+            // Open-ended short-answer (C1/C2 written response = a sentence, not 1-3
+            // words) can't be exact-matched → evaluate with AI. Detect by length of
+            // the expected answer (>4 words ⇒ open response).
+            if ($questionType === 'short-answer' && is_string($correctAnswer)
+                && str_word_count(trim($correctAnswer)) > 4) {
+                $questionType = 'short-answer-open';
+                $aiEvaluatedTypes[] = 'short-answer-open';
+            }
+
             // ─── AI EVALUATED BRANCH ───
             if (in_array($questionType, $aiEvaluatedTypes)) {
                 
