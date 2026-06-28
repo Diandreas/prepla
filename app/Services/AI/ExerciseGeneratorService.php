@@ -241,27 +241,9 @@ For writing/speaking exercises, correct_answer should be null (these are scored 
 PROMPT;
     }
 
-    private function getFallbackContent(string $language): array
-    {
-        return [
-            'passage' => "This is a sample passage for {$language} language practice.",
-            'instructions' => 'Read the passage and answer the questions.',
-        ];
-    }
-
-    private function getFallbackQuestions(string $componentKey, string $language): array
-    {
-        return [
-            [
-                'id' => 'q1',
-                'type' => 'mcq',
-                'text' => 'What is this exercise about?',
-                'options' => ['Language practice', 'Sports', 'Cooking', 'Music'],
-                'correct_answer' => 'Language practice',
-                'explanation' => 'This is a language practice exercise.',
-            ],
-        ];
-    }
+    // (getFallbackContent / getFallbackQuestions supprimés : ils créaient des
+    //  exercices placeholder "What is this exercise about?" montrés aux apprenants.
+    //  Le générateur throw désormais en cas d'échec IA — pas de junk persisté.)
 
     private function calculateXpReward(string $difficulty): int
     {

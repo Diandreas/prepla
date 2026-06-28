@@ -24,9 +24,17 @@ function FlagImg({ flag, size = 28 }: { flag: string; size?: number }) {
     return <span style={{ fontSize: '1.5rem' }}>{flag}</span>;
 }
 
+interface ExerciseTypeItem {
+    id: number;
+    name: string;
+    skill_type: string;
+    component_key: string;
+}
+
 interface Props {
     exam: ExamRecord & { sections: ExamSection[] };
     sectionProgress: Record<number, number>;
+    exerciseTypes?: ExerciseTypeItem[];
 }
 
 const OXFORD = '#1A2B48';
@@ -93,7 +101,7 @@ function ExamBanner({ totalMinutes, onExpire }: { totalMinutes: number; onExpire
     );
 }
 
-export default function ExamDashboard({ exam, sectionProgress }: Props) {
+export default function ExamDashboard({ exam, sectionProgress, exerciseTypes = [] }: Props) {
     const { t } = useTranslation();
     const [mounted, setMounted] = useState(false);
     const [examMode, setExamMode] = useState(false);
@@ -161,7 +169,40 @@ export default function ExamDashboard({ exam, sectionProgress }: Props) {
                     </Link>
                 </div>
 
+                {/* Galerie : pratiquer par type d'exercice — 1 clic → 1 exo */}
+                {exerciseTypes.length > 0 && (
+                    <div className="mb-6">
+                        <h2 className="mb-3 text-xs font-black uppercase tracking-widest" style={{ color: OXFORD }}>
+                            Pratiquer par type d'exercice
+                        </h2>
+                        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+                            {exerciseTypes.map((type) => {
+                                const iconName = skillIcons[type.skill_type] ?? 'book';
+                                const theme = skillThemes[type.skill_type] ?? skillThemes.reading;
+                                return (
+                                    <Link
+                                        key={type.id}
+                                        href={route('practice.drill.type', [exam.id, type.id])}
+                                        className="duo-card flex flex-col items-center gap-2 p-3 text-center"
+                                    >
+                                        <div
+                                            className="flex h-9 w-9 items-center justify-center rounded-xl"
+                                            style={{ background: theme.bg }}
+                                        >
+                                            <Icon name={iconName} size={18} style={{ filter: 'brightness(0) invert(1)' }} />
+                                        </div>
+                                        <p className="text-xs font-bold leading-tight" style={{ color: OXFORD }}>{type.name}</p>
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+
                 {/* Section Cards */}
+                <h2 className="mb-3 text-xs font-black uppercase tracking-widest" style={{ color: OXFORD }}>
+                    Par compétence
+                </h2>
                 <div className="grid gap-3 sm:grid-cols-2">
                     {exam.sections.map((section, i) => {
                         const iconName = skillIcons[section.skill_type] ?? 'book';

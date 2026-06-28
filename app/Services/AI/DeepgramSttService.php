@@ -10,13 +10,26 @@ class DeepgramSttService
 {
     public function transcribe(UploadedFile $file, ?string $lang = null): ?string
     {
-        $apiKey = env('DEEPGRAM_API_KEY');
+        // IMPORTANT: read the key via config(), NOT env(). With config caching
+        // enabled in prod (php artisan config:cache), env() returns null → STT
+        // silently failed → empty transcription → "0% / n'a pas répondu".
+        $apiKey = config('services.deepgram.api_key') ?: env('DEEPGRAM_API_KEY');
         if (!$apiKey) {
             Log::warning('DEEPGRAM_API_KEY missing for STT');
             return null;
         }
 
         try {
+            $audio = file_get_contents($file->getPathname());
+            $size = $audio === false ? 0 : strlen($audio);
+
+            // An empty/too-small recording can't be transcribed — don't waste an API
+            // call, and let the caller surface a clear "we couldn't hear you" message.
+            if ($size < 200) {
+                Log::warning('STT: audio too small, skipping Deepgram', ['bytes' => $size]);
+                return null;
+            }
+
             $queryParams = [
                 'model' => 'nova-2',
                 'smart_format' => 'true',
@@ -41,15 +54,24 @@ class DeepgramSttService
             $response = Http::withHeaders([
                 'Authorization' => "Token {$apiKey}",
                 'Content-Type' => 'audio/webm',
-            ])->timeout(30)->send('POST', "https://api.deepgram.com/v1/listen?{$queryString}", [
-                'body' => file_get_contents($file->getPathname())
-            ]);
+            ])->timeout(30)->withBody($audio, 'audio/webm')
+              ->post("https://api.deepgram.com/v1/listen?{$queryString}");
 
             if ($response->successful()) {
-                return $response->json('results.channels.0.alternatives.0.transcript');
+                $transcript = $response->json('results.channels.0.alternatives.0.transcript');
+                if ($transcript === null || trim($transcript) === '') {
+                    // API answered 200 but heard nothing — log the payload to diagnose.
+                    Log::warning('Deepgram STT empty transcript', [
+                        'bytes' => $size,
+                        'lang' => $queryParams['language'] ?? 'auto',
+                        'confidence' => $response->json('results.channels.0.alternatives.0.confidence'),
+                    ]);
+                    return '';
+                }
+                return $transcript;
             }
 
-            Log::error('Deepgram API STT failed', ['status' => $response->status(), 'response' => $response->body()]);
+            Log::error('Deepgram API STT failed', ['status' => $response->status(), 'response' => substr($response->body(), 0, 300)]);
         } catch (\Exception $e) {
             Log::error('Deepgram STT exception', ['message' => $e->getMessage()]);
         }

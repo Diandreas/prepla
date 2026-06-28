@@ -98,10 +98,62 @@ class PracticeController extends Controller
             $sectionProgress[$section->id] = $totalAttempts;
         }
 
+        // Galerie de types : tous les types d'exercices de l'examen (dédupliqués),
+        // pour "pratiquer par type". On exclut diagram-labeling (retiré).
+        $exerciseTypes = $exam->sections
+            ->flatMap(fn ($s) => $s->exerciseTypes)
+            ->reject(fn ($t) => $t->component_key === 'diagram-labeling')
+            ->unique('id')
+            ->map(fn ($t) => [
+                'id' => $t->id,
+                'name' => $t->name,
+                'skill_type' => $t->skill_type,
+                'component_key' => $t->component_key,
+            ])
+            ->values();
+
         return Inertia::render('practice/exam-dashboard', [
             'exam' => $exam,
             'sectionProgress' => $sectionProgress,
+            'exerciseTypes' => $exerciseTypes,
         ]);
+    }
+
+    /**
+     * "Pratiquer par type" : trouve un exercice existant du type demandé (biblio
+     * d'abord), sinon en génère un, puis ouvre le player. Bouton "Autre exercice"
+     * rappelle cette route pour en obtenir un différent.
+     */
+    public function drillByType(Exam $exam, \App\Models\ExerciseType $exerciseType, \App\Services\AI\ExerciseGeneratorService $generator)
+    {
+        $user = auth()->user();
+        $difficulty = $user->profile?->current_level ?? 'B1';
+
+        // Biblio d'abord : un exercice existant de ce type pour cet examen.
+        $exercise = Exercise::where('exam_id', $exam->id)
+            ->where('exercise_type_id', $exerciseType->id)
+            ->where('difficulty', $difficulty)
+            ->inRandomOrder()
+            ->first()
+            // sinon, n'importe quel niveau pour ce type/examen
+            ?? Exercise::where('exam_id', $exam->id)
+                ->where('exercise_type_id', $exerciseType->id)
+                ->inRandomOrder()
+                ->first();
+
+        // Sinon, génération à la demande.
+        if (!$exercise) {
+            try {
+                $exam->loadMissing('language');
+                $exercise = $generator->generate($exerciseType, $exam, $difficulty);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('drillByType generation failed', ['error' => $e->getMessage()]);
+                return redirect()->route('practice.exam', $exam->id)
+                    ->with('error', "Impossible de générer un exercice de ce type pour le moment. Réessaie.");
+            }
+        }
+
+        return redirect()->route('exercise.show', $exercise->id);
     }
 
     public function sectionDrills(Exam $exam, ExamSection $section): Response

@@ -291,17 +291,28 @@ export default function ExerciseResult({ attempt, nodeProgress }: Props) {
                     ) : (
                         <>
                             <button
-                                onClick={() => router.visit('/dashboard')}
-                                className="duo-btn-secondary"
-                            >
-                                Retour au parcours
-                            </button>
-                            <button
                                 onClick={() => router.visit('/practice')}
-                                className="duo-btn-primary"
+                                className="duo-btn-secondary"
                             >
                                 Pratiquer
                             </button>
+                            {/* "Autre exercice" du même type (biblio d'abord, sinon généré) */}
+                            {exercise?.exam_id && exercise?.exercise_type_id ? (
+                                <button
+                                    onClick={() => router.visit(route('practice.drill.type', [exercise.exam_id, exercise.exercise_type_id]))}
+                                    className="duo-btn-primary"
+                                >
+                                    <Icon name="sparkles" size={16} style={{ filter: 'brightness(0) invert(1)' }} />
+                                    Autre exercice
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => router.visit('/dashboard')}
+                                    className="duo-btn-primary"
+                                >
+                                    Retour au parcours
+                                </button>
+                            )}
                         </>
                     )}
                 </div>

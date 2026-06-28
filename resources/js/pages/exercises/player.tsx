@@ -583,6 +583,16 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
         const currentAnswer = answers[answerKey(question.id)];
         if (currentAnswer === undefined) return;
 
+        // Role-play is already evaluated turn-by-turn inside the component; the answer
+        // arrives as "completed:NN" (average accuracy). Don't re-score via the API.
+        if (componentKey === 'role-play') {
+            const avg = parseInt(String(currentAnswer).split(':')[1] ?? '0', 10) || 0;
+            setIsCorrect(avg >= 50);
+            setIsChecked(true);
+            playSound(avg >= 50 ? 'correct' : 'incorrect');
+            return;
+        }
+
         const aiTypes = ['essay-editor', 'speaking-recorder', 'role-play', 'short-writing', 'graph-description', 'academic-discussion', 'synthesis', 'integrated-task'];
         let isRight = false;
         let aiFeedback = null;
@@ -612,8 +622,14 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                 setExplanation(parsedExpl);
                 setHighlightedText(getEvidenceText(parsedExpl));
 
-                if (data.transcription) {
-                    setAnswers(prev => ({ ...prev, [`${question.id}_transcription`]: data.transcription }));
+                // Store the transcription whenever the backend returned the key
+                // (even an empty string = "audio, but heard nothing") so the UI can
+                // always show "Ce que l'IA a entendu" / a clear no-audio state.
+                if (data.transcription !== null && data.transcription !== undefined) {
+                    setAnswers(prev => ({
+                        ...prev,
+                        [`${question.id}_transcription`]: data.transcription === '' ? '(aucun son détecté)' : data.transcription,
+                    }));
                 }
                 // Speaking: capture covered/missing points to show continuation help.
                 if ((data.covered_points && data.covered_points.length) || (data.missing_points && data.missing_points.length)) {

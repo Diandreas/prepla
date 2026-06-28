@@ -301,6 +301,54 @@ class ExerciseController extends Controller
         ]);
     }
 
+    /**
+     * Évalue UN tour de role-play (audio) en direct : transcription + évaluation
+     * formative contre le prompt du tour. Permet la correction au fur et à mesure
+     * (pas tout à la fin).
+     */
+    public function evaluateTurn(
+        Request $request,
+        \App\Services\AI\DeepgramSttService $stt,
+        \App\Services\AI\MistralEvaluationService $mistralEval
+    ) {
+        $validated = $request->validate([
+            'audio' => 'required|file',
+            'prompt' => 'nullable|string',
+            'lang' => 'nullable|string',
+        ]);
+
+        $lang = $validated['lang'] ?? 'english';
+        $langName = ['en' => 'English', 'fr' => 'French', 'de' => 'German', 'english' => 'English', 'french' => 'French', 'german' => 'German'][strtolower($lang)] ?? 'English';
+        $prompt = $validated['prompt'] ?? 'Réponds à voix haute dans la langue cible.';
+
+        $transcript = $stt->transcribe($request->file('audio'), $lang);
+
+        if ($transcript === null || trim((string) $transcript) === '') {
+            return response()->json([
+                'correct' => false,
+                'accuracy' => 0,
+                'transcription' => '',
+                'explanation' => [
+                    'concept' => "On n'a pas réussi à t'entendre. Parle plus fort et un peu plus longtemps, puis réessaie.",
+                    'hint' => '', 'evidence' => '',
+                ],
+                'covered_points' => [],
+                'missing_points' => [],
+            ]);
+        }
+
+        $result = $mistralEval->evaluateSpeaking($prompt, $transcript, $langName);
+
+        return response()->json([
+            'correct' => $result['isCorrect'] ?? false,
+            'accuracy' => $result['accuracy'] ?? 0,
+            'transcription' => $transcript,
+            'explanation' => $result['explanation'] ?? '',
+            'covered_points' => $result['covered_points'] ?? [],
+            'missing_points' => $result['missing_points'] ?? [],
+        ]);
+    }
+
     public function show(Exercise $exercise): Response
     {
         $exercise->load(['exerciseType.section', 'exam.language']);

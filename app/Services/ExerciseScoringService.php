@@ -294,7 +294,14 @@ class ExerciseScoringService
             'question_id' => $questionId,
             'correct' => false,
             'accuracy' => 0,
-            'explanation' => $isAudio ? "L'audio n'a pas pu être retranscrit (vide ou muet)." : "Aucune réponse fournie.",
+            'explanation' => $isAudio
+                ? "On n'a pas réussi à t'entendre. Vérifie ton micro, parle plus fort et un peu plus longtemps, puis réessaie."
+                : "Aucune réponse fournie.",
+            // Always present so the UI can surface the state (even if empty). Empty
+            // string = "we tried to transcribe but heard nothing".
+            'transcription' => $isAudio ? '' : null,
+            'covered_points' => [],
+            'missing_points' => [],
         ];
     }
 

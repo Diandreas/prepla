@@ -66,7 +66,7 @@ class ImageLibraryService
     public function categoryFor(string $componentKey): ?string
     {
         return match ($componentKey) {
-            'diagram-labeling'  => 'process',
+            // diagram-labeling retiré (pas d'images disponibles dans la librairie).
             'graph-description' => 'graph',
             default             => null,
         };

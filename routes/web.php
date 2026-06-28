@@ -37,6 +37,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('practice', [\App\Http\Controllers\PracticeController::class, 'index'])->name('practice.index');
         Route::get('practice/{exam}', [\App\Http\Controllers\PracticeController::class, 'examDashboard'])->name('practice.exam');
         Route::get('practice/{exam}/section/{section}', [\App\Http\Controllers\PracticeController::class, 'sectionDrills'])->name('practice.section');
+        // Pratiquer par type : 1 clic sur un type → 1 exercice (biblio d'abord, sinon généré)
+        Route::get('practice/{exam}/drill/{exerciseType}', [\App\Http\Controllers\PracticeController::class, 'drillByType'])->name('practice.drill.type');
         Route::post('practice/{exam}/section/{section}/generate', [\App\Http\Controllers\PracticeController::class, 'generateSection'])->name('practice.section.generate');
         Route::get('practice/{exam}/simulate', [\App\Http\Controllers\PracticeController::class, 'simulate'])->name('practice.simulate');
         Route::post('practice/{exam}/simulate', [\App\Http\Controllers\PracticeController::class, 'submitSimulation'])->name('practice.simulate.store');
@@ -70,6 +72,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('api/ai/explain', [\App\Http\Controllers\ExerciseController::class, 'explainMistake'])->name('api.ai.explain');
         Route::post('api/ai/chat', [\App\Http\Controllers\ExerciseController::class, 'chatMistake'])->name('api.ai.chat');
         Route::post('api/exercise/verify-single', [\App\Http\Controllers\ExerciseController::class, 'verifySingle'])->name('api.exercise.verify-single');
+        // Évaluation live d'un tour de role-play (audio → transcription + correction)
+        Route::post('api/exercise/evaluate-turn', [\App\Http\Controllers\ExerciseController::class, 'evaluateTurn'])->name('api.exercise.evaluate-turn');
 
         // TTS API
         Route::post('api/tts/speak', [\App\Http\Controllers\TtsController::class, 'speak'])->name('tts.speak');
@@ -80,6 +84,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('ai-tools/generator', [\App\Http\Controllers\AiToolsController::class, 'generateExercise'])->name('ai-tools.generator.store');
         Route::get('ai-tools/writing-corrector', [\App\Http\Controllers\AiToolsController::class, 'writingCorrector'])->name('ai-tools.writing-corrector');
         Route::post('ai-tools/writing-corrector', [\App\Http\Controllers\AiToolsController::class, 'submitWriting'])->name('ai-tools.writing-corrector.store');
+        Route::post('ai-tools/writing-corrector/extract', [\App\Http\Controllers\AiToolsController::class, 'extractWritingImage'])->name('ai-tools.writing-corrector.extract');
         Route::get('ai-tools/explainer', [\App\Http\Controllers\AiToolsController::class, 'explainer'])->name('ai-tools.explainer');
         Route::post('ai-tools/explainer/ask', [\App\Http\Controllers\AiToolsController::class, 'askExplainer'])->name('ai-tools.explainer.ask');
         Route::get('ai-tools/recommendations', [\App\Http\Controllers\AiToolsController::class, 'recommendations'])->name('ai-tools.recommendations');
