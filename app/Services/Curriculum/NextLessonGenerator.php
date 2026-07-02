@@ -246,9 +246,9 @@ Generate a complete lesson in JSON format:
   "comprehension_quiz": [
     {
       "question": "Question text in {$quizLang}",
-      "options": ["A", "B", "C", "D"],
-      "correct_answer": "B",
-      "explanation": "Why B is correct (in {$context['native_language']} for beginners)"
+      "options": ["Full text of option 1", "Full text of option 2", "Full text of option 3", "Full text of option 4"],
+      "correct_answer": "The full text of the correct option — must match ONE of the options above EXACTLY, character for character (not a letter like 'B')",
+      "explanation": "Why that option is correct (in {$context['native_language']} for beginners)"
     }
   ]
 }

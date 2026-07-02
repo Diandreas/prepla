@@ -39,7 +39,7 @@ export default function PushNotificationToggle({ compact = false }: { compact?: 
                 </div>
                 <div>
                     <p className="font-semibold text-sm">Rappels de pratique</p>
-                    <p className="text-xs text-muted-foreground">Recevez une notification quotidienne pour maintenir votre rythme</p>
+                    <p className="text-xs text-muted-foreground">Reçois une notification quotidienne pour maintenir ton rythme</p>
                 </div>
             </div>
             <Button

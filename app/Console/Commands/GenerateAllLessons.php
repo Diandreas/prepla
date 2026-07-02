@@ -153,9 +153,9 @@ Generate a complete, foundational lesson in JSON format:
   "comprehension_quiz": [
     {
       "question": "Question text",
-      "options": ["A", "B", "C", "D"],
-      "correct_answer": "B",
-      "explanation": "Why B is correct"
+      "options": ["Full text of option 1", "Full text of option 2", "Full text of option 3", "Full text of option 4"],
+      "correct_answer": "The full text of the correct option — must match ONE of the options above EXACTLY (not a letter like 'B')",
+      "explanation": "Why that option is correct"
     }
   ]
 }

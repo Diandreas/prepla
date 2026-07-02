@@ -54,7 +54,7 @@ export default function ExamSelect({ languages }: Props) {
     }
 
     return (
-        <OnboardingLayout title="Choisissez votre examen" step={2}>
+        <OnboardingLayout title="Choisis ton examen" step={2}>
             {/* Floating background decoration */}
             <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
                 <div className="animate-float absolute -top-32 right-1/4 h-[400px] w-[400px] rounded-full bg-primary/10 blur-3xl" />
@@ -63,9 +63,9 @@ export default function ExamSelect({ languages }: Props) {
 
             <div className="space-y-8">
                 <div className="text-center">
-                    <h1 className="text-3xl font-bold tracking-tight">Choisissez votre langue</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">Choisis ta langue</h1>
                     <p className="mt-2 text-muted-foreground">
-                        Sélectionnez la langue que vous souhaitez préparer
+                        Sélectionne la langue que tu souhaites préparer
                     </p>
                 </div>
 
@@ -112,7 +112,7 @@ export default function ExamSelect({ languages }: Props) {
                 {selectedLanguage && (
                     <div className="space-y-4">
                         <h2 className="text-xl font-semibold">
-                            Choisissez votre examen de {selectedLanguage.name}
+                            Choisis ton examen de {selectedLanguage.name}
                         </h2>
                         <div className="grid gap-3 sm:grid-cols-2">
                             {selectedLanguage.exams.map((exam, index) => {

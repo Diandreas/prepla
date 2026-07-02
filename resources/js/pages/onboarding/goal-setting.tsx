@@ -63,7 +63,7 @@ export default function GoalSetting({ exam, profile }: Props) {
     }
 
     return (
-        <OnboardingLayout title="Définissez votre objectif" step={3}>
+        <OnboardingLayout title="Définis ton objectif" step={3}>
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {/* Premium exam badge */}
                 {exam && (
@@ -80,11 +80,11 @@ export default function GoalSetting({ exam, profile }: Props) {
 
                 {/* Header */}
                 <div className="text-center animate-in fade-in slide-in-from-bottom-2 duration-500 delay-100">
-                    <h1 className="text-3xl font-bold tracking-tight">Définissez votre objectif</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">Définis ton objectif</h1>
                     <p className="mt-2 text-muted-foreground">
                         {exam
                             ? `Préparation pour ${exam.name} (${exam.language.name})`
-                            : 'Parlez-nous de vos objectifs'}
+                            : 'Parle-nous de tes objectifs'}
                     </p>
                 </div>
 
@@ -130,7 +130,7 @@ export default function GoalSetting({ exam, profile }: Props) {
                         <div className="space-y-4">
                             <Label className="flex items-center gap-2">
                                 <Icon name="lightbulb" size={16} className="text-primary" />
-                                Quel est votre niveau actuel ?
+                                Quel est ton niveau actuel ?
                             </Label>
                             <div className="grid grid-cols-1 gap-2">
                                 {[
@@ -183,7 +183,7 @@ export default function GoalSetting({ exam, profile }: Props) {
                                 </p>
                             ) : (
                                 <p className="text-xs text-muted-foreground">
-                                    Nous créerons un programme d'étude adapté à votre calendrier
+                                    Nous créerons un programme d'étude adapté à ton calendrier
                                 </p>
                             )}
                         </div>
@@ -195,7 +195,7 @@ export default function GoalSetting({ exam, profile }: Props) {
                     <div className="flex items-start gap-3 rounded-xl border border-amber-200/60 bg-amber-50/50 p-4 dark:border-amber-500/20 dark:bg-amber-950/20">
                         <Icon name="lightbulb" size={20} className="mt-0.5 shrink-0 text-amber-500" />
                         <p className="text-sm text-amber-900 dark:text-amber-200/90">
-                            Fixer un objectif précis augmente vos chances de réussite de 42%
+                            Fixer un objectif précis augmente tes chances de réussite de 42%
                         </p>
                     </div>
                 </div>

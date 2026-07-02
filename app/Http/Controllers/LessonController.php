@@ -111,12 +111,14 @@ class LessonController extends Controller
         $correctCount = 0;
         foreach ($quiz as $index => $question) {
             $userAnswer = $validated['answers'][$index] ?? null;
-            $isCorrect = \App\Models\Lesson::checkAnswerMatch($userAnswer, $question['correct_answer'] ?? '');
+            $isCorrect = \App\Models\Lesson::isQuestionCorrect($question, $userAnswer);
             if ($isCorrect) $correctCount++;
             $results[] = [
                 'question' => $question['question'],
                 'user_answer' => $userAnswer,
-                'correct_answer' => $question['correct_answer'],
+                // Return the full option text (not the stored "C" letter) so the
+                // UI shows the actual correct sentence.
+                'correct_answer' => \App\Models\Lesson::resolveCorrectAnswerText($question),
                 'correct' => $isCorrect,
                 'explanation' => $question['explanation'] ?? null,
             ];

@@ -115,6 +115,57 @@ class Lesson extends Model
     }
 
     /**
+     * Resolve a quiz question's stored correct answer to the full option text.
+     *
+     * The AI generator stores `correct_answer` as a letter ("A".."D") or an
+     * index, while `options` holds the actual answer texts and the frontend
+     * submits the chosen option's full text. This maps the letter/index back to
+     * its option text so grading and display compare like-for-like. Falls back
+     * to the raw value when it can't be resolved (already text, no options…).
+     */
+    public static function resolveCorrectAnswerText(array $question): string
+    {
+        $correct = trim((string)($question['correct_answer'] ?? ''));
+        $options = $question['options'] ?? [];
+
+        if (!is_array($options) || empty($options)) {
+            return $correct;
+        }
+
+        // Single letter → index (A=0, B=1, …), case-insensitive.
+        if (preg_match('/^[a-zA-Z]$/', $correct)) {
+            $idx = ord(strtoupper($correct)) - ord('A');
+            if (isset($options[$idx])) {
+                return (string)$options[$idx];
+            }
+        }
+
+        // Numeric index.
+        if (is_numeric($correct) && isset($options[(int)$correct])) {
+            return (string)$options[(int)$correct];
+        }
+
+        // Already the full text of one of the options.
+        foreach ($options as $opt) {
+            if (static::checkAnswerMatch($correct, (string)$opt)) {
+                return (string)$opt;
+            }
+        }
+
+        return $correct;
+    }
+
+    /**
+     * Whether the user's answer to a single quiz question is correct, resolving
+     * the stored letter/index correct answer against the option texts first.
+     */
+    public static function isQuestionCorrect(array $question, $userAnswer): bool
+    {
+        if ($userAnswer === null) return false;
+        return static::checkAnswerMatch($userAnswer, static::resolveCorrectAnswerText($question));
+    }
+
+    /**
      * Helper to verify if the user passed the comprehension quiz.
      */
     public function isComprehensionPassed(array $answers): bool
@@ -125,8 +176,7 @@ class Lesson extends Model
         $correct = 0;
         foreach ($quiz as $index => $question) {
             $userAnswer = $answers[$index] ?? null;
-            $correctAnswer = $question['correct_answer'] ?? null;
-            if ($userAnswer !== null && static::checkAnswerMatch($userAnswer, $correctAnswer)) {
+            if (static::isQuestionCorrect($question, $userAnswer)) {
                 $correct++;
             }
         }

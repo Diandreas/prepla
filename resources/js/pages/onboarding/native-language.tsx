@@ -45,15 +45,15 @@ export default function NativeLanguage({ currentNativeLanguage }: Props) {
     }
 
     return (
-        <OnboardingLayout title="Votre langue maternelle" step={1}>
+        <OnboardingLayout title="Ta langue maternelle" step={1}>
             <div className="space-y-8">
                 {/* Header */}
                 <div className="text-center">
                     <h1 className="text-2xl font-black tracking-tight sm:text-3xl" style={{ color: OXFORD }}>
-                        Quelle est votre langue maternelle ?
+                        Quelle est ta langue maternelle ?
                     </h1>
                     <p className="mt-2 text-sm font-medium text-muted-foreground">
-                        Cela nous aide à personnaliser votre test de niveau et votre parcours
+                        Cela nous aide à personnaliser ton test de niveau et ton parcours
                     </p>
                 </div>
 

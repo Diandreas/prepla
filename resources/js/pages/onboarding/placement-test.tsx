@@ -397,8 +397,8 @@ export default function PlacementTest({ exam, sectionA, sectionB, sectionC }: Pr
                 <div className="flex flex-col items-center justify-center py-20 text-center">
                     <img src="/icons/loader.png" alt="" width={40} height={40} className="animate-spin mb-4"
                         style={{ }} />
-                    <p className="text-lg font-black" style={{ color: OXFORD }}>Analyse de votre niveau…</p>
-                    <p className="mt-1 text-sm text-muted-foreground">L'IA évalue votre grammaire, lecture et expression écrite</p>
+                    <p className="text-lg font-black" style={{ color: OXFORD }}>Analyse de ton niveau…</p>
+                    <p className="mt-1 text-sm text-muted-foreground">L'IA évalue ta grammaire, ta lecture et ton expression écrite</p>
                 </div>
             </OnboardingLayout>
         );
@@ -439,9 +439,9 @@ export default function PlacementTest({ exam, sectionA, sectionB, sectionC }: Pr
                                 Section C — Expression Écrite
                             </p>
                             <h2 className="mt-1 text-xl font-black" style={{ color: OXFORD }}>
-                                Rédigez votre réponse
+                                Rédige ta réponse
                             </h2>
-                            <p className="text-xs text-muted-foreground mt-0.5">Prenez votre temps, qualité et longueur sont évaluées</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">Prends ton temps, la qualité et la longueur sont évaluées</p>
                         </div>
                         <EssayTimer
                             totalSeconds={300}
@@ -468,7 +468,7 @@ export default function PlacementTest({ exam, sectionA, sectionB, sectionC }: Pr
                         <textarea
                             value={essayText}
                             onChange={(e) => setEssayText(e.target.value)}
-                            placeholder="Rédigez votre réponse ici…"
+                            placeholder="Rédige ta réponse ici…"
                             rows={8}
                             className="w-full resize-none rounded-2xl border-2 border-border bg-card p-4 text-sm leading-relaxed outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
                             style={{ minHeight: 200 }}

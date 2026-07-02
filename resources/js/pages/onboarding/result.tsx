@@ -170,7 +170,7 @@ export default function Result({ profile, exam, program: initialProgram }: Props
     });
 
     return (
-        <OnboardingLayout title="Vos résultats" step={5}>
+        <OnboardingLayout title="Tes résultats" step={5}>
             <div className="space-y-4 sm:space-y-7 pb-6 sm:pb-8">
 
                 {/* Level badge */}
@@ -219,7 +219,7 @@ export default function Result({ profile, exam, program: initialProgram }: Props
                             )}
                         </div>
                         <h1 className="text-2xl font-bold sm:text-3xl">
-                            {profile.level_source === 'tested' ? 'Votre niveau estimé' : 'Votre point de départ'}
+                            {profile.level_source === 'tested' ? 'Ton niveau estimé' : 'Ton point de départ'}
                         </h1>
                         {profile.target_exam && (
                             <p className="mt-1 text-sm text-muted-foreground inline-flex items-center gap-1">
@@ -313,7 +313,7 @@ export default function Result({ profile, exam, program: initialProgram }: Props
                     <div className="rounded-2xl border border-border bg-card p-4 sm:p-5" style={stagger(3)}>
                         <h2 className="mb-3 flex items-center gap-2 font-semibold">
                             <CustomIcon name="trophy" className="h-4 w-4" style={{ }} />
-                            Vos points forts
+                            Tes points forts
                         </h2>
                         <ul className="space-y-2">
                             {program.strengths.map((s, i) => (
@@ -471,7 +471,7 @@ export default function Result({ profile, exam, program: initialProgram }: Props
                     <p className="mt-1.5 text-sm text-muted-foreground">
                         {level === 'A0'
                             ? "Ton programme débutant est prêt. Lance-toi dès maintenant !"
-                            : "Votre feuille de route IA est prête. Commencez à pratiquer dès aujourd'hui !"}
+                            : "Ta feuille de route IA est prête. Commence à pratiquer dès aujourd'hui !"}
                     </p>
                     <Button
                         size="lg"

@@ -648,18 +648,18 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                                         >
                                             {r.correct ? '✓' : '✕'}
                                         </span>
-                                        <p className="text-sm font-bold" style={{ color: OXFORD }}>{r.question}</p>
+                                        <p className="text-sm font-bold" style={{ color: OXFORD }} dangerouslySetInnerHTML={{ __html: inlineMd(r.question) }} />
                                     </div>
                                     {!r.correct && (
                                         <div className="ml-7">
                                             <p className="text-xs text-muted-foreground">
-                                                Ta réponse : <span className="font-bold" style={{ color: '#E74C3C' }}>{r.user_answer}</span>
+                                                Ta réponse : <span className="font-bold" style={{ color: '#E74C3C' }} dangerouslySetInnerHTML={{ __html: inlineMd(r.user_answer) }} />
                                             </p>
                                             <p className="text-xs text-muted-foreground">
-                                                Bonne réponse : <span className="font-bold" style={{ color: GREEN }}>{r.correct_answer}</span>
+                                                Bonne réponse : <span className="font-bold" style={{ color: GREEN }} dangerouslySetInnerHTML={{ __html: inlineMd(r.correct_answer) }} />
                                             </p>
                                             {r.explanation && (
-                                                <p className="text-xs text-muted-foreground mt-1 italic"> {r.explanation}</p>
+                                                <p className="text-xs text-muted-foreground mt-1 italic" dangerouslySetInnerHTML={{ __html: inlineMd(r.explanation) }} />
                                             )}
                                         </div>
                                     )}
