@@ -1,10 +1,12 @@
 import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { usePage } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import { Bell, BellOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { SharedData } from '@/types';
 
 export default function PushNotificationToggle({ compact = false }: { compact?: boolean }) {
+    const { t } = useTranslation();
     const { vapidPublicKey } = usePage<SharedData & { vapidPublicKey?: string }>().props;
 
     // Inject vapid key for the hook
@@ -26,7 +28,7 @@ export default function PushNotificationToggle({ compact = false }: { compact?: 
                 className="gap-2"
             >
                 {isSubscribed ? <BellOff size={16} /> : <Bell size={16} />}
-                {isSubscribed ? 'Désactiver les rappels' : 'Activer les rappels'}
+                {isSubscribed ? t('profile.reminders_off', 'Désactiver les rappels') : t('profile.reminders_on', 'Activer les rappels')}
             </Button>
         );
     }
@@ -38,8 +40,8 @@ export default function PushNotificationToggle({ compact = false }: { compact?: 
                     <Bell size={20} className="text-primary" />
                 </div>
                 <div>
-                    <p className="font-semibold text-sm">Rappels de pratique</p>
-                    <p className="text-xs text-muted-foreground">Reçois une notification quotidienne pour maintenir ton rythme</p>
+                    <p className="font-semibold text-sm">{t('profile.reminders_title', 'Rappels de pratique')}</p>
+                    <p className="text-xs text-muted-foreground">{t('profile.reminders_desc', 'Reçois une notification quotidienne pour maintenir ton rythme')}</p>
                 </div>
             </div>
             <Button
@@ -49,7 +51,7 @@ export default function PushNotificationToggle({ compact = false }: { compact?: 
                 disabled={isLoading}
             >
                 {isLoading && <span className="animate-spin mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full inline-block" />}
-                {isSubscribed ? 'Désactiver les rappels' : 'Activer les rappels quotidiens'}
+                {isSubscribed ? t('profile.reminders_off', 'Désactiver les rappels') : t('profile.reminders_cta', 'Activer les rappels quotidiens')}
             </Button>
         </div>
     );

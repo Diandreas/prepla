@@ -1,5 +1,6 @@
 import { Link, useForm } from '@inertiajs/react';
 import { FormEventHandler, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 // Components...
 import InputError from '@/components/input-error';
@@ -12,6 +13,7 @@ import HeadingSmall from '@/components/heading-small';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 export default function DeleteUser() {
+    const { t } = useTranslation();
     const passwordInput = useRef<HTMLInputElement>(null);
     const { data, setData, delete: destroy, processing, reset, errors, clearErrors } = useForm({ password: '' });
 
@@ -38,23 +40,23 @@ export default function DeleteUser() {
                     <img src="/icons/trash.png" alt="" width={18} height={18} style={{ objectFit: 'contain' }} />
                 </div>
                 <div>
-                    <p className="text-sm font-bold">Zone de danger</p>
-                    <p className="text-xs text-muted-foreground opacity-80">Action irréversible</p>
+                    <p className="text-sm font-bold">{t('profile.danger_zone', 'Zone de danger')}</p>
+                    <p className="text-xs text-muted-foreground opacity-80">{t('profile.danger_desc', 'Action irréversible')}</p>
                 </div>
             </div>
 
             <Dialog>
                 <DialogTrigger asChild>
-                    <Button variant="destructive" className="w-full font-bold">Supprimer mon compte</Button>
+                    <Button variant="destructive" className="w-full font-bold">{t('profile.delete_account', 'Supprimer mon compte')}</Button>
                 </DialogTrigger>
                 <DialogContent>
-                    <DialogTitle>Êtes-vous sûr de vouloir supprimer votre compte ?</DialogTitle>
+                    <DialogTitle>{t('profile.delete_confirm_title', 'Êtes-vous sûr de vouloir supprimer votre compte ?')}</DialogTitle>
                     <DialogDescription>
-                        Cette action est définitive. Toutes vos données de progression, XP et accomplissements seront supprimés à jamais.
+                        {t('profile.delete_confirm_desc', 'Cette action est définitive. Toutes tes données de progression, XP et accomplissements seront supprimés à jamais.')}
                     </DialogDescription>
                     <form className="space-y-6" onSubmit={deleteUser}>
                         <div className="grid gap-2">
-                            <Label htmlFor="password">Mot de passe</Label>
+                            <Label htmlFor="password">{t('profile.password', 'Mot de passe')}</Label>
 
                             <Input
                                 id="password"
@@ -63,7 +65,7 @@ export default function DeleteUser() {
                                 ref={passwordInput}
                                 value={data.password}
                                 onChange={(e) => setData('password', e.target.value)}
-                                placeholder="Confirmez avec votre mot de passe"
+                                placeholder={t('profile.password_placeholder', 'Confirme avec ton mot de passe')}
                                 autoComplete="current-password"
                             />
 
@@ -73,12 +75,12 @@ export default function DeleteUser() {
                         <DialogFooter className="gap-2 sm:gap-0">
                             <DialogClose asChild>
                                 <Button variant="secondary" onClick={closeModal} className="font-bold">
-                                    Annuler
+                                    {t('common.cancel', 'Annuler')}
                                 </Button>
                             </DialogClose>
 
                             <Button variant="destructive" disabled={processing} type="submit" className="font-bold">
-                                Supprimer définitivement
+                                {t('profile.delete_permanently', 'Supprimer définitivement')}
                             </Button>
                         </DialogFooter>
                     </form>

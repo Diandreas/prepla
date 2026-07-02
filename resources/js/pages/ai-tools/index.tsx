@@ -27,7 +27,7 @@ function CustomIcon({ name, className, style }: { name: string; className?: stri
 const tools = [
     {
         title: 'Correcteur de rédaction',
-        description: 'Soumettez vos essais et obtenez des corrections détaillées avec scores',
+        description: 'Soumets tes essais et obtiens des corrections détaillées avec scores',
         icon: 'writing',
         href: '/ai-tools/writing-corrector',
         bg: `linear-gradient(135deg, ${OXFORD}, #2a3f6a)`,
@@ -35,7 +35,7 @@ const tools = [
     },
     {
         title: 'Explicateur IA',
-        description: 'Posez des questions sur la grammaire, le vocabulaire ou les stratégies',
+        description: 'Pose des questions sur la grammaire, le vocabulaire ou les stratégies',
         icon: 'help',
         href: '/ai-tools/explainer',
         bg: `linear-gradient(135deg, #48b77b, #3a9d68)`,
@@ -57,7 +57,7 @@ export default function AiToolsIndex() {
                         Outils IA
                     </h1>
                     <p className="mt-1 text-sm font-bold text-muted-foreground">
-                        Boostez votre préparation avec des outils alimentés par l'IA
+                        Booste ta préparation avec des outils alimentés par l'IA
                     </p>
                 </div>
 

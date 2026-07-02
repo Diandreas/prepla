@@ -17,7 +17,7 @@ interface Message {
 const STORAGE_KEY = 'prepla-explainer-chat';
 const GREETING: Message = {
     role: 'assistant',
-    content: 'Bonjour ! Je suis votre tuteur linguistique IA. Posez-moi n\'importe quelle question sur la grammaire, le vocabulaire, les stratégies d\'examen ou l\'apprentissage des langues. Comment puis-je vous aider aujourd\'hui ?',
+    content: 'Bonjour ! Je suis ton tuteur linguistique IA. Pose-moi n\'importe quelle question sur la grammaire, le vocabulaire, les stratégies d\'examen ou l\'apprentissage des langues. Comment puis-je t\'aider aujourd\'hui ?',
 };
 
 export default function Explainer() {
@@ -86,7 +86,7 @@ export default function Explainer() {
                 <div className="mb-3 flex items-start justify-between gap-3">
                     <div>
                         <h1 className="text-xl md:text-2xl font-bold">Explicateur IA</h1>
-                        <p className="text-sm text-muted-foreground">Posez des questions sur la langue et la préparation aux examens</p>
+                        <p className="text-sm text-muted-foreground">Pose des questions sur la langue et la préparation aux examens</p>
                     </div>
                     {messages.length > 1 && (
                         <button
@@ -152,7 +152,7 @@ export default function Explainer() {
                             <div className="flex gap-2">
                                 <input
                                     className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
-                                    placeholder="Posez une question..."
+                                    placeholder="Pose une question..."
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && handleSend()}

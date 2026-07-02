@@ -133,7 +133,7 @@ export default function WritingCorrector() {
         } catch (err: any) {
             setOcrError(
                 err?.response?.data?.error ??
-                    "Impossible de lire l'image. Vérifiez votre connexion et réessayez.",
+                    "Impossible de lire l'image. Vérifie ta connexion et réessaie.",
             );
         } finally {
             setExtracting(false);
@@ -158,7 +158,7 @@ export default function WritingCorrector() {
                     <div>
                         <h1 className="text-2xl font-bold tracking-tight">Correcteur de rédaction</h1>
                         <p className="text-sm text-muted-foreground">
-                            Tapez votre texte ou prenez-le en photo — l'IA le corrige et vous note.
+                            Tape ton texte ou prends-le en photo — l'IA le corrige et te note.
                         </p>
                     </div>
                 </div>
@@ -170,10 +170,10 @@ export default function WritingCorrector() {
                             <div className="flex-1">
                                 <div className="flex items-center gap-2">
                                     <CameraGlyph className="h-5 w-5 text-primary" />
-                                    <h2 className="text-sm font-semibold">Photographiez votre cahier</h2>
+                                    <h2 className="text-sm font-semibold">Photographie ton cahier</h2>
                                 </div>
                                 <p className="mt-1 text-sm text-muted-foreground">
-                                    Filmez ou prenez en photo la page où vous avez écrit votre rédaction. Le texte
+                                    Filme ou prends en photo la page où tu as écrit ta rédaction. Le texte
                                     sera lu automatiquement et ajouté ci-dessous, prêt à être corrigé.
                                 </p>
                             </div>
@@ -242,7 +242,7 @@ export default function WritingCorrector() {
                                     {!extracting && !ocrError && imagePreview && (
                                         <p className="flex items-center gap-2 text-emerald-600">
                                             <Icon name="check-circle" size={16} />
-                                            Texte ajouté à votre rédaction ci-dessous.
+                                            Texte ajouté à ta rédaction ci-dessous.
                                         </p>
                                     )}
                                 </div>
@@ -254,7 +254,7 @@ export default function WritingCorrector() {
                 {/* Editor */}
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-base">Votre rédaction</CardTitle>
+                        <CardTitle className="text-base">Ta rédaction</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div>
@@ -269,7 +269,7 @@ export default function WritingCorrector() {
                         <div>
                             <textarea
                                 className="min-h-[260px] w-full rounded-lg border border-border bg-background p-4 text-sm leading-relaxed focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                                placeholder="Collez, rédigez votre texte ici — ou prenez-le en photo ci-dessus…"
+                                placeholder="Colle, rédige ton texte ici — ou prends-le en photo ci-dessus…"
                                 value={text}
                                 onChange={(e) => setText(e.target.value)}
                             />
@@ -341,7 +341,7 @@ export default function WritingCorrector() {
                                 <div className="rounded-lg border border-border p-4">
                                     <div className="mb-2 flex items-center gap-2">
                                         <Icon name="file-edit" size={16} className="text-primary" />
-                                        <h3 className="text-sm font-semibold">Votre texte annoté</h3>
+                                        <h3 className="text-sm font-semibold">Ton texte annoté</h3>
                                         <span className="text-xs text-muted-foreground">
                                             (survolez les parties soulignées pour voir la correction)
                                         </span>

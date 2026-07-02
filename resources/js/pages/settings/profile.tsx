@@ -233,7 +233,7 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                                         href={route('onboarding.placement')}
                                         className="text-[10px] font-bold text-primary hover:underline"
                                     >
-                                        Repasser le test
+                                        {t('profile.retake_test', 'Repasser le test')}
                                     </Link>
                                 </div>
                             </div>

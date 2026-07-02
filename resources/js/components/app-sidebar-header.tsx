@@ -1,35 +1,37 @@
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { usePage } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import type { SharedData } from '@/types';
 import { useAppearance } from '@/hooks/use-appearance';
 import { useState, useEffect, useRef } from 'react';
 
 const GOLD = '#F5A623';
 
-// Order matters: more specific paths must come before their parent prefix so the
-// first match wins (e.g. /ai-tools/writing-corrector before /ai-tools).
-const PAGE_TITLES: Record<string, string> = {
-    '/dashboard': 'Mon Parcours',
-    '/practice': 'Pratiquer',
-    '/dictionary': 'Dictionnaire',
-    '/ai-tools/writing-corrector': 'Correcteur de rédaction',
-    '/ai-tools/explainer': 'Explicateur IA',
-    '/ai-tools/generator': "Générateur d'exercices",
-    '/ai-tools/recommendations': 'Recommandations',
-    '/ai-tools': 'Outils IA',
-    '/errors': 'Centre de Récupération',
-    '/results': 'Résultats',
-    '/settings/profile': 'Profil',
-    '/leaderboard': 'Classement',
+// Path → i18n key under "page_titles". Order matters: more specific paths must
+// come before their parent prefix so the first match wins (e.g.
+// /ai-tools/writing-corrector before /ai-tools).
+const PAGE_TITLE_KEYS: [string, string][] = [
+    ['/dashboard', 'dashboard'],
+    ['/practice', 'practice'],
+    ['/dictionary', 'dictionary'],
+    ['/ai-tools/writing-corrector', 'writing_corrector'],
+    ['/ai-tools/explainer', 'explainer'],
+    ['/ai-tools/generator', 'generator'],
+    ['/ai-tools/recommendations', 'recommendations'],
+    ['/ai-tools', 'ai_tools'],
+    ['/errors', 'errors'],
+    ['/results', 'results'],
+    ['/settings/profile', 'profile'],
+    ['/leaderboard', 'leaderboard'],
     // B2B — back-office & espace centre
-    '/admin/centers': 'Centres',
-    '/center/classes': 'Classes',
-    '/center/students': 'Élèves',
-    '/center/exercises': 'Contenu',
-    '/center/assignments': 'Devoirs',
-    '/center': 'Espace centre',
-    '/join': 'Rejoindre un centre',
-};
+    ['/admin/centers', 'centers'],
+    ['/center/classes', 'classes'],
+    ['/center/students', 'students'],
+    ['/center/exercises', 'content'],
+    ['/center/assignments', 'assignments'],
+    ['/center', 'center'],
+    ['/join', 'join'],
+];
 
 // Custom icon component using icons from /public/icons
 function CustomIcon({ name, className, style }: { name: string; className?: string; style?: React.CSSProperties }) {
@@ -93,12 +95,14 @@ function ThemeToggleButton() {
 }
 
 export function AppSidebarHeader() {
+    const { t } = useTranslation();
     const page = usePage<SharedData & { userProfile?: any }>();
     const { userProfile } = page.props;
     const url = page.url ?? '';
 
-    // Find current page title
-    const pageTitle = Object.entries(PAGE_TITLES).find(([path]) => url === path || url.startsWith(path + '/'))?.[1] ?? 'PrePla';
+    // Find current page title (resolve its i18n key; fall back to the brand name)
+    const titleKey = PAGE_TITLE_KEYS.find(([path]) => url === path || url.startsWith(path + '/'))?.[1];
+    const pageTitle = titleKey ? t(`page_titles.${titleKey}`) : 'PrePla';
 
     const streak = (userProfile as any)?.streak_current ?? 0;
     const xp = (userProfile as any)?.xp_total ?? 0;

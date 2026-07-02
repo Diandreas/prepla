@@ -1,30 +1,32 @@
 import { Link, usePage } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import { playSound } from '@/hooks/use-sound';
 
-interface Tab { label: string; href: string; icon: string; isCenter?: boolean }
+interface Tab { labelKey: string; href: string; icon: string; isCenter?: boolean }
 
 const LEARNER_TABS: Tab[] = [
-    { label: 'Accueil', href: '/dashboard', icon: 'home' },
-    { label: 'Pratiquer', href: '/practice', icon: 'puzzle' },
-    { label: 'IA', href: '/ai-tools', icon: 'sparkles', isCenter: true },
-    { label: 'Résultats', href: '/results', icon: 'statistics' },
-    { label: 'Profil', href: '/settings/profile', icon: 'profile' },
+    { labelKey: 'sidebar.home', href: '/dashboard', icon: 'home' },
+    { labelKey: 'sidebar.practice', href: '/practice', icon: 'puzzle' },
+    { labelKey: 'sidebar.ai_short', href: '/ai-tools', icon: 'sparkles', isCenter: true },
+    { labelKey: 'sidebar.results', href: '/results', icon: 'statistics' },
+    { labelKey: 'sidebar.profile', href: '/settings/profile', icon: 'profile' },
 ];
 
 const CENTER_TABS: Tab[] = [
-    { label: 'Accueil', href: '/center', icon: 'home' },
-    { label: 'Classes', href: '/center/classes', icon: 'layout-grid' },
-    { label: 'Devoirs', href: '/center/assignments', icon: 'tasks', isCenter: true },
-    { label: 'Élèves', href: '/center/students', icon: 'profile' },
-    { label: 'Contenu', href: '/center/exercises', icon: 'puzzle' },
+    { labelKey: 'sidebar.home', href: '/center', icon: 'home' },
+    { labelKey: 'sidebar.classes', href: '/center/classes', icon: 'layout-grid' },
+    { labelKey: 'sidebar.assignments', href: '/center/assignments', icon: 'tasks', isCenter: true },
+    { labelKey: 'sidebar.students', href: '/center/students', icon: 'profile' },
+    { labelKey: 'sidebar.content', href: '/center/exercises', icon: 'puzzle' },
 ];
 
 const ADMIN_TABS: Tab[] = [
-    { label: 'Centres', href: '/admin/centers', icon: 'layout-grid' },
-    { label: 'Profil', href: '/settings/profile', icon: 'profile' },
+    { labelKey: 'sidebar.centers', href: '/admin/centers', icon: 'layout-grid' },
+    { labelKey: 'sidebar.profile', href: '/settings/profile', icon: 'profile' },
 ];
 
 export function MobileTabBar() {
+    const { t } = useTranslation();
     const { url, props } = usePage();
     const auth = (props as any)?.auth;
     const role: string | undefined = auth?.role;
@@ -54,7 +56,7 @@ export function MobileTabBar() {
                                         boxShadow: isActive ? '0 8px 22px rgba(74,144,226,0.5)' : '0 4px 14px rgba(74,144,226,0.35)',
                                     }}
                                 >
-                                    <img src="/icons/sparkles.png" alt="IA" width={28} height={28} style={{ objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
+                                    <img src="/icons/sparkles.png" alt={t(tab.labelKey)} width={28} height={28} style={{ objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
                                 </div>
                             </Link>
                         );
@@ -76,7 +78,7 @@ export function MobileTabBar() {
                             >
                                 <img
                                     src={`/icons/${tab.icon}.png`}
-                                    alt={tab.label}
+                                    alt={t(tab.labelKey)}
                                     width={24}
                                     height={24}
                                     style={{
@@ -89,7 +91,7 @@ export function MobileTabBar() {
                             <span
                                 className={`text-[10px] font-bold tracking-wide transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground'}`}
                             >
-                                {tab.label}
+                                {t(tab.labelKey)}
                             </span>
                         </Link>
                     );
