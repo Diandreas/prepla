@@ -28,7 +28,7 @@ export default function BatchResults({ exercises, exam, difficulty }: Props) {
                         </div>
                         <h1 className="text-4xl font-black md:text-5xl">Génération Terminée !</h1>
                         <p className="max-w-md text-lg font-medium text-indigo-100">
-                            L'IA a concocté {exercises.length} exercices personnalisés pour vous. Prêt à relever le défi ?
+                            L'IA a concocté {exercises.length} exercices personnalisés pour toi. Prêt à relever le défi ?
                         </p>
                     </div>
                     {/* Decorative blobs */}

@@ -63,7 +63,7 @@ export default function Generator({ exams, targetExamId, userLevel }: Props) {
                     <div>
                         <h1 className="text-3xl font-black tracking-tight">Générateur d'exercices</h1>
                         <p className="text-slate-500">
-                            Créez des exercices sur-mesure pour votre préparation
+                            Crée des exercices sur-mesure pour ta préparation
                         </p>
                     </div>
                     {selectedTypeIds.length > 0 && (

@@ -183,10 +183,10 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                         <CustomIcon name="credit-card" className="h-5 w-5 shrink-0 opacity-70" style={{ filter: 'brightness(0) saturate(100%) invert(100%)' }} />
                         <div className="min-w-0">
                             <p className="text-sm font-black truncate">{profile?.plan === 'premium' ? 'PrePla Plus' : 'PrePla Standard'}</p>
-                            <p className="text-[10px] font-bold opacity-70">{profile?.plan === 'premium' ? 'Premium actif' : 'Passe au Premium'}</p>
+                            <p className="text-[10px] font-bold opacity-70">{profile?.plan === 'premium' ? t('profile.premium_active', 'Premium actif') : t('profile.go_premium', 'Passe au Premium')}</p>
                         </div>
                     </div>
-                    <span className="shrink-0 rounded-lg bg-white/15 px-3 py-1.5 text-[11px] font-black">Gérer</span>
+                    <span className="shrink-0 rounded-lg bg-white/15 px-3 py-1.5 text-[11px] font-black">{t('profile.manage', 'Gérer')}</span>
                 </Link>
 
                 {/* 3. Learning Settings */}

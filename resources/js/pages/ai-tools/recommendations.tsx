@@ -24,7 +24,7 @@ export default function Recommendations({ profile, recentAttempts }: Props) {
                 <div>
                     <h1 className="text-2xl font-bold">Recommandations d'étude</h1>
                     <p className="text-muted-foreground">
-                        Suggestions personnalisées basées sur vos performances
+                        Suggestions personnalisées basées sur tes performances
                     </p>
                 </div>
 
@@ -69,7 +69,7 @@ export default function Recommendations({ profile, recentAttempts }: Props) {
                                         <span className="font-medium">Pratiquer davantage d'exercices</span>
                                     </div>
                                     <p className="mt-2 text-sm text-muted-foreground">
-                                        Continuez à pratiquer pour enrichir votre profil de compétences. L'IA fournira des recommandations plus précises au fur et à mesure que vous complétez des exercices.
+                                        Continue à pratiquer pour enrichir ton profil de compétences. L'IA fournira des recommandations plus précises au fur et à mesure que tu complètes des exercices.
                                     </p>
                                 </div>
                             </div>
