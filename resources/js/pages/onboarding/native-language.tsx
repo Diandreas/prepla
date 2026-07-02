@@ -10,19 +10,13 @@ interface Props {
 const OXFORD = '#1A2B48';
 const SKY = '#4A90E2';
 
+// Restreint aux 3 langues actuellement gérées par la plateforme (anglais,
+// français, allemand). Ajouter une entrée ici quand une nouvelle langue est
+// réellement prise en charge.
 const NATIVE_LANGUAGES = [
     { code: 'fr', name: 'Français',   nativeName: 'Français',   flag: 'FR', value: 'Français' },
     { code: 'en', name: 'English',    nativeName: 'English',    flag: 'GB', value: 'English' },
-    { code: 'ar', name: 'Arabe',      nativeName: 'العربية',    flag: 'SA', value: 'Arabe' },
-    { code: 'es', name: 'Espagnol',   nativeName: 'Español',    flag: 'ES', value: 'Espagnol' },
-    { code: 'zh', name: 'Chinois',    nativeName: '中文',        flag: 'CN', value: 'Chinois' },
-    { code: 'pt', name: 'Portugais',  nativeName: 'Português',  flag: 'PT', value: 'Portugais' },
     { code: 'de', name: 'Allemand',   nativeName: 'Deutsch',    flag: 'DE', value: 'Allemand' },
-    { code: 'it', name: 'Italien',    nativeName: 'Italiano',   flag: 'IT', value: 'Italien' },
-    { code: 'ru', name: 'Russe',      nativeName: 'Русский',    flag: 'RU', value: 'Russe' },
-    { code: 'ja', name: 'Japonais',   nativeName: '日本語',      flag: 'JP', value: 'Japonais' },
-    { code: 'ko', name: 'Coréen',     nativeName: '한국어',      flag: 'KR', value: 'Coréen' },
-    { code: 'tr', name: 'Turc',       nativeName: 'Türkçe',     flag: 'TR', value: 'Turc' },
 ];
 
 function FlagComponent({ code }: { code: string }) {
