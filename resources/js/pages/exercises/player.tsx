@@ -407,6 +407,14 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
     const [visible, setVisible] = useState(true);
     const [timeSpent, setTimeSpent] = useState(0);
     const timeSpentRef = useRef(0);
+    // Guards against a double advance: the per-question timer expiry schedules an
+    // auto-nextStep, and the user can advance manually at the same moment. Without
+    // these, nextStep runs twice → the index overshoots the last question and the
+    // player renders "Session non disponible". advancingRef blocks re-entry while a
+    // transition is in flight; expireTimeoutRef lets a manual advance cancel the
+    // pending expiry auto-advance so it can't fire on the *next* question.
+    const advancingRef = useRef(false);
+    const expireTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [timerKey, setTimerKey] = useState(0);
     const [timerSeconds, setTimerSeconds] = useState(0);
     const [explanation, setExplanation] = useState<ExplanationObj | string | null>(null);
@@ -682,6 +690,17 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
     }, [question, isChecked, answers, answerKey, componentKey, fetchExplanation, exercise.id, isVerifying, mistakes, isReviewMode]);
 
     const nextStep = useCallback(() => {
+        // Block re-entry while a transition is already in flight (double click, or
+        // timer-expiry auto-advance racing a manual advance).
+        if (advancingRef.current) return;
+        advancingRef.current = true;
+        // A manual advance cancels any pending timer-expiry auto-advance so it can't
+        // fire again on the next question.
+        if (expireTimeoutRef.current) {
+            clearTimeout(expireTimeoutRef.current);
+            expireTimeoutRef.current = null;
+        }
+
         setIsChecked(false);
         setIsCorrect(null);
         setExplanation(null);
@@ -703,6 +722,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                     setTransitioning(false);
                     setVisible(true);
                     setTimerKey(k => k + 1);
+                    advancingRef.current = false;
                 }, 220);
                 return;
             }
@@ -749,6 +769,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
             setTransitioning(false);
             setVisible(true);
             setTimerKey(k => k + 1);
+            advancingRef.current = false;
         }, 220);
     }, [currentExerciseIndex, currentQuestionIndex, exercises, questions.length, answers, answerKey, node.id, mistakes, reviewQueue, isReviewMode, exercise]);
 
@@ -764,7 +785,10 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
             setIsCorrect(false);
             setMistakes(prev => [...prev, { ...question, component_key: componentKey }]);
         }
-        setTimeout(() => nextStep(), 1200);
+        // Track the pending auto-advance so a manual advance (or another expiry) can
+        // cancel it — otherwise nextStep runs twice and overshoots the last question.
+        if (expireTimeoutRef.current) clearTimeout(expireTimeoutRef.current);
+        expireTimeoutRef.current = setTimeout(() => nextStep(), 1200);
     }, [isChecked, nextStep, question, componentKey]);
 
     // Keyboard shortcut: Space / Enter
