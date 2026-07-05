@@ -1,10 +1,9 @@
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useState } from 'react';
-import type { SharedData } from '@/types';
+import { useEffect, useState } from 'react';
 
 interface Plan {
     id: string;
@@ -26,8 +25,22 @@ interface Props {
 export default function Subscription({ currentPlan, stripeEnabled, isSubscribed, onTrial, trialDaysLeft, cancelAtPeriodEnd, renewsAt, plans }: Props) {
     const [processing, setProcessing] = useState(false);
     const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('monthly');
+    const [showSuccess, setShowSuccess] = useState(false);
     const isPremium = isSubscribed;
     const hasAccess = isSubscribed || onTrial;
+
+    // Stripe Checkout redirects back here with ?success=1 on successful payment —
+    // previously this was never read, so the user got no confirmation their
+    // payment went through beyond the page silently showing "Premium actif".
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('success') === '1') {
+            setShowSuccess(true);
+            params.delete('success');
+            const newUrl = window.location.pathname + (params.toString() ? `?${params}` : '');
+            window.history.replaceState({}, '', newUrl);
+        }
+    }, []);
 
     const handleCheckout = () => {
         // Native form POST → browser follows 303 cross-origin to Stripe.
@@ -89,6 +102,13 @@ export default function Subscription({ currentPlan, stripeEnabled, isSubscribed,
                     <h1 className="text-3xl font-black tracking-tight">Votre abonnement</h1>
                     <p className="text-muted-foreground">Boostez votre préparation et réussissez votre examen</p>
                 </div>
+
+                {/* Confirmation de paiement au retour de Stripe Checkout */}
+                {showSuccess && (
+                    <div className="rounded-2xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-center">
+                        <p className="text-sm font-bold text-emerald-800">✓ Paiement réussi — bienvenue dans PrePla Plus !</p>
+                    </div>
+                )}
 
                 {/* Bandeau essai */}
                 {onTrial && (
@@ -172,6 +192,14 @@ export default function Subscription({ currentPlan, stripeEnabled, isSubscribed,
                                         {processing ? 'Chargement...' : 'Annuler l\'abonnement'}
                                     </Button>
                                 )}
+                                <a
+                                    href={route('subscription.invoices')}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-center text-xs text-muted-foreground underline hover:text-foreground"
+                                >
+                                    Voir mes factures
+                                </a>
                             </>
                         ) : (
                             <Button

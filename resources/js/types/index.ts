@@ -32,6 +32,8 @@ export interface SharedData {
     isPremium: boolean;
     onTrial: boolean;
     trialDaysLeft: number;
+    freeExercisesUsedToday: number;
+    freeExercisesLimit: number;
     [key: string]: unknown;
 }
 

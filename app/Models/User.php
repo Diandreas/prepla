@@ -54,6 +54,12 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * PrePla's trial dates live on `user_profiles.trial_ends_at`, set at onboarding —
+     * not on the native `users.trial_ends_at` column Cashier's Billable trait provides
+     * (that one backs Cashier's own onGenericTrial()/trialEndsAt(), which PrePla doesn't use
+     * and which stays empty for every user). Two columns, same name, different owners.
+     */
     public function hasPremiumAccess(): bool
     {
         if ($this->subscribed('default')) {

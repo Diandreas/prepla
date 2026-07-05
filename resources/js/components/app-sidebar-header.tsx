@@ -1,5 +1,5 @@
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { usePage } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import type { SharedData } from '@/types';
 import { useAppearance } from '@/hooks/use-appearance';
@@ -97,7 +97,7 @@ function ThemeToggleButton() {
 export function AppSidebarHeader() {
     const { t } = useTranslation();
     const page = usePage<SharedData & { userProfile?: any }>();
-    const { userProfile } = page.props;
+    const { userProfile, isPremium, freeExercisesUsedToday, freeExercisesLimit } = page.props;
     const url = page.url ?? '';
 
     // Find current page title (resolve its i18n key; fall back to the brand name)
@@ -137,6 +137,15 @@ export function AppSidebarHeader() {
 
             {/* Right: a single discreet stat group + theme toggle */}
             <div className="flex items-center gap-2">
+                {!isPremium && (
+                    <Link
+                        href={route('subscription.index')}
+                        className="hidden items-center gap-1 rounded-full border border-amber-300/60 bg-amber-50 px-3 py-1 text-xs font-black tabular-nums text-amber-700 dark:bg-amber-950/30 dark:text-amber-300 sm:flex"
+                        title="Exercices gratuits aujourd'hui"
+                    >
+                        {freeExercisesUsedToday}/{freeExercisesLimit}
+                    </Link>
+                )}
                 <div className="flex items-center gap-3 rounded-full border border-border/60 bg-card/60 px-3 py-1">
                     <span className={`flex items-center gap-1 text-xs font-black tabular-nums ${streakBump ? 'value-bump' : ''}`} style={{ color: '#F97316' }}>
                         <img src="/animation/Fire.gif" alt="Série" className="h-4 w-4 object-contain" />

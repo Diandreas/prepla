@@ -78,7 +78,12 @@ interface ProfileProps {
 }
 
 export default function Profile({ mustVerifyEmail, status, profile, exams }: ProfileProps) {
-    const { auth } = usePage<SharedData>().props;
+    // isPremium comes from the shared Inertia prop (User::hasPremiumAccess(), the
+    // real Cashier-backed source of truth) — NOT profile.plan, which is a
+    // separate DB column nobody ever writes to and stays 'free' forever, even
+    // for a paying subscriber. Using profile.plan here made this card show
+    // "Passe au Premium" while /settings/subscription correctly showed "Actif".
+    const { auth, isPremium } = usePage<SharedData>().props;
     const getInitials = useInitials();
     const [isEditingInfo, setIsEditingInfo] = useState(false);
     const [showExamChangeDialog, setShowExamChangeDialog] = useState(false);
@@ -182,8 +187,8 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                     <div className="flex items-center gap-2.5 min-w-0">
                         <CustomIcon name="credit-card" className="h-5 w-5 shrink-0 opacity-70" style={{ filter: 'brightness(0) saturate(100%) invert(100%)' }} />
                         <div className="min-w-0">
-                            <p className="text-sm font-black truncate">{profile?.plan === 'premium' ? 'PrePla Plus' : 'PrePla Standard'}</p>
-                            <p className="text-[10px] font-bold opacity-70">{profile?.plan === 'premium' ? t('profile.premium_active', 'Premium actif') : t('profile.go_premium', 'Passe au Premium')}</p>
+                            <p className="text-sm font-black truncate">{isPremium ? 'PrePla Plus' : 'PrePla Standard'}</p>
+                            <p className="text-[10px] font-bold opacity-70">{isPremium ? t('profile.premium_active', 'Premium actif') : t('profile.go_premium', 'Passe au Premium')}</p>
                         </div>
                     </div>
                     <span className="shrink-0 rounded-lg bg-white/15 px-3 py-1.5 text-[11px] font-black">{t('profile.manage', 'Gérer')}</span>

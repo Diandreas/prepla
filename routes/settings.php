@@ -20,6 +20,8 @@ Route::middleware('auth')->group(function () {
     Route::post('settings/subscription/checkout', [\App\Http\Controllers\Settings\SubscriptionController::class, 'checkout'])->name('subscription.checkout');
     Route::post('settings/subscription/cancel', [\App\Http\Controllers\Settings\SubscriptionController::class, 'cancel'])->name('subscription.cancel');
     Route::post('settings/subscription/resume', [\App\Http\Controllers\Settings\SubscriptionController::class, 'resume'])->name('subscription.resume');
+    Route::get('settings/subscription/invoice/{invoiceId}', [\App\Http\Controllers\Settings\SubscriptionController::class, 'downloadInvoice'])->name('subscription.invoice');
+    Route::get('settings/subscription/invoices', [\App\Http\Controllers\Settings\SubscriptionController::class, 'invoices'])->name('subscription.invoices');
 
     Route::get('settings/appearance', function () {
         return Inertia::render('settings/appearance');

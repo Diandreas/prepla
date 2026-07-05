@@ -23,6 +23,21 @@ class SubscriptionController extends Controller
         $onTrial    = $user->isOnTrial();
         $trialDaysLeft = $user->trialDaysLeft();
 
+        // asStripeSubscription() makes a live Stripe API call — if the subscription
+        // was deleted on Stripe's side (desync) or the API is briefly unavailable,
+        // this throws and previously crashed the whole page for the user.
+        $renewsAt = null;
+        if ($subscription) {
+            try {
+                $renewsAt = $subscription->asStripeSubscription()->current_period_end;
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Failed to fetch Stripe subscription details', [
+                    'user_id' => $user->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
         return Inertia::render('settings/subscription', [
             'currentPlan'       => ($isSubscribed || $onTrial) ? 'premium' : 'free',
             'stripeEnabled'     => true,
@@ -31,7 +46,7 @@ class SubscriptionController extends Controller
             'onTrial'           => $onTrial,
             'trialDaysLeft'     => $trialDaysLeft,
             'cancelAtPeriodEnd' => $subscription?->onGracePeriod() ?? false,
-            'renewsAt'          => $subscription?->asStripeSubscription()->current_period_end ?? null,
+            'renewsAt'          => $renewsAt,
             'plans' => [
                 'monthly' => ['id' => self::PRICE_MONTHLY, 'amount' => 9.99, 'interval' => 'month'],
                 'annual'  => ['id' => self::PRICE_ANNUAL,  'amount' => 79.99, 'interval' => 'year'],
@@ -75,9 +90,38 @@ class SubscriptionController extends Controller
         return back()->with('status', 'subscription-resumed');
     }
 
-    public function webhook(Request $request): \Illuminate\Http\Response
+    /**
+     * List past invoices so the user can download a receipt — Cashier already
+     * provides this natively, it was simply never exposed in any PrePla route/UI.
+     */
+    public function invoices(): \Illuminate\Http\JsonResponse
     {
-        // Géré automatiquement par Laravel Cashier via la route cashier.webhook
-        return response('ok');
+        $user = auth()->user();
+
+        if (!$user->hasStripeId()) {
+            return response()->json(['invoices' => []]);
+        }
+
+        $invoices = $user->invoices()->map(fn ($invoice) => [
+            'id' => $invoice->id,
+            'date' => $invoice->date()->toFormattedDateString(),
+            'total' => $invoice->total(),
+        ]);
+
+        return response()->json(['invoices' => $invoices]);
+    }
+
+    public function downloadInvoice(string $invoiceId)
+    {
+        $user = auth()->user();
+
+        if (!$user->hasStripeId()) {
+            abort(404);
+        }
+
+        return $user->downloadInvoice($invoiceId, [
+            'vendor'  => config('app.name'),
+            'product' => 'PrePla Plus',
+        ]);
     }
 }

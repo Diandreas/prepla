@@ -48,8 +48,10 @@ Route::middleware(['auth'])->group(function () {
 
         // Exercises
         Route::get('exercise/{exercise}', [\App\Http\Controllers\ExerciseController::class, 'show'])->name('exercise.show');
-        Route::post('exercise/{exercise}/submit', [\App\Http\Controllers\ExerciseController::class, 'submit'])->name('exercise.submit');
-        Route::post('node/{node}/submit', [\App\Http\Controllers\ExerciseController::class, 'submitSession'])->name('exercise.submit_session');
+        Route::middleware([\App\Http\Middleware\EnsureExerciseQuota::class])->group(function () {
+            Route::post('exercise/{exercise}/submit', [\App\Http\Controllers\ExerciseController::class, 'submit'])->name('exercise.submit');
+            Route::post('node/{node}/submit', [\App\Http\Controllers\ExerciseController::class, 'submitSession'])->name('exercise.submit_session');
+        });
         Route::get('exercise/result/{attempt}', [\App\Http\Controllers\ExerciseController::class, 'result'])->name('exercise.result');
         Route::get('node/{node}/result', [\App\Http\Controllers\ExerciseController::class, 'sessionResult'])->name('node.session_result');
 

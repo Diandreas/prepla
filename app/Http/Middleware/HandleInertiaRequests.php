@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\UserExerciseAttempt;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -52,6 +53,15 @@ class HandleInertiaRequests extends Middleware
             ];
         }
 
+        $isPremium = $user?->hasPremiumAccess() ?? false;
+        // Surfaced so the UI can show "2/3 free exercises today" BEFORE the
+        // EnsureExerciseQuota middleware blocks a 4th submission — the same
+        // "communicate the rule before, not just after" principle already
+        // applied to the mastery threshold on the exercise player.
+        $exercisesToday = (!$isPremium && $user)
+            ? UserExerciseAttempt::where('user_id', $user->id)->whereDate('created_at', today())->count()
+            : 0;
+
         return array_merge(parent::share($request), [
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
@@ -61,9 +71,11 @@ class HandleInertiaRequests extends Middleware
                 'center' => $center,           // null if the user has no center
             ],
             'userProfile' => $request->user()?->profile,
-            'isPremium' => $request->user()?->hasPremiumAccess() ?? false,
+            'isPremium' => $isPremium,
             'onTrial' => $request->user()?->isOnTrial() ?? false,
             'trialDaysLeft' => $request->user()?->trialDaysLeft() ?? 0,
+            'freeExercisesUsedToday' => $exercisesToday,
+            'freeExercisesLimit' => \App\Http\Middleware\EnsureExerciseQuota::DAILY_FREE_LIMIT,
             'vapidPublicKey' => config('webpush.vapid.public_key'),
             'flash' => [
                 'correction'  => $request->session()->get('correction'),
