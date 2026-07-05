@@ -6,6 +6,7 @@ use App\Mail\PaymentFailedMail;
 use App\Mail\SubscriptionStartedMail;
 use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Laravel\Cashier\Events\WebhookHandled;
@@ -22,6 +23,17 @@ class HandleCashierWebhook implements ShouldQueue
 {
     public function handle(WebhookHandled $event): void
     {
+        // Stripe's signature check only proves authenticity within its
+        // tolerance window (default 5 min) — it does not stop the same valid
+        // event from being replayed within that window. Without this guard,
+        // a captured payload replayed a few times would resend the welcome/
+        // payment-failed email that many times.
+        $eventId = $event->payload['id'] ?? null;
+        if ($eventId && ! Cache::add("stripe-webhook-processed:{$eventId}", true, now()->addHours(6))) {
+            Log::info('HandleCashierWebhook: duplicate/replayed event ignored', ['event_id' => $eventId]);
+            return;
+        }
+
         $type = $event->payload['type'] ?? null;
         $object = $event->payload['data']['object'] ?? [];
 

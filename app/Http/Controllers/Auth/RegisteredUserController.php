@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\ConsumedTrial;
 use App\Models\User;
 use App\Models\UserProfile;
 use Illuminate\Auth\Events\Registered;
@@ -43,10 +44,20 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
+        // Without this check, a user could delete their account (self-service,
+        // password-confirmation only) and re-register with the same email to
+        // get a fresh 7-day trial indefinitely. ConsumedTrial rows survive
+        // account deletion, so the trial is only ever granted once per email.
+        $alreadyHadTrial = ConsumedTrial::alreadyUsedBy($user->email);
+
         UserProfile::create([
             'user_id' => $user->id,
-            'trial_ends_at' => now()->addDays(7),
+            'trial_ends_at' => $alreadyHadTrial ? null : now()->addDays(7),
         ]);
+
+        if (! $alreadyHadTrial) {
+            ConsumedTrial::recordFor($user->email);
+        }
 
         event(new Registered($user));
 

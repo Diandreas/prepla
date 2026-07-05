@@ -12,10 +12,21 @@ class ClassroomPolicy
         return $user->isSuperAdmin() ? true : null;
     }
 
-    /** Staff of the same center can view a classroom. */
+    /**
+     * center_admin can view any classroom of the center; a teacher only those
+     * they are attached to (a teacher must not browse other teachers' classes).
+     */
     public function view(User $user, Classroom $classroom): bool
     {
-        return $this->sameCenter($user, $classroom);
+        if (! $this->sameCenter($user, $classroom)) {
+            return false;
+        }
+
+        if ($user->centerRoleIs('center_admin')) {
+            return true;
+        }
+
+        return $classroom->teachers()->whereKey($user->id)->exists();
     }
 
     public function create(User $user): bool

@@ -60,6 +60,14 @@ class SubscriptionController extends Controller
 
         $user = auth()->user();
 
+        // Without this guard, a double-click or two concurrent requests each
+        // create a separate Stripe Checkout Session; if both get completed
+        // the user ends up billed twice with two 'default' subscription rows,
+        // while $user->subscription('default') silently returns only the first.
+        if ($user->subscribed('default')) {
+            return redirect()->route('subscription.index');
+        }
+
         return $user->newSubscription('default', $request->price_id)
             ->checkout([
                 'success_url' => route('subscription.index') . '?success=1',
@@ -119,6 +127,10 @@ class SubscriptionController extends Controller
             abort(404);
         }
 
+        // Cashier's downloadInvoice() -> findInvoiceOrFail() already verifies
+        // the invoice's Stripe customer matches $user->stripe_id (Invoice's
+        // constructor throws InvalidInvoice otherwise, caught here as a 403)
+        // — confirmed by reading vendor/laravel/cashier/src/Invoice.php.
         return $user->downloadInvoice($invoiceId, [
             'vendor'  => config('app.name'),
             'product' => 'PrePla Plus',

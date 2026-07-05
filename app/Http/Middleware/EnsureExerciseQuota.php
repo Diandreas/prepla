@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Models\UserExerciseAttempt;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -25,16 +26,33 @@ class EnsureExerciseQuota
             return $next($request);
         }
 
-        $completedToday = UserExerciseAttempt::where('user_id', $user->id)
-            ->whereDate('created_at', today())
-            ->count();
+        // The count-then-act check below has a TOCTOU race: the controller's
+        // AI scoring call happens between this count and the attempt insert,
+        // so several concurrent submissions can all pass the check before
+        // any row exists. A per-user lock serializes submissions for the
+        // duration of the request, closing that window.
+        $lock = Cache::lock("exercise-quota:{$user->id}", 30);
 
-        if ($completedToday >= self::DAILY_FREE_LIMIT) {
+        if (!$lock->block(5)) {
             return redirect()
                 ->route('subscription.index')
-                ->with('error', "Tu as atteint ta limite de " . self::DAILY_FREE_LIMIT . " exercices gratuits aujourd'hui. Passe à PrePla Plus pour continuer sans limite.");
+                ->with('error', 'Une autre soumission est en cours, réessaie dans quelques secondes.');
         }
 
-        return $next($request);
+        try {
+            $completedToday = UserExerciseAttempt::where('user_id', $user->id)
+                ->whereDate('created_at', today())
+                ->count();
+
+            if ($completedToday >= self::DAILY_FREE_LIMIT) {
+                return redirect()
+                    ->route('subscription.index')
+                    ->with('error', "Tu as atteint ta limite de " . self::DAILY_FREE_LIMIT . " exercices gratuits aujourd'hui. Passe à PrePla Plus pour continuer sans limite.");
+            }
+
+            return $next($request);
+        } finally {
+            $lock->release();
+        }
     }
 }

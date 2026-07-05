@@ -53,6 +53,8 @@ class ResultsController extends Controller
 
     public function attemptDetail(UserExerciseAttempt $attempt): Response
     {
+        abort_unless($attempt->user_id === auth()->id(), 403);
+
         $attempt->load(['exercise.exerciseType.section', 'exercise.exam.language']);
 
         return Inertia::render('results/attempt-detail', [

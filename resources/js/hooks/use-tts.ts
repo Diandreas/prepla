@@ -137,15 +137,21 @@ export function useTts(): UseTtsReturn {
             // accepté à la fois par l'API Deepgram et le fallback navigateur.
             const code = normalizeLang(lang);
 
-            // Try Deepgram server API first
-            const csrfToken = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content;
+            // Try Deepgram server API first — read the freshest CSRF token
+            // from the cookie (tracks the live session) rather than the
+            // <meta> tag, which is frozen at page load and goes stale on a
+            // long-running session.
+            const csrfCookie = document.cookie.split('; ').find((c) => c.startsWith('XSRF-TOKEN='));
+            const csrfToken = csrfCookie
+                ? decodeURIComponent(csrfCookie.split('=')[1])
+                : document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content;
 
             fetch('/api/tts/speak', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    ...(csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {}),
+                    ...(csrfToken ? { 'X-XSRF-TOKEN': csrfToken } : {}),
                     'X-Requested-With': 'XMLHttpRequest',
                 },
                 body: JSON.stringify({ text, lang: code }),

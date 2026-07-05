@@ -28,7 +28,6 @@ class User extends Authenticatable
         'password',
         'google_id',
         'avatar',
-        'role',
     ];
 
     /**
@@ -39,6 +38,12 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        // Cashier billing internals — not needed by the frontend and were
+        // shipping in the 'auth.user' Inertia prop on every single page load.
+        'stripe_id',
+        'pm_type',
+        'pm_last_four',
+        'trial_ends_at',
     ];
 
     /**

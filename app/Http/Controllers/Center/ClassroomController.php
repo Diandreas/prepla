@@ -17,12 +17,20 @@ class ClassroomController extends Controller
     {
         /** @var LanguageCenter $center */
         $center = $request->attributes->get('center');
+        $user = $request->user();
 
-        $classrooms = $center->classrooms()
+        $query = $center->classrooms()
             ->withCount('students')
             ->with('exam:id,name')
-            ->orderByDesc('created_at')
-            ->get()
+            ->orderByDesc('created_at');
+
+        // A teacher only browses the classrooms they're attached to; a
+        // center_admin sees every classroom of the center.
+        if (! $user->centerRoleIs('center_admin')) {
+            $query->whereHas('teachers', fn ($q) => $q->whereKey($user->id));
+        }
+
+        $classrooms = $query->get()
             ->map(fn (Classroom $c) => [
                 'id' => $c->id,
                 'name' => $c->name,
@@ -67,7 +75,7 @@ class ClassroomController extends Controller
 
     public function show(Request $request, Classroom $classroom, \App\Services\Center\ClassStatsService $stats): Response
     {
-        $this->authorizeCenter($request, $classroom);
+        $this->authorize('view', $classroom);
 
         $classroom->load(['exam:id,name']);
         $students = $classroom->students()->get()->map(fn (User $u) => [
@@ -91,7 +99,7 @@ class ClassroomController extends Controller
 
     public function update(Request $request, Classroom $classroom)
     {
-        $this->authorizeCenter($request, $classroom);
+        $this->authorize('update', $classroom);
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -106,17 +114,9 @@ class ClassroomController extends Controller
 
     public function regenerateCode(Request $request, Classroom $classroom)
     {
-        $this->authorizeCenter($request, $classroom);
+        $this->authorize('update', $classroom);
         $classroom->update(['invite_code' => Classroom::generateInviteCode()]);
 
         return back()->with('success', "Nouveau code : {$classroom->invite_code}");
-    }
-
-    /** Belt-and-braces: the classroom must belong to the staff member's center. */
-    protected function authorizeCenter(Request $request, Classroom $classroom): void
-    {
-        /** @var LanguageCenter $center */
-        $center = $request->attributes->get('center');
-        abort_unless($classroom->center_id === $center->id, 403);
     }
 }

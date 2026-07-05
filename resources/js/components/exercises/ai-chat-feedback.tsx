@@ -1,6 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import { Markdown } from '@/components/markdown';
 
+// Read the freshest CSRF token (cookie tracks the live session) — the <meta>
+// tag is frozen at page load and goes stale on a long-running session.
+function csrfToken(): string {
+    const cookie = document.cookie.split('; ').find(c => c.startsWith('XSRF-TOKEN='));
+    if (cookie) return decodeURIComponent(cookie.split('=')[1]);
+    return (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
+}
+
 interface Message {
     role: 'user' | 'assistant';
     content: string;
@@ -51,7 +59,7 @@ export function AiChatFeedback({ isOpen, onClose, context, initialExplanation }:
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as any)?.content
+                    'X-XSRF-TOKEN': csrfToken(),
                 },
                 body: JSON.stringify({
                     messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })),

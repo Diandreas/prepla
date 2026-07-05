@@ -21,7 +21,10 @@ class PromoteSuperAdmin extends Command
             return self::FAILURE;
         }
 
-        $user->update(['role' => 'super_admin']);
+        // role is intentionally not mass-assignable (privilege escalation
+        // risk if a controller ever does fill($request->all())) — set directly.
+        $user->role = 'super_admin';
+        $user->save();
         $this->info("{$email} est maintenant super_admin.");
 
         return self::SUCCESS;

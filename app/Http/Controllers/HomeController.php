@@ -13,7 +13,7 @@ class HomeController extends Controller
     {
         $weekly = LeaderboardEntry::where('period_type', 'weekly')
             ->where('period_key', now()->format('Y-\WW'))
-            ->with('user')
+            ->with('user:id,name')
             ->orderByDesc('xp')
             ->take(50)
             ->get();

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Center;
 
 use App\Http\Controllers\Controller;
 use App\Models\Classroom;
-use App\Models\LanguageCenter;
 use App\Services\Center\ClassStatsService;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -14,9 +13,7 @@ class ProgressController extends Controller
     /** Download the class progression as a CSV for the center's own reporting. */
     public function exportCsv(Request $request, Classroom $classroom, ClassStatsService $stats): StreamedResponse
     {
-        /** @var LanguageCenter $center */
-        $center = $request->attributes->get('center');
-        abort_unless($classroom->center_id === $center->id, 403);
+        $this->authorize('view', $classroom);
 
         $data = $stats->forClassroom($classroom);
         $filename = 'progression-' . $classroom->invite_code . '.csv';

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AddSecurityHeaders;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -16,11 +17,15 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+            AddSecurityHeaders::class,
         ]);
-        // AI/internal API endpoints called via fetch — exempt from CSRF rotation
-        // (the user is still authenticated via session cookie)
+        // stripe/webhook is verified by Stripe's own signature instead of a
+        // CSRF token. api/ai/* used to be exempted too, but those are
+        // session-authenticated POST endpoints — exactly what CSRF protects
+        // against forged cross-site requests. The frontend already sends the
+        // XSRF-TOKEN header on every one of these calls, so no exemption is
+        // needed.
         $middleware->validateCsrfTokens(except: [
-            'api/ai/*',
             'stripe/webhook',
         ]);
     })
