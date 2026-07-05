@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { coerceOption } from './normalize-options';
 
 interface AcademicDiscussionProps {
     question: {
@@ -41,17 +42,21 @@ export function AcademicDiscussion({ question, onAnswer, selectedAnswer, disable
 
             {/* Student posts */}
             <div className="space-y-3">
-                {(question.student_posts || []).map((post, i) => (
-                    <div key={i} className="rounded-xl border bg-muted/30 p-4">
-                        <div className="mb-2 flex items-center gap-2">
-                            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-xs font-bold text-foreground">
-                                {post.name[0]}
+                {(Array.isArray(question.student_posts) ? question.student_posts : []).map((post, i) => {
+                    const name = coerceOption(post?.name);
+                    const text = coerceOption(post?.text);
+                    return (
+                        <div key={i} className="rounded-xl border bg-muted/30 p-4">
+                            <div className="mb-2 flex items-center gap-2">
+                                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-xs font-bold text-foreground">
+                                    {name[0] ?? '?'}
+                                </div>
+                                <span className="text-sm font-semibold">{name}</span>
                             </div>
-                            <span className="text-sm font-semibold">{post.name}</span>
+                            <p className="text-sm leading-relaxed text-muted-foreground">{text}</p>
                         </div>
-                        <p className="text-sm leading-relaxed text-muted-foreground">{post.text}</p>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
             {/* Your contribution */}

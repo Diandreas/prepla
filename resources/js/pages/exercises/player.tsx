@@ -944,6 +944,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                                 <div style={{ fontWeight: 700, fontSize: '0.9375rem', lineHeight: 1.2 }}>{node.title}</div>
                                 <div style={{ fontSize: '0.75rem', opacity: 0.5, marginTop: 2 }}>
                                     {node.exam.language.name} · {node.exam.name}
+                                    {!isReviewMode && ' · ' + t('exercise.mastery_threshold', 'Valide ce concept à 60%')}
                                 </div>
                             </div>
                         </div>

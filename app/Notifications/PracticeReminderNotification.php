@@ -32,7 +32,7 @@ class PracticeReminderNotification extends Notification implements ShouldQueue
     public function toWebPush(object $notifiable, $notification): WebPushMessage
     {
         $body = $this->streakDays > 0
-            ? "Ne brisez pas votre série de {$this->streakDays} jour" . ($this->streakDays > 1 ? 's' : '') . ' ! Pratiquez maintenant.'
+            ? "Continue ta série de {$this->streakDays} jour" . ($this->streakDays > 1 ? 's' : '') . ' ! Une courte session suffit.'
             : 'Une courte session suffit pour progresser. À vous !';
 
         return (new WebPushMessage)
@@ -47,14 +47,14 @@ class PracticeReminderNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $subject = $this->streakDays > 0
-            ? "Ne brisez pas votre série de {$this->streakDays} jour" . ($this->streakDays > 1 ? 's' : '') . ' !'
+            ? "Continue ta série de {$this->streakDays} jour" . ($this->streakDays > 1 ? 's' : '') . ' !'
             : 'PrePla — Temps de pratiquer aujourd\'hui';
 
         return (new MailMessage)
             ->subject($subject)
             ->greeting("Bonjour {$notifiable->name} !")
             ->line($this->streakDays > 0
-                ? "Votre série de **{$this->streakDays} jour" . ($this->streakDays > 1 ? 's' : '') . "** est en jeu. Pratiquez maintenant pour la maintenir."
+                ? "Belle série de **{$this->streakDays} jour" . ($this->streakDays > 1 ? 's' : '') . "** ! Une courte session aujourd'hui suffit pour la continuer."
                 : 'Une courte session de 15 minutes suffit pour progresser.')
             ->action('Continuer ma préparation', route('dashboard'))
             ->salutation('L\'équipe PrePla');

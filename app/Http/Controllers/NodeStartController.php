@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Exercise;
 use App\Models\ExerciseType;
 use App\Models\LearningPathNode;
+use App\Models\UserError;
 use App\Models\UserLearningProgress;
 use App\Services\AI\ExerciseGeneratorService;
 use App\Services\AI\TtsAudioGenerator;
@@ -101,6 +102,13 @@ class NodeStartController extends Controller
             // nodes keep the broader reading-led mix.
             $picked = collect();
 
+            // Speaking turns (role-play, oral-debate...) are entirely IN THE TARGET
+            // LANGUAGE — the examiner's lines, the scenario, everything. A beginner
+            // (A0/A1/A2) can't parse that yet, so speaking must be rare for them.
+            // From B1 up, the learner can actually follow it, so keep the usual mix.
+            $isBeginner = in_array($node->level, ['A0', 'A1', 'A2'], true);
+            $speakingOdds = $isBeginner ? 8 : 3; // beginner: ~1/8 · intermediate+: ~1/3
+
             if ($isLessonNode) {
                 // 1) a concept exercise (grammar) — the heart of a lesson practice.
                 $concept = $pickBySkill(['grammar'])
@@ -113,8 +121,8 @@ class NodeStartController extends Controller
                     $picked->push($concept2);
                 }
                 // 3) round it out with a different skill so the session isn't monotone:
-                //    a listening turn, or ~1 in 3 a speaking turn.
-                $thirdSkills = random_int(1, 3) === 1 ? ['speaking'] : ['listening'];
+                //    a listening turn, or occasionally a speaking turn (rarer for beginners).
+                $thirdSkills = random_int(1, $speakingOdds) === 1 ? ['speaking'] : ['listening'];
                 if ($third = $pickBySkill($thirdSkills, $picked->pluck('id')->all())) {
                     $picked->push($third);
                 }
@@ -128,8 +136,8 @@ class NodeStartController extends Controller
                 if ($reading = $pickBySkill(['reading', 'grammar'], $picked->pluck('id')->all())) {
                     $picked->push($reading);
                 }
-                // 3) round it out: ~1 in 3 sessions ends with a speaking turn, else any skill
-                $thirdSkills = random_int(1, 3) === 1
+                // 3) round it out: occasionally a speaking turn (rarer for beginners), else any skill
+                $thirdSkills = random_int(1, $speakingOdds) === 1
                     ? ['speaking']
                     : ['reading', 'grammar', 'listening'];
                 if ($third = $pickBySkill($thirdSkills, $picked->pluck('id')->all())) {
@@ -165,13 +173,36 @@ class NodeStartController extends Controller
                 ];
             }
 
+            // Spaced repetition (SM2): before generating a fresh random set, check
+            // whether the learner has a concept mistake DUE for review. Previously
+            // NodeStartController never consulted UserError at all — the SM2 queue
+            // only surfaced via the separate, opt-in "Review Center" page — so a
+            // recurring mistake never resurfaced in the everyday "Set of 3" flow.
+            // Re-using the existing lessonContext channel (not a new mechanism) to
+            // steer ONE of the generated exercises onto that concept.
+            $dueError = UserError::dueForReview($user->id)
+                ->whereNotIn('skill_type', ['reading', 'listening'])
+                ->where(function ($q) {
+                    $q->whereIn('exercise_type_slug', UserError::CONCEPT_SLUGS)
+                      ->orWhereIn('skill_type', ['grammar', 'vocabulary', 'use-of-english', 'writing']);
+                })
+                ->first();
+            $reviewLessonContext = $dueError ? array_merge($lessonContext, [
+                'title' => $lessonContext['title'],
+                'concept' => $dueError->error_category ?: $lessonContext['concept'],
+            ]) : null;
+
             if ($variedTypes->isNotEmpty()) {
                 $needed = 3 - $exercises->count();
                 $generated = collect();
                 for ($i = 0; $i < $needed; $i++) {
                     $exerciseType = $variedTypes[$i % $variedTypes->count()];
+                    // Steer the FIRST generated exercise of the set onto the due
+                    // review concept, if any — the rest keep testing the node's
+                    // own concept as before.
+                    $contextForThis = ($i === 0 && $reviewLessonContext) ? $reviewLessonContext : $lessonContext;
                     try {
-                        $ex = $generator->generate($exerciseType, $node->exam, $node->level, $lessonContext);
+                        $ex = $generator->generate($exerciseType, $node->exam, $node->level, $contextForThis);
                         $ex->update(['node_id' => $node->id, 'order_in_node' => $i + 1]);
                         $ex->load(['exerciseType', 'exam.language']);
                         $generated->push($ex);

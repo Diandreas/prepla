@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { coerceOption } from './normalize-options';
 
 interface MultipleMatchingProps {
     question: {
@@ -20,8 +21,18 @@ export function MultipleMatching({ question, onAnswer, selectedAnswer, disabled 
         setValues(next);
     };
 
-    const texts = Array.isArray(question.texts) ? question.texts : [];
-    const statements = Array.isArray(question.statements) ? question.statements : [];
+    // Coerce every IA-generated field defensively — a malformed object here
+    // (instead of a plain string) would otherwise crash the whole session with
+    // React error #31, the same class of bug already fixed on mcq/matching/ordering.
+    const texts = (Array.isArray(question.texts) ? question.texts : []).map((t) => ({
+        id: coerceOption(t?.id),
+        title: coerceOption(t?.title),
+        content: coerceOption(t?.content),
+    }));
+    const statements = (Array.isArray(question.statements) ? question.statements : []).map((s) => ({
+        id: coerceOption(s?.id),
+        text: coerceOption(s?.text),
+    }));
     const textIds = texts.map((t) => t.id);
 
     const handleSubmit = () => {

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { coerceOption } from './normalize-options';
 
 interface Paragraph { id: string; text: string; }
 
@@ -36,8 +37,8 @@ export function GappedText({ question, onAnswer, selectedAnswer, disabled }: Gap
 
     // Movable items: generator → paragraphs {id,text}; legacy → removed_paragraphs (text only).
     const items: { key: string; label: string }[] = usingGenerator
-        ? (question.paragraphs as Paragraph[]).map((p) => ({ key: p.id, label: p.text }))
-        : (question.removed_paragraphs ?? []).map((t, i) => ({ key: String(i), label: t }));
+        ? (question.paragraphs as Paragraph[]).map((p) => ({ key: coerceOption(p?.id), label: coerceOption(p?.text) }))
+        : (question.removed_paragraphs ?? []).map((t, i) => ({ key: String(i), label: coerceOption(t) }));
 
     const [placements, setPlacements] = useState<Record<string, string>>(selectedAnswer ?? {});
     const [selectedItem, setSelectedItem] = useState<string | null>(null);

@@ -4,14 +4,16 @@ interface EssayEditorProps {
     question: {
         id: string;
         text: string;
+        min_words?: number;
+        max_words?: number;
     };
     onAnswer: (questionId: string, answer: string) => void;
     selectedAnswer?: string;
-    minWords?: number;
-    maxWords?: number;
 }
 
-export function EssayEditor({ question, onAnswer, selectedAnswer, minWords = 150, maxWords = 300 }: EssayEditorProps) {
+export function EssayEditor({ question, onAnswer, selectedAnswer }: EssayEditorProps) {
+    const minWords = question.min_words ?? 150;
+    const maxWords = question.max_words ?? 300;
     const text = selectedAnswer ?? '';
     const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
 

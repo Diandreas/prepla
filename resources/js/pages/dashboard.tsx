@@ -515,7 +515,7 @@ export default function Dashboard() {
                                 <div className="flex-1">
                                     <p className="text-[10px] font-black uppercase tracking-widest text-amber-600">Boss du chapitre</p>
                                     <p className="text-sm font-black text-amber-900">Synthèse — Tous les concepts</p>
-                                    <p className="text-xs text-amber-700/70 mt-0.5">≥80% pour valider définitivement</p>
+                                    <p className="text-xs text-amber-700/70 mt-0.5">≥60% pour valider définitivement</p>
                                 </div>
                                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M7 5l5 5-5 5" stroke="#d97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                             </Link>

@@ -35,7 +35,13 @@ function SimpleChart({ data }: { data: ChartData }) {
 }
 
 function BarLineChart({ data }: { data: ChartData }) {
-    const allValues = data.datasets.flatMap((d) => d.data);
+    const labels = Array.isArray(data.labels) ? data.labels : [];
+    const datasets = Array.isArray(data.datasets) ? data.datasets : [];
+    if (labels.length === 0 || datasets.length === 0) {
+        return <p className="py-8 text-center text-sm text-muted-foreground">Graphique indisponible</p>;
+    }
+
+    const allValues = datasets.flatMap((d) => (Array.isArray(d.data) ? d.data : []));
     const maxVal = Math.max(...allValues, 1);
     const isLine = data.type === 'line';
 
@@ -43,7 +49,7 @@ function BarLineChart({ data }: { data: ChartData }) {
         <div className="space-y-2">
             {/* Legend */}
             <div className="flex flex-wrap gap-3">
-                {data.datasets.map((ds, i) => (
+                {datasets.map((ds, i) => (
                     <div key={i} className="flex items-center gap-1.5 text-xs">
                         <div className="h-3 w-3 rounded" style={{ background: COLORS[i % COLORS.length] }} />
                         <span className="font-medium">{ds.label}</span>
@@ -53,11 +59,13 @@ function BarLineChart({ data }: { data: ChartData }) {
 
             {/* Chart area */}
             <div className="flex items-end gap-1 pt-2" style={{ height: 200 }}>
-                {data.labels.map((label, li) => (
+                {labels.map((label, li) => (
                     <div key={li} className="flex flex-1 flex-col items-center gap-1">
                         <div className="flex w-full items-end justify-center gap-0.5" style={{ height: 160 }}>
-                            {data.datasets.map((ds, di) => {
-                                const h = (ds.data[li] / maxVal) * 100;
+                            {datasets.map((ds, di) => {
+                                const dsData = Array.isArray(ds.data) ? ds.data : [];
+                                const val = dsData[li] ?? 0;
+                                const h = (val / maxVal) * 100;
                                 return (
                                     <div
                                         key={di}
@@ -70,7 +78,7 @@ function BarLineChart({ data }: { data: ChartData }) {
                                         }}
                                     >
                                         <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[9px] font-bold text-foreground">
-                                            {ds.data[li]}
+                                            {val}
                                         </span>
                                     </div>
                                 );
@@ -87,7 +95,8 @@ function BarLineChart({ data }: { data: ChartData }) {
 }
 
 function PieChart({ data }: { data: ChartData }) {
-    const values = data.datasets[0]?.data ?? [];
+    const labels = Array.isArray(data.labels) ? data.labels : [];
+    const values = Array.isArray(data.datasets?.[0]?.data) ? data.datasets[0].data : [];
     const total = values.reduce((a, b) => a + b, 0) || 1;
 
     let cumAngle = 0;
@@ -95,7 +104,7 @@ function PieChart({ data }: { data: ChartData }) {
         const angle = (val / total) * 360;
         const start = cumAngle;
         cumAngle += angle;
-        return { label: data.labels[i], val, angle, start, color: COLORS[i % COLORS.length] };
+        return { label: labels[i] ?? '', val, angle, start, color: COLORS[i % COLORS.length] };
     });
 
     return (

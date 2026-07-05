@@ -42,6 +42,7 @@ import { BuildASentence } from './build-a-sentence';
 import { ListenChooseResponse } from './listen-choose-response';
 import { GuidedWriting } from './guided-writing';
 import { SpeakButton } from './speak-button';
+import { ExerciseErrorBoundary } from './exercise-error-boundary';
 
 interface ExercisePlayerProps {
     exercise: ExerciseRecord;
@@ -211,12 +212,14 @@ export function ExercisePlayer({ exercise }: ExercisePlayerProps) {
                 </div>
             )}
 
-            <Component
-                question={question}
-                onAnswer={handleAnswer}
-                selectedAnswer={answers[question.id]}
-                lang={lang}
-            />
+            <ExerciseErrorBoundary resetKey={question.id} onSkip={() => handleAnswer(question.id, '__skipped__')}>
+                <Component
+                    question={question}
+                    onAnswer={handleAnswer}
+                    selectedAnswer={answers[question.id]}
+                    lang={lang}
+                />
+            </ExerciseErrorBoundary>
 
             <div className="flex justify-between pt-4">
                 <Button

@@ -131,6 +131,14 @@ class LessonController extends Controller
         // matching the "Pratiquer ce concept" CTA the UI shows on success.
         $outcome = $this->planner->recordLessonOutcome($user, $accuracy, $passed);
 
+        // Actually perform the skip the 'skip_ahead' signal promises — previously
+        // this outcome only changed the message shown to the user, with no real
+        // effect on the skeleton, so a fast learner never actually advanced faster.
+        if ($outcome === 'skip_ahead') {
+            $skeleton = CurriculumSkeleton::where('user_id', $user->id)->first();
+            $skeleton?->skipAhead(1);
+        }
+
         // Award XP and update streak if passed
         if ($passed) {
             $xpReward = $lesson->node?->xp_reward ?? 20;
@@ -175,9 +183,10 @@ class LessonController extends Controller
             'outcome' => $outcome,
             'message' => match($outcome) {
                 'advance' => 'Bravo ! La leçon est validée, place à la pratique.',
-                'skip_ahead' => 'Excellent ! La leçon est validée, place à la pratique approfondie.',
+                'skip_ahead' => 'Excellent ! Tu progresses vite, on saute directement au concept suivant.',
                 'consolidation' => 'Ne t\'inquiète pas — la prochaine leçon reprendra ce concept différemment.',
                 'retry_concept' => 'Bon effort ! On va approfondir ce point théorique.',
+                'unblocked_after_struggle' => 'Ce concept est difficile — on passe au suivant, tu y reviendras plus tard pour le retravailler.',
                 default => 'Continue comme ça !',
             },
         ]);

@@ -175,8 +175,16 @@ export function RolePlay({ question, onAnswer, selectedAnswer, disabled, lang = 
 
             {error && <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</div>}
             {turns.length === 0 && (
-                <div className="rounded-xl border border-border bg-muted/50 px-6 py-4 text-sm text-muted-foreground">
-                    Dialogue non disponible pour cet exercice.
+                <div className="space-y-3 rounded-xl border border-border bg-muted/50 px-6 py-4 text-sm text-muted-foreground">
+                    <p>Dialogue non disponible pour cet exercice.</p>
+                    {!disabled && !selectedAnswer && (
+                        <button
+                            onClick={() => onAnswer(question.id, '__no_dialogue__')}
+                            className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground"
+                        >
+                            Passer cette question
+                        </button>
+                    )}
                 </div>
             )}
 

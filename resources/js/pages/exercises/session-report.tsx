@@ -12,27 +12,28 @@ function Icon({ name, size = 20, className, style }: { name: string; size?: numb
 
 interface ReportDetail {
     exercise_id: number;
-    type: string;
-    accuracy: number;
-    feedback: any[];
-    questions: any[];
+    type?: string;
+    title?: string;
+    accuracy?: number;
+    feedback?: any[];
+    questions?: any[];
 }
 
 interface Props {
     node: {
         id: number;
         title: string;
-        exam: {
+        exam?: {
             name: string;
-            language: { name: string }
+            language?: { name: string }
         }
     };
     report: {
-        node_title: string;
-        accuracy: number;
-        xp_earned: number;
-        time_spent: number;
-        details: ReportDetail[];
+        node_title?: string;
+        accuracy?: number;
+        xp_earned?: number;
+        time_spent?: number;
+        details?: ReportDetail[];
     };
     userLevel: string;
 }
@@ -40,10 +41,18 @@ interface Props {
 export default function SessionReport({ node, report, userLevel }: Props) {
     const { t } = useTranslation();
 
+    // Defensive fallbacks: a stale/partial report (old session shape left over
+    // from before a deploy) must never crash this page to a blank screen.
+    const accuracy = report?.accuracy ?? 0;
+    const details = Array.isArray(report?.details) ? report.details : [];
+    const xpEarned = report?.xp_earned ?? 0;
+    const timeSpent = report?.time_spent ?? 0;
+    const nodeTitle = report?.node_title ?? node?.title ?? '';
+
     // Victory sound + haptics on arrival (xp gained when the concept is mastered).
     useEffect(() => {
-        playSound(report.accuracy >= 80 ? 'complete' : 'xp');
-    }, [report.accuracy]);
+        playSound(accuracy >= 80 ? 'complete' : 'xp');
+    }, [accuracy]);
 
     const container = {
         hidden: { opacity: 0 },
@@ -60,11 +69,11 @@ export default function SessionReport({ node, report, userLevel }: Props) {
 
     return (
         <AppLayout>
-            <Head title={`Résultats : ${report.node_title}`} />
-            {report.accuracy >= 80 && <ConfettiBurst />}
+            <Head title={`Résultats : ${nodeTitle}`} />
+            {accuracy >= 80 && <ConfettiBurst />}
 
             <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-                <motion.div 
+                <motion.div
                     variants={container}
                     initial="hidden"
                     animate="show"
@@ -77,7 +86,7 @@ export default function SessionReport({ node, report, userLevel }: Props) {
                             {/* Animated trophy / encouragement based on accuracy */}
                             <div className="flex-shrink-0">
                                 <img
-                                    src={report.accuracy >= 80 ? '/animation/winner.gif' : report.accuracy >= 60 ? '/animation/big-trophy.gif' : '/animation/Fire.gif'}
+                                    src={accuracy >= 80 ? '/animation/winner.gif' : accuracy >= 60 ? '/animation/big-trophy.gif' : '/animation/Fire.gif'}
                                     alt=""
                                     width={150}
                                     height={150}
@@ -86,29 +95,29 @@ export default function SessionReport({ node, report, userLevel }: Props) {
                             </div>
                             <div className="flex-1 text-center md:text-left">
                                 <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2 ${
-                                    report.accuracy >= 60
+                                    accuracy >= 60
                                         ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
                                         : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
                                 }`}>
-                                    {report.accuracy >= 60 ? 'Concept maîtrisé' : 'Maîtrise insuffisante'}
+                                    {accuracy >= 60 ? 'Concept maîtrisé' : 'Maîtrise insuffisante'}
                                 </span>
                                 <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
-                                    {report.node_title}
+                                    {nodeTitle}
                                 </h1>
                                 <p className="text-slate-500 dark:text-slate-400">
-                                    {report.accuracy >= 60
+                                    {accuracy >= 60
                                         ? `Concept validé (≥60%). Tu peux passer au suivant.`
-                                        : `Il te faut ≥60% pour valider ce concept. Tu es à ${Math.round(report.accuracy)}% — refais une session ou revois la leçon.`}
+                                        : `Il te faut ≥60% pour valider ce concept. Tu es à ${Math.round(accuracy)}% — refais une session ou revois la leçon.`}
                                 </p>
                             </div>
 
                             <div className="flex gap-4">
                                 <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 text-center min-w-[120px]">
-                                    <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{Math.round(report.accuracy)}%</div>
+                                    <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{Math.round(accuracy)}%</div>
                                     <div className="text-xs font-medium text-slate-400 uppercase mt-1">Précision</div>
                                 </div>
                                 <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 text-center min-w-[120px]">
-                                    <div className="text-2xl font-bold text-yellow-500">+{report.xp_earned}</div>
+                                    <div className="text-2xl font-bold text-yellow-500">+{xpEarned}</div>
                                     <div className="text-xs font-medium text-slate-400 uppercase mt-1">XP Gagnés</div>
                                 </div>
                             </div>
@@ -124,7 +133,7 @@ export default function SessionReport({ node, report, userLevel }: Props) {
                              <div>
                                  <div className="text-sm text-slate-400 font-medium">Temps total</div>
                                  <div className="text-lg font-bold text-slate-900 dark:text-white">
-                                     {Math.floor(report.time_spent / 60)}m {report.time_spent % 60}s
+                                     {Math.floor(timeSpent / 60)}m {timeSpent % 60}s
                                  </div>
                              </div>
                          </div>
@@ -135,7 +144,7 @@ export default function SessionReport({ node, report, userLevel }: Props) {
                              <div>
                                  <div className="text-sm text-slate-400 font-medium">Réussite</div>
                                  <div className="text-lg font-bold text-slate-900 dark:text-white">
-                                     {report.details.filter(d => d.accuracy >= 60).length} / {report.details.length} Exercices
+                                     {details.filter(d => (d.accuracy ?? 0) >= 60).length} / {details.length} Exercices
                                  </div>
                              </div>
                          </div>
@@ -146,7 +155,7 @@ export default function SessionReport({ node, report, userLevel }: Props) {
                              <div>
                                  <div className="text-sm text-slate-400 font-medium">Niveau</div>
                                  <div className="text-lg font-bold text-slate-900 dark:text-white">
-                                     {node.exam.language.name} · {userLevel}
+                                     {node?.exam?.language?.name ?? ''} · {userLevel}
                                  </div>
                              </div>
                          </div>
@@ -155,7 +164,7 @@ export default function SessionReport({ node, report, userLevel }: Props) {
                     {/* Detailed Analysis */}
                     <motion.div variants={item} className="space-y-4">
                         <h2 className="text-xl font-bold text-slate-900 dark:text-white px-2">Analyse par exercice</h2>
-                        {report.details.map((detail, idx) => (
+                        {details.map((detail, idx) => (
                             <div key={idx} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
                                 <div className="p-4 flex items-center justify-between border-b border-slate-100 dark:border-slate-800">
                                     <div className="flex items-center gap-3">
@@ -163,15 +172,15 @@ export default function SessionReport({ node, report, userLevel }: Props) {
                                             {idx + 1}
                                         </div>
                                         <div>
-                                            <div className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-tight">{detail.type}</div>
+                                            <div className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-tight">{detail.type ?? detail.title ?? ''}</div>
                                         </div>
                                     </div>
-                                    <div className={`text-sm font-bold px-3 py-1 rounded-full ${detail.accuracy >= 60 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                        {Math.round(detail.accuracy)}%
+                                    <div className={`text-sm font-bold px-3 py-1 rounded-full ${(detail.accuracy ?? 0) >= 60 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                        {Math.round(detail.accuracy ?? 0)}%
                                     </div>
                                 </div>
                                 <div className="p-6 space-y-4">
-                                    {detail.feedback.map((f, fIdx) => (
+                                    {(Array.isArray(detail.feedback) ? detail.feedback : []).map((f, fIdx) => (
                                         <div key={fIdx} className={`p-4 rounded-xl border ${f.correct ? 'bg-green-50/30 border-green-100' : 'bg-red-50/30 border-red-100'}`}>
                                             <div className="flex items-start gap-3">
                                                 <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${f.correct ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
@@ -197,7 +206,7 @@ export default function SessionReport({ node, report, userLevel }: Props) {
 
                     {/* Actions — adapt CTA to whether user mastered the concept */}
                     <motion.div variants={item} className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
-                        {report.accuracy >= 60 ? (
+                        {accuracy >= 60 ? (
                             <>
                                 <Link
                                     href="/lessons/next"
@@ -218,7 +227,7 @@ export default function SessionReport({ node, report, userLevel }: Props) {
                                     href={route('node.start', node.id)}
                                     className="w-full sm:w-auto px-8 py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-bold shadow-lg transition-all transform hover:-translate-y-1 text-center"
                                 >
-                                    ↻ Refaire pour valider (≥80%)
+                                    ↻ Refaire pour valider (≥60%)
                                 </Link>
                                 <Link
                                     href={`/lessons/${node.id}`}

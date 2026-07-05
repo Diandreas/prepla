@@ -11,12 +11,16 @@ class MistralEvaluationService
         $this->mistral = $mistral;
     }
 
-    public function evaluate(string $prompt, string $userAnswer, string $language = 'German'): array
+    public function evaluate(string $prompt, string $userAnswer, string $language = 'German', ?string $cefrLevel = null): array
     {
+        $levelCalibration = $cefrLevel
+            ? " The student's CEFR level is $cefrLevel — calibrate your expectations to what a $cefrLevel learner should realistically produce, and do not penalise for advanced structures/vocabulary they are not expected to master yet."
+            : '';
+
         $messages = [
             [
                 'role' => 'system',
-                'content' => "You are a language examiner. The target language is $language. Evaluate the student's answer based on relevancy, grammar, meaning, and vocabulary. Always reply in valid JSON format ONLY:
+                'content' => "You are a language examiner. The target language is $language.{$levelCalibration} Evaluate the student's answer based on relevancy, grammar, meaning, and vocabulary. Always reply in valid JSON format ONLY:
 {
   \"isCorrect\": boolean,
   \"accuracy\": integer (0-100),
@@ -107,7 +111,7 @@ ERROR CATEGORIES TAXONOMY (use these exact categories):
      * @param string $transcript  The speech-to-text of what the learner said.
      * @param string $prompt      The speaking task / what they were asked to say.
      */
-    public function evaluateSpeaking(string $prompt, string $transcript, string $language = 'German', array $expectedPoints = []): array
+    public function evaluateSpeaking(string $prompt, string $transcript, string $language = 'German', array $expectedPoints = [], ?string $cefrLevel = null): array
     {
         // When a teacher (B2B center) authored explicit expected points, evaluate
         // coverage against THOSE points specifically, not just generic task points.
@@ -117,10 +121,14 @@ ERROR CATEGORIES TAXONOMY (use these exact categories):
             $expectedBlock = "\n\nThe response is expected to cover these specific points (evaluate covered_points / missing_points against THIS list):\n{$list}";
         }
 
+        $levelCalibration = $cefrLevel
+            ? " The student's CEFR level is $cefrLevel — calibrate your expectations to what a $cefrLevel learner should realistically produce, and do not penalise for advanced structures/vocabulary they are not expected to master yet."
+            : '';
+
         $messages = [
             [
                 'role' => 'system',
-                'content' => "You are a friendly speaking examiner for $language. You receive the TRANSCRIPT of what a student said out loud (speech-to-text — minor transcription noise is normal, do NOT penalise spelling/punctuation).
+                'content' => "You are a friendly speaking examiner for $language.{$levelCalibration} You receive the TRANSCRIPT of what a student said out loud (speech-to-text — minor transcription noise is normal, do NOT penalise spelling/punctuation).
 
 Evaluate FORMATIVELY and ENCOURAGINGLY:
 - Did the student address the task and produce relevant content in $language?

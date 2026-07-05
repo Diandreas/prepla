@@ -11,10 +11,14 @@ class WritingCorrectorService
         $this->mistral = $mistral;
     }
 
-    public function correct(string $text, string $taskDescription, string $examType = 'IELTS', string $feedbackLanguage = 'Français'): array
+    public function correct(string $text, string $taskDescription, string $examType = 'IELTS', string $feedbackLanguage = 'Français', ?string $cefrLevel = null): array
     {
+        $levelCalibration = $cefrLevel
+            ? "\n\nIMPORTANT — level calibration:\n- The student's CEFR level is {$cefrLevel}. Calibrate your expectations and scoring to what a {$cefrLevel} learner should realistically produce — do not penalise for advanced structures/vocabulary they are not expected to master yet.\n"
+            : '';
+
         $systemPrompt = "You are an expert $examType examiner. Evaluate the user's writing text based on the standard $examType grading criteria.
-Task description: $taskDescription
+Task description: $taskDescription{$levelCalibration}
 
 IMPORTANT — language of feedback:
 - Write ALL feedback, explanations and the `explanation` of every correction in {$feedbackLanguage} (the learner's native language). Do NOT write the feedback in English unless {$feedbackLanguage} is English.

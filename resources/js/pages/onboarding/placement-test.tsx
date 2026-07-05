@@ -398,7 +398,7 @@ export default function PlacementTest({ exam, sectionA, sectionB, sectionC }: Pr
                     <img src="/icons/loader.png" alt="" width={40} height={40} className="animate-spin mb-4"
                         style={{ }} />
                     <p className="text-lg font-black" style={{ color: OXFORD }}>Analyse de ton niveau…</p>
-                    <p className="mt-1 text-sm text-muted-foreground">L'IA évalue ta grammaire, ta lecture et ton expression écrite</p>
+                    <p className="mt-1 text-sm text-muted-foreground">L'IA analyse tes réponses de grammaire et de lecture</p>
                 </div>
             </OnboardingLayout>
         );
@@ -441,7 +441,7 @@ export default function PlacementTest({ exam, sectionA, sectionB, sectionC }: Pr
                             <h2 className="mt-1 text-xl font-black" style={{ color: OXFORD }}>
                                 Rédige ta réponse
                             </h2>
-                            <p className="text-xs text-muted-foreground mt-0.5">Prends ton temps, la qualité et la longueur sont évaluées</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">Prends ton temps, la longueur de ta réponse confirme ton niveau</p>
                         </div>
                         <EssayTimer
                             totalSeconds={300}

@@ -140,6 +140,19 @@ class CurriculumSkeleton extends Model
     }
 
     /**
+     * Force-complete a practice objective the learner is stuck on after too many
+     * consecutive failures (see NextLessonGenerator's stuck-objective handling).
+     * Without this, consecutive_failures had no ceiling: a learner who never
+     * clears the 60% mastery threshold on a concept could stay on it forever,
+     * since the only exit was passing the threshold. Marks it 'done' (not
+     * silently deleted) so progress/stats still reflect it was attempted.
+     */
+    public function forceCompleteStuckPractice(int $index): void
+    {
+        $this->completePractice($index);
+    }
+
+    /**
      * Mark the current objective as done and advance.
      */
     public function advanceToNextObjective(): void

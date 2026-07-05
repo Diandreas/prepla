@@ -318,10 +318,13 @@ Return a single valid JSON object with this exact structure (no extra text):
 {
   "section_a": [
     {"id":"a1","level":"A1","text":"Question in French","sentence":"sentence in {$language} (or empty string)","options":["A","B","C","D"],"correct_answer":"A"},
-    {"id":"a2","level":"A2","text":"...","sentence":"...","options":["A","B","C","D"],"correct_answer":"B"},
-    {"id":"a3","level":"B1","text":"...","sentence":"...","options":["A","B","C","D"],"correct_answer":"C"},
-    {"id":"a4","level":"B2","text":"...","sentence":"...","options":["A","B","C","D"],"correct_answer":"A"},
-    {"id":"a5","level":"C1","text":"...","sentence":"...","options":["A","B","C","D"],"correct_answer":"D"}
+    {"id":"a2","level":"A1","text":"...","sentence":"...","options":["A","B","C","D"],"correct_answer":"B"},
+    {"id":"a3","level":"A2","text":"...","sentence":"...","options":["A","B","C","D"],"correct_answer":"C"},
+    {"id":"a4","level":"A2","text":"...","sentence":"...","options":["A","B","C","D"],"correct_answer":"A"},
+    {"id":"a5","level":"B1","text":"...","sentence":"...","options":["A","B","C","D"],"correct_answer":"D"},
+    {"id":"a6","level":"B1","text":"...","sentence":"...","options":["A","B","C","D"],"correct_answer":"B"},
+    {"id":"a7","level":"B2","text":"...","sentence":"...","options":["A","B","C","D"],"correct_answer":"A"},
+    {"id":"a8","level":"C1","text":"...","sentence":"...","options":["A","B","C","D"],"correct_answer":"D"}
   ],
   "section_b": {
     "passage": "A 80-120 word authentic passage in {$language} on any topic",
@@ -337,33 +340,83 @@ Return a single valid JSON object with this exact structure (no extra text):
 }
 
 Rules:
-- section_a: 5 grammar/vocabulary MCQ, levels A1 A2 B1 B2 C1 (one each), options are full text strings (NOT letters), correct_answer is the letter "A","B","C" or "D" matching the correct option index (A=first, B=second...)
+- section_a: 8 grammar/vocabulary MCQ — TWO EACH at levels A1 and A2 (so a single
+  slip doesn't flip the whole placement verdict), one each at B1 B2 C1, options
+  are full text strings (NOT letters), correct_answer is the letter "A","B","C"
+  or "D" matching the correct option index (A=first, B=second...)
 - section_b: 3 reading comprehension MCQ about the passage, options are full text strings, correct_answer is letter
 - section_c: one essay prompt suited to {$examName} level
 - All instructions (text, prompt) in French; language content in {$language}
 - Return ONLY the JSON, no markdown, no explanation
 PROMPT;
 
-        $content = $this->mistral->chat([['role' => 'user', 'content' => $prompt]]);
+        // Up to 2 attempts, same pattern as ExerciseGeneratorService: retry the
+        // whole batch once if questions are structurally broken (duplicate/empty
+        // options, correct_answer pointing outside the options array) rather than
+        // trusting Mistral's output as-is — this pipeline previously had NO
+        // validation at all, unlike ExerciseGeneratorService.
+        for ($attempt = 0; $attempt < 2; $attempt++) {
+            $content = $this->mistral->chat([['role' => 'user', 'content' => $prompt]]);
+            if (!$content) {
+                continue;
+            }
 
-        if ($content) {
             // Strip markdown code fences if present
             $clean = preg_replace('/^```(?:json)?\s*/m', '', $content);
             $clean = preg_replace('/```\s*$/m', '', $clean);
             $decoded = json_decode(trim($clean), true);
 
             if (
-                isset($decoded['section_a'], $decoded['section_b'], $decoded['section_c']) &&
-                is_array($decoded['section_a']) && count($decoded['section_a']) >= 3 &&
-                isset($decoded['section_b']['passage'], $decoded['section_b']['questions']) &&
-                isset($decoded['section_c']['prompt'])
+                !isset($decoded['section_a'], $decoded['section_b'], $decoded['section_c']) ||
+                !is_array($decoded['section_a']) || count($decoded['section_a']) < 6 ||
+                !isset($decoded['section_b']['passage'], $decoded['section_b']['questions']) ||
+                !isset($decoded['section_c']['prompt'])
             ) {
-                return $decoded;
+                continue;
             }
+
+            $validA = $this->dropInvalidQuestions($decoded['section_a']);
+            $validB = $this->dropInvalidQuestions($decoded['section_b']['questions']);
+            if (count($validA) < 6 || count($validB) < 2) {
+                continue; // too many broken questions dropped — retry the whole batch
+            }
+            $decoded['section_a'] = $validA;
+            $decoded['section_b']['questions'] = $validB;
+
+            return $decoded;
         }
 
         Log::warning('PlacementTestService: generateFullTest AI failed, using fallback');
         return $this->getFallbackFullTest($language, $examName);
+    }
+
+    /**
+     * Drop MCQ questions with structurally broken options/correct_answer —
+     * duplicate/empty options, or correct_answer letter pointing outside the
+     * options array. Same validation family as
+     * ExerciseGeneratorService::dropInvalidChoiceQuestions().
+     */
+    private function dropInvalidQuestions(array $questions): array
+    {
+        return array_values(array_filter($questions, function ($q) {
+            $opts = $q['options'] ?? null;
+            if (!is_array($opts) || count($opts) < 2) {
+                return false;
+            }
+            $normalized = array_map(fn($o) => is_string($o) ? trim(mb_strtolower($o)) : null, $opts);
+            if (in_array(null, $normalized, true) || in_array('', $normalized, true)) {
+                return false;
+            }
+            if (count(array_unique($normalized)) !== count($normalized)) {
+                return false;
+            }
+            $ca = $q['correct_answer'] ?? null;
+            if (!is_string($ca) || !preg_match('/^[A-Z]$/', strtoupper(trim($ca)))) {
+                return false;
+            }
+            $idx = ord(strtoupper(trim($ca))) - 65;
+            return $idx >= 0 && $idx < count($opts);
+        }, $questions));
     }
 
     /**
@@ -415,11 +468,14 @@ PROMPT;
             $startLevel = 'A0';
         }
 
-        // 3. Essay : uniquement pour confirmer B1 (pas pour monter au-dessus)
-        //    Un essay vide = on conserve la décision MCQ
-        if ($startLevel === 'B1' && trim($essayText) !== '') {
+        // 3. Essay : uniquement pour confirmer B1 (pas pour monter au-dessus).
+        //    A BLANK essay is treated the SAME as a too-short one — previously an
+        //    empty essay (zero effort) kept the B1 verdict while a short-but-correct
+        //    essay (e.g. 35 words) got demoted, rewarding skipping the essay over
+        //    attempting it honestly.
+        if ($startLevel === 'B1') {
             $words = preg_split('/\s+/', trim($essayText), -1, PREG_SPLIT_NO_EMPTY);
-            // Moins de 40 mots = l'utilisateur ne maîtrise pas assez → on redescend à A1
+            // Moins de 40 mots (y compris 0 = essai vide) = l'utilisateur ne maîtrise pas assez → on redescend à A1
             if (count($words) < 40) {
                 $startLevel = 'A1';
             }
@@ -433,10 +489,13 @@ PROMPT;
         return [
             'section_a' => [
                 ['id' => 'a1', 'level' => 'A1', 'text' => 'Choisissez la bonne réponse :', 'sentence' => 'I ___ a student.', 'options' => ['am', 'is', 'are', 'be'], 'correct_answer' => 'A'],
-                ['id' => 'a2', 'level' => 'A2', 'text' => 'Complétez la phrase :', 'sentence' => 'She ___ to school every day.', 'options' => ['go', 'goes', 'going', 'gone'], 'correct_answer' => 'B'],
-                ['id' => 'a3', 'level' => 'B1', 'text' => 'Choisissez la bonne forme :', 'sentence' => 'They ___ dinner when I called.', 'options' => ['have', 'had', 'were having', 'has'], 'correct_answer' => 'C'],
-                ['id' => 'a4', 'level' => 'B2', 'text' => 'Sélectionnez la bonne structure :', 'sentence' => 'Not only ___ the test, but she also won a prize.', 'options' => ['she passed', 'did she pass', 'she did pass', 'passed she'], 'correct_answer' => 'B'],
-                ['id' => 'a5', 'level' => 'C1', 'text' => 'Choisissez la forme correcte :', 'sentence' => 'Had I known about the meeting, I ___ attended.', 'options' => ['would have', 'will have', 'would', 'should'], 'correct_answer' => 'A'],
+                ['id' => 'a2', 'level' => 'A1', 'text' => 'Complétez la phrase :', 'sentence' => 'This is ___ book.', 'options' => ['I', 'my', 'me', 'mine'], 'correct_answer' => 'B'],
+                ['id' => 'a3', 'level' => 'A2', 'text' => 'Complétez la phrase :', 'sentence' => 'She ___ to school every day.', 'options' => ['go', 'goes', 'going', 'gone'], 'correct_answer' => 'B'],
+                ['id' => 'a4', 'level' => 'A2', 'text' => 'Choisissez la bonne forme :', 'sentence' => 'They ___ dinner when I called.', 'options' => ['have', 'had', 'were having', 'has'], 'correct_answer' => 'C'],
+                ['id' => 'a5', 'level' => 'B1', 'text' => 'Sélectionnez la réponse correcte :', 'sentence' => 'I have lived here ___ 5 years.', 'options' => ['since', 'for', 'during', 'while'], 'correct_answer' => 'B'],
+                ['id' => 'a6', 'level' => 'B1', 'text' => 'Complétez avec la bonne forme :', 'sentence' => 'If I ___ more money, I would travel more.', 'options' => ['have', 'had', 'has', 'having'], 'correct_answer' => 'B'],
+                ['id' => 'a7', 'level' => 'B2', 'text' => 'Sélectionnez la bonne structure :', 'sentence' => 'Not only ___ the test, but she also won a prize.', 'options' => ['she passed', 'did she pass', 'she did pass', 'passed she'], 'correct_answer' => 'B'],
+                ['id' => 'a8', 'level' => 'C1', 'text' => 'Choisissez la forme correcte :', 'sentence' => 'Had I known about the meeting, I ___ attended.', 'options' => ['would have', 'will have', 'would', 'should'], 'correct_answer' => 'A'],
             ],
             'section_b' => [
                 'passage' => 'Technology has transformed the way people communicate and work. Social media platforms allow instant sharing of information across the globe, while remote work tools enable employees to collaborate from different locations. However, these advancements come with challenges: privacy concerns, digital addiction, and the risk of misinformation spreading rapidly online.',

@@ -166,6 +166,21 @@ class CurriculumPlannerService
             $skeleton->consecutive_successes = 0;
             $skeleton->save();
 
+            // Beyond 5 consecutive failures, consolidation (reworded AI content)
+            // alone hasn't unblocked the learner — there was previously NO ceiling
+            // here, so a learner who never clears the mastery threshold on a
+            // concept could stay on it forever. Force-complete the stuck practice
+            // objective so the journey can move on; the concept still gets
+            // flagged for spaced-repetition review (UserError) rather than lost.
+            $STUCK_THRESHOLD = 5;
+            if ($skeleton->consecutive_failures >= $STUCK_THRESHOLD) {
+                $practiceIndex = $skeleton->practiceObjectiveIndex();
+                if ($practiceIndex !== null) {
+                    $skeleton->forceCompleteStuckPractice($practiceIndex);
+                    return 'unblocked_after_struggle';
+                }
+            }
+
             // If 2+ failures, don't advance — next lesson is consolidation
             if ($skeleton->consecutive_failures >= 2) {
                 return 'consolidation';

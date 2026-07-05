@@ -346,7 +346,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
             <div className="mx-auto max-w-2xl px-3 py-4 sm:px-4 sm:py-8">
                 {/* Header back link */}
                 <div className="mb-4" style={stagger(0)}>
-                    <Link href="/lessons" className="text-xs font-bold flex items-center gap-1" style={{ color: SKY }}>
+                    <Link href="/dashboard" className="text-xs font-bold flex items-center gap-1" style={{ color: SKY }}>
                         ← Retour au parcours
                     </Link>
                 </div>
@@ -672,7 +672,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                         <div className="flex flex-col items-center gap-4 w-full">
                             {quizResults.passed ? (
                                 <Link
-                                    href="/lessons"
+                                    href="/dashboard"
                                     className="w-full rounded-2xl px-8 py-4 text-center text-sm font-black text-white transition-all hover:scale-[1.02]"
                                     style={{
                                         background: `linear-gradient(135deg, ${SKY}, #3478c8)`,
@@ -696,7 +696,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                                             : 'Réessayer la leçon'}
                                     </Link>
                                     <Link
-                                        href="/lessons"
+                                        href="/dashboard"
                                         className="text-xs font-bold text-muted-foreground hover:text-sky-600 transition-colors"
                                     >
                                         Revenir au parcours

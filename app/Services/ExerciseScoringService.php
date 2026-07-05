@@ -26,12 +26,22 @@ class ExerciseScoringService
         $this->stt = $stt;
     }
 
+    /** trim + mb_strtolower + normalize typographic apostrophes, so accented (é, ü, ß)
+     *  and apostrophe-containing answers aren't wrongly marked incorrect. */
+    protected function normalizeForComparison(?string $s): string
+    {
+        $s = trim(mb_strtolower((string)$s));
+        return str_replace(['’', '`'], "'", $s);
+    }
+
     public function score(Exercise $exercise, array $answers): array
     {
         $questions = $exercise->questions;
         $correct = 0;
         $total = count($questions);
+        $technicalFailures = 0;
         $feedback = [];
+        $cefrLevel = $exercise->difficulty;
 
         // Exercise types that require AI evaluation
         $aiEvaluatedTypes = [
@@ -58,8 +68,12 @@ class ExerciseScoringService
 
             // ─── AI EVALUATED BRANCH ───
             if (in_array($questionType, $aiEvaluatedTypes)) {
-                
-                if (empty($userAnswer)) {
+
+                // Sentinel sent by the frontend "skip this question" escape hatches
+                // (role-play with no dialogue_turns, build-a-sentence with no words,
+                // or the ErrorBoundary fallback) — treat as unanswered rather than
+                // sending a fake string to the AI evaluator for scoring.
+                if (empty($userAnswer) || $userAnswer === '__skipped__' || $userAnswer === '__no_dialogue__') {
                     $feedback[] = $this->createEmptyFeedback($questionId);
                     continue;
                 }
@@ -69,13 +83,15 @@ class ExerciseScoringService
                 
                 // Use specialized WritingCorrector for complex essays
                 if (in_array($questionType, ['essay', 'essay-editor', 'integrated-task', 'synthesis'])) {
-                    $textToEvaluate = $this->getTextToEvaluate($userAnswer, $langSlug);
+                    $technicalFailure = false;
+                    $textToEvaluate = $this->getTextToEvaluate($userAnswer, $langSlug, $technicalFailure);
                     if (empty($textToEvaluate)) {
-                        $feedback[] = $this->createEmptyFeedback($questionId, $userAnswer instanceof UploadedFile);
+                        if ($technicalFailure) $technicalFailures++;
+                        $feedback[] = $this->createEmptyFeedback($questionId, $userAnswer instanceof UploadedFile, $technicalFailure);
                         continue;
                     }
                     
-                    $aiResult = $this->writingCorrector->correct($textToEvaluate, $question['prompt'] ?? $question['text'] ?? "Write an essay", $exercise->exam?->name ?? 'IELTS');
+                    $aiResult = $this->writingCorrector->correct($textToEvaluate, $question['prompt'] ?? $question['text'] ?? "Write an essay", $exercise->exam?->name ?? 'IELTS', 'Français', $cefrLevel);
                     
                     $points = ($aiResult['score'] ?? 0) / 9; // Normalize IELTS 1-9 to 0-1
                     $isCorrect = $points >= 0.6;
@@ -92,9 +108,11 @@ class ExerciseScoringService
                         'transcription' => ($userAnswer instanceof UploadedFile) ? $textToEvaluate : null,
                     ];
                 } else {
-                    $textToEvaluate = $this->getTextToEvaluate($userAnswer, $langSlug);
+                    $technicalFailure = false;
+                    $textToEvaluate = $this->getTextToEvaluate($userAnswer, $langSlug, $technicalFailure);
                     if (empty($textToEvaluate)) {
-                        $feedback[] = $this->createEmptyFeedback($questionId, $userAnswer instanceof UploadedFile);
+                        if ($technicalFailure) $technicalFailures++;
+                        $feedback[] = $this->createEmptyFeedback($questionId, $userAnswer instanceof UploadedFile, $technicalFailure);
                         continue;
                     }
 
@@ -113,7 +131,7 @@ class ExerciseScoringService
                         $expectedPoints = is_array($question['expected_points'] ?? null)
                             ? $question['expected_points']
                             : [];
-                        $aiResult = $this->mistralEval->evaluateSpeaking($prompt, $textToEvaluate, $langName, $expectedPoints);
+                        $aiResult = $this->mistralEval->evaluateSpeaking($prompt, $textToEvaluate, $langName, $expectedPoints, $cefrLevel);
                         $isCorrect = (bool) $aiResult['isCorrect'];
                         $feedback[] = [
                             'question_id' => $questionId,
@@ -128,7 +146,7 @@ class ExerciseScoringService
                         ];
                     } else {
                         // Standard evaluation for typed short answers.
-                        $aiResult = $this->mistralEval->evaluate($prompt, $textToEvaluate, $langName);
+                        $aiResult = $this->mistralEval->evaluate($prompt, $textToEvaluate, $langName, $cefrLevel);
                         $isCorrect = (bool) $aiResult['isCorrect'];
                         $feedback[] = [
                             'question_id' => $questionId,
@@ -174,7 +192,7 @@ class ExerciseScoringService
                 $n = min(count($expectedSeq), count($userSeq));
                 $hit = 0;
                 for ($i = 0; $i < $n; $i++) {
-                    if (strtolower(trim((string)($userSeq[$i] ?? ''))) === strtolower(trim((string)($expectedSeq[$i] ?? '')))) {
+                    if ($this->normalizeForComparison($userSeq[$i] ?? '') === $this->normalizeForComparison($expectedSeq[$i] ?? '')) {
                         $hit++;
                     }
                 }
@@ -202,7 +220,7 @@ class ExerciseScoringService
                 $fieldTotal = count($correctAnswers);
                 foreach ($correctAnswers as $key => $expected) {
                     $given = $userAnswer[$key] ?? '';
-                    if (strtolower(trim((string)$given)) === strtolower(trim((string)$expected))) {
+                    if ($this->normalizeForComparison($given) === $this->normalizeForComparison($expected)) {
                         $fieldCorrect++;
                     }
                 }
@@ -224,7 +242,10 @@ class ExerciseScoringService
             // ─── STANDARD EXACT MATCH BRANCH ───
             $isCorrect = false;
             if (is_array($correctAnswer)) {
-                $isCorrect = is_array($userAnswer) && empty(array_diff($correctAnswer, $userAnswer)) && empty(array_diff($userAnswer, $correctAnswer));
+                $normalize = fn ($arr) => array_map(fn ($v) => $this->normalizeForComparison((string)$v), $arr);
+                $isCorrect = is_array($userAnswer)
+                    && empty(array_diff($normalize($correctAnswer), $normalize($userAnswer)))
+                    && empty(array_diff($normalize($userAnswer), $normalize($correctAnswer)));
             } else {
                 // Defensive: multi-field exercises (FormCompletion, TableCompletion, FlowChart…)
                 // submit an array against a scalar correct_answer. Join the values so the cast doesn't crash.
@@ -234,8 +255,8 @@ class ExerciseScoringService
                         fn ($v) => $v !== null && $v !== ''
                     )));
                 }
-                $normalUser = strtolower(trim((string)$userAnswer));
-                $normalCorrect = strtolower(trim((string)$correctAnswer));
+                $normalUser = $this->normalizeForComparison((string)$userAnswer);
+                $normalCorrect = $this->normalizeForComparison((string)$correctAnswer);
                 // An empty user answer is NEVER correct, even if the expected answer
                 // is also empty/missing (malformed exercise). This stopped multi-field
                 // exercises like form-completion from showing "success" with nothing entered.
@@ -246,7 +267,7 @@ class ExerciseScoringService
                     $options = $question['options'] ?? [];
                     $letterIndex = ord($normalUser) - ord('a');
                     if (isset($options[$letterIndex])) {
-                        $isCorrect = strtolower(trim($options[$letterIndex])) === $normalCorrect;
+                        $isCorrect = $this->normalizeForComparison($options[$letterIndex]) === $normalCorrect;
                     }
                 }
             }
@@ -279,7 +300,11 @@ class ExerciseScoringService
             ];
         }
 
-        $accuracyPercent = $total > 0 ? round(($correct / $total) * 100, 2) : 0;
+        // Technical STT failures are excluded from the denominator — they aren't
+        // the student's fault, so they shouldn't lower accuracy/XP like a real
+        // mistake would (see getTextToEvaluate's $technicalFailure param).
+        $scorableTotal = max($total - $technicalFailures, 0);
+        $accuracyPercent = $scorableTotal > 0 ? round(($correct / $scorableTotal) * 100, 2) : 0;
         $xpReward = $exercise->xp_reward ?? ($total * 10);
         $xpEarned = (int) round(($accuracyPercent / 100) * $xpReward);
 
@@ -291,33 +316,49 @@ class ExerciseScoringService
         ];
     }
 
-    protected function getTextToEvaluate($userAnswer, ?string $lang = null): string
+    /**
+     * @param bool &$technicalFailure  Set to true when transcription failed due to a
+     *   TECHNICAL problem (API error, exception) rather than the student staying
+     *   silent — DeepgramSttService returns null for the former, '' for the latter.
+     *   Losing this distinction meant a Deepgram outage penalised the student's XP
+     *   exactly like a real silent answer.
+     */
+    protected function getTextToEvaluate($userAnswer, ?string $lang = null, bool &$technicalFailure = false): string
     {
         if ($userAnswer instanceof UploadedFile) {
             try {
-                return $this->stt->transcribe($userAnswer, $lang) ?? '';
+                $transcript = $this->stt->transcribe($userAnswer, $lang);
+                if ($transcript === null) {
+                    $technicalFailure = true;
+                    return '';
+                }
+                return $transcript;
             } catch (\Exception $e) {
                 Log::error('STT failed: ' . $e->getMessage());
+                $technicalFailure = true;
                 return '';
             }
         }
         return is_string($userAnswer) ? trim($userAnswer) : '';
     }
 
-    protected function createEmptyFeedback(string $questionId, bool $isAudio = false): array
+    protected function createEmptyFeedback(string $questionId, bool $isAudio = false, bool $technicalFailure = false): array
     {
         return [
             'question_id' => $questionId,
             'correct' => false,
             'accuracy' => 0,
-            'explanation' => $isAudio
-                ? "On n'a pas réussi à t'entendre. Vérifie ton micro, parle plus fort et un peu plus longtemps, puis réessaie."
-                : "Aucune réponse fournie.",
+            'explanation' => $technicalFailure
+                ? "Un problème technique nous a empêché d'analyser ta réponse. Cette question ne compte pas dans ton score — réessaie."
+                : ($isAudio
+                    ? "On n'a pas réussi à t'entendre. Vérifie ton micro, parle plus fort et un peu plus longtemps, puis réessaie."
+                    : "Aucune réponse fournie."),
             // Always present so the UI can surface the state (even if empty). Empty
             // string = "we tried to transcribe but heard nothing".
             'transcription' => $isAudio ? '' : null,
             'covered_points' => [],
             'missing_points' => [],
+            'technical_failure' => $technicalFailure,
         ];
     }
 

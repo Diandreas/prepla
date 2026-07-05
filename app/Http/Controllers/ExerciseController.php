@@ -270,9 +270,17 @@ class ExerciseController extends Controller
     public function sessionResult(LearningPathNode $node)
     {
         $report = session('last_session_report');
-        if (!$report) {
+        // Guard against a missing/stale report (direct navigation, expired
+        // session, or an old report shape left over from before a deploy) —
+        // without this the page rendered with a malformed `report` and React
+        // crashed to a blank screen instead of falling back gracefully.
+        if (!is_array($report) || !isset($report['details']) || !is_array($report['details'])) {
             return redirect()->route('dashboard');
         }
+        $report['node_title'] ??= $node->title;
+        $report['accuracy'] ??= 0;
+        $report['xp_earned'] ??= 0;
+        $report['time_spent'] ??= 0;
 
         return Inertia::render('exercises/session-report', [
             'node' => $node->load('exam.language'),

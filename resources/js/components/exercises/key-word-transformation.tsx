@@ -4,7 +4,8 @@ interface KeyWordTransformationProps {
     question: {
         id: string;
         original_sentence: string;
-        keyword: string;
+        key_word?: string;
+        keyword?: string;
         start_of_answer?: string;
     };
     onAnswer: (questionId: string, answer: string) => void;
@@ -26,7 +27,7 @@ export function KeyWordTransformation({ question, onAnswer, selectedAnswer }: Ke
                 <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground">Key word:</span>
                     <span className="rounded bg-primary/10 px-3 py-1 font-mono text-sm font-bold uppercase text-primary">
-                        {question.keyword}
+                        {question.key_word ?? question.keyword}
                     </span>
                 </div>
             </div>

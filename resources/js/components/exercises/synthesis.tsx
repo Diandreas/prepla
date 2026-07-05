@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { coerceOption } from './normalize-options';
 
 interface SynthesisProps {
     question: {
@@ -31,29 +32,33 @@ export function Synthesis({ question, onAnswer, selectedAnswer, disabled }: Synt
         <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-4">
                 <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Documents sources</p>
-                {(question.documents || question.sources || []).map((doc, i) => (
-                    <div key={i} className="overflow-hidden rounded-xl border">
-                        <button
-                            onClick={() => setExpandedDoc(expandedDoc === i ? null : i)}
-                            className="flex w-full items-center justify-between bg-muted/30 px-4 py-3 text-left"
-                        >
-                            <div className="flex items-center gap-2">
-                                <span className="flex h-6 w-6 items-center justify-center rounded bg-primary text-[10px] font-bold text-primary-foreground">
-                                    {i + 1}
+                {(question.documents || question.sources || []).map((doc, i) => {
+                    const title = coerceOption(doc?.title);
+                    const content = coerceOption(doc?.content);
+                    return (
+                        <div key={i} className="overflow-hidden rounded-xl border">
+                            <button
+                                onClick={() => setExpandedDoc(expandedDoc === i ? null : i)}
+                                className="flex w-full items-center justify-between bg-muted/30 px-4 py-3 text-left"
+                            >
+                                <div className="flex items-center gap-2">
+                                    <span className="flex h-6 w-6 items-center justify-center rounded bg-primary text-[10px] font-bold text-primary-foreground">
+                                        {i + 1}
+                                    </span>
+                                    <span className="text-sm font-semibold">{title}</span>
+                                </div>
+                                <span className="text-xs text-muted-foreground">
+                                    {expandedDoc === i ? '▲' : '▼'}
                                 </span>
-                                <span className="text-sm font-semibold">{doc.title}</span>
-                            </div>
-                            <span className="text-xs text-muted-foreground">
-                                {expandedDoc === i ? '▲' : '▼'}
-                            </span>
-                        </button>
-                        {expandedDoc === i && (
-                            <div className="border-t bg-background p-4">
-                                <p className="text-sm leading-relaxed whitespace-pre-line">{doc.content}</p>
-                            </div>
-                        )}
-                    </div>
-                ))}
+                            </button>
+                            {expandedDoc === i && (
+                                <div className="border-t bg-background p-4">
+                                    <p className="text-sm leading-relaxed whitespace-pre-line">{content}</p>
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
             </div>
 
             {/* Writing prompt */}

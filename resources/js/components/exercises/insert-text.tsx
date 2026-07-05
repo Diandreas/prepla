@@ -4,7 +4,8 @@ interface InsertTextProps {
     question: {
         id: string;
         passage: string;
-        sentence_to_insert: string;
+        sentence?: string;
+        sentence_to_insert?: string;
         correct_answer?: string;
     };
     onAnswer: (questionId: string, answer: string) => void;
@@ -31,7 +32,7 @@ export function InsertText({ question, onAnswer, selectedAnswer, disabled }: Ins
             {/* Sentence to insert */}
             <div className="rounded-xl border-2 border-primary/30 bg-primary/5 p-4">
                 <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-primary">Phrase à insérer</p>
-                <p className="text-sm font-medium italic">{question.sentence_to_insert}</p>
+                <p className="text-sm font-medium italic">{question.sentence ?? question.sentence_to_insert}</p>
             </div>
 
             {/* Passage with markers */}
