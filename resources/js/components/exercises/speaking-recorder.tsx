@@ -22,8 +22,13 @@ export function SpeakingRecorder({ question, onAnswer, selectedAnswer, disabled,
     const prepTime = question.prep_time ?? 30;
     const speakTime = question.speak_time ?? 60;
 
-    const [phase, setPhase] = useState<Phase>(selectedAnswer ? 'done' : 'prep');
-    const [countdown, setCountdown] = useState(prepTime);
+    // Some exam tasks legitimately configure prep_time: 0 (immediate response, no
+    // separate prep phase). Starting in 'prep' with a 0:00 countdown would flash
+    // that state for one tick before auto-transitioning, which reads as broken/
+    // inconsistent next to questions that do have a visible prep countdown. Skip
+    // straight to 'recording' when there's no prep time to give a consistent UX.
+    const [phase, setPhase] = useState<Phase>(selectedAnswer ? 'done' : (prepTime > 0 ? 'prep' : 'recording'));
+    const [countdown, setCountdown] = useState(prepTime > 0 ? prepTime : speakTime);
     const { isRecording, audioUrl, audioBlob, startRecording, stopRecording, clearRecording, error } = useAudioRecorder();
     const { speak, isSpeaking, stop } = useTts();
 
@@ -31,6 +36,16 @@ export function SpeakingRecorder({ question, onAnswer, selectedAnswer, disabled,
     useEffect(() => {
         return () => stop();
     }, [stop]);
+
+    // No prep phase configured: start recording immediately on mount instead of
+    // waiting for the countdown effect's first tick.
+    useEffect(() => {
+        if (!disabled && !selectedAnswer && prepTime <= 0) {
+            startRecording();
+        }
+        // Only ever run once per question mount.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Countdown timer
     useEffect(() => {

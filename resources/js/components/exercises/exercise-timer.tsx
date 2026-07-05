@@ -17,10 +17,33 @@ export function ExerciseTimer({ onTimeUpdate, onExpire, timeLimit }: ExerciseTim
     }, [timeLimit]);
 
     useEffect(() => {
-        const interval = setInterval(() => {
+        // Ticking on a hidden tab would count wall-clock time the user isn't
+        // actually engaged with (backgrounded tab, phone locked, switched app) as
+        // "time spent" — inflating the exercise's reported duration to absurd
+        // values after a long-idle session. Pause the interval while hidden and
+        // resume on visibility restore instead of ticking through the gap.
+        let interval: ReturnType<typeof setInterval> | null = null;
+
+        const tick = () => {
             setSeconds((prev) => isCountdown ? Math.max(0, prev - 1) : prev + 1);
-        }, 1000);
-        return () => clearInterval(interval);
+        };
+
+        const start = () => {
+            if (interval || document.hidden) return;
+            interval = setInterval(tick, 1000);
+        };
+        const stop = () => {
+            if (interval) { clearInterval(interval); interval = null; }
+        };
+
+        const onVisibilityChange = () => (document.hidden ? stop() : start());
+
+        start();
+        document.addEventListener('visibilitychange', onVisibilityChange);
+        return () => {
+            stop();
+            document.removeEventListener('visibilitychange', onVisibilityChange);
+        };
     }, [isCountdown]);
 
     useEffect(() => {

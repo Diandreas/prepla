@@ -1,7 +1,7 @@
 // Bump this version on every deploy that ships new front-end assets so the
 // activate handler purges the previous cache. Cache-first on hashed Vite assets
 // is fine, but the SW itself must not pin users to a stale bundle.
-const CACHE_NAME = 'prepla-v11';
+const CACHE_NAME = 'prepla-v12';
 const OFFLINE_URL = '/offline';
 
 const PRECACHE_ASSETS = [
@@ -61,10 +61,14 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Navigation requests → network-first with a 3s timeout. The HTML document
+    // Navigation requests → network-first with an 8s timeout. The HTML document
     // embeds the current Vite asset hashes, so we MUST prefer the network to pick
     // up a new deploy. The timeout means a slow network falls back to cache (or the
     // offline page) instead of hanging, without pinning users to a stale document.
+    // 8s (not 3s) because a merely slow response (cold server, brief network hiccup)
+    // was tripping this and showing "Vous êtes hors ligne" while the app was
+    // actually reachable — a false offline reading is worse than a few extra
+    // seconds of waiting on a genuinely slow connection.
     if (request.mode === 'navigate') {
         event.respondWith(
             Promise.race([
@@ -73,7 +77,7 @@ self.addEventListener('fetch', (event) => {
                     caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
                     return response;
                 }),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('nav-timeout')), 3000)),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('nav-timeout')), 8000)),
             ]).catch(() =>
                 caches.match(request).then((cached) => cached || caches.match(OFFLINE_URL))
             )
