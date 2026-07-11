@@ -31,9 +31,9 @@ Always reply in valid JSON format ONLY:
   \"error_category\": \"category.subcategory (e.g. grammar.tense, vocabulary.lexical, spelling, etc.) — only if the answer is wrong, null if correct\",
   \"error_subcategory\": \"specific subcategory (e.g. past_simple_vs_present_perfect, article_usage) — only if wrong, null if correct\",
   \"explanation\": {
-    \"concept\": \"brief explanation of the grammar/vocab rule, written in $language\",
+    \"concept\": \"the grammar/vocab rule in ONE short sentence (max ~20 words), written in $language — no preamble, straight to the point\",
     \"evidence\": \"the correct form or sentence — wrap the key corrected part in <evidence>...</evidence> tags\",
-    \"hint\": \"one short actionable tip in $language\",
+    \"hint\": \"one short actionable tip in $language, max ~15 words\",
     \"french_translation\": {
       \"concept\": \"same concept explanation in French\",
       \"evidence\": \"same evidence in French\",
@@ -154,9 +154,9 @@ Reply in valid JSON ONLY:
   \"error_category\": \"speaking.fluency|speaking.accuracy|vocabulary.lexical|null\",
   \"error_subcategory\": \"string|null\",
   \"explanation\": {
-    \"concept\": \"1-2 sentences in $language: what was good + the main thing to improve\",
+    \"concept\": \"1-2 short sentences MAX in $language: what was good + the main thing to improve — no preamble\",
     \"evidence\": \"a better/example phrase in $language, key part in <evidence>...</evidence>\",
-    \"hint\": \"one concrete tip in $language to go further\",
+    \"hint\": \"one short concrete tip in $language to go further, max ~15 words\",
     \"french_translation\": { \"concept\": \"...in French\", \"evidence\": \"...in French\", \"hint\": \"...in French\" }
   }
 }"
@@ -206,11 +206,11 @@ Reply in valid JSON ONLY:
      */
     public function explainMistake(string $prompt, string $userAnswer, string $correctAnswer, string $language): string
     {
-        $systemPrompt = "You are an expert language teacher ($language). A student made a mistake in an exercise. 
+        $systemPrompt = "You are an expert language teacher ($language). A student made a mistake in an exercise.
         Instead of just giving the answer, explain the underlying CONCEPT (grammar, vocabulary, syntax) so they understand WHY it was wrong and how to improve.
         IMPORTANT: In your explanation, if there is a specific sentence in the provided context/passage that proves the correct answer, you MUST enclose that exact sentence in <evidence>...</evidence> tags within your explanation.
-        Keep it concise, encouraging, and in the target language ($language). Always provide a French translation of the explanation at the end.";
-        $userPrompt = "Exercise context/prompt: $prompt\nStudent's wrong answer: $userAnswer\nCorrect answer: $correctAnswer\n\nPlease explain the concept briefly and identify the source evidence if applicable.";
+        STRICT LENGTH LIMIT: 2-3 short sentences MAXIMUM, in the target language ($language). No preamble (\"Great question\", \"Let's see\"...), no restating the student's answer, go straight to the rule. Then one short French translation sentence at the end.";
+        $userPrompt = "Exercise context/prompt: $prompt\nStudent's wrong answer: $userAnswer\nCorrect answer: $correctAnswer\n\nExplain the concept in 2-3 sentences maximum and identify the source evidence if applicable.";
 
         $messages = [
             ['role' => 'system', 'content' => $systemPrompt],

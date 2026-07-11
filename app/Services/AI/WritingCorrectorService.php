@@ -43,10 +43,10 @@ Output your evaluation as a JSON object with the following structure:
         {
             \"original\": \"exact substring from the learner's text\",
             \"corrected\": \"corrected version of that span\",
-            \"explanation\": \"why it was corrected, in {$feedbackLanguage}\"
+            \"explanation\": \"why it was corrected — ONE short sentence, in {$feedbackLanguage}. No preamble.\"
         }
     ],
-    \"feedback\": \"Detailed overall feedback (strengths and weaknesses), written in {$feedbackLanguage}.\"
+    \"feedback\": \"Concise overall feedback in {$feedbackLanguage}: 3-4 short sentences max — the main strength, the main weakness, and one concrete tip to improve. No restating the task, no filler intro/outro.\"
 }";
 
         $response = $this->mistral->chat([

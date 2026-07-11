@@ -83,11 +83,11 @@ export default function Explainer() {
             {/* Height tuned for mobile: leave room for the bottom tab bar + safe area
                 so the chat is fully scrollable and the input stays reachable. */}
             <div className="flex h-[calc(100dvh-9rem)] flex-col p-3 md:h-[calc(100vh-8rem)] md:p-6">
-                <div className="mb-3 flex items-start justify-between gap-3">
-                    <div>
-                        <h1 className="text-xl md:text-2xl font-bold">Explicateur IA</h1>
-                        <p className="text-sm text-muted-foreground">Pose des questions sur la langue et la préparation aux examens</p>
-                    </div>
+                {/* No <h1> here: the sticky app header above already shows "Explicateur IA"
+                    for this route — repeating it as a page heading was a literal on-screen
+                    duplicate. */}
+                <div className="mb-3 flex items-center justify-between gap-3">
+                    <p className="text-sm text-muted-foreground">Pose des questions sur la langue et la préparation aux examens</p>
                     {messages.length > 1 && (
                         <button
                             onClick={clearChat}
@@ -113,7 +113,7 @@ export default function Explainer() {
                                         </div>
                                     )}
                                     <div
-                                        className={`max-w-[80%] rounded-lg p-3 text-sm ${
+                                        className={`max-w-[80%] min-w-0 overflow-x-hidden break-words rounded-lg p-3 text-sm ${
                                             msg.role === 'user'
                                                 ? 'bg-primary text-primary-foreground'
                                                 : 'bg-muted'
