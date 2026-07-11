@@ -240,7 +240,7 @@ class ExerciseGeneratorService
             }
 
             return true;
-        }, $questions));
+        }));
     }
 
     /**
@@ -339,7 +339,7 @@ class ExerciseGeneratorService
                 default:
                     return true;
             }
-        }, $questions));
+        }));
     }
 
     /**

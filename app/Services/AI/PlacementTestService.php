@@ -416,7 +416,7 @@ PROMPT;
             }
             $idx = ord(strtoupper(trim($ca))) - 65;
             return $idx >= 0 && $idx < count($opts);
-        }, $questions));
+        }));
     }
 
     /**
