@@ -51,12 +51,16 @@
         .brand span:first-child { font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 700; font-size: 1.4rem; color: inherit; }
         .brand .gold { font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 700; font-size: 1.4rem; color: #F5A623; }
         .cta { font-size: .8rem; font-weight: 700; padding: .5rem 1rem; border-radius: .6rem; background: #3B82E0; color: #fff; text-decoration: none; }
-        .wrap { max-width: 780px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+        .wrap { max-width: 860px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
         .badge { display: inline-block; font-size: .7rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #b8790a; background: rgba(245,166,35,0.12); padding: .2rem .6rem; border-radius: 999px; }
-        .card { display: block; text-decoration: none; color: inherit; border: 1px solid rgba(19,35,63,0.1); border-radius: 1rem; padding: 1.5rem; margin-bottom: 1.25rem; background: #fff; transition: transform .15s ease; }
-        .card:hover { transform: translateY(-2px); }
-        .card h2 { margin: .6rem 0 .4rem; font-size: 1.15rem; }
-        .card p { margin: 0; font-size: .9rem; opacity: .75; }
+        article { max-width: 680px; margin: 0 auto; }
+        .grid { display: grid; grid-template-columns: 1fr; gap: 1.1rem; margin-bottom: .5rem; }
+        @media (min-width: 640px) { .grid { grid-template-columns: 1fr 1fr; } }
+        .card { display: block; text-decoration: none; color: inherit; border: 1px solid rgba(19,35,63,0.1); border-radius: 1rem; padding: 1.1rem; margin-bottom: 1.25rem; background: #fff; transition: transform .15s ease; }
+        .grid .card { margin-bottom: 0; }
+        .card:hover { transform: translateY(-3px); }
+        .card h2 { margin: 0 0 .4rem; font-size: 1.05rem; line-height: 1.35; }
+        .card p { margin: 0; font-size: .87rem; opacity: .75; }
         .meta { font-size: .78rem; opacity: .6; margin-top: .6rem; }
         h1 { font-size: 1.85rem; margin-bottom: .3rem; line-height: 1.25; }
         article h2 { font-size: 1.2rem; margin-top: 2.2rem; }
