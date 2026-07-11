@@ -25,9 +25,9 @@ export function LandingFooter() {
             { label: t('landing.footer_link_contact'), href: '#' },
         ],
         [t('landing.footer_col_legal')]: [
-            { label: t('landing.footer_link_privacy'), href: '#' },
-            { label: t('landing.footer_link_terms'), href: '#' },
-            { label: t('landing.footer_link_cookies'), href: '#' },
+            { label: t('landing.footer_link_privacy'), href: '/privacy' },
+            { label: t('landing.footer_link_terms'), href: '/terms' },
+            { label: t('landing.footer_link_cookies'), href: '/privacy' },
         ],
     };
 
