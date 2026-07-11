@@ -39,8 +39,8 @@
         {{-- Données structurées : uniquement sur la landing publique --}}
         <script type="application/ld+json">
         {
-            "@context": "https://schema.org",
-            "@type": "WebApplication",
+            "@@context": "https://schema.org",
+            "@@type": "WebApplication",
             "name": "PrePla",
             "url": "{{ url('/') }}",
             "applicationCategory": "EducationalApplication",
@@ -48,7 +48,7 @@
             "description": "Plateforme de préparation aux examens de langue (anglais, français, allemand) avec exercices générés par IA, test de niveau et parcours personnalisé.",
             "inLanguage": ["fr", "en", "de"],
             "offers": {
-                "@type": "Offer",
+                "@@type": "Offer",
                 "price": "0",
                 "priceCurrency": "EUR",
                 "description": "Essai gratuit de 7 jours"
