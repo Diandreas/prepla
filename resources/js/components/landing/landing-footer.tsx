@@ -21,8 +21,8 @@ export function LandingFooter() {
         ],
         [t('landing.footer_col_company')]: [
             { label: t('landing.footer_link_about'), href: '#' },
-            { label: t('landing.footer_link_blog'), href: '#' },
-            { label: t('landing.footer_link_contact'), href: '#' },
+            { label: t('landing.footer_link_blog'), href: '/blog' },
+            { label: t('landing.footer_link_contact'), href: 'mailto:prepla.mirlab@gmail.com' },
         ],
         [t('landing.footer_col_legal')]: [
             { label: t('landing.footer_link_privacy'), href: '/privacy' },

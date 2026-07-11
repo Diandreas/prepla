@@ -1,11 +1,13 @@
 <?php
 
+use App\Http\Controllers\BlogController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DictionaryController;
 use App\Http\Controllers\ErrorReviewController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\VocabularyController;
+use App\Services\Blog\BlogService;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', LandingController::class)->name('home');
@@ -14,15 +16,22 @@ Route::get('/offline', fn() => view('offline'))->name('offline');
 Route::get('/privacy', fn() => view('legal.privacy'))->name('privacy');
 Route::get('/terms', fn() => view('legal.terms'))->name('terms');
 
+Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
+Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
+
 // SEO : sitemap des seules pages publiques (le reste est Disallow dans robots.txt)
 Route::get('/sitemap.xml', function () {
     $urls = [
         ['loc' => url('/'), 'priority' => '1.0'],
         ['loc' => url('/register'), 'priority' => '0.8'],
         ['loc' => url('/login'), 'priority' => '0.5'],
+        ['loc' => url('/blog'), 'priority' => '0.6'],
         ['loc' => url('/privacy'), 'priority' => '0.3'],
         ['loc' => url('/terms'), 'priority' => '0.3'],
     ];
+    foreach (BlogService::posts() as $post) {
+        $urls[] = ['loc' => url('/blog/' . $post['slug']), 'priority' => '0.5'];
+    }
     $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
         . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
     foreach ($urls as $u) {
