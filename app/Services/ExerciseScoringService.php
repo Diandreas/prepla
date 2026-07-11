@@ -52,6 +52,16 @@ class ExerciseScoringService
         ];
 
         foreach ($questions as $index => $question) {
+            // Reset per-question locals explicitly: PHP's foreach does NOT scope
+            // variables per iteration, so without this, a question that skips
+            // setting $accuracy/$explanation (e.g. a plain MCQ) would silently
+            // inherit the value left over by a PREVIOUS question's branch —
+            // confirmed cause of correct MCQ answers reporting 0% accuracy right
+            // after a low-scoring table/form-completion question, and of wrong
+            // answers occasionally showing a previous question's explanation.
+            $accuracy = null;
+            $explanation = null;
+
             $questionId = $question['id'] ?? (string)$index;
             $userAnswer = $answers[$questionId] ?? null;
             $correctAnswer = $question['correct_answer'] ?? null;
@@ -275,24 +285,40 @@ class ExerciseScoringService
             if (!$isCorrect) {
                  // Try to get a conceptual explanation
                  $explanation = $question['explanation'] ?? null;
-                 
-                 // If no static explanation, use AI for non-MCQ
-                 if (!$explanation && !isset($question['options'])) {
+
+                 // If no static explanation, ask the AI — including for MCQ/options
+                 // questions, which previously got NO explanation at all here (the
+                 // generation-time validation only guarantees one for a few
+                 // component types, and older exercises predate it entirely).
+                 // Resolve A/B/C/D letters to the actual option text first, so the
+                 // AI (and anyone reading the raw feedback) reasons about real
+                 // content instead of a bare letter.
+                 if (!$explanation) {
+                     $opts = $question['options'] ?? null;
+                     $resolve = function ($value) use ($opts) {
+                         if (is_array($opts) && is_string($value) && preg_match('/^[A-Za-z]$/', trim($value))) {
+                             $idx = ord(strtoupper(trim($value))) - 65;
+                             return $opts[$idx] ?? $value;
+                         }
+                         return $value;
+                     };
+
                      $explanation = $this->mistralEval->explainMistake(
                          $question['prompt'] ?? $question['text'] ?? '',
-                         $textToEvaluate ?? $this->getTextToEvaluate($userAnswer),
-                         $correctAnswer ?? '',
+                         is_string($userAnswer) ? $resolve($userAnswer) : $this->getTextToEvaluate($userAnswer),
+                         (string) $resolve($correctAnswer ?? ''),
                          $exercise->exam?->language?->name ?? 'English'
                      );
                  }
             }
 
+            $accuracy = $isCorrect ? 100 : 0;
             if ($isCorrect) $correct++;
 
             $feedback[] = [
                 'question_id' => $questionId,
                 'correct' => $isCorrect,
-                'accuracy' => (float)($accuracy ?? ($isCorrect ? 100 : 0)),
+                'accuracy' => (float) $accuracy,
                 'correct_answer' => $correctAnswer,
                 'explanation' => $explanation ?? $question['explanation'] ?? null,
                 'error_category' => !$isCorrect ? 'session_mistake' : null,

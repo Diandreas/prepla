@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useAudioRecorder } from '@/hooks/use-audio-recorder';
 import { useTts } from '@/hooks/use-tts';
 import { prefetchTts } from '@/lib/tts-cache';
-import { SpeakButton } from './speak-button';
 
 // Read the freshest CSRF token (cookie tracks the live session).
 function csrfToken(): string {
@@ -48,7 +47,7 @@ function asText(v: any): string {
 }
 
 export function RolePlay({ question, onAnswer, selectedAnswer, disabled, lang = 'en' }: RolePlayProps) {
-    const { speak, stop } = useTts();
+    const { speak, stop, isSpeaking } = useTts();
     const [currentTurn, setCurrentTurn] = useState(0);
     const { isRecording, audioUrl, audioBlob, startRecording, stopRecording, clearRecording, error } = useAudioRecorder();
     // Per-turn live correction results, keyed by turn index.
@@ -221,7 +220,25 @@ export function RolePlay({ question, onAnswer, selectedAnswer, disabled, lang = 
                                     <div className="space-y-2">
                                         <div className="flex items-start gap-2">
                                             <p className="flex-1 text-sm">{turn.text}</p>
-                                            {turn.text && <SpeakButton text={turn.text} lang={lang} compact />}
+                                            {turn.text && (
+                                                // Reuses THIS component's own speak/stop/isSpeaking (not a separate
+                                                // SpeakButton instance) so "replay" always stops the auto-played
+                                                // audio first instead of overlapping it — two independent useTts()
+                                                // instances each keep their own <audio>, with no way to stop the
+                                                // other's, which is exactly what caused two overlapping voices.
+                                                <button
+                                                    type="button"
+                                                    onClick={() => (isSpeaking ? stop() : speak(turn.text!, lang))}
+                                                    title={isSpeaking ? 'Arrêter' : 'Écouter'}
+                                                    className={`inline-flex shrink-0 items-center justify-center rounded-full p-1.5 text-primary transition hover:bg-primary/10 ${isSpeaking ? 'animate-pulse' : ''}`}
+                                                >
+                                                    {isSpeaking ? (
+                                                        <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4"><path d="M5.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75A.75.75 0 007.25 3h-1.5zM12.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75a.75.75 0 00-.75-.75h-1.5z" /></svg>
+                                                    ) : (
+                                                        <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4"><path d="M10 3.75a.75.75 0 00-1.264-.546L5.203 6.5H3.667A1.667 1.667 0 002 8.167v3.666A1.667 1.667 0 003.667 13.5h1.536l3.533 3.296A.75.75 0 0010 16.25V3.75zM13.78 7.22a.75.75 0 10-1.06 1.06 2.5 2.5 0 010 3.54.75.75 0 101.06 1.06 4 4 0 000-5.66zM15.9 5.1a.75.75 0 10-1.06 1.06 5.5 5.5 0 010 7.78.75.75 0 101.06 1.06 7 7 0 000-9.9z" /></svg>
+                                                    )}
+                                                </button>
+                                            )}
                                         </div>
                                         {isCurrent && !disabled && !allDone && (
                                             <button onClick={goNext} className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground">
