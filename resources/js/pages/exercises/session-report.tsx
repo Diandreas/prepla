@@ -10,6 +10,19 @@ function Icon({ name, size = 20, className, style }: { name: string; size?: numb
     return <img src={`/icons/${name}.png`} alt="" width={size} height={size} className={className} style={{ objectFit: 'contain', ...style }} />;
 }
 
+// AI-evaluated question types (essay/speaking/short-answer) return `explanation`
+// as an object ({concept,evidence,hint,french_translation}), not a string.
+// Rendering it directly as a React child crashes the whole page (error #31) —
+// same class of bug already fixed on exercise/result.tsx via asText().
+function asText(v: any): string {
+    if (v == null) return '';
+    if (typeof v === 'string') return v;
+    if (typeof v === 'number' || typeof v === 'boolean') return String(v);
+    if (Array.isArray(v)) return v.map(asText).filter(Boolean).join(' ');
+    if (typeof v === 'object') return asText(v.concept ?? v.text ?? v.message ?? v.hint ?? v.value ?? Object.values(v)[0]);
+    return '';
+}
+
 interface ReportDetail {
     exercise_id: number;
     type?: string;
@@ -192,7 +205,7 @@ export default function SessionReport({ node, report, userLevel }: Props) {
                                                     </p>
                                                     {!f.correct && f.explanation && (
                                                         <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 bg-white/50 dark:bg-slate-950/30 p-3 rounded-lg border border-slate-100 dark:border-slate-800 italic">
-                                                            {f.explanation}
+                                                            {asText(f.explanation)}
                                                         </p>
                                                     )}
                                                 </div>

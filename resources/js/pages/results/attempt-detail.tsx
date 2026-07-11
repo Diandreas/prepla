@@ -6,6 +6,29 @@ function Icon({ name, size = 20, className, style }: { name: string; size?: numb
 }
 import type { ExerciseAttempt } from '@/types';
 
+// correct_answer can be a string, an array (ordering/multi-select), or a plain
+// object map (multi-field/matching types, e.g. {s1:"B",s2:"A",...}) — rendering
+// that object directly as a React child crashes the whole tree (React error #31).
+function formatCorrectAnswer(v: unknown): string {
+    if (v == null) return '';
+    if (Array.isArray(v)) return v.map(String).join(', ');
+    if (typeof v === 'object') {
+        return Object.entries(v as Record<string, unknown>).map(([k, val]) => `${k}: ${val}`).join(', ');
+    }
+    return String(v);
+}
+
+// explanation can also be an object for AI-evaluated types (essay/speaking) —
+// same crash risk, same fix as exercise/result.tsx's asText().
+function asText(v: any): string {
+    if (v == null) return '';
+    if (typeof v === 'string') return v;
+    if (typeof v === 'number' || typeof v === 'boolean') return String(v);
+    if (Array.isArray(v)) return v.map(asText).filter(Boolean).join(' ');
+    if (typeof v === 'object') return asText(v.concept ?? v.text ?? v.message ?? v.hint ?? v.value ?? Object.values(v)[0]);
+    return '';
+}
+
 interface Props {
     attempt: ExerciseAttempt;
 }
@@ -86,11 +109,11 @@ export default function AttemptDetail({ attempt }: Props) {
                                         <p className="font-medium">{question?.text ?? `Question ${i + 1}`}</p>
                                         {!item.correct && (
                                             <p className="mt-1 text-sm">
-                                                Correct: <strong>{Array.isArray(item.correct_answer) ? item.correct_answer.join(', ') : item.correct_answer}</strong>
+                                                Correct: <strong>{formatCorrectAnswer(item.correct_answer)}</strong>
                                             </p>
                                         )}
                                         {item.explanation && (
-                                            <p className="mt-1 text-sm text-muted-foreground">{item.explanation}</p>
+                                            <p className="mt-1 text-sm text-muted-foreground">{asText(item.explanation)}</p>
                                         )}
                                     </div>
                                 </div>

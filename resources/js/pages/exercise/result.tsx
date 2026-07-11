@@ -17,6 +17,18 @@ function asText(v: any): string {
     return '';
 }
 
+// correct_answer can also be a plain object map (multi-field/matching types,
+// e.g. {s1:"B",s2:"A",...}) — JSON.stringify only kicked in for arrays, so an
+// object fell through and got rendered raw as a React child (error #31).
+function formatCorrectAnswer(v: unknown): string {
+    if (v == null) return '';
+    if (Array.isArray(v)) return v.map(String).join(', ');
+    if (typeof v === 'object') {
+        return Object.entries(v as Record<string, unknown>).map(([k, val]) => `${k}: ${val}`).join(', ');
+    }
+    return String(v);
+}
+
 interface NodeProgress {
     node_id: number;
     exercises_done: number;
@@ -222,10 +234,10 @@ export default function ExerciseResult({ attempt, nodeProgress }: Props) {
                                             {!item.correct && item.correct_answer && (
                                                 <div className="mt-2 p-2 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-between">
                                                     <p className="text-[13px]">
-                                                        Bonne réponse : <strong className="text-green-700">{Array.isArray(item.correct_answer) ? JSON.stringify(item.correct_answer) : item.correct_answer}</strong>
+                                                        Bonne réponse : <strong className="text-green-700">{formatCorrectAnswer(item.correct_answer)}</strong>
                                                     </p>
-                                                    <button 
-                                                        onClick={() => playTts(String(item.correct_answer), `correct-${i}`)}
+                                                    <button
+                                                        onClick={() => playTts(formatCorrectAnswer(item.correct_answer), `correct-${i}`)}
                                                         className="p-1 hover:bg-white rounded transition-all text-slate-400 hover:text-indigo-600"
                                                     >
                                                         <Icon name={playingTts === `correct-${i}` ? 'volume-2' : 'volume-1'} size={14} />
