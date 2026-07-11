@@ -22,12 +22,32 @@ interface Props {
     plans: { monthly: Plan; annual: Plan };
 }
 
+interface InvoiceItem {
+    id: string;
+    date: string;
+    total: string;
+    hosted_url: string | null;
+    pdf_url: string | null;
+}
+
 export default function Subscription({ currentPlan, stripeEnabled, isSubscribed, onTrial, trialDaysLeft, cancelAtPeriodEnd, renewsAt, plans }: Props) {
     const [processing, setProcessing] = useState(false);
     const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('monthly');
     const [showSuccess, setShowSuccess] = useState(false);
+    const [invoices, setInvoices] = useState<InvoiceItem[] | null>(null);
+    const [loadingInvoices, setLoadingInvoices] = useState(false);
     const isPremium = isSubscribed;
     const hasAccess = isSubscribed || onTrial;
+
+    const loadInvoices = () => {
+        if (invoices !== null || loadingInvoices) return;
+        setLoadingInvoices(true);
+        fetch(route('subscription.invoices'), { headers: { Accept: 'application/json' } })
+            .then((res) => res.json())
+            .then((data) => setInvoices(data.invoices ?? []))
+            .catch(() => setInvoices([]))
+            .finally(() => setLoadingInvoices(false));
+    };
 
     // Stripe Checkout redirects back here with ?success=1 on successful payment —
     // previously this was never read, so the user got no confirmation their
@@ -192,14 +212,39 @@ export default function Subscription({ currentPlan, stripeEnabled, isSubscribed,
                                         {processing ? 'Chargement...' : 'Annuler l\'abonnement'}
                                     </Button>
                                 )}
-                                <a
-                                    href={route('subscription.invoices')}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                <button
+                                    type="button"
+                                    onClick={loadInvoices}
                                     className="text-center text-xs text-muted-foreground underline hover:text-foreground"
                                 >
-                                    Voir mes factures
-                                </a>
+                                    {loadingInvoices ? 'Chargement des factures…' : 'Voir mes factures'}
+                                </button>
+                                {invoices !== null && (
+                                    invoices.length === 0 ? (
+                                        <p className="text-center text-xs text-muted-foreground">Aucune facture pour le moment.</p>
+                                    ) : (
+                                        <ul className="divide-y divide-border rounded-xl border border-border">
+                                            {invoices.map((inv) => (
+                                                <li key={inv.id} className="flex items-center justify-between gap-2 px-3 py-2 text-xs">
+                                                    <span className="text-muted-foreground">{inv.date}</span>
+                                                    <span className="font-medium">{inv.total}</span>
+                                                    {(inv.pdf_url ?? inv.hosted_url) ? (
+                                                        <a
+                                                            href={inv.pdf_url ?? inv.hosted_url ?? '#'}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="font-medium text-primary underline"
+                                                        >
+                                                            PDF
+                                                        </a>
+                                                    ) : (
+                                                        <span className="text-muted-foreground">—</span>
+                                                    )}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )
+                                )}
                             </>
                         ) : (
                             <Button

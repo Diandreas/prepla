@@ -2,6 +2,7 @@
 
 namespace App\Listeners;
 
+use App\Mail\InvoicePaidMail;
 use App\Mail\PaymentFailedMail;
 use App\Mail\SubscriptionStartedMail;
 use App\Models\User;
@@ -39,9 +40,38 @@ class HandleCashierWebhook implements ShouldQueue
 
         match ($type) {
             'customer.subscription.created' => $this->onSubscriptionCreated($object),
+            'invoice.payment_succeeded' => $this->onInvoicePaid($object),
             'invoice.payment_failed' => $this->onPaymentFailed($object),
             default => null,
         };
+    }
+
+    /**
+     * Envoie le reçu par email après chaque paiement réussi. Les URLs de facture
+     * (page hébergée + PDF) sont déjà dans le payload — pas d'appel Stripe.
+     */
+    private function onInvoicePaid(array $object): void
+    {
+        $user = $this->findUserByStripeId($object['customer'] ?? null);
+        if (!$user) {
+            return;
+        }
+
+        // Ignore les factures à 0 € (périodes d'essai, proratisations nulles).
+        $amountPaid = (int) ($object['amount_paid'] ?? 0);
+        if ($amountPaid <= 0) {
+            return;
+        }
+
+        $currency = strtoupper($object['currency'] ?? 'eur');
+        $amount = number_format($amountPaid / 100, 2, ',', ' ') . ' ' . ($currency === 'EUR' ? '€' : $currency);
+
+        Mail::to($user->email)->send(new InvoicePaidMail(
+            $user,
+            $amount,
+            $object['hosted_invoice_url'] ?? null,
+            $object['invoice_pdf'] ?? null,
+        ));
     }
 
     private function onSubscriptionCreated(array $object): void

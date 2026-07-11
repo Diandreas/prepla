@@ -259,11 +259,29 @@ class NodeStartController extends Controller
                 continue;
             }
             $questions = $exercise->questions ?? [];
-            if (empty($questions)) {
-                continue;
-            }
             $language = strtolower($exercise->exam?->language?->slug ?? 'english');
             $modified = false;
+
+            // Content-level audio (audio_text/passage on the exercise itself) — the
+            // player reads content.audio_url first; without this only per-question
+            // audio was pre-built and the passage still hit live TTS at click time.
+            $content = $exercise->content ?? [];
+            if (is_array($content) && empty($content['audio_url'])) {
+                $contentText = $content['audio_text'] ?? $content['passage'] ?? null;
+                if (is_string($contentText) && trim($contentText) !== '') {
+                    try {
+                        $url = $ttsAudio->generate(trim($contentText), $ttsAudio->defaultVoiceFor($language));
+                        if ($url) {
+                            $content['audio_url'] = $url;
+                            $exercise->content = $content;
+                            $modified = true;
+                        }
+                    } catch (\Throwable $e) {
+                        \Illuminate\Support\Facades\Log::warning('Listening pre-gen TTS failed (content)', ['error' => $e->getMessage()]);
+                    }
+                }
+            }
+
             foreach ($questions as $idx => $question) {
                 if (!empty($question['audio_url'])) {
                     continue; // already generated

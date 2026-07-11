@@ -8,6 +8,8 @@
  *  - warm the browser memory cache directly (Image()/Audio()) for this session
  */
 
+import { initSounds } from '@/hooks/use-sound';
+
 const SOUNDS = [
     '/sounds/correct.mp3',
     '/sounds/incorrect.mp3',
@@ -57,11 +59,9 @@ export function preloadAssets() {
             const img = new Image();
             img.src = src;
         }
-        for (const src of SOUNDS) {
-            const a = new Audio();
-            a.preload = 'auto';
-            a.src = src;
-        }
+        // SFX: decode into Web Audio buffers once — playback is then instant
+        // (no fetch/decode lag at click time). See use-sound.ts.
+        initSounds();
     };
     if ('requestIdleCallback' in window) {
         (window as any).requestIdleCallback(warm, { timeout: 3000 });

@@ -11,6 +11,23 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', LandingController::class)->name('home');
 Route::get('/offline', fn() => view('offline'))->name('offline');
 
+// SEO : sitemap des seules pages publiques (le reste est Disallow dans robots.txt)
+Route::get('/sitemap.xml', function () {
+    $urls = [
+        ['loc' => url('/'), 'priority' => '1.0'],
+        ['loc' => url('/register'), 'priority' => '0.8'],
+        ['loc' => url('/login'), 'priority' => '0.5'],
+    ];
+    $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
+        . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+    foreach ($urls as $u) {
+        $xml .= "  <url><loc>{$u['loc']}</loc><priority>{$u['priority']}</priority></url>\n";
+    }
+    $xml .= '</urlset>';
+
+    return response($xml, 200, ['Content-Type' => 'application/xml']);
+})->name('sitemap');
+
 Route::middleware(['auth'])->group(function () {
     // Onboarding
     Route::prefix('onboarding')->name('onboarding.')->group(function () {

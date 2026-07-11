@@ -112,8 +112,11 @@ class SubscriptionController extends Controller
 
         $invoices = $user->invoices()->map(fn ($invoice) => [
             'id' => $invoice->id,
-            'date' => $invoice->date()->toFormattedDateString(),
+            'date' => $invoice->date()->translatedFormat('d M Y'),
             'total' => $invoice->total(),
+            // Liens hébergés par Stripe (page + PDF) — pas de rendu PDF local.
+            'hosted_url' => $invoice->asStripeInvoice()->hosted_invoice_url,
+            'pdf_url' => $invoice->asStripeInvoice()->invoice_pdf,
         ]);
 
         return response()->json(['invoices' => $invoices]);
@@ -127,13 +130,16 @@ class SubscriptionController extends Controller
             abort(404);
         }
 
-        // Cashier's downloadInvoice() -> findInvoiceOrFail() already verifies
-        // the invoice's Stripe customer matches $user->stripe_id (Invoice's
-        // constructor throws InvalidInvoice otherwise, caught here as a 403)
-        // — confirmed by reading vendor/laravel/cashier/src/Invoice.php.
-        return $user->downloadInvoice($invoiceId, [
-            'vendor'  => config('app.name'),
-            'product' => 'PrePla Plus',
-        ]);
+        // findInvoiceOrFail() vérifie que la facture appartient bien à ce client
+        // Stripe (403 sinon). On redirige vers le PDF hébergé par Stripe :
+        // l'ancien downloadInvoice() de Cashier exigeait dompdf, qui n'est PAS
+        // installé — la route plantait en 500 depuis toujours.
+        $invoice = $user->findInvoiceOrFail($invoiceId);
+        $stripeInvoice = $invoice->asStripeInvoice();
+
+        $url = $stripeInvoice->invoice_pdf ?? $stripeInvoice->hosted_invoice_url;
+        abort_unless($url, 404);
+
+        return redirect()->away($url);
     }
 }

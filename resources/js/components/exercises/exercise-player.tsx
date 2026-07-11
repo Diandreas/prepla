@@ -4,6 +4,7 @@ import { ExerciseTimer } from './exercise-timer';
 import { ExerciseProgress } from './exercise-progress';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ExerciseRecord } from '@/types';
+import { prefetchExercisesAudio } from '@/lib/tts-cache';
 
 // Exercise Components
 import { Mcq } from './mcq';
@@ -151,6 +152,13 @@ export function ExercisePlayer({ exercise }: ExercisePlayerProps) {
     const lang = exercise.exam?.language?.slug ?? 'en';
     const skillType = exercise.exercise_type?.skill_type;
 
+    // Prefetch the exercise's audio at mount (TTS texts + pre-generated MP3s)
+    // so "Écouter" plays instantly instead of calling the TTS API at click time.
+    useEffect(() => {
+        prefetchExercisesAudio([exercise as any], lang);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const handleAnswer = useCallback((questionId: string, answer: any) => {
         setAnswers((prev) => ({ ...prev, [questionId]: answer }));
     }, []);
@@ -231,7 +239,7 @@ export function ExercisePlayer({ exercise }: ExercisePlayerProps) {
                 </Button>
                 <Button
                     onClick={handleNext}
-                    disabled={(!answers[question.id] && componentKey !== 'speaking-recorder') || submitting}
+                    disabled={(answers[question.id] === undefined && componentKey !== 'speaking-recorder') || submitting}
                 >
                     {isLast ? (submitting ? 'Envoi...' : 'Terminer') : 'Suivant'}
                 </Button>

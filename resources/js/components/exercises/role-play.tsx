@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAudioRecorder } from '@/hooks/use-audio-recorder';
 import { useTts } from '@/hooks/use-tts';
+import { prefetchTts } from '@/lib/tts-cache';
 import { SpeakButton } from './speak-button';
 
 // Read the freshest CSRF token (cookie tracks the live session).
@@ -80,6 +81,16 @@ export function RolePlay({ question, onAnswer, selectedAnswer, disabled, lang = 
     const allDone = !!selectedAnswer || (candidateTurns.length > 0 && answeredCount >= candidateTurns.length);
     const isMyTurn = !disabled && !allDone && !isExaminerTurn(turns[currentTurn]);
     const currentDone = turnResults[currentTurn] !== undefined;
+
+    // Prefetch every examiner line at mount so each turn's audio plays instantly
+    // (deduped with the session player's own prefetch — cache hits are free).
+    useEffect(() => {
+        const lines = rawTurns
+            .filter((t) => isExaminerTurn(t) && t?.text)
+            .map((t) => ({ text: t.text, lang }));
+        if (lines.length) void prefetchTts(lines);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Auto-play the examiner line when we reach their turn.
     useEffect(() => {

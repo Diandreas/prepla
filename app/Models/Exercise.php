@@ -19,6 +19,11 @@ class Exercise extends Model
         'lesson_id',
         'mock_exam_id',
         'exam_section_id',
+        // node_id/order_in_node absents d'ici = update() silencieusement ignoré →
+        // les exercices générés n'étaient jamais rattachés à leur nœud, et chaque
+        // ouverture de session relançait la génération IA complète.
+        'node_id',
+        'order_in_node',
         'content',
         'questions',
         'difficulty',

@@ -169,7 +169,9 @@ class ExerciseController extends Controller
                 
                 $sessionResults[] = [
                     'exercise_id' => $exercise->id,
-                    'title' => $exercise->title,
+                    // Pas de colonne `title` sur exercises — le titre vit dans le
+                    // content JSON, sinon on retombe sur le nom du type d'exercice.
+                    'title' => $exercise->content['title'] ?? $exercise->exerciseType?->name,
                     'score' => $result['score'],
                     'total' => count($exercise->questions),
                     'accuracy' => $result['accuracy'],

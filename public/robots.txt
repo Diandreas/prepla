@@ -1,2 +1,25 @@
 User-agent: *
-Disallow:
+# Pages applicatives privées — inutiles à indexer
+Disallow: /dashboard
+Disallow: /onboarding/
+Disallow: /exercise/
+Disallow: /node/
+Disallow: /practice
+Disallow: /lessons
+Disallow: /dictionary
+Disallow: /vocabulary
+Disallow: /errors
+Disallow: /results
+Disallow: /profile
+Disallow: /settings
+Disallow: /leaderboard
+Disallow: /ai-tools
+Disallow: /center
+Disallow: /admin
+Disallow: /api/
+Disallow: /join
+Disallow: /chapter/
+Disallow: /test/
+Disallow: /push/
+
+Sitemap: https://prepla.mirlab.cloud/sitemap.xml

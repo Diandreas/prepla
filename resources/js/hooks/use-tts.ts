@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
+import { getCachedTtsUrl, rememberTtsUrl } from '@/lib/tts-cache';
 
 interface UseTtsReturn {
     speak: (text: string, lang?: string) => void;
@@ -137,6 +138,23 @@ export function useTts(): UseTtsReturn {
             // accepté à la fois par l'API Deepgram et le fallback navigateur.
             const code = normalizeLang(lang);
 
+            const playUrl = (url: string) => {
+                const audio = new Audio(url);
+                audioRef.current = audio;
+                audio.onplay = () => setIsSpeaking(true);
+                audio.onended = () => setIsSpeaking(false);
+                audio.onerror = () => speakWithBrowser(text, code);
+                audio.play().catch(() => speakWithBrowser(text, code));
+            };
+
+            // Instant path: the MP3 was prefetched when the exercise loaded
+            // (see tts-cache) — play it straight away, no network round-trip.
+            const cachedUrl = getCachedTtsUrl(text, code);
+            if (cachedUrl) {
+                playUrl(cachedUrl);
+                return;
+            }
+
             // Try Deepgram server API first — read the freshest CSRF token
             // from the cookie (tracks the live session) rather than the
             // <meta> tag, which is frozen at page load and goes stale on a
@@ -162,15 +180,9 @@ export function useTts(): UseTtsReturn {
                 })
                 .then((data) => {
                     if (data.audio_url) {
-                        const audio = new Audio(data.audio_url);
-                        audioRef.current = audio;
-                        audio.onplay = () => setIsSpeaking(true);
-                        audio.onended = () => setIsSpeaking(false);
-                        audio.onerror = () => {
-                            // Fallback to browser TTS if audio fails
-                            speakWithBrowser(text, code);
-                        };
-                        audio.play().catch(() => speakWithBrowser(text, code));
+                        // Remember for replays (server caches the MP3 by text hash).
+                        rememberTtsUrl(text, code, data.audio_url);
+                        playUrl(data.audio_url);
                     } else {
                         throw new Error('No audio URL');
                     }

@@ -13,28 +13,27 @@ class SendPracticeReminders extends Command
 
     public function handle(): void
     {
-        $today = now()->toDateString();
-
-        // Users with push subscriptions OR emails who haven't practiced today
+        // Une seule requête (whereDoesntHave) au lieu de charger tous les
+        // utilisateurs puis une requête exists() par utilisateur.
         $users = User::with('profile')
-            ->whereHas('profile', function ($q) {
-                $q->whereNotNull('onboarding_completed_at');
-            })
-            ->get()
-            ->filter(function (User $user) use ($today) {
-                // Skip if already practiced today
-                $lastAttempt = $user->exerciseAttempts()
-                    ->whereDate('created_at', $today)
-                    ->exists();
-
-                return !$lastAttempt;
-            });
+            ->whereHas('profile', fn ($q) => $q->whereNotNull('onboarding_completed_at'))
+            ->whereDoesntHave('exerciseAttempts', fn ($q) => $q->whereDate('created_at', today()))
+            ->get();
 
         $count = 0;
         foreach ($users as $user) {
             $streak = $user->profile?->streak_current ?? 0;
-            $user->notify(new PracticeReminderNotification($streak));
-            $count++;
+            try {
+                $user->notify(new PracticeReminderNotification($streak));
+                $count++;
+            } catch (\Throwable $e) {
+                // Un abonnement push expiré/invalide ne doit pas stopper l'envoi
+                // aux utilisateurs suivants.
+                \Illuminate\Support\Facades\Log::warning('Practice reminder failed', [
+                    'user_id' => $user->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
 
         $this->info("Sent {$count} practice reminders.");

@@ -3,6 +3,7 @@ import { Head, router } from '@inertiajs/react';
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { playSound } from '@/hooks/use-sound';
+import { getCachedTtsUrl, rememberTtsUrl, prefetchExercisesAudio } from '@/lib/tts-cache';
 
 // Read the freshest CSRF token. The XSRF-TOKEN cookie tracks the live session,
 // whereas the <meta> tag is frozen at page load and goes stale on a long-running
@@ -488,6 +489,14 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
     // Reset the play counter each time we move to a new question.
     useEffect(() => { setListenCount(0); }, [currentExerciseIndex, currentQuestionIndex]);
 
+    // Prefetch ALL the session's audio at mount (TTS texts + pre-generated MP3s),
+    // so pressing "Écouter" mid-exercise plays instantly instead of firing the
+    // TTS API call at click time.
+    useEffect(() => {
+        prefetchExercisesAudio(exercises, nodeCode);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const totalQuestionsInSession = useMemo(() =>
         exercises.reduce((acc, ex) => acc + (ex.questions?.length ?? 0), 0)
     , [exercises]);
@@ -517,6 +526,21 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
     const playTts = useCallback(async (text: string, id: string) => {
         if (playingTts === id) return;
         setPlayingTts(id);
+
+        const playUrl = (url: string) => {
+            const audio = new Audio(url);
+            audio.onended = () => setPlayingTts(null);
+            audio.onerror = () => setPlayingTts(null);
+            audio.play().catch(() => setPlayingTts(null));
+        };
+
+        // Instant path: prefetched at session mount (see prefetchExercisesAudio).
+        const cachedUrl = getCachedTtsUrl(text, nodeCode);
+        if (cachedUrl) {
+            playUrl(cachedUrl);
+            return;
+        }
+
         try {
             const response = await fetch(route('tts.speak'), {
                 method: 'POST',
@@ -529,9 +553,8 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
             if (!response.ok) throw new Error(`TTS HTTP ${response.status}`);
             const data = await response.json();
             if (data.audio_url) {
-                const audio = new Audio(data.audio_url);
-                audio.onended = () => setPlayingTts(null);
-                audio.play();
+                rememberTtsUrl(text, nodeCode, data.audio_url);
+                playUrl(data.audio_url);
             } else {
                 setPlayingTts(null);
             }
