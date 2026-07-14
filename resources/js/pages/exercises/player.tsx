@@ -617,21 +617,41 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
 
     const fetchExplanation = useCallback(async (questionObj = question) => {
         if (!questionObj) return;
+
+        // Multi-field types (note/form/table/summary/flow-chart-completion) keep
+        // their expected answers in `correct_answers` (a key→value map), not the
+        // single `correct_answer` string every other type uses. Without this,
+        // the request went out with an empty correct_answer, which Laravel's
+        // `required` rule rejects — and without an Accept: application/json
+        // header the validation-failure response comes back as an HTML page,
+        // crashing res.json() with "Unexpected token '<'".
+        const userAnswerRaw = answers[answerKey(questionObj.id)];
+        const correctAnswerText = questionObj.correct_answer ?? questionObj.correct
+            ?? (questionObj.correct_answers ? Object.values(questionObj.correct_answers).join(', ') : '');
+        const userAnswerText = (userAnswerRaw && typeof userAnswerRaw === 'object')
+            ? Object.values(userAnswerRaw).join(', ')
+            : String(userAnswerRaw ?? '');
+
+        if (!String(correctAnswerText).trim() || !userAnswerText.trim()) return;
+
         setFetchingExplanation(true);
         try {
             const res = await fetch(route('api.ai.explain'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                     'X-XSRF-TOKEN': csrfToken(),
+                    'X-Requested-With': 'XMLHttpRequest',
                 },
                 body: JSON.stringify({
                     prompt: questionObj.prompt ?? questionObj.text ?? '',
-                    user_answer: String(answers[answerKey(questionObj.id)] ?? ''),
-                    correct_answer: String(questionObj.correct_answer ?? questionObj.correct ?? ''),
+                    user_answer: userAnswerText,
+                    correct_answer: String(correctAnswerText),
                     language: node.exam.language.name
                 })
             });
+            if (!res.ok) throw new Error(`Explain HTTP ${res.status}`);
             const data = await res.json();
             const parsedExpl = parseExplanation(data.explanation);
             setExplanation(parsedExpl);
@@ -1318,8 +1338,16 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                             initialExplanation={explanation ? getExplanationText(explanation, i18n.language) : undefined}
                             context={{
                                 prompt: question.text || question.prompt || '',
-                                user_answer: String(answers[answerKey(question.id)] || ''),
-                                correct_answer: String(question.correct_answer || question.correct || ''),
+                                // Multi-field types (note/form/table-completion…) keep the user's
+                                // answer and the expected one as maps, not single scalars.
+                                user_answer: (() => {
+                                    const ua = answers[answerKey(question.id)];
+                                    return (ua && typeof ua === 'object') ? Object.values(ua).join(', ') : String(ua ?? '');
+                                })(),
+                                correct_answer: String(
+                                    question.correct_answer || question.correct
+                                    || (question.correct_answers ? Object.values(question.correct_answers).join(', ') : '')
+                                ),
                                 language: node.exam.language.name
                             }}
                         />

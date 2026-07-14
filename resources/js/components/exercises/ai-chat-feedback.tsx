@@ -79,8 +79,8 @@ export function AiChatFeedback({ isOpen, onClose, context, initialExplanation }:
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 backdrop-blur-sm sm:items-center sm:p-4 animate-in fade-in duration-200">
-            <div className="w-full max-w-lg overflow-hidden bg-white shadow-2xl sm:rounded-3xl dark:bg-slate-900 animate-in slide-in-from-bottom-10 duration-300">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-2xl dark:bg-slate-900 animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
                 {/* Header */}
                 <div className="flex items-center justify-between border-b p-4 dark:border-slate-800">
                     <div className="flex items-center gap-3">
