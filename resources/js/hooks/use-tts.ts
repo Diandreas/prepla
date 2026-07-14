@@ -141,10 +141,19 @@ export function useTts(): UseTtsReturn {
             const playUrl = (url: string) => {
                 const audio = new Audio(url);
                 audioRef.current = audio;
+                // Fallback à déclenchement unique : sur un fichier en échec, onerror
+                // ET le rejet de play() partent tous les deux — sans garde, deux
+                // lectures TTS navigateur se superposaient (effet écho).
+                let fellBack = false;
+                const fallback = () => {
+                    if (fellBack) return;
+                    fellBack = true;
+                    speakWithBrowser(text, code);
+                };
                 audio.onplay = () => setIsSpeaking(true);
                 audio.onended = () => setIsSpeaking(false);
-                audio.onerror = () => speakWithBrowser(text, code);
-                audio.play().catch(() => speakWithBrowser(text, code));
+                audio.onerror = fallback;
+                audio.play().catch(fallback);
             };
 
             // Instant path: the MP3 was prefetched when the exercise loaded

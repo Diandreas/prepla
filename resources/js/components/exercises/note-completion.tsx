@@ -31,16 +31,14 @@ export function NoteCompletion({ question, onAnswer, selectedAnswer, disabled }:
     const notes = question.notes || [];
     const blankAbsIndices = notes.map((n, i) => (isBlankNote(n) ? String(i) : null)).filter(Boolean) as string[];
 
-    // Map absolute index → blank-relative index so scoring matches either key form.
-    const relOf = new Map<string, string>();
-    let rel = 0;
-    notes.forEach((n, i) => { if (isBlankNote(n)) relOf.set(String(i), String(rel++)); });
-
-    const setBoth = (absKey: string, val: string) => {
+    // Clés = index absolu 0-based UNIQUEMENT. L'ancien double-envoi (absolu +
+    // relatif-aux-blancs dans la même map) se téléscopait dès que les blancs
+    // n'étaient pas en tête de liste (la clé relative d'un blanc écrasait la clé
+    // absolue d'un autre) → réponses corrompues, tout marqué faux. Le serveur
+    // gère désormais lui-même les correct_answers aux clés désalignées.
+    const setValue = (absKey: string, val: string) => {
         setValues((prev) => {
             const next = { ...prev, [absKey]: val };
-            const relKey = relOf.get(absKey);
-            if (relKey != null) next[relKey] = val;
             const allFilled = blankAbsIndices.every((k) => (next[k] ?? '').trim() !== '');
             if (blankAbsIndices.length > 0 && allFilled) onAnswer(question.id, next);
             return next;
@@ -71,7 +69,7 @@ export function NoteCompletion({ question, onAnswer, selectedAnswer, disabled }:
                                 <input
                                     type="text"
                                     value={values[String(i)] ?? ''}
-                                    onChange={(e) => setBoth(String(i), e.target.value)}
+                                    onChange={(e) => setValue(String(i), e.target.value)}
                                     className="flex-1 rounded border border-border bg-background px-3 py-1.5 text-sm focus:border-primary focus:outline-none disabled:opacity-50"
                                     disabled={disabled}
                                     placeholder="À compléter…"

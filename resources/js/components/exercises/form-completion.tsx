@@ -34,12 +34,7 @@ export function FormCompletion({ question, onAnswer, selectedAnswer, disabled }:
     const [values, setValues] = useState<Record<string, string>>(selectedAnswer ?? {});
     const fields = question.fields || [];
 
-    // Blank indices keyed by their position among blanks (0,1,2…) to line up with
-    // the generator's `correct_answers` map ({"0": "...", "1": "..."}).
     const blankCount = fields.filter(isBlankField).length;
-    // Counter for the blank-relative key (must be declared before the .map below;
-    // its absence was crashing the component with "blankIdx is not defined").
-    let blankIdx = 0;
 
     return (
         <div className="space-y-4">
@@ -55,19 +50,16 @@ export function FormCompletion({ question, onAnswer, selectedAnswer, disabled }:
                 <div className="overflow-hidden rounded-xl border">
                     {fields.map((field, i) => {
                         const blank = isBlankField(field);
-                        // Key answers by BOTH the absolute field index (i) and the
-                        // blank-relative index. The generator's correct_answers map is
-                        // sometimes keyed by absolute position, sometimes by blank order
-                        // — writing both keys (same value) makes scoring match either way
-                        // and fixes correct answers being marked 0%.
-                        const relKey = blank ? String(blankIdx++) : '';
+                        // Clés = index absolu 0-based uniquement. L'ancien double-envoi
+                        // (absolu + relatif) se téléscopait dès que les blancs n'étaient
+                        // pas en tête (clé relative d'un blanc = clé absolue d'un autre)
+                        // → réponses corrompues. Le serveur rattrape désormais lui-même
+                        // les correct_answers aux clés désalignées.
                         const absKey = String(i);
                         const display = field.answer ?? field.value ?? '—';
-                        const setBoth = (val: string) => {
+                        const setValue = (val: string) => {
                             setValues((prev) => {
                                 const next = { ...prev, [absKey]: val };
-                                if (relKey) next[relKey] = val;
-                                // Count distinct blanks filled (abs keys only, to avoid double-count).
                                 const blanksFilled = fields.filter((f, fi) => isBlankField(f) && (next[String(fi)] ?? '').trim() !== '').length;
                                 if (blankCount > 0 && blanksFilled >= blankCount) {
                                     onAnswer(question.id, next);
@@ -88,7 +80,7 @@ export function FormCompletion({ question, onAnswer, selectedAnswer, disabled }:
                                     field.type === 'select' && field.options ? (
                                         <select
                                             value={values[absKey] ?? ''}
-                                            onChange={(e) => setBoth(e.target.value)}
+                                            onChange={(e) => setValue(e.target.value)}
                                             disabled={disabled}
                                             className="flex-1 rounded border border-border bg-background px-3 py-1.5 text-sm focus:border-primary focus:outline-none disabled:opacity-50"
                                         >
@@ -105,7 +97,7 @@ export function FormCompletion({ question, onAnswer, selectedAnswer, disabled }:
                                         <input
                                             type="text"
                                             value={values[absKey] ?? ''}
-                                            onChange={(e) => setBoth(e.target.value)}
+                                            onChange={(e) => setValue(e.target.value)}
                                             disabled={disabled}
                                             className="flex-1 rounded border border-border bg-background px-3 py-1.5 text-sm focus:border-primary focus:outline-none disabled:opacity-50"
                                             placeholder={field.type === 'date' ? 'JJ/MM/AAAA…' : 'À compléter…'}

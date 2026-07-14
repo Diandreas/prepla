@@ -438,6 +438,10 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
     // Listening: how many times the recording was played (exam-realistic cap of 2).
     const [listenCount, setListenCount] = useState(0);
     const contentRef = useRef<HTMLDivElement>(null);
+    // Lecture audio : un seul élément actif à la fois + garde synchrone anti
+    // double-lancement (l'état React est trop lent pour ça — voir playTts).
+    const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+    const ttsBusyRef = useRef(false);
 
     const exercise = exercises[currentExerciseIndex];
     // TTS language for this node. Prefer the language SLUG ("english"/"french"/
@@ -486,8 +490,17 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
     const listeningAudioUrl: string | undefined =
         question?.audio_url || exercise?.content?.audio_url || undefined;
 
-    // Reset the play counter each time we move to a new question.
-    useEffect(() => { setListenCount(0); }, [currentExerciseIndex, currentQuestionIndex]);
+    // Reset the play counter each time we move to a new question, and stop any
+    // audio still playing so it doesn't bleed into the next question.
+    useEffect(() => {
+        setListenCount(0);
+        currentAudioRef.current?.pause();
+        ttsBusyRef.current = false;
+        setPlayingTts(null);
+    }, [currentExerciseIndex, currentQuestionIndex]);
+
+    // Stop audio on unmount (leaving the session).
+    useEffect(() => () => { currentAudioRef.current?.pause(); }, []);
 
     // Prefetch ALL the session's audio at mount (TTS texts + pre-generated MP3s),
     // so pressing "Écouter" mid-exercise plays instantly instead of firing the
@@ -524,14 +537,22 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
     }, [isChecked, answerKey]);
 
     const playTts = useCallback(async (text: string, id: string) => {
-        if (playingTts === id) return;
+        // Garde synchrone (ref) : l'état playingTts est asynchrone, deux appels
+        // rapprochés (double-clic, ou onerror + catch du même échec) passaient
+        // tous les deux → deux lectures superposées (effet écho).
+        if (playingTts === id || ttsBusyRef.current) return;
+        ttsBusyRef.current = true;
         setPlayingTts(id);
 
         const playUrl = (url: string) => {
+            // Un seul lecteur à la fois : stoppe l'audio précédent avant d'en lancer un autre.
+            currentAudioRef.current?.pause();
             const audio = new Audio(url);
-            audio.onended = () => setPlayingTts(null);
-            audio.onerror = () => setPlayingTts(null);
-            audio.play().catch(() => setPlayingTts(null));
+            currentAudioRef.current = audio;
+            const done = () => { ttsBusyRef.current = false; setPlayingTts(null); };
+            audio.onended = done;
+            audio.onerror = done;
+            audio.play().catch(done);
         };
 
         // Instant path: prefetched at session mount (see prefetchExercisesAudio).
@@ -556,10 +577,12 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                 rememberTtsUrl(text, nodeCode, data.audio_url);
                 playUrl(data.audio_url);
             } else {
+                ttsBusyRef.current = false;
                 setPlayingTts(null);
             }
         } catch (error) {
             console.error('TTS error:', error);
+            ttsBusyRef.current = false;
             setPlayingTts(null);
         }
     }, [nodeCode, playingTts]);
@@ -570,10 +593,23 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
         if (playingTts === 'passage') return;
         if (url) {
             setPlayingTts('passage');
+            // Un seul lecteur à la fois (voir playTts).
+            currentAudioRef.current?.pause();
             const audio = new Audio(url);
+            currentAudioRef.current = audio;
+            // Le fallback TTS ne doit partir qu'UNE fois : sur un fichier en échec
+            // (ex. 404 du symlink storage), onerror ET le rejet de play() se
+            // déclenchaient tous les deux → deux lectures TTS superposées (écho).
+            let fellBack = false;
+            const fallback = () => {
+                if (fellBack) return;
+                fellBack = true;
+                setPlayingTts(null);
+                if (text) playTts(text, 'passage');
+            };
             audio.onended = () => setPlayingTts(null);
-            audio.onerror = () => { setPlayingTts(null); if (text) playTts(text, 'passage'); };
-            audio.play().catch(() => { setPlayingTts(null); if (text) playTts(text, 'passage'); });
+            audio.onerror = fallback;
+            audio.play().catch(fallback);
             return;
         }
         if (text) playTts(text, 'passage');

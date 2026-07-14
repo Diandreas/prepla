@@ -228,9 +228,41 @@ class ExerciseScoringService
             if (is_array($correctAnswers) && !empty($correctAnswers) && is_array($userAnswer)) {
                 $fieldCorrect = 0;
                 $fieldTotal = count($correctAnswers);
+
+                // Les clés de correct_answers générées par l'IA sont imprévisibles
+                // (0-based, 1-based, relatives aux blancs, parfois des labels) alors
+                // que le front envoie des index absolus 0-based. Quand la clé exacte
+                // ne matche pas, on vérifie si la valeur attendue a été saisie dans
+                // N'IMPORTE quel champ (pool consommable pour ne pas créditer deux
+                // fois la même saisie) — sinon des réponses justes sortaient à 0%.
+                $givenPool = [];
+                foreach ($userAnswer as $v) {
+                    if (is_scalar($v)) {
+                        $n = $this->normalizeForComparison((string) $v);
+                        if ($n !== '') {
+                            $givenPool[$n] = ($givenPool[$n] ?? 0) + 1;
+                        }
+                    }
+                }
+
                 foreach ($correctAnswers as $key => $expected) {
+                    $expectedNorm = $this->normalizeForComparison(is_scalar($expected) ? (string) $expected : '');
                     $given = $userAnswer[$key] ?? '';
-                    if ($this->normalizeForComparison($given) === $this->normalizeForComparison($expected)) {
+                    $givenNorm = is_scalar($given) ? $this->normalizeForComparison((string) $given) : '';
+
+                    if ($givenNorm !== '' && $givenNorm === $expectedNorm) {
+                        $fieldCorrect++;
+                        if (isset($givenPool[$givenNorm])) {
+                            $givenPool[$givenNorm]--;
+                            if ($givenPool[$givenNorm] <= 0) unset($givenPool[$givenNorm]);
+                        }
+                        continue;
+                    }
+
+                    // Clé désalignée : créditer si la valeur attendue existe ailleurs.
+                    if ($expectedNorm !== '' && !empty($givenPool[$expectedNorm])) {
+                        $givenPool[$expectedNorm]--;
+                        if ($givenPool[$expectedNorm] <= 0) unset($givenPool[$expectedNorm]);
                         $fieldCorrect++;
                     }
                 }
