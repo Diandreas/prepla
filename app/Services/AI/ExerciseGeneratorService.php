@@ -250,6 +250,54 @@ class ExerciseGeneratorService
      * even present in word_list — the student could then NEVER pick the right
      * answer from the dropdown, since it only lists word_list entries.
      */
+    /**
+     * Détecte une valeur "non vide" qui ressemble en fait à un marqueur de
+     * blanc raté (ex: "___", "___ Jahre", "He ") plutôt qu'un vrai texte
+     * pré-rempli — ces items ne rendent JAMAIS d'input côté front (seul
+     * value==='' déclenche un champ éditable), donc l'élève ne peut ni les
+     * voir comme un blanc à remplir ni les corriger : l'exercice est cassé.
+     */
+    private function hasFakeBlankMarker(array $items): bool
+    {
+        foreach ($items as $item) {
+            $value = $item['value'] ?? null;
+            if (!is_string($value) || $value === '') {
+                continue;
+            }
+            // "___", "____ Jahre", "___..." : suite de underscores en tête de valeur.
+            if (preg_match('/^_{2,}/', trim($value))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Vérifie que correct_answers correspond EXACTEMENT aux blancs réels de la
+     * question (mêmes clés pour une map, même nombre pour une liste positionnelle)
+     * — sans ça, une clé/entrée en trop pointe vers un champ que l'élève ne peut
+     * jamais remplir, plafonnant le score sous le seuil de réussite quoi qu'il réponde.
+     */
+    private function multiFieldAnswersMatchBlanks(mixed $correctAnswers, array $blanks): bool
+    {
+        if (empty($blanks)) {
+            return true; // rien à compléter, correct_answers n'a pas d'importance ici
+        }
+        if (!is_array($correctAnswers) || count($correctAnswers) === 0) {
+            return false;
+        }
+
+        if (array_is_list($correctAnswers)) {
+            return count($correctAnswers) === count($blanks);
+        }
+
+        $caKeys = array_map('strval', array_keys($correctAnswers));
+        $blankKeys = array_map('strval', $blanks);
+        sort($caKeys);
+        sort($blankKeys);
+        return $caKeys === $blankKeys;
+    }
+
     private function dropInvalidMultiFieldQuestions(array $questions, string $componentKey): array
     {
         $multiFieldTypes = ['note-completion', 'form-completion', 'summary-completion', 'table-completion', 'flow-chart-completion', 'multiple-matching', 'diagram-labeling', 'open-cloze'];
@@ -264,12 +312,24 @@ class ExerciseGeneratorService
 
             switch ($componentKey) {
                 case 'note-completion':
+                    // Un blanc mal signalé (l'IA écrit parfois "___" ou un préfixe de
+                    // phrase comme value au lieu d'une vraie chaîne vide) rend le champ
+                    // non-éditable côté front (isBlankNote() ne teste que value==='') —
+                    // l'exercice devient alors partiellement ou totalement infaisable
+                    // quoi que l'élève réponde. On le détecte ici pour rejeter/régénérer
+                    // plutôt que de laisser passer un exercice cassé.
+                    if ($this->hasFakeBlankMarker($q['notes'] ?? [])) {
+                        return false;
+                    }
                     $blanks = array_keys(array_filter($q['notes'] ?? [], fn($n) => ($n['value'] ?? null) === ''));
-                    return empty($blanks) || (is_array($ca) && count($ca) > 0);
+                    return $this->multiFieldAnswersMatchBlanks($ca, $blanks);
 
                 case 'form-completion':
+                    if ($this->hasFakeBlankMarker($q['fields'] ?? [])) {
+                        return false;
+                    }
                     $blanks = array_keys(array_filter($q['fields'] ?? [], fn($f) => ($f['value'] ?? null) === ''));
-                    return empty($blanks) || (is_array($ca) && count($ca) > 0);
+                    return $this->multiFieldAnswersMatchBlanks($ca, $blanks);
 
                 case 'flow-chart-completion':
                     $blanks = array_keys(array_filter($q['steps'] ?? [], fn($s) => !empty($s['is_blank'])));

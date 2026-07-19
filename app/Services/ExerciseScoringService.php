@@ -34,6 +34,30 @@ class ExerciseScoringService
         return str_replace(['’', '`'], "'", $s);
     }
 
+    /**
+     * Pour note-completion/form-completion, renvoie les index (string) des
+     * items réellement BLANCS (value === ''), d'après la structure de la
+     * question elle-même — indépendamment de ce que contient correct_answers.
+     * Renvoie null si la question n'a pas ce genre de structure (notes/fields),
+     * auquel cas on ne restreint rien (autres types multi-champs inchangés).
+     */
+    private function blankFieldIndices(array $question): ?array
+    {
+        $items = $question['notes'] ?? $question['fields'] ?? null;
+        if (!is_array($items)) {
+            return null;
+        }
+
+        $indices = [];
+        foreach ($items as $i => $item) {
+            if (is_array($item) && ($item['value'] ?? null) === '') {
+                $indices[] = (string) $i;
+            }
+        }
+
+        return $indices;
+    }
+
     public function score(Exercise $exercise, array $answers): array
     {
         $questions = $exercise->questions;
@@ -226,6 +250,25 @@ class ExerciseScoringService
             // détectées comme "liste" par PHP mais restent bien une map de réponses.
             $correctAnswers = $question['correct_answers'] ?? null;
             if (is_array($correctAnswers) && !empty($correctAnswers) && is_array($userAnswer)) {
+                // Du contenu généré par l'IA a parfois une correct_answers avec plus
+                // d'entrées que de blancs réels (clé pointant vers une note déjà
+                // pré-remplie, ou simplement trop d'entrées) — ces entrées ne sont
+                // JAMAIS remplissables par l'élève (aucun champ ne lui est proposé),
+                // ce qui plafonnait fieldTotal artificiellement haut et rendait
+                // l'exercice structurellement impossible à réussir (score bloqué
+                // sous 70% quoi qu'il réponde). On restreint aux index réellement
+                // blancs quand la structure de la question le permet de le savoir.
+                $blanks = $this->blankFieldIndices($question);
+                if ($blanks !== null) {
+                    $restricted = array_intersect_key(
+                        $correctAnswers,
+                        array_flip($blanks)
+                    );
+                    if (!empty($restricted)) {
+                        $correctAnswers = $restricted;
+                    }
+                }
+
                 $fieldCorrect = 0;
                 $fieldTotal = count($correctAnswers);
 
