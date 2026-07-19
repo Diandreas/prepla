@@ -33,7 +33,14 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // Le staff d'un centre (admin/prof) n'a pas de compte "élève" — son
+        // espace de travail est le back-office /center, pas le dashboard
+        // d'apprentissage classique. Sans ce check, la connexion renvoyait
+        // TOUJOURS vers /dashboard, y compris pour ces comptes.
+        $user = $request->user();
+        $homeRoute = $user && $user->isCenterStaff() ? 'center.dashboard' : 'dashboard';
+
+        return redirect()->intended(route($homeRoute, absolute: false));
     }
 
     /**
