@@ -27,7 +27,10 @@ class DemoResetCommand extends Command
             return self::SUCCESS;
         }
 
-        $this->call('db:seed', ['--class' => 'Database\\Seeders\\B2BDemoSeeder']);
+        // --force propagé : SeedCommand a son propre garde-fou de confirmation
+        // en prod (ConfirmableTrait), distinct de celui ci-dessus, qui bloque
+        // sinon silencieusement en environnement non-interactif (SSH batch).
+        $this->call('db:seed', ['--class' => 'Database\\Seeders\\B2BDemoSeeder', '--force' => true]);
 
         return self::SUCCESS;
     }
