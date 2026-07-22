@@ -20,6 +20,7 @@ class ClassroomController extends Controller
         $user = $request->user();
 
         $query = $center->classrooms()
+            ->whereNull('archived_at')
             ->withCount('students')
             ->with('exam:id,name')
             ->orderByDesc('created_at');
@@ -118,5 +119,19 @@ class ClassroomController extends Controller
         $classroom->update(['invite_code' => Classroom::generateInviteCode()]);
 
         return back()->with('success', "Nouveau code : {$classroom->invite_code}");
+    }
+
+    /**
+     * Archive (jamais de suppression dure) : une classe a des devoirs et des
+     * tentatives d'élèves rattachés dont on veut garder l'historique. La
+     * colonne archived_at existait déjà en base mais n'était exposée par
+     * aucune route/UI — une classe créée ne pouvait jamais être retirée.
+     */
+    public function archive(Request $request, Classroom $classroom)
+    {
+        $this->authorize('delete', $classroom);
+        $classroom->update(['archived_at' => now()]);
+
+        return redirect()->route('center.classes.index')->with('success', "Classe « {$classroom->name} » archivée.");
     }
 }

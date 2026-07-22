@@ -101,6 +101,12 @@ export function AppSidebarHeader() {
     const { userProfile, isPremium, freeExercisesUsedToday, freeExercisesLimit } = page.props;
     const url = page.url ?? '';
 
+    // Le staff d'un centre (admin/prof) n'a pas de pratique d'élève — quota
+    // d'exercices gratuits, série et XP n'ont aucun sens pour ces comptes et
+    // s'affichaient quand même (ex: "0/3 exercices gratuits" pour un center_admin).
+    const centerRole = (page.props.auth as any)?.center?.role as string | undefined;
+    const isCenterStaff = centerRole === 'center_admin' || centerRole === 'teacher';
+
     // Find current page title (resolve its i18n key; fall back to the brand name)
     const titleKey = PAGE_TITLE_KEYS.find(([path]) => url === path || url.startsWith(path + '/'))?.[1];
     const pageTitle = titleKey ? t(`page_titles.${titleKey}`) : 'PrePla';
@@ -151,7 +157,7 @@ export function AppSidebarHeader() {
 
             {/* Right: a single discreet stat group + theme toggle */}
             <div className="flex items-center gap-2">
-                {!isPremium && (
+                {!isPremium && !isCenterStaff && (
                     <Link
                         href={route('subscription.index')}
                         className="hidden items-center gap-1 rounded-full border border-amber-300/60 bg-amber-50 px-3 py-1 text-xs font-black tabular-nums text-amber-700 dark:bg-amber-950/30 dark:text-amber-300 sm:flex"
@@ -160,17 +166,19 @@ export function AppSidebarHeader() {
                         {freeExercisesUsedToday}/{freeExercisesLimit}
                     </Link>
                 )}
-                <div className="flex items-center gap-3 rounded-full border border-border/60 bg-card/60 px-3 py-1">
-                    <span className={`flex items-center gap-1 text-xs font-black tabular-nums ${streakBump ? 'value-bump' : ''}`} style={{ color: '#F97316' }}>
-                        <img src="/animation/Fire.gif" alt="Série" className="h-4 w-4 object-contain" />
-                        {streak}
-                    </span>
-                    <span className="h-3 w-px bg-border" />
-                    <span className={`flex items-center gap-1 text-xs font-black tabular-nums ${xpBump ? 'value-bump' : ''}`} style={{ color: GOLD }}>
-                        <CustomIcon name="trophy" className="h-3.5 w-3.5" style={{ }} />
-                        {xp}
-                    </span>
-                </div>
+                {!isCenterStaff && (
+                    <div className="flex items-center gap-3 rounded-full border border-border/60 bg-card/60 px-3 py-1">
+                        <span className={`flex items-center gap-1 text-xs font-black tabular-nums ${streakBump ? 'value-bump' : ''}`} style={{ color: '#F97316' }}>
+                            <img src="/animation/Fire.gif" alt="Série" className="h-4 w-4 object-contain" />
+                            {streak}
+                        </span>
+                        <span className="h-3 w-px bg-border" />
+                        <span className={`flex items-center gap-1 text-xs font-black tabular-nums ${xpBump ? 'value-bump' : ''}`} style={{ color: GOLD }}>
+                            <CustomIcon name="trophy" className="h-3.5 w-3.5" style={{ }} />
+                            {xp}
+                        </span>
+                    </div>
+                )}
                 <ThemeToggleButton />
             </div>
         </header>

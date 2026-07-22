@@ -42,8 +42,12 @@ précédent a modifié la démo (créé/supprimé une classe, un devoir, etc.).
    et futures ; ouvrir un devoir pour montrer l'avancement par élève (fait / en
    cours / en retard / pas commencé).
    → *Montrer* : créer un nouveau devoir et l'assigner à une classe.
-7. **Médiathèque** (`/center/media`) — upload d'images/audio réutilisables dans
-   les exercices.
+
+> ⚠️ Il n'y a pas de page "Médiathèque" séparée dans la navigation —
+> `/center/media` n'est qu'une API technique. L'upload d'image/audio se fait
+> directement DANS le générateur d'exercice (étape 5), pour les types qui en
+> ont besoin (ex: schéma à annoter). Ne pas y naviguer directement en démo, ça
+> affiche du JSON brut.
 
 ## 4. Ce que le prospect peut tester librement
 

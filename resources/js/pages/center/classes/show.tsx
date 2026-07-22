@@ -31,18 +31,29 @@ export default function ClassShow({ classroom, students, stats }: { classroom: C
         router.delete(route('center.classes.students.remove', [classroom.id, studentId]), { preserveScroll: true });
     }
 
+    function archiveClass() {
+        if (confirm(`Archiver « ${classroom.name} » ? Les élèves n'y auront plus accès. L'historique des devoirs et des tentatives est conservé.`)) {
+            router.delete(route('center.classes.archive', classroom.id));
+        }
+    }
+
     return (
         <AppLayout>
             <Head title={classroom.name} />
             <div className="mx-auto w-full max-w-3xl space-y-5 p-4 md:p-6">
-                <div>
-                    <Link href={route('center.classes.index')} className="text-sm text-muted-foreground hover:text-foreground">
-                        ← Classes
-                    </Link>
-                    <h1 className="mt-1 text-2xl font-bold tracking-tight">{classroom.name}</h1>
-                    <p className="text-sm text-muted-foreground">
-                        {classroom.level ?? 'Niveau libre'} · {classroom.exam ?? 'Examen par défaut'}
-                    </p>
+                <div className="flex items-start justify-between gap-3">
+                    <div>
+                        <Link href={route('center.classes.index')} className="text-sm text-muted-foreground hover:text-foreground">
+                            ← Classes
+                        </Link>
+                        <h1 className="mt-1 text-2xl font-bold tracking-tight">{classroom.name}</h1>
+                        <p className="text-sm text-muted-foreground">
+                            {classroom.level ?? 'Niveau libre'} · {classroom.exam ?? 'Examen par défaut'}
+                        </p>
+                    </div>
+                    <Button variant="ghost" className="text-rose-500 hover:text-rose-600" onClick={archiveClass}>
+                        Archiver
+                    </Button>
                 </div>
 
                 {flash?.success && (
