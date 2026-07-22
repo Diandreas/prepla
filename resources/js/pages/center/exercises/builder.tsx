@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useMemo, useState } from 'react';
 import { EXERCISE_SCHEMAS, emptyQuestion, familyOf, type Family } from '@/lib/exercise-schemas';
 
-interface ExerciseType { id: number; name: string; component_key: string; skill_type: string }
+interface ExerciseType { id: number; name: string; component_key: string; skill_type: string; exam_id: number | null }
 interface Exam { id: number; name: string }
 interface Props {
     exerciseTypes: ExerciseType[];
@@ -37,6 +37,23 @@ export default function ExerciseBuilder({ exerciseTypes, exams, defaultExamId, e
     const [aiLoading, setAiLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Types propres à l'examen choisi uniquement — sans ce filtre, tous les
+    // examens partagent le même menu et affichent des centaines d'entrées
+    // dupliquées (une par examen pour chaque type comme "Multiple Choice").
+    const availableTypes = useMemo(
+        () => exerciseTypes.filter((t) => t.exam_id === examId),
+        [exerciseTypes, examId],
+    );
+
+    function onExamChange(id: number) {
+        setExamId(id);
+        // Le type sélectionné peut ne plus exister pour ce nouvel examen.
+        if (!editing && typeId && !exerciseTypes.some((t) => t.id === typeId && t.exam_id === id)) {
+            setTypeId('');
+            setQuestions([]);
+        }
+    }
 
     const selectedType = useMemo(
         () => exerciseTypes.find((t) => t.id === typeId) ?? initialType,
@@ -129,14 +146,14 @@ export default function ExerciseBuilder({ exerciseTypes, exams, defaultExamId, e
                             <label className="text-sm font-medium">Type</label>
                             <select className={`mt-1 ${input}`} value={typeId} onChange={(e) => onTypeChange(Number(e.target.value))} disabled={editing}>
                                 <option value="">—</option>
-                                {exerciseTypes.map((t) => (
+                                {availableTypes.map((t) => (
                                     <option key={t.id} value={t.id}>{t.name} ({t.skill_type})</option>
                                 ))}
                             </select>
                         </div>
                         <div>
                             <label className="text-sm font-medium">Examen</label>
-                            <select className={`mt-1 ${input}`} value={examId} onChange={(e) => setExamId(Number(e.target.value))}>
+                            <select className={`mt-1 ${input}`} value={examId} onChange={(e) => onExamChange(Number(e.target.value))} disabled={editing}>
                                 {exams.map((ex) => (<option key={ex.id} value={ex.id}>{ex.name}</option>))}
                             </select>
                         </div>

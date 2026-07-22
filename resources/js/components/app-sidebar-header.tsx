@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { SharedData } from '@/types';
 import { useAppearance } from '@/hooks/use-appearance';
 import { useState, useEffect, useRef } from 'react';
+import i18n from '@/lib/i18n/i18n';
 
 const GOLD = '#F5A623';
 
@@ -103,6 +104,19 @@ export function AppSidebarHeader() {
     // Find current page title (resolve its i18n key; fall back to the brand name)
     const titleKey = PAGE_TITLE_KEYS.find(([path]) => url === path || url.startsWith(path + '/'))?.[1];
     const pageTitle = titleKey ? t(`page_titles.${titleKey}`) : 'PrePla';
+
+    // i18n est initialisé une seule fois au tout premier chargement de page
+    // (createInertiaApp.setup, voir app.tsx) — la connexion se fait en
+    // navigation SPA Inertia (useForm().post()), donc aucun rechargement complet
+    // ne se produit après le login et la langue reste bloquée sur le fallback
+    // 'en' même si le profil de l'utilisateur est en 'fr'. On resynchronise ici
+    // à chaque rendu, dès que la prop partagée userProfile devient disponible.
+    const interfaceLanguage = (userProfile as any)?.interface_language;
+    useEffect(() => {
+        if (interfaceLanguage && i18n.language !== interfaceLanguage) {
+            i18n.changeLanguage(interfaceLanguage);
+        }
+    }, [interfaceLanguage]);
 
     const streak = (userProfile as any)?.streak_current ?? 0;
     const xp = (userProfile as any)?.xp_total ?? 0;

@@ -51,7 +51,7 @@ export default function AssignmentShow({ assignment, rows }: { assignment: Assig
                     <h1 className="mt-1 text-2xl font-bold tracking-tight">{assignment.title}</h1>
                     <p className="text-sm text-muted-foreground">
                         {assignment.classroom} · {assignment.items_count} exercice(s)
-                        {assignment.due_at && <> · échéance {new Date(assignment.due_at).toLocaleDateString()}</>}
+                        {assignment.due_at && <> · échéance {new Date(assignment.due_at).toLocaleDateString('fr-FR')}</>}
                     </p>
                 </div>
 

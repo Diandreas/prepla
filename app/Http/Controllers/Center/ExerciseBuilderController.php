@@ -146,15 +146,23 @@ class ExerciseBuilderController extends Controller
         $center = $request->attributes->get('center');
 
         return [
+            // exam_id (résolu via la section) est indispensable au front pour filtrer
+            // le sélecteur de Type par l'examen choisi — chaque examen a ses PROPRES
+            // lignes ExerciseType (une par section), donc sans ce filtre le menu
+            // affichait les ~230 types de TOUS les examens mélangés, avec des libellés
+            // dupliqués des dizaines de fois ("Multiple Choice (reading)" pour IELTS,
+            // TOEFL, Cambridge...).
             'exerciseTypes' => ExerciseType::whereIn(
                 'component_key',
                 array_keys(ExerciseSchemaRegistry::all())
-            )->get(['id', 'name', 'component_key', 'skill_type'])
+            )->with('section:id,exam_id')
+                ->get(['id', 'name', 'component_key', 'skill_type', 'section_id'])
                 ->map(fn ($t) => [
                     'id' => $t->id,
                     'name' => $t->name,
                     'component_key' => $t->component_key,
                     'skill_type' => $t->skill_type,
+                    'exam_id' => $t->section?->exam_id,
                 ]),
             'exams' => Exam::get(['id', 'name']),
             'defaultExamId' => $center->default_exam_id,

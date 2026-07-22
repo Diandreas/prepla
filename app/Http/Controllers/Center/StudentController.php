@@ -20,7 +20,11 @@ class StudentController extends Controller
         $center = $request->attributes->get('center');
         $user = $request->user();
 
-        $query = $center->students()->with('classrooms:id,name');
+        // center_id doit être sélectionné : le filtre ->where('center_id', ...)
+        // plus bas s'applique sur la collection déjà chargée en mémoire, pas en
+        // SQL — sans cette colonne, il ne matchait jamais rien (toujours null),
+        // et la liste de classes affichée restait vide pour tous les élèves.
+        $query = $center->students()->with('classrooms:id,name,center_id');
 
         // A teacher only sees students of the classrooms they teach; a
         // center_admin sees every student of the center.

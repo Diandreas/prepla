@@ -21,7 +21,10 @@ export default function AssignmentsIndex({ assignments }: { assignments: Assignm
         {
             key: 'due_at',
             header: 'Échéance',
-            cell: (a) => (a.due_at ? new Date(a.due_at).toLocaleDateString() : '—'),
+            // Locale explicite : sans elle, le format suit la locale OS/navigateur
+            // (souvent M/J/AAAA en anglais US), ambigu dans une interface par
+            // ailleurs entièrement en français.
+            cell: (a) => (a.due_at ? new Date(a.due_at).toLocaleDateString('fr-FR') : '—'),
             sortValue: (a) => a.due_at ?? '',
         },
     ];
