@@ -1,5 +1,6 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DataTable, type Column } from '@/components/ui/data-table';
@@ -42,17 +43,28 @@ export default function AssignmentShow({ assignment, rows }: { assignment: Assig
 
     const doneCount = rows.filter((r) => r.status === 'done').length;
 
+    function destroyAssignment() {
+        if (confirm(`Supprimer « ${assignment.title} » ? Cette action est définitive.`)) {
+            router.delete(route('center.assignments.destroy', assignment.id));
+        }
+    }
+
     return (
         <AppLayout>
             <Head title={assignment.title} />
             <div className="mx-auto w-full max-w-3xl space-y-5 p-4 md:p-6">
-                <div>
-                    <Link href={route('center.assignments.index')} className="text-sm text-muted-foreground hover:text-foreground">← Devoirs</Link>
-                    <h1 className="mt-1 text-2xl font-bold tracking-tight">{assignment.title}</h1>
-                    <p className="text-sm text-muted-foreground">
-                        {assignment.classroom} · {assignment.items_count} exercice(s)
-                        {assignment.due_at && <> · échéance {new Date(assignment.due_at).toLocaleDateString('fr-FR')}</>}
-                    </p>
+                <div className="flex items-start justify-between gap-3">
+                    <div>
+                        <Link href={route('center.assignments.index')} className="text-sm text-muted-foreground hover:text-foreground">← Devoirs</Link>
+                        <h1 className="mt-1 text-2xl font-bold tracking-tight">{assignment.title}</h1>
+                        <p className="text-sm text-muted-foreground">
+                            {assignment.classroom} · {assignment.items_count} exercice(s)
+                            {assignment.due_at && <> · échéance {new Date(assignment.due_at).toLocaleDateString('fr-FR')}</>}
+                        </p>
+                    </div>
+                    <Button variant="ghost" className="text-rose-500 hover:text-rose-600" onClick={destroyAssignment}>
+                        Supprimer
+                    </Button>
                 </div>
 
                 <Card>

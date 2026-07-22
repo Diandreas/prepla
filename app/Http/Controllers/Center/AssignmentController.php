@@ -44,7 +44,7 @@ class AssignmentController extends Controller
         $center = $request->attributes->get('center');
 
         return Inertia::render('center/assignments/create', [
-            'classrooms' => $center->classrooms()->get(['id', 'name']),
+            'classrooms' => $center->classrooms()->whereNull('archived_at')->get(['id', 'name']),
             'exercises' => Exercise::where('center_id', $center->id)
                 ->with('exerciseType:id,name')
                 ->latest()
