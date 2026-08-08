@@ -5,6 +5,7 @@ import { AppSidebarHeader } from '@/components/app-sidebar-header';
 import { MobileTabBar } from '@/components/mobile-tab-bar';
 import { NavigationOverlay } from '@/components/navigation-overlay';
 import { PwaInstallPrompt } from '@/components/pwa-install-prompt';
+import { SupportFab } from '@/components/support-fab';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { type BreadcrumbItem } from '@/types';
 import { usePage } from '@inertiajs/react';
@@ -38,6 +39,9 @@ export default function AppSidebarLayout({
 
             {/* Mobile Navigation — hidden in focus mode */}
             {!focusMode && <MobileTabBar />}
+
+            {/* Support WhatsApp / appel — joignable depuis n'importe quelle page */}
+            {!focusMode && <SupportFab />}
 
             {/* Branded hourglass loader during page transitions (silent if instant) */}
             <NavigationOverlay />

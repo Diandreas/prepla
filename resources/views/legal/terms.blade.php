@@ -82,6 +82,7 @@
     <ul>
         <li>Email : <a href="mailto:prepla.mirlab@gmail.com">prepla.mirlab@gmail.com</a></li>
         <li>WhatsApp support : <a href="https://wa.me/237693427913">+237 693 42 79 13</a></li>
+        <li>Appel direct : <a href="tel:+237693427913">+237 693 42 79 13</a></li>
     </ul>
 
     <p>Voir aussi notre <a href="{{ route('privacy') }}">politique de confidentialité</a>.</p>

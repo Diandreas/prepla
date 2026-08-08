@@ -81,7 +81,9 @@
         @yield('content')
     </div>
     <footer>
-        <a href="/blog">Blog</a> · <a href="/">Accueil</a> · <a href="/privacy">Confidentialité</a> · <a href="/terms">CGU</a>
+        <a href="/blog">Blog</a> · <a href="/">Accueil</a> · <a href="/privacy">Confidentialité</a> · <a href="/terms">CGU</a><br>
+        Support : <a href="https://wa.me/237693427913" target="_blank" rel="noopener">WhatsApp</a> ·
+        <a href="tel:+237693427913">+237 693 42 79 13</a>
     </footer>
 </body>
 </html>

@@ -87,7 +87,13 @@
     "assignments": "Devoirs",
     "students": "Élèves",
     "content": "Contenu",
-    "centers": "Centres"
+    "centers": "Centres",
+    "support": "Aide & support"
+  },
+  "support": {
+    "title": "Aide & support",
+    "whatsapp": "WhatsApp",
+    "call": "Appeler"
   },
   "page_titles": {
     "dashboard": "Mon Parcours",
@@ -269,6 +275,8 @@
     "footer_link_about": "À propos",
     "footer_link_blog": "Blog",
     "footer_link_contact": "Contact",
+    "footer_contact_whatsapp": "WhatsApp",
+    "footer_contact_call": "Appel direct",
     "footer_link_privacy": "Confidentialité",
     "footer_link_terms": "CGU",
     "footer_link_cookies": "Cookies",

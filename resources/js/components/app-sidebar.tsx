@@ -2,6 +2,7 @@ import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+import { SUPPORT_WHATSAPP_URL } from '@/lib/contact';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
@@ -55,6 +56,12 @@ export function AppSidebar() {
     }
 
     const footerNavItems: NavItem[] = [
+        {
+            title: t('sidebar.support', 'Aide & support'),
+            url: SUPPORT_WHATSAPP_URL,
+            icon: () => <SidebarIcon name="help" />,
+            external: true,
+        },
         {
             title: t('sidebar.settings', 'Paramètres'),
             url: '/settings/profile',

@@ -1,9 +1,11 @@
+import { PhoneGlyph, WhatsAppGlyph } from '@/components/support-fab';
+import { SUPPORT_EMAIL_URL, SUPPORT_PHONE_DISPLAY, SUPPORT_TEL_URL, SUPPORT_WHATSAPP_URL } from '@/lib/contact';
 import { Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { useTokens } from './landing-theme';
 
 const socialLinks = [
-    { icon: '', href: '#', label: 'Email' },
+    { icon: '', href: SUPPORT_EMAIL_URL, label: 'Email' },
     { icon: '◈', href: '#', label: 'Discord' },
     { icon: '✕', href: '#', label: 'Twitter / X' },
 ];
@@ -56,9 +58,39 @@ export function LandingFooter() {
                             </span>
                         </Link>
 
-                        <p style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '0.8rem', color: T.textMid, lineHeight: 1.7, maxWidth: '18rem', margin: '0 0 1.5rem' }}>
+                        <p style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '0.8rem', color: T.textMid, lineHeight: 1.7, maxWidth: '18rem', margin: '0 0 1.25rem' }}>
                             {t('landing.footer_tagline')}
                         </p>
+
+                        {/* Support joignable directement : même numéro pour WhatsApp et les appels */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem' }}>
+                            {[
+                                { href: SUPPORT_WHATSAPP_URL, label: t('landing.footer_contact_whatsapp'), glyph: <WhatsAppGlyph size={15} />, color: '#25D366', external: true },
+                                { href: SUPPORT_TEL_URL, label: t('landing.footer_contact_call'), glyph: <PhoneGlyph size={14} />, color: T.sky, external: false },
+                            ].map((c) => (
+                                <a key={c.href} href={c.href}
+                                    {...(c.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                                    style={{
+                                        display: 'inline-flex', alignItems: 'center', gap: '0.55rem',
+                                        fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '0.85rem',
+                                        color: T.textMid, textDecoration: 'none', transition: 'color 0.2s ease',
+                                    }}
+                                    onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = T.text)}
+                                    onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = T.textMid)}>
+                                    <span style={{
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        width: 26, height: 26, borderRadius: '0.45rem',
+                                        background: `${c.color}1f`, color: c.color, flexShrink: 0,
+                                    }}>
+                                        {c.glyph}
+                                    </span>
+                                    <span>
+                                        <span style={{ fontWeight: 600 }}>{c.label}</span>
+                                        <span style={{ opacity: 0.75 }}> · {SUPPORT_PHONE_DISPLAY}</span>
+                                    </span>
+                                </a>
+                            ))}
+                        </div>
 
                         <div style={{ display: 'flex', gap: '0.6rem' }}>
                             {socialLinks.map((s) => (

@@ -30,6 +30,7 @@
         ul { padding-left: 1.25rem; }
         li { margin-bottom: .4rem; }
         .back { display: inline-block; margin-top: 3rem; font-size: .9rem; }
+        .support { margin-top: 3rem; padding-top: 1.25rem; border-top: 1px solid rgba(19,35,63,0.12); font-size: .88rem; }
     </style>
 </head>
 <body>
@@ -38,6 +39,11 @@
         <h1>@yield('title')</h1>
         <p class="updated">Dernière mise à jour : @yield('updated')</p>
         @yield('content')
+        <p class="support">Une question ? Support :
+            <a href="https://wa.me/237693427913" target="_blank" rel="noopener">WhatsApp</a> ·
+            <a href="tel:+237693427913">+237 693 42 79 13</a> ·
+            <a href="mailto:prepla.mirlab@gmail.com">prepla.mirlab@gmail.com</a>
+        </p>
         <a href="/" class="back">← Retour à l'accueil</a>
     </div>
 </body>

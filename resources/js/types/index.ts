@@ -22,6 +22,8 @@ export interface NavItem {
     url: string;
     icon?: LucideIcon | null;
     isActive?: boolean;
+    // Lien hors application (WhatsApp, tel:, mailto:) — rendu en <a> et non en Link Inertia
+    external?: boolean;
 }
 
 export interface SharedData {

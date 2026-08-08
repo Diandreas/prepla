@@ -87,7 +87,13 @@
     "assignments": "Assignments",
     "students": "Students",
     "content": "Content",
-    "centers": "Centers"
+    "centers": "Centers",
+    "support": "Help & support"
+  },
+  "support": {
+    "title": "Help & support",
+    "whatsapp": "WhatsApp",
+    "call": "Call us"
   },
   "page_titles": {
     "dashboard": "My Journey",
@@ -269,6 +275,8 @@
     "footer_link_about": "About",
     "footer_link_blog": "Blog",
     "footer_link_contact": "Contact",
+    "footer_contact_whatsapp": "WhatsApp",
+    "footer_contact_call": "Call us",
     "footer_link_privacy": "Privacy",
     "footer_link_terms": "Terms",
     "footer_link_cookies": "Cookies",

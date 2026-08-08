@@ -13,23 +13,35 @@ export function NavFooter({
         <SidebarGroup {...props} className={`group-data-[collapsible=icon]:p-0 ${className || ''}`}>
             <SidebarGroupContent>
                 <SidebarMenu>
-                    {items.map((item) => (
-                        <SidebarMenuItem key={item.title}>
-                            <SidebarMenuButton
-                                asChild
-                                className="h-10 gap-3 rounded-lg transition-all"
-                            >
-                                <Link href={item.url}>
-                                    {item.icon && (
-                                        <span className="flex items-center justify-center w-7 h-7 shrink-0">
-                                            <item.icon />
-                                        </span>
+                    {items.map((item) => {
+                        const content = (
+                            <>
+                                {item.icon && (
+                                    <span className="flex items-center justify-center w-7 h-7 shrink-0">
+                                        <item.icon />
+                                    </span>
+                                )}
+                                <span className="font-medium">{item.title}</span>
+                            </>
+                        );
+
+                        return (
+                            <SidebarMenuItem key={item.title}>
+                                <SidebarMenuButton
+                                    asChild
+                                    className="h-10 gap-3 rounded-lg transition-all"
+                                >
+                                    {item.external ? (
+                                        <a href={item.url} target="_blank" rel="noopener noreferrer">
+                                            {content}
+                                        </a>
+                                    ) : (
+                                        <Link href={item.url}>{content}</Link>
                                     )}
-                                    <span className="font-medium">{item.title}</span>
-                                </Link>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    ))}
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        );
+                    })}
                 </SidebarMenu>
             </SidebarGroupContent>
         </SidebarGroup>

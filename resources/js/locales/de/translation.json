@@ -87,7 +87,13 @@
     "assignments": "Aufgaben",
     "students": "Schüler",
     "content": "Inhalt",
-    "centers": "Zentren"
+    "centers": "Zentren",
+    "support": "Hilfe & Support"
+  },
+  "support": {
+    "title": "Hilfe & Support",
+    "whatsapp": "WhatsApp",
+    "call": "Anrufen"
   },
   "page_titles": {
     "dashboard": "Mein Lernweg",
@@ -269,6 +275,8 @@
     "footer_link_about": "Über uns",
     "footer_link_blog": "Blog",
     "footer_link_contact": "Kontakt",
+    "footer_contact_whatsapp": "WhatsApp",
+    "footer_contact_call": "Direktanruf",
     "footer_link_privacy": "Datenschutz",
     "footer_link_terms": "AGB",
     "footer_link_cookies": "Cookies",
