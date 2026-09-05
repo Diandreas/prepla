@@ -113,6 +113,17 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
+        // End any recurring web subscription before removing the account. Leaving the
+        // Stripe subscription active would keep billing a user who can no longer log in.
+        $subscription = $user->subscription('default');
+        if ($subscription?->valid()) {
+            $subscription->cancelNow();
+        }
+
+        // Web-push subscriptions use a polymorphic key and therefore do not cascade
+        // automatically when the user row is deleted.
+        $user->pushSubscriptions()->delete();
+
         Auth::logout();
 
         $user->delete();

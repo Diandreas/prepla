@@ -43,3 +43,9 @@ yarn-error.log
 /The test report.docx
 /PREPLA Test Report.pdf
 /ielts_writing_band_descriptors.pdf
+
+# Content studio Remotion (voix off générées + rendus vidéo, re-générables)
+/remotion/node_modules
+/remotion/out
+/remotion/public/audio
+/remotion/.rnv

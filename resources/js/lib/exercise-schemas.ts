@@ -23,6 +23,10 @@ export const EXERCISE_SCHEMAS: Record<string, TypeSchema> = {
     'key-word-transformation': { label: 'Transformation', family: 'exact-match', media: [] },
     'insert-text': { label: 'Insérer une phrase', family: 'exact-match', media: [] },
     dictation: { label: 'Dictée', family: 'exact-match', media: ['audio'] },
+    'listen-repeat': { label: 'Écouter et répéter', family: 'exact-match', media: ['audio'] },
+    'picture-mcq': { label: 'Choisir la bonne image', family: 'exact-match', media: ['image', 'audio'] },
+    'build-a-sentence': { label: 'Construire la phrase', family: 'exact-match', media: [] },
+    'listen-choose-response': { label: 'Écouter et répondre', family: 'exact-match', media: ['audio'] },
     // multi-field
     'open-cloze': { label: 'Texte à trous numérotés', family: 'multi-field', media: [] },
     'note-completion': { label: 'Compléter des notes', family: 'multi-field', media: ['audio'] },
@@ -32,6 +36,7 @@ export const EXERCISE_SCHEMAS: Record<string, TypeSchema> = {
     'flow-chart-completion': { label: 'Diagramme de flux', family: 'multi-field', media: [] },
     'multiple-matching': { label: 'Association multiple', family: 'multi-field', media: [] },
     'diagram-labeling': { label: 'Annoter un schéma', family: 'multi-field', media: ['image'] },
+    'complete-the-words': { label: 'Compléter les mots', family: 'multi-field', media: [] },
     // order
     ordering: { label: "Remettre dans l'ordre", family: 'order', media: [] },
     'gapped-text': { label: 'Texte lacunaire', family: 'order', media: [] },
@@ -42,6 +47,7 @@ export const EXERCISE_SCHEMAS: Record<string, TypeSchema> = {
     'academic-discussion': { label: 'Discussion académique', family: 'ai-writing', media: [] },
     'graph-description': { label: 'Décrire un graphique', family: 'ai-writing', media: ['image'] },
     'integrated-task': { label: 'Tâche intégrée', family: 'ai-writing', media: ['audio'] },
+    'guided-writing': { label: 'Écriture guidée', family: 'ai-writing', media: [] },
     // ai-speaking
     'speaking-recorder': { label: 'Expression orale', family: 'ai-speaking', media: ['image'] },
     'role-play': { label: 'Jeu de rôle', family: 'ai-speaking', media: [] },

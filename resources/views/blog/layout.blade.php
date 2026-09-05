@@ -21,7 +21,7 @@
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=cormorant-garamond:700i|plus-jakarta-sans:400,500,600,700" rel="stylesheet" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/icons/pwa-192.png?v=3">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/pwa-192-v4.png">
 
     <style>
         :root { color-scheme: light dark; }

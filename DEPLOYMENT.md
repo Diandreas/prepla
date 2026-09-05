@@ -7,9 +7,26 @@
 
 ## Checklist AVANT de pousser
 1. **Bumper le cache du service worker** : `public/sw.js` → incrémenter `CACHE_NAME`
-   (`prepla-v3` → `prepla-v4`…). Sans ça, les utilisateurs gardent l'ancien cache.
+   (`prepla-shell-v14` → `prepla-shell-v15`…). Sans ça, les utilisateurs gardent
+   les anciens assets publics.
 2. `npm run build` (régénère `public/build/manifest.json` avec de nouveaux hash).
-3. Commit + push sur `main`.
+3. `php artisan test` et `node --check public/sw.js`.
+4. Commit + push sur `main`.
+
+## Configuration PWA en production
+
+Vérifier dans le `.env` du serveur (ne jamais committer les valeurs VAPID) :
+
+```dotenv
+APP_URL=https://prepla.mirlab.cloud
+SESSION_SECURE_COOKIE=true
+VAPID_PUBLIC_KEY=...
+VAPID_PRIVATE_KEY=...
+VAPID_SUBJECT=mailto:...
+```
+
+La PWA et les notifications push exigent HTTPS en production. Après modification du
+`.env`, lancer `php artisan config:clear`.
 
 ## Déploiement sur le VPS
 ```bash
@@ -29,17 +46,22 @@ DEPLOY
 
 ## Vérifier que la MAJ est bien en ligne
 - DevTools → Network : les fichiers `/build/assets/*.js` doivent avoir de **nouveaux hash**.
-- Application → Service Workers : la nouvelle version doit s'activer ; la page se recharge
-  automatiquement (logique `controllerchange` dans `resources/js/app.tsx`).
+- Ouvrir `/manifest.json?v=4`, `/sw.js` et `/offline` et vérifier une réponse HTTP 200.
+- Application → Manifest : vérifier les icônes, les trois captures et `display: standalone`.
+- Application → Service Workers : une nouvelle version doit afficher l'invite « Mise à jour
+  disponible ». Elle ne doit plus recharger automatiquement un examen en cours.
+- Sur un téléphone Android puis un iPhone : installer depuis l'écran d'accueil, ouvrir en
+  plein écran, tester le micro/audio et activer une notification depuis le profil.
 
 ## Pièges connus
 - **« 000 » en local (ping/curl)** = c'est ton **VPN**, pas le serveur. Désactive le VPN
   pour tester depuis ta machine. Le SSH peut passer même quand le VPN bloque le HTTP.
-- **Repo privé** : pour déployer, soit le repo est temporairement public, soit le remote
-  du serveur a un token valide :
-  `git remote set-url origin https://Diandreas:<TOKEN>@github.com/Diandreas/prepla.git`
+- **Repo privé** : utiliser de préférence une deploy key SSH en lecture seule sur le VPS.
+  Ne jamais enregistrer un token GitHub directement dans l'URL du remote ou dans ce fichier.
 - **Symlink storage** : ne jamais lancer `php artisan storage:link` en root (nginx
   `disable_symlinks if_not_owner` → 404 sur `/storage/*`). Recréer en `mirlab-prepla`.
 - **Sons / nouveaux assets** : s'ils « ne s'entendent pas / n'apparaissent pas » alors
-  qu'ils sont sur le serveur → c'est l'ancien bundle JS servi par le SW. Le bump de
-  `CACHE_NAME` + le reload auto règlent ça.
+  qu'ils sont sur le serveur → accepter l'invite de mise à jour PWA. Le bump de
+  `CACHE_NAME` purge ensuite les anciens assets publics.
+
+Pour la publication Android, suivre [`docs/pwa-play-store.md`](docs/pwa-play-store.md).

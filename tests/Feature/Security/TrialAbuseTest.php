@@ -15,6 +15,9 @@ test('a brand new registration grants a trial and records the email as consumed'
     expect($user)->not->toBeNull();
     expect($user->profile->trial_ends_at)->not->toBeNull();
     expect(ConsumedTrial::alreadyUsedBy('nouvel-eleve@example.com'))->toBeTrue();
+    expect(ConsumedTrial::first()->email)
+        ->not->toBe('nouvel-eleve@example.com')
+        ->toMatch('/^[a-f0-9]{64}$/');
 });
 
 test('re-registering with an email that already consumed a trial grants no new trial', function () {

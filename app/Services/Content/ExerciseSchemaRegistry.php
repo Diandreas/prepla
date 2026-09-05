@@ -41,6 +41,10 @@ class ExerciseSchemaRegistry
             'key-word-transformation' => ['label' => 'Transformation', 'family' => self::FAMILY_EXACT, 'media' => []],
             'insert-text' => ['label' => 'Insérer une phrase', 'family' => self::FAMILY_EXACT, 'media' => []],
             'dictation' => ['label' => 'Dictée', 'family' => self::FAMILY_EXACT, 'media' => ['audio']],
+            'listen-repeat' => ['label' => 'Écouter et répéter', 'family' => self::FAMILY_EXACT, 'media' => ['audio']],
+            'picture-mcq' => ['label' => 'Choisir la bonne image', 'family' => self::FAMILY_EXACT, 'media' => ['image', 'audio']],
+            'build-a-sentence' => ['label' => 'Construire la phrase', 'family' => self::FAMILY_EXACT, 'media' => []],
+            'listen-choose-response' => ['label' => 'Écouter et répondre', 'family' => self::FAMILY_EXACT, 'media' => ['audio']],
 
             // ── multi-field (map clé→réponse, seuil 70%) ─────────────────
             'open-cloze' => ['label' => 'Texte à trous numérotés', 'family' => self::FAMILY_MULTI, 'media' => []],
@@ -51,6 +55,7 @@ class ExerciseSchemaRegistry
             'flow-chart-completion' => ['label' => 'Diagramme de flux', 'family' => self::FAMILY_MULTI, 'media' => []],
             'multiple-matching' => ['label' => 'Association multiple', 'family' => self::FAMILY_MULTI, 'media' => []],
             'diagram-labeling' => ['label' => 'Annoter un schéma', 'family' => self::FAMILY_MULTI, 'media' => ['image']],
+            'complete-the-words' => ['label' => 'Compléter les mots', 'family' => self::FAMILY_MULTI, 'media' => []],
 
             // ── order (séquence) ─────────────────────────────────────────
             'ordering' => ['label' => 'Remettre dans l\'ordre', 'family' => self::FAMILY_ORDER, 'media' => []],
@@ -63,6 +68,7 @@ class ExerciseSchemaRegistry
             'academic-discussion' => ['label' => 'Discussion académique', 'family' => self::FAMILY_AI_WRITING, 'media' => []],
             'graph-description' => ['label' => 'Décrire un graphique', 'family' => self::FAMILY_AI_WRITING, 'media' => ['image']],
             'integrated-task' => ['label' => 'Tâche intégrée', 'family' => self::FAMILY_AI_WRITING, 'media' => ['audio']],
+            'guided-writing' => ['label' => 'Écriture guidée', 'family' => self::FAMILY_AI_WRITING, 'media' => []],
 
             // ── IA — oral ────────────────────────────────────────────────
             'speaking-recorder' => ['label' => 'Expression orale', 'family' => self::FAMILY_AI_SPEAKING, 'media' => ['image']],
@@ -106,6 +112,15 @@ class ExerciseSchemaRegistry
 
             switch ($family) {
                 case self::FAMILY_EXACT:
+                    // Some audio-first components intentionally omit `text` in
+                    // their generated payload. Normalise their audible prompt to
+                    // the common exact-match contract used by the builder/scorer.
+                    if (in_array($componentKey, ['listen-repeat', 'listen-choose-response'], true)) {
+                        $q['text'] ??= $q['audio_text'] ?? '';
+                    }
+                    if ($componentKey === 'listen-repeat') {
+                        $q['correct_answer'] ??= $q['audio_text'] ?? '';
+                    }
                     if (trim((string)($q['text'] ?? '')) === '') {
                         return [false, "Question {$n} : le texte est requis.", []];
                     }

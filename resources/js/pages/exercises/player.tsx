@@ -174,6 +174,12 @@ const INSTRUCTIONS: Record<string, string> = {
     'synthesis': 'Rédige ta synthèse, puis valide',
     'integrated-task': 'Lis/écoute puis rédige ta réponse',
     'vocabulary-card': 'Mémorise puis valide',
+    'listen-repeat': 'Écoute la phrase, puis répète-la à voix haute',
+    'picture-mcq': 'Observe puis choisis la bonne image',
+    'complete-the-words': 'Complète les lettres manquantes dans le texte',
+    'build-a-sentence': 'Replace les mots pour construire la phrase',
+    'listen-choose-response': 'Écoute puis choisis la meilleure réponse',
+    'guided-writing': 'Rédige en suivant les contraintes indiquées',
 };
 
 // Segmented progress dots
@@ -466,9 +472,9 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
     const isListening = skillType === 'listening';
 
     const TIME_PER_QUESTION = useMemo(() => {
-        const writingTypes = ['essay-editor', 'short-writing', 'graph-description', 'academic-discussion', 'synthesis', 'integrated-task'];
-        const speakingTypes = ['speaking-recorder', 'role-play'];
-        const longTypes = ['gapped-text', 'insert-text', 'table-completion', 'flow-chart-completion', 'summary-completion', 'form-completion', 'diagram-labeling', 'multiple-matching'];
+        const writingTypes = ['essay-editor', 'short-writing', 'graph-description', 'academic-discussion', 'synthesis', 'integrated-task', 'guided-writing'];
+        const speakingTypes = ['speaking-recorder', 'role-play', 'listen-repeat'];
+        const longTypes = ['gapped-text', 'insert-text', 'table-completion', 'flow-chart-completion', 'summary-completion', 'form-completion', 'diagram-labeling', 'multiple-matching', 'complete-the-words'];
         // Timers kept tight enough to feel the effort, but long enough not to
         // punish reading: exercises with a reference passage get extra time to read it.
         const hasPassage = !!exercise?.content?.passage;
@@ -671,11 +677,14 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
         setSpeakingPoints(null);
         setAnswers(prev => {
             const next = { ...prev };
-            if (question) delete next[question.id];
+            if (question) {
+                delete next[answerKey(question.id)];
+                delete next[`${question.id}_transcription`];
+            }
             return next;
         });
         setTimerSeconds(TIME_PER_QUESTION); // Reset timer 
-    }, [question, TIME_PER_QUESTION]);
+    }, [question, TIME_PER_QUESTION, answerKey]);
 
     const checkAnswer = useCallback(async () => {
         if (!question || isChecked || isVerifying) return;
@@ -692,7 +701,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
             return;
         }
 
-        const aiTypes = ['essay-editor', 'speaking-recorder', 'role-play', 'short-writing', 'graph-description', 'academic-discussion', 'synthesis', 'integrated-task'];
+        const aiTypes = ['essay-editor', 'speaking-recorder', 'role-play', 'short-writing', 'graph-description', 'academic-discussion', 'synthesis', 'integrated-task', 'guided-writing'];
         let isRight = false;
         let aiFeedback = null;
 
@@ -1003,13 +1012,13 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                 }
             `}</style>
 
-            <div className="player-font mx-auto max-w-2xl py-6 px-4" style={{ paddingBottom: '120px' }}>
+            <div className="player-font mx-auto max-w-2xl px-4 py-4 sm:py-6" style={{ paddingBottom: 'calc(128px + env(safe-area-inset-bottom))' }}>
 
                 {/* ── Header ── */}
                 <div style={{ marginBottom: 20 }}>
                     {/* Top row: title + timer */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div className="flex items-start justify-between gap-3 sm:items-center" style={{ marginBottom: 14 }}>
+                        <div className="min-w-0" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                             <div style={{
                                 width: 36, height: 36,
                                 borderRadius: 10,
@@ -1019,16 +1028,16 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                             }}>
                                 <Icon name="sparkles" size={18} style={{ opacity: 0.8, }} />
                             </div>
-                            <div>
-                                <div style={{ fontWeight: 700, fontSize: '0.9375rem', lineHeight: 1.2 }}>{node.title}</div>
-                                <div style={{ fontSize: '0.75rem', opacity: 0.5, marginTop: 2 }}>
+                            <div className="min-w-0">
+                                <div className="line-clamp-2" style={{ fontWeight: 700, fontSize: '0.9375rem', lineHeight: 1.2 }}>{node.title}</div>
+                                <div className="hidden sm:block" style={{ fontSize: '0.75rem', opacity: 0.5, marginTop: 2 }}>
                                     {node.exam.language.name} · {node.exam.name}
                                     {!isReviewMode && ' · ' + t('exercise.mastery_threshold', 'Valide ce concept à 60%')}
                                 </div>
                             </div>
                         </div>
 
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div className="shrink-0" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                             {/* Quit session */}
                             <button
                                 type="button"
@@ -1152,8 +1161,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                     )}
 
                     <div
-                        className={`player-card group/card relative ${isChecked ? (isCorrect ? 'answer-pop' : 'answer-shake') : ''}`}
-                        style={{ padding: '24px' }}
+                        className={`player-card group/card relative p-4 sm:p-6 ${isChecked ? (isCorrect ? 'answer-pop' : 'answer-shake') : ''}`}
                     >
                         {/* Floating TTS button — the question text itself is rendered by each Component to avoid duplication */}
                         <button
@@ -1251,7 +1259,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
 
             {/* ── Bottom Action Bar ── */}
             <div
-                className={`fixed bottom-0 left-0 right-0 transition-all duration-300 ${
+                className={`fixed bottom-0 left-0 right-0 z-50 transition-all duration-300 ${
                     isChecked
                         ? isCorrect ? 'action-bar-correct' : 'action-bar-incorrect'
                         : ''
@@ -1267,7 +1275,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                     className="player-font mx-auto"
                     style={{
                         maxWidth: 672,
-                        padding: '14px 16px 18px',
+                        padding: '12px 16px calc(14px + env(safe-area-inset-bottom))',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',

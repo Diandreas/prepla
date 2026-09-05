@@ -15,6 +15,7 @@ Route::get('/offline', fn() => view('offline'))->name('offline');
 
 Route::get('/privacy', fn() => view('legal.privacy'))->name('privacy');
 Route::get('/terms', fn() => view('legal.terms'))->name('terms');
+Route::get('/account-deletion', fn() => view('legal.account-deletion'))->name('account-deletion');
 
 Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
 Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
@@ -28,6 +29,7 @@ Route::get('/sitemap.xml', function () {
         ['loc' => url('/blog'), 'priority' => '0.6'],
         ['loc' => url('/privacy'), 'priority' => '0.3'],
         ['loc' => url('/terms'), 'priority' => '0.3'],
+        ['loc' => url('/account-deletion'), 'priority' => '0.2'],
     ];
     foreach (BlogService::posts() as $post) {
         $urls[] = ['loc' => url('/blog/' . $post['slug']), 'priority' => '0.5'];

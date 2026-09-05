@@ -91,6 +91,30 @@ class ExerciseScoringService
             $correctAnswer = $question['correct_answer'] ?? null;
             $questionType = $question['type'] ?? $exercise->exerciseType->slug ?? '';
 
+            // Interactive speaking components already evaluate each recording
+            // turn-by-turn in the UI and submit a signed-down score marker at the
+            // end ("completed:NN" / "repeat:NN"). Re-sending that marker to the
+            // language model, or comparing it to the target sentence, made the
+            // final session report disagree with the score the learner just saw.
+            if (is_string($userAnswer)
+                && in_array($questionType, ['role-play', 'oral-debate', 'negotiation', 'speaking-elicitation', 'listen-repeat'], true)
+                && preg_match('/^(completed|repeat):(\d{1,3})$/', $userAnswer, $scoreMatch)) {
+                $accuracy = max(0, min(100, (int) $scoreMatch[2]));
+                $isCorrect = $accuracy >= 50;
+                if ($isCorrect) {
+                    $correct++;
+                }
+                $feedback[] = [
+                    'question_id' => $questionId,
+                    'correct' => $isCorrect,
+                    'accuracy' => $accuracy,
+                    'explanation' => $isCorrect
+                        ? 'Exercice oral validé.'
+                        : 'Continue à t’entraîner pour atteindre au moins 50 %.',
+                ];
+                continue;
+            }
+
             // Open-ended short-answer (C1/C2 written response = a sentence, not 1-3
             // words) can't be exact-matched → evaluate with AI. Detect by length of
             // the expected answer (>4 words ⇒ open response).

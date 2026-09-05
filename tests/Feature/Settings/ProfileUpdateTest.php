@@ -17,6 +17,7 @@ test('profile information can be updated', function () {
 
     $response = $this
         ->actingAs($user)
+        ->from('/settings/profile')
         ->patch('/settings/profile', [
             'name' => 'Test User',
             'email' => 'test@example.com',
@@ -38,6 +39,7 @@ test('email verification status is unchanged when the email address is unchanged
 
     $response = $this
         ->actingAs($user)
+        ->from('/settings/profile')
         ->patch('/settings/profile', [
             'name' => 'Test User',
             'email' => $user->email,
@@ -52,6 +54,12 @@ test('email verification status is unchanged when the email address is unchanged
 
 test('user can delete their account', function () {
     $user = User::factory()->create();
+    $user->pushSubscriptions()->create([
+        'endpoint' => 'https://push.example.test/subscription',
+        'public_key' => 'public-key',
+        'auth_token' => 'auth-token',
+        'content_encoding' => 'aesgcm',
+    ]);
 
     $response = $this
         ->actingAs($user)
@@ -65,6 +73,10 @@ test('user can delete their account', function () {
 
     $this->assertGuest();
     expect($user->fresh())->toBeNull();
+    $this->assertDatabaseMissing('push_subscriptions', [
+        'subscribable_type' => User::class,
+        'subscribable_id' => $user->id,
+    ]);
 });
 
 test('correct password must be provided to delete account', function () {

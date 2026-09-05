@@ -2,7 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         <meta name="csrf-token" content="{{ csrf_token() }}">
         {{-- Apply dark mode before first paint to avoid FOUC --}}
         <script>
@@ -28,12 +28,12 @@
         <meta property="og:title" content="PrePla — Préparation aux examens de langue avec l'IA">
         <meta property="og:description" content="Exercices personnalisés générés par IA, test de niveau et parcours adapté pour réussir ton examen de langue. Essai gratuit 7 jours.">
         <meta property="og:url" content="{{ url()->current() }}">
-        <meta property="og:image" content="{{ url('/icons/pwa-512.png') }}">
+        <meta property="og:image" content="{{ url('/icons/pwa-512-v4.png') }}">
         <meta property="og:locale" content="fr_FR">
         <meta name="twitter:card" content="summary">
         <meta name="twitter:title" content="PrePla — Préparation aux examens de langue avec l'IA">
         <meta name="twitter:description" content="Exercices personnalisés générés par IA, test de niveau et parcours adapté pour réussir ton examen de langue.">
-        <meta name="twitter:image" content="{{ url('/icons/pwa-512.png') }}">
+        <meta name="twitter:image" content="{{ url('/icons/pwa-512-v4.png') }}">
 
         @if (request()->routeIs('home'))
         {{-- Données structurées : uniquement sur la landing publique --}}
@@ -65,16 +65,17 @@
         @vite(['resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
         @inertiaHead
 
-        <link rel="icon" type="image/png" sizes="192x192" href="/icons/pwa-192.png?v=3">
-        <link rel="icon" type="image/png" sizes="512x512" href="/icons/pwa-512.png?v=3">
-        <link rel="shortcut icon" href="/icons/pwa-192.png?v=3">
-        <link rel="manifest" href="/manifest.json">
-        <meta name="theme-color" content="#1A2B48">
+        <link rel="icon" type="image/png" sizes="192x192" href="/icons/pwa-192-v4.png">
+        <link rel="icon" type="image/png" sizes="512x512" href="/icons/pwa-512-v4.png">
+        <link rel="shortcut icon" href="/icons/pwa-192-v4.png">
+        <link rel="manifest" href="/manifest.json?v=4">
+        <meta name="theme-color" content="#0b2d63">
+        <meta name="color-scheme" content="light dark">
         <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
         <meta name="apple-mobile-web-app-title" content="PrePla">
-        <link rel="apple-touch-icon" href="/icons/pwa-192.png?v=3">
+        <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180-v4.png">
 
     </head>
     <body class="font-sans antialiased">

@@ -1,7 +1,7 @@
 @extends('legal.layout')
 
 @section('title', 'Politique de confidentialité')
-@section('updated', '11 juillet 2026')
+@section('updated', '5 septembre 2026')
 
 @section('content')
 
@@ -13,7 +13,7 @@
     <h2>1. Données que nous collectons</h2>
     <ul>
         <li><strong>Compte :</strong> nom, adresse email, mot de passe (stocké de façon
-        chiffrée, jamais en clair), ou identifiant Google si vous vous connectez via
+        haché, jamais en clair), ou identifiant Google si vous vous connectez via
         Google.</li>
         <li><strong>Profil d'apprentissage :</strong> langue et examen visés, niveau
         estimé, réponses aux exercices, scores, séries de pratique (« streak »),
@@ -22,6 +22,9 @@
         votre enregistrement vocal est envoyé à notre prestataire de transcription pour
         être converti en texte et évalué, puis n'est pas conservé au-delà de ce
         traitement.</li>
+        <li><strong>Image d'une copie :</strong> si vous photographiez ou importez un
+        devoir écrit pour en extraire le texte, l'image est transmise à notre prestataire
+        d'IA pour ce traitement et n'est pas conservée par PrePla au-delà de l'opération.</li>
         <li><strong>Paiement :</strong> géré entièrement par Stripe. Nous ne recevons ni
         ne stockons jamais votre numéro de carte bancaire.</li>
         <li><strong>Notifications :</strong> si vous activez les rappels, un identifiant
@@ -59,7 +62,11 @@
     <h2>4. Conservation des données</h2>
     <p>Vos données sont conservées tant que votre compte est actif. Si vous supprimez
     votre compte ou nous en faites la demande, nous supprimons vos données personnelles
-    dans un délai raisonnable, sauf obligation légale de conservation (ex : factures).</p>
+    dans un délai raisonnable, sauf obligation légale de conservation (ex : factures).
+    Une empreinte cryptographique irréversible de l'adresse email peut être conservée
+    uniquement pour empêcher l'utilisation répétée abusive d'un essai gratuit.
+    La procédure complète est disponible sur la page
+    <a href="{{ route('account-deletion') }}">Suppression du compte et des données</a>.</p>
 
     <h2>5. Vos droits</h2>
     <p>Conformément au RGPD, vous pouvez à tout moment demander l'accès, la

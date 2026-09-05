@@ -1,22 +1,22 @@
-// Bump this version on every deploy that ships new front-end assets so the
-// activate handler purges the previous cache. Cache-first on hashed Vite assets
-// is fine, but the SW itself must not pin users to a stale bundle.
-const CACHE_NAME = 'prepla-v13';
+// Bump this version on every deploy that changes the app shell. Vite assets are
+// content-hashed, while this cache contains only public, non-personal assets.
+const CACHE_NAME = 'prepla-shell-v15';
 const OFFLINE_URL = '/offline';
 
 const PRECACHE_ASSETS = [
-    '/',
     '/offline',
     '/favicon.ico',
-    '/manifest.json',
+    '/manifest.json?v=4',
+    '/icons/pwa-192-v4.png',
+    '/icons/pwa-512-v4.png',
 ];
 
-// Install: precache static assets
+// Install the new worker in the background. Do not call skipWaiting here: an
+// immediate takeover could reload and interrupt an exercise or timed exam.
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_ASSETS))
     );
-    self.skipWaiting();
 });
 
 // Activate: clean old caches
@@ -29,15 +29,16 @@ self.addEventListener('activate', (event) => {
     self.clients.claim();
 });
 
-// Fetch: network-first for navigation/API, cache-first for static assets
+// Fetch: public static assets may be cached, but authenticated HTML/Inertia
+// responses must never be stored because they can contain personal user data.
 self.addEventListener('fetch', (event) => {
     const { request } = event;
     const url = new URL(request.url);
 
-    // Skip non-GET and chrome-extension requests
-    if (request.method !== 'GET' || url.protocol === 'chrome-extension:') return;
+    // Leave mutations, browser extensions and third-party resources alone.
+    if (request.method !== 'GET' || url.protocol === 'chrome-extension:' || url.origin !== self.location.origin) return;
 
-    // Skip API / Inertia XHR requests — always network
+    // API/Inertia requests are always network-only.
     if (request.headers.get('X-Inertia')) return;
 
     // Static assets (js, css, images, fonts) → stale-while-revalidate.
@@ -45,42 +46,31 @@ self.addEventListener('fetch', (event) => {
     // background and update the cache, so a new deploy is picked up on the next
     // load instead of pinning the user to an old bundle (which made icon/emoji
     // changes appear to "not change" after deploy).
-    if (url.pathname.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff2?|ttf)$/)) {
+    if (url.pathname.match(/\.(js|css|png|jpg|jpeg|gif|webp|avif|svg|ico|woff2?|ttf|mp3)$/i)) {
         event.respondWith(
             caches.match(request).then((cached) => {
                 const network = fetch(request).then((response) => {
-                    if (response && response.ok) {
+                    if (response && response.ok && response.type === 'basic') {
                         const clone = response.clone();
                         caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
                     }
                     return response;
-                }).catch(() => cached);
+                }).catch(() => cached || Response.error());
                 return cached || network;
             })
         );
         return;
     }
 
-    // Navigation requests → network-first with an 8s timeout. The HTML document
-    // embeds the current Vite asset hashes, so we MUST prefer the network to pick
-    // up a new deploy. The timeout means a slow network falls back to cache (or the
-    // offline page) instead of hanging, without pinning users to a stale document.
-    // 8s (not 3s) because a merely slow response (cold server, brief network hiccup)
-    // was tripping this and showing "Vous êtes hors ligne" while the app was
-    // actually reachable — a false offline reading is worse than a few extra
-    // seconds of waiting on a genuinely slow connection.
+    // Navigations are network-first and are intentionally NOT cached. This
+    // prevents a logged-out or shared device from displaying a stale dashboard
+    // containing serialized Inertia props. Offline falls back to a public shell.
     if (request.mode === 'navigate') {
         event.respondWith(
             Promise.race([
-                fetch(request).then((response) => {
-                    const clone = response.clone();
-                    caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-                    return response;
-                }),
+                fetch(request),
                 new Promise((_, reject) => setTimeout(() => reject(new Error('nav-timeout')), 8000)),
-            ]).catch(() =>
-                caches.match(request).then((cached) => cached || caches.match(OFFLINE_URL))
-            )
+            ]).catch(() => caches.match(OFFLINE_URL))
         );
         return;
     }
@@ -94,14 +84,22 @@ self.addEventListener('message', (event) => {
         return;
     }
     if (event.data?.type === 'PRELOAD_URLS') {
-        const urls = event.data.urls || [];
-        caches.open(CACHE_NAME).then((cache) => {
-            urls.forEach((url) => {
-                fetch(url, { headers: { 'X-Preload': '1' } })
-                    .then((r) => { if (r.ok) cache.put(url, r); })
-                    .catch(() => {});
-            });
+        const urls = (event.data.urls || []).filter((path) => {
+            try {
+                return new URL(path, self.location.origin).origin === self.location.origin;
+            } catch {
+                return false;
+            }
         });
+
+        event.waitUntil(
+            caches.open(CACHE_NAME).then((cache) =>
+                Promise.allSettled(urls.map(async (path) => {
+                    const response = await fetch(path, { headers: { 'X-Preload': '1' } });
+                    if (response.ok && response.type === 'basic') await cache.put(path, response);
+                }))
+            )
+        );
     }
 });
 
@@ -119,8 +117,7 @@ self.addEventListener('push', (event) => {
     const title = payload.title || 'PrePla';
     const options = {
         body: payload.body || 'Temps de pratiquer !',
-        icon: payload.icon || '/icons/pwa-192.png',
-        badge: payload.badge || '/icons/pwa-192.png',
+        icon: payload.icon || '/icons/pwa-192-v4.png',
         data: { url: payload.data?.url || '/' },
         actions: payload.actions || [],
         requireInteraction: false,
@@ -132,17 +129,23 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
 
-    const url = event.notification.data?.url || '/';
+    let targetUrl = new URL('/', self.location.origin).href;
+    try {
+        const candidate = new URL(event.notification.data?.url || '/', self.location.origin);
+        if (candidate.origin === self.location.origin) targetUrl = candidate.href;
+    } catch {
+        // Keep the safe same-origin fallback.
+    }
 
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
             for (const client of windowClients) {
-                if (client.url === url && 'focus' in client) {
+                if (client.url === targetUrl && 'focus' in client) {
                     return client.focus();
                 }
             }
             if (clients.openWindow) {
-                return clients.openWindow(url);
+                return clients.openWindow(targetUrl);
             }
         })
     );

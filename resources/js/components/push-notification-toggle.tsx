@@ -9,12 +9,7 @@ export default function PushNotificationToggle({ compact = false }: { compact?: 
     const { t } = useTranslation();
     const { vapidPublicKey } = usePage<SharedData & { vapidPublicKey?: string }>().props;
 
-    // Inject vapid key for the hook
-    if (vapidPublicKey && typeof window !== 'undefined') {
-        (window as any).__vapidKey = vapidPublicKey;
-    }
-
-    const { permission, isSubscribed, isLoading, isSupported, subscribe, unsubscribe } = usePushNotifications();
+    const { permission, isSubscribed, isLoading, isSupported, error, subscribe, unsubscribe } = usePushNotifications(vapidPublicKey);
 
     if (!isSupported || permission === 'denied') return null;
 
@@ -53,6 +48,7 @@ export default function PushNotificationToggle({ compact = false }: { compact?: 
                 {isLoading && <span className="animate-spin mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full inline-block" />}
                 {isSubscribed ? t('profile.reminders_off', 'Désactiver les rappels') : t('profile.reminders_cta', 'Activer les rappels quotidiens')}
             </Button>
+            {error && <p role="alert" className="text-center text-xs font-medium text-red-600 dark:text-red-400">{error}</p>}
         </div>
     );
 }

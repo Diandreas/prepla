@@ -6,6 +6,15 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 const DISMISSED_KEY = 'prepla-pwa-dismissed';
+const DISMISS_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000;
+
+function isRunningStandalone() {
+    if (typeof window === 'undefined') return false;
+
+    return window.matchMedia('(display-mode: standalone)').matches
+        || window.matchMedia('(display-mode: fullscreen)').matches
+        || (navigator as Navigator & { standalone?: boolean }).standalone === true;
+}
 
 export function usePwaInstall() {
     const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
@@ -15,15 +24,18 @@ export function usePwaInstall() {
 
     useEffect(() => {
         // Already running as PWA
-        if (window.matchMedia('(display-mode: standalone)').matches) {
+        if (isRunningStandalone()) {
             setIsInstalled(true);
             return;
         }
 
-        // User previously dismissed
-        const dismissed = localStorage.getItem(DISMISSED_KEY);
-        if (dismissed) {
-            setIsDismissed(true);
+        // A dismissal is temporary: users can be invited again after a week.
+        try {
+            const dismissedAt = Number(localStorage.getItem(DISMISSED_KEY));
+            if (dismissedAt && Date.now() - dismissedAt < DISMISS_COOLDOWN_MS) setIsDismissed(true);
+            else localStorage.removeItem(DISMISSED_KEY);
+        } catch {
+            // Storage may be unavailable in privacy mode; installation still works.
         }
 
         const handler = (e: Event) => {
@@ -32,10 +44,19 @@ export function usePwaInstall() {
             setIsInstallable(true);
         };
 
-        window.addEventListener('beforeinstallprompt', handler);
-        window.addEventListener('appinstalled', () => setIsInstalled(true));
+        const handleInstalled = () => {
+            setIsInstalled(true);
+            setIsInstallable(false);
+            setInstallPrompt(null);
+        };
 
-        return () => window.removeEventListener('beforeinstallprompt', handler);
+        window.addEventListener('beforeinstallprompt', handler);
+        window.addEventListener('appinstalled', handleInstalled);
+
+        return () => {
+            window.removeEventListener('beforeinstallprompt', handler);
+            window.removeEventListener('appinstalled', handleInstalled);
+        };
     }, []);
 
     const install = async () => {
@@ -45,21 +66,28 @@ export function usePwaInstall() {
         if (outcome === 'accepted') {
             setIsInstalled(true);
             setIsInstallable(false);
+        } else {
+            dismiss();
         }
         setInstallPrompt(null);
     };
 
     const dismiss = () => {
-        localStorage.setItem(DISMISSED_KEY, '1');
+        try {
+            localStorage.setItem(DISMISSED_KEY, String(Date.now()));
+        } catch {
+            // Keep the in-memory dismissal even when storage is unavailable.
+        }
         setIsDismissed(true);
+        setInstallPrompt(null);
     };
 
     // Show popup if: installable AND not dismissed AND not already installed
     const shouldShow = isInstallable && !isDismissed && !isInstalled;
 
     // iOS detection (Safari doesn't fire beforeinstallprompt)
-    const isIos = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
-    const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches;
+    const isIos = typeof navigator !== 'undefined' && /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+    const isInStandaloneMode = isRunningStandalone();
     const showIosPrompt = isIos && !isInStandaloneMode && !isDismissed;
 
     return { shouldShow, showIosPrompt, install, dismiss, isInstalled };
