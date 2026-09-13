@@ -5,6 +5,7 @@ import { ExerciseProgress } from './exercise-progress';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ExerciseRecord } from '@/types';
 import { prefetchExercisesAudio } from '@/lib/tts-cache';
+import { LearningScene, sceneVariantForSkill } from '@/components/learning-scene';
 
 // Exercise Components
 import { Mcq } from './mcq';
@@ -194,6 +195,11 @@ export function ExercisePlayer({ exercise }: ExercisePlayerProps) {
 
     return (
         <div className="space-y-6">
+            <LearningScene
+                compact
+                variant={sceneVariantForSkill(skillType, componentKey)}
+                title={exercise.exercise_type?.name ?? 'À toi de jouer'}
+            />
             <div className="flex items-center justify-between">
                 <ExerciseProgress current={currentIndex + 1} total={questions.length} />
                 <ExerciseTimer onTimeUpdate={handleTimeUpdate} />

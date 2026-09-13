@@ -18,9 +18,9 @@ export default function ExerciseLayout({
     return (
         <>
             <Head title={title} />
-            <div className="flex min-h-screen flex-col bg-background">
+            <div className="learning-canvas flex min-h-screen flex-col">
                 {/* Minimal header */}
-                <header className="border-b border-border px-4 py-3">
+                <header className="border-b border-border/70 bg-background/85 px-4 py-3 backdrop-blur-xl">
                     <div className="mx-auto flex max-w-4xl items-center justify-between">
                         <div className="flex items-center gap-3">
                             <Button

@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import './learning-scenes.css';
 
 @plugin 'tailwindcss-animate';
 

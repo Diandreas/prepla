@@ -4,6 +4,7 @@ import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next';
 import { playSound } from '@/hooks/use-sound';
 import { getCachedTtsUrl, rememberTtsUrl, prefetchExercisesAudio } from '@/lib/tts-cache';
+import { LearningScene, sceneVariantForSkill } from '@/components/learning-scene';
 
 // Read the freshest CSRF token. The XSRF-TOKEN cookie tracks the live session,
 // whereas the <meta> tag is frozen at page load and goes stale on a long-running
@@ -1012,7 +1013,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                 }
             `}</style>
 
-            <div className="player-font mx-auto max-w-2xl px-4 py-4 sm:py-6" style={{ paddingBottom: 'calc(128px + env(safe-area-inset-bottom))' }}>
+            <div className="learning-canvas player-font mx-auto max-w-2xl px-4 py-4 sm:py-6" style={{ paddingBottom: 'calc(128px + env(safe-area-inset-bottom))' }}>
 
                 {/* ── Header ── */}
                 <div style={{ marginBottom: 20 }}>
@@ -1098,6 +1099,13 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                     {/* Segmented progress dots */}
                     <ProgressDots total={totalQuestionsInSession} current={overallProgressCount} />
                 </div>
+
+                <LearningScene
+                    compact
+                    className="mb-4"
+                    variant={sceneVariantForSkill(skillType, componentKey)}
+                    title={exercise.exercise_type?.name || node.title}
+                />
 
                 {/* ── Exercise Content ── */}
                 <div

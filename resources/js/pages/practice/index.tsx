@@ -6,6 +6,7 @@ function Icon({ name, size = 20, style }: { name: string; size?: number; style?:
 }
 import { useEffect, useState } from 'react';
 import type { ExamRecord } from '@/types';
+import { LearningScene } from '@/components/learning-scene';
 
 interface Props {
     exams: ExamRecord[];
@@ -43,7 +44,13 @@ export default function PracticeIndex({ exams, targetExamId }: Props) {
     return (
         <AppLayout>
             <Head title="Pratiquer" />
-            <div className="mx-auto max-w-2xl px-4 py-5">
+            <div className="learning-canvas mx-auto max-w-2xl px-4 py-5">
+                <LearningScene
+                    className="mb-5"
+                    variant="practice"
+                    title="Choisis ton terrain d’entraînement"
+                    subtitle="Chaque session cible une compétence précise et transforme tes erreurs en prochaines étapes."
+                />
                 {/* Two compact action tiles: Dictionnaire + Test IA */}
                 <div className="mb-5 grid grid-cols-2 gap-3">
                     <Link

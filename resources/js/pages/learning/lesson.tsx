@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { ConfettiBurst } from '@/components/confetti-burst';
 import { playSound } from '@/hooks/use-sound';
+import { LearningScene } from '@/components/learning-scene';
 
 interface QuizQuestion {
     question: string;
@@ -343,7 +344,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
     return (
         <AppLayout focusMode>
             <Head title={lesson.title} />
-            <div className="mx-auto max-w-2xl px-3 py-4 sm:px-4 sm:py-8">
+            <div className="learning-canvas mx-auto max-w-2xl px-3 py-4 sm:px-4 sm:py-8">
                 {/* Header back link */}
                 <div className="mb-4" style={stagger(0)}>
                     <Link href="/dashboard" className="text-xs font-bold flex items-center gap-1" style={{ color: SKY }}>
@@ -365,6 +366,15 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                         </div>
                     </div>
                 )}
+
+                <LearningScene
+                    className="mb-4 sm:mb-6"
+                    variant="lesson"
+                    title={lesson.title}
+                    subtitle={lesson.status === 'consolidation'
+                        ? 'On reprend ce point autrement, avec des repères simples et un quiz pour l’ancrer.'
+                        : 'Découvre l’idée, observe les exemples, puis vérifie immédiatement ce que tu as retenu.'}
+                />
 
                 {/* Phase indicator */}
                 <div className="flex items-center gap-2 mb-4 sm:mb-6" style={stagger(1)}>
