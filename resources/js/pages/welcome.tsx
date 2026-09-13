@@ -20,7 +20,7 @@ function WelcomeInner({ languages, pricing }: WelcomeProps) {
     const T = useTokens();
 
     return (
-        <div style={{ minHeight: '100vh', background: T.bg, color: T.text, transition: 'background 0.3s ease, color 0.3s ease' }}>
+        <div className="overflow-x-hidden" style={{ minHeight: '100vh', background: T.bg, color: T.text, transition: 'background 0.3s ease, color 0.3s ease' }}>
             <LandingNavbar />
             <HeroSection />
             <LanguagesGrid languages={languages} />

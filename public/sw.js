@@ -1,6 +1,6 @@
 // Bump this version on every deploy that changes the app shell. Vite assets are
 // content-hashed, while this cache contains only public, non-personal assets.
-const CACHE_NAME = 'prepla-shell-v17';
+const CACHE_NAME = 'prepla-shell-v18';
 const OFFLINE_URL = '/offline';
 
 const PRECACHE_ASSETS = [

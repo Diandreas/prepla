@@ -127,10 +127,7 @@ export function LandingNavbar() {
                 transition: 'all 0.3s ease',
             }}
         >
-            <div
-                style={{ maxWidth: '80rem', margin: '0 auto', padding: '0 1.5rem' }}
-                className="flex h-16 items-center justify-between"
-            >
+            <div style={{ maxWidth: '80rem', margin: '0 auto' }} className="landing-navbar-inner flex h-16 items-center justify-between">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2 select-none" style={{ textDecoration: 'none' }}>
                     <img src="/icons/logo.png?v=4" alt="PrePla" width={32} height={32} style={{ objectFit: 'contain' }} />
@@ -246,7 +243,7 @@ export function LandingNavbar() {
                 </div>
 
                 {/* Mobile hamburger */}
-                <div className="flex items-center gap-2 md:hidden">
+                <div className="flex shrink-0 items-center gap-1 md:hidden">
                     <button onClick={toggle} title={t('landing.theme_dark')}
                         style={{
                             width: 32, height: 32, borderRadius: '0.5rem',

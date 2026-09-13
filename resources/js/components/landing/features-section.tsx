@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { useTokens } from './landing-theme';
 
 const featureKeys = [
-    { icon: '✦', accentKey: 'sky' as const, labelKey: 'landing.feature_ai_label', titleKey: 'landing.feature_ai_title', descKey: 'landing.feature_ai_desc' },
-    { icon: '', accentKey: 'gold' as const, labelKey: 'landing.feature_instant_label', titleKey: 'landing.feature_instant_title', descKey: 'landing.feature_instant_desc' },
-    { icon: '◎', accentKey: 'green' as const, labelKey: 'landing.feature_adaptive_label', titleKey: 'landing.feature_adaptive_title', descKey: 'landing.feature_adaptive_desc' },
-    { icon: '↗', accentKey: 'violet' as const, labelKey: 'landing.feature_analytics_label', titleKey: 'landing.feature_analytics_title', descKey: 'landing.feature_analytics_desc' },
+    { icon: 'sparkles', accentKey: 'sky' as const, labelKey: 'landing.feature_ai_label', titleKey: 'landing.feature_ai_title', descKey: 'landing.feature_ai_desc' },
+    { icon: 'zap', accentKey: 'gold' as const, labelKey: 'landing.feature_instant_label', titleKey: 'landing.feature_instant_title', descKey: 'landing.feature_instant_desc' },
+    { icon: 'target', accentKey: 'green' as const, labelKey: 'landing.feature_adaptive_label', titleKey: 'landing.feature_adaptive_title', descKey: 'landing.feature_adaptive_desc' },
+    { icon: 'statistics', accentKey: 'violet' as const, labelKey: 'landing.feature_analytics_label', titleKey: 'landing.feature_analytics_title', descKey: 'landing.feature_analytics_desc' },
 ];
 
 const ACCENT_COLORS = {
@@ -36,7 +36,7 @@ function FeatureCard({ feature, index }: { feature: typeof featureKeys[0]; index
     const accent = ACCENT_COLORS[feature.accentKey];
 
     return (
-        <div ref={ref} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+        <div ref={ref} className="landing-feature-card" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
             style={{
                 position: 'relative', borderRadius: '1.25rem',
                 border: `1px solid ${hovered ? accent + '44' : T.border}`,
@@ -68,7 +68,7 @@ function FeatureCard({ feature, index }: { feature: typeof featureKeys[0]; index
                     transition: 'all 0.3s ease',
                     ...(hovered ? { background: `${accent}22`, border: `1px solid ${accent}44` } : {}),
                 }}>
-                    <span style={{ fontSize: '1.4rem', color: accent, lineHeight: 1 }}>{feature.icon}</span>
+                    <img className="landing-feature-icon" src={`/icons/${feature.icon}.png`} alt="" aria-hidden="true" />
                 </div>
                 <span style={{
                     fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '0.65rem',

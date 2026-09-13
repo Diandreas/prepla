@@ -53,7 +53,7 @@ function MockExerciseCard({ card, visible }: { card: typeof EXAM_CARDS[0]; visib
     const isDark = T.theme === 'dark';
 
     return (
-        <div className="relative w-full max-w-sm rounded-2xl p-5 shadow-2xl"
+        <div className="landing-exercise-card relative w-full max-w-sm rounded-2xl p-5 shadow-2xl"
             style={{
                 border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(26,22,18,0.12)'}`,
                 background: isDark
@@ -145,7 +145,7 @@ export function HeroSection() {
     }, [cardIndex]);
 
     return (
-        <section style={{ background: T.bg, position: 'relative', overflow: 'hidden' }} className="min-h-screen"
+        <section style={{ background: T.bg, position: 'relative', overflow: 'hidden' }} className="landing-hero"
             key={T.theme}>
             {/* Grid */}
             <svg aria-hidden className="pointer-events-none absolute inset-0 h-full w-full"
@@ -169,17 +169,15 @@ export function HeroSection() {
                 className="pointer-events-none absolute -left-16 top-10 select-none"
                 style={{ width: 380, height: 'auto', opacity: T.dark ? 0.06 : 0.05 }} />
 
-            <div className="relative mx-auto max-w-7xl px-6 py-20 sm:py-28 lg:px-12">
+            <div className="relative mx-auto max-w-7xl px-6 py-16 sm:py-20 lg:px-12 lg:py-24">
                 <div className="grid items-center gap-16 lg:grid-cols-2 lg:gap-20">
                     {/* LEFT */}
-                    <div>
+                    <div className="landing-hero-copy min-w-0">
                         {/* Badge */}
                         <div className="mb-8 inline-flex items-center gap-2.5 rounded-full border px-4 py-1.5 text-xs font-semibold tracking-widest uppercase"
                             style={{
                                 borderColor: `${T.sky}30`, background: `${T.sky}0d`, color: T.sky,
-                                opacity: mounted ? 1 : 0,
-                                transform: mounted ? 'translateY(0)' : 'translateY(12px)',
-                                transition: 'all 0.6s ease 0.1s',
+                                boxShadow: `0 8px 30px ${T.sky}12`,
                             }}>
                             <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: T.gold }} />
                             {t('landing.hero_badge')}
@@ -190,9 +188,6 @@ export function HeroSection() {
                             fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif',
                             fontSize: 'clamp(2.4rem, 5vw, 4.2rem)',
                             fontWeight: 800, lineHeight: 1.08, letterSpacing: '-0.02em', color: T.text,
-                            opacity: mounted ? 1 : 0,
-                            transform: mounted ? 'translateY(0)' : 'translateY(20px)',
-                            transition: 'all 0.7s ease 0.2s',
                         }}>
                             {t('landing.hero_headline').split(' ').slice(0, -2).join(' ')}{' '}
                             <span style={{ color: T.sky }}>
@@ -201,8 +196,7 @@ export function HeroSection() {
                         </h1>
 
                         {/* Language ticker */}
-                        <div className="mt-4 flex items-baseline gap-3"
-                            style={{ opacity: mounted ? 1 : 0, transition: 'opacity 0.6s ease 0.4s' }}>
+                        <div className="mt-4 flex items-baseline gap-3">
                             <span className="text-sm" style={{ color: T.textMid }}>{t('landing.hero_prepare_in')}</span>
                             <span key={langIndex} className="text-base font-semibold"
                                 style={{ color: T.text, fontFamily: '"Plus Jakarta Sans", sans-serif', animation: 'langTick 0.4s cubic-bezier(0.22,1,0.36,1) both' }}>
@@ -211,20 +205,16 @@ export function HeroSection() {
                         </div>
 
                         {/* Body */}
-                        <p className="mt-6 text-base leading-relaxed"
+                        <p className="mt-6 max-w-full break-words text-base leading-relaxed"
                             style={{
                                 fontFamily: '"Plus Jakarta Sans", sans-serif', color: T.textMid,
                                 maxWidth: '32rem',
-                                opacity: mounted ? 1 : 0,
-                                transform: mounted ? 'translateY(0)' : 'translateY(16px)',
-                                transition: 'all 0.7s ease 0.35s',
                             }}>
                             {t('landing.hero_body')}
                         </p>
 
                         {/* CTAs */}
-                        <div className="mt-10 flex flex-wrap items-center gap-4"
-                            style={{ opacity: mounted ? 1 : 0, transform: mounted ? 'translateY(0)' : 'translateY(16px)', transition: 'all 0.7s ease 0.5s' }}>
+                        <div className="mt-10 flex flex-wrap items-center gap-4">
                             <Link href="/register"
                                 className="group inline-flex items-center gap-2.5 rounded-full px-7 py-3.5 text-sm font-semibold transition-all duration-300 hover:-translate-y-0.5"
                                 style={{ background: `linear-gradient(135deg, ${T.sky} 0%, #3478c8 100%)`, color: '#fff', boxShadow: `0 4px 20px ${T.sky}44` }}>
@@ -242,13 +232,18 @@ export function HeroSection() {
                             </a>
                         </div>
 
-                        <p className="mt-4 text-xs" style={{ color: T.textDim, opacity: mounted ? 1 : 0, transition: 'opacity 0.6s ease 0.7s' }}>
+                        <p className="mt-4 text-xs" style={{ color: T.textDim }}>
                             {t('landing.hero_disclaimer')}
                         </p>
 
+                        <div className="landing-proof-row" style={{ color: T.textMid }}>
+                            <span className="landing-proof-chip">{t('landing.hero_trust_adaptive')}</span>
+                            <span className="landing-proof-chip">{t('landing.hero_trust_instant')}</span>
+                            <span className="landing-proof-chip">{t('landing.hero_trust_official')}</span>
+                        </div>
+
                         {/* Stats */}
-                        <div className="mt-12 flex gap-8 border-t pt-8"
-                            style={{ borderColor: T.border, opacity: mounted ? 1 : 0, transition: 'opacity 0.6s ease 0.8s' }}>
+                        <div className="mt-10 flex gap-8 border-t pt-7" style={{ borderColor: T.border }}>
                             {[
                                 { value: '3', label: t('landing.hero_stat_languages') },
                                 { value: '8', label: t('landing.hero_stat_exams') },
@@ -266,8 +261,7 @@ export function HeroSection() {
                     </div>
 
                     {/* RIGHT — Mock card */}
-                    <div className="flex flex-col items-center justify-center gap-6 lg:items-end"
-                        style={{ opacity: mounted ? 1 : 0, transform: mounted ? 'translateY(0)' : 'translateY(30px)', transition: 'all 0.8s ease 0.4s' }}>
+                    <div className="landing-visual-stage flex min-w-0 flex-col items-center justify-center gap-6 lg:items-end">
                         <div className="flex items-center gap-2 text-xs font-medium tracking-wide" style={{ color: `${T.gold}88` }}>
                             <span className="h-px w-8 bg-current" />
                             {t('landing.hero_live_label')}
@@ -284,7 +278,7 @@ export function HeroSection() {
                         </div>
 
                         {/* Level widget */}
-                        <div className="w-full max-w-sm rounded-xl border p-4"
+                        <div className="landing-level-card w-full max-w-sm rounded-xl border p-4"
                             style={{ borderColor: T.border, background: T.bgCard }}>
                             <p className="mb-3 text-xs font-semibold uppercase tracking-widest" style={{ color: T.textDim }}>
                                 {t('landing.hero_level_title')}

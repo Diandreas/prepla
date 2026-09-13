@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 @import './learning-scenes.css';
 @import './platform-shell.css';
+@import './landing-polish.css';
 
 @plugin 'tailwindcss-animate';
 
