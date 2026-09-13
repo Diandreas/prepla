@@ -40,7 +40,7 @@ export function MobileTabBar() {
               : LEARNER_TABS;
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/60 bg-background/85 backdrop-blur-xl md:hidden">
+        <nav className="app-mobile-nav fixed bottom-0 left-0 right-0 z-50 border-t border-border/60 bg-background/85 backdrop-blur-xl md:hidden">
             <div className="flex h-[68px] items-center justify-around px-2 pb-[env(safe-area-inset-bottom)]">
                 {tabs.map((tab) => {
                     const isActive = url === tab.href || url.startsWith(tab.href + '/');

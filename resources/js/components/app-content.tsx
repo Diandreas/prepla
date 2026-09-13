@@ -9,7 +9,7 @@ export function AppContent({ variant = 'header', children, ...props }: AppConten
     if (variant === 'sidebar') {
         // min-w-0 + w-full so the inset can shrink to the viewport on mobile
         // (otherwise flex-1 keeps it at the sidebar-based width and content overflows).
-        return <SidebarInset className="min-w-0 w-full max-w-full overflow-x-hidden" {...props}>{children}</SidebarInset>;
+        return <SidebarInset className="app-main-surface min-w-0 w-full max-w-full overflow-x-hidden" {...props}>{children}</SidebarInset>;
     }
 
     return (

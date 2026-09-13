@@ -22,7 +22,9 @@ export function AppShell({ children, variant = 'header' }: AppShellProps) {
     }
 
     return (
-        <SidebarProvider defaultOpen={isOpen} open={isOpen} onOpenChange={handleSidebarChange}>
+        <SidebarProvider className="app-shell-canvas" defaultOpen={isOpen} open={isOpen} onOpenChange={handleSidebarChange}>
+            <span className="app-ambient-orb app-ambient-orb--blue" aria-hidden="true" />
+            <span className="app-ambient-orb app-ambient-orb--gold" aria-hidden="true" />
             {children}
         </SidebarProvider>
     );

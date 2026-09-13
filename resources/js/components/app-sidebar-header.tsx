@@ -143,14 +143,14 @@ export function AppSidebarHeader() {
 
     return (
         <header
-            className="sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between border-b border-border/60 bg-background/80 px-4 backdrop-blur-xl md:static md:h-14"
+            className="app-topbar sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between border-b border-border/60 bg-background/80 px-4 backdrop-blur-xl md:static md:h-14"
         >
             {/* Left: sidebar toggle (desktop only) + page title */}
             <div className="flex items-center gap-3">
                 <div className="hidden md:block">
                     <SidebarTrigger className="-ml-1" />
                 </div>
-                <span className="text-base font-bold tracking-tight text-foreground md:text-lg">
+                <span className="app-topbar-title text-base font-bold tracking-tight text-foreground md:text-lg">
                     {pageTitle}
                 </span>
             </div>

@@ -17,7 +17,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                             <SidebarMenuButton
                                 asChild
                                 isActive={isActive}
-                                className="h-10 gap-3 rounded-lg transition-all"
+                                className="app-nav-item h-10 gap-3 rounded-lg transition-all"
                             >
                                 <Link href={item.url} prefetch={['mount', 'hover']} cacheFor="1m">
                                     {item.icon && (
