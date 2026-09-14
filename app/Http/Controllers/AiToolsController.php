@@ -67,13 +67,16 @@ class AiToolsController extends Controller
             'task_description' => 'nullable|string',
         ]);
 
-        $nativeLanguage = auth()->user()->profile?->native_language ?: 'Français';
+        $profile = $request->user()->profile?->loadMissing('targetExam');
+        $nativeLanguage = $profile?->native_language ?: 'Français';
+        $examType = $profile?->targetExam?->name ?: 'language proficiency';
 
         $result = $corrector->correct(
             $validated['text'],
             $validated['task_description'] ?? '',
-            'IELTS',
+            $examType,
             $nativeLanguage,
+            $profile?->current_level,
         );
 
         // Keep the submitted text so the result page can render it with inline

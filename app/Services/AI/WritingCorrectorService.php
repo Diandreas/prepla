@@ -24,6 +24,11 @@ IMPORTANT — language of feedback:
 - Write ALL feedback, explanations and the `explanation` of every correction in {$feedbackLanguage} (the learner's native language). Do NOT write the feedback in English unless {$feedbackLanguage} is English.
 - Keep the `original` and `corrected` fields in the SAME language as the learner's text (do not translate the text itself).
 
+IMPORTANT — scoring contract:
+- Use the requested exam's writing expectations and the learner's level, but express ALL numeric scores on PrepLa's normalized practice scale from 0 to 9.
+- This is a pedagogical indicator, not an official exam score. Never switch to a native exam scale such as 20, 30 or 100 points.
+- Keep the four band_scores keys below as shared pedagogical dimensions, even when the exam uses different official criterion names.
+
 IMPORTANT — corrections (for inline highlighting):
 - The `corrections` array MUST list EVERY concrete mistake: spelling, grammar, word form, punctuation, capitalisation, word choice.
 - Each `original` MUST be an EXACT substring copied verbatim from the learner's text (so it can be located and highlighted). Never paraphrase it.
@@ -32,7 +37,7 @@ IMPORTANT — corrections (for inline highlighting):
 
 Output your evaluation as a JSON object with the following structure:
 {
-    \"score\": 0.0, // overall band score 1-9
+    \"score\": 0.0, // normalized practice score 0-9, not an official exam result
     \"band_scores\": {
         \"task_achievement\": 0.0,
         \"coherence_cohesion\": 0.0,
