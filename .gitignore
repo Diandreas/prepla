@@ -49,3 +49,6 @@ yarn-error.log
 /remotion/out
 /remotion/public/audio
 /remotion/.rnv
+
+# Profils de navigateur générés lors des sessions de QA visuelle (lourd, local uniquement)
+/qa_*/
