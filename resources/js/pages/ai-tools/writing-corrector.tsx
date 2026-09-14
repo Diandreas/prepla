@@ -1,12 +1,26 @@
-import { Head, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
+import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle2, FilePenLine, Lightbulb, LoaderCircle, Sparkles, Upload, type LucideIcon } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
+import { ArtIcon } from '@/components/art-icon';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
+const actionIcons: Record<string, LucideIcon> = {
+    'alert-circle': AlertCircle,
+    'arrow-right': ArrowRight,
+    'check-circle': CheckCircle2,
+    'file-edit': FilePenLine,
+    download: Upload,
+    lightbulb: Lightbulb,
+    loader: LoaderCircle,
+    sparkles: Sparkles,
+};
 
 function Icon({ name, size = 16, className, style }: { name: string; size?: number; className?: string; style?: React.CSSProperties }) {
-    return <img src={`/icons/${name}.png`} alt="" width={size} height={size} style={{ objectFit: 'contain', ...style }} className={className} />;
+    const Glyph = actionIcons[name] ?? Sparkles;
+    return <Glyph size={size} style={style} className={className} aria-hidden="true" />;
 }
 
 interface Correction {
@@ -25,9 +39,9 @@ interface CorrectionResult {
 }
 
 function scoreColor(value: number): string {
-    if (value >= 7) return 'text-emerald-500';
-    if (value >= 5.5) return 'text-amber-500';
-    return 'text-rose-500';
+    if (value >= 7) return 'text-emerald-700 dark:text-emerald-300';
+    if (value >= 5.5) return 'text-amber-700 dark:text-amber-300';
+    return 'text-rose-700 dark:text-rose-300';
 }
 
 /**
@@ -91,6 +105,7 @@ export default function WritingCorrector() {
     const [text, setText] = useState('');
     const [task, setTask] = useState('');
     const [submitting, setSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
 
     // Image → OCR state
     const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -101,18 +116,39 @@ export default function WritingCorrector() {
 
     const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
 
+    useEffect(() => () => {
+        if (imagePreview) URL.revokeObjectURL(imagePreview);
+    }, [imagePreview]);
+
     function handleSubmit() {
-        if (!text.trim()) return;
+        if (!text.trim() || submitting || extracting) return;
+        if (text.trim().length < 10) {
+            setSubmitError('Ajoute un peu de contexte : ton texte doit contenir au moins 10 caractères.');
+            return;
+        }
+        setSubmitError(null);
         setSubmitting(true);
         router.post(
             route('ai-tools.writing-corrector.store'),
             { text, task_description: task },
-            { onFinish: () => setSubmitting(false) },
+            {
+                preserveScroll: true,
+                onError: (errors) => setSubmitError(errors.text || errors.task_description || 'La correction n’a pas pu être lancée. Ton texte est conservé, réessaie dans quelques instants.'),
+                onFinish: () => setSubmitting(false),
+            },
         );
     }
 
     async function handleImage(file: File) {
         setOcrError(null);
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+            setOcrError('Choisis une image JPG, PNG ou WebP.');
+            return;
+        }
+        if (file.size > 8 * 1024 * 1024) {
+            setOcrError('Cette image dépasse 8 Mo. Choisis une photo plus légère.');
+            return;
+        }
         setImagePreview(URL.createObjectURL(file));
         setExtracting(true);
 
@@ -149,22 +185,31 @@ export default function WritingCorrector() {
     return (
         <AppLayout>
             <Head title="Correcteur de rédaction" />
-            <div className="mx-auto w-full max-w-4xl space-y-6 p-4 md:p-6">
+            <div className="studio-page mx-auto w-full max-w-4xl space-y-6 p-4 md:p-6">
                 {/* Header */}
-                <div className="flex items-start gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                        <Icon name="file-edit" size={22} className="text-primary" />
+                <Link href="/ai-tools" className="inline-flex items-center gap-2 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring">
+                    <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Tous les outils
+                </Link>
+                <header className="studio-hero rounded-[1.75rem] border border-border p-5 sm:p-7">
+                    <div className="flex items-start gap-4">
+                        <ArtIcon name="writing" size={64} tone="blue" className="shrink-0" />
+                        <div className="min-w-0">
+                            <p className="studio-kicker mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-primary">Ton atelier d’écriture</p>
+                            <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">Fais progresser ta plume.</h1>
+                            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                                Écris, importe une photo, puis découvre ce que tu peux améliorer — et pourquoi.
+                            </p>
+                        </div>
                     </div>
-                    <div>
-                        <h1 className="text-2xl font-bold tracking-tight">Correcteur de rédaction</h1>
-                        <p className="text-sm text-muted-foreground">
-                            Tape ton texte ou prends-le en photo — l'IA le corrige et te note.
-                        </p>
-                    </div>
-                </div>
+                    <ol className="mt-6 flex flex-wrap gap-x-5 gap-y-2 border-t border-border pt-4 text-xs font-medium text-muted-foreground">
+                        {['Ajoute ton texte', 'Lance l’analyse', 'Comprends tes corrections'].map((step, index) => (
+                            <li key={step} className="flex items-center gap-2"><span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 font-bold text-primary">{index + 1}</span>{step}</li>
+                        ))}
+                    </ol>
+                </header>
 
                 {/* Capture from photo */}
-                <Card className="overflow-hidden border-dashed">
+                <Card className="studio-card overflow-hidden rounded-2xl border-dashed">
                     <CardContent className="p-4 md:p-6">
                         <div className="flex flex-col gap-4 md:flex-row md:items-center">
                             <div className="flex-1">
@@ -173,16 +218,16 @@ export default function WritingCorrector() {
                                     <h2 className="text-sm font-semibold">Photographie ton cahier</h2>
                                 </div>
                                 <p className="mt-1 text-sm text-muted-foreground">
-                                    Filme ou prends en photo la page où tu as écrit ta rédaction. Le texte
-                                    sera lu automatiquement et ajouté ci-dessous, prêt à être corrigé.
+                                    Prends une photo nette et bien cadrée. Le texte sera ajouté ci-dessous ; relis-le avant de lancer l’analyse.
                                 </p>
+                                <p className="mt-2 text-[11px] text-muted-foreground">JPG, PNG ou WebP · 8 Mo maximum</p>
                             </div>
-                            <div className="flex shrink-0 gap-2">
+                            <div className="flex shrink-0 flex-wrap gap-2">
                                 <Button
                                     type="button"
                                     onClick={() => cameraInputRef.current?.click()}
-                                    disabled={extracting}
-                                    className="gap-2"
+                                    disabled={extracting || submitting}
+                                    className="gap-2 rounded-xl bg-[#1a2b48] text-white hover:bg-[#2a4165] dark:bg-blue-800 dark:hover:bg-blue-700"
                                 >
                                     <CameraGlyph className="h-4 w-4" />
                                     Prendre en photo
@@ -191,10 +236,10 @@ export default function WritingCorrector() {
                                     type="button"
                                     variant="outline"
                                     onClick={() => fileInputRef.current?.click()}
-                                    disabled={extracting}
-                                    className="gap-2"
+                                    disabled={extracting || submitting}
+                                    className="gap-2 rounded-xl"
                                 >
-                                    <Icon name="download" size={16} className="rotate-180" />
+                                    <Icon name="download" size={16} />
                                     Importer
                                 </Button>
                             </div>
@@ -204,7 +249,7 @@ export default function WritingCorrector() {
                         <input
                             ref={cameraInputRef}
                             type="file"
-                            accept="image/*"
+                            accept="image/png,image/jpeg,image/webp"
                             capture="environment"
                             className="hidden"
                             onChange={onInputChange}
@@ -234,13 +279,13 @@ export default function WritingCorrector() {
                                         </p>
                                     )}
                                     {!extracting && ocrError && (
-                                        <p className="flex items-start gap-2 text-rose-500">
+                                        <p role="alert" className="flex items-start gap-2 text-rose-700 dark:text-rose-300">
                                             <Icon name="alert-circle" size={16} className="mt-0.5 shrink-0" />
                                             <span>{ocrError}</span>
                                         </p>
                                     )}
                                     {!extracting && !ocrError && imagePreview && (
-                                        <p className="flex items-center gap-2 text-emerald-600">
+                                        <p role="status" className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300">
                                             <Icon name="check-circle" size={16} />
                                             Texte ajouté à ta rédaction ci-dessous.
                                         </p>
@@ -252,32 +297,39 @@ export default function WritingCorrector() {
                 </Card>
 
                 {/* Editor */}
-                <Card>
+                <Card className="studio-card rounded-2xl">
                     <CardHeader>
                         <CardTitle className="text-base">Ta rédaction</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div>
-                            <label className="text-sm font-medium">Consigne / sujet (facultatif)</label>
+                            <label htmlFor="writing-task" className="text-sm font-medium">Consigne / sujet (facultatif)</label>
                             <input
-                                className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                id="writing-task"
+                                disabled={submitting}
+                                className="mt-2 w-full rounded-xl border border-border bg-background px-4 py-3 text-base text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 sm:text-sm"
                                 placeholder="ex. : IELTS Tâche 2 — Discutez des avantages et inconvénients…"
                                 value={task}
                                 onChange={(e) => setTask(e.target.value)}
                             />
                         </div>
                         <div>
+                            <label htmlFor="writing-text" className="mb-2 block text-sm font-medium">Ton texte</label>
                             <textarea
-                                className="min-h-[260px] w-full rounded-lg border border-border bg-background p-4 text-sm leading-relaxed focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                id="writing-text"
+                                disabled={submitting}
+                                aria-describedby="writing-word-count"
+                                className="min-h-[280px] w-full rounded-xl border border-border bg-background p-4 text-base leading-relaxed text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 sm:text-sm"
                                 placeholder="Colle, rédige ton texte ici — ou prends-le en photo ci-dessus…"
                                 value={text}
                                 onChange={(e) => setText(e.target.value)}
                             />
                             <div className="mt-1 flex items-center justify-between">
-                                <p className="text-xs text-muted-foreground">{wordCount} mots</p>
+                                <p id="writing-word-count" className="text-xs text-muted-foreground">{wordCount} {wordCount > 1 ? 'mots' : 'mot'}</p>
                                 {text.trim() && (
                                     <button
                                         type="button"
+                                        disabled={submitting || extracting}
                                         onClick={() => setText('')}
                                         className="text-xs text-muted-foreground hover:text-foreground"
                                     >
@@ -286,11 +338,12 @@ export default function WritingCorrector() {
                                 )}
                             </div>
                         </div>
+                        {submitError && <p role="alert" className="rounded-xl bg-rose-50 p-3 text-sm text-rose-800 dark:bg-rose-950/40 dark:text-rose-200">{submitError}</p>}
                         <Button
                             onClick={handleSubmit}
-                            disabled={!text.trim() || submitting}
+                            disabled={!text.trim() || submitting || extracting}
                             size="lg"
-                            className="w-full gap-2 sm:w-auto"
+                            className="w-full gap-2 rounded-xl bg-[#1a2b48] text-white hover:bg-[#2a4165] dark:bg-blue-800 dark:hover:bg-blue-700 sm:w-auto"
                         >
                             {submitting ? (
                                 <>
@@ -304,12 +357,13 @@ export default function WritingCorrector() {
                                 </>
                             )}
                         </Button>
+                        <p className="text-xs leading-relaxed text-muted-foreground">L’IA peut se tromper. La note est un indicateur pédagogique PrepLa sur 9, adapté à ton examen et à ton niveau ; ce n’est pas une note officielle.</p>
                     </CardContent>
                 </Card>
 
                 {/* Results */}
                 {correction && (
-                    <Card>
+                    <Card className="studio-card rounded-2xl">
                         <CardHeader>
                             <div className="flex flex-wrap items-center justify-between gap-2">
                                 <CardTitle className="text-base">Retours de l'IA</CardTitle>
@@ -318,7 +372,7 @@ export default function WritingCorrector() {
                                         <span className={`text-lg font-bold ${scoreColor(correction.score)}`}>
                                             {correction.score}
                                         </span>
-                                        <span className="text-xs text-muted-foreground">/ 9 global</span>
+                                        <span className="text-xs text-muted-foreground">/ 9 · indicatif</span>
                                     </span>
                                 )}
                             </div>
@@ -326,7 +380,7 @@ export default function WritingCorrector() {
                         <CardContent className="space-y-6">
                             {/* Band scores */}
                             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                                {Object.entries(correction.band_scores).map(([key, value]) => (
+                                {Object.entries(correction.band_scores ?? {}).map(([key, value]) => (
                                     <div key={key} className="rounded-lg border border-border p-3 text-center">
                                         <p className={`text-2xl font-bold ${scoreColor(value)}`}>{value}</p>
                                         <p className="mt-1 text-xs capitalize text-muted-foreground">
@@ -339,11 +393,11 @@ export default function WritingCorrector() {
                             {/* Your text with the problem parts highlighted in place */}
                             {correction.submitted_text && correction.corrections && correction.corrections.length > 0 && (
                                 <div className="rounded-lg border border-border p-4">
-                                    <div className="mb-2 flex items-center gap-2">
+                                    <div className="mb-2 flex flex-wrap items-center gap-2">
                                         <Icon name="file-edit" size={16} className="text-primary" />
                                         <h3 className="text-sm font-semibold">Ton texte annoté</h3>
                                         <span className="text-xs text-muted-foreground">
-                                            (survolez les parties soulignées pour voir la correction)
+                                            (retrouve les explications dans les corrections détaillées)
                                         </span>
                                     </div>
                                     <HighlightedText text={correction.submitted_text} corrections={correction.corrections} />
@@ -368,11 +422,11 @@ export default function WritingCorrector() {
                                     {correction.corrections.map((c, i) => (
                                         <div key={i} className="rounded-lg border border-border p-3">
                                             <div className="flex flex-col gap-1 text-sm sm:flex-row sm:items-center sm:gap-3">
-                                                <span className="text-rose-500 line-through decoration-rose-400/60">
+                                                <span className="text-rose-700 line-through decoration-rose-400/60 dark:text-rose-300">
                                                     {c.original}
                                                 </span>
                                                 <Icon name="arrow-right" size={14} className="hidden shrink-0 opacity-50 sm:block" />
-                                                <span className="font-medium text-emerald-600">{c.corrected}</span>
+                                                <span className="font-medium text-emerald-700 dark:text-emerald-300">{c.corrected}</span>
                                             </div>
                                             {c.explanation && (
                                                 <p className="mt-2 text-xs text-muted-foreground">{c.explanation}</p>

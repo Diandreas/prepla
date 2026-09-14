@@ -12,7 +12,6 @@ import { usePage } from '@inertiajs/react';
 
 export default function AppSidebarLayout({
     children,
-    breadcrumbs = [],
     focusMode = false,
 }: {
     children: React.ReactNode;
@@ -31,8 +30,8 @@ export default function AppSidebarLayout({
             {!isMobile && !focusMode && <AppSidebar />}
 
             <AppContent variant="sidebar">
-                {!focusMode && <AppSidebarHeader breadcrumbs={breadcrumbs} />}
-                <div key={url} className={`page-transition w-full min-w-0 overflow-x-hidden ${focusMode ? '' : 'pb-24 md:pb-6'}`}>
+                {!focusMode && <AppSidebarHeader />}
+                <div key={url} className={`page-transition w-full min-w-0 overflow-x-hidden ${focusMode ? '' : 'pb-32 md:pb-6'}`}>
                     {children}
                 </div>
             </AppContent>

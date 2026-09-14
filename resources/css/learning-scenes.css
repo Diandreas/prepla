@@ -231,8 +231,8 @@
     color: rgba(226, 232, 240, 0.72);
 }
 .dark .learning-scene__icon-shell {
-    border-color: rgba(255, 255, 255, 0.1);
-    background: linear-gradient(145deg, #243551, #15243c);
+    border-color: rgba(255, 255, 255, 0.85);
+    background: linear-gradient(145deg, #fff, var(--scene-soft));
 }
 
 @keyframes learning-float {

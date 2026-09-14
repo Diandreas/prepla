@@ -1,6 +1,6 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { ConfettiBurst } from '@/components/confetti-burst';
@@ -46,7 +46,7 @@ interface Props {
     skeleton: SkeletonInfo | null;
 }
 
-const OXFORD = '#1A2B48';
+const OXFORD = 'var(--foreground)';
 const SKY = '#4A90E2';
 const GOLD = '#F5A623';
 const GREEN = '#48b77b';
@@ -58,9 +58,12 @@ type Phase = 'lesson' | 'quiz' | 'results';
 // would otherwise show raw ** asterisks.
 function inlineMd(text: string): string {
     return (text ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*(.*?)\*/g, '<em>$1</em>')
-        .replace(/`(.*?)`/g, '<code class="bg-black/5 px-1 rounded text-[0.9em]">$1</code>');
+        .replace(/`(.*?)`/g, '<code class="bg-muted px-1 rounded text-[0.9em]">$1</code>');
 }
 
 // Split markdown into paginated sections by H2 (or H1) boundary
@@ -114,9 +117,10 @@ export default function LessonPage({ lesson, skeleton }: Props) {
     const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
     const [quizResults, setQuizResults] = useState<any>(null);
     const [submittingQuiz, setSubmittingQuiz] = useState(false);
+    const [quizError, setQuizError] = useState<string | null>(null);
     const [sectionIndex, setSectionIndex] = useState(0);
 
-    const sections = useState(() => splitIntoSections(lesson.theory_markdown))[0];
+    const sections = useMemo(() => splitIntoSections(lesson.theory_markdown), [lesson.theory_markdown]);
     // Key takeaways and common mistakes become their own paginated sections at the
     // end (instead of being stacked at the bottom of the last theory section, which
     // forced a long scroll).
@@ -135,12 +139,20 @@ export default function LessonPage({ lesson, skeleton }: Props) {
 
     useEffect(() => setMounted(true), []);
     // Reset to first section when lesson changes
-    useEffect(() => { setSectionIndex(0); }, [lesson.id]);
+    useEffect(() => {
+        setSectionIndex(0);
+        setPhase('lesson');
+        setQuizAnswers({});
+        setQuizResults(null);
+        setQuizError(null);
+    }, [lesson.id]);
 
     // Scroll to top when changing section
     useEffect(() => {
-        if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, [sectionIndex]);
+        if (typeof window !== 'undefined') {
+            window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+        }
+    }, [sectionIndex, phase]);
 
     const stagger = (i: number) => ({
         opacity: mounted ? 1 : 0,
@@ -158,17 +170,19 @@ export default function LessonPage({ lesson, skeleton }: Props) {
     const allQuizAnswered = quiz.length > 0 && Object.keys(quizAnswers).length >= quiz.length;
 
     const submitQuiz = async () => {
-        if (!allQuizAnswered) return;
+        if (!allQuizAnswered || submittingQuiz) return;
         setSubmittingQuiz(true);
+        setQuizError(null);
         try {
             const res = await axios.post(`/lessons/${lesson.id}/quiz`, {
-                answers: Object.values(quizAnswers)
+                answers: quiz.map((_, index) => quizAnswers[index])
             });
             setQuizResults(res.data);
             setPhase('results');
             playSound(res.data?.passed ? 'complete' : 'incorrect');
         } catch (e: any) {
             console.error('Quiz submission failed', e.response?.data || e.message);
+            setQuizError('Le quiz n’a pas pu être envoyé. Tes réponses sont conservées : vérifie ta connexion, puis réessaie.');
         } finally {
             setSubmittingQuiz(false);
         }
@@ -255,10 +269,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
         });
 
         const parseInline = (text: string) => {
-            return text
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                .replace(/`(.*?)`/g, '<code class="bg-gray-100 px-1 rounded text-[10px]">$1</code>')
+            return inlineMd(text)
                 // Strip any leftover unmatched markdown asterisks (AI sometimes opens
                 // emphasis it never closes, e.g. *"I'm not so sure...).
                 .replace(/\*/g, '');
@@ -266,8 +277,8 @@ export default function LessonPage({ lesson, skeleton }: Props) {
 
         return blocks.map((block, bi) => {
             switch (block.type) {
-                case 'h1': return <h1 key={bi} className="mt-5 sm:mt-8 mb-3 sm:mb-4 text-xl sm:text-2xl font-black" style={{ color: OXFORD }}>{block.lines[0]}</h1>;
-                case 'h2': return <h2 key={bi} className="mt-4 sm:mt-7 mb-2 sm:mb-3 text-lg sm:text-xl font-black" style={{ color: SKY }}>{block.lines[0]}</h2>;
+                case 'h1': return <h2 key={bi} className="mt-5 sm:mt-8 mb-3 sm:mb-4 text-xl sm:text-2xl font-black text-foreground">{block.lines[0]}</h2>;
+                case 'h2': return <h2 key={bi} className="mt-4 sm:mt-7 mb-2 sm:mb-3 text-lg sm:text-xl font-black text-sky-700 dark:text-sky-300">{block.lines[0]}</h2>;
                 case 'h3': return <h3 key={bi} className="mt-3 sm:mt-6 mb-2 text-base sm:text-lg font-black" style={{ color: OXFORD }}>{block.lines[0]}</h3>;
                 case 'empty': return <div key={bi} className="h-2 sm:h-4" />;
                 case 'text': return (
@@ -319,7 +330,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                                 <thead className="bg-muted/50">
                                     <tr>
                                         {tableData[0].map((h, hi) => (
-                                            <th key={hi} className="px-4 py-3 font-black border-b border-border" style={{ color: SKY }}
+                                            <th key={hi} className="px-4 py-3 font-black border-b border-border text-sky-700 dark:text-sky-300"
                                                 dangerouslySetInnerHTML={{ __html: parseInline(h) }} />
                                         ))}
                                     </tr>
@@ -347,7 +358,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
             <div className="learning-canvas mx-auto max-w-2xl px-3 py-4 sm:px-4 sm:py-8">
                 {/* Header back link */}
                 <div className="mb-4" style={stagger(0)}>
-                    <Link href="/dashboard" className="text-xs font-bold flex items-center gap-1" style={{ color: SKY }}>
+                    <Link href="/dashboard" className="flex min-h-10 items-center gap-1 text-sm font-bold text-sky-700 hover:underline dark:text-sky-300">
                         ← Retour au parcours
                     </Link>
                 </div>
@@ -359,7 +370,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                         style={{ background: 'rgba(231,76,60,0.08)', border: '2px solid rgba(231,76,60,0.2)' }}
                     >
                         <div>
-                            <p className="text-sm font-black" style={{ color: '#E74C3C' }}>Leçon de consolidation</p>
+                            <p className="text-sm font-black text-rose-700 dark:text-rose-300">Leçon de consolidation</p>
                             <p className="text-xs text-muted-foreground">
                                 Ce concept est repris avec une approche différente pour t'aider à mieux le comprendre.
                             </p>
@@ -367,36 +378,54 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                     </div>
                 )}
 
-                <LearningScene
-                    className="mb-4 sm:mb-6"
-                    variant="lesson"
-                    title={lesson.title}
-                    subtitle={lesson.status === 'consolidation'
-                        ? 'On reprend ce point autrement, avec des repères simples et un quiz pour l’ancrer.'
-                        : 'Découvre l’idée, observe les exemples, puis vérifie immédiatement ce que tu as retenu.'}
-                />
+                <header className="mb-5" style={stagger(1)}>
+                    {skeleton && (
+                        <p className="mb-2 text-xs font-bold text-sky-700 dark:text-sky-300">
+                            {t('lesson.objective_progress', 'Objectif {{current}} / {{total}}', { current: skeleton.current_index + 1, total: skeleton.total_objectives })}
+                        </p>
+                    )}
+                    <h1 className="text-2xl font-black leading-tight tracking-tight text-foreground sm:text-3xl">{lesson.title}</h1>
+                    {lesson.concept && (
+                        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                            {lesson.concept.split('.')
+                                .map(segment => segment.charAt(0).toUpperCase() + segment.slice(1).replace(/_/g, ' '))
+                                .join(' › ')}
+                        </p>
+                    )}
+                </header>
+
+                {phase === 'lesson' && sectionIndex === 0 && (
+                    <LearningScene
+                        compact
+                        className="mb-5"
+                        variant="lesson"
+                        subtitle={lesson.status === 'consolidation'
+                            ? 'On reprend ce point autrement, avec des repères simples pour l’ancrer.'
+                            : 'Une idée à la fois. Observe les exemples, puis mets tes connaissances en pratique.'}
+                    />
+                )}
 
                 {/* Phase indicator */}
-                <div className="flex items-center gap-2 mb-4 sm:mb-6" style={stagger(1)}>
+                <div aria-label="Étapes de la leçon" className="flex items-center gap-2 mb-4 sm:mb-6" style={stagger(1)}>
                     {['lesson', 'quiz', 'results'].map((p, i) => (
-                        <div key={p} className="flex items-center gap-2">
+                        <div key={p} className="flex items-center gap-2" aria-current={phase === p ? 'step' : undefined}>
                             <div
                                 className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-black transition-all"
                                 style={{
                                     background: phase === p ? SKY : (
-                                        ['lesson', 'quiz', 'results'].indexOf(phase) > i ? GREEN : '#e5e7eb'
+                                        ['lesson', 'quiz', 'results'].indexOf(phase) > i ? GREEN : 'var(--muted)'
                                     ),
-                                    color: phase === p || ['lesson', 'quiz', 'results'].indexOf(phase) > i ? '#fff' : '#9ca3af',
+                                    color: phase === p || ['lesson', 'quiz', 'results'].indexOf(phase) > i ? '#fff' : 'var(--muted-foreground)',
                                 }}
                             >
                                 {['lesson', 'quiz', 'results'].indexOf(phase) > i ? '✓' : i + 1}
                             </div>
                             <span className="text-[10px] font-bold uppercase tracking-wider" style={{
-                                color: phase === p ? OXFORD : '#9ca3af'
+                                color: phase === p ? OXFORD : 'var(--muted-foreground)'
                             }}>
                                 {p === 'lesson' ? 'Leçon' : p === 'quiz' ? 'Quiz' : 'Résultat'}
                             </span>
-                            {i < 2 && <div className="h-[2px] w-6 rounded-full" style={{ background: '#e5e7eb' }} />}
+                            {i < 2 && <div className="h-[2px] w-4 rounded-full bg-border sm:w-6" />}
                         </div>
                     ))}
                 </div>
@@ -404,35 +433,14 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                 {/* ─── PHASE: LESSON ─── */}
                 {phase === 'lesson' && (
                     <div style={stagger(2)}>
-                        {/* Title card */}
-                        <div className="duo-card mb-4 sm:mb-6 p-4 sm:p-6" style={{
-                            borderTop: `4px solid ${lesson.status === 'consolidation' ? '#E74C3C' : SKY}`
-                        }}>
-                            <h1 className="text-xl font-black mb-1" style={{ color: OXFORD }}>
-                                {lesson.title}
-                            </h1>
-                            {lesson.concept && (
-                                <p className="text-xs font-semibold text-muted-foreground">
-                                    {lesson.concept.split('.')
-                                        .map(segment => segment.charAt(0).toUpperCase() + segment.slice(1).replace(/_/g, ' '))
-                                        .join(' › ')}
-                                </p>
-                            )}
-                            {skeleton && (
-                                <p className="mt-2 text-[10px] font-bold" style={{ color: SKY }}>
-                                    {t('lesson.objective_progress', 'Objectif {{current}} / {{total}}', { current: skeleton.current_index + 1, total: skeleton.total_objectives })}
-                                </p>
-                            )}
-                        </div>
-
                         {/* Pagination progress bar */}
                         {totalSections > 1 && (
                             <div className="mb-4">
-                                <div className="flex items-center justify-between text-[10px] font-bold mb-1.5" style={{ color: SKY }}>
+                                <div className="flex items-center justify-between text-xs font-bold mb-1.5 text-sky-700 dark:text-sky-300">
                                     <span>Section {sectionIndex + 1} / {totalSections}</span>
                                     <span>{Math.round(((sectionIndex + 1) / totalSections) * 100)}%</span>
                                 </div>
-                                <div className="h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
+                                <div role="progressbar" aria-label="Lecture de la leçon" aria-valuemin={0} aria-valuemax={totalSections} aria-valuenow={sectionIndex + 1} className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
                                     <div
                                         className="h-full rounded-full transition-all duration-500"
                                         style={{ width: `${((sectionIndex + 1) / totalSections) * 100}%`, background: SKY }}
@@ -444,7 +452,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                         {/* Current section content (theory, or a dedicated key-takeaways / mistakes section) */}
                         {currentExtra === 'takeaways' ? (
                             <div className="duo-card mb-4 sm:mb-6 p-4 sm:p-6 animate-in fade-in slide-in-from-right-2 duration-300" key={sectionIndex} style={{ background: 'rgba(74,144,226,0.04)' }}>
-                                <p className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: SKY }}>
+                                <p className="text-xs font-black uppercase tracking-widest mb-4 text-sky-700 dark:text-sky-300">
                                     {t('lesson.key_takeaways', 'Points clés à retenir')}
                                 </p>
                                 <div className="space-y-3">
@@ -458,20 +466,20 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                             </div>
                         ) : currentExtra === 'mistakes' ? (
                             <div className="duo-card mb-4 sm:mb-6 p-4 sm:p-6 animate-in fade-in slide-in-from-right-2 duration-300" key={sectionIndex} style={{ background: 'rgba(231,76,60,0.04)' }}>
-                                <p className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: '#E74C3C' }}>
+                                <p className="text-xs font-black uppercase tracking-widest mb-4 text-rose-700 dark:text-rose-300">
                                     {t('lesson.common_mistakes', 'Pièges typiques')}
                                 </p>
                                 <div className="space-y-3">
                                     {(lesson.common_mistakes || []).map((m: CommonMistake, i: number) => (
-                                        <div key={i} className="rounded-xl bg-white p-3" style={{ border: '1px solid rgba(231,76,60,0.15)' }}>
-                                            <p className="text-xs font-bold" style={{ color: '#E74C3C' }}>
+                                        <div key={i} className="rounded-xl bg-card p-3" style={{ border: '1px solid rgba(231,76,60,0.15)' }}>
+                                            <p className="text-sm font-bold text-rose-700 dark:text-rose-300">
                                                 <span className="opacity-70">À éviter : </span><span dangerouslySetInnerHTML={{ __html: inlineMd(m.mistake) }} />
                                             </p>
-                                            <p className="text-xs font-bold mt-1" style={{ color: GREEN }}>
+                                            <p className="text-sm font-bold mt-1 text-emerald-700 dark:text-emerald-300">
                                                 <span className="opacity-70">Correct : </span><span dangerouslySetInnerHTML={{ __html: inlineMd(m.correction) }} />
                                             </p>
                                             {m.tip && (
-                                                <p className="text-[10px] text-muted-foreground mt-1 italic">
+                                                <p className="text-xs leading-relaxed text-muted-foreground mt-2 italic">
                                                     <span className="not-italic font-bold">Astuce : </span><span dangerouslySetInnerHTML={{ __html: inlineMd(m.tip) }} />
                                                 </p>
                                             )}
@@ -482,7 +490,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                         ) : (
                             <div className="duo-card mb-4 sm:mb-6 p-4 sm:p-6" key={sectionIndex}>
                                 {currentSection?.title && (
-                                    <h2 className="mb-4 text-xl font-black" style={{ color: SKY }}>{currentSection.title}</h2>
+                                    <h2 className="mb-4 text-xl font-black text-sky-700 dark:text-sky-300">{currentSection.title}</h2>
                                 )}
                                 <div className="lesson-content animate-in fade-in slide-in-from-right-2 duration-300">
                                     {renderMarkdown(currentSection?.content || '')}
@@ -491,23 +499,22 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                         )}
 
                         {/* Section navigation */}
-                        {totalSections > 1 && !isLastSection && (
+                        {totalSections > 1 && (
                             <div className="flex justify-between items-center mb-6 gap-3">
                                 <button
                                     onClick={() => setSectionIndex(Math.max(0, sectionIndex - 1))}
                                     disabled={isFirstSection}
-                                    className="flex-1 rounded-2xl px-4 py-3 text-sm font-bold border-2 transition-all disabled:opacity-30"
-                                    style={{ borderColor: '#e5e7eb', color: OXFORD, background: '#fff' }}
+                                    className="flex-1 rounded-2xl border-2 border-border bg-card px-4 py-3 text-sm font-bold text-foreground transition-all hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring disabled:opacity-30"
                                 >
                                     ← Précédent
                                 </button>
-                                <button
+                                {!isLastSection && <button
                                     onClick={() => setSectionIndex(Math.min(totalSections - 1, sectionIndex + 1))}
                                     className="flex-1 rounded-2xl px-4 py-3 text-sm font-black text-white transition-all"
                                     style={{ background: SKY, boxShadow: '0 3px 0 0 #2a6fc0' }}
                                 >
                                     Suivant →
-                                </button>
+                                </button>}
                             </div>
                         )}
 
@@ -517,7 +524,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                             {hasQuiz ? (
                                 <button
                                     onClick={() => setPhase('quiz')}
-                                    className="group rounded-2xl px-8 py-3.5 text-sm font-black text-white transition-all hover:scale-[1.02]"
+                                    className="group w-full rounded-2xl px-6 py-3.5 text-sm font-black text-white transition-all hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
                                     style={{
                                         background: `linear-gradient(135deg, ${GREEN}, #3a9d68)`,
                                         boxShadow: `0 4px 0 0 #2d7d52`,
@@ -546,11 +553,13 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                 {phase === 'quiz' && (
                     <div style={stagger(0)}>
                         <div className="duo-card mb-4 sm:mb-6 p-4 sm:p-5" style={{ borderTop: `4px solid ${GOLD}` }}>
-                            <p className="text-xs font-black uppercase tracking-widest mb-1" style={{ color: GOLD }}>
+                            <p className="text-xs font-black uppercase tracking-widest mb-1 text-amber-700 dark:text-amber-300">
                                 Quiz de compréhension
                             </p>
                             <p className="text-sm text-muted-foreground">
-                                Vérifions que tu as bien compris la leçon. Réponds aux 3 questions suivantes.
+                                {quiz.length === 1
+                                    ? 'Une question pour vérifier ce que tu as retenu. Prends le temps de choisir ta réponse.'
+                                    : `${quiz.length} questions pour vérifier ce que tu as retenu. Prends le temps de choisir tes réponses.`}
                             </p>
                         </div>
 
@@ -570,18 +579,14 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                                                 <button
                                                     key={oIndex}
                                                     onClick={() => handleQuizAnswer(qIndex, opt)}
-                                                    className="duo-press w-full rounded-xl px-4 py-3 text-left text-sm font-semibold"
-                                                    style={{
-                                                        background: selected ? 'rgba(74,144,226,0.1)' : '#f9fafb',
-                                                        border: `2px solid ${selected ? SKY : '#e5e7eb'}`,
-                                                        boxShadow: `0 4px 0 0 ${selected ? '#2a6fc0' : '#e5e7eb'}`,
-                                                        color: selected ? SKY : OXFORD,
-                                                    }}
+                                                    aria-pressed={selected}
+                                                    disabled={submittingQuiz}
+                                                    className={`duo-press flex w-full items-start gap-3 rounded-xl border-2 px-4 py-3 text-left text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring ${selected ? 'border-sky-500 bg-sky-50 text-sky-800 dark:bg-sky-950/50 dark:text-sky-200' : 'border-border bg-muted/40 text-foreground hover:bg-muted'}`}
                                                 >
-                                                    <span className="mr-2 text-xs font-black opacity-40">
-                                                        {String.fromCharCode(65 + oIndex)}.
+                                                    <span aria-hidden="true" className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px] font-black ${selected ? 'border-sky-600 bg-sky-600 text-white' : 'border-border text-muted-foreground'}`}>
+                                                        {selected ? '✓' : String.fromCharCode(65 + oIndex)}
                                                     </span>
-                                                    <span dangerouslySetInnerHTML={{ __html: inlineMd(opt) }} />
+                                                    <span dangerouslySetInnerHTML={{ __html: inlineMd(opt.replace(/^[A-Z][).]\s*/, '')) }} />
                                                 </button>
                                             );
                                         })}
@@ -590,11 +595,14 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                             ))}
                         </div>
 
-                        <div className="mt-6 flex items-center justify-between">
+                        <p className="mt-4 text-center text-xs font-semibold text-muted-foreground" aria-live="polite">
+                            {Object.keys(quizAnswers).length} / {quiz.length} {quiz.length === 1 ? 'réponse choisie' : 'réponses choisies'}
+                        </p>
+                        {quizError && <p role="alert" className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200">{quizError}</p>}
+                        <div className="mt-5 flex flex-col-reverse items-stretch justify-between gap-4 sm:flex-row sm:items-center">
                             <button
                                 onClick={() => setPhase('lesson')}
-                                className="text-sm font-bold"
-                                style={{ color: '#9ca3af' }}
+                                className="min-h-11 text-sm font-bold text-muted-foreground hover:text-foreground"
                             >
                                 ← Relire la leçon
                             </button>
@@ -629,10 +637,8 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                                     : `0 4px 0 0 #962d22`,
                             }}
                         >
-                            {quizResults.passed ? (
+                            {quizResults.passed && (
                                 <img src="/animation/winner.gif" alt="" width={120} height={120} className="mx-auto mb-2 drop-shadow-lg" />
-                            ) : (
-                                <p className="text-2xl font-black mb-3 tracking-widest">{quizResults.accuracy}%</p>
                             )}
                             <p className="text-[10px] font-black uppercase tracking-widest opacity-80">
                                 {quizResults.passed ? 'Réussi' : 'À retravailler'}
@@ -663,10 +669,10 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                                     {!r.correct && (
                                         <div className="ml-7">
                                             <p className="text-xs text-muted-foreground">
-                                                Ta réponse : <span className="font-bold" style={{ color: '#E74C3C' }} dangerouslySetInnerHTML={{ __html: inlineMd(r.user_answer) }} />
+                                                Ta réponse : <span className="font-bold text-rose-700 dark:text-rose-300" dangerouslySetInnerHTML={{ __html: inlineMd(r.user_answer) }} />
                                             </p>
                                             <p className="text-xs text-muted-foreground">
-                                                Bonne réponse : <span className="font-bold" style={{ color: GREEN }} dangerouslySetInnerHTML={{ __html: inlineMd(r.correct_answer) }} />
+                                                Bonne réponse : <span className="font-bold text-emerald-700 dark:text-emerald-300" dangerouslySetInnerHTML={{ __html: inlineMd(r.correct_answer) }} />
                                             </p>
                                             {r.explanation && (
                                                 <p className="text-xs text-muted-foreground mt-1 italic" dangerouslySetInnerHTML={{ __html: inlineMd(r.explanation) }} />

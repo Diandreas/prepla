@@ -1,4 +1,5 @@
 import { type BreadcrumbItem, type SharedData } from '@/types';
+import { ArtIcon } from '@/components/art-icon';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { FormEventHandler, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -145,7 +146,7 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
 
     const sectionTitleStyle = "text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground mb-2 px-1";
     const itemStyle = "flex items-center justify-between w-full px-3.5 py-3 text-left transition-colors active:bg-muted/50 group";
-    const itemIconBg = "flex h-9 w-9 items-center justify-center rounded-xl mr-3";
+    const itemIconBg = "profile-icon-surface flex h-9 w-9 items-center justify-center rounded-xl mr-3";
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -153,7 +154,7 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
 
             <div className="mx-auto max-w-2xl space-y-4 py-5 pb-24 md:py-8 px-4">
                 {/* 1. User Profile Header — compact row (XP/streak already shown in top bar) */}
-                <div className="flex items-center gap-4 px-1">
+                <div className="studio-hero flex items-center gap-4">
                     <div className="relative shrink-0">
                         <Avatar className="h-16 w-16 border-2 border-background shadow-md">
                             <AvatarImage src={auth.user.avatar} />
@@ -185,7 +186,7 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                     style={{ background: 'linear-gradient(135deg, #1A2B48, #2a3f6a)' }}
                 >
                     <div className="flex items-center gap-2.5 min-w-0">
-                        <CustomIcon name="credit-card" className="h-5 w-5 shrink-0 opacity-70" style={{ filter: 'brightness(0) saturate(100%) invert(100%)' }} />
+                        <ArtIcon name="credit-card" size={36} tone="amber" />
                         <div className="min-w-0">
                             <p className="text-sm font-black truncate">{isPremium ? 'PrePla Plus' : 'PrePla Standard'}</p>
                             <p className="text-[10px] font-bold opacity-70">{isPremium ? t('profile.premium_active', 'Premium actif') : t('profile.go_premium', 'Passe au Premium')}</p>

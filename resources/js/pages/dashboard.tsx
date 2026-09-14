@@ -4,6 +4,7 @@ import * as Flags from 'country-flag-icons/react/3x2';
 import { useEffect, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LoadingAnimation } from '@/components/loading-animation';
+import { ArtIcon } from '@/components/art-icon';
 import type { SharedData, UserProfile } from '@/types';
 
 function Icon({ name, size = 20, style, className }: { name: string; size?: number; style?: React.CSSProperties; className?: string }) {
@@ -73,6 +74,8 @@ interface PageProps {
     nextLesson?: { id: number; title: string; status: string } | null;
     errorDiagnostic?: ErrorDiag[];
     dueErrorsCount?: number;
+    centerMode?: boolean;
+    centerAssignments?: CenterAssignment[];
 }
 
 /* ─── Brand colors ─── */
@@ -86,9 +89,6 @@ function StepCircleIcon({ icon, status, size = 48 }: { icon: string; status: Roa
     const isLocked = status === 'locked';
     const isActive = status === 'available' || status === 'in_progress' || status === 'attempted';
 
-    const bg = isCompleted ? SKY : isActive ? SKY : '#e5e7eb';
-    const iconFilter = isLocked ? 'grayscale(1) opacity(0.4)' : 'brightness(0) invert(1)';
-
     const iconMap: Record<string, string> = {
         book: 'book', headphones: 'headphones', pen: 'writing', mic: 'mic',
         brain: 'lightbulb', target: 'target', trophy: 'trophy',
@@ -100,7 +100,7 @@ function StepCircleIcon({ icon, status, size = 48 }: { icon: string; status: Roa
             className="flex items-center justify-center rounded-full flex-shrink-0"
             style={{
                 width: size, height: size,
-                background: isActive ? `linear-gradient(135deg, ${SKY}, #3478c8)` : isCompleted ? `linear-gradient(135deg, ${SKY} 0%, #2a6fc0 100%)` : '#e5e7eb',
+                background: isLocked ? 'var(--muted)' : 'linear-gradient(145deg, #fff, #e7f2ff)',
                 boxShadow: isActive ? `0 4px 12px rgba(74,144,226,0.4)` : isCompleted ? '0 2px 8px rgba(74,144,226,0.25)' : 'none',
                 border: isActive ? '3px solid #3a82cc' : isCompleted ? '3px solid #3a82cc' : '3px solid #d1d5db',
                 position: 'relative',
@@ -108,7 +108,7 @@ function StepCircleIcon({ icon, status, size = 48 }: { icon: string; status: Roa
         >
             {isLocked
                 ? <svg width={size * 0.38} height={size * 0.38} viewBox="0 0 24 24" fill="none"><rect x="6" y="11" width="12" height="9" rx="2" fill="#9ca3af" /><path d="M8 11V7a4 4 0 0 1 8 0v4" stroke="#9ca3af" strokeWidth="2" /></svg>
-                : <img src={`/icons/${iconName}.png`} alt="" width={size * 0.42} height={size * 0.42} style={{ objectFit: 'contain', filter: iconFilter }} />
+                : <img src={`/icons/${iconName}.png`} alt="" width={size * 0.56} height={size * 0.56} style={{ objectFit: 'contain' }} />
             }
             {isCompleted && (
                 <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center border-2 border-white" style={{ background: GOLD }}>
@@ -120,9 +120,11 @@ function StepCircleIcon({ icon, status, size = 48 }: { icon: string; status: Roa
 }
 
 /* ─── Step label → display name ─── */
-function stepLabel(node: RoadmapNode, idx: number): string {
-    const labels = ['Théorie', 'Pratique', 'Quiz', 'Exercice', 'Révision', 'Examen'];
-    return labels[idx] ?? node.title;
+function stepLabel(node: RoadmapNode, _idx: number): string {
+    // A node's place in the chapter doesn't determine its learning activity.
+    if (node.type === 'lesson') return 'Leçon & quiz';
+    if (node.type === 'practice') return 'Mise en pratique';
+    return node.title;
 }
 
 function stepDescription(node: RoadmapNode, idx: number): string {
@@ -211,7 +213,7 @@ function CenterAssignmentsBanner({ assignments }: { assignments: CenterAssignmen
 
 export default function Dashboard() {
     const { t } = useTranslation();
-    const { auth, profile, chapters, stats, curriculum, nextLesson, errorDiagnostic, dueErrorsCount, centerMode, centerAssignments } = usePage<SharedData & PageProps>().props as any;
+    const { auth, profile, chapters, stats, curriculum, nextLesson, errorDiagnostic, dueErrorsCount, centerMode, centerAssignments } = usePage<SharedData & PageProps>().props;
 
     const [loadingNode, setLoadingNode] = useState<{ id: string | number; title: string } | null>(null);
 
@@ -249,8 +251,8 @@ export default function Dashboard() {
     const totalInChapter = viewedChapter ? viewedChapter.nodes.length : 0;
     const chapterPct = totalInChapter > 0 ? Math.round((completedInChapter / totalInChapter) * 100) : 0;
 
-    const examName = (profile as any)?.target_exam?.name;
-    const examFlag = (profile as any)?.target_exam?.language?.flag;
+    const examName = profile?.target_exam?.name;
+    const examFlag = profile?.target_exam?.language?.flag;
 
     /* First active (or first available) node in viewed chapter */
     const firstActiveInChapter = viewedChapter?.nodes.find(
@@ -292,7 +294,14 @@ export default function Dashboard() {
 
                 {/* ── Chapter card (compact): navigation + progress + Commencer ── */}
                 {viewedChapter && (
-                    <div className="mb-4 rounded-2xl bg-card border border-border shadow-sm p-3.5">
+                    <div className="studio-hero mb-4">
+                        <div className="mb-5 flex items-center gap-3">
+                            <ArtIcon name="target" size={48} tone="amber" />
+                            <div>
+                                <p className="studio-kicker">Ton objectif, pas à pas</p>
+                                <p className="mt-1 text-sm font-semibold text-foreground">Un peu de pratique. De vrais progrès.</p>
+                            </div>
+                        </div>
                         <div className="flex items-center gap-2">
                             {/* Prev */}
                             <button
@@ -301,7 +310,7 @@ export default function Dashboard() {
                                 className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-muted disabled:opacity-20 transition flex-shrink-0"
                                 aria-label="Chapitre précédent"
                             >
-                                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke={OXFORD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                             </button>
 
                             <div className="flex-1 min-w-0">
@@ -329,7 +338,7 @@ export default function Dashboard() {
                                 className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-muted disabled:opacity-20 transition flex-shrink-0"
                                 aria-label="Chapitre suivant"
                             >
-                                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke={OXFORD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                             </button>
                         </div>
 
@@ -347,7 +356,7 @@ export default function Dashboard() {
                                     className="duo-press flex-shrink-0 rounded-xl px-4 py-2.5 font-black text-xs text-white flex items-center gap-1.5"
                                     style={{ background: SKY, boxShadow: '0 4px 0 0 #2563a0' }}
                                 >
-                                    COMMENCER
+                                    {completedInChapter > 0 ? 'CONTINUER' : 'COMMENCER'}
                                     <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M8 4l3 3-3 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
                                 </button>
                             )}
@@ -364,7 +373,7 @@ export default function Dashboard() {
                         className="duo-press flex flex-col items-center gap-1.5 rounded-2xl p-3 text-white text-center"
                         style={{ background: `linear-gradient(135deg, ${SKY}, #3478c8)`, boxShadow: '0 4px 0 0 #2563a0' }}
                     >
-                        <Icon name="lightbulb" size={22} style={{ filter: 'brightness(0) invert(1)' }} />
+                        <ArtIcon name="lightbulb" size={34} />
                         <span className="text-[10px] font-black leading-tight">Prochaine leçon</span>
                     </Link>
                     <Link
@@ -372,7 +381,7 @@ export default function Dashboard() {
                         className="duo-press flex flex-col items-center gap-1.5 rounded-2xl p-3 text-white text-center"
                         style={{ background: 'linear-gradient(135deg, #48b77b, #3a9d68)', boxShadow: '0 4px 0 0 #1f6e42' }}
                     >
-                        <Icon name="zap" size={22} style={{ filter: 'brightness(0) invert(1)' }} />
+                        <ArtIcon name="zap" size={34} tone="mint" />
                         <span className="text-[10px] font-black leading-tight">Pratique rapide</span>
                     </Link>
                     <Link
@@ -380,7 +389,7 @@ export default function Dashboard() {
                         className="duo-press relative flex flex-col items-center gap-1.5 rounded-2xl border-2 border-border bg-card p-3 text-center"
                         style={{ boxShadow: '0 4px 0 0 var(--border)' }}
                     >
-                        <Icon name="review" size={22} style={{ }} />
+                        <ArtIcon name="review" size={34} tone="amber" />
                         <span className="text-[10px] font-black leading-tight text-foreground">Révision{(dueErrorsCount ?? 0) > 0 ? ` (${dueErrorsCount})` : ''}</span>
                     </Link>
                 </div>
@@ -548,17 +557,17 @@ export default function Dashboard() {
                     <div className="hidden lg:grid grid-cols-1 gap-2">
                         <Link href="/lessons/next" className="duo-press flex items-center gap-3 rounded-2xl p-3.5 text-white"
                             style={{ background: `linear-gradient(135deg, ${SKY}, #3478c8)`, boxShadow: '0 4px 0 0 #2563a0' }}>
-                            <Icon name="lightbulb" size={22} style={{ filter: 'brightness(0) invert(1)' }} />
+                            <ArtIcon name="lightbulb" size={34} />
                             <span className="text-sm font-black">Prochaine leçon</span>
                         </Link>
                         <Link href={route('practice.index')} className="duo-press flex items-center gap-3 rounded-2xl p-3.5 text-white"
                             style={{ background: 'linear-gradient(135deg, #48b77b, #3a9d68)', boxShadow: '0 4px 0 0 #1f6e42' }}>
-                            <Icon name="zap" size={22} style={{ filter: 'brightness(0) invert(1)' }} />
+                            <ArtIcon name="zap" size={34} tone="mint" />
                             <span className="text-sm font-black">Pratique rapide</span>
                         </Link>
                         <Link href="/errors" className="duo-press flex items-center gap-3 rounded-2xl border-2 border-border bg-card p-3.5"
                             style={{ boxShadow: '0 4px 0 0 var(--border)' }}>
-                            <Icon name="review" size={22} style={{ }} />
+                            <ArtIcon name="review" size={34} tone="amber" />
                             <span className="text-sm font-black text-foreground">Révision{(dueErrorsCount ?? 0) > 0 ? ` (${dueErrorsCount})` : ''}</span>
                         </Link>
                     </div>

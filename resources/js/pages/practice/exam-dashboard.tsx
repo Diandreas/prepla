@@ -1,27 +1,16 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { ArtIcon } from '@/components/art-icon';
 import AppLayout from '@/layouts/app-layout';
+import type { ExamRecord, ExamSection, SharedData } from '@/types';
+import { Head, Link, usePage } from '@inertiajs/react';
 import * as Flags from 'country-flag-icons/react/3x2';
-import { useEffect, useRef, useState } from 'react';
+import { ArrowRight, CheckCircle2, ChevronRight, Clock3, Info, Layers3 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import type { ExamRecord, ExamSection } from '@/types';
 
-function Icon({ name, size = 20, style }: { name: string; size?: number; style?: React.CSSProperties }) {
-    return <img src={`/icons/${name}.png`} alt="" width={size} height={size} style={{ objectFit: 'contain', ...style }} />;
-}
-
-function flagEmojiToCode(flag: string): string {
-    const points = [...flag].map(c => c.codePointAt(0)! - 0x1F1E6);
-    if (points.length === 2 && points[0] >= 0 && points[0] <= 25) {
-        return String.fromCharCode(65 + points[0], 65 + points[1]);
-    }
-    return '';
-}
-
-function FlagImg({ flag, size = 28 }: { flag: string; size?: number }) {
-    const code = flagEmojiToCode(flag);
-    const FlagComponent = code ? (Flags as Record<string, React.ComponentType<{ style?: React.CSSProperties }>>)[code] : null;
-    if (FlagComponent) return <FlagComponent style={{ width: size, borderRadius: 3 }} />;
-    return <span style={{ fontSize: '1.5rem' }}>{flag}</span>;
+function FlagImg({ flag }: { flag: string }) {
+    const points = [...flag].map((character) => character.codePointAt(0)! - 0x1f1e6);
+    const code = points.length === 2 && points.every((point) => point >= 0 && point <= 25) ? String.fromCharCode(65 + points[0], 65 + points[1]) : '';
+    const Flag = code ? (Flags as Record<string, React.ComponentType<{ className?: string }>>)[code] : null;
+    return Flag ? <Flag className="w-6 rounded-sm" /> : <span>{flag}</span>;
 }
 
 interface Props {
@@ -29,233 +18,197 @@ interface Props {
     sectionProgress: Record<number, number>;
 }
 
-const OXFORD = '#1A2B48';
-const SKY = '#4A90E2';
-const GOLD = '#F5A623';
-
-const skillIcons: Record<string, string> = {
-    reading: 'book',
-    listening: 'headphones',
-    writing: 'message-square',
-    speaking: 'mic',
+const skills: Record<string, { icon: string; tone: 'blue' | 'mint' | 'amber' | 'rose'; description: string }> = {
+    reading: { icon: 'book', tone: 'blue', description: 'Comprends les textes, repère les idées essentielles.' },
+    listening: { icon: 'listening', tone: 'mint', description: 'Entraîne ton oreille et repère les informations utiles.' },
+    writing: { icon: 'writing', tone: 'rose', description: 'Structure tes idées et trouve les mots justes.' },
+    speaking: { icon: 'speaking', tone: 'amber', description: 'Prends la parole et gagne en aisance.' },
 };
-
-const skillThemes: Record<string, { bg: string; shadow: string }> = {
-    reading: { bg: `linear-gradient(135deg, ${SKY}, #3478c8)`, shadow: '#2a6fc0' },
-    listening: { bg: `linear-gradient(135deg, #48b77b, #3a9d68)`, shadow: '#2d7d52' },
-    writing: { bg: `linear-gradient(135deg, ${OXFORD}, #2a3f6a)`, shadow: '#0e1a2e' },
-    speaking: { bg: `linear-gradient(135deg, ${GOLD}, #e08c10)`, shadow: '#c07a0e' },
-};
-
-// Global exam session timer displayed as floating banner
-function ExamBanner({ totalMinutes, onExpire }: { totalMinutes: number; onExpire: () => void }) {
-    const { t } = useTranslation();
-    const total = totalMinutes * 60;
-    const [remaining, setRemaining] = useState(total);
-    const calledRef = useRef(false);
-
-    useEffect(() => {
-        const id = setInterval(() => {
-            setRemaining(prev => {
-                const next = prev - 1;
-                if (next <= 0 && !calledRef.current) {
-                    calledRef.current = true;
-                    clearInterval(id);
-                    onExpire();
-                }
-                return Math.max(0, next);
-            });
-        }, 1000);
-        return () => clearInterval(id);
-    }, [onExpire]);
-
-    const mins = Math.floor(remaining / 60);
-    const secs = remaining % 60;
-    const ratio = remaining / total;
-    const isCritical = ratio <= 0.1;
-    const isWarning = ratio <= 0.25 && !isCritical;
-
-    return (
-        <div
-            className="fixed top-4 left-1/2 z-50 -translate-x-1/2 flex items-center gap-3 rounded-2xl px-5 py-2.5 shadow-xl"
-            style={{
-                background: isCritical ? '#ef4444' : OXFORD,
-                boxShadow: `0 4px 0 0 ${isCritical ? '#b91c1c' : '#0e1a2e'}`,
-                animation: isCritical ? 'pulse 0.8s ease-in-out infinite' : undefined,
-            }}
-        >
-            <img src="/icons/clock.png" alt="" width={16} height={16} style={{ filter: 'brightness(0) invert(1)' }} />
-            <span className="text-sm font-black tabular-nums text-white">
-                {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
-            </span>
-            <span className="text-xs font-bold text-white/60">{t('practice.exam_mode_badge')}</span>
-        </div>
-    );
-}
 
 export default function ExamDashboard({ exam, sectionProgress }: Props) {
     const { t } = useTranslation();
-    const [mounted, setMounted] = useState(false);
-    const [examMode, setExamMode] = useState(false);
-    const [examExpired, setExamExpired] = useState(false);
-
-    // Total exam time = sum of all section time limits
-    const totalExamMinutes = exam.sections.reduce((acc, s) => acc + (s.time_limit ?? 0), 0) || 180;
-
-    useEffect(() => setMounted(true), []);
-
-    const handleExamExpire = () => {
-        setExamExpired(true);
-        setExamMode(false);
-    };
+    const { flash } = usePage<SharedData & { flash?: { error?: string; success?: string } }>().props;
+    const totalExamMinutes = exam.sections.reduce((total, section) => total + (section.time_limit ?? 0), 0) || 180;
+    const attempts = Object.values(sectionProgress).reduce((total, count) => total + count, 0);
 
     return (
         <AppLayout>
-            <Head title={`${exam.name} - Pratiquer`} />
-
-            {examMode && <ExamBanner totalMinutes={totalExamMinutes} onExpire={handleExamExpire} />}
-
-            {examExpired && (
-                <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-black/70 backdrop-blur-sm">
-                    <div className="rounded-3xl bg-white p-8 text-center shadow-2xl max-w-sm mx-4">
-                        <img src="/icons/clock.png" alt="" width={48} height={48} className="mx-auto mb-3" style={{ }} />
-                        <h2 className="text-xl font-black" style={{ color: OXFORD }}>{t('practice.exam_expired_title')}</h2>
-                        <p className="mt-2 text-sm text-muted-foreground">{t('practice.exam_expired_desc')}</p>
-                        <button
-                            className="mt-5 w-full rounded-xl py-3 text-sm font-black text-white"
-                            style={{ background: OXFORD }}
-                            onClick={() => setExamExpired(false)}
-                        >
-                            {t('practice.exam_expired_cta')}
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            <div className="mx-auto max-w-2xl px-4 py-5">
-                {/* Header */}
-                <div className="mb-4 flex items-center gap-2">
-                    {exam.language?.flag && <FlagImg flag={exam.language.flag} size={24} />}
-                    <h1 className="text-xl font-black tracking-tight text-foreground">
-                        {exam.name}
-                    </h1>
-                </div>
-
-                {/* Exam mode banner — compact */}
-                <div className="duo-card mb-4 flex items-center justify-between gap-3 p-3">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl" style={{ background: OXFORD }}>
-                            <img src="/icons/clock.png" alt="" width={16} height={16} style={{ filter: 'brightness(0) invert(1)' }} />
+            <Head title={`${exam.name} - ${t('page_titles.practice')}`} />
+            <div className="studio-page mx-auto w-full max-w-5xl space-y-7 px-4 py-6 sm:px-6 sm:py-8">
+                <section className="studio-hero border-border relative overflow-hidden rounded-3xl border p-5 sm:p-7">
+                    <div className="relative flex items-center justify-between gap-5">
+                        <div className="max-w-xl min-w-0">
+                            <div className="studio-kicker text-muted-foreground mb-3 flex items-center gap-2 text-xs font-bold tracking-widest uppercase">
+                                {exam.language?.flag && <FlagImg flag={exam.language.flag} />}
+                                <span>
+                                    {exam.name} · {t('page_titles.practice')}
+                                </span>
+                            </div>
+                            <h1 className="text-foreground text-2xl font-black tracking-tight sm:text-3xl">
+                                {t('practice.studio_title', 'À chaque exercice, un pas de plus.')}
+                            </h1>
+                            <p className="text-muted-foreground mt-3 max-w-lg text-sm leading-relaxed">
+                                {t(
+                                    'practice.studio_description',
+                                    'Travaille une compétence à ton rythme, puis mets-toi en situation avec un examen blanc.',
+                                )}
+                            </p>
                         </div>
-                        <div className="min-w-0">
-                            <p className="text-sm font-black text-foreground truncate">{t('practice.exam_mode_title')}</p>
-                            <p className="text-[11px] text-muted-foreground">{t('practice.exam_mode_desc', { minutes: totalExamMinutes })}</p>
+                        <div className="hidden shrink-0 sm:block">
+                            <ArtIcon name="target" size={108} tone="blue" />
+                        </div>
+                    </div>
+                    <div className="text-muted-foreground relative mt-5 flex flex-wrap gap-2 text-xs font-semibold">
+                        <span className="border-border bg-background/70 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5">
+                            <Layers3 className="h-3.5 w-3.5" aria-hidden="true" />
+                            {t('practice.skill_count', { count: exam.sections.length, defaultValue: '{{count}} compétences' })}
+                        </span>
+                        <span className="border-border bg-background/70 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5">
+                            <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+                            {t('practice.section_attempts', { count: attempts, defaultValue: '{{count}} tentatives' })}
+                        </span>
+                    </div>
+                </section>
+
+                {flash?.error && (
+                    <div
+                        role="alert"
+                        className="flex items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100"
+                    >
+                        <Info className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+                        <div>
+                            <p className="text-sm font-bold">{flash.error}</p>
+                            <p className="mt-1 text-xs leading-relaxed opacity-80">
+                                {t(
+                                    'practice.generation_error_hint',
+                                    'Tu peux choisir un autre format ou réessayer un peu plus tard. Ta progression est conservée.',
+                                )}
+                            </p>
+                        </div>
+                    </div>
+                )}
+                {flash?.success && (
+                    <p
+                        role="status"
+                        className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-100"
+                    >
+                        {flash.success}
+                    </p>
+                )}
+
+                <section aria-labelledby="practice-skills-title">
+                    <div className="mb-4">
+                        <h2 id="practice-skills-title" className="text-foreground text-lg font-extrabold">
+                            {t('practice.by_skill', 'Quelle compétence veux-tu travailler ?')}
+                        </h2>
+                        <p className="text-muted-foreground mt-1 text-sm">{t('practice.by_skill_hint', 'Choisis ton objectif du moment.')}</p>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                        {exam.sections.map((section) => {
+                            const skill = skills[section.skill_type] ?? skills.reading;
+                            const count = sectionProgress[section.id] ?? 0;
+                            return (
+                                <Link
+                                    key={section.id}
+                                    href={route('practice.section', [exam.id, section.id])}
+                                    className="studio-card group border-border bg-card hover:border-primary/50 focus-visible:ring-ring flex gap-4 rounded-2xl border p-4 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none sm:p-5"
+                                >
+                                    <ArtIcon name={skill.icon} size={58} tone={skill.tone} />
+                                    <div className="min-w-0 flex-1">
+                                        <div className="flex items-start justify-between gap-2">
+                                            <h3 className="text-foreground text-base font-extrabold">{section.name}</h3>
+                                            <ChevronRight
+                                                className="text-muted-foreground mt-0.5 h-4 w-4 shrink-0 transition-transform motion-safe:group-hover:translate-x-1"
+                                                aria-hidden="true"
+                                            />
+                                        </div>
+                                        <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
+                                            {t(`practice.skill_description_${section.skill_type}`, skill.description)}
+                                        </p>
+                                        <div className="text-muted-foreground mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-semibold">
+                                            {section.time_limit != null && section.time_limit > 0 && (
+                                                <span className="inline-flex items-center gap-1">
+                                                    <Clock3 className="h-3 w-3" aria-hidden="true" />
+                                                    {section.time_limit} min
+                                                </span>
+                                            )}
+                                            <span>{t('practice.section_exercise_types', { count: section.exercise_types?.length ?? 0 })}</span>
+                                            {count > 0 && (
+                                                <span className="text-emerald-700 dark:text-emerald-300">
+                                                    {t('practice.section_attempts', { count, defaultValue: '{{count}} tentatives' })}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </Link>
+                            );
+                        })}
+                    </div>
+                    {exam.sections.length === 0 && (
+                        <div className="studio-card border-border bg-card text-muted-foreground rounded-2xl border p-6 text-center text-sm">
+                            {t(
+                                'practice.no_sections',
+                                'Les compétences de cet examen ne sont pas encore disponibles. Retrouve tes leçons dans ton parcours.',
+                            )}
+                        </div>
+                    )}
+                </section>
+
+                <section className="studio-card border-border bg-card flex flex-col gap-4 rounded-2xl border p-5 sm:flex-row sm:items-center sm:p-6">
+                    <div className="flex flex-1 items-center gap-4">
+                        <ArtIcon name="clock" size={56} tone="amber" />
+                        <div>
+                            <p className="text-muted-foreground mb-1 text-[10px] font-bold tracking-widest uppercase">
+                                {t('practice.test_yourself', 'Le grand entraînement')}
+                            </p>
+                            <h2 className="text-foreground font-extrabold">{t('practice.exam_mode_title')}</h2>
+                            <p className="text-muted-foreground mt-1 text-xs">{t('practice.exam_mode_desc', { minutes: totalExamMinutes })}</p>
                         </div>
                     </div>
                     <Link
                         href={route('practice.simulate', exam.id)}
-                        className="duo-press shrink-0 rounded-xl px-4 py-2 text-xs font-black text-white"
-                        style={{ background: SKY, boxShadow: `0 3px 0 0 #2a6fc0` }}
+                        className="bg-primary text-primary-foreground focus-visible:ring-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
                     >
                         {t('practice.exam_mode_start')}
+                        <ArrowRight className="h-4 w-4" aria-hidden="true" />
                     </Link>
-                </div>
+                </section>
 
-                {/* Section Cards */}
-                <h2 className="mb-3 text-xs font-black uppercase tracking-widest" style={{ color: OXFORD }}>
-                    Par compétence
-                </h2>
-                <div className="grid gap-3 sm:grid-cols-2">
-                    {exam.sections.map((section, i) => {
-                        const iconName = skillIcons[section.skill_type] ?? 'book';
-                        const theme = skillThemes[section.skill_type] ?? skillThemes.reading;
-                        const attempts = sectionProgress[section.id] ?? 0;
-
-                        return (
-                            <Link
-                                key={section.id}
-                                href={route('practice.section', [exam.id, section.id])}
-                                className="duo-card flex items-center gap-3 p-3"
-                                style={{
-                                    opacity: mounted ? 1 : 0,
-                                    transform: mounted ? 'translateY(0)' : 'translateY(12px)',
-                                    transition: `all 0.4s ease ${i * 100}ms`,
-                                }}
-                            >
-                                {/* Icon */}
-                                <div
-                                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl"
-                                    style={{
-                                        background: theme.bg,
-                                        boxShadow: `0 4px 0 0 ${theme.shadow}`,
-                                    }}
-                                >
-                                    <Icon name={iconName} size={20} style={{ filter: 'brightness(0) invert(1)' }} />
-                                </div>
-
-                                {/* Content — name + meta on two lines (the skill badge was redundant with the name) */}
-                                <div className="flex-1 min-w-0">
-                                    <h3 className="text-sm font-black text-foreground truncate">
-                                        {section.name}
-                                    </h3>
-                                    <p className="text-[11px] font-bold text-muted-foreground">
-                                        {section.time_limit} min · {t('practice.section_exercise_types', { count: section.exercise_types?.length ?? 0 })}
-                                        {attempts > 0 && <> · {t('practice.section_attempts_one', { count: attempts })}</>}
-                                    </p>
-                                </div>
-
-                                {/* Chevron */}
-                                <Icon name="chevron-right" size={16} style={{ opacity: 0.25 }} />
-                            </Link>
-                        );
-                    })}
-                </div>
-
-                {/* Personalized Practice — compact */}
-                <div className="mt-6">
-                    <h2 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-3">
-                        {t('practice.personalized_title', 'Votre Espace Personnel')}
+                <section aria-labelledby="practice-personal-title">
+                    <h2 id="practice-personal-title" className="text-foreground mb-3 text-lg font-extrabold">
+                        {t('practice.personalized_title', 'Ton espace personnel')}
                     </h2>
-                    <div className="grid gap-3">
-                        {/* Mistakes */}
+                    <div className="grid gap-3 sm:grid-cols-2">
                         <Link
                             href={route('errors.practice')}
-                            className="duo-card flex items-center gap-3 p-3 hover:bg-red-50/30 transition-colors"
+                            className="studio-card group border-border bg-card hover:border-primary/50 focus-visible:ring-ring flex items-center gap-3 rounded-2xl border p-4 transition-colors focus-visible:ring-2 focus-visible:outline-none"
                         >
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-red-100 text-red-600 shadow-[0_4px_0_0_#fecaca]">
-                                <Icon name="alert-circle" size={20} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <h3 className="text-sm font-black text-red-900 dark:text-red-300">
-                                    {t('practice.mistakes_review_title', 'Centre de Récupération')}
+                            <ArtIcon name="review" size={48} tone="rose" />
+                            <div className="min-w-0 flex-1">
+                                <h3 className="text-foreground text-sm font-bold">
+                                    {t('practice.mistakes_review_title', 'Rebondir après une erreur')}
                                 </h3>
-                                <p className="text-[11px] font-bold text-red-600/70 truncate">
-                                    {t('practice.mistakes_review_desc', 'Révise tes erreurs passées.')}
+                                <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
+                                    {t('practice.mistakes_review_desc', 'Reprends ce qui t’a posé problème et consolide tes acquis.')}
                                 </p>
                             </div>
-                            <Icon name="chevron-right" size={16} style={{ opacity: 0.3 }} />
+                            <ChevronRight className="text-muted-foreground h-4 w-4 shrink-0" aria-hidden="true" />
                         </Link>
-
-                        {/* Dictionary */}
                         <Link
                             href={route('dictionary.index')}
-                            className="duo-card flex items-center gap-3 p-3 hover:bg-indigo-50/30 transition-colors"
+                            className="studio-card group border-border bg-card hover:border-primary/50 focus-visible:ring-ring flex items-center gap-3 rounded-2xl border p-4 transition-colors focus-visible:ring-2 focus-visible:outline-none"
                         >
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-600 shadow-[0_4px_0_0_#c7d2fe]">
-                                <Icon name="book" size={20} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <h3 className="text-sm font-black text-indigo-900 dark:text-indigo-300">
-                                    {t('practice.dictionary_title', 'Mon Dictionnaire')}
-                                </h3>
-                                <p className="text-[11px] font-bold text-indigo-600/70 truncate">
-                                    {t('practice.dictionary_desc', 'Mots sauvegardés + révision (SRS)')}
+                            <ArtIcon name="vocabulary" size={48} tone="mint" />
+                            <div className="min-w-0 flex-1">
+                                <h3 className="text-foreground text-sm font-bold">{t('practice.dictionary_title', 'Mon dictionnaire')}</h3>
+                                <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
+                                    {t('practice.dictionary_desc', 'Retrouve tes mots sauvegardés et révise-les régulièrement.')}
                                 </p>
                             </div>
-                            <Icon name="chevron-right" size={16} style={{ opacity: 0.3 }} />
+                            <ChevronRight className="text-muted-foreground h-4 w-4 shrink-0" aria-hidden="true" />
                         </Link>
                     </div>
-                </div>
+                </section>
             </div>
         </AppLayout>
     );

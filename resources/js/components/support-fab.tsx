@@ -54,7 +54,7 @@ export function SupportFab() {
     return (
         <div
             ref={rootRef}
-            className="fixed right-4 bottom-[84px] z-50 flex flex-col items-end gap-2 md:right-6 md:bottom-6"
+            className="fixed right-4 bottom-[104px] z-50 flex flex-col items-end gap-2 md:right-6 md:bottom-6"
             style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         >
             {open && (
