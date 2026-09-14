@@ -1,0 +1,19 @@
+PREPLA ANDROID - VERSION 1.0.0 (BUILD 1)
+
+Fichier à importer dans Google Play Console :
+PrePla-v1.0.0-build1.aab
+
+Fichier d'installation pour un test local uniquement :
+PrePla-v1.0.0-build1.apk
+
+Package Android : cloud.mirlab.prepla
+API cible : 36 (Android 16)
+API minimale : 21 (Android 5.0)
+
+IMPORTANT : le keystore et son mot de passe ne sont pas inclus dans ce dossier.
+Utiliser uniquement la clé d'upload v2 conservée hors du dépôt Git.
+
+Après l'import AAB, récupérer dans Google Play Console l'empreinte SHA-256 du
+certificat "App signing key certificate", puis l'ajouter au fichier public
+/.well-known/assetlinks.json. L'empreinte de la clé d'upload ne suffit pas pour
+les installations distribuées par Google Play.

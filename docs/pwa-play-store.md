@@ -60,6 +60,10 @@ Le build produit notamment `app-release-signed.apk` pour les tests locaux et
 `app-release-bundle.aab` pour Google Play. Sauvegarder le keystore et ses mots de passe
 hors du dépôt Git : perdre cette clé complique ou empêche les futures mises à jour.
 
+La version initiale générée pour PrePla utilise `versionName 1.0.0`, `versionCode 1`,
+`minSdk 21` et `targetSdk 36` (Android 16). Le bundle prêt à importer se trouve dans
+`release/google-play/android/v1.0.0/`.
+
 Références : [guide TWA officiel](https://developer.chrome.com/docs/android/trusted-web-activity/quick-start) et [Bubblewrap](https://github.com/GoogleChromeLabs/bubblewrap).
 
 ## 4. Relier le domaine à l'application

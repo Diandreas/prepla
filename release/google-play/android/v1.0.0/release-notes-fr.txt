@@ -1,0 +1,6 @@
+Première version de PrepLa sur Android.
+
+- Préparation IELTS, TOEFL, Cambridge, TCF, TEF, DELF/DALF, Goethe et TestDaF
+- Exercices interactifs et simulations
+- Corrections et outils assistés par IA
+- Suivi de progression et révision du vocabulaire

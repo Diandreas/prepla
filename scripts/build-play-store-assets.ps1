@@ -164,6 +164,41 @@ function New-PhoneScreenshot {
     $bitmap.Dispose()
 }
 
+function New-PhoneAppScreenshot {
+    param(
+        [string]$Source,
+        [string]$Output
+    )
+
+    # Google Play expects a phone-friendly portrait ratio. Crop only the thin
+    # browser edges/scrollbar, then scale the real application capture to 9:16.
+    $width = 1080
+    $height = 1920
+    $bitmap = [System.Drawing.Bitmap]::new($width, $height, [System.Drawing.Imaging.PixelFormat]::Format24bppRgb)
+    $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+    Set-HighQualityGraphics $graphics
+
+    $image = [System.Drawing.Image]::FromFile($Source)
+    $sourceRatio = $image.Width / $image.Height
+    $targetRatio = $width / $height
+
+    if ($sourceRatio -gt $targetRatio) {
+        $cropWidth = [int]([Math]::Round($image.Height * $targetRatio))
+        $crop = [System.Drawing.Rectangle]::new([int](($image.Width - $cropWidth) / 2), 0, $cropWidth, $image.Height)
+    } else {
+        $cropHeight = [int]([Math]::Round($image.Width / $targetRatio))
+        $crop = [System.Drawing.Rectangle]::new(0, [int](($image.Height - $cropHeight) / 2), $image.Width, $cropHeight)
+    }
+
+    $destination = [System.Drawing.Rectangle]::new(0, 0, $width, $height)
+    $graphics.DrawImage($image, $destination, $crop, [System.Drawing.GraphicsUnit]::Pixel)
+    Save-Png $bitmap $Output
+
+    $image.Dispose()
+    $graphics.Dispose()
+    $bitmap.Dispose()
+}
+
 $featureSource = Join-Path $sourceRoot 'feature-graphic-ai-source.png'
 if (-not (Test-Path -LiteralPath $featureSource)) {
     throw "Source manquante : $featureSource"
@@ -284,12 +319,9 @@ $shots = @(
 )
 
 foreach ($shot in $shots) {
-    New-PhoneScreenshot `
+    New-PhoneAppScreenshot `
         -Source (Join-Path $Workspace $shot.Source) `
-        -Output (Join-Path $screenshotsRoot $shot.Output) `
-        -Number $shot.Number `
-        -Title $shot.Title `
-        -Subtitle $shot.Subtitle
+        -Output (Join-Path $screenshotsRoot $shot.Output)
 }
 
 Write-Output "Google Play assets generated in $releaseRoot"
