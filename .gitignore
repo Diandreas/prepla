@@ -50,5 +50,16 @@ yarn-error.log
 /remotion/public/audio
 /remotion/.rnv
 
+# Outils locaux et sorties Android re-generables
+/.bubblewrap-cli/
+/.bubblewrap-npm-cache/
+/android/.gradle/
+/android/build/
+/android/app/build/
+/android/*.apk
+/android/*.aab
+/android/*.idsig
+/android/app-release-unsigned-aligned.apk
+
 # Profils de navigateur générés lors des sessions de QA visuelle (lourd, local uniquement)
 /qa_*/
