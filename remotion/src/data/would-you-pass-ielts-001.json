@@ -1,0 +1,19 @@
+{
+    "id": "would-you-pass-ielts-001",
+    "series": "would-you-pass",
+    "language": "en",
+    "exam": "IELTS Academic",
+    "flag": "🇬🇧",
+    "hook": "Would you pass this IELTS question?",
+    "question": "The writer implies that climate models are…",
+    "options": [
+        "Increasingly accurate",
+        "Fundamentally flawed",
+        "Too complex for policy use",
+        "Still being validated"
+    ],
+    "correctIndex": 0,
+    "cta": "Train daily on Prepla",
+    "voice": "liam",
+    "narration": "Would you pass this IELTS Academic question? The writer implies that climate models are... A: Increasingly accurate. B: Fundamentally flawed. C: Too complex for policy use. D: Still being validated. ... The correct answer is A. Increasingly accurate."
+}
