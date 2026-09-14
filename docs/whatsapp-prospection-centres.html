@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>Prepla — Séquence WhatsApp centres de langue</title>
+<style>
+    :root {
+        --paper: #F6F8FB;
+        --paper-raise: #FFFFFF;
+        --ink: #14181F;
+        --ink-mid: #4A5568;
+        --ink-dim: #7A8494;
+        --sky: #3B82E0;
+        --sky-deep: #2A5EA8;
+        --gold: #F5A623;
+        --gold-deep: #A9700C;
+        --line: #DCE3EC;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+        margin: 0;
+        padding: 0;
+        background: var(--paper);
+        color: var(--ink);
+    }
+
+    body {
+        font-family: -apple-system, "Segoe UI", "Inter", "Helvetica Neue", Arial, sans-serif;
+        font-size: 15px;
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    .page {
+        max-width: 740px;
+        margin: 0 auto;
+        padding: 56px 48px 64px;
+    }
+
+    /* ---------- Header ---------- */
+
+    .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--gold-deep);
+        margin-bottom: 18px;
+    }
+    .eyebrow::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--gold);
+        display: inline-block;
+    }
+
+    h1 {
+        font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+        font-size: 34px;
+        font-weight: 700;
+        line-height: 1.15;
+        letter-spacing: -0.01em;
+        margin: 0 0 12px;
+        text-wrap: balance;
+        color: var(--ink);
+    }
+
+    .subhead {
+        font-size: 15.5px;
+        color: var(--ink-mid);
+        max-width: 56ch;
+        margin: 0 0 30px;
+    }
+
+    /* ---------- Fil conducteur callout ---------- */
+
+    .thread {
+        background: var(--paper-raise);
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--sky);
+        border-radius: 6px;
+        padding: 18px 22px;
+        margin-bottom: 40px;
+    }
+    .thread .label {
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--sky-deep);
+        margin-bottom: 6px;
+    }
+    .thread p {
+        margin: 0;
+        font-size: 14.5px;
+        color: var(--ink);
+    }
+    .thread strong { color: var(--sky-deep); }
+
+    /* ---------- Sections ---------- */
+
+    .section {
+        margin-bottom: 40px;
+    }
+    .section-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 4px;
+        flex-wrap: wrap;
+    }
+    .section-title {
+        font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--ink);
+        margin: 0;
+    }
+    .channel-tag {
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 3px 9px;
+        border-radius: 999px;
+        white-space: nowrap;
+    }
+    .channel-tag.whatsapp { background: #DCF3E4; color: #1E7A44; }
+    .channel-tag.other { background: #EAEDF3; color: var(--ink-mid); }
+    .section-desc {
+        font-size: 13.5px;
+        color: var(--ink-dim);
+        margin: 0 0 22px;
+        max-width: 60ch;
+    }
+    .divider {
+        border: none;
+        border-top: 1px solid var(--line);
+        margin: 0 0 40px;
+    }
+
+    /* ---------- Sequence ---------- */
+
+    .sequence {
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+    }
+
+    .msg {
+        position: relative;
+        padding-left: 22px;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+    .msg::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 4px;
+        bottom: 4px;
+        width: 3px;
+        border-radius: 2px;
+        background: var(--gold);
+    }
+    .msg[data-stage="closing"]::before { background: var(--sky); }
+
+    .msg-meta {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        margin-bottom: 9px;
+        flex-wrap: wrap;
+    }
+    .msg-stage {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--ink);
+    }
+    .msg-timing {
+        font-size: 12.5px;
+        color: var(--ink-dim);
+    }
+
+    .bubble {
+        background: var(--paper-raise);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 16px 20px;
+        font-size: 14.5px;
+        color: var(--ink);
+    }
+    .bubble p { margin: 0 0 10px; }
+    .bubble p:last-child { margin-bottom: 0; }
+
+    .msg-note {
+        margin-top: 8px;
+        font-size: 12.5px;
+        color: var(--ink-dim);
+        padding-left: 2px;
+    }
+
+    /* ---------- Questions ---------- */
+
+    .qgrid {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+    .qgroup {
+        background: var(--paper-raise);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 16px 22px;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+    .qgroup-head {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+    .qgroup-num {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--gold-deep);
+    }
+    .qgroup-title {
+        font-size: 13.5px;
+        font-weight: 700;
+        color: var(--ink);
+    }
+    .qgroup-goal {
+        font-size: 12px;
+        color: var(--ink-dim);
+        margin: 0 0 12px;
+    }
+    .qlist {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+    }
+    .qlist li {
+        position: relative;
+        padding-left: 16px;
+        font-size: 14px;
+        color: var(--ink);
+    }
+    .qlist li::before {
+        content: "—";
+        position: absolute;
+        left: 0;
+        color: var(--ink-dim);
+    }
+
+    /* ---------- Footer ---------- */
+
+    .footer {
+        margin-top: 44px;
+        padding-top: 20px;
+        border-top: 1px solid var(--line);
+        font-size: 12.5px;
+        color: var(--ink-dim);
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
+    }
+    .footer strong { color: var(--ink-mid); }
+
+    @media print {
+        body { background: #fff; }
+        .page { padding: 4px 6px 24px; max-width: none; }
+        .footer { page-break-inside: avoid; }
+        @page { margin: 14mm 14mm 18mm; }
+    }
+</style>
+</head>
+<body>
+<div class="page">
+
+    <div class="eyebrow">Prepla · B2B centres de langue</div>
+    <h1>Séquence WhatsApp de prospection</h1>
+    <p class="subhead">
+        Script de premier contact et de relances pour un centre qui prépare déjà ses
+        élèves à l'un des examens couverts par Prepla (TCF, IELTS, Goethe-Zertifikat…).
+        À personnaliser avec le prénom, le nom du centre et l'examen concerné.
+    </p>
+
+    <div class="thread">
+        <div class="label">Fil conducteur à garder dans chaque message</div>
+        <p>
+            Prepla n'est pas « un outil en plus » : c'est ce qui permet au centre de
+            <strong>justifier ses tarifs, fidéliser les parents et libérer du temps
+            professeur</strong> pour prendre plus d'élèves — profs et élèves créent
+            devoirs et exercices eux-mêmes, en totale autonomie, sur leur propre
+            plateforme e-learning.
+        </p>
+    </div>
+
+    <div class="section">
+        <div class="section-head">
+            <h2 class="section-title">Version WhatsApp — à envoyer telle quelle</h2>
+            <span class="channel-tag whatsapp">WhatsApp réel</span>
+        </div>
+        <p class="section-desc">
+            2-3 lignes, une seule idée, une question facile à répondre. Sur WhatsApp,
+            un message long d'un inconnu se ferme sans être lu — la valeur se distille
+            au fil de la conversation, pas dans le premier message.
+        </p>
+
+        <div class="sequence">
+
+            <div class="msg" data-stage="open">
+                <div class="msg-meta">
+                    <span class="msg-stage">1 · Ouverture</span>
+                    <span class="msg-timing">Premier contact</span>
+                </div>
+                <div class="bubble">
+                    <p>Bonjour [Prénom] ! Je vois que [Nom du centre] prépare au
+                    [TCF/IELTS/Goethe]. Je travaille avec des centres sur ce type
+                    d'examen — ça vous arrive de galérer avec le suivi des devoirs et
+                    les corrections côté profs ?</p>
+                </div>
+            </div>
+
+            <div class="msg" data-stage="follow">
+                <div class="msg-meta">
+                    <span class="msg-stage">2 · Rebond</span>
+                    <span class="msg-timing">Si réponse / intérêt</span>
+                </div>
+                <div class="bubble">
+                    <p>Ça tombe bien, c'est exactement ce qu'on a réglé avec Prepla :
+                    les profs créent leurs devoirs et exercices, et le suivi (qui a
+                    fait quoi, qui décroche) se fait tout seul. Je vous montre ça en
+                    10 min cette semaine ?</p>
+                </div>
+            </div>
+
+            <div class="msg" data-stage="follow">
+                <div class="msg-meta">
+                    <span class="msg-stage">3 · Relance</span>
+                    <span class="msg-timing">J+3, sans réponse</span>
+                </div>
+                <div class="bubble">
+                    <p>[Prénom], petit up 🙂 Une question : le suivi des devoirs, c'est
+                    plutôt fluide chez vous ou ça prend du temps aux profs ?</p>
+                </div>
+            </div>
+
+            <div class="msg" data-stage="follow">
+                <div class="msg-meta">
+                    <span class="msg-stage">4 · Relance</span>
+                    <span class="msg-timing">J+7, si toujours silence</span>
+                </div>
+                <div class="bubble">
+                    <p>[Prénom], dernier message promis 😄 Si un jour le suivi des
+                    devoirs devient un sujet, j'ai un outil qui fait gagner pas mal
+                    d'heures aux profs. Bonne continuation !</p>
+                </div>
+                <div class="msg-note">Message « rupture » — débloque souvent une réponse en désamorçant la pression.</div>
+            </div>
+
+            <div class="msg" data-stage="demo">
+                <div class="msg-meta">
+                    <span class="msg-stage">5 · Après démo</span>
+                    <span class="msg-timing">Suite à un appel ou un test</span>
+                </div>
+                <div class="bubble">
+                    <p>Merci pour votre temps ! Alors, ça vous parle pour [Nom du
+                    centre] ?</p>
+                </div>
+            </div>
+
+            <div class="msg" data-stage="closing">
+                <div class="msg-meta">
+                    <span class="msg-stage">6 · Closing</span>
+                    <span class="msg-timing">Offre / urgence douce</span>
+                </div>
+                <div class="bubble">
+                    <p>Pour démarrer avant votre prochaine session d'examen, je peux
+                    vous faire [1 mois offert / tarif de lancement]. On bloque 10 min
+                    pour tout configurer ?</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <hr class="divider" />
+
+    <div class="section">
+        <div class="section-head">
+            <h2 class="section-title">Version détaillée — email, LinkedIn, brief interne</h2>
+            <span class="channel-tag other">Autre canal</span>
+        </div>
+        <p class="section-desc">
+            Même trame, format long : à garder pour un email, un message LinkedIn, ou
+            comme argumentaire de référence pour l'équipe commerciale — pas pour un
+            premier message WhatsApp.
+        </p>
+
+        <div class="sequence">
+
+            <div class="msg" data-stage="open">
+                <div class="msg-meta">
+                    <span class="msg-stage">1 · Ouverture</span>
+                    <span class="msg-timing">Premier contact</span>
+                </div>
+                <div class="bubble">
+                    <p>Bonjour [Prénom] 👋<br>
+                    Je vous contacte parce que [Nom du centre] prépare vos étudiants au
+                    [TCF/IELTS/Goethe…] — et j'ai un outil qui pourrait devenir un vrai
+                    argument de vente pour votre centre.</p>
+                    <p>Avec Prepla, vous ne « prêtez » pas juste un logiciel à vos élèves :
+                    vous avez votre propre plateforme e-learning, à votre image. Vos profs
+                    créent leurs propres exercices (ou les génèrent en 30 secondes avec
+                    l'IA), donnent des devoirs en ligne avec échéance, et voient
+                    automatiquement qui a fait le travail, qui décroche, et sur quoi chaque
+                    élève bloque — sans corriger une seule copie à la main.</p>
+                    <p>Concrètement : des parents qui voient une vraie progression chiffrée
+                    (excellent pour la fidélisation et le bouche-à-oreille), des profs qui
+                    gagnent des heures de correction chaque semaine, et un argument que vos
+                    concurrents n'ont pas pour justifier vos tarifs.</p>
+                    <p>Je vous montre ça en 15 min cette semaine ?</p>
+                </div>
+            </div>
+
+            <div class="msg" data-stage="follow">
+                <div class="msg-meta">
+                    <span class="msg-stage">2 · Relance</span>
+                    <span class="msg-timing">J+3, sans réponse</span>
+                </div>
+                <div class="bubble">
+                    <p>[Prénom], je reviens vers vous 🙂 Beaucoup de centres nous disent que
+                    le vrai déclic, c'est quand un parent demande « est-ce que je peux voir
+                    où en est mon enfant ? » — et qu'ils peuvent enfin répondre avec un vrai
+                    tableau de suivi, pas un ressenti du prof.</p>
+                    <p>Un créneau de 15 min cette semaine, ça vous irait ?</p>
+                </div>
+            </div>
+
+            <div class="msg" data-stage="follow">
+                <div class="msg-meta">
+                    <span class="msg-stage">3 · Relance</span>
+                    <span class="msg-timing">J+7, si toujours silence</span>
+                </div>
+                <div class="bubble">
+                    <p>[Prénom], un dernier mot : le temps que vos profs passent à corriger
+                    des devoirs à la main, c'est du temps qu'ils ne passent pas à prendre
+                    plus d'élèves. Avec la correction et le suivi automatisés, plusieurs
+                    centres ont pu absorber plus d'inscriptions sans embaucher.</p>
+                    <p>Si ça vous parle, testez l'espace centre sans rendez-vous : [lien
+                    démo]. Sinon je vous laisse tranquille.</p>
+                </div>
+                <div class="msg-note">Dernière relance avant mise en veille du prospect.</div>
+            </div>
+
+            <div class="msg" data-stage="demo">
+                <div class="msg-meta">
+                    <span class="msg-stage">4 · Après démo</span>
+                    <span class="msg-timing">Suite à un appel ou un test</span>
+                </div>
+                <div class="bubble">
+                    <p>Merci pour votre temps [Prénom] ! Qu'est-ce qui vous a le plus
+                    parlé — le gain de temps pour les profs, ou l'image que ça donne aux
+                    parents ?</p>
+                    <p>Je peux vous chiffrer une offre adaptée au nombre d'élèves de [Nom du
+                    centre], pour que vous voyiez concrètement ce que ça change sur votre
+                    rentabilité.</p>
+                </div>
+            </div>
+
+            <div class="msg" data-stage="closing">
+                <div class="msg-meta">
+                    <span class="msg-stage">5 · Closing</span>
+                    <span class="msg-timing">Offre / urgence douce</span>
+                </div>
+                <div class="bubble">
+                    <p>[Prénom], pour que vous puissiez lancer ça avant la prochaine session
+                    d'examen — et donc l'utiliser comme argument dès vos prochaines
+                    inscriptions — je peux vous proposer [1 mois offert / tarif de
+                    lancement] si vous démarrez d'ici la fin du mois.</p>
+                    <p>On bloque 10 min pour finaliser et configurer votre espace centre ?</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <hr class="divider" />
+
+    <div class="section">
+        <div class="section-head">
+            <h2 class="section-title">Questions à poser une fois le rendez-vous obtenu</h2>
+        </div>
+        <p class="section-desc">
+            L'objectif n'est pas de réciter l'argumentaire, mais de faire dire au
+            prospect lui-même où ça coince — et ce que ça change. Poser dans l'ordre :
+            situation → douleur → impact chiffré → décision.
+        </p>
+
+        <div class="qgrid">
+
+            <div class="qgroup">
+                <div class="qgroup-head">
+                    <span class="qgroup-num">1</span>
+                    <span class="qgroup-title">Situation actuelle</span>
+                </div>
+                <p class="qgroup-goal">Comprendre comment le centre fonctionne aujourd'hui, sans jugement.</p>
+                <ul class="qlist">
+                    <li>Combien d'élèves préparez-vous actuellement au [TCF/IELTS/Goethe…] ?</li>
+                    <li>Comment vos profs donnent-ils les devoirs aujourd'hui — papier, PDF, une autre plateforme ?</li>
+                    <li>Qui crée les exercices : chaque prof de son côté, ou un support commun au centre ?</li>
+                </ul>
+            </div>
+
+            <div class="qgroup">
+                <div class="qgroup-head">
+                    <span class="qgroup-num">2</span>
+                    <span class="qgroup-title">Douleur</span>
+                </div>
+                <p class="qgroup-goal">Faire émerger le point de friction réel, dans leurs mots à eux.</p>
+                <ul class="qlist">
+                    <li>Combien de temps un prof passe-t-il en moyenne à corriger les devoirs d'une classe ?</li>
+                    <li>Comment repérez-vous un élève qui décroche, avant qu'il ne soit trop tard ?</li>
+                    <li>Que répondez-vous aujourd'hui quand un parent demande où en est son enfant ?</li>
+                </ul>
+            </div>
+
+            <div class="qgroup">
+                <div class="qgroup-head">
+                    <span class="qgroup-num">3</span>
+                    <span class="qgroup-title">Impact chiffré</span>
+                </div>
+                <p class="qgroup-goal">Faire calculer au prospect lui-même ce que ça lui coûte ou rapporterait.</p>
+                <ul class="qlist">
+                    <li>Si un prof gagnait 3-4h par semaine sur la correction, qu'est-ce que ça changerait pour le centre ?</li>
+                    <li>Combien d'élèves supplémentaires pourriez-vous accueillir sans embaucher, si le suivi était automatique ?</li>
+                    <li>Qu'est-ce que ça coûte, un élève qui décroche et qu'on ne rattrape pas avant l'examen ?</li>
+                </ul>
+            </div>
+
+            <div class="qgroup">
+                <div class="qgroup-head">
+                    <span class="qgroup-num">4</span>
+                    <span class="qgroup-title">Décision</span>
+                </div>
+                <p class="qgroup-goal">Qualifier le processus de décision avant de proposer une offre.</p>
+                <ul class="qlist">
+                    <li>Qui d'autre est impliqué dans ce type de décision chez vous ?</li>
+                    <li>Qu'est-ce qui pourrait vous empêcher de démarrer avant la prochaine session d'examen ?</li>
+                    <li>Sur 10, à quel point le suivi des devoirs est un sujet prioritaire pour vous en ce moment ?</li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="footer">
+        <div>Laisser <strong>24–48h minimum</strong> entre chaque relance.</div>
+        <div>Arrêter après la dernière relance — <strong>remettre en veille 2–3 mois.</strong></div>
+    </div>
+
+</div>
+</body>
+</html>
