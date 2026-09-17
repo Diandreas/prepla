@@ -1,7 +1,18 @@
 // Bump this version on every deploy that changes the app shell. Vite assets are
 // content-hashed, while this cache contains only public, non-personal assets.
-const CACHE_NAME = 'prepla-shell-v18';
+const CACHE_NAME = 'prepla-shell-v21';
 const OFFLINE_URL = '/offline';
+
+// Uploaded media under /storage can belong to a centre, so only first-party public
+// asset folders are ever written to this shared cache.
+const PUBLIC_ASSET_PATH = /^\/(build|icons|sounds|animation|screenshots)\/|^\/(favicon\.ico|logo\.svg)$/;
+const STATIC_ASSET_EXTENSION = /\.(js|css|png|jpg|jpeg|gif|webp|avif|svg|ico|woff2?|ttf|mp3)$/i;
+
+function isPublicAsset(url) {
+    return url.origin === self.location.origin
+        && PUBLIC_ASSET_PATH.test(url.pathname)
+        && STATIC_ASSET_EXTENSION.test(url.pathname);
+}
 
 const PRECACHE_ASSETS = [
     '/offline',
@@ -46,7 +57,7 @@ self.addEventListener('fetch', (event) => {
     // background and update the cache, so a new deploy is picked up on the next
     // load instead of pinning the user to an old bundle (which made icon/emoji
     // changes appear to "not change" after deploy).
-    if (url.pathname.match(/\.(js|css|png|jpg|jpeg|gif|webp|avif|svg|ico|woff2?|ttf|mp3)$/i)) {
+    if (isPublicAsset(url)) {
         event.respondWith(
             caches.match(request).then((cached) => {
                 const network = fetch(request).then((response) => {
@@ -86,7 +97,7 @@ self.addEventListener('message', (event) => {
     if (event.data?.type === 'PRELOAD_URLS') {
         const urls = (event.data.urls || []).filter((path) => {
             try {
-                return new URL(path, self.location.origin).origin === self.location.origin;
+                return isPublicAsset(new URL(path, self.location.origin));
             } catch {
                 return false;
             }
