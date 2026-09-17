@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { normalizeOptions } from './normalize-options';
 
 interface GapFillProps {
@@ -19,7 +18,7 @@ interface GapFillProps {
  * Le champ s'élargit selon ce qui est tapé pour rester fluide dans le texte.
  */
 export function GapFill({ question, onAnswer, selectedAnswer, disabled }: GapFillProps) {
-    const [value, setValue] = useState(selectedAnswer ?? '');
+    const value = selectedAnswer ?? '';
     const raw = question.text ?? '';
     const options = normalizeOptions(question.options);
 
@@ -47,16 +46,22 @@ export function GapFill({ question, onAnswer, selectedAnswer, disabled }: GapFil
                         return (
                             <button
                                 key={i}
+                                type="button"
                                 onClick={() => !disabled && onAnswer(question.id, letter)}
                                 disabled={disabled}
-                                className={`rounded-xl border-2 p-3 text-left text-sm ${
-                                    isCorrect ? 'border-emerald-400 bg-emerald-50'
-                                    : isWrong ? 'border-red-400 bg-red-50'
+                                aria-pressed={isSel}
+                                className={`rounded-xl border-2 p-3 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+                                    isCorrect ? 'border-emerald-400 bg-emerald-50 text-emerald-950 dark:bg-emerald-950/40 dark:text-emerald-100'
+                                    : isWrong ? 'border-red-400 bg-red-50 text-red-950 dark:bg-red-950/40 dark:text-red-100'
                                     : isSel ? 'border-primary bg-primary/5'
-                                    : 'border-border disabled:opacity-50'}`}
+                                    : 'border-border enabled:hover:border-primary/50 disabled:opacity-50'}`}
                             >
-                                <span className="mr-2.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-muted text-xs font-bold">{letter}</span>
+                                <span className={`mr-2.5 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
+                                    isCorrect ? 'bg-emerald-700 text-white' : isWrong ? 'bg-red-700 text-white' : 'bg-muted text-muted-foreground'
+                                }`}>{letter}</span>
                                 {opt}
+                                {isCorrect && <span className="sr-only"> — Bonne réponse</span>}
+                                {isWrong && <span className="sr-only"> — Réponse incorrecte</span>}
                             </button>
                         );
                     })}
@@ -70,13 +75,8 @@ export function GapFill({ question, onAnswer, selectedAnswer, disabled }: GapFil
     const before = parts[0] ?? '';
     const after = parts.slice(1).join('___');
 
-    const update = (v: string) => {
-        setValue(v);
-        onAnswer(question.id, v.trim());
-    };
-
     // Largeur du champ ~ longueur du texte (min 6ch).
-    const width = Math.max(6, (value.length || (selectedAnswer?.length ?? 0) || 8) + 1);
+    const width = Math.max(6, (value.length || 8) + 1);
 
     return (
         <div className="space-y-2">
@@ -84,15 +84,16 @@ export function GapFill({ question, onAnswer, selectedAnswer, disabled }: GapFil
                 {before}
                 <input
                     type="text"
-                    value={selectedAnswer ?? value}
-                    onChange={(e) => update(e.target.value)}
+                    value={value}
+                    onChange={(e) => onAnswer(question.id, e.target.value)}
                     disabled={disabled}
+                    aria-label={`Compléter le blanc dans la phrase : ${before}…${after}`}
                     autoComplete="off"
                     autoCapitalize="off"
                     spellCheck={false}
                     placeholder="…"
                     style={{ width: `${width}ch` }}
-                    className="mx-1 inline-block border-b-2 border-primary bg-primary/5 px-1.5 py-0.5 text-center font-bold text-primary focus:outline-none focus:border-primary disabled:opacity-60"
+                    className="mx-1 inline-block max-w-full border-b-2 border-primary bg-primary/5 px-1.5 py-0.5 text-center font-bold text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-60"
                 />
                 {after}
             </p>

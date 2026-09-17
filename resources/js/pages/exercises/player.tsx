@@ -1,4 +1,5 @@
 import AppLayout from '@/layouts/app-layout';
+import type { FormDataConvertible } from '@inertiajs/core';
 import { Head, router } from '@inertiajs/react';
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -15,7 +16,7 @@ function csrfToken(): string {
     return (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
 }
 
-const INLINE_SVGS: Record<string, React.ReactNode> = {
+const INLINE_SVGS: Record<string, React.ReactElement<React.SVGProps<SVGSVGElement>>> = {
     'volume-1': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>,
     'volume-2': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>,
     'plus': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
@@ -26,7 +27,7 @@ function Icon({ name, size = 20, className, style }: { name: string; size?: numb
     if (INLINE_SVGS[name]) {
         return (
             <span className={className} style={{ width: size, height: size, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, ...style }}>
-                {React.cloneElement(INLINE_SVGS[name] as React.ReactElement, { width: size, height: size })}
+                {React.cloneElement(INLINE_SVGS[name], { width: size, height: size })}
             </span>
         );
     }
@@ -71,6 +72,36 @@ import { GuidedWriting } from '@/components/exercises/guided-writing';
 import { ExerciseTimer } from '@/components/exercises/exercise-timer';
 import { AiChatFeedback } from '@/components/exercises/ai-chat-feedback';
 
+interface ExerciseContent {
+    passage?: string;
+    audio_text?: string;
+    audio_url?: string;
+    [key: string]: unknown;
+}
+
+interface PlayerQuestion {
+    id?: string;
+    text?: string;
+    prompt?: string;
+    correct_answer?: FormDataConvertible;
+    correct?: FormDataConvertible;
+    correct_answers?: Record<string, string>;
+    audio_url?: string;
+    audio_text?: string;
+    component_key?: string;
+    exercise_id?: number;
+    [key: string]: unknown;
+}
+
+interface DictionaryLookup {
+    id?: number;
+    word?: string;
+    definition?: string;
+    translation?: string;
+    skill_level?: string;
+    error?: boolean;
+}
+
 interface Exercise {
     id: number;
     exercise_type: {
@@ -78,8 +109,8 @@ interface Exercise {
         name: string;
         skill_type?: string;
     };
-    questions: any[];
-    content: any;
+    questions: PlayerQuestion[];
+    content: ExerciseContent;
     difficulty: string;
 }
 
@@ -103,6 +134,7 @@ interface Props {
     };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- each renderer declares its own question and answer shape
 const componentMap: Record<string, React.ComponentType<any>> = {
     'mcq': Mcq,
     'true-false-ng': TrueFalseNg,
@@ -305,17 +337,22 @@ interface ExplanationObj {
 // Coerce any value to a renderable string. Guards against React error #31
 // (rendering an object/array as a child) which white-screened the page when the
 // AI returned a structured explanation (e.g. nested concept/feedback objects).
-function asText(v: any): string {
+function asText(v: unknown): string {
     if (v == null) return '';
     if (typeof v === 'string') return v;
     if (typeof v === 'number' || typeof v === 'boolean') return String(v);
     if (Array.isArray(v)) return v.map(asText).filter(Boolean).join(' ');
-    if (typeof v === 'object') return String(v.text ?? v.message ?? v.value ?? '');
+    if (typeof v === 'object') {
+        const record = v as Record<string, unknown>;
+        return String(record.text ?? record.message ?? record.value ?? '');
+    }
     return '';
 }
 
-function normalizeExplObj(o: any): ExplanationObj {
-    const ft = o.french_translation && typeof o.french_translation === 'object' ? o.french_translation : undefined;
+function normalizeExplObj(o: Record<string, unknown>): ExplanationObj {
+    const ft = o.french_translation && typeof o.french_translation === 'object'
+        ? o.french_translation as Record<string, unknown>
+        : undefined;
     return {
         concept: asText(o.concept),
         evidence: asText(o.evidence),
@@ -328,15 +365,19 @@ function normalizeExplObj(o: any): ExplanationObj {
     };
 }
 
-function parseExplanation(raw: any): ExplanationObj | string | null {
+function parseExplanation(raw: unknown): ExplanationObj | string | null {
     if (!raw) return null;
-    if (typeof raw === 'object' && raw.concept !== undefined) return normalizeExplObj(raw);
-    if (typeof raw === 'object') return asText(raw) || null; // some other object shape → flatten to text
+    if (typeof raw === 'object') {
+        const record = raw as Record<string, unknown>;
+        return record.concept !== undefined ? normalizeExplObj(record) : asText(raw) || null;
+    }
     if (typeof raw === 'string') {
         try {
             const parsed = JSON.parse(raw);
             if (parsed && parsed.concept !== undefined) return normalizeExplObj(parsed);
-        } catch {}
+        } catch {
+            // Plain-text feedback is a valid explanation too.
+        }
         return raw;
     }
     return null;
@@ -402,18 +443,16 @@ function FormattedFeedback({ text, className }: { text: string; className?: stri
     );
 }
 
-export default function SessionPlayer({ node, exercises, progress }: Props) {
+export default function SessionPlayer({ node, exercises }: Props) {
     const { t, i18n } = useTranslation();
     const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [isReviewMode, setIsReviewMode] = useState(false);
-    const [answers, setAnswers] = useState<Record<string, any>>({});
+    const [answers, setAnswers] = useState<Record<string, FormDataConvertible>>({});
     const [isChecked, setIsChecked] = useState(false);
     const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
     const [submitting, setSubmitting] = useState(false);
-    const [transitioning, setTransitioning] = useState(false);
     const [visible, setVisible] = useState(true);
-    const [timeSpent, setTimeSpent] = useState(0);
     const timeSpentRef = useRef(0);
     // Guards against a double advance: the per-question timer expiry schedules an
     // auto-nextStep, and the user can advance manually at the same moment. Without
@@ -430,17 +469,17 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
     const [highlightedText, setHighlightedText] = useState<string | null>(null);
     const [playingTts, setPlayingTts] = useState<string | null>(null);
     const [isChatOpen, setIsChatOpen] = useState(false);
-    const [mistakes, setMistakes] = useState<any[]>([]);
+    const [mistakes, setMistakes] = useState<PlayerQuestion[]>([]);
     // Speaking formative feedback: points covered / still to add.
     const [speakingPoints, setSpeakingPoints] = useState<{ covered: string[]; missing: string[] } | null>(null);
     // Frozen snapshot of the mistakes list when entering review mode, so the
     // review never grows while you retry (which used to loop forever).
-    const [reviewQueue, setReviewQueue] = useState<any[]>([]);
+    const [reviewQueue, setReviewQueue] = useState<PlayerQuestion[]>([]);
     const [isVerifying, setIsVerifying] = useState(false);
     const [isDictionaryOpen, setIsDictionaryOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [isSearching, setIsSearching] = useState(false);
-    const [searchResult, setSearchResult] = useState<any>(null);
+    const [searchResult, setSearchResult] = useState<DictionaryLookup | null>(null);
     const [isVocabSaved, setIsVocabSaved] = useState(false);
     // Listening: how many times the recording was played (exam-realistic cap of 2).
     const [listenCount, setListenCount] = useState(0);
@@ -538,7 +577,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
         [currentExerciseIndex]
     );
 
-    const handleAnswer = useCallback((questionId: string, answer: any) => {
+    const handleAnswer = useCallback((questionId: string, answer: FormDataConvertible) => {
         if (isChecked) return;
         setAnswers(prev => ({ ...prev, [answerKey(questionId)]: answer }));
     }, [isChecked, answerKey]);
@@ -670,23 +709,6 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
         }
     }, [question, answers, answerKey, node.exam.language.name]);
 
-    const handleRetry = useCallback(() => {
-        setIsChecked(false);
-        setIsCorrect(null);
-        setExplanation(null);
-        setHighlightedText(null);
-        setSpeakingPoints(null);
-        setAnswers(prev => {
-            const next = { ...prev };
-            if (question) {
-                delete next[answerKey(question.id)];
-                delete next[`${question.id}_transcription`];
-            }
-            return next;
-        });
-        setTimerSeconds(TIME_PER_QUESTION); // Reset timer 
-    }, [question, TIME_PER_QUESTION, answerKey]);
-
     const checkAnswer = useCallback(async () => {
         if (!question || isChecked || isVerifying) return;
         const currentAnswer = answers[answerKey(question.id)];
@@ -803,12 +825,10 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                 // Pedagogy: Start Review Mode for mistakes. Freeze the queue now so
                 // retrying a wrong answer can't keep extending the session.
                 setVisible(false);
-                setTransitioning(true);
                 setTimeout(() => {
                     setReviewQueue(mistakes);
                     setIsReviewMode(true);
                     setCurrentQuestionIndex(0);
-                    setTransitioning(false);
                     setVisible(true);
                     setTimerKey(k => k + 1);
                     advancingRef.current = false;
@@ -822,7 +842,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
             // was then scored against those, giving wrong grades AND polluting the
             // error-review log. We send { exerciseId: { questionId: answer } } instead.
             // The internal key is "exerciseIndex::questionId"; map the index → real id.
-            const answersByExercise: Record<string, Record<string, any>> = {};
+            const answersByExercise: Record<string, Record<string, FormDataConvertible>> = {};
             for (const [k, v] of Object.entries(answers)) {
                 const sep = k.indexOf('::');
                 if (sep === -1) continue; // skip non-namespaced keys (e.g. transcriptions)
@@ -839,15 +859,19 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                 answers_by_exercise: answersByExercise,
                 node_id: node.id,
                 time_spent: timeSpentRef.current,
-                exercise_ids: exercises.map((e: any) => e.id),
+                exercise_ids: exercises.map((e) => e.id),
             }, {
                 forceFormData: true,
+                // A successful submit leaves the page; any failure hands the session back for a retry.
+                onFinish: () => {
+                    setSubmitting(false);
+                    advancingRef.current = false;
+                },
             });
             return;
         }
 
         setVisible(false);
-        setTransitioning(true);
         setTimeout(() => {
             if (currentQuestionIndex < (isReviewMode ? reviewQueue.length - 1 : questions.length - 1)) {
                 setCurrentQuestionIndex(prev => prev + 1);
@@ -855,16 +879,14 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                 setCurrentExerciseIndex(prev => prev + 1);
                 setCurrentQuestionIndex(0);
             }
-            setTransitioning(false);
             setVisible(true);
             setTimerKey(k => k + 1);
             advancingRef.current = false;
         }, 220);
-    }, [currentExerciseIndex, currentQuestionIndex, exercises, questions.length, answers, answerKey, node.id, mistakes, reviewQueue, isReviewMode, exercise]);
+    }, [currentExerciseIndex, currentQuestionIndex, exercises, questions.length, answers, node.id, mistakes, reviewQueue, isReviewMode, exercise]);
 
     const handleTimeUpdate = useCallback((elapsed: number) => {
         timeSpentRef.current += 1;
-        setTimeSpent(timeSpentRef.current);
         setTimerSeconds(TIME_PER_QUESTION - elapsed);
     }, [TIME_PER_QUESTION]);
 
@@ -1148,7 +1170,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                            <div className="flex items-center justify-between mb-3 border-b border-indigo-100/50 pb-2">
                                 <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Texte de référence</span>
                                 <button
-                                    onClick={() => playTts(exercise.content.passage, 'passage')}
+                                    onClick={() => playTts(exercise.content.passage ?? '', 'passage')}
                                     className={`p-1.5 rounded-lg transition-all ${playingTts === 'passage' ? 'bg-indigo-100 text-indigo-600 scale-110' : 'hover:bg-indigo-50 text-slate-400 hover:text-indigo-500'}`}
                                 >
                                     <Icon name={playingTts === 'passage' ? 'volume-2' : 'volume-1'} size={18} />
@@ -1173,7 +1195,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                     >
                         {/* Floating TTS button — the question text itself is rendered by each Component to avoid duplication */}
                         <button
-                            onClick={() => playTts(question.text || question.prompt, 'question')}
+                            onClick={() => playTts(question.text || question.prompt || '', 'question')}
                             className={`absolute top-3 right-3 p-1.5 rounded-lg transition-all z-10 ${playingTts === 'question' ? 'bg-indigo-100 text-indigo-600 scale-110' : 'opacity-50 hover:opacity-100 hover:bg-slate-100 text-slate-400'}`}
                             aria-label="Écouter la question"
                         >
@@ -1186,20 +1208,20 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                             key={`${isReviewMode ? 'r' : 'q'}-${currentExerciseIndex}-${currentQuestionIndex}-${question.id ?? ''}`}
                             question={{ ...exercise.content, ...question }}
                             lang={nodeCode}
-                            onAnswer={(_childId: string, ans: any) => handleAnswer(question.id ?? String(currentQuestionIndex), ans)}
+                            onAnswer={(_childId: string, ans: FormDataConvertible) => handleAnswer(question.id ?? String(currentQuestionIndex), ans)}
                             selectedAnswer={answers[answerKey(question.id ?? String(currentQuestionIndex))]}
                             disabled={isChecked}
                         />
 
                         {/* Speaking: show what the AI heard (the transcription) so the
                             learner can tell a real mistake from a mis-transcription. */}
-                        {isChecked && answers[`${question.id}_transcription`] && (
+                        {isChecked && Boolean(answers[`${question.id}_transcription`]) && (
                             <div className="mt-4 rounded-xl border-2 border-indigo-100 bg-indigo-50/60 p-4">
                                 <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-1.5">
                                     {t('exercise.heard', 'Ce que l’IA a entendu')}
                                 </p>
                                 <p className="text-sm font-medium italic text-slate-700">
-                                    « {answers[`${question.id}_transcription`]} »
+                                    « {String(answers[`${question.id}_transcription`])} »
                                 </p>
                             </div>
                         )}
@@ -1420,7 +1442,7 @@ export default function SessionPlayer({ node, exercises, progress }: Props) {
                                                         const data = await res.json();
                                                         if (data.word) setSearchResult(data);
                                                         else setSearchResult({ error: true });
-                                                    } catch (err) {
+                                                    } catch {
                                                         setSearchResult({ error: true });
                                                     } finally {
                                                         setIsSearching(false);

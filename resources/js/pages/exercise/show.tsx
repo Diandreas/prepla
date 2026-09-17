@@ -13,7 +13,7 @@ export default function ExerciseShow({ exercise }: Props) {
             examName={exercise.exam?.name}
             backUrl={`/practice/${exercise.exam_id}`}
         >
-            <ExercisePlayer exercise={exercise} />
+            <ExercisePlayer key={exercise.id} exercise={exercise} />
         </ExerciseLayout>
     );
 }

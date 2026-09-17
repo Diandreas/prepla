@@ -1,4 +1,4 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 import { PropsWithChildren } from 'react';
@@ -26,6 +26,7 @@ export default function ExerciseLayout({
                             <Button
                                 variant="ghost"
                                 size="icon"
+                                aria-label="Quitter l’exercice"
                                 onClick={() => router.visit(backUrl)}
                             >
                                 <X className="h-5 w-5" />

@@ -178,6 +178,8 @@ export default function TestExercises() {
                             <Component
                                 question={mock.question}
                                 onAnswer={(id: string, val: any) => setAnswers(prev => ({ ...prev, [id]: val }))}
+                                selectedAnswer={answers[mock.question.id]}
+                                disabled={isChecked}
                                 answers={answers}
                                 isChecked={isChecked}
                                 isCorrect={isChecked ? true : null}

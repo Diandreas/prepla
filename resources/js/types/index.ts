@@ -1,4 +1,5 @@
-import { LucideIcon } from 'lucide-react';
+import type { LucideProps } from 'lucide-react';
+import type { ComponentType } from 'react';
 import type { Language, Exam, PricingPlan } from '@/data/languages';
 
 export type { Language, Exam, PricingPlan };
@@ -20,7 +21,7 @@ export interface NavGroup {
 export interface NavItem {
     title: string;
     url: string;
-    icon?: LucideIcon | null;
+    icon?: ComponentType<LucideProps> | null;
     isActive?: boolean;
     // Lien hors application (WhatsApp, tel:, mailto:) — rendu en <a> et non en Link Inertia
     external?: boolean;

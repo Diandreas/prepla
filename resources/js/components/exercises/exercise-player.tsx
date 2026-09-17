@@ -1,3 +1,4 @@
+import type { FormDataConvertible } from '@inertiajs/core';
 import { router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { ExerciseTimer } from './exercise-timer';
@@ -101,6 +102,7 @@ function AudioPlayer({ src }: { src: string }) {
     );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- each renderer declares its own question and answer shape
 const componentMap: Record<string, React.ComponentType<any>> = {
     'mcq': Mcq,
     'true-false-ng': TrueFalseNg,
@@ -141,9 +143,11 @@ const componentMap: Record<string, React.ComponentType<any>> = {
 
 export function ExercisePlayer({ exercise }: ExercisePlayerProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [answers, setAnswers] = useState<Record<string, any>>({});
+    const [answers, setAnswers] = useState<Record<string, FormDataConvertible>>({});
     const timeRef = useRef(0);
     const [submitting, setSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
+    const submitPending = useRef(false);
 
     const questions = exercise.questions ?? [];
     const question = questions[currentIndex];
@@ -152,15 +156,20 @@ export function ExercisePlayer({ exercise }: ExercisePlayerProps) {
     const isLast = currentIndex === questions.length - 1;
     const lang = exercise.exam?.language?.slug ?? 'en';
     const skillType = exercise.exercise_type?.skill_type;
+    const isStarter = exercise.content?.source === 'starter-library';
+    const passage = exercise.content?.passage ?? exercise.content?.text;
+    const currentAnswer = answers[question?.id];
+    const hasAnswer = currentAnswer !== undefined && currentAnswer !== null
+        && (typeof currentAnswer !== 'string' || currentAnswer.trim().length > 0);
 
     // Prefetch the exercise's audio at mount (TTS texts + pre-generated MP3s)
     // so "Écouter" plays instantly instead of calling the TTS API at click time.
     useEffect(() => {
-        prefetchExercisesAudio([exercise as any], lang);
+        prefetchExercisesAudio([exercise], lang);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const handleAnswer = useCallback((questionId: string, answer: any) => {
+    const handleAnswer = useCallback((questionId: string, answer: FormDataConvertible) => {
         setAnswers((prev) => ({ ...prev, [questionId]: answer }));
     }, []);
 
@@ -177,7 +186,10 @@ export function ExercisePlayer({ exercise }: ExercisePlayerProps) {
     }
 
     function handleSubmit() {
+        if (submitPending.current) return;
+        submitPending.current = true;
         setSubmitting(true);
+        setSubmitError(null);
         // Force FormData if there are any Blobs/Files
         const hasFiles = Object.values(answers).some(a => a instanceof Blob || a instanceof File);
         
@@ -186,6 +198,11 @@ export function ExercisePlayer({ exercise }: ExercisePlayerProps) {
             time_spent: timeRef.current,
         }, {
             forceFormData: hasFiles,
+            onError: () => setSubmitError('L’envoi n’a pas abouti. Tes réponses sont conservées sur cette page ; tu peux réessayer.'),
+            onFinish: () => {
+                submitPending.current = false;
+                setSubmitting(false);
+            },
         });
     }
 
@@ -198,8 +215,15 @@ export function ExercisePlayer({ exercise }: ExercisePlayerProps) {
             <LearningScene
                 compact
                 variant={sceneVariantForSkill(skillType, componentKey)}
-                title={exercise.exercise_type?.name ?? 'À toi de jouer'}
+                title={isStarter && typeof exercise.content?.title === 'string' ? exercise.content.title : exercise.exercise_type?.name ?? 'À toi de jouer'}
+                subtitle={isStarter ? 'Prends ton temps. Tu retrouveras tes réponses et leurs explications à la fin de la séance.' : undefined}
             />
+            {isStarter && (
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-950 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-100">
+                    <p className="text-xs font-bold">Bibliothèque PrepLa · {exercise.difficulty} · Sans génération IA</p>
+                    <p className="mt-1 text-sm leading-relaxed">{String(exercise.content?.description ?? 'Entraînement général, indépendant des sujets officiels d’examen.')}</p>
+                </div>
+            )}
             <div className="flex items-center justify-between">
                 <ExerciseProgress current={currentIndex + 1} total={questions.length} />
                 <ExerciseTimer onTimeUpdate={handleTimeUpdate} />
@@ -207,10 +231,13 @@ export function ExercisePlayer({ exercise }: ExercisePlayerProps) {
 
             {/* Passage / Content — hidden for LISTENING (the passage is the transcript
                 that must be heard, not read; audio is played via AudioPlayer/SpeakButton). */}
-            {skillType !== 'listening' && typeof exercise.content?.passage === 'string' && (
+            {skillType !== 'listening' && typeof passage === 'string' && (
                 <div className="rounded-lg border border-border bg-muted/30 p-4 text-sm leading-relaxed">
-                    {exercise.content.passage}
+                    {passage}
                 </div>
+            )}
+            {typeof exercise.content?.instructions === 'string' && (
+                <p className="text-sm font-medium text-muted-foreground">{exercise.content.instructions}</p>
             )}
 
             {/* Audio player for listening exercises — shown when question has a pre-generated audio_url */}
@@ -228,24 +255,27 @@ export function ExercisePlayer({ exercise }: ExercisePlayerProps) {
 
             <ExerciseErrorBoundary resetKey={question.id} onSkip={() => handleAnswer(question.id, '__skipped__')}>
                 <Component
+                    key={question.id}
                     question={question}
                     onAnswer={handleAnswer}
                     selectedAnswer={answers[question.id]}
                     lang={lang}
+                    disabled={submitting}
                 />
             </ExerciseErrorBoundary>
 
-            <div className="flex justify-between pt-4">
+            {submitError && <p role="alert" className="text-sm text-destructive">{submitError}</p>}
+            <div className="flex justify-between gap-3 pt-4">
                 <Button
                     variant="outline"
-                    disabled={currentIndex === 0}
+                    disabled={currentIndex === 0 || submitting}
                     onClick={() => setCurrentIndex((prev) => prev - 1)}
                 >
                     Précédent
                 </Button>
                 <Button
                     onClick={handleNext}
-                    disabled={(answers[question.id] === undefined && componentKey !== 'speaking-recorder') || submitting}
+                    disabled={(!hasAnswer && componentKey !== 'speaking-recorder') || submitting}
                 >
                     {isLast ? (submitting ? 'Envoi...' : 'Terminer') : 'Suivant'}
                 </Button>
