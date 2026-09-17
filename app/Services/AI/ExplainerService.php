@@ -35,13 +35,13 @@ FORMATTING (the chat renders Markdown):
         return $response ?? "Désolé, je n'ai pas pu me connecter à l'API Mistral pour le moment.";
     }
 
-    public function chat(array $messages): string
+    public function chat(array $messages): ?string
     {
         $apiMessages = [['role' => 'system', 'content' => self::SYSTEM_PROMPT]];
         foreach ($messages as $msg) {
             $apiMessages[] = $msg;
         }
         $response = $this->mistral->chatRaw($apiMessages);
-        return $response ?? "Désolé, je n'ai pas pu me connecter à l'API Mistral pour le moment.";
+        return $response !== null && trim($response) !== '' ? $response : null;
     }
 }

@@ -85,7 +85,7 @@ export default function Explainer() {
         } catch (error) {
             setMessages((prev) => prev.slice(0, -1));
             setInput(question);
-            setSendError(axios.isAxiosError(error) && error.response?.status === 429
+            setSendError(axios.isAxiosError(error) && [429, 503].includes(error.response?.status ?? 0)
                 ? 'Le tuteur est très sollicité pour le moment. Ta question est conservée : réessaie dans quelques instants.'
                 : 'La réponse n’a pas pu être chargée. Ta question est conservée : vérifie ta connexion et réessaie.');
         } finally {

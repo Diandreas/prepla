@@ -123,6 +123,12 @@ class AiToolsController extends Controller
 
         $response = $explainer->chat($validated['messages']);
 
+        if ($response === null) {
+            return response()->json([
+                'error' => 'Le tuteur est temporairement indisponible. Réessaie dans quelques instants.',
+            ], 503);
+        }
+
         return response()->json(['reply' => $response]);
     }
 
