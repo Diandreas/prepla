@@ -29,6 +29,7 @@ class Exercise extends Model
         'difficulty',
         'xp_reward',
         'is_ai_generated',
+        'catalog_key',
     ];
 
     protected function casts(): array
