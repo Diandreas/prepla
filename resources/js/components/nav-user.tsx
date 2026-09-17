@@ -16,7 +16,7 @@ export function NavUser() {
             <SidebarMenuItem>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <SidebarMenuButton size="lg" className="text-sidebar-accent-foreground data-[state=open]:bg-sidebar-accent group">
+                        <SidebarMenuButton size="lg" aria-label={auth.user.name} tooltip={auth.user.name} className="text-sidebar-accent-foreground data-[state=open]:bg-sidebar-accent group">
                             <UserInfo user={auth.user} />
                             <img src="/icons/chevron-down.png" alt="" width={16} height={16} style={{ objectFit: 'contain' }} className="ml-auto" />
                         </SidebarMenuButton>
@@ -24,7 +24,7 @@ export function NavUser() {
                     <DropdownMenuContent
                         className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
                         align="end"
-                        side={isMobile ? 'bottom' : state === 'collapsed' ? 'left' : 'bottom'}
+                        side={isMobile ? 'bottom' : state === 'collapsed' ? 'right' : 'bottom'}
                     >
                         <UserMenuContent user={auth.user} />
                     </DropdownMenuContent>

@@ -26,7 +26,9 @@ function CustomIcon({ name, className, style }: { name: string; className?: stri
     );
 }
 
-const mainNavItems: NavItem[] = [
+type HeaderNavItem = Omit<NavItem, 'icon'> & { icon?: string | null };
+
+const mainNavItems: HeaderNavItem[] = [
     {
         title: 'Dashboard',
         url: '/dashboard',
@@ -34,7 +36,7 @@ const mainNavItems: NavItem[] = [
     },
 ];
 
-const rightNavItems: NavItem[] = [];
+const rightNavItems: HeaderNavItem[] = [];
 
 const activeItemStyles = 'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100';
 

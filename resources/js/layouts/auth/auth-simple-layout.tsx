@@ -73,12 +73,12 @@ export default function AuthSimpleLayout({ children, title, description }: AuthL
                     <Link href={route('home')} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none' }}>
                         <div style={{
                             width: 48, height: 48, borderRadius: '0.875rem',
-                            background: 'linear-gradient(135deg, #1A2B48 0%, #2a3f6a 100%)',
+                            background: 'linear-gradient(135deg, #ffffff, #e7f2ff)',
                             border: '1px solid rgba(74,144,226,0.2)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             boxShadow: '0 4px 20px rgba(26,43,72,0.4)',
                         }}>
-                            <img src="/icons/logo.png?v=4" alt="PrePla" width={30} height={30} style={{ objectFit: 'contain', filter: 'brightness(0) saturate(100%) invert(100%)' }} />
+                            <img src="/icons/logo.png?v=4" alt="PrePla" width={30} height={30} style={{ objectFit: 'contain' }} />
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: 0 }}>

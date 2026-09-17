@@ -75,7 +75,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href="/dashboard" prefetch>
+                            <Link href="/dashboard" aria-label="PrePla — Accueil" prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>

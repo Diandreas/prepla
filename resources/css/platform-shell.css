@@ -1,4 +1,51 @@
 /* Shared visual language for every authenticated screen. */
+/* Override the primitive's compact size/padding together: artwork needs a
+   centered hit area, not an expanded row clipped to 32px. */
+@layer utilities {
+    [data-collapsible='icon'] .app-sidebar [data-sidebar='header'],
+    [data-collapsible='icon'] .app-sidebar [data-sidebar='footer'],
+    [data-collapsible='icon'] .app-sidebar [data-sidebar='group'] {
+        padding: 6px 4px !important;
+    }
+
+    [data-collapsible='icon'] .app-sidebar [data-sidebar='group-label'] {
+        display: none;
+    }
+
+    [data-collapsible='icon'] .app-sidebar [data-sidebar='footer'] [data-sidebar='group'] {
+        padding-inline: 0 !important;
+    }
+
+    [data-collapsible='icon'] .app-sidebar [data-sidebar='menu-button'] {
+        width: 40px !important;
+        height: 40px !important;
+        padding: 0 !important;
+        margin-inline: auto;
+        justify-content: center;
+        gap: 0;
+        border-radius: 12px;
+    }
+
+    [data-collapsible='icon'] .app-sidebar [data-sidebar='menu-button'] > span:last-child:not(:first-child),
+    [data-collapsible='icon'] .app-sidebar [data-sidebar='menu-button'] > div:not(:first-child),
+    [data-collapsible='icon'] .app-sidebar [data-sidebar='menu-button'] > img {
+        display: none;
+    }
+
+    [data-collapsible='icon'] .app-sidebar [data-sidebar='menu-button'] > span:first-child {
+        flex-shrink: 0;
+    }
+
+    [data-collapsible='icon'] .app-sidebar [data-sidebar='menu-button'] > span img {
+        width: 24px;
+        height: 24px;
+    }
+
+    [data-collapsible='icon'] .app-sidebar [data-sidebar='menu'] {
+        gap: 6px;
+    }
+}
+
 .app-shell-canvas {
     isolation: isolate;
     position: relative;

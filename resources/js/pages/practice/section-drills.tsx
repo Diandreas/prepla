@@ -11,6 +11,7 @@ interface ExerciseTypeItem {
     name: string;
     skill_type: string;
     component_key: string;
+    starter_available?: boolean;
 }
 
 interface Props {
@@ -99,6 +100,18 @@ export default function SectionDrills({ exam, section, exerciseTypes = [] }: Pro
                     </div>
                 )}
 
+                {exerciseTypes.some((type) => type.starter_available) && (
+                    <div className="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-950 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-100">
+                        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+                        <div>
+                            <p className="text-sm font-bold">{t('practice.starter_title', 'Des exercices prêts à lancer')}</p>
+                            <p className="mt-1 text-xs leading-relaxed">
+                                {t('practice.starter_hint', 'Les formats « Prêt sans IA » proposent un entraînement général à ton niveau, avec correction. Une connexion à PrepLa reste nécessaire ; ce ne sont pas des sujets officiels d’examen.')}
+                            </p>
+                        </div>
+                    </div>
+                )}
+
                 {exerciseTypes.length === 0 ? (
                     <div className="studio-card border-border bg-card flex flex-col items-center rounded-3xl border px-6 py-10 text-center">
                         <ArtIcon name="courses" size={76} tone="blue" />
@@ -124,7 +137,7 @@ export default function SectionDrills({ exam, section, exerciseTypes = [] }: Pro
                         <h2 id="drill-formats-title" className="text-foreground mb-4 text-lg font-extrabold">
                             {t('practice.exercise_formats', 'À toi de choisir')}
                         </h2>
-                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
                             {exerciseTypes.map((type) => {
                                 const presentation = exercisePresentation(type.component_key);
                                 const busy = launching === type.id;
@@ -143,7 +156,7 @@ export default function SectionDrills({ exam, section, exerciseTypes = [] }: Pro
                                         }}
                                         aria-disabled={launching !== null}
                                         aria-busy={busy}
-                                        className={`studio-card group bg-card focus-visible:ring-ring flex h-full flex-col rounded-2xl border p-5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none ${busy ? 'border-primary ring-primary/20 ring-1' : 'border-border hover:border-primary/50'} ${launching !== null && !busy ? 'opacity-60' : ''}`}
+                                        className={`studio-card group bg-card focus-visible:ring-ring flex h-full min-w-0 flex-col rounded-2xl border p-3 sm:p-5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none ${busy ? 'border-primary ring-primary/20 ring-1' : 'border-border hover:border-primary/50'} ${launching !== null && !busy ? 'opacity-60' : ''}`}
                                     >
                                         <div className="mb-4 flex items-center justify-between gap-3">
                                             <ArtIcon name={presentation.icon} size={52} tone={skill.tone} />
@@ -160,6 +173,12 @@ export default function SectionDrills({ exam, section, exerciseTypes = [] }: Pro
                                             )}
                                         </div>
                                         <h3 className="text-foreground text-sm leading-snug font-extrabold">{type.name}</h3>
+                                        {type.starter_available && (
+                                            <span className="mt-2 inline-flex w-fit items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-bold text-emerald-900 dark:bg-emerald-900/50 dark:text-emerald-100">
+                                                <CheckCircle2 className="h-3 w-3 shrink-0" aria-hidden="true" />
+                                                {t('practice.starter_badge', 'Prêt sans IA')}
+                                            </span>
+                                        )}
                                         <p className="text-muted-foreground mt-2 flex-1 text-xs leading-relaxed">
                                             {t(`practice.format_hint_${presentation.key}`, presentation.hint)}
                                         </p>

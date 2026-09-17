@@ -29,14 +29,15 @@ export function NavFooter({
                             <SidebarMenuItem key={item.title}>
                                 <SidebarMenuButton
                                     asChild
+                                    tooltip={item.title}
                                     className="h-10 gap-3 rounded-lg transition-all"
                                 >
                                     {item.external ? (
-                                        <a href={item.url} target="_blank" rel="noopener noreferrer">
+                                        <a href={item.url} aria-label={item.title} target="_blank" rel="noopener noreferrer">
                                             {content}
                                         </a>
                                     ) : (
-                                        <Link href={item.url}>{content}</Link>
+                                        <Link href={item.url} aria-label={item.title}>{content}</Link>
                                     )}
                                 </SidebarMenuButton>
                             </SidebarMenuItem>

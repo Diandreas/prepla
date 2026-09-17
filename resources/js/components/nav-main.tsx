@@ -17,9 +17,10 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                             <SidebarMenuButton
                                 asChild
                                 isActive={isActive}
+                                tooltip={item.title}
                                 className="app-nav-item h-10 gap-3 rounded-lg transition-all"
                             >
-                                <Link href={item.url} prefetch={['mount', 'hover']} cacheFor="1m">
+                                <Link href={item.url} aria-label={item.title} aria-current={isActive ? 'page' : undefined} prefetch={['mount', 'hover']} cacheFor="1m">
                                     {item.icon && (
                                         <span className="flex items-center justify-center w-7 h-7 shrink-0">
                                             <item.icon />

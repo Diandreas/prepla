@@ -2,12 +2,12 @@ export default function AppLogo() {
     return (
         <>
             <div className="flex aspect-square size-9 items-center justify-center rounded-lg overflow-hidden shrink-0"
-                style={{ background: 'linear-gradient(135deg, #1A2B48 0%, #2a3f6a 100%)' }}>
+                style={{ background: 'linear-gradient(135deg, #ffffff, #e7f2ff)' }}>
                 <img
                     src="/icons/logo.png?v=4"
                     alt="PrePla Logo"
                     className="h-7 w-7"
-                    style={{ objectFit: 'contain', filter: 'brightness(0) saturate(100%) invert(100%)' }}
+                    style={{ objectFit: 'contain' }}
                 />
             </div>
             <div className="ml-1 grid flex-1 text-left leading-tight">

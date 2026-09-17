@@ -9,12 +9,12 @@ import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
 import GoogleButton from '@/components/google-button';
 
-interface RegisterForm {
+type RegisterForm = {
     name: string;
     email: string;
     password: string;
     password_confirmation: string;
-}
+};
 
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm<RegisterForm>({

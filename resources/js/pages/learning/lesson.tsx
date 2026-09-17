@@ -32,6 +32,7 @@ interface LessonData {
     generated_at: string;
     based_on_errors: any[];
     node_id?: number | null;
+    skeleton_objective_index?: number | null;
 }
 
 interface SkeletonInfo {
@@ -381,7 +382,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                 <header className="mb-5" style={stagger(1)}>
                     {skeleton && (
                         <p className="mb-2 text-xs font-bold text-sky-700 dark:text-sky-300">
-                            {t('lesson.objective_progress', 'Objectif {{current}} / {{total}}', { current: skeleton.current_index + 1, total: skeleton.total_objectives })}
+                            {t('lesson.objective_progress', 'Objectif {{current}} / {{total}}', { current: (lesson.skeleton_objective_index ?? skeleton.current_index) + 1, total: skeleton.total_objectives })}
                         </p>
                     )}
                     <h1 className="text-2xl font-black leading-tight tracking-tight text-foreground sm:text-3xl">{lesson.title}</h1>
