@@ -7,6 +7,7 @@ use App\Listeners\SendWelcomeEmail;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Cashier\Events\WebhookHandled;
@@ -28,6 +29,12 @@ class AppServiceProvider extends ServiceProvider
     {
         Event::listen(Registered::class, SendWelcomeEmail::class);
         Event::listen(WebhookHandled::class, HandleCashierWebhook::class);
+
+        // Some local PHP builds ship without a CA store: point outbound HTTPS at a bundle
+        // rather than disabling certificate verification.
+        if ($caBundle = config('services.http.ca_bundle')) {
+            Http::globalOptions(['verify' => $caBundle]);
+        }
 
         // AI/TTS/STT endpoints (Mistral, Deepgram) had zero rate limiting —
         // any account could script calls in a loop and run up the API bill.

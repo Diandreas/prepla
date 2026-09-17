@@ -22,8 +22,7 @@ class MistralService
         }
 
         try {
-            $response = Http::withoutVerifying()
-                ->withToken($this->apiKey)
+            $response = Http::withToken($this->apiKey)
                 ->timeout(45)
                 ->post("{$this->baseUrl}/chat/completions", [
                     'model' => $model,
@@ -58,8 +57,7 @@ class MistralService
         }
 
         try {
-            $response = Http::withoutVerifying()
-                ->withToken($this->apiKey)
+            $response = Http::withToken($this->apiKey)
                 ->timeout(60)
                 ->post("{$this->baseUrl}/ocr", [
                     'model' => 'mistral-ocr-latest',
@@ -97,8 +95,7 @@ class MistralService
         }
 
         try {
-            $response = Http::withoutVerifying()
-                ->withToken($this->apiKey)
+            $response = Http::withToken($this->apiKey)
                 ->timeout(45)
                 ->post("{$this->baseUrl}/chat/completions", [
                     'model' => $model,
