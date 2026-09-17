@@ -1,4 +1,5 @@
-import { Head, router } from '@inertiajs/react';
+import type { FormDataConvertible } from '@inertiajs/core';
+import { Head, router, usePage } from '@inertiajs/react';
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ExamRecord, ExamSection } from '@/types';
@@ -37,7 +38,6 @@ import { DiagramLabeling } from '@/components/exercises/diagram-labeling';
 import { Synthesis } from '@/components/exercises/synthesis';
 import { IntegratedTask } from '@/components/exercises/integrated-task';
 import { VocabularyCard } from '@/components/exercises/vocabulary-card';
-import { ExerciseTimer } from '@/components/exercises/exercise-timer';
 
 interface Exercise {
     id: number;
@@ -45,8 +45,8 @@ interface Exercise {
         component_key: string;
         name: string;
     };
-    questions: any[];
-    content: any;
+    questions: Array<{ id?: string; [key: string]: unknown }>;
+    content: { passage?: string; [key: string]: unknown };
     difficulty: string;
 }
 
@@ -56,6 +56,7 @@ interface Props {
     totalExamsTime: number; // in minutes
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- each renderer declares its own question and answer shape
 const componentMap: Record<string, React.ComponentType<any>> = {
     'mcq': Mcq,
     'true-false-ng': TrueFalseNg,
@@ -173,9 +174,10 @@ export default function ExamSimulator({ exam, exercises, totalExamsTime }: Props
     const { t } = useTranslation();
     const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [answers, setAnswers] = useState<Record<string, any>>({});
+    const [answers, setAnswers] = useState<Record<string, FormDataConvertible>>({});
     const [submitting, setSubmitting] = useState(false);
-    const [transitioning, setTransitioning] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
+    const flashError = usePage<{ flash?: { error?: string | null } }>().props.flash?.error;
     const [visible, setVisible] = useState(true);
     const [timeSpent, setTimeSpent] = useState(0);
     const [examExpired, setExamExpired] = useState(false);
@@ -183,7 +185,6 @@ export default function ExamSimulator({ exam, exercises, totalExamsTime }: Props
     const OXFORD = '#1A2B48';
 
     const exercise = exercises[currentExerciseIndex];
-    const componentKey = exercise?.exercise_type?.component_key ?? 'mcq';
 
     const questions = exercise?.questions ?? [];
     const question = questions[currentQuestionIndex];
@@ -208,16 +209,29 @@ export default function ExamSimulator({ exam, exercises, totalExamsTime }: Props
         return () => clearInterval(id);
     }, [examStarted]);
 
-    const handleAnswer = useCallback((questionId: string, answer: any) => {
-        setAnswers(prev => ({ ...prev, [questionId]: answer }));
+    // Exercises may reuse question ids (q1, q2…), so answers are keyed per exercise.
+    const handleAnswer = useCallback((exerciseId: number, questionId: string, answer: FormDataConvertible) => {
+        setAnswers(prev => ({ ...prev, [`${exerciseId}::${questionId}`]: answer }));
     }, []);
 
     const submitExam = useCallback(() => {
+        const answersByExercise: Record<string, Record<string, FormDataConvertible>> = {};
+        for (const [key, value] of Object.entries(answers)) {
+            const separator = key.indexOf('::');
+            (answersByExercise[key.slice(0, separator)] ??= {})[key.slice(separator + 2)] = value;
+        }
+        setSubmitError(null);
         setSubmitting(true);
         router.post(route('practice.simulate.store', exam.id), {
-            answers,
+            answers_by_exercise: answersByExercise,
             time_spent: timeSpent,
-        }, { forceFormData: true });
+        }, {
+            forceFormData: true,
+            onError: () => {
+                setSubmitting(false);
+                setSubmitError('Aucune réponse n’a pu être envoyée. Réponds à au moins une question, puis réessaie.');
+            },
+        });
     }, [answers, exam.id, timeSpent]);
 
     const handleExamExpire = useCallback(() => {
@@ -233,7 +247,6 @@ export default function ExamSimulator({ exam, exercises, totalExamsTime }: Props
         }
 
         setVisible(false);
-        setTransitioning(true);
         setTimeout(() => {
             if (currentQuestionIndex < questions.length - 1) {
                 setCurrentQuestionIndex(prev => prev + 1);
@@ -241,13 +254,11 @@ export default function ExamSimulator({ exam, exercises, totalExamsTime }: Props
                 setCurrentExerciseIndex(prev => prev + 1);
                 setCurrentQuestionIndex(0);
             }
-            setTransitioning(false);
             setVisible(true);
         }, 220);
     }, [currentExerciseIndex, currentQuestionIndex, exercises.length, questions.length, submitExam]);
 
     const isLastQuestion = currentExerciseIndex === exercises.length - 1 && currentQuestionIndex === questions.length - 1;
-    const hasAnswer = answers[question?.id] !== undefined;
 
     if (!exercise || !question) {
         return (
@@ -300,6 +311,11 @@ export default function ExamSimulator({ exam, exercises, totalExamsTime }: Props
                         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full" style={{ background: 'rgba(99,102,241,0.1)' }}>
                             <img src="/icons/clock.png" alt="" width={32} height={32} style={{ }} />
                         </div>
+                        {flashError && (
+                            <p role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-left text-sm font-medium text-red-800">
+                                {flashError}
+                            </p>
+                        )}
                         <h2 className="text-2xl font-black mb-2" style={{ color: OXFORD }}>
                             {t('practice.exam_ready_title', 'Prêt à commencer ?')}
                         </h2>
@@ -477,11 +493,11 @@ export default function ExamSimulator({ exam, exercises, totalExamsTime }: Props
 
                     <div className="player-card" style={{ padding: '24px' }}>
                         <Component
-                            key={question.id ?? currentQuestionIndex}
+                            key={`${exercise.id}-${question.id ?? currentQuestionIndex}`}
                             question={{ ...exercise.content, ...question }}
                             lang={exam.language?.slug ?? 'en'}
-                            onAnswer={(childId: string, ans: any) => handleAnswer(childId ?? String(currentQuestionIndex), ans)}
-                            selectedAnswer={answers[question.id ?? String(currentQuestionIndex)]}
+                            onAnswer={(childId: string, ans: FormDataConvertible) => handleAnswer(exercise.id, childId ?? String(currentQuestionIndex), ans)}
+                            selectedAnswer={answers[`${exercise.id}::${question.id ?? String(currentQuestionIndex)}`]}
                             disabled={false} // Exams don't lock inputs immediately!
                         />
                     </div>
@@ -510,7 +526,7 @@ export default function ExamSimulator({ exam, exercises, totalExamsTime }: Props
                     }}
                 >
                     <div style={{ flex: 1, minHeight: 48, display: 'flex', alignItems: 'center' }}>
-                        {/* No Check Feedback in Exam Simulator Mode! */}
+                        {submitError && <p role="alert" className="text-sm font-medium text-red-600">{submitError}</p>}
                     </div>
 
                     {/* CTA button */}

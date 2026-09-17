@@ -49,6 +49,10 @@ class NodeStartController extends Controller
             $needed = 3 - $exercises->count();
             $generic = Exercise::where('exam_id', $node->exam_id)
                 ->where('difficulty', $node->level)
+                // Center, personal-lesson and mock-exam content is never shared practice.
+                ->whereNull('center_id')
+                ->whereNull('lesson_id')
+                ->whereNull('mock_exam_id')
                 ->whereNotIn('id', $exercises->pluck('id'))
                 ->with(['exerciseType', 'exam.language'])
                 ->inRandomOrder()

@@ -109,22 +109,27 @@ class PracticeController extends Controller
      * d'abord), sinon en génère un, puis ouvre le player. Bouton "Autre exercice"
      * rappelle cette route pour en obtenir un différent.
      */
-    public function drillByType(Exam $exam, \App\Models\ExerciseType $exerciseType, \App\Services\AI\ExerciseGeneratorService $generator)
+    public function drillByType(Exam $exam, \App\Models\ExerciseType $exerciseType, \App\Services\AI\ExerciseGeneratorService $generator, \App\Services\Content\StarterPracticeLibrary $library)
     {
         $user = auth()->user();
         $difficulty = $user->profile?->current_level ?? 'B1';
+        $exerciseType->loadMissing('section');
+        abort_unless($exerciseType->section?->exam_id === $exam->id, 404);
 
         // Biblio d'abord : un exercice existant de ce type pour cet examen.
         $exercise = Exercise::where('exam_id', $exam->id)
             ->where('exercise_type_id', $exerciseType->id)
             ->where('difficulty', $difficulty)
+            ->whereNull('center_id')
+            ->whereNull('lesson_id')
+            ->whereNull('node_id')
+            ->whereNull('mock_exam_id')
             ->inRandomOrder()
-            ->first()
-            // sinon, n'importe quel niveau pour ce type/examen
-            ?? Exercise::where('exam_id', $exam->id)
-                ->where('exercise_type_id', $exerciseType->id)
-                ->inRandomOrder()
-                ->first();
+            ->first();
+
+        // A prepared exercise at the exact level is available immediately,
+        // even when the remote AI provider has no remaining quota.
+        $exercise ??= $library->ensure($exam, $exerciseType, $difficulty);
 
         // Sinon, génération à la demande.
         if (!$exercise) {
@@ -141,8 +146,9 @@ class PracticeController extends Controller
         return redirect()->route('exercise.show', $exercise->id);
     }
 
-    public function sectionDrills(Exam $exam, ExamSection $section): Response
+    public function sectionDrills(Exam $exam, ExamSection $section, \App\Services\Content\StarterPracticeLibrary $library): Response
     {
+        abort_unless($section->exam_id === $exam->id, 404);
         $section->load('exerciseTypes');
         $exam->load('language');
 
@@ -156,6 +162,7 @@ class PracticeController extends Controller
                 'name' => $t->name,
                 'skill_type' => $t->skill_type,
                 'component_key' => $t->component_key,
+                'starter_available' => $library->template($exam, $t, auth()->user()->profile?->current_level ?? 'B1') !== null,
             ])
             ->values();
 
@@ -195,12 +202,10 @@ class PracticeController extends Controller
         // Try to load a specific mock exam, or pick a random one for this exam
         $mockExamId = $request->query('mock_exam_id');
 
-        $mockExam = $mockExamId
-            ? MockExam::where('id', $mockExamId)->where('is_published', true)->first()
-            : MockExam::whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id))
-                ->where('is_published', true)
-                ->inRandomOrder()
-                ->first();
+        $mockExam = MockExam::whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id))
+            ->where('is_published', true)
+            ->when($mockExamId, fn ($q) => $q->whereKey($mockExamId), fn ($q) => $q->inRandomOrder())
+            ->first();
 
         $totalTime = $exam->sections->sum(fn ($s) => $s->time_limit ?? 30);
 
@@ -217,6 +222,12 @@ class PracticeController extends Controller
                 foreach ($section->exerciseTypes as $type) {
                     $exercises = Exercise::where('exam_id', $exam->id)
                         ->where('exercise_type_id', $type->id)
+                        // General starter practice, private center or lesson content and
+                        // other mock exams never join an open simulation.
+                        ->whereNull('catalog_key')
+                        ->whereNull('center_id')
+                        ->whereNull('lesson_id')
+                        ->whereNull('mock_exam_id')
                         ->with('exerciseType')
                         ->inRandomOrder()
                         ->limit(2)
@@ -232,6 +243,11 @@ class PracticeController extends Controller
             ->withCount('exercises')
             ->get(['id', 'title', 'description']);
 
+        // The submission is scored once, against exactly the set served here.
+        $key = $this->simulationKey($request->user(), $exam);
+        \Illuminate\Support\Facades\Cache::put($key, $orderedExercises->pluck('id')->values()->all(), now()->addHours(6));
+        \Illuminate\Support\Facades\Cache::forget("{$key}:result");
+
         return Inertia::render('practice/exam-simulator', [
             'exam' => $exam,
             'exercises' => $orderedExercises->values(),
@@ -244,45 +260,60 @@ class PracticeController extends Controller
     public function submitSimulation(Request $request, Exam $exam)
     {
         $validated = $request->validate([
-            'answers' => 'required|array',
+            'answers_by_exercise' => 'required_without:answers|array',
+            'answers' => 'required_without:answers_by_exercise|array',
             'time_spent' => 'required|integer|min:0',
         ]);
 
-        $user = auth()->user();
-        $answers = $validated['answers'];
-        
-        // Find the exercises for this exam that were part of the simulation
-        // (Either from a MockExam or picked randomly)
-        $exerciseIds = array_keys($answers); // This is not quite right because answers are question_id based
-        
-        // Actually, we should find exercises related to these questions
-        // But for simplicity, we can just look up the exercises that were likely served.
-        // Let's assume the user is submitting answers for a specific set of exercises.
-        
-        $totalXp = 0;
-        $totalAccuracy = 0;
-        $exerciseCount = 0;
+        $user = $request->user();
+        $key = $this->simulationKey($user, $exam);
+        $lock = \Illuminate\Support\Facades\Cache::lock("{$key}:submit", 120);
+        if (!$lock->block(20)) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Ton examen blanc est encore en cours de correction. Consulte tes résultats dans un instant.');
+        }
 
-        // Better approach: Since we don't have a question table, the frontend should ideally tell us which exercises were done.
-        // For now, let's look at all exercises for this exam and check if any of their question IDs are in the answers.
-        $examExercises = \App\Models\Exercise::where('exam_id', $exam->id)
-            ->with(['exerciseType', 'exam.language'])
-            ->get();
-
-        foreach ($examExercises as $exercise) {
-            $exerciseAnswers = [];
-            $hasAnswers = false;
-            foreach ($exercise->questions as $index => $question) {
-                $qId = $question['id'] ?? (string)$index;
-                if (isset($answers[$qId])) {
-                    $exerciseAnswers[$qId] = $answers[$qId];
-                    $hasAnswers = true;
+        try {
+            $servedIds = \Illuminate\Support\Facades\Cache::pull($key);
+            if (!is_array($servedIds) || $servedIds === []) {
+                // A repeated POST receives the summary of the submission already recorded.
+                if ($summary = \Illuminate\Support\Facades\Cache::get("{$key}:result")) {
+                    return redirect()->route('dashboard')->with('success', $summary);
                 }
+
+                return redirect()->route('practice.simulate', $exam)
+                    ->with('error', 'Cette simulation a expiré. Lance un nouvel examen blanc.');
             }
 
-            if ($hasAnswers) {
+            $answersByExercise = $validated['answers_by_exercise'] ?? null;
+            $totalXp = 0;
+            $totalAccuracy = 0;
+            $exerciseCount = 0;
+
+            $exercises = Exercise::whereIn('id', $servedIds)
+                ->with(['exerciseType', 'exam.language'])
+                ->get();
+
+            foreach ($exercises as $exercise) {
+                // Exercises may reuse question ids (q1, q2…), so answers stay grouped per exercise.
+                $sourceAnswers = $answersByExercise === null
+                    ? $validated['answers']
+                    : ($answersByExercise[$exercise->id] ?? []);
+
+                $exerciseAnswers = [];
+                foreach ($exercise->questions as $index => $question) {
+                    $qId = $question['id'] ?? (string) $index;
+                    if (is_array($sourceAnswers) && isset($sourceAnswers[$qId])) {
+                        $exerciseAnswers[$qId] = $sourceAnswers[$qId];
+                    }
+                }
+
+                if ($exerciseAnswers === []) {
+                    continue;
+                }
+
                 $result = $this->scoringService->score($exercise, $exerciseAnswers);
-                
+
                 \App\Models\UserExerciseAttempt::create([
                     'user_id' => $user->id,
                     'exercise_id' => $exercise->id,
@@ -298,14 +329,28 @@ class PracticeController extends Controller
                 $totalAccuracy += $result['accuracy'];
                 $exerciseCount++;
             }
+
+            if ($exerciseCount === 0) {
+                return redirect()->route('practice.simulate', $exam)
+                    ->with('error', 'Aucune réponse de cet examen blanc n’a pu être associée aux questions servies. Lance un nouvel essai.');
+            }
+
+            if ($user->profile) {
+                $user->profile->increment('xp_total', $totalXp);
+            }
+
+            $avgAccuracy = round($totalAccuracy / $exerciseCount);
+            $summary = "Examen blanc terminé ! Précision moyenne : {$avgAccuracy}% (+{$totalXp} XP)";
+            \Illuminate\Support\Facades\Cache::put("{$key}:result", $summary, now()->addMinutes(10));
+
+            return redirect()->route('dashboard')->with('success', $summary);
+        } finally {
+            $lock->release();
         }
+    }
 
-        if ($user->profile) {
-            $user->profile->increment('xp_total', $totalXp);
-        }
-
-        $avgAccuracy = $exerciseCount > 0 ? round($totalAccuracy / $exerciseCount) : 0;
-
-        return redirect()->route('dashboard')->with('success', "Examen blanc terminé ! Précision moyenne : {$avgAccuracy}% (+{$totalXp} XP)");
+    private function simulationKey(\App\Models\User $user, Exam $exam): string
+    {
+        return "practice-simulation:{$user->id}:{$exam->id}";
     }
 }

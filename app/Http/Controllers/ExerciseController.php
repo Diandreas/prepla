@@ -8,6 +8,7 @@ use App\Models\LearningPathNode;
 use App\Models\UserExerciseAttempt;
 use App\Models\UserLearningProgress;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -48,7 +49,12 @@ class ExerciseController extends Controller
         // Prefer the exact list of exercise IDs the player rendered (covers generic fallback
         // exercises not yet linked via node_id). Fall back to node_id lookup for legacy flow.
         if (!empty($validated['exercise_ids'])) {
-            $exercises = \App\Models\Exercise::whereIn('id', $validated['exercise_ids'])->get();
+            // Client-supplied ids must never score private or unrelated content.
+            $exercises = \App\Models\Exercise::whereIn('id', $validated['exercise_ids'])
+                ->where('exam_id', $node->exam_id)
+                ->get()
+                ->filter(fn (Exercise $exercise) => $user->can('view', $exercise))
+                ->values();
         } else {
             $exercises = \App\Models\Exercise::where('node_id', $node->id)->get();
         }
@@ -308,6 +314,7 @@ class ExerciseController extends Controller
         }
 
         $exercise = \App\Models\Exercise::with(['exam.language', 'exerciseType'])->findOrFail($validated['exercise_id']);
+        $this->authorize('view', $exercise);
         $questionId = $validated['question_id'];
         $answer = $request->file('answer') ?? $request->input('answer');
 
@@ -382,6 +389,7 @@ class ExerciseController extends Controller
 
     public function show(Exercise $exercise): Response
     {
+        $this->authorize('view', $exercise);
         $exercise->load(['exerciseType.section', 'exam.language']);
 
         return Inertia::render('exercise/show', [
@@ -391,12 +399,49 @@ class ExerciseController extends Controller
 
     public function submit(Request $request, Exercise $exercise)
     {
+        $this->authorize('view', $exercise);
+
         $user = auth()->user();
         $validated = $request->validate([
             'answers' => 'required|array',
             'time_spent' => 'required|integer|min:0',
         ]);
 
+        // A retried POST (double tap, flaky network, second tab) must neither record a
+        // second attempt nor credit XP twice: wait for an in-flight identical submission,
+        // then reuse the attempt it recorded.
+        $lock = Cache::lock("exercise-submit:{$user->id}:{$exercise->id}", 120);
+        if (!$lock->block(20)) {
+            return back()->with('error', 'Ton envoi précédent est encore en cours de correction. Consulte tes résultats dans un instant.');
+        }
+
+        try {
+            if ($duplicate = $this->recentIdenticalAttempt($user->id, $exercise->id, $validated['answers'])) {
+                return redirect()->route('exercise.result', ['attempt' => $duplicate, 'node_completed' => 0]);
+            }
+
+            return $this->recordAttempt($user, $exercise, $validated);
+        } finally {
+            $lock->release();
+        }
+    }
+
+    private function recentIdenticalAttempt(int $userId, int $exerciseId, array $answers): ?UserExerciseAttempt
+    {
+        if (collect($answers)->contains(fn ($answer) => $answer instanceof \Illuminate\Http\UploadedFile)) {
+            return null;
+        }
+
+        return UserExerciseAttempt::where('user_id', $userId)
+            ->where('exercise_id', $exerciseId)
+            ->where('created_at', '>=', now()->subMinute())
+            ->latest('id')
+            ->get()
+            ->first(fn (UserExerciseAttempt $attempt) => $attempt->answers == $answers);
+    }
+
+    private function recordAttempt(\App\Models\User $user, Exercise $exercise, array $validated)
+    {
         // Score the exercise
         $result = $this->scoringService->score($exercise, $validated['answers']);
 
