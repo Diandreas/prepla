@@ -83,11 +83,9 @@ class ProfileController extends Controller
                 // Delete AI-generated lessons
                 Lesson::where('user_id', $user->id)->delete();
 
-                // Delete progress on all nodes for this user
+                // Delete progress on all nodes for this user. Path nodes themselves are
+                // shared per exam (they carry no owner), so they must stay in place.
                 UserLearningProgress::where('user_id', $user->id)->delete();
-
-                // Delete AI-generated learning path nodes (node_type = 'lesson' or 'practice' generated JIT)
-                LearningPathNode::where('user_id', $user->id)->delete();
             });
 
             $exam = Exam::find($profile->target_exam_id);
