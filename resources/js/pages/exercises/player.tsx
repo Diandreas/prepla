@@ -5,6 +5,7 @@ import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next';
 import { playSound } from '@/hooks/use-sound';
 import { getCachedTtsUrl, rememberTtsUrl, prefetchExercisesAudio } from '@/lib/tts-cache';
+import { evaluateAnswer, expectedAnswerText, needsServerEvaluation } from '@/lib/scoring';
 import { LearningScene, sceneVariantForSkill } from '@/components/learning-scene';
 
 // Read the freshest CSRF token. The XSRF-TOKEN cookie tracks the live session,
@@ -483,6 +484,9 @@ export default function SessionPlayer({ node, exercises }: Props) {
     const [isVocabSaved, setIsVocabSaved] = useState(false);
     // Listening: how many times the recording was played (exam-realistic cap of 2).
     const [listenCount, setListenCount] = useState(0);
+    // Neither the stored file nor live speech could be played: the transcript is
+    // then shown, otherwise the question could not be answered at all.
+    const [audioUnavailable, setAudioUnavailable] = useState(false);
     const contentRef = useRef<HTMLDivElement>(null);
     // Lecture audio : un seul élément actif à la fois + garde synchrone anti
     // double-lancement (l'état React est trop lent pour ça — voir playTts).
@@ -540,6 +544,7 @@ export default function SessionPlayer({ node, exercises }: Props) {
     // audio still playing so it doesn't bleed into the next question.
     useEffect(() => {
         setListenCount(0);
+        setAudioUnavailable(false);
         currentAudioRef.current?.pause();
         ttsBusyRef.current = false;
         setPlayingTts(null);
@@ -590,15 +595,21 @@ export default function SessionPlayer({ node, exercises }: Props) {
         ttsBusyRef.current = true;
         setPlayingTts(id);
 
+        // Only the recording matters here: a failed question read-out leaves its text visible.
+        const unavailable = () => {
+            if (id === 'passage') setAudioUnavailable(true);
+        };
+
         const playUrl = (url: string) => {
             // Un seul lecteur à la fois : stoppe l'audio précédent avant d'en lancer un autre.
             currentAudioRef.current?.pause();
             const audio = new Audio(url);
             currentAudioRef.current = audio;
             const done = () => { ttsBusyRef.current = false; setPlayingTts(null); };
+            const failed = () => { done(); unavailable(); };
             audio.onended = done;
-            audio.onerror = done;
-            audio.play().catch(done);
+            audio.onerror = failed;
+            audio.play().catch(failed);
         };
 
         // Instant path: prefetched at session mount (see prefetchExercisesAudio).
@@ -625,11 +636,13 @@ export default function SessionPlayer({ node, exercises }: Props) {
             } else {
                 ttsBusyRef.current = false;
                 setPlayingTts(null);
+                unavailable();
             }
         } catch (error) {
             console.error('TTS error:', error);
             ttsBusyRef.current = false;
             setPlayingTts(null);
+            unavailable();
         }
     }, [nodeCode, playingTts]);
 
@@ -672,13 +685,20 @@ export default function SessionPlayer({ node, exercises }: Props) {
         // header the validation-failure response comes back as an HTML page,
         // crashing res.json() with "Unexpected token '<'".
         const userAnswerRaw = answers[answerKey(questionObj.id)];
-        const correctAnswerText = questionObj.correct_answer ?? questionObj.correct
-            ?? (questionObj.correct_answers ? Object.values(questionObj.correct_answers).join(', ') : '');
+        const correctAnswerText = expectedAnswerText(questionObj);
         const userAnswerText = (userAnswerRaw && typeof userAnswerRaw === 'object')
             ? Object.values(userAnswerRaw).join(', ')
             : String(userAnswerRaw ?? '');
 
-        if (!String(correctAnswerText).trim() || !userAnswerText.trim()) return;
+        if (!correctAnswerText.trim() || !userAnswerText.trim()) return;
+
+        // Note taking and tables have no question text, yet the server requires one:
+        // fall back to what the learner actually worked on.
+        const prompt = [
+            questionObj.prompt, questionObj.text, questionObj.statement, questionObj.title,
+            questionObj.audio_text, exercise?.content?.passage, exercise?.exercise_type?.name,
+        ].find((value): value is string => typeof value === 'string' && value.trim() !== '') ?? 'Exercice';
+        const unavailableText = 'L’explication détaillée n’est pas disponible pour le moment.';
 
         setFetchingExplanation(true);
         try {
@@ -691,23 +711,25 @@ export default function SessionPlayer({ node, exercises }: Props) {
                     'X-Requested-With': 'XMLHttpRequest',
                 },
                 body: JSON.stringify({
-                    prompt: questionObj.prompt ?? questionObj.text ?? '',
+                    prompt,
                     user_answer: userAnswerText,
-                    correct_answer: String(correctAnswerText),
+                    correct_answer: correctAnswerText,
                     language: node.exam.language.name
                 })
             });
             if (!res.ok) throw new Error(`Explain HTTP ${res.status}`);
             const data = await res.json();
             const parsedExpl = parseExplanation(data.explanation);
-            setExplanation(parsedExpl);
+            setExplanation(parsedExpl ?? unavailableText);
             setHighlightedText(getEvidenceText(parsedExpl));
         } catch (error) {
             console.error('Failed to fetch explanation:', error);
+            // The expected answer stays on screen; say plainly that the detail is missing.
+            setExplanation(unavailableText);
         } finally {
             setFetchingExplanation(false);
         }
-    }, [question, answers, answerKey, node.exam.language.name]);
+    }, [question, answers, answerKey, node.exam.language.name, exercise]);
 
     const checkAnswer = useCallback(async () => {
         if (!question || isChecked || isVerifying) return;
@@ -728,7 +750,7 @@ export default function SessionPlayer({ node, exercises }: Props) {
         let isRight = false;
         let aiFeedback = null;
 
-        if (aiTypes.includes(componentKey)) {
+        if (aiTypes.includes(componentKey) || needsServerEvaluation(question, componentKey)) {
             setIsVerifying(true);
             try {
                 const formData = new FormData();
@@ -775,22 +797,27 @@ export default function SessionPlayer({ node, exercises }: Props) {
                 setIsVerifying(false);
             }
         } else {
-            const correctAnswer = question.correct_answer ?? question.correct;
-            if (Array.isArray(correctAnswer) && Array.isArray(currentAnswer)) {
-                isRight = JSON.stringify(correctAnswer) === JSON.stringify(currentAnswer);
-            } else if (typeof correctAnswer === 'object' && typeof currentAnswer === 'object') {
-                isRight = JSON.stringify(correctAnswer) === JSON.stringify(currentAnswer);
-            } else {
-                isRight = String(currentAnswer).trim().toUpperCase() === String(correctAnswer).trim().toUpperCase();
-            }
+            // Same rules as the server, so what the learner sees matches the recorded score.
+            isRight = evaluateAnswer(question, currentAnswer).correct;
         }
 
         setIsCorrect(isRight);
         setIsChecked(true);
         playSound(isRight ? 'correct' : 'incorrect');
-        
+
+        if (!isRight) {
+            // Most exercises ship their own explanation: show it at once instead of
+            // waiting on the AI, which may be unavailable.
+            const stored = aiFeedback ? null : parseExplanation(question.explanation);
+            if (stored) {
+                setExplanation(stored);
+                setHighlightedText(getEvidenceText(stored));
+            } else if (!aiFeedback && !isReviewMode) {
+                fetchExplanation();
+            }
+        }
+
         if (!isRight && !isReviewMode) {
-            if (!aiFeedback) fetchExplanation();
             // Add to mistakes queue if not already a retry. We never grow the queue
             // during review mode itself, otherwise the end condition recedes forever.
             const isAlreadyMistake = mistakes.some(m => m.id === question.id);
@@ -922,6 +949,8 @@ export default function SessionPlayer({ node, exercises }: Props) {
 
     const isLastQuestion = currentExerciseIndex === exercises.length - 1 && currentQuestionIndex === questions.length - 1;
     const hasAnswer = answers[answerKey(question?.id)] !== undefined;
+    // Shown with every wrong answer: note taking and tables never display it otherwise.
+    const expectedText = isChecked && isCorrect === false && question ? expectedAnswerText(question) : '';
 
     if (!exercise || !question) {
         return (
@@ -1164,6 +1193,16 @@ export default function SessionPlayer({ node, exercises }: Props) {
                                 </span>
                             </button>
                             <p className="mt-2 text-center text-[11px] text-muted-foreground">Écoute l’enregistrement, puis réponds à la question ci-dessous.</p>
+                            {audioUnavailable && listeningAudioText && (
+                                <div
+                                    role="status"
+                                    className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-left text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100"
+                                >
+                                    <p className="font-bold">L’audio est indisponible pour le moment.</p>
+                                    <p className="mt-1">Voici le texte de l’enregistrement, pour que tu puisses quand même répondre :</p>
+                                    <p className="mt-2 italic">{listeningAudioText}</p>
+                                </div>
+                            )}
                         </div>
                     ) : exercise.content?.passage && (
                         <div className="passage-card relative overflow-hidden group">
@@ -1261,9 +1300,14 @@ export default function SessionPlayer({ node, exercises }: Props) {
 
             {/* ── Explanation panel (above the bar) — gives long AI feedback room to
                 breathe and scroll instead of being crushed into the action bar ── */}
-            {isChecked && !isCorrect && (explanation || fetchingExplanation) && (
+            {isChecked && !isCorrect && (explanation || fetchingExplanation || expectedText) && (
                 <div className="fixed bottom-[76px] left-0 right-0 z-40 px-3">
                     <div className="player-font mx-auto max-h-[40vh] overflow-y-auto rounded-2xl border-2 border-red-200 bg-card p-4 shadow-xl" style={{ maxWidth: 672 }}>
+                        {expectedText && (
+                            <p className="mb-2 text-sm leading-relaxed text-foreground">
+                                Réponse attendue : <strong>{expectedText}</strong>
+                            </p>
+                        )}
                         {fetchingExplanation ? (
                             <p className="text-sm font-medium text-red-600/80 italic">Analyse de ton erreur…</p>
                         ) : explanation && typeof explanation === 'object' ? (
@@ -1277,12 +1321,12 @@ export default function SessionPlayer({ node, exercises }: Props) {
                                     </p>
                                 )}
                             </div>
-                        ) : (
+                        ) : explanation ? (
                             <FormattedFeedback
-                                text={explanation as string}
+                                text={explanation}
                                 className="text-sm font-medium text-foreground leading-relaxed space-y-1.5"
                             />
-                        )}
+                        ) : null}
                     </div>
                 </div>
             )}

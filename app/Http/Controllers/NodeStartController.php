@@ -270,13 +270,18 @@ class NodeStartController extends Controller
             // player reads content.audio_url first; without this only per-question
             // audio was pre-built and the passage still hit live TTS at click time.
             $content = $exercise->content ?? [];
-            if (is_array($content) && empty($content['audio_url'])) {
+            if (is_array($content) && !$this->audioAvailable($content['audio_url'] ?? null)) {
                 $contentText = $content['audio_text'] ?? $content['passage'] ?? null;
                 if (is_string($contentText) && trim($contentText) !== '') {
                     try {
                         $url = $ttsAudio->generate(trim($contentText), $ttsAudio->defaultVoiceFor($language));
                         if ($url) {
                             $content['audio_url'] = $url;
+                            $exercise->content = $content;
+                            $modified = true;
+                        } elseif (!empty($content['audio_url'])) {
+                            // A dead link only adds a failed download before the live fallback.
+                            unset($content['audio_url']);
                             $exercise->content = $content;
                             $modified = true;
                         }
@@ -287,13 +292,17 @@ class NodeStartController extends Controller
             }
 
             foreach ($questions as $idx => $question) {
-                if (!empty($question['audio_url'])) {
-                    continue; // already generated
+                if ($this->audioAvailable($question['audio_url'] ?? null)) {
+                    continue; // generated and still on disk
                 }
                 try {
                     $url = $ttsAudio->generateForQuestion($question, $language);
                     if ($url) {
                         $questions[$idx]['audio_url'] = $url;
+                        $modified = true;
+                    } elseif (!empty($question['audio_url'])) {
+                        // A dead link only adds a failed download before the live fallback.
+                        unset($questions[$idx]['audio_url']);
                         $modified = true;
                     }
                 } catch (\Throwable $e) {
@@ -305,5 +314,20 @@ class NodeStartController extends Controller
                 $exercise->save();
             }
         }
+    }
+
+    /** A stored audio link is only worth keeping while its file is still on the public disk. */
+    private function audioAvailable(mixed $url): bool
+    {
+        if (!is_string($url) || $url === '') {
+            return false;
+        }
+
+        $path = parse_url($url, PHP_URL_PATH) ?: $url;
+        if (!str_starts_with($path, '/storage/')) {
+            return true; // external link: nothing to check locally
+        }
+
+        return \Illuminate\Support\Facades\Storage::disk('public')->exists(substr($path, strlen('/storage/')));
     }
 }

@@ -1,0 +1,119 @@
+{
+    "_comment": "Cas partagés entre la correction serveur (ExerciseScoringService) et la correction côté client (resources/js/lib/scoring.js), utilisée par le joueur de parcours et l'espace hors ligne. Toute règle ajoutée d'un côté doit l'être de l'autre. Chaque question porte une explication pour que le serveur n'appelle jamais l'IA pendant le test.",
+    "cases": [
+        {
+            "name": "QCM : lettre attendue",
+            "question": { "id": "q1", "type": "mcq", "text": "Wo wohnt Mila?", "options": ["In Bonn", "In Berlin", "In Hamburg", "In Köln"], "correct_answer": "A", "explanation": "Le texte dit Bonn." },
+            "answer": "A",
+            "correct": true
+        },
+        {
+            "name": "QCM : minuscule acceptée",
+            "question": { "id": "q1", "type": "mcq", "text": "Wo wohnt Mila?", "options": ["In Bonn", "In Berlin", "In Hamburg", "In Köln"], "correct_answer": "A", "explanation": "Le texte dit Bonn." },
+            "answer": "a",
+            "correct": true
+        },
+        {
+            "name": "QCM : mauvaise lettre",
+            "question": { "id": "q1", "type": "mcq", "text": "Wo wohnt Mila?", "options": ["In Bonn", "In Berlin", "In Hamburg", "In Köln"], "correct_answer": "A", "explanation": "Le texte dit Bonn." },
+            "answer": "B",
+            "correct": false
+        },
+        {
+            "name": "QCM : réponse attendue écrite en toutes lettres, lettre choisie",
+            "question": { "id": "q1", "type": "mcq", "text": "Wo wohnt Mila?", "options": ["In Bonn", "In Berlin", "In Hamburg", "In Köln"], "correct_answer": "In Bonn", "explanation": "Le texte dit Bonn." },
+            "answer": "A",
+            "correct": true
+        },
+        {
+            "name": "Texte à trous : espaces autour de la réponse",
+            "question": { "id": "q2", "type": "gap-fill", "text": "Ich ___ zwanzig Jahre alt. (sein)", "correct_answer": "bin", "explanation": "Avec ich, sein devient bin." },
+            "answer": "  Bin  ",
+            "correct": true
+        },
+        {
+            "name": "Texte à trous : apostrophe typographique",
+            "question": { "id": "q3", "type": "gap-fill", "text": "Elle ___ à l'école. (aller)", "correct_answer": "n'y va", "explanation": "Apostrophe droite ou courbe, même réponse." },
+            "answer": "n’y va",
+            "correct": true
+        },
+        {
+            "name": "Texte à trous : accent manquant refusé",
+            "question": { "id": "q4", "type": "gap-fill", "text": "Hier, nous avons ___ le musée. (visiter)", "correct_answer": "visité", "explanation": "Le participe passé prend un accent." },
+            "answer": "visite",
+            "correct": false
+        },
+        {
+            "name": "Texte à trous : accent correct",
+            "question": { "id": "q4", "type": "gap-fill", "text": "Hier, nous avons ___ le musée. (visiter)", "correct_answer": "visité", "explanation": "Le participe passé prend un accent." },
+            "answer": "Visité",
+            "correct": true
+        },
+        {
+            "name": "Réponse vide jamais correcte",
+            "question": { "id": "q5", "type": "gap-fill", "text": "Wir ___ in Berlin. (wohnen)", "correct_answer": "wohnen", "explanation": "Avec wir, le verbe prend -en." },
+            "answer": "   ",
+            "correct": false
+        },
+        {
+            "name": "Association : lettre attendue",
+            "question": { "id": "q6", "type": "matching", "text": "Hier kaufe ich Brot.", "options": ["Die Schule", "Die Bäckerei", "Der Bahnhof", "Das Kino"], "correct_answer": "B", "explanation": "On achète le pain à la boulangerie." },
+            "answer": "B",
+            "correct": true
+        },
+        {
+            "name": "Prise de notes : tous les champs justes",
+            "question": { "id": "q7", "type": "note-completion", "notes": [{ "label": "Name", "value": "" }, { "label": "Stadt", "value": "Berlin" }, { "label": "Beruf", "value": "" }], "correct_answers": { "0": "Anna", "2": "Lehrerin" }, "explanation": "Anna est enseignante." },
+            "answer": { "0": "anna", "2": "Lehrerin" },
+            "correct": true,
+            "accuracy": 100
+        },
+        {
+            "name": "Prise de notes : moitié des champs, sous le seuil",
+            "question": { "id": "q7", "type": "note-completion", "notes": [{ "label": "Name", "value": "" }, { "label": "Stadt", "value": "Berlin" }, { "label": "Beruf", "value": "" }], "correct_answers": { "0": "Anna", "2": "Lehrerin" }, "explanation": "Anna est enseignante." },
+            "answer": { "0": "Anna", "2": "Arzt" },
+            "correct": false,
+            "accuracy": 50
+        },
+        {
+            "name": "Prise de notes : clé d'un champ pré-rempli ignorée",
+            "question": { "id": "q7", "type": "note-completion", "notes": [{ "label": "Name", "value": "" }, { "label": "Stadt", "value": "Berlin" }, { "label": "Beruf", "value": "" }], "correct_answers": { "1": "Berlin", "2": "Lehrerin" }, "explanation": "Seul le métier reste à compléter." },
+            "answer": { "0": "Anna", "2": "Lehrerin" },
+            "correct": true,
+            "accuracy": 100
+        },
+        {
+            "name": "Tableau : clés décalées, valeurs retrouvées dans les autres champs",
+            "question": { "id": "q8", "type": "table-completion", "correct_answers": { "a": "rot", "b": "blau" }, "explanation": "Rot puis blau." },
+            "answer": { "0": "blau", "1": "rot" },
+            "correct": true,
+            "accuracy": 100
+        },
+        {
+            "name": "Remise en ordre : séquence juste",
+            "question": { "id": "q9", "type": "ordering", "items": ["Erstens", "Dann", "Zum Schluss"], "correct_order": ["Erstens", "Dann", "Zum Schluss"], "explanation": "Erstens, dann, zum Schluss." },
+            "answer": ["Erstens", "Dann", "Zum Schluss"],
+            "correct": true,
+            "accuracy": 100
+        },
+        {
+            "name": "Remise en ordre : une seule place juste",
+            "question": { "id": "q9", "type": "ordering", "items": ["Erstens", "Dann", "Zum Schluss"], "correct_order": ["Erstens", "Dann", "Zum Schluss"], "explanation": "Erstens, dann, zum Schluss." },
+            "answer": ["Dann", "Erstens", "Zum Schluss"],
+            "correct": false,
+            "accuracy": 33.333333333333336
+        },
+        {
+            "name": "Choix multiples : ensemble identique dans un autre ordre",
+            "question": { "id": "q10", "type": "multiple-matching", "correct_answer": ["A", "C"], "explanation": "A et C sont exacts." },
+            "answer": ["c", "a"],
+            "correct": true
+        },
+        {
+            "name": "Choix multiples : réponse incomplète",
+            "question": { "id": "q10", "type": "multiple-matching", "correct_answer": ["A", "C"], "explanation": "A et C sont exacts." },
+            "answer": ["A"],
+            "correct": false
+        }
+    ]
+}
