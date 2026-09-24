@@ -100,7 +100,10 @@ class DashboardController extends Controller
                         $practiceStatus = 'available';
                     } elseif ($objStatus === 'current') {
                         $lessonStatus = 'available';
-                        $practiceStatus = 'locked';
+                        // Une leçon restée en brouillon (service de rédaction indisponible)
+                        // n'a ni contenu ni quiz : la garder verrouillante arrêtait net le
+                        // parcours d'un nouveau compte. On ouvre la pratique à la place.
+                        $practiceStatus = ($userLessons->get($globalIndex)?->status === 'draft') ? 'available' : 'locked';
                     }
 
                     // Try to link the exact lesson if already generated/started

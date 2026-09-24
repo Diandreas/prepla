@@ -93,14 +93,20 @@ class OnboardingController extends Controller
             'current_level' => 'nullable|string|in:A0,A1,B1,TEST',
         ]);
 
+        // Champs facultatifs : une requête qui en omet un ne doit pas casser
+        // l'inscription (validate() ne renvoie que les clés effectivement envoyées).
+        $targetScore = $validated['target_score'] ?? null;
+        $examDate = $validated['exam_date'] ?? null;
+        $level = $validated['current_level'] ?? null;
+
         $request->user()->profile->update([
-            'target_score' => $validated['target_score'],
-            'exam_date' => $validated['exam_date'],
-            'current_level' => $validated['current_level'] === 'TEST' ? null : $validated['current_level'],
-            'level_source' => $validated['current_level'] && $validated['current_level'] !== 'TEST' ? 'declared' : null,
+            'target_score' => $targetScore,
+            'exam_date' => $examDate,
+            'current_level' => $level === 'TEST' ? null : $level,
+            'level_source' => $level && $level !== 'TEST' ? 'declared' : null,
         ]);
 
-        if ($validated['current_level'] && $validated['current_level'] !== 'TEST') {
+        if ($level && $level !== 'TEST') {
             return redirect()->route('onboarding.result');
         }
 

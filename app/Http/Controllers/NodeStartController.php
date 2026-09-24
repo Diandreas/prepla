@@ -46,18 +46,7 @@ class NodeStartController extends Controller
         // Pour les nodes de pratique générale (non-lesson) le fallback reste utile.
         $isLessonNode = $node->node_type === 'lesson';
         if ($exercises->count() < 3 && !$isLessonNode) {
-            $needed = 3 - $exercises->count();
-            $generic = Exercise::where('exam_id', $node->exam_id)
-                ->where('difficulty', $node->level)
-                // Center, personal-lesson and mock-exam content is never shared practice.
-                ->whereNull('center_id')
-                ->whereNull('lesson_id')
-                ->whereNull('mock_exam_id')
-                ->whereNotIn('id', $exercises->pluck('id'))
-                ->with(['exerciseType', 'exam.language'])
-                ->inRandomOrder()
-                ->limit($needed)
-                ->get();
+            $generic = $this->genericExercises($node, $node->level, 3 - $exercises->count(), $exercises->pluck('id')->all());
 
             $exercises = $exercises->concat($generic);
         }
@@ -232,7 +221,21 @@ class NodeStartController extends Controller
         // sur "Écouter"). Idempotent : ignore les questions qui ont déjà un audio_url.
         $this->pregenerateListeningAudio($exercises, $ttsAudio);
 
-        // 4-ter. Garde-fou : si la génération a totalement échoué (aucun exercice
+        // 4-ter. Dernier recours : l'IA est indisponible (quota épuisé, panne) et le
+        // nœud n'a aucun exercice statique. Un exercice générique du même examen vaut
+        // mieux qu'un parcours bloqué : c'est exactement ce qui coinçait les nouveaux
+        // comptes, dont tous les nœuds sont de type 'lesson' et sautaient donc le
+        // repêchage de l'étape 3.
+        if ($exercises->isEmpty()) {
+            $exercises = $this->genericExercises($node, $node->level);
+
+            if ($exercises->isEmpty()) {
+                // Aucun exercice à ce niveau : on élargit avant d'abandonner.
+                $exercises = $this->genericExercises($node, null);
+            }
+        }
+
+        // 4-quater. Garde-fou : si la génération a totalement échoué (aucun exercice
         // réel), ne PAS afficher le player avec du contenu bidon → retour propre.
         if ($exercises->isEmpty()) {
             return redirect()->route('dashboard')
@@ -250,6 +253,21 @@ class NodeStartController extends Controller
             'exercises' => $exercises,
             'progress' => $progress,
         ]);
+    }
+
+    /** Shared practice pool: same exam, never center, personal-lesson or mock-exam content. */
+    private function genericExercises(LearningPathNode $node, ?string $level, int $limit = 3, array $excludeIds = [])
+    {
+        return Exercise::where('exam_id', $node->exam_id)
+            ->when($level !== null, fn ($query) => $query->where('difficulty', $level))
+            ->whereNull('center_id')
+            ->whereNull('lesson_id')
+            ->whereNull('mock_exam_id')
+            ->whereNotIn('id', $excludeIds)
+            ->with(['exerciseType', 'exam.language'])
+            ->inRandomOrder()
+            ->limit($limit)
+            ->get();
     }
 
     /**

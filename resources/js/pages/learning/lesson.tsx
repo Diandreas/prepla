@@ -163,6 +163,9 @@ export default function LessonPage({ lesson, skeleton }: Props) {
 
     const quiz = lesson.comprehension_quiz || [];
     const hasQuiz = quiz.length > 0;
+    // Brouillon = contenu de secours ecrit pendant une panne du service de generation.
+    // On le dit franchement au lieu de laisser croire que la lecon est vide.
+    const isDraft = lesson.status === 'draft';
 
     const handleQuizAnswer = useCallback((qIndex: number, answer: string) => {
         setQuizAnswers(prev => ({ ...prev, [qIndex]: answer }));
@@ -434,6 +437,16 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                 {/* ─── PHASE: LESSON ─── */}
                 {phase === 'lesson' && (
                     <div style={stagger(2)}>
+                        {isDraft && (
+                            <div className="duo-card mb-4 p-4 sm:p-5" style={{ background: 'rgba(245,166,35,0.08)', borderTop: `4px solid ${GOLD}` }}>
+                                <p className="text-sm font-black text-amber-700 dark:text-amber-300">Leçon pas encore rédigée</p>
+                                <p className="mt-1 text-sm font-semibold text-muted-foreground">
+                                    Le service qui écrit les cours est momentanément indisponible. Ton parcours n’est pas bloqué :
+                                    relance la génération ci-dessous, ou passe directement aux exercices.
+                                </p>
+                            </div>
+                        )}
+
                         {/* Pagination progress bar */}
                         {totalSections > 1 && (
                             <div className="mb-4">
@@ -542,7 +555,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                                         boxShadow: `0 4px 0 0 #2a6fc0`,
                                     }}
                                 >
-                                    Prochaine leçon →
+                                    {isDraft ? 'Réessayer la génération' : 'Prochaine leçon →'}
                                 </Link>
                             )}
                         </div>

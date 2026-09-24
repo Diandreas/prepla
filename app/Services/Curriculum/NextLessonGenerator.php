@@ -49,12 +49,15 @@ class NextLessonGenerator
             return null; // All objectives completed
         }
 
-        // Check if there's already an unconsumed lesson for this objective
+        // Check if there's already an unconsumed lesson for this objective.
+        // Exception : un brouillon est un contenu de secours ecrit pendant une panne de
+        // l'IA. Le resservir tel quel enfermait l'apprenant dans une lecon vide, sans
+        // quiz donc sans moyen d'avancer — on retente la generation a la place.
         $existingLesson = Lesson::where('user_id', $user->id)
             ->where('skeleton_objective_index', $skeleton->current_objective_index)
             ->first();
 
-        if ($existingLesson) {
+        if ($existingLesson && $existingLesson->status !== 'draft') {
             return $existingLesson;
         }
 
@@ -69,7 +72,38 @@ class NextLessonGenerator
         $lessonData = $this->generateWithMistral($user, $context, $currentObjective, $isConsolidation);
 
         if (!$lessonData) {
-            return null;
+            return $existingLesson;
+        }
+
+        // Contenu de secours : il reste un brouillon, jamais une lecon definitive.
+        if (($lessonData['is_fallback'] ?? false) === true) {
+            $status = 'draft';
+
+            if ($existingLesson) {
+                return $existingLesson; // l'IA est toujours indisponible : on garde le brouillon
+            }
+        }
+
+        // Un brouillon deja en base est complete sur place : meme URL, meme noeud.
+        if ($existingLesson) {
+            $existingLesson->update([
+                'title' => $lessonData['title'] ?? $currentObjective['title'],
+                'concept' => $currentObjective['concept'] ?? null,
+                'theory_markdown' => $lessonData['theory_markdown'] ?? '',
+                'key_takeaways' => $lessonData['key_takeaways'] ?? [],
+                'common_mistakes' => $lessonData['common_mistakes'] ?? [],
+                'comprehension_quiz' => $lessonData['comprehension_quiz'] ?? [],
+                'based_on_errors' => $context['recent_errors'] ?? [],
+                'status' => $status,
+                'generated_at' => now(),
+            ]);
+
+            $existingLesson->node?->update([
+                'title' => $lessonData['title'] ?? $currentObjective['title'],
+                'description' => $lessonData['concept'] ?? '',
+            ]);
+
+            return $existingLesson->fresh();
         }
 
         // Create a LearningPathNode dynamically for this lesson
@@ -295,12 +329,15 @@ PROMPT;
     private function getDefaultLesson(array $objective, array $context): array
     {
         return [
-            'title' => $objective['title'] ?? 'Lesson',
+            'title' => $objective['title'] ?? 'Lecon',
             'concept' => $objective['concept'] ?? 'general',
-            'theory_markdown' => "# {$objective['title']}\n\nThis lesson covers **{$objective['concept']}**.\n\n*Content is being generated. Please try again in a moment.*",
-            'key_takeaways' => ['Practice makes perfect', 'Review the concept regularly', 'Focus on the key rules'],
+            'theory_markdown' => "# {$objective['title']}\n\nCette lecon n'a pas encore pu etre ecrite : le service qui redige les cours est momentanement indisponible.\n\nReviens dans quelques minutes et relance la lecon : le contenu sera genere a ce moment-la.",
+            'key_takeaways' => [],
             'common_mistakes' => [],
             'comprehension_quiz' => [],
+            // Contenu de secours : generate() le garde en brouillon et retentera
+            // la generation au prochain passage, une fois l'IA revenue.
+            'is_fallback' => true,
         ];
     }
 
