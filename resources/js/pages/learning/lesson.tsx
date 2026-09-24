@@ -409,7 +409,9 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                     />
                 )}
 
-                {/* Phase indicator */}
+                {/* Phase indicator — inutile (et trompeur) sur une leçon sans quiz :
+                    elle n'a qu'une seule étape. */}
+                {hasQuiz && (
                 <div aria-label="Étapes de la leçon" className="flex items-center gap-2 mb-4 sm:mb-6" style={stagger(1)}>
                     {['lesson', 'quiz', 'results'].map((p, i) => (
                         <div key={p} className="flex items-center gap-2" aria-current={phase === p ? 'step' : undefined}>
@@ -433,6 +435,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                         </div>
                     ))}
                 </div>
+                )}
 
                 {/* ─── PHASE: LESSON ─── */}
                 {phase === 'lesson' && (

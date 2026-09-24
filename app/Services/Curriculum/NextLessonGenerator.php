@@ -80,7 +80,14 @@ class NextLessonGenerator
             $status = 'draft';
 
             if ($existingLesson) {
-                return $existingLesson; // l'IA est toujours indisponible : on garde le brouillon
+                // L'IA est toujours indisponible : le brouillon reste, mais son texte
+                // d'attente est remis à jour (les plus anciens datent d'avant ce garde-fou).
+                $existingLesson->update([
+                    'theory_markdown' => $lessonData['theory_markdown'] ?? '',
+                    'status' => 'draft',
+                ]);
+
+                return $existingLesson->fresh();
             }
         }
 
@@ -329,9 +336,9 @@ PROMPT;
     private function getDefaultLesson(array $objective, array $context): array
     {
         return [
-            'title' => $objective['title'] ?? 'Lecon',
+            'title' => $objective['title'] ?? 'Leçon',
             'concept' => $objective['concept'] ?? 'general',
-            'theory_markdown' => "# {$objective['title']}\n\nCette lecon n'a pas encore pu etre ecrite : le service qui redige les cours est momentanement indisponible.\n\nReviens dans quelques minutes et relance la lecon : le contenu sera genere a ce moment-la.",
+            'theory_markdown' => "# {$objective['title']}\n\nLe cours n'est pas encore écrit. Dès que le service de rédaction répond, cette page se remplit toute seule : relance la génération quand tu veux.\n\nEn attendant, les exercices de cette étape restent accessibles depuis ton parcours.",
             'key_takeaways' => [],
             'common_mistakes' => [],
             'comprehension_quiz' => [],

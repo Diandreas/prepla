@@ -90,6 +90,12 @@ test('un nouveau compte garde lecon et pratique accessibles quand la generation 
     $lesson = Lesson::where('user_id', $user->id)->sole();
     expect($lesson->status)->toBe('draft'); // brouillon : régénérable, jamais figé
 
+    // Une nouvelle tentative ne duplique rien et remet à jour le texte d'attente.
+    $this->get(route('lessons.next'))->assertRedirect();
+    $lesson = Lesson::where('user_id', $user->id)->sole();
+    expect($lesson->status)->toBe('draft')
+        ->and($lesson->theory_markdown)->toContain("Le cours n'est pas encore écrit");
+
     // 2. Le parcours n'est pas verrouillé derrière cette leçon vide.
     $nodes = firstObjectiveNodes($this->get('/dashboard')->assertOk());
     expect($nodes['practice']['status'])->toBe('available');
