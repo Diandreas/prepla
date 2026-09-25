@@ -4,13 +4,21 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class SubscriptionController extends Controller
 {
-    const PRICE_MONTHLY = 'price_1TbjMVA4jGtQdWrshf7v2nQr'; // 9.99€/mois
-    const PRICE_ANNUAL  = 'price_1TbjMdA4jGtQdWrsRG1w5n9Z'; // 79.99€/an
+    /** Les tarifs vivent dans la configuration : test et production n'ont pas les mêmes. */
+    private function prices(): array
+    {
+        return [
+            'monthly' => (string) config('services.stripe.prices.monthly'),
+            'annual' => (string) config('services.stripe.prices.annual'),
+        ];
+    }
 
     public function index(): Response
     {
@@ -48,15 +56,16 @@ class SubscriptionController extends Controller
             'cancelAtPeriodEnd' => $subscription?->onGracePeriod() ?? false,
             'renewsAt'          => $renewsAt,
             'plans' => [
-                'monthly' => ['id' => self::PRICE_MONTHLY, 'amount' => 9.99, 'interval' => 'month'],
-                'annual'  => ['id' => self::PRICE_ANNUAL,  'amount' => 79.99, 'interval' => 'year'],
+                'monthly' => ['id' => $this->prices()['monthly'], 'amount' => 9.99, 'interval' => 'month'],
+                'annual'  => ['id' => $this->prices()['annual'], 'amount' => 79.99, 'interval' => 'year'],
             ],
         ]);
     }
 
     public function checkout(Request $request)
     {
-        $request->validate(['price_id' => 'required|string|in:' . self::PRICE_MONTHLY . ',' . self::PRICE_ANNUAL]);
+        $known = array_values(array_filter($this->prices()));
+        $request->validate(['price_id' => ['required', 'string', Rule::in($known)]]);
 
         $user = auth()->user();
 
@@ -68,12 +77,24 @@ class SubscriptionController extends Controller
             return redirect()->route('subscription.index');
         }
 
-        return $user->newSubscription('default', $request->price_id)
-            ->checkout([
-                'success_url' => route('subscription.index') . '?success=1',
-                'cancel_url'  => route('subscription.index'),
-                'locale'      => app()->getLocale(),
+        // Un tarif absent du compte Stripe (créé dans l'autre mode, ou archivé) rendait
+        // une page « Server Error » à l'apprenant au moment de payer.
+        try {
+            return $user->newSubscription('default', $request->price_id)
+                ->checkout([
+                    'success_url' => route('subscription.index') . '?success=1',
+                    'cancel_url'  => route('subscription.index'),
+                    'locale'      => app()->getLocale(),
+                ]);
+        } catch (\Throwable $e) {
+            Log::error('Stripe checkout failed', [
+                'user_id' => $user->id,
+                'price_id' => $request->price_id,
+                'error' => $e->getMessage(),
             ]);
+
+            return back()->with('error', "Le paiement n'a pas pu démarrer. Réessaie dans un instant — si cela se reproduit, préviens-nous, l'erreur est de notre côté.");
+        }
     }
 
     public function cancel(): \Illuminate\Http\RedirectResponse

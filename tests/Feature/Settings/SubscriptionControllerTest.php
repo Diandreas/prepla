@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Settings\SubscriptionController;
 use App\Models\User;
 use App\Models\UserProfile;
 
@@ -43,7 +42,8 @@ test('subscription index reflects an active paid subscription', function () {
         'type' => 'default',
         'stripe_id' => 'sub_test123',
         'stripe_status' => 'active',
-        'stripe_price' => SubscriptionController::PRICE_MONTHLY,
+        // Les tarifs viennent de la configuration : test et production diffèrent.
+        'stripe_price' => config('services.stripe.prices.monthly'),
         'quantity' => 1,
     ]);
 

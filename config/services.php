@@ -52,6 +52,16 @@ return [
         'api_key' => env('DEEPGRAM_API_KEY'),
     ],
 
+    'stripe' => [
+        // Un identifiant de tarif n'existe que dans le mode où il a été créé : codés
+        // en dur, ils faisaient tomber le paiement en 500 (« No such price ») dès que
+        // les clés passaient en mode réel. Chaque environnement pointe vers les siens.
+        'prices' => [
+            'monthly' => env('STRIPE_PRICE_MONTHLY', 'price_1TbjMVA4jGtQdWrshf7v2nQr'),
+            'annual' => env('STRIPE_PRICE_ANNUAL', 'price_1TbjMdA4jGtQdWrsRG1w5n9Z'),
+        ],
+    ],
+
     'google' => [
         'client_id'     => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
