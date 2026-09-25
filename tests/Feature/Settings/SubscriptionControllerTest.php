@@ -69,3 +69,21 @@ test('checkout rejects a price id that is not one of the known plans', function 
 test('guests cannot access the subscription page', function () {
     $this->get(route('subscription.index'))->assertRedirect(route('login'));
 });
+
+test('les tarifs affiches portent la devise reelle du tarif Stripe', function () {
+    // Sans clé Stripe (cas des tests), on retombe sur la devise de référence au lieu
+    // d'un symbole écrit en dur : l'écran annonçait « € » pendant que Stripe
+    // facturait en dollars.
+    config(['cashier.secret' => '', 'cashier.currency' => 'usd']);
+
+    $user = User::factory()->create();
+    UserProfile::factory()->for($user)->create(['onboarding_completed_at' => now()]);
+
+    $this->actingAs($user)->get(route('subscription.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('plans.monthly.currency', 'usd')
+            ->where('plans.annual.currency', 'usd')
+            ->where('plans.monthly.interval', 'month')
+            ->where('plans.annual.interval', 'year'));
+});

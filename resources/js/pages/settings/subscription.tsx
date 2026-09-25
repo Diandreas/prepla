@@ -8,7 +8,22 @@ import { useEffect, useState } from 'react';
 interface Plan {
     id: string;
     amount: number;
+    /** Devise du tarif Stripe — c'est elle qui débite, jamais un symbole écrit en dur. */
+    currency: string;
     interval: 'month' | 'year';
+}
+
+function formatPrice(plan?: Plan): string {
+    if (!plan) return '';
+    try {
+        return new Intl.NumberFormat('fr-FR', {
+            style: 'currency',
+            currency: (plan.currency || 'usd').toUpperCase(),
+            maximumFractionDigits: 2,
+        }).format(plan.amount);
+    } catch {
+        return `${plan.amount} ${(plan.currency || '').toUpperCase()}`;
+    }
 }
 
 interface Props {
@@ -175,7 +190,7 @@ export default function Subscription({ currentPlan, stripeEnabled, isSubscribed,
                                     onClick={() => setSelectedPlan('monthly')}
                                     className={`flex-1 rounded-xl border-2 p-3 text-center transition-all ${selectedPlan === 'monthly' ? 'border-amber-400 bg-amber-50 dark:bg-amber-950/30' : 'border-border'}`}
                                 >
-                                    <div className="text-2xl font-black text-amber-600">9.99€</div>
+                                    <div className="text-2xl font-black text-amber-600">{formatPrice(plans?.monthly)}</div>
                                     <div className="text-xs text-muted-foreground">/ mois</div>
                                 </button>
                                 <button
@@ -183,7 +198,7 @@ export default function Subscription({ currentPlan, stripeEnabled, isSubscribed,
                                     className={`flex-1 rounded-xl border-2 p-3 text-center transition-all relative ${selectedPlan === 'annual' ? 'border-amber-400 bg-amber-50 dark:bg-amber-950/30' : 'border-border'}`}
                                 >
                                     <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-[10px] font-bold px-2 rounded-full">-33%</div>
-                                    <div className="text-2xl font-black text-amber-600">79.99€</div>
+                                    <div className="text-2xl font-black text-amber-600">{formatPrice(plans?.annual)}</div>
                                     <div className="text-xs text-muted-foreground">/ an</div>
                                 </button>
                             </div>
@@ -261,10 +276,13 @@ export default function Subscription({ currentPlan, stripeEnabled, isSubscribed,
                                 onClick={handleCheckout}
                                 disabled={processing || !stripeEnabled}
                             >
-                                {processing ? 'Redirection...' : `S'abonner ${selectedPlan === 'monthly' ? '9.99€/mois' : '79.99€/an'}`}
+                                {processing ? 'Redirection...' : `S'abonner ${formatPrice(plans?.[selectedPlan])}${selectedPlan === 'monthly' ? '/mois' : '/an'}`}
                             </Button>
                         )}
                         <p className="text-center text-[11px] text-muted-foreground">Paiement sécurisé Stripe · Annulable à tout moment</p>
+                        {!isPremium && (
+                            <p className="text-center text-[11px] text-muted-foreground">Le montant est converti dans ta devise au moment du paiement.</p>
+                        )}
                     </CardFooter>
                 </Card>
             </div>
