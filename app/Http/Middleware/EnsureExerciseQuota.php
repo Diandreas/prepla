@@ -13,6 +13,12 @@ use Symfony\Component\HttpFoundation\Response;
  * for non-premium users. Previously this limit existed only in marketing copy
  * — no controller checked subscribed()/hasPremiumAccess() before serving an
  * exercise, so a free user had technically unlimited access.
+ *
+ * Monté sur les routes d'ENTRÉE (démarrage d'un nœud, ouverture d'un exercice).
+ * Il gardait autrefois les routes de soumission : l'apprenant faisait sa séance
+ * entière, puis se voyait rediriger vers l'abonnement au moment de l'envoyer —
+ * sans correction, sans XP et sans progression. On refuse d'ouvrir plutôt que de
+ * jeter un travail déjà fait.
  */
 class EnsureExerciseQuota
 {
@@ -47,7 +53,7 @@ class EnsureExerciseQuota
             if ($completedToday >= self::DAILY_FREE_LIMIT) {
                 return redirect()
                     ->route('subscription.index')
-                    ->with('error', "Tu as atteint ta limite de " . self::DAILY_FREE_LIMIT . " exercices gratuits aujourd'hui. Passe à PrePla Plus pour continuer sans limite.");
+                    ->with('error', "Tu as atteint ta limite de " . self::DAILY_FREE_LIMIT . " exercices gratuits aujourd'hui. Reviens demain, ou passe au Premium pour continuer sans limite.");
             }
 
             return $next($request);

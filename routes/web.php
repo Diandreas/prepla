@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', LandingController::class)->name('home');
 Route::get('/offline', fn() => view('offline'))->name('offline');
+// Espace hors ligne : page publique sans donnée personnelle, servie depuis le cache
+// quand le réseau manque. Elle ne lit que le stockage local de l'appareil.
+Route::get('/telechargements', fn() => view('offline-app'))->name('offline.app');
 
 Route::get('/privacy', fn() => view('legal.privacy'))->name('privacy');
 Route::get('/terms', fn() => view('legal.terms'))->name('terms');
@@ -76,17 +79,24 @@ Route::middleware(['auth'])->group(function () {
         Route::get('practice/{exam}/simulate', [\App\Http\Controllers\PracticeController::class, 'simulate'])->name('practice.simulate');
         Route::post('practice/{exam}/simulate', [\App\Http\Controllers\PracticeController::class, 'submitSimulation'])->name('practice.simulate.store');
 
-        // Node start (Duolingo-style: 1 click → exercise)
-        Route::get('node/{node}/start', \App\Http\Controllers\NodeStartController::class)->name('node.start');
-
-        // Exercises
-        Route::get('exercise/{exercise}', [\App\Http\Controllers\ExerciseController::class, 'show'])->name('exercise.show');
+        // Le quota gratuit se vérifie à l'ENTRÉE d'un exercice, jamais à l'envoi :
+        // posté sur la soumission, il renvoyait vers l'abonnement un apprenant qui
+        // venait de terminer sa séance, sans la corriger ni lui compter son XP.
         Route::middleware([\App\Http\Middleware\EnsureExerciseQuota::class])->group(function () {
-            Route::post('exercise/{exercise}/submit', [\App\Http\Controllers\ExerciseController::class, 'submit'])->name('exercise.submit');
-            Route::post('node/{node}/submit', [\App\Http\Controllers\ExerciseController::class, 'submitSession'])->name('exercise.submit_session');
+            // Node start (Duolingo-style: 1 click → exercise)
+            Route::get('node/{node}/start', \App\Http\Controllers\NodeStartController::class)->name('node.start');
+            Route::get('exercise/{exercise}', [\App\Http\Controllers\ExerciseController::class, 'show'])->name('exercise.show');
         });
+
+        // Exercises — une séance commencée va toujours jusqu'à sa correction.
+        Route::post('exercise/{exercise}/submit', [\App\Http\Controllers\ExerciseController::class, 'submit'])->name('exercise.submit');
+        Route::post('node/{node}/submit', [\App\Http\Controllers\ExerciseController::class, 'submitSession'])->name('exercise.submit_session');
         Route::get('exercise/result/{attempt}', [\App\Http\Controllers\ExerciseController::class, 'result'])->name('exercise.result');
         Route::get('node/{node}/result', [\App\Http\Controllers\ExerciseController::class, 'sessionResult'])->name('node.session_result');
+
+        // Packs hors ligne : series telechargeables, puis telechargement d'un pack complet.
+        Route::get('api/offline/packs', [\App\Http\Controllers\OfflinePackController::class, 'index'])->name('offline.packs.index');
+        Route::post('api/offline/packs/{exam}/{exerciseType}', [\App\Http\Controllers\OfflinePackController::class, 'store'])->name('offline.packs.store');
 
         // Boss-level chapter synthesis
         Route::get('chapter/{chapterOrder}/synthesis', [\App\Http\Controllers\ChapterSynthesisController::class, 'start'])

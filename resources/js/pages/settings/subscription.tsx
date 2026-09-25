@@ -1,4 +1,4 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -31,6 +31,9 @@ interface InvoiceItem {
 }
 
 export default function Subscription({ currentPlan, stripeEnabled, isSubscribed, onTrial, trialDaysLeft, cancelAtPeriodEnd, renewsAt, plans }: Props) {
+    // Un apprenant renvoyé ici par la limite gratuite arrivait sur une page de
+    // paiement sans la moindre explication : le message du serveur n'était pas lu.
+    const flash = usePage().props.flash as { error?: string } | undefined;
     const [processing, setProcessing] = useState(false);
     const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('monthly');
     const [showSuccess, setShowSuccess] = useState(false);
@@ -122,6 +125,12 @@ export default function Subscription({ currentPlan, stripeEnabled, isSubscribed,
                     <h1 className="text-3xl font-black tracking-tight">Votre abonnement</h1>
                     <p className="text-muted-foreground">Boostez votre préparation et réussissez votre examen</p>
                 </div>
+
+                {flash?.error && (
+                    <div role="status" className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-200">
+                        {flash.error}
+                    </div>
+                )}
 
                 {/* Confirmation de paiement au retour de Stripe Checkout */}
                 {showSuccess && (
