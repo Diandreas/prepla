@@ -91,6 +91,10 @@ interface PlayerQuestion {
     audio_text?: string;
     component_key?: string;
     exercise_id?: number;
+    // Contexte emporté par une erreur rejouée en révision (voir questionContext).
+    skill_type?: string;
+    type_name?: string;
+    passage?: string;
     [key: string]: unknown;
 }
 
@@ -513,7 +517,15 @@ export default function SessionPlayer({ node, exercises }: Props) {
     // play the passage/audio_text via TTS. (listeningAudioText is computed below,
     // once `question` is available.)
     const skillType = exercise?.exercise_type?.skill_type ?? '';
-    const isListening = skillType === 'listening';
+    // Une erreur est rejouée en fin de séance, dans un autre exercice : elle emporte
+    // donc son contexte, sinon la révision affiche la consigne et le texte de
+    // l'exercice courant sur une question qui n'a rien à voir.
+    const questionContext = useMemo(() => ({
+        component_key: exercise?.exercise_type?.component_key ?? 'mcq',
+        skill_type: exercise?.exercise_type?.skill_type ?? '',
+        type_name: exercise?.exercise_type?.name ?? '',
+        passage: exercise?.content?.passage ?? '',
+    }), [exercise]);
 
     const TIME_PER_QUESTION = useMemo(() => {
         const writingTypes = ['essay-editor', 'short-writing', 'graph-description', 'academic-discussion', 'synthesis', 'integrated-task', 'guided-writing'];
@@ -531,7 +543,12 @@ export default function SessionPlayer({ node, exercises }: Props) {
 
     const questions = isReviewMode ? reviewQueue : (exercise?.questions ?? []);
     const question = questions[currentQuestionIndex];
-    const Component = componentMap[isReviewMode ? (question?.component_key ?? 'mcq') : (exercise?.exercise_type?.component_key ?? 'mcq')] ?? Mcq;
+    const activeComponentKey = isReviewMode ? (question?.component_key ?? 'mcq') : componentKey;
+    const activeSkillType = isReviewMode ? (question?.skill_type ?? '') : skillType;
+    const activeTypeName = isReviewMode ? (question?.type_name ?? '') : (exercise?.exercise_type?.name ?? '');
+    const activePassage = isReviewMode ? (question?.passage ?? '') : (exercise?.content?.passage ?? '');
+    const isListening = activeSkillType === 'listening';
+    const Component = componentMap[activeComponentKey] ?? Mcq;
 
     // Listening audio source (transcript that stays hidden) — see isListening above.
     const listeningAudioText: string =
@@ -738,7 +755,7 @@ export default function SessionPlayer({ node, exercises }: Props) {
 
         // Role-play & listen-repeat self-evaluate inside the component; the answer
         // arrives as "completed:NN" / "repeat:NN". Don't re-score via the API.
-        if (componentKey === 'role-play' || componentKey === 'listen-repeat') {
+        if (activeComponentKey === 'role-play' || activeComponentKey === 'listen-repeat') {
             const sc = parseInt(String(currentAnswer).split(':')[1] ?? '0', 10) || 0;
             setIsCorrect(sc >= 50);
             setIsChecked(true);
@@ -750,7 +767,7 @@ export default function SessionPlayer({ node, exercises }: Props) {
         let isRight = false;
         let aiFeedback = null;
 
-        if (aiTypes.includes(componentKey) || needsServerEvaluation(question, componentKey)) {
+        if (aiTypes.includes(activeComponentKey) || needsServerEvaluation(question, activeComponentKey)) {
             setIsVerifying(true);
             try {
                 const formData = new FormData();
@@ -822,10 +839,10 @@ export default function SessionPlayer({ node, exercises }: Props) {
             // during review mode itself, otherwise the end condition recedes forever.
             const isAlreadyMistake = mistakes.some(m => m.id === question.id);
             if (!isAlreadyMistake) {
-                setMistakes(prev => [...prev, { ...question, exercise_id: exercise.id, component_key: componentKey }]);
+                setMistakes(prev => [...prev, { ...question, exercise_id: exercise.id, ...questionContext }]);
             }
         }
-    }, [question, isChecked, answers, answerKey, componentKey, fetchExplanation, exercise.id, isVerifying, mistakes, isReviewMode]);
+    }, [question, isChecked, answers, answerKey, activeComponentKey, questionContext, fetchExplanation, exercise.id, isVerifying, mistakes, isReviewMode]);
 
     const nextStep = useCallback(() => {
         // Block re-entry while a transition is already in flight (double click, or
@@ -921,13 +938,13 @@ export default function SessionPlayer({ node, exercises }: Props) {
         if (!isChecked) {
             setIsChecked(true);
             setIsCorrect(false);
-            setMistakes(prev => [...prev, { ...question, component_key: componentKey }]);
+            setMistakes(prev => [...prev, { ...question, ...questionContext }]);
         }
         // Track the pending auto-advance so a manual advance (or another expiry) can
         // cancel it — otherwise nextStep runs twice and overshoots the last question.
         if (expireTimeoutRef.current) clearTimeout(expireTimeoutRef.current);
         expireTimeoutRef.current = setTimeout(() => nextStep(), 1200);
-    }, [isChecked, nextStep, question, componentKey]);
+    }, [isChecked, nextStep, question, questionContext]);
 
     // Keyboard shortcut: Space / Enter
     useEffect(() => {
@@ -1154,8 +1171,8 @@ export default function SessionPlayer({ node, exercises }: Props) {
                 <LearningScene
                     compact
                     className="mb-4"
-                    variant={sceneVariantForSkill(skillType, componentKey)}
-                    title={exercise.exercise_type?.name || node.title}
+                    variant={sceneVariantForSkill(activeSkillType, activeComponentKey)}
+                    title={activeTypeName || node.title}
                 />
 
                 {/* ── Exercise Content ── */}
@@ -1204,27 +1221,27 @@ export default function SessionPlayer({ node, exercises }: Props) {
                                 </div>
                             )}
                         </div>
-                    ) : exercise.content?.passage && (
+                    ) : activePassage && (
                         <div className="passage-card relative overflow-hidden group">
                            <div className="flex items-center justify-between mb-3 border-b border-indigo-100/50 pb-2">
                                 <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Texte de référence</span>
                                 <button
-                                    onClick={() => playTts(exercise.content.passage ?? '', 'passage')}
+                                    onClick={() => playTts(activePassage, 'passage')}
                                     className={`p-1.5 rounded-lg transition-all ${playingTts === 'passage' ? 'bg-indigo-100 text-indigo-600 scale-110' : 'hover:bg-indigo-50 text-slate-400 hover:text-indigo-500'}`}
                                 >
                                     <Icon name={playingTts === 'passage' ? 'volume-2' : 'volume-1'} size={18} />
                                 </button>
                             </div>
-                            <HighlightedPassage text={exercise.content.passage} highlight={highlightedText || ''} />
+                            <HighlightedPassage text={activePassage} highlight={highlightedText || ''} />
                         </div>
                     )}
 
                     {/* Action instruction — tells the learner what to do (select / write / record…) */}
-                    {INSTRUCTIONS[componentKey] && (
+                    {INSTRUCTIONS[activeComponentKey] && (
                         <div className="flex items-center gap-1.5 px-1" style={{ color: 'var(--player-accent)' }}>
                             <Icon name="info" size={14} style={{ opacity: 0.7 }} />
                             <span style={{ fontSize: '0.8125rem', fontWeight: 600 }}>
-                                {INSTRUCTIONS[componentKey]}
+                                {INSTRUCTIONS[activeComponentKey]}
                             </span>
                         </div>
                     )}
