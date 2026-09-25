@@ -487,6 +487,61 @@ class ExerciseScoringService
         ];
     }
 
+    /**
+     * La réponse attendue, écrite pour un humain : le bilan de séance doit pouvoir
+     * la montrer telle quelle, au lieu d'une lettre ou d'un tableau brut.
+     * Reflète expectedAnswerText() de resources/js/lib/scoring.js.
+     */
+    public function expectedAnswerText(array $question): string
+    {
+        // Champs à trous (notes, tableaux, formulaires) : seules les cases vides comptent.
+        $map = $question['correct_answers'] ?? null;
+        if (is_array($map) && $map !== []) {
+            $blanks = $this->blankFieldIndices($question);
+            $values = [];
+            foreach ($map as $key => $value) {
+                if ($blanks !== null && !in_array((string) $key, $blanks, true)) {
+                    continue;
+                }
+                if (is_scalar($value) && (string) $value !== '') {
+                    $values[] = (string) $value;
+                }
+            }
+            if ($values !== []) {
+                return implode(', ', $values);
+            }
+        }
+
+        // Remise en ordre : c'est la séquence entière qui est attendue.
+        $order = $question['correct_order'] ?? null;
+        if (is_array($order) && $order !== []) {
+            $items = $question['items'] ?? null;
+            $sequence = (is_array($items) && count($items) === count($order)) ? $items : $order;
+
+            return implode(' → ', array_map(fn ($value) => (string) $value, $sequence));
+        }
+
+        $answer = $question['correct_answer'] ?? null;
+        if (is_array($answer)) {
+            return implode(', ', array_map(fn ($value) => (string) $value, $answer));
+        }
+        if (!is_scalar($answer) || (string) $answer === '') {
+            return '';
+        }
+
+        // QCM : une lettre seule n'apprend rien, on rend "C) Am Sonntag".
+        $letter = strtoupper(trim((string) $answer));
+        $options = $question['options'] ?? null;
+        if (is_array($options) && preg_match('/^[A-D]$/', $letter)) {
+            $index = ord($letter) - ord('A');
+            if (isset($options[$index]) && is_scalar($options[$index])) {
+                return $letter . ') ' . $options[$index];
+            }
+        }
+
+        return (string) $answer;
+    }
+
     public function explainMistake(string $prompt, string $userAnswer, string $correctAnswer, string $language): string
     {
         return $this->mistralEval->explainMistake($prompt, $userAnswer, $correctAnswer, $language);

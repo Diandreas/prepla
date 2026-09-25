@@ -182,7 +182,7 @@ class ExerciseController extends Controller
                     'total' => count($exercise->questions),
                     'accuracy' => $result['accuracy'],
                     'xp' => $result['xp'],
-                    'feedback' => $result['feedback'],
+                    'feedback' => $this->describeFeedback($result['feedback'], $exercise->questions ?? [], $exerciseAnswers),
                 ];
             }
         }
@@ -294,7 +294,92 @@ class ExerciseController extends Controller
             'node' => $node->load('exam.language'),
             'report' => $report,
             'userLevel' => auth()->user()?->profile?->current_level ?? 'A1',
+            'lessonId' => $this->lessonIdForNode($node),
         ]);
+    }
+
+    /**
+     * Le bilan de fin de séance affichait « Question 1, Question 2 » et rien d'autre :
+     * impossible de savoir ce qui avait été raté. On joint donc à chaque retour
+     * l'énoncé, la réponse donnée et la réponse attendue.
+     */
+    private function describeFeedback(array $feedback, array $questions, array $answers): array
+    {
+        $byId = collect($questions)->keyBy(fn ($question) => (string) ($question['id'] ?? ''));
+
+        return array_map(function (array $item) use ($byId, $answers) {
+            $question = $byId->get((string) ($item['question_id'] ?? ''), []);
+            $given = $answers[$item['question_id'] ?? ''] ?? null;
+
+            return array_merge($item, [
+                'question_text' => $item['question_text'] ?? $this->questionPrompt($question),
+                'given_answer' => $this->readableAnswer($given),
+                'expected_answer' => $this->scoringService->expectedAnswerText($question),
+            ]);
+        }, $feedback);
+    }
+
+    /** L'énoncé d'une question, quel que soit le champ où le générateur l'a rangé. */
+    private function questionPrompt(array $question): string
+    {
+        foreach (['text', 'prompt', 'statement', 'title', 'audio_text'] as $field) {
+            $value = $question[$field] ?? null;
+            if (is_string($value) && trim($value) !== '') {
+                return $value;
+            }
+        }
+
+        return '';
+    }
+
+    /** La réponse de l'apprenant, lisible : une réponse orale n'a pas de texte. */
+    private function readableAnswer(mixed $answer): string
+    {
+        if ($answer instanceof \Illuminate\Http\UploadedFile) {
+            return 'Réponse orale';
+        }
+        if (is_array($answer)) {
+            $parts = array_filter(
+                array_map(fn ($value) => is_scalar($value) ? trim((string) $value) : '', $answer),
+                fn ($value) => $value !== ''
+            );
+
+            return implode(', ', $parts);
+        }
+
+        return is_scalar($answer) ? trim((string) $answer) : '';
+    }
+
+    /**
+     * La leçon rattachée à ce nœud de pratique. Le bilan pointait vers
+     * /lessons/{node} en prenant l'identifiant du nœud pour celui d'une leçon : 404.
+     */
+    private function lessonIdForNode(LearningPathNode $node): ?int
+    {
+        $userId = auth()->id();
+
+        $lessonId = \App\Models\Lesson::where('user_id', $userId)
+            ->where('node_id', $node->id)
+            ->value('id');
+
+        if ($lessonId) {
+            return (int) $lessonId;
+        }
+
+        // Le nœud de pratique porte le titre de l'objectif : on retrouve la leçon par là.
+        $skeleton = \App\Models\CurriculumSkeleton::where('user_id', $userId)->first();
+        $index = collect($skeleton?->objectives ?? [])
+            ->search(fn ($objective) => ($objective['title'] ?? null) === $node->title);
+
+        if ($index === false) {
+            return null;
+        }
+
+        $lessonId = \App\Models\Lesson::where('user_id', $userId)
+            ->where('skeleton_objective_index', $index)
+            ->value('id');
+
+        return $lessonId ? (int) $lessonId : null;
     }
 
     public function verifySingle(Request $request)

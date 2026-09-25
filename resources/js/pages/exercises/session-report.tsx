@@ -49,9 +49,11 @@ interface Props {
         details?: ReportDetail[];
     };
     userLevel: string;
+    /** La vraie leçon du concept : l'identifiant du nœud n'en est pas un (404). */
+    lessonId?: number | null;
 }
 
-export default function SessionReport({ node, report, userLevel }: Props) {
+export default function SessionReport({ node, report, userLevel, lessonId }: Props) {
     const { t } = useTranslation();
 
     // Defensive fallbacks: a stale/partial report (old session shape left over
@@ -200,9 +202,27 @@ export default function SessionReport({ node, report, userLevel }: Props) {
                                                     <Icon name={f.correct ? "check" : "x"} size={12} style={{ filter: 'brightness(0) invert(1)' }} />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">
+                                                    <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
                                                         {f.question_text || `Question ${fIdx + 1}`}
                                                     </p>
+                                                    {!f.correct && (
+                                                        <div className="mt-2 space-y-1 text-sm">
+                                                            {f.given_answer ? (
+                                                                <p className="text-rose-700 dark:text-rose-300">
+                                                                    <span className="opacity-70">Ta réponse : </span>
+                                                                    <span className="font-semibold line-through">{asText(f.given_answer)}</span>
+                                                                </p>
+                                                            ) : (
+                                                                <p className="text-slate-500 dark:text-slate-400 italic">Aucune réponse donnée</p>
+                                                            )}
+                                                            {f.expected_answer && (
+                                                                <p className="text-emerald-700 dark:text-emerald-300">
+                                                                    <span className="opacity-70">Réponse attendue : </span>
+                                                                    <span className="font-semibold">{asText(f.expected_answer)}</span>
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    )}
                                                     {!f.correct && f.explanation && (
                                                         <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 bg-white/50 dark:bg-slate-950/30 p-3 rounded-lg border border-slate-100 dark:border-slate-800 italic">
                                                             {asText(f.explanation)}
@@ -243,7 +263,7 @@ export default function SessionReport({ node, report, userLevel }: Props) {
                                     ↻ Refaire pour valider (≥60%)
                                 </Link>
                                 <Link
-                                    href={`/lessons/${node.id}`}
+                                    href={lessonId ? `/lessons/${lessonId}` : '/lessons/next'}
                                     className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white rounded-2xl font-bold border border-slate-200 dark:border-slate-700 transition-all text-center"
                                 >
                                     Revoir la leçon
