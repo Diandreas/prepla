@@ -12,6 +12,18 @@ use App\Models\UserError;
 class ErrorSpacedRepetitionService
 {
     /**
+     * Plafond de l'intervalle, en jours (un an).
+     *
+     * Sans lui, chaque bonne réponse multipliait l'intervalle par le facteur de
+     * facilité (~2,6) sans fin : après une quinzaine de révisions la date de
+     * prochaine révision tombait en l'an 8243, puis 17567 — une chaîne que PHP ne
+     * sait plus relire. L'apprenant recevait alors une erreur 500 à chaque fin de
+     * séance, et plus jamais rien ne passait. Au-delà d'un an, réviser « plus tard »
+     * n'a de toute façon aucun sens pour une préparation d'examen.
+     */
+    public const MAX_INTERVAL_DAYS = 365;
+
+    /**
      * Schedule the next review for an error using SM-2.
      *
      * @param UserError $error
@@ -35,6 +47,7 @@ class ErrorSpacedRepetitionService
             } else {
                 $intervalDays = (int) round($intervalDays * $easeFactor);
             }
+            $intervalDays = min($intervalDays, self::MAX_INTERVAL_DAYS);
             $reviewCount++;
         } else {
             // Incorrect — reset to beginning

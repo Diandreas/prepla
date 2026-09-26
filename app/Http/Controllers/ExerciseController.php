@@ -158,7 +158,12 @@ class ExerciseController extends Controller
                         }
                     } else {
                         // If it was corrected now, update SM-2 and mark as mastered if threshold met
+                        // Les identifiants de question valent 'q1', 'q2', 'q3' dans TOUS
+                        // les exercices : chercher sur ce seul champ marquait comme
+                        // révisée l'erreur d'un autre exercice, gonflant le compteur et
+                        // l'intervalle à chaque bonne réponse.
                         $existingError = \App\Models\UserError::where('user_id', $user->id)
+                            ->where('exercise_id', $exercise->id)
                             ->where('question_id', $qFeedback['question_id'])
                             ->first();
 
