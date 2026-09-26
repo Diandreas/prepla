@@ -496,6 +496,13 @@ export default function SessionPlayer({ node, exercises }: Props) {
     // double-lancement (l'état React est trop lent pour ça — voir playTts).
     const currentAudioRef = useRef<HTMLAudioElement | null>(null);
     const ttsBusyRef = useRef(false);
+    // Safari (et les navigateurs stricts sur mobile) n'autorisent la lecture que si
+    // play() part du clic lui-même. Quand le son doit d'abord être fabriqué par le
+    // serveur, l'attente réseau fait perdre ce droit et rien ne sort — d'où « l'écoute
+    // ne marche pas » sur certains navigateurs, alors qu'elle marche quand le fichier
+    // est déjà en cache. On débloque donc un lecteur unique dès le clic, puis on lui
+    // donne sa source une fois l'audio prêt.
+    const SILENT_CLIP = 'data:audio/mp3;base64,//uQxAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQCA';
 
     const exercise = exercises[currentExerciseIndex];
     // TTS language for this node. Prefer the language SLUG ("english"/"french"/
@@ -604,6 +611,22 @@ export default function SessionPlayer({ node, exercises }: Props) {
         setAnswers(prev => ({ ...prev, [answerKey(questionId)]: answer }));
     }, [isChecked, answerKey]);
 
+    /** Prépare (et débloque) le lecteur partagé, dans le geste de l'apprenant. */
+    const unlockedPlayer = useCallback((): HTMLAudioElement => {
+        let audio = currentAudioRef.current;
+        if (!audio) {
+            audio = new Audio();
+            currentAudioRef.current = audio;
+        }
+        audio.pause();
+        if (!audio.src) {
+            audio.src = SILENT_CLIP;
+            audio.play().catch(() => {}); // le refus éventuel n'a aucune conséquence
+        }
+
+        return audio;
+    }, []);
+
     const playTts = useCallback(async (text: string, id: string) => {
         // Garde synchrone (ref) : l'état playingTts est asynchrone, deux appels
         // rapprochés (double-clic, ou onerror + catch du même échec) passaient
@@ -617,11 +640,13 @@ export default function SessionPlayer({ node, exercises }: Props) {
             if (id === 'passage') setAudioUnavailable(true);
         };
 
+        const player = unlockedPlayer();
+
         const playUrl = (url: string) => {
-            // Un seul lecteur à la fois : stoppe l'audio précédent avant d'en lancer un autre.
-            currentAudioRef.current?.pause();
-            const audio = new Audio(url);
-            currentAudioRef.current = audio;
+            // Un seul lecteur, réutilisé : c'est lui qui a reçu le droit de jouer.
+            const audio = player;
+            audio.pause();
+            audio.src = url;
             const done = () => { ttsBusyRef.current = false; setPlayingTts(null); };
             const failed = () => { done(); unavailable(); };
             audio.onended = done;
@@ -661,7 +686,7 @@ export default function SessionPlayer({ node, exercises }: Props) {
             setPlayingTts(null);
             unavailable();
         }
-    }, [nodeCode, playingTts]);
+    }, [nodeCode, playingTts, unlockedPlayer]);
 
     // Play a listening recording: prefer the pre-generated audio file (instant),
     // fall back to live TTS only if the file wasn't pre-built.
@@ -669,10 +694,9 @@ export default function SessionPlayer({ node, exercises }: Props) {
         if (playingTts === 'passage') return;
         if (url) {
             setPlayingTts('passage');
-            // Un seul lecteur à la fois (voir playTts).
-            currentAudioRef.current?.pause();
-            const audio = new Audio(url);
-            currentAudioRef.current = audio;
+            // Lecteur unique, débloqué dans le clic (voir unlockedPlayer).
+            const audio = unlockedPlayer();
+            audio.src = url;
             // Le fallback TTS ne doit partir qu'UNE fois : sur un fichier en échec
             // (ex. 404 du symlink storage), onerror ET le rejet de play() se
             // déclenchaient tous les deux → deux lectures TTS superposées (écho).
@@ -689,7 +713,7 @@ export default function SessionPlayer({ node, exercises }: Props) {
             return;
         }
         if (text) playTts(text, 'passage');
-    }, [playingTts, playTts]);
+    }, [playingTts, playTts, unlockedPlayer]);
 
     const fetchExplanation = useCallback(async (questionObj = question) => {
         if (!questionObj) return;
