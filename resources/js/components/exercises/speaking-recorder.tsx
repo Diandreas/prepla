@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAudioRecorder } from '@/hooks/use-audio-recorder';
 import { useTts } from '@/hooks/use-tts';
 
@@ -37,40 +37,57 @@ export function SpeakingRecorder({ question, onAnswer, selectedAnswer, disabled,
         return () => stop();
     }, [stop]);
 
-    // No prep phase configured: start recording immediately on mount instead of
-    // waiting for the countdown effect's first tick.
-    useEffect(() => {
-        if (!disabled && !selectedAnswer && prepTime <= 0) {
-            startRecording();
+    // The button and the automatic start can fire for the same phase; one request
+    // for the microphone at a time, or the browser prompts twice.
+    const startingRef = useRef(false);
+    const beginRecording = useCallback(async () => {
+        if (startingRef.current) return;
+        startingRef.current = true;
+        try {
+            await startRecording();
+        } finally {
+            startingRef.current = false;
         }
-        // Only ever run once per question mount.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [startRecording]);
 
-    // Countdown timer
+    // Entering the speaking phase asks for the microphone. A browser can refuse —
+    // permission denied, or no user gesture behind the request on mobile, which is
+    // exactly what happens when the preparation countdown reaches zero on its own.
+    // The attempt is made here, and the clock below waits for it to succeed.
+    useEffect(() => {
+        if (disabled || selectedAnswer || phase !== 'recording' || isRecording || audioBlob) return;
+        void beginRecording();
+        // Re-running on `error` would loop on a refused microphone: the learner
+        // restarts it with the button instead.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [phase]);
+
+    // Countdown. The speaking clock only runs while the microphone is actually
+    // recording: it used to run regardless, so a refused microphone burned the whole
+    // answer time and dropped the learner into a finished state with nothing said,
+    // no recording, and no button to start one.
     useEffect(() => {
         if (disabled || phase === 'done') return;
+        if (phase === 'recording' && !isRecording) return;
 
         const timer = setInterval(() => {
-            setCountdown((prev) => {
-                if (prev <= 1) {
-                    clearInterval(timer);
-                    if (phase === 'prep') {
-                        setPhase('recording');
-                        setCountdown(speakTime);
-                        startRecording();
-                    } else if (phase === 'recording') {
-                        stopRecording();
-                        setPhase('done');
-                    }
-                    return 0;
-                }
-                return prev - 1;
-            });
+            setCountdown((prev) => (prev <= 1 ? 0 : prev - 1));
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [phase, disabled, prepTime, speakTime, startRecording, stopRecording]);
+    }, [phase, disabled, isRecording]);
+
+    // Phase transitions, kept out of the tick so React never runs them twice.
+    useEffect(() => {
+        if (disabled || countdown > 0) return;
+        if (phase === 'prep') {
+            setPhase('recording');
+            setCountdown(speakTime);
+        } else if (phase === 'recording' && isRecording) {
+            stopRecording();
+            setPhase('done');
+        }
+    }, [countdown, phase, disabled, isRecording, speakTime, stopRecording]);
 
     // When recording done, submit the audio Blob
     useEffect(() => {
@@ -84,13 +101,27 @@ export function SpeakingRecorder({ question, onAnswer, selectedAnswer, disabled,
     const handleStartEarly = async () => {
         setPhase('recording');
         setCountdown(speakTime);
-        await startRecording();
+        await beginRecording();
     };
 
     const handleStopEarly = () => {
         stopRecording();
         setPhase('done');
     };
+
+    // Second chance after a microphone that never started, or a finished phase with
+    // nothing captured: the answer time is given back in full.
+    const handleRetry = async () => {
+        clearRecording();
+        setPhase('recording');
+        setCountdown(speakTime);
+        await beginRecording();
+    };
+
+    // In the speaking phase with no microphone running: the learner is waiting on a
+    // button, not on the clock.
+    const micStalled = phase === 'recording' && !isRecording && !audioBlob;
+    const finishedEmpty = phase === 'done' && !audioUrl && !selectedAnswer;
 
     const formatTime = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
@@ -143,7 +174,7 @@ export function SpeakingRecorder({ question, onAnswer, selectedAnswer, disabled,
                             {formatTime(countdown)}
                         </p>
                         <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                            {phase === 'prep' ? 'Préparation' : phase === 'recording' ? 'Enregistrement' : 'Terminé'}
+                            {phase === 'prep' ? 'Préparation' : micStalled ? 'En attente' : phase === 'recording' ? 'Enregistrement' : 'Terminé'}
                         </p>
                     </div>
                 </div>
@@ -167,7 +198,24 @@ export function SpeakingRecorder({ question, onAnswer, selectedAnswer, disabled,
                     </button>
                 )}
 
-                {phase === 'recording' && !disabled && (
+                {/* Microphone not running: the clock is on hold and it takes a tap to
+                    start it — a browser only grants the microphone on a real gesture. */}
+                {micStalled && !disabled && (
+                    <div className="flex flex-col items-center gap-2">
+                        <button
+                            onClick={handleStartEarly}
+                            className="duo-press rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground"
+                            style={{ boxShadow: '0 4px 0 0 rgba(0,0,0,0.25)' }}
+                        >
+                            Commencer l'enregistrement
+                        </button>
+                        <p className="max-w-xs text-center text-xs text-muted-foreground">
+                            Le temps de parole ne démarre qu'une fois le micro actif : tu ne perds rien à attendre.
+                        </p>
+                    </div>
+                )}
+
+                {phase === 'recording' && isRecording && !disabled && (
                     <button
                         onClick={handleStopEarly}
                         className="duo-press rounded-xl bg-red-500 px-6 py-3 text-sm font-bold text-white"
@@ -175,6 +223,23 @@ export function SpeakingRecorder({ question, onAnswer, selectedAnswer, disabled,
                     >
                         Arrêter l'enregistrement
                     </button>
+                )}
+
+                {/* Finished with nothing captured: this used to be a dead end — a 0:00
+                    timer, no audio player, and no way back. */}
+                {finishedEmpty && !disabled && (
+                    <div className="flex flex-col items-center gap-2">
+                        <p className="max-w-xs text-center text-sm font-medium text-muted-foreground">
+                            Rien n'a été enregistré. Reprends le temps de parole depuis le début.
+                        </p>
+                        <button
+                            onClick={handleRetry}
+                            className="duo-press rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground"
+                            style={{ boxShadow: '0 4px 0 0 rgba(0,0,0,0.25)' }}
+                        >
+                            Réessayer
+                        </button>
+                    </div>
                 )}
 
                 {/* Playback */}
