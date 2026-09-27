@@ -17,15 +17,18 @@ class ExerciseController extends Controller
     protected \App\Services\ExerciseScoringService $scoringService;
     protected \App\Services\StreakService $streakService;
     protected \App\Services\ErrorSpacedRepetitionService $errorSm2;
+    protected \App\Services\LevelAdvancementService $levelAdvancement;
 
     public function __construct(
         \App\Services\ExerciseScoringService $scoringService,
         \App\Services\StreakService $streakService,
-        \App\Services\ErrorSpacedRepetitionService $errorSm2
+        \App\Services\ErrorSpacedRepetitionService $errorSm2,
+        \App\Services\LevelAdvancementService $levelAdvancement
     ) {
         $this->scoringService = $scoringService;
         $this->streakService = $streakService;
         $this->errorSm2 = $errorSm2;
+        $this->levelAdvancement = $levelAdvancement;
     }
 
     public function submitSession(Request $request, LearningPathNode $node)
@@ -255,6 +258,11 @@ class ExerciseController extends Controller
             if ($practiceIndex !== null) {
                 if ($sessionAccuracy >= $MASTERY_THRESHOLD) {
                     $skeleton->completePractice($practiceIndex);
+
+                    // Seul endroit où un apprenant peut changer de niveau : la promotion
+                    // n'était appelée de nulle part, et chacun restait au niveau de son
+                    // test d'entrée, parcours terminé ou non.
+                    $this->levelAdvancement->assessAfterObjective($user->id, $skeleton->refresh());
                 } else {
                     // Strict mastery: stay on this objective + count the failure
                     $skeleton->consecutive_failures = ($skeleton->consecutive_failures ?? 0) + 1;
