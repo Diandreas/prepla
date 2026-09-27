@@ -1,6 +1,6 @@
 // Bump this version on every deploy that changes the app shell. Vite assets are
 // content-hashed, while this cache contains only public, non-personal assets.
-const CACHE_NAME = 'prepla-shell-v21';
+const CACHE_NAME = 'prepla-shell-v22';
 const OFFLINE_URL = '/offline';
 
 // Uploaded media under /storage can belong to a centre, so only first-party public
@@ -14,27 +14,66 @@ function isPublicAsset(url) {
         && STATIC_ASSET_EXTENSION.test(url.pathname);
 }
 
+const OFFLINE_APP_URL = '/telechargements';
+
 const PRECACHE_ASSETS = [
-    '/offline',
+    OFFLINE_URL,
+    OFFLINE_APP_URL,
     '/favicon.ico',
     '/manifest.json?v=4',
     '/icons/pwa-192-v4.png',
     '/icons/pwa-512-v4.png',
 ];
 
+// The offline space is useless without its own bundle, whose filenames are hashed at
+// build time: resolve the entry and every chunk it imports from the Vite manifest.
+async function offlineAppAssets() {
+    try {
+        const response = await fetch('/build/manifest.json', { cache: 'no-cache' });
+        if (!response.ok) return [];
+
+        const manifest = await response.json();
+        const files = new Set();
+        const seen = new Set();
+
+        const collect = (key) => {
+            const chunk = manifest[key];
+            if (!chunk || seen.has(key)) return;
+            seen.add(key);
+            if (chunk.file) files.add(`/build/${chunk.file}`);
+            (chunk.css || []).forEach((css) => files.add(`/build/${css}`));
+            (chunk.imports || []).forEach(collect);
+        };
+
+        collect('resources/js/offline.tsx');
+        return [...files];
+    } catch {
+        return [];
+    }
+}
+
 // Install the new worker in the background. Do not call skipWaiting here: an
 // immediate takeover could reload and interrupt an exercise or timed exam.
 self.addEventListener('install', (event) => {
-    event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_ASSETS))
-    );
+    event.waitUntil((async () => {
+        const cache = await caches.open(CACHE_NAME);
+        await cache.addAll(PRECACHE_ASSETS);
+        // One missing chunk must not abort the whole install.
+        const assets = await offlineAppAssets();
+        await Promise.allSettled(assets.map((asset) => cache.add(asset)));
+    })());
 });
 
-// Activate: clean old caches
+// Activate: drop only the previous versions of the shell. Downloaded packs live in
+// their own caches and must survive a deploy.
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((keys) =>
-            Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+            Promise.all(
+                keys
+                    .filter((key) => key.startsWith('prepla-shell-') && key !== CACHE_NAME)
+                    .map((key) => caches.delete(key))
+            )
         )
     );
     self.clients.claim();
@@ -77,6 +116,23 @@ self.addEventListener('fetch', (event) => {
     // prevents a logged-out or shared device from displaying a stale dashboard
     // containing serialized Inertia props. Offline falls back to a public shell.
     if (request.mode === 'navigate') {
+        // The offline space is the exception: it carries no personal data and has to
+        // open with no network at all, so its shell is refreshed then kept.
+        if (url.pathname === OFFLINE_APP_URL) {
+            event.respondWith(
+                fetch(request)
+                    .then((response) => {
+                        if (response && response.ok && response.type === 'basic') {
+                            const clone = response.clone();
+                            caches.open(CACHE_NAME).then((cache) => cache.put(OFFLINE_APP_URL, clone));
+                        }
+                        return response;
+                    })
+                    .catch(() => caches.match(OFFLINE_APP_URL).then((cached) => cached || caches.match(OFFLINE_URL)))
+            );
+            return;
+        }
+
         event.respondWith(
             Promise.race([
                 fetch(request),

@@ -76,6 +76,17 @@
             font-weight: 800;
         }
         button:active { transform: translateY(1px); }
+        .secondary {
+            display: block;
+            margin-top: 10px;
+            padding: 13px 12px;
+            color: #1f3b63;
+            background: rgba(74, 144, 226, .10);
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+        }
         .hint { display: block; margin-top: 17px; color: #94a3b8; font-size: 12px; line-height: 1.5; }
         @media (prefers-color-scheme: dark) {
             :root { color-scheme: dark; }
@@ -83,6 +94,7 @@
             .card { background: rgba(10, 28, 53, .96); border-color: rgba(148, 163, 184, .16); }
             p { color: #aab7c9; }
             .status { color: #fbd38d; background: rgba(245, 158, 11, .13); }
+            .secondary { color: #cfe0f7; background: rgba(74, 144, 226, .16); }
             .hint { color: #8492a8; }
         }
     </style>
@@ -94,7 +106,8 @@
         <h1>Vous êtes hors ligne</h1>
         <p>PrePla a besoin d’une connexion pour charger de nouveaux exercices et enregistrer votre progression.</p>
         <button type="button" onclick="window.location.reload()">Réessayer</button>
-        <span class="hint">Cette page se fermera automatiquement dès que la connexion reviendra.</span>
+        <a class="secondary" href="/telechargements">Ouvrir mes téléchargements</a>
+        <span class="hint">Les packs déjà téléchargés restent utilisables sans connexion. Cette page se fermera automatiquement dès que la connexion reviendra.</span>
     </main>
     <script>
         window.addEventListener('online', function () { window.location.reload(); });
