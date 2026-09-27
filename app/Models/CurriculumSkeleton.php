@@ -45,6 +45,76 @@ class CurriculumSkeleton extends Model
     /**
      * Get the current macro objective.
      */
+    /** L'échelle CEFR, du plus simple au plus avancé. */
+    public const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+
+    /**
+     * Niveau visé par un objectif du parcours.
+     *
+     * Le tableau de bord créait chaque nœud de pratique au niveau 'A1' écrit en dur,
+     * et les leçons reprenaient le niveau du profil — qui ne bouge jamais. Un
+     * apprenant traversait donc tout son parcours, jusqu'aux objectifs les plus
+     * avancés, en ne recevant que des exercices de débutant.
+     *
+     * Les parcours générés portent désormais leur niveau objectif par objectif. Pour
+     * ceux qui existaient déjà, on le déduit de la position : un palier par tiers de
+     * parcours, sans jamais dépasser deux crans au-dessus du niveau de départ.
+     */
+    public function levelForObjective(int $index, ?string $startLevel = null): string
+    {
+        $objectives = $this->objectives ?? [];
+        $stored = $objectives[$index]['level'] ?? null;
+
+        if (is_string($stored) && in_array($stored, self::CEFR_LEVELS, true)) {
+            return $stored;
+        }
+
+        return self::levelForPosition($startLevel ?? 'A1', $index, count($objectives));
+    }
+
+    /**
+     * Fige une bonne fois le niveau des objectifs qui n'en portent pas.
+     *
+     * La déduction dépend du niveau de départ : la recalculer à chaque fois ferait
+     * glisser tous les niveaux dès que l'apprenant monte d'un cran, et « tous les
+     * objectifs de mon niveau sont finis » ne serait jamais vrai. On l'écrit donc
+     * une seule fois, au premier passage.
+     */
+    public function ensureObjectiveLevels(string $startLevel): void
+    {
+        $objectives = $this->objectives ?? [];
+        $total = count($objectives);
+        $changed = false;
+
+        foreach ($objectives as $index => $objective) {
+            $level = $objective['level'] ?? null;
+            if (is_string($level) && in_array($level, self::CEFR_LEVELS, true)) {
+                continue;
+            }
+
+            $objectives[$index]['level'] = self::levelForPosition($startLevel, $index, $total);
+            $changed = true;
+        }
+
+        if ($changed) {
+            $this->objectives = $objectives;
+            $this->save();
+        }
+    }
+
+    /** Déduction par position, pour les parcours construits avant que le niveau soit stocké. */
+    public static function levelForPosition(string $startLevel, int $index, int $total): string
+    {
+        $start = array_search($startLevel, self::CEFR_LEVELS, true);
+        if ($start === false) {
+            $start = 0;
+        }
+
+        $step = (int) floor(($index * 3) / max(1, $total)); // 0, 1 ou 2
+
+        return self::CEFR_LEVELS[min($start + $step, count(self::CEFR_LEVELS) - 1)];
+    }
+
     public function currentObjective(): ?array
     {
         $objectives = $this->objectives ?? [];

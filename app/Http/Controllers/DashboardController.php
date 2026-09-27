@@ -32,6 +32,10 @@ class DashboardController extends Controller
         $errorDiagnostic = [];
 
         if ($hasCurriculum) {
+            // Les parcours d'avant portaient tous leurs objectifs sans niveau : on les
+            // fige au premier passage, sinon la pratique reste bloquée en A1.
+            $skeleton->ensureObjectiveLevels($profile?->current_level ?? 'A1');
+
             // New adaptive system
             $currentObjective = $skeleton->currentObjective();
             $objectives = $skeleton->objectives ?? [];
@@ -112,6 +116,11 @@ class DashboardController extends Controller
                         ? route('lessons.show', $relatedLesson->id)
                         : route('lessons.next');
 
+                    // Le niveau d'un objectif commande la difficulté des exercices générés.
+                    // Écrit en dur à 'A1', il faisait traverser tout le parcours — jusqu'aux
+                    // objectifs de fluidité avancée — avec des exercices de débutant.
+                    $objectiveLevel = $skeleton->levelForObjective($globalIndex, $profile?->current_level);
+
                     // Make sure a LearningPathNode exists for this objective for the Practice session
                     $nodeEntity = LearningPathNode::firstOrCreate(
                         ['exam_id' => $examId, 'title' => $objective['title']],
@@ -123,9 +132,14 @@ class DashboardController extends Controller
                             'node_type' => 'lesson',
                             'skill_type' => 'grammar',
                             'xp_reward' => 30,
-                            'level' => 'A1'
+                            'level' => $objectiveLevel,
                         ]
                     );
+
+                    // Les nœuds créés avant ce correctif sont tous restés en 'A1'.
+                    if ($nodeEntity->level !== $objectiveLevel) {
+                        $nodeEntity->update(['level' => $objectiveLevel]);
+                    }
 
                     // Nœud Théorique (Leçon)
                     $nodes[] = [
@@ -134,7 +148,7 @@ class DashboardController extends Controller
                         'description' => $objective['title'],
                         'icon' => 'book',
                         'skill_type' => 'theory',
-                        'level' => 'A1',
+                        'level' => $objectiveLevel,
                         'status' => $lessonStatus,
                         'xp_reward' => 10,
                         'type' => 'lesson', // New property for UI mapping
@@ -155,7 +169,7 @@ class DashboardController extends Controller
                         'description' => 'Exercices: ' . $objective['title'],
                         'icon' => 'target',
                         'skill_type' => 'practice',
-                        'level' => 'A1',
+                        'level' => $objectiveLevel,
                         'status' => $practiceStatus,
                         'xp_reward' => 30,
                         'type' => 'practice',

@@ -218,6 +218,7 @@ Respond in this exact JSON format:
       "order": 0,
       "title": "Objective title in $language",
       "concept": "grammar.tense.present_simple",
+      "level": "$level",
       "status": "pending",
       "priority": "normal"
     }
@@ -229,6 +230,9 @@ IMPORTANT:
 - Titles should be clear and in $language
 - Order from foundational to advanced
 - For level $level, start with the basics appropriate for that level
+- The level field is the CEFR level this objective is practised at (A1, A2, B1, B2, C1 or C2).
+  Start at $level and climb gradually: the first objectives stay at $level, the last ones
+  reach the level the exam demands. Never go back down.
 PROMPT;
     }
 
@@ -246,11 +250,21 @@ PROMPT;
         }
 
         // Ensure proper structure
-        return collect($objectives)->map(function ($obj, $index) {
+        $total = count($objectives);
+
+        return collect($objectives)->map(function ($obj, $index) use ($level, $total) {
+            $objectiveLevel = $obj['level'] ?? null;
+            if (!is_string($objectiveLevel) || !in_array($objectiveLevel, CurriculumSkeleton::CEFR_LEVELS, true)) {
+                $objectiveLevel = CurriculumSkeleton::levelForPosition($level, $index, $total);
+            }
+
             return [
                 'order' => $obj['order'] ?? $index,
                 'title' => $obj['title'] ?? "Objective $index",
                 'concept' => $obj['concept'] ?? 'general',
+                // Sans ce niveau, toute la pratique était générée en A1, du premier au
+                // dernier objectif — y compris ceux qui visent la fluidité avancée.
+                'level' => $objectiveLevel,
                 'status' => 'pending',
                 'priority' => $obj['priority'] ?? 'normal',
             ];

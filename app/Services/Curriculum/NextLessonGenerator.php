@@ -123,7 +123,9 @@ class NextLessonGenerator
             'description' => $lessonData['concept'] ?? '',
             'icon' => $this->getIconForConcept($currentObjective['concept'] ?? ''),
             'skill_type' => $this->getSkillTypeFromConcept($currentObjective['concept'] ?? ''),
-            'level' => $profile->current_level ?? 'A1',
+            // Le niveau de l'objectif, pas celui du profil : ce dernier ne bouge pas
+            // pendant le parcours et bloquait toute la pratique au niveau d'entrée.
+            'level' => $skeleton->levelForObjective($skeleton->current_objective_index, $profile->current_level),
             'xp_reward' => 30,
             'node_type' => 'lesson',
             'exercises_count' => 3,
