@@ -1,5 +1,7 @@
 import { normalizeOptions } from './normalize-options';
 
+type GapAnswer = string | Record<string, string>;
+
 interface GapFillProps {
     question: {
         id: string;
@@ -7,26 +9,36 @@ interface GapFillProps {
         options?: unknown;
         correct_answer?: unknown;
     };
-    onAnswer: (questionId: string, answer: string) => void;
-    selectedAnswer?: string;
+    onAnswer: (questionId: string, answer: GapAnswer) => void;
+    selectedAnswer?: GapAnswer;
     disabled?: boolean;
+}
+
+/** Champ inline dont la largeur suit ce qui est tapé, pour rester fluide dans la phrase. */
+function gapWidth(value: string) {
+    return Math.max(6, (value.length || 8) + 1);
 }
 
 /**
  * Gap-fill : on écrit DIRECTEMENT dans le blanc, à l'intérieur de la phrase
  * (champ inline à la place du ___), au lieu d'un input séparé en bas.
- * Le champ s'élargit selon ce qui est tapé pour rester fluide dans le texte.
+ *
+ * Une phrase peut porter plusieurs blancs : chacun reçoit son champ. Avant, seul
+ * le premier était remplissable et les suivants restaient affichés en « ___ » —
+ * l'exercice était alors impossible à terminer. Avec plusieurs blancs, la réponse
+ * part sous forme de dictionnaire indexé par blanc ; le serveur en recolle les
+ * valeurs dans l'ordre, exactement comme le fait la correction locale.
  */
 export function GapFill({ question, onAnswer, selectedAnswer, disabled }: GapFillProps) {
-    const value = selectedAnswer ?? '';
     const raw = question.text ?? '';
     const options = normalizeOptions(question.options);
+    const parts = raw.split(/_{2,}/);
+    const gapCount = Math.max(1, parts.length - 1);
 
     // mcq-cloze (seeded) maps to this component WITH options → mode QCM inline.
     if (options.length > 0) {
-        const parts = raw.split(/_{2,}/);
         const correct = String(question.correct_answer ?? '').trim().toUpperCase();
-        const selLetter = (selectedAnswer ?? '').toUpperCase();
+        const selLetter = (typeof selectedAnswer === 'string' ? selectedAnswer : '').toUpperCase();
         const selIdx = selLetter.length === 1 ? selLetter.charCodeAt(0) - 65 : -1;
         return (
             <div className="space-y-3">
@@ -69,33 +81,73 @@ export function GapFill({ question, onAnswer, selectedAnswer, disabled }: GapFil
             </div>
         );
     }
-    // Découpe au 1er trou (___ ou (1)___). S'il y a un indice entre parenthèses
-    // juste après le blanc, ex "___ (gehen)", on le garde visible comme aide.
-    const parts = raw.split(/_{2,}/);
-    const before = parts[0] ?? '';
-    const after = parts.slice(1).join('___');
 
-    // Largeur du champ ~ longueur du texte (min 6ch).
-    const width = Math.max(6, (value.length || 8) + 1);
+    // Un seul blanc : la réponse reste une chaîne simple, comme avant.
+    if (gapCount === 1) {
+        const value = typeof selectedAnswer === 'string' ? selectedAnswer : '';
+        const before = parts[0] ?? '';
+        const after = parts[1] ?? '';
+
+        return (
+            <div className="space-y-2">
+                <p className="text-lg font-medium leading-relaxed">
+                    {before}
+                    <input
+                        type="text"
+                        value={value}
+                        onChange={(e) => onAnswer(question.id, e.target.value)}
+                        disabled={disabled}
+                        aria-label={`Compléter le blanc dans la phrase : ${before}…${after}`}
+                        autoComplete="off"
+                        autoCapitalize="off"
+                        spellCheck={false}
+                        placeholder="…"
+                        style={{ width: `${gapWidth(value)}ch` }}
+                        className="mx-1 inline-block max-w-full border-b-2 border-primary bg-primary/5 px-1.5 py-0.5 text-center font-bold text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-60"
+                    />
+                    {after}
+                </p>
+            </div>
+        );
+    }
+
+    // Plusieurs blancs : un champ par blanc, réponse indexée par position.
+    const values: Record<string, string> =
+        selectedAnswer && typeof selectedAnswer === 'object' ? selectedAnswer : {};
+
+    const setGap = (index: number, next: string) => {
+        onAnswer(question.id, { ...values, [String(index)]: next });
+    };
 
     return (
         <div className="space-y-2">
             <p className="text-lg font-medium leading-relaxed">
-                {before}
-                <input
-                    type="text"
-                    value={value}
-                    onChange={(e) => onAnswer(question.id, e.target.value)}
-                    disabled={disabled}
-                    aria-label={`Compléter le blanc dans la phrase : ${before}…${after}`}
-                    autoComplete="off"
-                    autoCapitalize="off"
-                    spellCheck={false}
-                    placeholder="…"
-                    style={{ width: `${width}ch` }}
-                    className="mx-1 inline-block max-w-full border-b-2 border-primary bg-primary/5 px-1.5 py-0.5 text-center font-bold text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-60"
-                />
-                {after}
+                {parts.map((part, index) => {
+                    const value = values[String(index)] ?? '';
+                    return (
+                        <span key={index}>
+                            {part}
+                            {index < parts.length - 1 && (
+                                <input
+                                    type="text"
+                                    value={value}
+                                    onChange={(e) => setGap(index, e.target.value)}
+                                    disabled={disabled}
+                                    aria-label={`Blanc ${index + 1} sur ${gapCount}`}
+                                    autoComplete="off"
+                                    autoCapitalize="off"
+                                    spellCheck={false}
+                                    placeholder="…"
+                                    style={{ width: `${gapWidth(value)}ch` }}
+                                    className="mx-1 inline-block max-w-full border-b-2 border-primary bg-primary/5 px-1.5 py-0.5 text-center font-bold text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-60"
+                                />
+                            )}
+                        </span>
+                    );
+                })}
+            </p>
+            <p className="text-xs text-muted-foreground">
+                Cette phrase compte {gapCount} blancs : remplis-les tous avant de vérifier.
             </p>
         </div>
     );

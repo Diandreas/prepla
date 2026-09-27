@@ -2,7 +2,7 @@ import { GapFill } from '@/components/exercises/gap-fill';
 import { Matching } from '@/components/exercises/matching';
 import { Mcq } from '@/components/exercises/mcq';
 import { listAttempts, listPacks, newUuid, readOwner, saveAttempt, type OfflineAttempt, type OfflinePack } from '@/lib/offline/db';
-import { isAnswerCorrect, scoreSession, type SessionScore } from '@/lib/scoring';
+import { expectedAnswerText, isAnswerCorrect, scoreSession, type SessionScore } from '@/lib/scoring';
 import { useCallback, useEffect, useState } from 'react';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- each renderer declares its own question and answer shape
@@ -43,16 +43,38 @@ function StatusBadge({ online }: { online: boolean }) {
     );
 }
 
+type PackAnswer = string | Record<string, string>;
+
+/** Réponse à plusieurs champs mise à plat pour l'archivage, dans l'ordre des champs. */
+function writtenAnswer(answer: unknown): string {
+    if (answer && typeof answer === 'object') {
+        return Object.values(answer as Record<string, unknown>)
+            .map((value) => String(value ?? '').trim())
+            .filter(Boolean)
+            .join(' ');
+    }
+    return String(answer ?? '');
+}
+
+/** Une réponse compte comme donnée dès qu'au moins un champ est rempli. */
+function isAnswered(answer: PackAnswer | undefined): boolean {
+    if (typeof answer === 'string') return answer.trim() !== '';
+    if (answer && typeof answer === 'object') return Object.values(answer).some((value) => String(value ?? '').trim() !== '');
+    return false;
+}
+
 function SessionRunner({ pack, onFinish, onQuit }: { pack: OfflinePack; onFinish: (score: SessionScore) => void; onQuit: () => void }) {
     const [index, setIndex] = useState(0);
-    const [answers, setAnswers] = useState<Record<string, string>>({});
+    // Une réponse est une chaîne, ou un dictionnaire quand la question porte
+    // plusieurs champs (phrase à plusieurs blancs, notes à compléter).
+    const [answers, setAnswers] = useState<Record<string, PackAnswer>>({});
     const [checked, setChecked] = useState(false);
 
     const question = pack.questions[index];
     const Renderer = RENDERERS[pack.format] ?? Mcq;
     const answer = answers[question.id];
     const isLast = index === pack.questions.length - 1;
-    const hasAnswer = typeof answer === 'string' && answer.trim() !== '';
+    const hasAnswer = isAnswered(answer);
     const correct = checked ? isAnswerCorrect(question, answer) : null;
 
     const advance = () => {
@@ -89,7 +111,7 @@ function SessionRunner({ pack, onFinish, onQuit }: { pack: OfflinePack; onFinish
                 <Renderer
                     key={question.id}
                     question={question}
-                    onAnswer={(_questionId: string, value: string) => setAnswers((previous) => ({ ...previous, [question.id]: value }))}
+                    onAnswer={(_questionId: string, value: PackAnswer) => setAnswers((previous) => ({ ...previous, [question.id]: value }))}
                     selectedAnswer={answer}
                     disabled={checked}
                 />
@@ -104,7 +126,18 @@ function SessionRunner({ pack, onFinish, onQuit }: { pack: OfflinePack; onFinish
                             : 'border-red-300 bg-red-50 text-red-950 dark:border-red-800 dark:bg-red-950/40 dark:text-red-100'
                     }`}
                 >
-                    <p className="font-bold">{correct ? 'Bonne réponse' : `Réponse attendue : ${question.correct_answer ?? '—'}`}</p>
+                    {correct ? (
+                        <p className="font-bold">Bonne réponse</p>
+                    ) : (
+                        <>
+                            <p className="font-bold">Réponse attendue : {expectedAnswerText(question) || '—'}</p>
+                            {writtenAnswer(answer) !== '' && (
+                                <p className="mt-1">
+                                    Ta réponse : <span className="line-through">{writtenAnswer(answer)}</span>
+                                </p>
+                            )}
+                        </>
+                    )}
                     {question.explanation && <p className="mt-1">{question.explanation}</p>}
                 </div>
             )}
@@ -214,7 +247,7 @@ export function OfflineApp() {
             pack_key: pack.key,
             pack_id: pack.pack_id,
             exercise_id: pack.exercise_id,
-            answers: Object.fromEntries(score.details.map((detail) => [detail.question_id, String(detail.given_answer ?? '')])),
+            answers: Object.fromEntries(score.details.map((detail) => [detail.question_id, writtenAnswer(detail.given_answer)])),
             score: score.score,
             total: score.total,
             accuracy: score.accuracy,
