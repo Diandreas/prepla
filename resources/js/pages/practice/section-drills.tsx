@@ -1,8 +1,9 @@
 import { ArtIcon } from '@/components/art-icon';
 import AppLayout from '@/layouts/app-layout';
+import { rememberOwner, savePack } from '@/lib/offline/db';
 import type { ExamRecord, ExamSection, SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ArrowLeft, ArrowRight, CheckCircle2, Clock3, Info, LoaderCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Clock3, Download, Info, LoaderCircle } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -43,12 +44,48 @@ function exercisePresentation(component: string) {
     return { icon: 'lightbulb', hint: 'Lis la consigne et mets tes connaissances en pratique.', key: 'default' };
 }
 
+function csrfToken(): string {
+    const cookie = document.cookie.split('; ').find((entry) => entry.startsWith('XSRF-TOKEN='));
+    if (cookie) return decodeURIComponent(cookie.split('=')[1]);
+    return (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
+}
+
 export default function SectionDrills({ exam, section, exerciseTypes = [] }: Props) {
     const { t } = useTranslation();
     const { flash } = usePage<SharedData & { flash?: { error?: string } }>().props;
     const [launching, setLaunching] = useState<number | null>(null);
     const launchPending = useRef(false);
+    const [downloading, setDownloading] = useState<number | null>(null);
+    const [downloaded, setDownloaded] = useState<Record<number, boolean>>({});
+    const [downloadError, setDownloadError] = useState<string | null>(null);
     const skill = skills[section.skill_type] ?? skills.reading;
+
+    // A downloaded series stays on the device: the same exercise, with its corrections,
+    // can then be done in the offline space with no connection at all.
+    const downloadPack = async (typeId: number) => {
+        setDownloading(typeId);
+        setDownloadError(null);
+        try {
+            const response = await fetch(route('offline.packs.store', [exam.id, typeId]), {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-XSRF-TOKEN': csrfToken(),
+                },
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+            const pack = await response.json();
+            await rememberOwner({ id: pack.user_id, name: pack.user_name });
+            await savePack(pack);
+            setDownloaded((previous) => ({ ...previous, [typeId]: true }));
+        } catch {
+            setDownloadError("Le téléchargement n'a pas abouti. Vérifie ta connexion, puis réessaie.");
+        } finally {
+            setDownloading(null);
+        }
+    };
 
     return (
         <AppLayout>
@@ -106,7 +143,10 @@ export default function SectionDrills({ exam, section, exerciseTypes = [] }: Pro
                         <div>
                             <p className="text-sm font-bold">{t('practice.starter_title', 'Des exercices prêts à lancer')}</p>
                             <p className="mt-1 text-xs leading-relaxed">
-                                {t('practice.starter_hint', 'Les formats « Prêt sans IA » proposent un entraînement général à ton niveau, avec correction. Une connexion à PrepLa reste nécessaire ; ce ne sont pas des sujets officiels d’examen.')}
+                                {t(
+                                    'practice.starter_hint',
+                                    'Les formats « Prêt sans IA » proposent un entraînement général à ton niveau, avec correction. Une connexion à PrepLa reste nécessaire ; ce ne sont pas des sujets officiels d’examen.',
+                                )}
                             </p>
                         </div>
                     </div>
@@ -134,60 +174,106 @@ export default function SectionDrills({ exam, section, exerciseTypes = [] }: Pro
                     </div>
                 ) : (
                     <section aria-labelledby="drill-formats-title">
-                        <h2 id="drill-formats-title" className="text-foreground mb-4 text-lg font-extrabold">
-                            {t('practice.exercise_formats', 'À toi de choisir')}
-                        </h2>
+                        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                            <h2 id="drill-formats-title" className="text-foreground text-lg font-extrabold">
+                                {t('practice.exercise_formats', 'À toi de choisir')}
+                            </h2>
+                            <a
+                                href="/telechargements"
+                                className="text-primary focus-visible:ring-ring inline-flex items-center gap-1.5 rounded-lg text-xs font-bold focus-visible:ring-2 focus-visible:outline-none"
+                            >
+                                <Download className="h-3.5 w-3.5" aria-hidden="true" />
+                                {t('practice.my_downloads', 'Mes téléchargements')}
+                            </a>
+                        </div>
+                        {downloadError && (
+                            <p
+                                role="alert"
+                                className="mb-3 rounded-2xl border border-red-200 bg-red-50 p-3 text-xs font-medium text-red-900 dark:border-red-800 dark:bg-red-950/40 dark:text-red-100"
+                            >
+                                {downloadError}
+                            </p>
+                        )}
                         <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
                             {exerciseTypes.map((type) => {
                                 const presentation = exercisePresentation(type.component_key);
                                 const busy = launching === type.id;
                                 return (
-                                    <Link
-                                        key={type.id}
-                                        href={route('practice.drill.type', [exam.id, type.id])}
-                                        onBefore={() => {
-                                            if (launchPending.current) return false;
-                                            launchPending.current = true;
-                                            setLaunching(type.id);
-                                        }}
-                                        onFinish={() => {
-                                            launchPending.current = false;
-                                            setLaunching(null);
-                                        }}
-                                        aria-disabled={launching !== null}
-                                        aria-busy={busy}
-                                        className={`studio-card group bg-card focus-visible:ring-ring flex h-full min-w-0 flex-col rounded-2xl border p-3 sm:p-5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none ${busy ? 'border-primary ring-primary/20 ring-1' : 'border-border hover:border-primary/50'} ${launching !== null && !busy ? 'opacity-60' : ''}`}
-                                    >
-                                        <div className="mb-4 flex items-center justify-between gap-3">
-                                            <ArtIcon name={presentation.icon} size={52} tone={skill.tone} />
-                                            {busy ? (
-                                                <LoaderCircle
-                                                    className="text-primary h-5 w-5 animate-spin motion-reduce:animate-none"
-                                                    aria-hidden="true"
-                                                />
-                                            ) : (
-                                                <ArrowRight
-                                                    className="text-muted-foreground h-4 w-4 transition-transform motion-safe:group-hover:translate-x-1"
-                                                    aria-hidden="true"
-                                                />
+                                    <div key={type.id} className="flex h-full min-w-0 flex-col gap-2">
+                                        <Link
+                                            href={route('practice.drill.type', [exam.id, type.id])}
+                                            onBefore={() => {
+                                                if (launchPending.current) return false;
+                                                launchPending.current = true;
+                                                setLaunching(type.id);
+                                            }}
+                                            onFinish={() => {
+                                                launchPending.current = false;
+                                                setLaunching(null);
+                                            }}
+                                            aria-disabled={launching !== null}
+                                            aria-busy={busy}
+                                            className={`studio-card group bg-card focus-visible:ring-ring flex h-full min-w-0 flex-col rounded-2xl border p-3 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none sm:p-5 ${busy ? 'border-primary ring-primary/20 ring-1' : 'border-border hover:border-primary/50'} ${launching !== null && !busy ? 'opacity-60' : ''}`}
+                                        >
+                                            <div className="mb-4 flex items-center justify-between gap-3">
+                                                <ArtIcon name={presentation.icon} size={52} tone={skill.tone} />
+                                                {busy ? (
+                                                    <LoaderCircle
+                                                        className="text-primary h-5 w-5 animate-spin motion-reduce:animate-none"
+                                                        aria-hidden="true"
+                                                    />
+                                                ) : (
+                                                    <ArrowRight
+                                                        className="text-muted-foreground h-4 w-4 transition-transform motion-safe:group-hover:translate-x-1"
+                                                        aria-hidden="true"
+                                                    />
+                                                )}
+                                            </div>
+                                            <h3 className="text-foreground text-sm leading-snug font-extrabold">{type.name}</h3>
+                                            {type.starter_available && (
+                                                <span className="mt-2 inline-flex w-fit items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-bold text-emerald-900 dark:bg-emerald-900/50 dark:text-emerald-100">
+                                                    <CheckCircle2 className="h-3 w-3 shrink-0" aria-hidden="true" />
+                                                    {t('practice.starter_badge', 'Prêt sans IA')}
+                                                </span>
                                             )}
-                                        </div>
-                                        <h3 className="text-foreground text-sm leading-snug font-extrabold">{type.name}</h3>
-                                        {type.starter_available && (
-                                            <span className="mt-2 inline-flex w-fit items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-bold text-emerald-900 dark:bg-emerald-900/50 dark:text-emerald-100">
-                                                <CheckCircle2 className="h-3 w-3 shrink-0" aria-hidden="true" />
-                                                {t('practice.starter_badge', 'Prêt sans IA')}
+                                            <p className="text-muted-foreground mt-2 flex-1 text-xs leading-relaxed">
+                                                {t(`practice.format_hint_${presentation.key}`, presentation.hint)}
+                                            </p>
+                                            <span className="text-primary mt-4 text-xs font-bold">
+                                                {busy
+                                                    ? t('practice.preparing_drill', 'Préparation en cours…')
+                                                    : t('practice.launch_drill', 'M’entraîner')}
                                             </span>
+                                        </Link>
+                                        {type.starter_available && (
+                                            <button
+                                                type="button"
+                                                onClick={() => void downloadPack(type.id)}
+                                                disabled={downloading !== null || downloaded[type.id] === true}
+                                                className="border-border text-muted-foreground hover:border-primary/50 focus-visible:ring-ring inline-flex items-center justify-center gap-1.5 rounded-xl border px-2 py-2 text-[11px] font-bold transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:opacity-70"
+                                            >
+                                                {downloaded[type.id] ? (
+                                                    <>
+                                                        <CheckCircle2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                                                        {t('practice.offline_ready', 'Disponible hors ligne')}
+                                                    </>
+                                                ) : downloading === type.id ? (
+                                                    <>
+                                                        <LoaderCircle
+                                                            className="h-3.5 w-3.5 shrink-0 animate-spin motion-reduce:animate-none"
+                                                            aria-hidden="true"
+                                                        />
+                                                        {t('practice.offline_downloading', 'Téléchargement…')}
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Download className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                                                        {t('practice.offline_download', 'Télécharger hors ligne')}
+                                                    </>
+                                                )}
+                                            </button>
                                         )}
-                                        <p className="text-muted-foreground mt-2 flex-1 text-xs leading-relaxed">
-                                            {t(`practice.format_hint_${presentation.key}`, presentation.hint)}
-                                        </p>
-                                        <span className="text-primary mt-4 text-xs font-bold">
-                                            {busy
-                                                ? t('practice.preparing_drill', 'Préparation en cours…')
-                                                : t('practice.launch_drill', 'M’entraîner')}
-                                        </span>
-                                    </Link>
+                                    </div>
                                 );
                             })}
                         </div>
