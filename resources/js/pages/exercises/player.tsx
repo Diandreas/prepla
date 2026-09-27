@@ -486,6 +486,7 @@ export default function SessionPlayer({ node, exercises }: Props) {
     const [isSearching, setIsSearching] = useState(false);
     const [searchResult, setSearchResult] = useState<DictionaryLookup | null>(null);
     const [isVocabSaved, setIsVocabSaved] = useState(false);
+    const [vocabError, setVocabError] = useState<string | null>(null);
     // Listening: how many times the recording was played (exam-realistic cap of 2).
     const [listenCount, setListenCount] = useState(0);
     // Neither the stored file nor live speech could be played: the transcript is
@@ -1522,6 +1523,7 @@ export default function SessionPlayer({ node, exercises }: Props) {
                                                     setIsSearching(true);
                                                     setSearchResult(null);
                                                     setIsVocabSaved(false);
+                                                    setVocabError(null);
                                                     try {
                                                         const res = await fetch(route('dictionary.lookup', { language: nodeCode, word: searchTerm }));
                                                         const data = await res.json();
@@ -1554,11 +1556,25 @@ export default function SessionPlayer({ node, exercises }: Props) {
                                                     <p className="text-sm text-slate-700 leading-relaxed italic mb-3">"{searchResult.definition}"</p>
                                                     <div className="text-xs text-slate-500 font-medium">Traduction : <span className="text-indigo-600">{searchResult.translation}</span></div>
                                                 </div>
-                                                <button 
+                                                <button
                                                     disabled={isVocabSaved}
                                                     onClick={async () => {
+                                                        // Plain fetch, not an Inertia visit: the previous
+                                                        // router.post followed a redirect back to this page
+                                                        // and restarted the session mid-exercise.
+                                                        setVocabError(null);
                                                         try {
-                                                            await router.post(route('vocabulary.store'), { dictionary_word_id: searchResult.id });
+                                                            const res = await fetch(route('dictionary.save'), {
+                                                                method: 'POST',
+                                                                headers: {
+                                                                    'Content-Type': 'application/json',
+                                                                    Accept: 'application/json',
+                                                                    'X-Requested-With': 'XMLHttpRequest',
+                                                                    'X-XSRF-TOKEN': csrfToken(),
+                                                                },
+                                                                body: JSON.stringify({ dictionary_word_id: searchResult.id }),
+                                                            });
+                                                            if (!res.ok) throw new Error(`HTTP ${res.status}`);
                                                             setIsVocabSaved(true);
                                                             setTimeout(() => {
                                                                 setIsDictionaryOpen(false);
@@ -1566,7 +1582,9 @@ export default function SessionPlayer({ node, exercises }: Props) {
                                                                 setSearchTerm('');
                                                                 setIsVocabSaved(false);
                                                             }, 1500);
-                                                        } catch (err) { console.error(err); }
+                                                        } catch {
+                                                            setVocabError("Le mot n'a pas pu être ajouté. Vérifie ta connexion, puis réessaie.");
+                                                        }
                                                     }}
                                                     className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${
                                                         isVocabSaved ? 'bg-emerald-500 text-white' : 'bg-indigo-600 text-white shadow-lg shadow-indigo-100'
@@ -1575,6 +1593,9 @@ export default function SessionPlayer({ node, exercises }: Props) {
                                                     <Icon name={isVocabSaved ? 'check' : 'plus'} size={16} style={{ filter: 'brightness(0) invert(1)' }} />
                                                     {isVocabSaved ? 'Ajouté au Lexique !' : 'Ajouter à mon Lexique'}
                                                 </button>
+                                                {vocabError && (
+                                                    <p role="alert" className="text-sm font-medium text-red-600">{vocabError}</p>
+                                                )}
                                             </div>
                                         ) : (
                                             <div className="text-center py-6 text-slate-400 text-sm italic">

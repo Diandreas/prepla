@@ -9,6 +9,32 @@ use Inertia\Inertia;
 
 class DictionaryController extends Controller
 {
+    /**
+     * The dictionary stores a word under one code per language.
+     *
+     * Exercises identify their language by slug ('german'), the rest of the app by
+     * name ('Allemand') or ISO code ('de'). A word looked up from an exercise used to
+     * land under 'german' while the lexicon only ever reads 'de', so it was saved and
+     * then never seen again. Everything is normalised here, to ISO.
+     */
+    public static function languageCode(?string $language): string
+    {
+        $map = [
+            'en' => 'en', 'english' => 'en', 'anglais' => 'en',
+            'de' => 'de', 'german' => 'de', 'deutsch' => 'de', 'allemand' => 'de', 'german (deutsch)' => 'de',
+            'fr' => 'fr', 'french' => 'fr', 'français' => 'fr', 'francais' => 'fr',
+            'es' => 'es', 'spanish' => 'es', 'español' => 'es', 'espagnol' => 'es',
+        ];
+
+        return $map[mb_strtolower(trim((string) $language))] ?? 'en';
+    }
+
+    /** The language written out, for a prompt the AI has to answer in. */
+    private static function languageName(string $isoCode): string
+    {
+        return ['de' => 'allemand', 'fr' => 'français', 'es' => 'espagnol'][$isoCode] ?? 'anglais';
+    }
+
     /** CEFR levels at or below the given level (so we never suggest words above the learner). */
     private static function levelsUpTo(string $level): array
     {
@@ -50,13 +76,7 @@ class DictionaryController extends Controller
         $user = auth()->user();
         $langName = $user->profile?->targetExam?->language?->name ?? 'English';
         
-        $langMap = [
-            'English' => 'en', 'Anglais' => 'en',
-            'German' => 'de', 'German (Deutsch)' => 'de', 'Deutsch' => 'de', 'Allemand' => 'de',
-            'French' => 'fr', 'Français' => 'fr',
-            'Spanish' => 'es', 'Español' => 'es',
-        ];
-        $isoCode = $langMap[$langName] ?? 'en';
+        $isoCode = self::languageCode($langName);
 
         // Only suggest words at or below the learner's CEFR level — never above.
         $userLevel = $user->profile?->current_level ?? 'A1';
@@ -127,6 +147,36 @@ class DictionaryController extends Controller
         }
 
         return back()->with('success', "{$newWords->count()} nouveaux mots ajoutés à votre dictionnaire !");
+    }
+
+    /**
+     * Add a looked-up word to the learner's lexicon.
+     *
+     * The button inside an exercise used to post to the vocabulary endpoint, which
+     * writes to another table entirely: the word was stored, the lexicon listed none
+     * of it, and the learner rightly concluded nothing had been added. It now lands
+     * where "Mon Lexique" reads, and comes back as JSON so a session in progress is
+     * not navigated away from.
+     */
+    public function save(Request $request)
+    {
+        $validated = $request->validate([
+            'dictionary_word_id' => 'required|integer|exists:dictionary_words,id',
+        ]);
+
+        $progress = UserWordProgress::firstOrCreate(
+            [
+                'user_id' => $request->user()->id,
+                'dictionary_word_id' => $validated['dictionary_word_id'],
+            ],
+            ['status' => 'discovered']
+        );
+
+        return response()->json([
+            'saved' => true,
+            // Already in the lexicon: the learner met this word before.
+            'already_known' => !$progress->wasRecentlyCreated,
+        ]);
     }
 
     /**
@@ -236,7 +286,8 @@ class DictionaryController extends Controller
      */
     public function lookup(string $language, string $word)
     {
-        $wordData = DictionaryWord::where('language', $language)
+        $isoCode = self::languageCode($language);
+        $wordData = DictionaryWord::whereIn('language', array_unique([$isoCode, $language]))
             ->where('word', $word)
             ->first();
 
@@ -244,8 +295,8 @@ class DictionaryController extends Controller
             // Fallback: Use AI to define the word
             try {
                 $mistral = app(\App\Services\AI\MistralService::class);
-                $langName = $language === 'de' ? 'allemand' : ($language === 'fr' ? 'français' : 'anglais');
-                
+                $langName = self::languageName($isoCode);
+
                 $prompt = "Définit le mot '{$word}' en {$langName}. Réponds UNIQUEMENT en JSON avec ce format : {\"word\": \"{$word}\", \"definition\": \"...\", \"example\": \"...\", \"translation\": \"...\", \"skill_level\": \"B2\"}. La traduction doit être en français.";
                 
                 $response = $mistral->chat([
@@ -257,7 +308,7 @@ class DictionaryController extends Controller
                 if (isset($data['definition'])) {
                     $wordData = DictionaryWord::create([
                         'word' => $word,
-                        'language' => $language,
+                        'language' => $isoCode,
                         'definition' => $data['definition'],
                         'example' => $data['example'] ?? '',
                         'translation' => $data['translation'] ?? '',
