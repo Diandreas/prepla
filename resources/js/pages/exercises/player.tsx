@@ -412,6 +412,32 @@ function getEvidenceText(explanation: ExplanationObj | string | null): string | 
     return null;
 }
 
+/**
+ * The learner's own answer, written out the way the expected one is.
+ *
+ * A bare option letter or a map of fields tells them nothing about what they got
+ * wrong, and a recording has no text to show at all.
+ */
+function givenAnswerText(question: PlayerQuestion, given: unknown): string {
+    if (given === null || given === undefined) return '';
+    if (typeof given === 'object' && !Array.isArray(given)) {
+        if (typeof Blob !== 'undefined' && given instanceof Blob) return '';
+        return Object.values(given as Record<string, unknown>)
+            .map((value) => String(value ?? '').trim())
+            .filter(Boolean)
+            .join(', ');
+    }
+    if (Array.isArray(given)) return given.map((value) => String(value ?? '').trim()).filter(Boolean).join(' → ');
+
+    const text = String(given).trim();
+    if (/^[A-Za-z]$/.test(text) && Array.isArray(question.options)) {
+        const letter = text.toUpperCase();
+        const option = question.options[letter.charCodeAt(0) - 65];
+        if (option !== undefined && option !== null && String(option) !== '') return `${letter}) ${option}`;
+    }
+    return text;
+}
+
 // Render light markdown coming from the AI feedback (**bold**, <evidence> tags,
 // bullet "-" lines) as real elements instead of showing the raw asterisks/tags.
 function FormattedFeedback({ text, className }: { text: string; className?: string }) {
@@ -493,6 +519,7 @@ export default function SessionPlayer({ node, exercises }: Props) {
     // then shown, otherwise the question could not be answered at all.
     const [audioUnavailable, setAudioUnavailable] = useState(false);
     const contentRef = useRef<HTMLDivElement>(null);
+    const correctionRef = useRef<HTMLDivElement>(null);
     // Lecture audio : un seul élément actif à la fois + garde synchrone anti
     // double-lancement (l'état React est trop lent pour ça — voir playTts).
     const currentAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -993,6 +1020,19 @@ export default function SessionPlayer({ node, exercises }: Props) {
     const hasAnswer = answers[answerKey(question?.id)] !== undefined;
     // Shown with every wrong answer: note taking and tables never display it otherwise.
     const expectedText = isChecked && isCorrect === false && question ? expectedAnswerText(question) : '';
+    // What the learner actually answered, in words — a wrong answer is only
+    // instructive next to the expected one. Recordings have nothing to show here.
+    const givenText = isChecked && isCorrect === false && question ? givenAnswerText(question, answers[answerKey(question.id)]) : '';
+
+    // A wrong answer on a long passage pushes the correction below the fold; bring it
+    // into view instead of leaving the learner to hunt for it.
+    useEffect(() => {
+        if (!isChecked || isCorrect !== false) return;
+        const node = correctionRef.current;
+        if (!node) return;
+        const frame = requestAnimationFrame(() => node.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
+        return () => cancelAnimationFrame(frame);
+    }, [isChecked, isCorrect, explanation, fetchingExplanation]);
 
     if (!exercise || !question) {
         return (
@@ -1337,41 +1377,53 @@ export default function SessionPlayer({ node, exercises }: Props) {
                             </div>
                         )}
                     </div>
+
+                    {/* ── Correction — dans le flux, juste sous l'exercice ──
+                        Ce panneau flottait au-dessus de la barre d'action : la barre
+                        « Incorrect » grandit avec son bouton et recouvrait le bas des
+                        explications, et le panneau masquait l'exercice, donc la réponse
+                        donnée n'était plus visible au moment de lire la correction. Il
+                        défile maintenant avec la page, sous la question et sous ce que
+                        l'apprenant a répondu. */}
+                    {isChecked && !isCorrect && (explanation || fetchingExplanation || expectedText) && (
+                        <div
+                            ref={correctionRef}
+                            role="status"
+                            className="player-font rounded-2xl border-2 border-red-200 bg-card p-4 shadow-sm dark:border-red-900"
+                        >
+                            {expectedText && (
+                                <p className="mb-2 text-sm leading-relaxed text-foreground">
+                                    Réponse attendue : <strong>{expectedText}</strong>
+                                </p>
+                            )}
+                            {givenText && (
+                                <p className="mb-2 text-sm leading-relaxed text-muted-foreground">
+                                    Ta réponse : <span className="font-medium line-through decoration-red-500">{givenText}</span>
+                                </p>
+                            )}
+                            {fetchingExplanation ? (
+                                <p className="text-sm font-medium text-red-600/80 italic">Analyse de ton erreur…</p>
+                            ) : explanation && typeof explanation === 'object' ? (
+                                <div className="space-y-2">
+                                    <p className="text-sm font-bold text-red-700 dark:text-red-300 leading-relaxed">
+                                        {(i18n.language === 'fr' && explanation.french_translation?.concept) ? explanation.french_translation.concept : explanation.concept}
+                                    </p>
+                                    {(i18n.language === 'fr' && explanation.french_translation?.hint ? explanation.french_translation.hint : explanation.hint) && (
+                                        <p className="text-sm text-muted-foreground leading-relaxed">
+                                            {i18n.language === 'fr' && explanation.french_translation?.hint ? explanation.french_translation.hint : explanation.hint}
+                                        </p>
+                                    )}
+                                </div>
+                            ) : explanation ? (
+                                <FormattedFeedback
+                                    text={explanation}
+                                    className="text-sm font-medium text-foreground leading-relaxed space-y-1.5"
+                                />
+                            ) : null}
+                        </div>
+                    )}
                 </div>
             </div>
-
-            {/* ── Explanation panel (above the bar) — gives long AI feedback room to
-                breathe and scroll instead of being crushed into the action bar ── */}
-            {isChecked && !isCorrect && (explanation || fetchingExplanation || expectedText) && (
-                <div className="fixed bottom-[76px] left-0 right-0 z-40 px-3">
-                    <div className="player-font mx-auto max-h-[40vh] overflow-y-auto rounded-2xl border-2 border-red-200 bg-card p-4 shadow-xl" style={{ maxWidth: 672 }}>
-                        {expectedText && (
-                            <p className="mb-2 text-sm leading-relaxed text-foreground">
-                                Réponse attendue : <strong>{expectedText}</strong>
-                            </p>
-                        )}
-                        {fetchingExplanation ? (
-                            <p className="text-sm font-medium text-red-600/80 italic">Analyse de ton erreur…</p>
-                        ) : explanation && typeof explanation === 'object' ? (
-                            <div className="space-y-2">
-                                <p className="text-sm font-bold text-red-700 dark:text-red-300 leading-relaxed">
-                                    {(i18n.language === 'fr' && explanation.french_translation?.concept) ? explanation.french_translation.concept : explanation.concept}
-                                </p>
-                                {(i18n.language === 'fr' && explanation.french_translation?.hint ? explanation.french_translation.hint : explanation.hint) && (
-                                    <p className="text-sm text-muted-foreground leading-relaxed">
-                                        {i18n.language === 'fr' && explanation.french_translation?.hint ? explanation.french_translation.hint : explanation.hint}
-                                    </p>
-                                )}
-                            </div>
-                        ) : explanation ? (
-                            <FormattedFeedback
-                                text={explanation}
-                                className="text-sm font-medium text-foreground leading-relaxed space-y-1.5"
-                            />
-                        ) : null}
-                    </div>
-                </div>
-            )}
 
             {/* ── Bottom Action Bar ── */}
             <div
