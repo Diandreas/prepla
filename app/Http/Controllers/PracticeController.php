@@ -105,9 +105,20 @@ class PracticeController extends Controller
     }
 
     /**
-     * "Pratiquer par type" : trouve un exercice existant du type demandé (biblio
-     * d'abord), sinon en génère un, puis ouvre le player. Bouton "Autre exercice"
-     * rappelle cette route pour en obtenir un différent.
+     * "Pratiquer par type" : ouvre un exercice de ce type au niveau de l'apprenant.
+     * Bouton "Autre exercice" rappelle cette route pour en obtenir un différent.
+     *
+     * L'ordre importe. On servait d'abord n'importe quel exercice existant du bon
+     * niveau : dès qu'il y en avait un, il revenait à chaque clic — le vivier ne
+     * grandissait plus, la génération n'était plus jamais appelée, et « Autre
+     * exercice » ramenait les mêmes cinq questions indéfiniment. Refaire ce qu'on
+     * connaît déjà n'apprend rien.
+     *
+     * On cherche donc d'abord ce que l'apprenant n'a pas encore fait — y compris la
+     * série préparée, qui ne coûte aucun appel —, puis on génère du neuf, et on ne
+     * rejoue un exercice déjà vu qu'en dernier ressort. La bibliothèque sans IA garde
+     * ainsi son rôle : du contenu gratuit et immédiat tant qu'il reste inédit, un
+     * plancher quand le fournisseur ne répond plus, jamais un substitut à la variété.
      */
     public function drillByType(Exam $exam, \App\Models\ExerciseType $exerciseType, \App\Services\AI\ExerciseGeneratorService $generator, \App\Services\Content\StarterPracticeLibrary $library)
     {
@@ -116,31 +127,45 @@ class PracticeController extends Controller
         $exerciseType->loadMissing('section');
         abort_unless($exerciseType->section?->exam_id === $exam->id, 404);
 
-        // Biblio d'abord : un exercice existant de ce type pour cet examen.
-        $exercise = Exercise::where('exam_id', $exam->id)
+        $pool = fn () => Exercise::where('exam_id', $exam->id)
             ->where('exercise_type_id', $exerciseType->id)
             ->where('difficulty', $difficulty)
             ->whereNull('center_id')
             ->whereNull('lesson_id')
             ->whereNull('node_id')
-            ->whereNull('mock_exam_id')
-            ->inRandomOrder()
-            ->first();
+            ->whereNull('mock_exam_id');
 
-        // A prepared exercise at the exact level is available immediately,
-        // even when the remote AI provider has no remaining quota.
-        $exercise ??= $library->ensure($exam, $exerciseType, $difficulty);
+        $alreadyDone = \App\Models\UserExerciseAttempt::where('user_id', $user->id)->pluck('exercise_id');
 
-        // Sinon, génération à la demande.
+        // 1. Un exercice que cet apprenant n'a pas encore fait.
+        $exercise = $pool()->whereNotIn('id', $alreadyDone)->inRandomOrder()->first();
+
+        // 2. La série préparée, tant qu'elle lui est inédite : gratuite et immédiate,
+        //    même quand le fournisseur d'IA n'a plus de quota.
+        if (!$exercise) {
+            $starter = $library->ensure($exam, $exerciseType, $difficulty);
+            if ($starter && !$alreadyDone->contains($starter->id)) {
+                $exercise = $starter;
+            }
+        }
+
+        // 3. Tout a été fait : c'est le moment de produire du neuf.
         if (!$exercise) {
             try {
                 $exam->loadMissing('language');
                 $exercise = $generator->generate($exerciseType, $exam, $difficulty);
             } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::error('drillByType generation failed', ['error' => $e->getMessage()]);
-                return redirect()->route('practice.exam', $exam->id)
-                    ->with('error', "Impossible de générer un exercice de ce type pour le moment. Réessaie.");
+                \Illuminate\Support\Facades\Log::warning('drillByType generation failed, falling back', ['error' => $e->getMessage()]);
             }
+        }
+
+        // 4. Rien de neuf nulle part : mieux vaut refaire un exercice connu que
+        //    renvoyer l'apprenant sur un message d'échec.
+        $exercise ??= $pool()->inRandomOrder()->first();
+
+        if (!$exercise) {
+            return redirect()->route('practice.exam', $exam->id)
+                ->with('error', "Impossible de préparer un exercice de ce type pour le moment. Réessaie.");
         }
 
         return redirect()->route('exercise.show', $exercise->id);

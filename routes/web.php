@@ -73,8 +73,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('practice', [\App\Http\Controllers\PracticeController::class, 'index'])->name('practice.index');
         Route::get('practice/{exam}', [\App\Http\Controllers\PracticeController::class, 'examDashboard'])->name('practice.exam');
         Route::get('practice/{exam}/section/{section}', [\App\Http\Controllers\PracticeController::class, 'sectionDrills'])->name('practice.section');
-        // Pratiquer par type : 1 clic sur un type → 1 exercice (biblio d'abord, sinon généré)
-        Route::get('practice/{exam}/drill/{exerciseType}', [\App\Http\Controllers\PracticeController::class, 'drillByType'])->name('practice.drill.type');
+        // Pratiquer par type : 1 clic sur un type → 1 exercice jamais fait, sinon généré.
+        // Limité comme les autres appels IA : depuis que la route génère dès que
+        // l'apprenant a tout fait, un clic répété pourrait épuiser le quota du
+        // fournisseur — la panne exacte qui avait bloqué des comptes.
+        Route::get('practice/{exam}/drill/{exerciseType}', [\App\Http\Controllers\PracticeController::class, 'drillByType'])->middleware('throttle:ai-calls')->name('practice.drill.type');
         Route::post('practice/{exam}/section/{section}/generate', [\App\Http\Controllers\PracticeController::class, 'generateSection'])->middleware('throttle:ai-calls')->name('practice.section.generate');
         Route::get('practice/{exam}/simulate', [\App\Http\Controllers\PracticeController::class, 'simulate'])->name('practice.simulate');
         Route::post('practice/{exam}/simulate', [\App\Http\Controllers\PracticeController::class, 'submitSimulation'])->name('practice.simulate.store');
