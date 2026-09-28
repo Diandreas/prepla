@@ -12,7 +12,12 @@ class MistralService
 
     public function __construct()
     {
-        $this->apiKey = config('services.mistral.api_key', '');
+        // `?? ''`, not config()'s default: the key exists in config/services.php and
+        // reads env(), so an unset MISTRAL_API_KEY makes it null, not missing. The
+        // default never applied, null hit a typed string property, and the TypeError
+        // fired in the constructor — so every page resolving this service returned a
+        // 500. A missing key must degrade the AI features, never take the site down.
+        $this->apiKey = config('services.mistral.api_key') ?? '';
     }
 
     public function chat(array $messages, string $model = 'mistral-small-latest'): ?string

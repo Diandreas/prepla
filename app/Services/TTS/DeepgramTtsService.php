@@ -23,7 +23,9 @@ class DeepgramTtsService
 
     public function __construct()
     {
-        $this->apiKey = config('services.deepgram.api_key', '');
+        // Same trap as MistralService: the key is present but null when the env var is
+        // unset, so config()'s default never applies and a typed property rejects null.
+        $this->apiKey = config('services.deepgram.api_key') ?? '';
     }
 
     /**
