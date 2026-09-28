@@ -111,6 +111,13 @@ class ErrorReviewController extends Controller
     // POST /errors/{error}/review - mark as reviewed with SM-2
     public function submitReview(Request $request, UserError $error)
     {
+        // Sans cette garde, n'importe quel compte pouvait déclarer révisée l'erreur
+        // d'un autre apprenant, en énumérant les identifiants : l'algorithme repoussait
+        // la prochaine révision, voire marquait l'erreur acquise, et elle cessait de
+        // revenir chez la personne concernée. Les pages de lecture des résultats
+        // vérifiaient déjà le propriétaire ; ce point d'écriture ne le faisait pas.
+        abort_unless($error->user_id === $request->user()->id, 403);
+
         $validated = $request->validate([
             'correct' => 'required|boolean',
         ]);

@@ -124,12 +124,15 @@ class LessonController extends Controller
             ];
         }
 
-        $accuracy = count($quiz) > 0 ? round(($correctCount / count($quiz)) * 100) : 100;
+        // Une leçon sans questions ne mesure rien : elle valait 100 %, ce qui nourrissait
+        // la série de réussites et pouvait faire sauter la leçon suivante, sur un savoir
+        // jamais vérifié. `null` dit explicitement « non évalué ».
+        $accuracy = count($quiz) > 0 ? round(($correctCount / count($quiz)) * 100) : null;
 
         // Record outcome for curriculum adaptation. Pass the explicit quiz verdict
         // ($passed, 2/3 threshold) so the practice phase opens for any passing score,
         // matching the "Pratiquer ce concept" CTA the UI shows on success.
-        $outcome = $this->planner->recordLessonOutcome($user, $accuracy, $passed);
+        $outcome = $this->planner->recordLessonOutcome($user, $accuracy, $accuracy === null ? null : $passed);
 
         // Actually perform the skip the 'skip_ahead' signal promises — previously
         // this outcome only changed the message shown to the user, with no real
@@ -171,8 +174,10 @@ class LessonController extends Controller
             $entry->save();
         }
 
-        // Trigger reassessment if needed
-        if ($accuracy < 60) {
+        // Trigger reassessment if needed. `null` veut dire « non évalué » : en PHP il
+        // serait passé pour inférieur à 60 et aurait déclenché une réévaluation du
+        // parcours à chaque leçon arrivée sans questions.
+        if ($accuracy !== null && $accuracy < 60) {
             $this->planner->reassess($user);
         }
 
@@ -187,6 +192,7 @@ class LessonController extends Controller
                 'consolidation' => 'Ne t\'inquiète pas — la prochaine leçon reprendra ce concept différemment.',
                 'retry_concept' => 'Bon effort ! On va approfondir ce point théorique.',
                 'unblocked_after_struggle' => 'Ce concept est difficile — on passe au suivant, tu y reviendras plus tard pour le retravailler.',
+                'not_assessed' => 'Cette leçon n\'avait pas de questions : rien n\'a été noté. Passe à la pratique pour la mettre à l\'épreuve.',
                 default => 'Continue comme ça !',
             },
         ]);

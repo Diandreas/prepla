@@ -129,11 +129,22 @@ class CurriculumPlannerService
     /**
      * Record a lesson outcome and decide what happens next.
      */
-    public function recordLessonOutcome(User $user, float $accuracyPercent, ?bool $passed = null): string
+    public function recordLessonOutcome(User $user, ?float $accuracyPercent, ?bool $passed = null): string
     {
         $skeleton = CurriculumSkeleton::where('user_id', $user->id)->first();
         if (!$skeleton)
             return 'no_skeleton';
+
+        // Leçon arrivée sans questions : rien n'a été mesuré. Elle comptait pour 100 %
+        // et alimentait la série de réussites — trois leçons sans quiz d'affilée
+        // faisaient sauter la suivante, sur un savoir jamais vérifié. Le parcours
+        // avance quand même (rester bloqué était le défaut d'avant), mais sans
+        // compter comme une réussite.
+        if ($accuracyPercent === null) {
+            $skeleton->advanceToPractice();
+
+            return 'not_assessed';
+        }
 
         // "Passed" is decided by the lesson quiz (2/3 threshold, see
         // Lesson::isComprehensionPassed). The UI shows the "Practice this concept"

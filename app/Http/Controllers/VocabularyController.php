@@ -148,6 +148,10 @@ class VocabularyController extends Controller
     // POST /vocabulary/{vocab}/review - submit review result
     public function submitReview(Request $request, UserVocabulary $vocab)
     {
+        // Même garde que sur la révision des erreurs : le mot appartient à quelqu'un,
+        // et son calendrier de révision ne doit pas pouvoir être réécrit d'ailleurs.
+        abort_unless($vocab->user_id === $request->user()->id, 403);
+
         $validated = $request->validate([
             'quality' => 'required|integer|min:0|max:5',
         ]);
