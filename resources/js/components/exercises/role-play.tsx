@@ -22,6 +22,10 @@ interface TurnResult {
     covered: string[];
     missing: string[];
     explanation: string;
+    // Le tour n'a pas pu être analysé (panne réseau ou IA). Il ne doit pas peser
+    // dans la moyenne : une indisponibilité de notre côté enregistrait 0 % et
+    // tirait tout le jeu de rôle vers le bas.
+    failed?: boolean;
 }
 
 interface RolePlayProps {
@@ -134,7 +138,14 @@ export function RolePlay({ question, onAnswer, selectedAnswer, disabled, lang = 
         } catch {
             setTurnResults(prev => ({
                 ...prev,
-                [currentTurn]: { accuracy: 0, transcription: '', covered: [], missing: [], explanation: "Erreur d'analyse, réessaie." },
+                [currentTurn]: {
+                    accuracy: 0,
+                    transcription: '',
+                    covered: [],
+                    missing: [],
+                    explanation: "Ce tour n'a pas pu être analysé. Il ne compte pas dans ta moyenne.",
+                    failed: true,
+                },
             }));
         } finally {
             setEvaluatingTurn(null);
@@ -146,9 +157,15 @@ export function RolePlay({ question, onAnswer, selectedAnswer, disabled, lang = 
         clearRecording();
         const nextIdx = currentTurn + 1;
         if (nextIdx >= turns.length) {
-            // Synthèse : moyenne des accuracy → verdict non vide pour la soumission.
-            const vals = Object.values(turnResults);
-            const avg = vals.length ? Math.round(vals.reduce((a, r) => a + r.accuracy, 0) / vals.length) : 0;
+            // Synthèse : moyenne des tours réellement analysés. Les tours tombés en
+            // panne sont écartés ; si aucun n'a pu l'être, rien n'est noté plutôt que
+            // d'enregistrer un zéro qui n'appartient pas à l'apprenant.
+            const scored = Object.values(turnResults).filter((r) => !r.failed);
+            if (scored.length === 0) {
+                onAnswer(question.id, '__no_dialogue__');
+                return;
+            }
+            const avg = Math.round(scored.reduce((a, r) => a + r.accuracy, 0) / scored.length);
             onAnswer(question.id, `completed:${avg}`);
         } else {
             setCurrentTurn(nextIdx);
@@ -321,8 +338,8 @@ export function RolePlay({ question, onAnswer, selectedAnswer, disabled, lang = 
                 <div className="rounded-xl border-2 border-emerald-200 bg-emerald-50 p-4 text-center">
                     <p className="text-sm font-black text-emerald-700">Dialogue terminé !</p>
                     <p className="text-xs text-emerald-600">
-                        Score moyen : {Object.values(turnResults).length
-                            ? Math.round(Object.values(turnResults).reduce((a, r) => a + r.accuracy, 0) / Object.values(turnResults).length)
+                        Score moyen : {Object.values(turnResults).filter((r) => !r.failed).length
+                            ? Math.round(Object.values(turnResults).filter((r) => !r.failed).reduce((a, r) => a + r.accuracy, 0) / Object.values(turnResults).filter((r) => !r.failed).length)
                             : 0}%
                     </p>
                 </div>

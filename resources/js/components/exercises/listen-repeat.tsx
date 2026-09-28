@@ -27,9 +27,10 @@ interface ListenRepeatProps {
  */
 export function ListenRepeat({ question, onAnswer, selectedAnswer, disabled, lang = 'en' }: ListenRepeatProps) {
     const { speak, stop, isSpeaking } = useTts();
-    const { isRecording, audioUrl, audioBlob, startRecording, stopRecording } = useAudioRecorder();
+    const { isRecording, audioUrl, audioBlob, startRecording, stopRecording, error: micError } = useAudioRecorder();
     const [result, setResult] = useState<{ score: number; heard: string } | null>(null);
     const [evaluating, setEvaluating] = useState(false);
+    const [evaluationFailed, setEvaluationFailed] = useState(false);
 
     const target = question.audio_text || question.correct_answer || '';
 
@@ -46,6 +47,7 @@ export function ListenRepeat({ question, onAnswer, selectedAnswer, disabled, lan
     const submit = async () => {
         if (!audioBlob || evaluating) return;
         setEvaluating(true);
+        setEvaluationFailed(false);
         try {
             const fd = new FormData();
             fd.append('audio', audioBlob, `repeat-${question.id}.webm`);
@@ -54,6 +56,7 @@ export function ListenRepeat({ question, onAnswer, selectedAnswer, disabled, lan
             const res = await fetch(route('api.exercise.evaluate-turn'), {
                 method: 'POST', headers: { 'X-XSRF-TOKEN': csrfToken() }, body: fd,
             });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
             const heard = (data.transcription ?? '').toString();
             // Fidelity = word overlap with the target (simple, robust, language-agnostic).
@@ -64,8 +67,10 @@ export function ListenRepeat({ question, onAnswer, selectedAnswer, disabled, lan
             setResult({ score, heard });
             onAnswer(question.id, `repeat:${score}`);
         } catch {
-            setResult({ score: 0, heard: '' });
-            onAnswer(question.id, 'repeat:0');
+            // Une panne de notre côté enregistrait 0 % de fidélité, définitivement, et
+            // sans recours : l'apprenant payait notre indisponibilité. On ne note rien
+            // et on lui rend la main.
+            setEvaluationFailed(true);
         } finally {
             setEvaluating(false);
         }
@@ -82,6 +87,28 @@ export function ListenRepeat({ question, onAnswer, selectedAnswer, disabled, lan
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
                 <span className="text-sm font-bold">{isSpeaking ? 'Lecture…' : 'Écouter la phrase'}</span>
             </button>
+
+            {micError && !disabled && (
+                <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-900 dark:border-red-800 dark:bg-red-950/40 dark:text-red-100">
+                    {micError} Sans micro, passe la question : elle ne comptera pas dans ton score.
+                </p>
+            )}
+
+            {evaluationFailed && !disabled && (
+                <div role="alert" className="space-y-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">
+                    <p className="font-bold">Ta prononciation n'a pas pu être analysée.</p>
+                    <p>Rien n'a été noté. Réessaie, ou passe la question — elle ne comptera pas dans ton score.</p>
+                </div>
+            )}
+
+            {(micError || evaluationFailed) && !disabled && !selectedAnswer && (
+                <button
+                    onClick={() => onAnswer(question.id, '__skipped__')}
+                    className="bg-primary text-primary-foreground rounded-lg px-4 py-2 text-xs font-bold"
+                >
+                    Passer cette question
+                </button>
+            )}
 
             {!result && !evaluating && !disabled && (
                 <div className="flex flex-wrap items-center gap-2">
