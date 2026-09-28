@@ -56,9 +56,15 @@ return [
         // Un identifiant de tarif n'existe que dans le mode où il a été créé : codés
         // en dur, ils faisaient tomber le paiement en 500 (« No such price ») dès que
         // les clés passaient en mode réel. Chaque environnement pointe vers les siens.
+        //
+        // Aucun repli ici, volontairement : une valeur par défaut ramenait en silence
+        // des identifiants d'un autre mode dès que le .env manquait — le défaut même
+        // qu'on voulait supprimer, mais devenu invisible. Sans variable définie, la
+        // page annonce les montants de référence, le paiement refuse proprement, et
+        // `php artisan prepla:check` le signale.
         'prices' => [
-            'monthly' => env('STRIPE_PRICE_MONTHLY', 'price_1TbjMVA4jGtQdWrshf7v2nQr'),
-            'annual' => env('STRIPE_PRICE_ANNUAL', 'price_1TbjMdA4jGtQdWrsRG1w5n9Z'),
+            'monthly' => env('STRIPE_PRICE_MONTHLY'),
+            'annual' => env('STRIPE_PRICE_ANNUAL'),
         ],
     ],
 
