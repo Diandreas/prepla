@@ -158,6 +158,29 @@ function scoreFields(question, answer) {
     return { correct: accuracy >= PASS_THRESHOLD, accuracy };
 }
 
+/**
+ * Rescue for a question with more blanks than its expected answer defines.
+ *
+ * Mirrors ExerciseScoringService::coversUndefinedBlanks. Generated content sometimes
+ * carries two blanks in a sentence but a single expected word. Every blank is
+ * fillable, so a learner naturally fills them all — and the joined answer could never
+ * match, marking a right answer wrong. When more values were supplied than the
+ * expected answer has words, the surplus blanks are ones the exercise never defined
+ * an answer for and must not count against the learner; the expected words still have
+ * to be there, in order.
+ */
+function coversUndefinedBlanks(givenValues, expectedValue) {
+    const expectedWords = expectedValue.split(/\s+/).filter(Boolean);
+    if (expectedWords.length === 0 || givenValues.length <= expectedWords.length) return false;
+
+    let cursor = 0;
+    for (const value of givenValues) {
+        if (cursor < expectedWords.length && normalizeAnswer(value) === expectedWords[cursor]) cursor++;
+    }
+
+    return cursor === expectedWords.length;
+}
+
 function scoreExact(question, answer) {
     const expected = question.correct_answer ?? null;
 
@@ -170,18 +193,21 @@ function scoreExact(question, answer) {
     }
 
     let given = answer;
+    let givenValues = [];
     if (isCollection(given)) {
-        given = entries(given)
+        givenValues = entries(given)
             .map(([, value]) => value)
             .filter((value) => value !== null && value !== undefined && value !== '')
-            .map(phpString)
-            .join(' ');
+            .map(phpString);
+        given = givenValues.join(' ');
     }
 
     const givenValue = normalizeAnswer(given);
     const expectedValue = normalizeAnswer(expected);
     // An empty answer is never correct, even when the exercise expects nothing.
     let correct = givenValue !== '' && givenValue === expectedValue;
+
+    if (!correct) correct = coversUndefinedBlanks(givenValues, expectedValue);
 
     // A letter also matches when the expected answer is written out as the option text.
     if (!correct && /^[a-d]$/.test(givenValue) && isCollection(question.options)) {

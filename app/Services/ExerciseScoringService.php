@@ -35,6 +35,38 @@ class ExerciseScoringService
     }
 
     /**
+     * Rescue for a question with more blanks than its expected answer defines.
+     *
+     * Generated content sometimes carries two blanks in a sentence but a single
+     * expected word. Every blank is fillable, so a learner naturally fills them all —
+     * and the joined answer could never match, marking a right answer wrong. When the
+     * learner supplied MORE values than the expected answer has words, the surplus
+     * blanks are ones the exercise never defined an answer for: they must not count
+     * against them. What the correction can judge, it still judges — the expected
+     * words have to be there, in order.
+     *
+     * Only reachable on a scalar expected answer against several filled fields, which
+     * is malformed content by construction; well-formed items never get here.
+     */
+    protected function coversUndefinedBlanks(array $givenValues, string $normalCorrect): bool
+    {
+        $expectedWords = preg_split('/\s+/', trim($normalCorrect), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        if ($expectedWords === [] || count($givenValues) <= count($expectedWords)) {
+            return false;
+        }
+
+        $cursor = 0;
+        foreach ($givenValues as $value) {
+            if ($cursor < count($expectedWords)
+                && $this->normalizeForComparison($value) === $expectedWords[$cursor]) {
+                $cursor++;
+            }
+        }
+
+        return $cursor === count($expectedWords);
+    }
+
+    /**
      * Pour note-completion/form-completion, renvoie les index (string) des
      * items réellement BLANCS (value === ''), d'après la structure de la
      * question elle-même — indépendamment de ce que contient correct_answers.
@@ -358,11 +390,13 @@ class ExerciseScoringService
             } else {
                 // Defensive: multi-field exercises (FormCompletion, TableCompletion, FlowChart…)
                 // submit an array against a scalar correct_answer. Join the values so the cast doesn't crash.
+                $givenValues = [];
                 if (is_array($userAnswer)) {
-                    $userAnswer = implode(' ', array_map('strval', array_filter(
+                    $givenValues = array_values(array_map('strval', array_filter(
                         $userAnswer,
                         fn ($v) => $v !== null && $v !== ''
                     )));
+                    $userAnswer = implode(' ', $givenValues);
                 }
                 $normalUser = $this->normalizeForComparison((string)$userAnswer);
                 $normalCorrect = $this->normalizeForComparison((string)$correctAnswer);
@@ -370,6 +404,10 @@ class ExerciseScoringService
                 // is also empty/missing (malformed exercise). This stopped multi-field
                 // exercises like form-completion from showing "success" with nothing entered.
                 $isCorrect = $normalUser !== '' && $normalUser === $normalCorrect;
+
+                if (!$isCorrect) {
+                    $isCorrect = $this->coversUndefinedBlanks($givenValues, $normalCorrect);
+                }
 
                 // Index-based matching fallback
                 if (!$isCorrect && preg_match('/^[a-d]$/', $normalUser) && isset($question['options'])) {

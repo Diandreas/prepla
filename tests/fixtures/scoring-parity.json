@@ -179,6 +179,36 @@
             "correct": false
         },
         {
+            "name": "Texte à trous mal formé : plus de trous que de mots attendus, le mot juste est là",
+            "question": {
+                "id": "q-malforme",
+                "type": "gap-fill",
+                "text": "Gestern ___ (gehen) ich ___ Kino.",
+                "correct_answer": "ging",
+                "explanation": "Prétérit de gehen. Le second blanc n'a jamais reçu de réponse attendue."
+            },
+            "answer": {
+                "0": "ging",
+                "1": "ins"
+            },
+            "correct": true
+        },
+        {
+            "name": "Texte à trous mal formé : le mot attendu reste faux",
+            "question": {
+                "id": "q-malforme",
+                "type": "gap-fill",
+                "text": "Gestern ___ (gehen) ich ___ Kino.",
+                "correct_answer": "ging",
+                "explanation": "Prétérit de gehen. Le second blanc n'a jamais reçu de réponse attendue."
+            },
+            "answer": {
+                "0": "war",
+                "1": "ins"
+            },
+            "correct": false
+        },
+        {
             "name": "Association : lettre attendue",
             "question": {
                 "id": "q6",
