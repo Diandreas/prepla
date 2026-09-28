@@ -54,15 +54,32 @@ class ExerciseGeneratorService
                 continue;
             }
 
+            $produced = count($candidate['questions']);
             $candidate['questions'] = $this->normalizeOptionLetters($candidate['questions']);
             $candidate['questions'] = $this->shuffleOptions($candidate['questions']);
             $candidate['questions'] = $this->dropInvalidChoiceQuestions($candidate['questions'], $exerciseType->component_key);
             $candidate['questions'] = $this->dropInvalidMultiFieldQuestions($candidate['questions'], $exerciseType->component_key);
+            $kept = count($candidate['questions']);
 
-            if (count($candidate['questions']) > 0) {
+            if ($kept === 0) {
+                continue;
+            }
+
+            // Une seule question rescapée sur trois passait pour un exercice valide :
+            // l'apprenant recevait une série amputée sans rien en savoir, et le second
+            // essai — prévu pour ça — n'était jamais tenté. On ne se contente d'un
+            // reste minoritaire qu'au dernier essai, faute de mieux.
+            $isLastAttempt = $attempt === 1;
+            if ($isLastAttempt || $kept >= (int) ceil($produced / 2)) {
                 $data = $candidate;
                 break;
             }
+
+            \Illuminate\Support\Facades\Log::info('Exercise generation: majority of questions rejected, retrying', [
+                'component' => $exerciseType->component_key,
+                'produced' => $produced,
+                'kept' => $kept,
+            ]);
         }
 
         if ($data) {
