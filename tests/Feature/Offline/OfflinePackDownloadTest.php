@@ -110,8 +110,9 @@ test('a format without prepared series cannot be downloaded', function () {
 });
 
 test('a learner level without prepared series receives nothing to download', function () {
+    // Le catalogue couvre A1 à C2 ; 'A0' est hors cadre et ne doit rien proposer.
     [$exam, , $types] = offlinePackFixture();
-    $user = offlinePackLearner($exam, 'B1');
+    $user = offlinePackLearner($exam, 'A0');
     $this->actingAs($user);
 
     $this->getJson(route('offline.packs.index'))->assertOk()->assertJsonCount(0, 'packs');

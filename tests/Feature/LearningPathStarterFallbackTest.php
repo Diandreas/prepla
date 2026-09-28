@@ -71,11 +71,11 @@ test('le parcours sert un exercice sans IA plutot que de s arreter', function ()
         ->and($served->is_ai_generated)->toBeFalse();
 });
 
-test('aucun exercice n est invente au dessus du niveau couvert', function () {
-    // La bibliothèque s'arrête à A2 : au-dessus, mieux vaut le dire que servir du
-    // contenu d'un autre niveau, qui gonflerait la moyenne servant à la montée de
-    // niveau. Le manque est un manque de contenu, pas un défaut à contourner.
-    [$user, $node] = pathFallbackWorld('C1');
+test('aucun exercice n est invente hors du cadre couvert', function () {
+    // Le catalogue couvre A1 à C2. Hors de ce cadre, mieux vaut le dire que servir
+    // du contenu d'un autre niveau, qui gonflerait la moyenne servant à la montée
+    // de niveau. Le manque est un manque de contenu, pas un défaut à contourner.
+    [$user, $node] = pathFallbackWorld('A0');
 
     $this->mock(ExerciseGeneratorService::class, fn ($mock) => $mock->shouldReceive('generate')
         ->andThrow(new RuntimeException('Provider unavailable in test')));

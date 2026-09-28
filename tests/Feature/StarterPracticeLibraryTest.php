@@ -159,7 +159,9 @@ test('the library refuses unsupported levels languages skills types and foreign 
     [$unsupportedExam, , $unsupportedType] = starterPracticeFixture('german', 'short-answer');
     $library = app(StarterPracticeLibrary::class);
 
-    expect($library->ensure($exam, $type, 'B1'))->toBeNull()
+    // 'A0' n'est pas un niveau du cadre européen : une clé inconnue ne doit rien
+    // servir du tout, surtout pas le niveau le plus proche en dessous.
+    expect($library->ensure($exam, $type, 'A0'))->toBeNull()
         ->and($library->ensure($audioExam, $audioType, 'A2'))->toBeNull()
         ->and($library->ensure($otherLanguage, $otherLanguageType, 'A2'))->toBeNull()
         ->and($library->ensure($unsupportedExam, $unsupportedType, 'A2'))->toBeNull()
@@ -235,13 +237,16 @@ test('practice reuses a public exercise at the exact level before creating a sta
 });
 
 test('an unsupported learner level never silently receives a lower-level starter', function () {
+    // Le catalogue couvre A1 à C2. Un niveau hors de ce cadre ne doit pas se voir
+    // servir le palier inférieur : la moyenne des séances sert à la montée de
+    // niveau, un exercice plus facile la fausserait.
     [$exam, , $type] = starterPracticeFixture();
     app(StarterPracticeLibrary::class)->ensure($exam, $type, 'A2');
-    $this->actingAs(starterPracticeUser($exam, 'B1'));
+    $this->actingAs(starterPracticeUser($exam, 'A0'));
     $this->mock(ExerciseGeneratorService::class, function ($mock) use ($exam, $type) {
         $mock->shouldReceive('generate')->once()
             ->withArgs(fn ($requestedType, $requestedExam, $level) => $requestedType->id === $type->id
-                && $requestedExam->id === $exam->id && $level === 'B1')
+                && $requestedExam->id === $exam->id && $level === 'A0')
             ->andThrow(new RuntimeException('Provider unavailable in test'));
     });
 
@@ -301,7 +306,17 @@ test('section cards accurately expose starter availability at the learner level'
         ])->sortKeys()->all())
     );
 
+    // B1 est désormais couvert par le catalogue : les trois formats de lecture
+    // restent disponibles sans IA.
     $user->profile->update(['current_level' => 'B1']);
+    $this->get(route('practice.section', [$exam, $section]))->assertInertia(fn (Assert $page) => $page
+        ->where('exerciseTypes', fn ($types) => collect($types)->pluck('starter_available', 'component_key')->sortKeys()->all() === collect([
+            'mcq' => true, 'gap-fill' => true, 'matching' => true, 'short-answer' => false,
+        ])->sortKeys()->all())
+    );
+
+    // Hors du cadre couvert, plus aucun format n'est proposé sans IA.
+    $user->profile->update(['current_level' => 'A0']);
     $this->get(route('practice.section', [$exam, $section]))->assertInertia(fn (Assert $page) => $page
         ->where('exerciseTypes', fn ($types) => collect($types)->every(fn ($type) => $type['starter_available'] === false))
     );
@@ -332,4 +347,20 @@ test('a starter can be corrected submitted and recorded without AI', function ()
         ->and((float) $attempt->accuracy_percent)->toBe(100.0)
         ->and($attempt->xp_earned)->toBe(10)
         ->and($user->profile->fresh()->xp_total)->toBe(10);
+});
+
+test('le texte de reference d un starter arrive sous la cle que le joueur affiche', function () {
+    // Le catalogue rangeait le texte sous content.text, le joueur ne lit que
+    // content.passage : les questions portaient sur un texte jamais affiché.
+    [$exam, , $type] = starterPracticeFixture();
+    $exercise = app(StarterPracticeLibrary::class)->ensure($exam, $type, 'A2');
+
+    expect($exercise->content)->toHaveKey('passage')
+        ->and(trim($exercise->content['passage']))->not->toBe('')
+        ->and($exercise->content)->not->toHaveKey('text');
+
+    // Et chaque question garde son propre énoncé.
+    foreach ($exercise->questions as $question) {
+        expect(trim($question['text']))->not->toBe('');
+    }
 });
