@@ -9,6 +9,7 @@ use App\Models\UserError;
 use App\Models\UserLearningProgress;
 use App\Services\AI\ExerciseGeneratorService;
 use App\Services\AI\TtsAudioGenerator;
+use App\Services\Content\StarterPracticeLibrary;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -19,7 +20,7 @@ class NodeStartController extends Controller
      * Lance une session d'apprentissage pour un nœud spécifique (Le "Set de 3").
      * Cette version implémente la vision "Duolingo" : session rapide de 3 exercices.
      */
-    public function __invoke(LearningPathNode $node, ExerciseGeneratorService $generator, TtsAudioGenerator $ttsAudio): Response|RedirectResponse
+    public function __invoke(LearningPathNode $node, ExerciseGeneratorService $generator, TtsAudioGenerator $ttsAudio, StarterPracticeLibrary $library): Response|RedirectResponse
     {
         $user = auth()->user();
         
@@ -235,7 +236,18 @@ class NodeStartController extends Controller
             }
         }
 
-        // 4-quater. Garde-fou : si la génération a totalement échoué (aucun exercice
+        // 4-quinquies. Dernier filet : la bibliothèque sans IA. Elle n'était branchée
+        // que sur la pratique libre, jamais sur le parcours — or c'est le parcours que
+        // suivent les apprenants. Quand l'IA ne répond plus et que la base ne contient
+        // encore aucun exercice pour cet examen, le parcours s'arrêtait net.
+        if ($exercises->isEmpty()) {
+            $starter = $this->starterExercise($node, $library);
+            if ($starter) {
+                $exercises = collect([$starter->load(['exerciseType', 'exam.language'])]);
+            }
+        }
+
+        // 4-sexies. Garde-fou : si la génération a totalement échoué (aucun exercice
         // réel), ne PAS afficher le player avec du contenu bidon → retour propre.
         if ($exercises->isEmpty()) {
             return redirect()->route('dashboard')
@@ -253,6 +265,38 @@ class NodeStartController extends Controller
             'exercises' => $exercises,
             'progress' => $progress,
         ]);
+    }
+
+    /**
+     * Un exercice de la bibliothèque statique pour cet examen, s'il en existe un.
+     *
+     * Elle ne couvre que la compréhension écrite : on prend le premier type de lecture
+     * de l'examen qu'elle sache servir. Mieux vaut une lecture de niveau honnêtement
+     * annoncé qu'un parcours interrompu.
+     */
+    private function starterExercise(LearningPathNode $node, StarterPracticeLibrary $library): ?Exercise
+    {
+        $level = $node->level ?? auth()->user()?->profile?->current_level ?? 'A1';
+
+        $types = ExerciseType::whereHas('section', fn ($query) => $query->where('exam_id', $node->exam_id))
+            ->where('skill_type', 'reading')
+            ->whereIn('slug', ['mcq', 'gap-fill', 'matching'])
+            ->with('section')
+            ->get();
+
+        foreach ($types as $type) {
+            try {
+                $exercise = $library->ensure($node->exam, $type, $level);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('NodeStart: starter library unusable', ['error' => $e->getMessage()]);
+                continue;
+            }
+            if ($exercise) {
+                return $exercise;
+            }
+        }
+
+        return null;
     }
 
     /** Shared practice pool: same exam, never center, personal-lesson or mock-exam content. */
