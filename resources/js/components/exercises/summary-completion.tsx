@@ -28,8 +28,13 @@ export function SummaryCompletion({ question, onAnswer, selectedAnswer, disabled
     const handleChange = (index: number, val: string) => {
         setValues((prev) => {
             const next = { ...prev, [String(index)]: val };
-            const allFilled = Array.from({ length: gapCount }).every((_, i) => (next[String(i)] ?? '').trim() !== '');
-            if (gapCount > 0 && allFilled) onAnswer(question.id, next);
+            // Un seul champ rempli suffit pour que la réponse existe. Tant qu'il en
+            // manquait un, rien n'était transmis : « Vérifier » restait éteint et
+            // l'apprenant qui butait sur un champ ne pouvait plus avancer du tout.
+            // Se tromper vaut mieux que rester bloqué — la note reste calculée sur
+            // l'ensemble des champs attendus.
+            const answered = Array.from({ length: gapCount }).some((_, i) => (next[String(i)] ?? '').trim() !== '');
+            if (gapCount > 0 && answered) onAnswer(question.id, next);
             return next;
         });
     };

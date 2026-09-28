@@ -47,8 +47,13 @@ export function FlowChartCompletion({ question, onAnswer, selectedAnswer, disabl
             const next = { ...prev, [absKey]: val };
             const relKey = blankRel.get(absKey);
             if (relKey != null) next[relKey] = val;
-            const allFilled = blankIndices.every((k) => (next[k] ?? '').trim() !== '');
-            if (blankIndices.length > 0 && allFilled) onAnswer(question.id, next);
+            // Un seul champ rempli suffit pour que la réponse existe. Tant qu'il en
+            // manquait un, rien n'était transmis : « Vérifier » restait éteint et
+            // l'apprenant qui butait sur un champ ne pouvait plus avancer du tout.
+            // Se tromper vaut mieux que rester bloqué — la note reste calculée sur
+            // l'ensemble des champs attendus.
+            const answered = blankIndices.some((k) => (next[k] ?? '').trim() !== '');
+            if (blankIndices.length > 0 && answered) onAnswer(question.id, next);
             return next;
         });
     };

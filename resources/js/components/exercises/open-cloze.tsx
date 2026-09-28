@@ -24,10 +24,17 @@ export function OpenCloze({ question, onAnswer, selectedAnswer, disabled }: Open
 
     const handleChange = (zeroIdx: number, val: string) => {
         setValues((prev) => {
-            // gap number is 1-based to align with generator keys; also write 0-based.
-            const next = { ...prev, [String(zeroIdx + 1)]: val, [String(zeroIdx)]: val };
-            const allFilled = Array.from({ length: gapCount }).every((_, i) => (next[String(i + 1)] ?? '').trim() !== '');
-            if (gapCount > 0 && allFilled) onAnswer(question.id, next);
+            // Une seule clé, numérotée à partir de 1 comme celles du générateur. Le
+            // double envoi 1-based + 0-based écrasait la valeur du trou précédent : le
+            // trou 2 réécrivait la clé « 1 » du trou 1, et la réponse partait corrompue.
+            const next = { ...prev, [String(zeroIdx + 1)]: val };
+            // Un seul champ rempli suffit pour que la réponse existe. Tant qu'il en
+            // manquait un, rien n'était transmis : « Vérifier » restait éteint et
+            // l'apprenant qui butait sur un champ ne pouvait plus avancer du tout.
+            // Se tromper vaut mieux que rester bloqué — la note reste calculée sur
+            // l'ensemble des champs attendus.
+            const answered = Array.from({ length: gapCount }).some((_, i) => (next[String(i + 1)] ?? '').trim() !== '');
+            if (gapCount > 0 && answered) onAnswer(question.id, next);
             return next;
         });
     };

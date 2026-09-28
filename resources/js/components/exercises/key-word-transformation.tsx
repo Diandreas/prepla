@@ -1,5 +1,3 @@
-import { useState } from 'react';
-
 interface KeyWordTransformationProps {
     question: {
         id: string;
@@ -10,51 +8,47 @@ interface KeyWordTransformationProps {
     };
     onAnswer: (questionId: string, answer: string) => void;
     selectedAnswer?: string;
+    disabled?: boolean;
 }
 
-export function KeyWordTransformation({ question, onAnswer, selectedAnswer }: KeyWordTransformationProps) {
-    const [value, setValue] = useState(selectedAnswer ?? '');
+/**
+ * Transformation : réécrire une phrase en réutilisant un mot imposé.
+ *
+ * Consigne et libellés en français : l'exercice s'adressait à l'apprenant en anglais,
+ * y compris quand la langue étudiée est l'allemand.
+ */
+export function KeyWordTransformation({ question, onAnswer, selectedAnswer, disabled }: KeyWordTransformationProps) {
+    const value = selectedAnswer ?? '';
 
     return (
         <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-                Complete the second sentence so that it has a similar meaning to the first. Use the word given.
-                You must use between 2 and 5 words including the word given.
+            <p className="text-muted-foreground text-sm">
+                Complète la seconde phrase pour qu'elle ait le même sens que la première, en utilisant le mot
+                imposé. Entre 2 et 5 mots, mot imposé compris, sans le modifier.
             </p>
 
-            <div className="rounded-xl border bg-muted/30 p-4 space-y-3">
+            <div className="space-y-3 rounded-xl border bg-muted/30 p-4">
                 <p className="text-sm font-medium">{question.original_sentence}</p>
                 <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">Key word:</span>
-                    <span className="rounded bg-primary/10 px-3 py-1 font-mono text-sm font-bold uppercase text-primary">
+                    <span className="text-muted-foreground text-sm">Mot imposé :</span>
+                    <span className="bg-primary/10 text-primary rounded px-3 py-1 font-mono text-sm font-bold uppercase">
                         {question.key_word ?? question.keyword}
                     </span>
                 </div>
             </div>
 
             <div className="flex items-center gap-1 text-sm">
-                {question.start_of_answer && (
-                    <span className="font-medium">{question.start_of_answer}</span>
-                )}
+                {question.start_of_answer && <span className="font-medium">{question.start_of_answer}</span>}
                 <input
                     type="text"
                     value={value}
-                    onChange={(e) => setValue(e.target.value)}
-                    className="flex-1 rounded-lg border border-border bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                    placeholder="Type the missing words..."
-                    disabled={!!selectedAnswer}
+                    onChange={(e) => onAnswer(question.id, e.target.value)}
+                    aria-label="Fin de la phrase à écrire"
+                    className="border-border bg-background focus:border-primary focus:ring-primary flex-1 rounded-lg border px-4 py-3 text-sm focus:ring-1 focus:outline-none disabled:opacity-60"
+                    placeholder="Écris les mots manquants…"
+                    disabled={disabled}
                 />
             </div>
-
-            {!selectedAnswer && (
-                <button
-                    onClick={() => value.trim() && onAnswer(question.id, value.trim())}
-                    disabled={!value.trim()}
-                    className="rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground disabled:opacity-50"
-                >
-                    Submit
-                </button>
-            )}
         </div>
     );
 }

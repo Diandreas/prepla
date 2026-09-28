@@ -39,8 +39,13 @@ export function NoteCompletion({ question, onAnswer, selectedAnswer, disabled }:
     const setValue = (absKey: string, val: string) => {
         setValues((prev) => {
             const next = { ...prev, [absKey]: val };
-            const allFilled = blankAbsIndices.every((k) => (next[k] ?? '').trim() !== '');
-            if (blankAbsIndices.length > 0 && allFilled) onAnswer(question.id, next);
+            // Un seul champ rempli suffit pour que la réponse existe. Tant qu'il en
+            // manquait un, rien n'était transmis : « Vérifier » restait éteint et
+            // l'apprenant qui butait sur un champ ne pouvait plus avancer du tout.
+            // Se tromper vaut mieux que rester bloqué — la note reste calculée sur
+            // l'ensemble des champs attendus.
+            const answered = blankAbsIndices.some((k) => (next[k] ?? '').trim() !== '');
+            if (blankAbsIndices.length > 0 && answered) onAnswer(question.id, next);
             return next;
         });
     };

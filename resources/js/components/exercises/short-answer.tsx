@@ -1,39 +1,36 @@
-import { useState } from 'react';
-
 interface ShortAnswerProps {
     question: { id: string; text: string; max_words?: number };
     onAnswer: (questionId: string, answer: string) => void;
     selectedAnswer?: string;
+    disabled?: boolean;
 }
 
-export function ShortAnswer({ question, onAnswer, selectedAnswer }: ShortAnswerProps) {
-    const [value, setValue] = useState(selectedAnswer ?? '');
+/**
+ * Réponse courte libre.
+ *
+ * La réponse est enregistrée au fil de la frappe. Un bouton « Submit » propre au
+ * composant faisait doublon avec « Vérifier » de la barre du bas, et surtout piégeait :
+ * une réponse tapée mais non confirmée n'existait pas, « Vérifier » restait éteint et
+ * rien n'expliquait pourquoi.
+ */
+export function ShortAnswer({ question, onAnswer, selectedAnswer, disabled }: ShortAnswerProps) {
+    const value = selectedAnswer ?? '';
 
     return (
         <div className="space-y-4">
             <p className="text-lg font-medium">{question.text}</p>
             {question.max_words && (
-                <p className="text-xs text-muted-foreground">
-                    Maximum {question.max_words} words
-                </p>
+                <p className="text-muted-foreground text-xs">{question.max_words} mots maximum</p>
             )}
             <textarea
                 value={value}
-                onChange={(e) => setValue(e.target.value)}
-                className="w-full rounded-lg border border-border bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                onChange={(e) => onAnswer(question.id, e.target.value)}
+                className="border-border bg-background focus:border-primary focus:ring-primary w-full rounded-lg border px-4 py-3 text-sm focus:ring-1 focus:outline-none disabled:opacity-60"
                 rows={3}
-                placeholder="Type your answer..."
-                disabled={!!selectedAnswer}
+                placeholder="Écris ta réponse…"
+                aria-label="Ta réponse"
+                disabled={disabled}
             />
-            {!selectedAnswer && (
-                <button
-                    onClick={() => value.trim() && onAnswer(question.id, value.trim())}
-                    disabled={!value.trim()}
-                    className="rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground disabled:opacity-50"
-                >
-                    Submit
-                </button>
-            )}
         </div>
     );
 }

@@ -33,8 +33,13 @@ export function CompleteTheWords({ question, onAnswer, selectedAnswer, disabled 
     const update = (key: string, val: string) => {
         setValues((prev) => {
             const next = { ...prev, [key]: val };
-            const allFilled = blanks.every((_, k) => (next[String(k)] ?? '').trim() !== '');
-            if (blanks.length > 0 && allFilled) onAnswer(question.id, next);
+            // Un seul champ rempli suffit pour que la réponse existe. Tant qu'il en
+            // manquait un, rien n'était transmis : « Vérifier » restait éteint et
+            // l'apprenant qui butait sur un champ ne pouvait plus avancer du tout.
+            // Se tromper vaut mieux que rester bloqué — la note reste calculée sur
+            // l'ensemble des champs attendus.
+            const answered = blanks.some((_, k) => (next[String(k)] ?? '').trim() !== '');
+            if (blanks.length > 0 && answered) onAnswer(question.id, next);
             return next;
         });
     };
