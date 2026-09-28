@@ -314,6 +314,7 @@ class PracticeController extends Controller
             $totalXp = 0;
             $totalAccuracy = 0;
             $exerciseCount = 0;
+            $untouchedCount = 0;
 
             $exercises = Exercise::whereIn('id', $servedIds)
                 ->with(['exerciseType', 'exam.language'])
@@ -333,7 +334,13 @@ class PracticeController extends Controller
                     }
                 }
 
+                // Une partie laissée entièrement vide était écartée du calcul : la
+                // moyenne ne portait que sur ce que l'apprenant avait bien voulu
+                // traiter. Un examen blanc à moitié rempli annonçait « 95 % » — le
+                // contraire de ce qu'on attend d'une épreuve d'entraînement, qui sert
+                // justement à savoir où l'on en est. On la compte comme non traitée.
                 if ($exerciseAnswers === []) {
+                    $untouchedCount++;
                     continue;
                 }
 
@@ -366,6 +373,16 @@ class PracticeController extends Controller
 
             $avgAccuracy = round($totalAccuracy / $exerciseCount);
             $summary = "Examen blanc terminé ! Précision moyenne : {$avgAccuracy}% (+{$totalXp} XP)";
+
+            if ($untouchedCount > 0) {
+                // Le chiffre qui compte pour une épreuve : les parties non traitées
+                // valent zéro, comme le jour de l'examen.
+                $servedCount = $exerciseCount + $untouchedCount;
+                $examAccuracy = round($totalAccuracy / $servedCount);
+                $summary = "Examen blanc terminé. Sur l'ensemble de l'épreuve : {$examAccuracy}%"
+                    . " — {$untouchedCount} partie(s) sur {$servedCount} sont restées vides."
+                    . " Sur les parties traitées seules : {$avgAccuracy}% (+{$totalXp} XP)";
+            }
             \Illuminate\Support\Facades\Cache::put("{$key}:result", $summary, now()->addMinutes(10));
 
             return redirect()->route('dashboard')->with('success', $summary);

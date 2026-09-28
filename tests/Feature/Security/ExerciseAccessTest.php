@@ -233,3 +233,25 @@ test('an exam simulation cannot be scored without a served set', function () {
 
     $this->assertDatabaseCount('user_exercise_attempts', 0);
 });
+
+test('une partie laissee vide compte dans le bilan de l examen blanc', function () {
+    // Les parties non traitées étaient écartées du calcul : un examen blanc à moitié
+    // rempli annonçait la moyenne des seules parties faites. Une épreuve
+    // d'entraînement sert justement à savoir où l'on en est.
+    $learner = accessLearner($this->exam);
+    $answered = accessExercise($this->exam, $this->type);
+    accessExercise($this->exam, $this->type); // laissée vide
+
+    $this->actingAs($learner);
+    $this->get(route('practice.simulate', $this->exam))->assertOk();
+
+    $this->post(route('practice.simulate.store', $this->exam), [
+        'answers_by_exercise' => [$answered->id => ['q1' => 'A']],
+        'time_spent' => 60,
+    ])->assertRedirect(route('dashboard'));
+
+    $summary = session('success');
+    expect($summary)->toContain('50%')          // 100 % sur une partie, 0 sur l'autre
+        ->and($summary)->toContain('restées vides')
+        ->and($summary)->toContain('100%');     // la moyenne des parties traitées reste lisible
+});

@@ -57,7 +57,16 @@ class LevelAdvancementService
             return null;
         }
 
+        // Seules comptent les séances faites à ce niveau et sur cet examen. La moyenne
+        // portait sur les vingt dernières séances, toutes difficultés confondues : les
+        // exercices d'un niveau inférieur — le repêchage du parcours en sert quand il
+        // n'en trouve aucun au bon niveau, et l'espace hors ligne en propose aussi —
+        // la tiraient vers le haut. On promouvait alors quelqu'un sur des exercices
+        // plus faciles que son niveau, exactement ce que la règle veut éviter.
         $recent = UserExerciseAttempt::where('user_id', $userId)
+            ->whereHas('exercise', fn ($query) => $query
+                ->where('difficulty', $currentLevel)
+                ->where('exam_id', $skeleton->exam_id))
             ->orderByDesc('created_at')
             ->limit(20)
             ->pluck('accuracy_percent');

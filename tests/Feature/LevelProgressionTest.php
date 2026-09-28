@@ -123,3 +123,41 @@ test('on ne monte pas avec une precision insuffisante', function () {
     expect(app(LevelAdvancementService::class)->assessAfterObjective($user->id, $skeleton))->toBeNull()
         ->and(LevelAssessment::count())->toBe(0);
 });
+
+test('des exercices plus faciles ne font pas monter de niveau', function () {
+    // La moyenne portait sur les vingt dernières séances, toutes difficultés
+    // confondues. Le repêchage du parcours sert des exercices d'un autre niveau
+    // quand il n'en trouve aucun au bon, et l'espace hors ligne en propose aussi :
+    // une série de succès sur du plus facile suffisait à promouvoir.
+    [$user, $skeleton, $exam, $exerciseId] = learnerWithPath(array_fill(0, 3, 'done'));
+    $user->profile->update(['current_level' => 'B1']);
+
+    $easier = Exercise::find($exerciseId);           // difficulté A1
+    $atLevel = Exercise::create([
+        'exam_id' => $exam->id,
+        'exercise_type_id' => $easier->exercise_type_id,
+        'exam_section_id' => $easier->exam_section_id,
+        'difficulty' => 'B1', 'content' => [], 'questions' => [],
+    ]);
+
+    // Cinq réussites parfaites, mais sur des exercices d'un niveau inférieur.
+    foreach (range(1, 5) as $i) {
+        UserExerciseAttempt::create([
+            'user_id' => $user->id, 'exercise_id' => $easier->id,
+            'answers' => [], 'score' => 1, 'accuracy_percent' => 100,
+        ]);
+    }
+
+    expect(app(LevelAdvancementService::class)->assessAfterObjective($user->id, $skeleton))->toBeNull()
+        ->and($user->profile->fresh()->current_level)->toBe('B1');
+
+    // Les mêmes réussites au bon niveau font bien monter.
+    foreach (range(1, 5) as $i) {
+        UserExerciseAttempt::create([
+            'user_id' => $user->id, 'exercise_id' => $atLevel->id,
+            'answers' => [], 'score' => 1, 'accuracy_percent' => 100,
+        ]);
+    }
+
+    expect(app(LevelAdvancementService::class)->assessAfterObjective($user->id, $skeleton->fresh()))->toBe('B2');
+});
