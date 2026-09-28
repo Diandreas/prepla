@@ -123,6 +123,24 @@ class ExerciseScoringService
             $correctAnswer = $question['correct_answer'] ?? null;
             $questionType = $question['type'] ?? $exercise->exerciseType->slug ?? '';
 
+            // Une question que l'apprenant n'a pas pu faire : exercice généré sans
+            // contenu utilisable, ou composant qui a planté et proposé de passer.
+            // Le repère n'était reconnu que par la branche IA ; ailleurs il était
+            // comparé à la réponse attendue, donc compté faux. L'apprenant perdait
+            // des points pour une panne de notre côté. Elle sort du dénominateur,
+            // comme un échec technique de transcription.
+            if (is_string($userAnswer) && in_array($userAnswer, ['__skipped__', '__no_dialogue__'], true)) {
+                $technicalFailures++;
+                $feedback[] = [
+                    'question_id' => $questionId,
+                    'correct' => false,
+                    'accuracy' => 0,
+                    'explanation' => "Cette question n'a pas pu être présentée correctement. Elle ne compte pas dans ton score.",
+                    'technical_failure' => true,
+                ];
+                continue;
+            }
+
             // Interactive speaking components already evaluate each recording
             // turn-by-turn in the UI and submit a signed-down score marker at the
             // end ("completed:NN" / "repeat:NN"). Re-sending that marker to the

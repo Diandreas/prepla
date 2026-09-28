@@ -35,8 +35,11 @@ export function MultipleMatching({ question, onAnswer, selectedAnswer, disabled 
     }));
     const textIds = texts.map((t) => t.id);
 
+    // Une seule association suffit pour que la réponse existe. Tant qu'il en manquait
+    // une, rien n'était transmis : « Vérifier » restait éteint sans explication et
+    // l'apprenant bloqué sur un énoncé ne pouvait plus avancer.
     const handleSubmit = () => {
-        if (Object.keys(values).length === statements.length) {
+        if (Object.keys(values).length > 0) {
             onAnswer(question.id, values);
         }
     };
