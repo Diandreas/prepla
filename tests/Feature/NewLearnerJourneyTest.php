@@ -7,6 +7,7 @@ use App\Models\ExerciseType;
 use App\Models\Language;
 use App\Models\Lesson;
 use App\Models\User;
+use App\Models\UserProfile;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 
@@ -72,6 +73,23 @@ function firstObjectiveNodes($response): array
 
     return ['lesson' => $nodes->firstWhere('id', 'l_0'), 'practice' => $nodes->firstWhere('id', 'p_0')];
 }
+
+test('la langue de l interface suit la langue maternelle declaree', function () {
+    $exam = prepareExam();
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $this->post(route('onboarding.native-language.store'), ['native_language' => 'English'])->assertRedirect();
+
+    // L'interface restait en francais apres avoir declare l'anglais : personne ne la
+    // deduisait de ce choix.
+    expect(UserProfile::where('user_id', $user->id)->value('interface_language'))->toBe('en');
+
+    // Un choix explicite de l'apprenant n'est jamais ecrase.
+    UserProfile::where('user_id', $user->id)->update(['interface_language' => 'fr']);
+    $this->post(route('onboarding.native-language.store'), ['native_language' => 'English'])->assertRedirect();
+    expect(UserProfile::where('user_id', $user->id)->value('interface_language'))->toBe('fr');
+});
 
 test('un nouveau compte garde lecon et pratique accessibles quand la generation est saturee', function () {
     config(['services.mistral.api_key' => 'test-key']);

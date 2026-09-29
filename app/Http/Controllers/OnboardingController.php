@@ -39,10 +39,20 @@ class OnboardingController extends Controller
             'native_language' => 'required|string|max:50',
         ]);
 
-        UserProfile::updateOrCreate(
-            ['user_id' => $request->user()->id],
-            ['native_language' => $validated['native_language']]
-        );
+        $profile = UserProfile::firstOrNew(['user_id' => $request->user()->id]);
+        $profile->native_language = $validated['native_language'];
+
+        // L'interface restait en français même après avoir déclaré l'anglais comme
+        // langue maternelle : personne ne la déduisait de ce choix. On ne touche pas
+        // à un réglage que l'apprenant aurait déjà fixé lui-même.
+        if (!$profile->interface_language) {
+            $profile->interface_language = str_contains(strtolower($validated['native_language']), 'english')
+                || str_contains(strtolower($validated['native_language']), 'anglais')
+                ? 'en'
+                : 'fr';
+        }
+
+        $profile->save();
 
         return redirect()->route('onboarding.exam');
     }
