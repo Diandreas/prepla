@@ -3,6 +3,7 @@ import { Head, router } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { isAnswerCorrect } from '@/lib/scoring';
+import { BlankSentence } from '@/components/blank-sentence';
 
 function Icon({ name, size = 20, className, style }: { name: string; size?: number; className?: string; style?: React.CSSProperties }) {
     return <img src={`/icons/${name}.png`} alt="" width={size} height={size} className={className} style={{ objectFit: 'contain', ...style }} />;
@@ -168,8 +169,9 @@ export default function ErrorsPractice({ errors }: Props) {
                         </div>
 
                         <div className="p-5 space-y-4">
-                            {/* Prompt */}
-                            {error.prompt && (
+                            {/* L'enonce n'est affiche seul qu'une fois la solution vue :
+                                pendant le rappel, c'est la phrase a trou qui le porte. */}
+                            {error.prompt && revealed[error.id] && (
                                 <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
                                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-1">{t('errors.question', 'Question')}</p>
                                     <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{error.prompt}</p>
@@ -182,12 +184,12 @@ export default function ErrorsPractice({ errors }: Props) {
                                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">
                                         {t('errors.try_again', 'Réessaie de répondre')}
                                     </p>
-                                    <input
+                                    <BlankSentence
+                                        text={error.prompt ?? ''}
                                         value={typed[error.id] ?? ''}
-                                        onChange={(e) => setTyped(prev => ({ ...prev, [error.id]: e.target.value }))}
-                                        onKeyDown={(e) => e.key === 'Enter' && attemptRecall(error)}
+                                        onChange={(value) => setTyped(prev => ({ ...prev, [error.id]: value }))}
+                                        onSubmit={() => attemptRecall(error)}
                                         placeholder={t('errors.your_recall', 'Ta réponse…')}
-                                        className="w-full rounded-xl border-2 border-slate-200 px-4 py-3 font-semibold focus:border-blue-400 focus:outline-none"
                                     />
                                     <button
                                         onClick={() => attemptRecall(error)}
@@ -235,9 +237,20 @@ export default function ErrorsPractice({ errors }: Props) {
                                             <p className="text-xs font-bold text-indigo-400 uppercase tracking-wide">
                                                 {t('errors.similar_title', 'Même difficulté, autre phrase')}
                                             </p>
-                                            <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 leading-relaxed">
-                                                {fresh[error.id]!.prompt}
-                                            </p>
+                                            {fresh[error.id]!.options.length > 0 ? (
+                                                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 leading-relaxed">
+                                                    {fresh[error.id]!.prompt}
+                                                </p>
+                                            ) : (
+                                                <BlankSentence
+                                                    text={fresh[error.id]!.prompt}
+                                                    value={freshAnswer[error.id] ?? ''}
+                                                    onChange={(value) => setFreshAnswer(prev => ({ ...prev, [error.id]: value }))}
+                                                    onSubmit={() => checkFresh(error.id, fresh[error.id]!, freshAnswer[error.id] ?? '')}
+                                                    disabled={freshVerdict[error.id] !== null && freshVerdict[error.id] !== undefined}
+                                                    placeholder={t('errors.your_recall', 'Ta réponse…')}
+                                                />
+                                            )}
 
                                             {fresh[error.id]!.options.length > 0 ? (
                                                 <div className="grid gap-2">
@@ -256,22 +269,13 @@ export default function ErrorsPractice({ errors }: Props) {
                                                     })}
                                                 </div>
                                             ) : (
-                                                <div className="flex gap-2">
-                                                    <input
-                                                        value={freshAnswer[error.id] ?? ''}
-                                                        onChange={(e) => setFreshAnswer(prev => ({ ...prev, [error.id]: e.target.value }))}
-                                                        onKeyDown={(e) => e.key === 'Enter' && checkFresh(error.id, fresh[error.id]!, freshAnswer[error.id] ?? '')}
-                                                        placeholder={t('errors.your_recall', 'Ta réponse…')}
-                                                        className="flex-1 rounded-xl border-2 border-slate-200 px-4 py-2.5 font-semibold focus:border-indigo-400 focus:outline-none"
-                                                    />
-                                                    <button
-                                                        onClick={() => checkFresh(error.id, fresh[error.id]!, freshAnswer[error.id] ?? '')}
-                                                        disabled={!(freshAnswer[error.id] ?? '').trim()}
-                                                        className="duo-press px-4 rounded-xl bg-indigo-600 text-white font-bold text-sm disabled:opacity-40"
-                                                    >
-                                                        {t('errors.check', 'Vérifier')}
-                                                    </button>
-                                                </div>
+                                                <button
+                                                    onClick={() => checkFresh(error.id, fresh[error.id]!, freshAnswer[error.id] ?? '')}
+                                                    disabled={!(freshAnswer[error.id] ?? '').trim() || (freshVerdict[error.id] !== null && freshVerdict[error.id] !== undefined)}
+                                                    className="duo-press w-full py-2.5 rounded-xl bg-indigo-600 text-white font-bold text-sm disabled:opacity-40"
+                                                >
+                                                    {t('errors.check', 'Vérifier')}
+                                                </button>
                                             )}
 
                                             {freshVerdict[error.id] !== null && freshVerdict[error.id] !== undefined && (
