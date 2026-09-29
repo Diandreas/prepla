@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { evaluateAnswer, expectedAnswerText, needsServerEvaluation, normalizeAnswer, scoreSession } from '../../resources/js/lib/scoring.js';
+import { evaluateAnswer, expectedAnswerText, isSkippedAnswer, needsServerEvaluation, normalizeAnswer, scoreSession } from '../../resources/js/lib/scoring.js';
 
 const fixture = JSON.parse(readFileSync(new URL('../fixtures/scoring-parity.json', import.meta.url), 'utf8'));
 
@@ -62,4 +62,14 @@ test('les reponses ouvertes restent evaluees par le serveur', () => {
     assert.equal(needsServerEvaluation({ type: 'short-answer', correct_answer: 'Berlin' }), false);
     assert.equal(needsServerEvaluation({}, 'mcq'), false);
     assert.equal(needsServerEvaluation({}, 'speaking-recorder'), true);
+});
+
+test('une question passee pour panne technique est reconnue comme telle', () => {
+    // Le serveur la sort du score depuis toujours ; le navigateur la comparait a la
+    // reponse attendue et annoncait « Incorrect » a qui on venait de promettre
+    // qu'elle ne compterait pas.
+    assert.equal(isSkippedAnswer('__skipped__'), true);
+    assert.equal(isSkippedAnswer('__no_dialogue__'), true);
+    assert.equal(isSkippedAnswer('spielte'), false);
+    assert.equal(isSkippedAnswer(undefined), false);
 });

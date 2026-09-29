@@ -6,7 +6,7 @@ import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { playSound } from '@/hooks/use-sound';
 import { getCachedTtsUrl, rememberTtsUrl, prefetchExercisesAudio } from '@/lib/tts-cache';
-import { evaluateAnswer, expectedAnswerText, needsServerEvaluation } from '@/lib/scoring';
+import { evaluateAnswer, isSkippedAnswer, expectedAnswerText, needsServerEvaluation } from '@/lib/scoring';
 import { LearningScene, sceneVariantForSkill } from '@/components/learning-scene';
 
 // Read the freshest CSRF token. The XSRF-TOKEN cookie tracks the live session,
@@ -483,6 +483,8 @@ export default function SessionPlayer({ node, exercises }: Props) {
     const [answers, setAnswers] = useState<Record<string, FormDataConvertible>>({});
     const [isChecked, setIsChecked] = useState(false);
     const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+    // Question passee faute d'avoir pu etre presentee : ni juste, ni fausse.
+    const [skipped, setSkipped] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [visible, setVisible] = useState(true);
     const timeSpentRef = useRef(0);
@@ -806,6 +808,18 @@ export default function SessionPlayer({ node, exercises }: Props) {
         const currentAnswer = answers[answerKey(question.id)];
         if (currentAnswer === undefined) return;
 
+        // Une question passee parce qu'elle ne s'affichait pas n'est pas une erreur de
+        // l'apprenant. Le serveur la sort deja du score ; l'ecran, lui, jouait le son
+        // d'erreur, affichait « Incorrect » avec la reponse attendue et la renvoyait en
+        // revision — juste apres lui avoir promis qu'elle ne compterait pas.
+        if (isSkippedAnswer(currentAnswer)) {
+            setIsChecked(true);
+            setIsCorrect(null);
+        setSkipped(false);
+            setSkipped(true);
+            return;
+        }
+
         // Role-play & listen-repeat self-evaluate inside the component; the answer
         // arrives as "completed:NN" / "repeat:NN". Don't re-score via the API.
         if (activeComponentKey === 'role-play' || activeComponentKey === 'listen-repeat') {
@@ -1103,6 +1117,11 @@ export default function SessionPlayer({ node, exercises }: Props) {
                     background: linear-gradient(to right, rgba(239,68,68,0.06), rgba(239,68,68,0.02));
                     border-top-color: rgba(239,68,68,0.22) !important;
                 }
+                /* Question passee faute d'avoir pu etre presentee : ni vert, ni rouge. */
+                .action-bar-neutral {
+                    background: linear-gradient(to right, rgba(245,158,11,0.07), rgba(245,158,11,0.02));
+                    border-top-color: rgba(245,158,11,0.25) !important;
+                }
 
                 .btn-check {
                     font-family: 'DM Sans', system-ui, sans-serif;
@@ -1128,6 +1147,7 @@ export default function SessionPlayer({ node, exercises }: Props) {
                 .btn-default  { background: var(--player-accent); color: #fff; box-shadow: 0 3px 12px rgba(99,102,241,0.35); }
                 .btn-correct  { background: #10b981; color: #fff; box-shadow: 0 3px 12px rgba(16,185,129,0.35); }
                 .btn-incorrect { background: #ef4444; color: #fff; box-shadow: 0 3px 12px rgba(239,68,68,0.3); }
+                .btn-neutral { background: #d97706; color: #fff; box-shadow: 0 3px 12px rgba(217,119,6,0.3); }
                 .btn-submitting { background: var(--player-accent); color: #fff; opacity: 0.7; }
 
                 .passage-card {
@@ -1386,7 +1406,15 @@ export default function SessionPlayer({ node, exercises }: Props) {
                         donnée n'était plus visible au moment de lire la correction. Il
                         défile maintenant avec la page, sous la question et sous ce que
                         l'apprenant a répondu. */}
-                    {isChecked && !isCorrect && (explanation || fetchingExplanation || expectedText) && (
+                    {isChecked && skipped && (
+                        <div role="status" className="player-font rounded-2xl border-2 border-amber-200 bg-card p-4 shadow-sm dark:border-amber-900">
+                            <p className="text-sm leading-relaxed text-foreground">
+                                Question passee : elle ne compte pas dans ton score, l'exercice ne s'est pas affiche correctement.
+                            </p>
+                        </div>
+                    )}
+
+                    {isChecked && !skipped && !isCorrect && (explanation || fetchingExplanation || expectedText) && (
                         <div
                             ref={correctionRef}
                             role="status"
@@ -1430,7 +1458,7 @@ export default function SessionPlayer({ node, exercises }: Props) {
             <div
                 className={`fixed bottom-0 left-0 right-0 z-50 transition-all duration-300 ${
                     isChecked
-                        ? isCorrect ? 'action-bar-correct' : 'action-bar-incorrect'
+                        ? skipped ? 'action-bar-neutral' : isCorrect ? 'action-bar-correct' : 'action-bar-incorrect'
                         : ''
                 }`}
                 style={{
@@ -1486,12 +1514,12 @@ export default function SessionPlayer({ node, exercises }: Props) {
                                     <div style={{
                                         fontWeight: 700,
                                         fontSize: '1rem',
-                                        color: isCorrect ? '#059669' : '#dc2626',
+                                        color: skipped ? '#b45309' : isCorrect ? '#059669' : '#dc2626',
                                         lineHeight: 1.2,
                                     }}>
-                                        {isCorrect ? t('exercise.correct') : t('exercise.incorrect')}
+                                        {skipped ? 'Question passee' : isCorrect ? t('exercise.correct') : t('exercise.incorrect')}
                                     </div>
-                                    {!isCorrect && (
+                                    {!isCorrect && !skipped && (
                                         <div className="mt-1 flex items-center gap-3">
                                             <span className="text-[12px] font-medium text-red-600/80">
                                                 {fetchingExplanation ? 'Analyse…' : 'Vois l’explication ci-dessus'}
@@ -1674,7 +1702,7 @@ export default function SessionPlayer({ node, exercises }: Props) {
                             submitting || isVerifying
                                 ? 'btn-submitting'
                                 : isChecked
-                                    ? isCorrect ? 'btn-correct' : 'btn-incorrect'
+                                    ? skipped ? 'btn-neutral' : isCorrect ? 'btn-correct' : 'btn-incorrect'
                                     : 'btn-default'
                         }`}
                         disabled={!hasAnswer || submitting || isVerifying}
@@ -1686,7 +1714,7 @@ export default function SessionPlayer({ node, exercises }: Props) {
                             </>
                         ) : isChecked ? (
                             <>
-                                {isCorrect ? (isLastQuestion ? t('exercise.finish', 'Finish') : t('exercise.next', 'Next')) : 'Continuer'}
+                                {isCorrect || skipped ? (isLastQuestion ? t('exercise.finish', 'Finish') : t('exercise.next', 'Next')) : 'Continuer'}
                                 <Icon name="chevron-right" size={15} style={{ filter: 'brightness(0) invert(1)' }} />
                             </>
                         ) : (

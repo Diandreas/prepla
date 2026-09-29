@@ -21,6 +21,11 @@ export interface SessionScore {
 /** Any question record: the rules read only the fields they need. */
 export type ScorableQuestion = object;
 
+export const SKIPPED_ANSWERS: string[];
+
+/** Vrai pour une question passee a cause d'une panne de notre cote. */
+export function isSkippedAnswer(answer: unknown): boolean;
+
 export function normalizeAnswer(value: unknown): string;
 
 export function needsServerEvaluation(question: ScorableQuestion | null | undefined, fallbackType?: string): boolean;

@@ -50,6 +50,18 @@ function entries(collection) {
     return Array.isArray(collection) ? collection.map((value, index) => [String(index), value]) : Object.entries(collection);
 }
 
+/**
+ * Reponses qui signalent une panne de NOTRE cote (audio introuvable, dialogue qui
+ * ne se charge pas), pas une erreur de l'apprenant. Le serveur les sort du score
+ * depuis toujours ; le navigateur, lui, les comparait a la reponse attendue et
+ * annoncait « Incorrect » a quelqu'un a qui on venait de promettre le contraire.
+ */
+export const SKIPPED_ANSWERS = ['__skipped__', '__no_dialogue__'];
+
+export function isSkippedAnswer(answer) {
+    return typeof answer === 'string' && SKIPPED_ANSWERS.includes(answer);
+}
+
 export function normalizeAnswer(value) {
     return phpString(value).trim().toLowerCase().replace(/[’`]/g, "'");
 }
