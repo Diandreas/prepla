@@ -2,6 +2,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
+import { isAnswerCorrect } from '@/lib/scoring';
 
 function Icon({ name, size = 20, className, style }: { name: string; size?: number; className?: string; style?: React.CSSProperties }) {
     return <img src={`/icons/${name}.png`} alt="" width={size} height={size} className={className} style={{ objectFit: 'contain', ...style }} />;
@@ -37,6 +38,14 @@ const skillIcons: Record<string, string> = {
     speaking: 'speaking',
 };
 
+interface FreshQuestion {
+    type?: string;
+    prompt: string;
+    options: string[];
+    correct_answer: string;
+    explanation?: string;
+}
+
 export default function ErrorsPractice({ errors }: Props) {
     const { t } = useTranslation();
     const [reviewed, setReviewed] = useState<Set<number>>(new Set());
@@ -45,6 +54,43 @@ export default function ErrorsPractice({ errors }: Props) {
     const [typed, setTyped] = useState<Record<number, string>>({});
     const [revealed, setRevealed] = useState<Record<number, boolean>>({});
     const [wasCorrect, setWasCorrect] = useState<Record<number, boolean>>({});
+    // Un exercice neuf sur le meme concept : reposer la phrase apprend la phrase,
+    // pas la regle. Etat par erreur, car chaque carte a le sien.
+    const [fresh, setFresh] = useState<Record<number, FreshQuestion | null>>({});
+    const [freshAnswer, setFreshAnswer] = useState<Record<number, string>>({});
+    const [freshVerdict, setFreshVerdict] = useState<Record<number, boolean | null>>({});
+    const [freshLoading, setFreshLoading] = useState<number | null>(null);
+    const [freshError, setFreshError] = useState<Record<number, string>>({});
+
+    const askSimilar = async (errorId: number) => {
+        if (freshLoading === errorId) return;
+        setFreshLoading(errorId);
+        setFreshError(prev => ({ ...prev, [errorId]: '' }));
+        try {
+            const res = await fetch(route('errors.similar', errorId), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-XSRF-TOKEN': decodeURIComponent(document.cookie.split('XSRF-TOKEN=')[1]?.split(';')[0] ?? ''),
+                    Accept: 'application/json',
+                },
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data?.message ?? 'Generation impossible');
+            setFresh(prev => ({ ...prev, [errorId]: data.question }));
+            setFreshAnswer(prev => ({ ...prev, [errorId]: '' }));
+            setFreshVerdict(prev => ({ ...prev, [errorId]: null }));
+        } catch (e) {
+            setFreshError(prev => ({ ...prev, [errorId]: e instanceof Error ? e.message : "L'exercice n'a pas pu être écrit." }));
+        } finally {
+            setFreshLoading(null);
+        }
+    };
+
+    const checkFresh = (errorId: number, question: FreshQuestion, answer: string) => {
+        setFreshAnswer(prev => ({ ...prev, [errorId]: answer }));
+        setFreshVerdict(prev => ({ ...prev, [errorId]: isAnswerCorrect(question, answer) }));
+    };
 
     const sm2Schedule = async (error: UserError, correct: boolean) => {
         const xsrf = document.cookie.split('; ').find(c => c.startsWith('XSRF-TOKEN='));
@@ -180,6 +226,90 @@ export default function ErrorsPractice({ errors }: Props) {
                                             </p>
                                             <p className="text-sm text-indigo-700 dark:text-indigo-300 leading-relaxed">{error.explanation}</p>
                                         </div>
+                                    )}
+
+                                    {/* Le concept, pas la phrase : un exercice neuf sur la meme
+                                        difficulte, sinon on memorise un enonce sans comprendre. */}
+                                    {fresh[error.id] ? (
+                                        <div className="p-4 rounded-xl border-2 border-indigo-200 dark:border-indigo-800/40 bg-indigo-50/40 dark:bg-indigo-900/10 space-y-3">
+                                            <p className="text-xs font-bold text-indigo-400 uppercase tracking-wide">
+                                                {t('errors.similar_title', 'Même difficulté, autre phrase')}
+                                            </p>
+                                            <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 leading-relaxed">
+                                                {fresh[error.id]!.prompt}
+                                            </p>
+
+                                            {fresh[error.id]!.options.length > 0 ? (
+                                                <div className="grid gap-2">
+                                                    {fresh[error.id]!.options.map((option, index) => {
+                                                        const letter = String.fromCharCode(65 + index);
+                                                        return (
+                                                            <button
+                                                                key={option}
+                                                                onClick={() => checkFresh(error.id, fresh[error.id]!, letter)}
+                                                                disabled={freshVerdict[error.id] !== null && freshVerdict[error.id] !== undefined}
+                                                                className="text-left rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold hover:border-indigo-300 disabled:opacity-60 dark:bg-slate-900"
+                                                            >
+                                                                <span className="text-indigo-400 font-black mr-2">{letter}</span>{option}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ) : (
+                                                <div className="flex gap-2">
+                                                    <input
+                                                        value={freshAnswer[error.id] ?? ''}
+                                                        onChange={(e) => setFreshAnswer(prev => ({ ...prev, [error.id]: e.target.value }))}
+                                                        onKeyDown={(e) => e.key === 'Enter' && checkFresh(error.id, fresh[error.id]!, freshAnswer[error.id] ?? '')}
+                                                        placeholder={t('errors.your_recall', 'Ta réponse…')}
+                                                        className="flex-1 rounded-xl border-2 border-slate-200 px-4 py-2.5 font-semibold focus:border-indigo-400 focus:outline-none"
+                                                    />
+                                                    <button
+                                                        onClick={() => checkFresh(error.id, fresh[error.id]!, freshAnswer[error.id] ?? '')}
+                                                        disabled={!(freshAnswer[error.id] ?? '').trim()}
+                                                        className="duo-press px-4 rounded-xl bg-indigo-600 text-white font-bold text-sm disabled:opacity-40"
+                                                    >
+                                                        {t('errors.check', 'Vérifier')}
+                                                    </button>
+                                                </div>
+                                            )}
+
+                                            {freshVerdict[error.id] !== null && freshVerdict[error.id] !== undefined && (
+                                                <div className="space-y-2">
+                                                    <p className={`rounded-xl p-2.5 text-center font-black text-sm ${freshVerdict[error.id] ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                                                        {freshVerdict[error.id]
+                                                            ? t('errors.recall_ok', '✓ Bravo, tu as retenu !')
+                                                            : `${t('errors.correct_answer', 'Bonne réponse')} : ${fresh[error.id]!.correct_answer}`}
+                                                    </p>
+                                                    {fresh[error.id]!.explanation && (
+                                                        <p className="text-sm text-indigo-700 dark:text-indigo-300 leading-relaxed">{fresh[error.id]!.explanation}</p>
+                                                    )}
+                                                    <button
+                                                        onClick={() => askSimilar(error.id)}
+                                                        disabled={freshLoading === error.id}
+                                                        className="w-full py-2 rounded-xl border-2 border-indigo-200 text-indigo-700 font-bold text-sm disabled:opacity-40"
+                                                    >
+                                                        {freshLoading === error.id
+                                                            ? t('errors.similar_loading', 'Écriture en cours…')
+                                                            : t('errors.similar_again', 'Encore un autre')}
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={() => askSimilar(error.id)}
+                                            disabled={freshLoading === error.id}
+                                            className="duo-press w-full py-2.5 rounded-xl border-2 border-indigo-300 text-indigo-700 dark:text-indigo-300 font-bold text-sm disabled:opacity-40"
+                                        >
+                                            {freshLoading === error.id
+                                                ? t('errors.similar_loading', 'Écriture en cours…')
+                                                : t('errors.similar_ask', "M'entraîner sur la même difficulté")}
+                                        </button>
+                                    )}
+
+                                    {freshError[error.id] && (
+                                        <p role="alert" className="text-sm font-medium text-amber-700 dark:text-amber-300">{freshError[error.id]}</p>
                                     )}
 
                                     <button

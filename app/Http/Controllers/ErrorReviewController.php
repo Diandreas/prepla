@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ExerciseType;
 use App\Models\UserError;
+use App\Services\AI\ExerciseGeneratorService;
 use App\Services\ErrorSpacedRepetitionService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class ErrorReviewController extends Controller
@@ -106,6 +110,82 @@ class ErrorReviewController extends Controller
                 'created_at' => $e->created_at,
             ])->values(),
         ]);
+    }
+
+    /**
+     * POST /errors/{error}/similar — un exercice NEUF sur le concept raté.
+     *
+     * La révision reposait la question mot pour mot : l'apprenant réapprenait une
+     * phrase, pas une règle. Il pouvait la refaire juste sans avoir compris, et rater
+     * la même difficulté ailleurs. On génère donc un exercice du même type sur le même
+     * concept, pour qu'il rencontre la difficulté autrement.
+     */
+    public function similar(Request $request, UserError $error, ExerciseGeneratorService $generator)
+    {
+        abort_unless($error->user_id === $request->user()->id, 403);
+
+        $profile = $request->user()->profile;
+        $exam = $profile?->targetExam;
+
+        if (!$exam) {
+            return response()->json(['message' => "Choisis d'abord l'examen que tu prépares."], 422);
+        }
+
+        // Même type d'exercice que l'erreur d'origine ; à défaut, un texte à trou, qui
+        // convient à presque tous les concepts de grammaire et de vocabulaire.
+        $type = ExerciseType::where('slug', $error->exercise_type_slug)->first()
+            ?? ExerciseType::where('component_key', 'gap-fill')->first()
+            ?? ExerciseType::where('component_key', 'mcq')->first();
+
+        if (!$type) {
+            return response()->json(['message' => "Aucun type d'exercice n'est disponible."], 422);
+        }
+
+        $concept = $error->error_category ?: ($error->skill_type ?: 'grammar');
+
+        // Une génération par erreur et par heure : cliquer en boucle ne doit pas vider
+        // le quota du fournisseur.
+        $cacheKey = "error-similar:{$error->id}:" . now()->format('YmdH');
+
+        try {
+            $question = Cache::remember($cacheKey, now()->addHour(), function () use ($generator, $type, $exam, $profile, $error, $concept) {
+                $exercise = $generator->generate($type, $exam, $profile->current_level ?? 'A1', [
+                    'title' => $concept,
+                    'concept' => $concept,
+                    'native_language' => $profile->native_language ?? 'Français',
+                    // On donne la question ratée pour que la nouvelle porte sur la même
+                    // difficulté sans être la même phrase.
+                    'previous_mistake' => $error->question_text,
+                ]);
+
+                $first = collect($exercise->questions ?? [])->first();
+                if (!is_array($first)) {
+                    return null;
+                }
+
+                return [
+                    'exercise_id' => $exercise->id,
+                    'type' => $first['type'] ?? $type->component_key,
+                    'prompt' => $first['text'] ?? $first['prompt'] ?? $first['statement'] ?? '',
+                    'options' => array_values(array_filter((array) ($first['options'] ?? []), fn ($o) => is_scalar($o))),
+                    'correct_answer' => is_scalar($first['correct_answer'] ?? null) ? (string) $first['correct_answer'] : '',
+                    'explanation' => is_string($first['explanation'] ?? null) ? $first['explanation'] : '',
+                ];
+            });
+        } catch (\Throwable $e) {
+            Log::warning('Exercice similaire : génération impossible', ['error_id' => $error->id, 'message' => $e->getMessage()]);
+            $question = null;
+        }
+
+        if (!$question || $question['prompt'] === '' || $question['correct_answer'] === '') {
+            Cache::forget($cacheKey); // un échec ne doit pas être resservi une heure durant
+
+            return response()->json([
+                'message' => "Aucun exercice n'a pu être écrit pour l'instant. Réessaie dans quelques minutes.",
+            ], 503);
+        }
+
+        return response()->json(['question' => $question]);
     }
 
     // POST /errors/{error}/review - mark as reviewed with SM-2

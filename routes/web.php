@@ -167,6 +167,8 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/', [ErrorReviewController::class, 'index'])->name('index');
             Route::get('/practice', [ErrorReviewController::class, 'practice'])->name('practice');
             Route::post('/{error}/review', [ErrorReviewController::class, 'submitReview'])->name('submit-review');
+            // Un exercice neuf sur le concept raté, plutôt que la même phrase reposée.
+            Route::post('/{error}/similar', [ErrorReviewController::class, 'similar'])->name('similar');
         });
 
         // Leaderboard
