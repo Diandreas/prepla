@@ -2,6 +2,7 @@ import AppLayout from '@/layouts/app-layout';
 import type { FormDataConvertible } from '@inertiajs/core';
 import { Head, router } from '@inertiajs/react';
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { playSound } from '@/hooks/use-sound';
 import { getCachedTtsUrl, rememberTtsUrl, prefetchExercisesAudio } from '@/lib/tts-cache';
@@ -1544,8 +1545,12 @@ export default function SessionPlayer({ node, exercises }: Props) {
                         )}
                     </div>
 
-                    {/* Dictionary Modal */}
-                    {isDictionaryOpen && (
+                    {/* Dictionnaire : rendu dans <body> par un portail. Les conteneurs du
+                        lecteur portent des transform d'animation, et un parent transforme
+                        devient le repere des enfants en position fixed : le panneau se
+                        retrouvait ancre a la question au lieu de l'ecran, et restait
+                        coince hors de vue sur grand ecran. */}
+                    {isDictionaryOpen && createPortal((
                         <div
                             className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm"
                             onClick={() => setIsDictionaryOpen(false)}
@@ -1555,6 +1560,9 @@ export default function SessionPlayer({ node, exercises }: Props) {
                                 className="bg-white w-full max-w-md shadow-2xl overflow-hidden border border-slate-200 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200
                                            rounded-t-2xl sm:rounded-2xl max-h-[85vh] sm:max-h-[80vh] flex flex-col"
                             >
+                                <div className="pt-2 pb-1 flex justify-center sm:hidden" aria-hidden="true">
+                                    <span className="h-1 w-10 rounded-full bg-slate-300" />
+                                </div>
                                 <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 flex-shrink-0">
                                     <h3 className="font-bold text-slate-800">Dictionnaire Rapide</h3>
                                     <button onClick={() => setIsDictionaryOpen(false)} className="p-1 hover:bg-slate-200 rounded-full transition-colors">
@@ -1658,7 +1666,7 @@ export default function SessionPlayer({ node, exercises }: Props) {
                                 </div>
                             </div>
                         </div>
-                    )}
+                    ), document.body)}
 
                     {/* CTA button */}
                     <button
