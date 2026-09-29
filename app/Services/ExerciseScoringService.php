@@ -170,6 +170,22 @@ class ExerciseScoringService
             // the expected answer (>4 words ⇒ open response).
             if ($questionType === 'short-answer' && is_string($correctAnswer)
                 && str_word_count(trim($correctAnswer)) > 4) {
+                // Une reponse identique a celle attendue n'a pas besoin d'etre soumise
+                // au modele : l'exercice est genere AVEC sa correction, et faire juger
+                // une evidence coute du quota, ajoute une attente, et expose la
+                // correction a une panne du fournisseur.
+                if (is_string($userAnswer)
+                    && $this->normalizeForComparison($userAnswer) === $this->normalizeForComparison($correctAnswer)) {
+                    $correct++;
+                    $feedback[] = [
+                        'question_id' => $questionId,
+                        'correct' => true,
+                        'accuracy' => 100,
+                        'explanation' => $question['explanation'] ?? 'Exactement la reponse attendue.',
+                    ];
+                    continue;
+                }
+
                 $questionType = 'short-answer-open';
                 $aiEvaluatedTypes[] = 'short-answer-open';
             }
