@@ -110,16 +110,14 @@ class CurriculumPlannerService
             return false;
         }
 
-        // La nouvelle etape se joue au niveau que l'apprenant vient d'atteindre. S'il
-        // a ete promu a l'instant, c'est le cran du dessus ; sinon c'est le sien, et
-        // l'etape sert alors a consolider ce qu'il n'a pas encore tenu a 70 %.
+        // La nouvelle etape se joue au niveau REELLEMENT valide, celui du profil, et
+        // non au niveau affiche par les objectifs deja parcourus. Les deux ont
+        // diverge : un apprenant a traverse des objectifs etiquetes B1 en ne faisant
+        // que des exercices A1, et le suivre aurait prolonge le malentendu. S'il vient
+        // d'etre promu, l'etape se joue donc au cran gagne ; sinon au sien, pour
+        // consolider ce qu'il n'a pas encore tenu a 70 %.
         $ladder = CurriculumSkeleton::CEFR_LEVELS;
-        $lastLevel = $skeleton->levelForObjective(count($objectives) - 1, $profile->current_level ?? 'A1');
-        $reached = max(
-            (int) array_search($profile->current_level ?? 'A1', $ladder, true),
-            (int) array_search($lastLevel, $ladder, true),
-        );
-        $targetLevel = $ladder[min($reached, count($ladder) - 1)];
+        $targetLevel = in_array($profile->current_level, $ladder, true) ? $profile->current_level : 'A1';
 
         $language = $exam->language->name ?? 'English';
         $fresh = $this->parseSkeletonResponse(
