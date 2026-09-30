@@ -7,6 +7,7 @@ use App\Models\Exam;
 use App\Models\User;
 use App\Models\UserError;
 use App\Services\AI\MistralService;
+use App\Services\LevelAdvancementService;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -68,6 +69,103 @@ class CurriculumPlannerService
      * Reassess the skeleton after each lesson.
      * Can insert, remove, or reorder objectives based on performance.
      */
+    /**
+     * Prolonge un parcours termine par une etape au niveau suivant.
+     *
+     * Jusqu'ici, finir son parcours menait a une impasse : plus aucun objectif
+     * courant, donc plus de lecon a ouvrir, et un niveau de profil inchange depuis
+     * le test d'entree. Un apprenant qui allait au bout se retrouvait devant un
+     * ecran « parcours termine » sans rien a faire, toujours marque debutant.
+     *
+     * On promeut d'abord si c'est merite, puis on ecrit une etape au niveau atteint.
+     * Sans IA disponible, on reprend le programme de reference de ce niveau plutot
+     * que de laisser l'impasse.
+     *
+     * @return bool true si de nouveaux objectifs ont ete ajoutes
+     */
+    public function extendForNextLevel(User $user, LevelAdvancementService $levels): bool
+    {
+        $skeleton = CurriculumSkeleton::where('user_id', $user->id)->first();
+        if (!$skeleton) {
+            return false;
+        }
+
+        $objectives = $skeleton->objectives ?? [];
+        if ($objectives === []) {
+            return false;
+        }
+
+        // On ne prolonge que ce qui est reellement fini.
+        foreach ($objectives as $objective) {
+            if (($objective['status'] ?? 'pending') !== 'done') {
+                return false;
+            }
+        }
+
+        $levels->assessAfterObjective($user->id, $skeleton);
+
+        $profile = $user->profile()->first();
+        $exam = $profile?->targetExam;
+        if (!$exam) {
+            return false;
+        }
+
+        // La nouvelle etape se joue au niveau que l'apprenant vient d'atteindre. S'il
+        // a ete promu a l'instant, c'est le cran du dessus ; sinon c'est le sien, et
+        // l'etape sert alors a consolider ce qu'il n'a pas encore tenu a 70 %.
+        $ladder = CurriculumSkeleton::CEFR_LEVELS;
+        $lastLevel = $skeleton->levelForObjective(count($objectives) - 1, $profile->current_level ?? 'A1');
+        $reached = max(
+            (int) array_search($profile->current_level ?? 'A1', $ladder, true),
+            (int) array_search($lastLevel, $ladder, true),
+        );
+        $targetLevel = $ladder[min($reached, count($ladder) - 1)];
+
+        $language = $exam->language->name ?? 'English';
+        $fresh = $this->parseSkeletonResponse(
+            $this->mistral->chat([
+                [
+                    'role' => 'system',
+                    'content' => "You are an expert language curriculum designer. You respond ONLY in valid JSON format.",
+                ],
+                [
+                    'role' => 'user',
+                    'content' => $this->buildSkeletonPrompt($language, $exam->name ?? 'Language Exam', $targetLevel, $profile->native_language ?? 'Français'),
+                ],
+            ]),
+            $targetLevel,
+            $language
+        );
+
+        if ($fresh === []) {
+            return false;
+        }
+
+        // Dix objectifs suffisent pour une etape : au-dela, le parcours redevient un mur.
+        $fresh = array_slice($fresh, 0, 10);
+        $start = count($objectives);
+
+        foreach ($fresh as $index => $objective) {
+            $objective['order'] = $start + $index;
+            $objective['level'] = $objective['level'] ?? $targetLevel;
+            $objective['status'] = $index === 0 ? 'current' : 'pending';
+            $objectives[] = $objective;
+        }
+
+        $skeleton->objectives = $objectives;
+        $skeleton->current_objective_index = $start;
+        $skeleton->consecutive_failures = 0;
+        $skeleton->save();
+
+        Log::info('Parcours prolonge', [
+            'user_id' => $user->id,
+            'niveau' => $targetLevel,
+            'objectifs_ajoutes' => count($fresh),
+        ]);
+
+        return true;
+    }
+
     public function reassess(User $user): void
     {
         $skeleton = CurriculumSkeleton::where('user_id', $user->id)->first();

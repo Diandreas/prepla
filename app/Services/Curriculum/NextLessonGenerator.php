@@ -25,7 +25,8 @@ class NextLessonGenerator
 {
     public function __construct(
         protected MistralService $mistral,
-        protected CurriculumPlannerService $planner
+        protected CurriculumPlannerService $planner,
+        protected \App\Services\LevelAdvancementService $levels
     ) {}
 
     /**
@@ -45,8 +46,20 @@ class NextLessonGenerator
         }
 
         $currentObjective = $skeleton->currentObjective();
+
+        if (!$currentObjective || $skeleton->isComplete()) {
+            // Parcours termine. Avant, on s'arretait la : plus d'objectif courant, donc
+            // plus aucune lecon a ouvrir, et un niveau de profil fige depuis le test
+            // d'entree. L'apprenant qui allait au bout tombait sur une impasse. On le
+            // promeut si c'est merite et on lui ecrit l'etape suivante.
+            if ($this->planner->extendForNextLevel($user, $this->levels)) {
+                $skeleton = $skeleton->fresh();
+                $currentObjective = $skeleton->currentObjective();
+            }
+        }
+
         if (!$currentObjective) {
-            return null; // All objectives completed
+            return null;
         }
 
         // Check if there's already an unconsumed lesson for this objective.

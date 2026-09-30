@@ -122,6 +122,29 @@ class CurriculumSkeleton extends Model
     }
 
     /**
+     * Parcours entierement termine.
+     *
+     * currentObjective() renvoie l'objectif a l'index courant sans regarder son
+     * statut : arrive au bout, il rendait donc un objectif deja termine, et
+     * l'apprenant tournait en rond sur sa derniere lecon au lieu d'avancer.
+     */
+    public function isComplete(): bool
+    {
+        $objectives = $this->objectives ?? [];
+        if ($objectives === []) {
+            return false;
+        }
+
+        foreach ($objectives as $objective) {
+            if (($objective['status'] ?? 'pending') !== 'done') {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Get all pending/current objectives.
      */
     public function remainingObjectives(): array
