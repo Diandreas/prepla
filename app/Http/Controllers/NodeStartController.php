@@ -41,12 +41,16 @@ class NodeStartController extends Controller
             ->limit(3)
             ->get();
 
+        // Un examen de palier est ecrit d'avance et ne se complete pas : y ajouter des
+        // exercices generiques ou generes le transformerait en seance ordinaire.
+        $isLevelExam = $node->node_type === 'level_exam';
+
         // 3. Fallback générique : SAUTÉ pour les nodes de type 'lesson' car les exercices
         // génériques pris au hasard sont rarement alignés avec le concept de la leçon
         // (ex: leçon "Simple Present" + exercice générique sur Madrid = aucun rapport).
         // Pour les nodes de pratique générale (non-lesson) le fallback reste utile.
         $isLessonNode = $node->node_type === 'lesson';
-        if ($exercises->count() < 3 && !$isLessonNode) {
+        if ($exercises->count() < 3 && !$isLessonNode && !$isLevelExam) {
             $generic = $this->genericExercises($node, $node->level, 3 - $exercises->count(), $exercises->pluck('id')->all());
 
             $exercises = $exercises->concat($generic);
@@ -56,7 +60,7 @@ class NodeStartController extends Controller
         // On ne génère QUE si le nœud n'a jamais eu d'exercices générés (évite de reconsommer des tokens)
         $alreadyGenerated = Exercise::where('node_id', $node->id)->where('is_ai_generated', true)->exists();
 
-        if ($exercises->count() < 3 && !$alreadyGenerated) {
+        if ($exercises->count() < 3 && !$alreadyGenerated && !$isLevelExam) {
             $node->loadMissing('exam.language');
 
             // Variety: a quick session of 3 exercises should mix SKILLS, not just
@@ -227,7 +231,7 @@ class NodeStartController extends Controller
         // mieux qu'un parcours bloqué : c'est exactement ce qui coinçait les nouveaux
         // comptes, dont tous les nœuds sont de type 'lesson' et sautaient donc le
         // repêchage de l'étape 3.
-        if ($exercises->isEmpty()) {
+        if ($exercises->isEmpty() && !$isLevelExam) {
             $exercises = $this->genericExercises($node, $node->level);
 
             if ($exercises->isEmpty()) {

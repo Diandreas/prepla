@@ -227,6 +227,18 @@ class ExerciseController extends Controller
             }
         }
 
+        // Examen de fin de palier : c'est LUI qui fait monter de niveau. Jusqu'ici la
+        // promotion n'etait appelee de nulle part et personne ne changeait de niveau.
+        if ($node->node_type === 'level_exam') {
+            $accuracy = $totalQuestions > 0 ? ($totalCorrect / $totalQuestions) * 100 : 0;
+            $skeleton = \App\Models\CurriculumSkeleton::where('user_id', $user->id)->first();
+
+            if ($accuracy >= \App\Services\LevelAdvancementService::ADVANCE_THRESHOLD) {
+                $this->levelAdvancement->assessAfterBossNode($user->id, $node->exam_id, $accuracy);
+                $skeleton?->completeLevelExam((string) $node->level);
+            }
+        }
+
         // --- MASTERY GATE (Bloom): ≥80% required to advance ---
         // Below threshold → track failures; after 2+ consecutive failures the
         // NextLessonGenerator switches to a 'consolidation' variant (alternate

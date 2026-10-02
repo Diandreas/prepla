@@ -102,6 +102,136 @@ class CurriculumSkeleton extends Model
         }
     }
 
+    /** Un objectif qui est un examen de fin de niveau, pas une lecon a etudier. */
+    public static function levelExamObjective(string $level, int $order): array
+    {
+        return [
+            'order' => $order,
+            'title' => "Examen de niveau {$level}",
+            'concept' => 'level_exam.' . strtolower($level),
+            'level' => $level,
+            'status' => 'pending',
+            'priority' => 'high',
+            'is_level_exam' => true,
+        ];
+    }
+
+    /**
+     * Place un examen a la fin de chaque palier du parcours.
+     *
+     * Un niveau s'achevait sans rien pour le consolider : on enchainait sur le
+     * palier suivant sans jamais verifier que le precedent tenait. La promotion
+     * existait dans le code mais rien ne la declenchait, et la table des
+     * evaluations est restee vide depuis l'ouverture.
+     *
+     * L'index courant est reporte : inserer devant lui le decalerait sur un autre
+     * objectif que celui que l'apprenant a sous les yeux.
+     */
+    public function ensureLevelExams(): void
+    {
+        $objectives = $this->objectives ?? [];
+        if ($objectives === []) {
+            return;
+        }
+
+        $current = $this->current_objective_index;
+        $rebuilt = [];
+        $newCurrent = null;
+        $inserted = 0;
+
+        foreach ($objectives as $index => $objective) {
+            if ($index === $current) {
+                $newCurrent = count($rebuilt);
+            }
+            $rebuilt[] = $objective;
+
+            if (($objective['is_level_exam'] ?? false) === true) {
+                continue;
+            }
+
+            $level = $objective['level'] ?? null;
+            $nextLevel = $objectives[$index + 1]['level'] ?? null;
+
+            // Fin de palier : soit le niveau change juste apres, soit c'est la fin.
+            if ($level === null || $level === $nextLevel) {
+                continue;
+            }
+
+            $dejaPresent = ($objectives[$index + 1]['is_level_exam'] ?? false) === true;
+            if ($dejaPresent) {
+                continue;
+            }
+
+            $exam = self::levelExamObjective($level, count($rebuilt));
+            // Un palier deja entierement termine garde son examen a passer : c'est
+            // justement lui qui doit valider le niveau.
+            $rebuilt[] = $exam;
+            $inserted++;
+        }
+
+        if ($inserted === 0) {
+            return;
+        }
+
+        foreach ($rebuilt as $index => $objective) {
+            $rebuilt[$index]['order'] = $index;
+        }
+
+        $this->objectives = $rebuilt;
+        $this->current_objective_index = $newCurrent ?? $current;
+        $this->save();
+    }
+
+    /** L'examen de fin de palier a passer en premier, s'il en reste un. */
+    public function pendingLevelExam(): ?array
+    {
+        foreach ($this->objectives ?? [] as $index => $objective) {
+            if (($objective['is_level_exam'] ?? false) !== true) {
+                continue;
+            }
+            if (($objective['status'] ?? 'pending') === 'done') {
+                continue;
+            }
+
+            // Un examen ne s'ouvre que si tout son palier est termine.
+            $level = $objective['level'] ?? null;
+            $palierTenu = true;
+            foreach ($this->objectives as $autreIndex => $autre) {
+                if ($autreIndex >= $index || ($autre['level'] ?? null) !== $level) {
+                    continue;
+                }
+                if (($autre['is_level_exam'] ?? false) === true) {
+                    continue;
+                }
+                if (($autre['status'] ?? 'pending') !== 'done') {
+                    $palierTenu = false;
+                    break;
+                }
+            }
+
+            if ($palierTenu) {
+                return $objective + ['index' => $index];
+            }
+        }
+
+        return null;
+    }
+
+    /** Marque l'examen d'un palier comme passe. */
+    public function completeLevelExam(string $level): void
+    {
+        $objectives = $this->objectives ?? [];
+
+        foreach ($objectives as $index => $objective) {
+            if (($objective['is_level_exam'] ?? false) === true && ($objective['level'] ?? null) === $level) {
+                $objectives[$index]['status'] = 'done';
+            }
+        }
+
+        $this->objectives = $objectives;
+        $this->save();
+    }
+
     /** Déduction par position, pour les parcours construits avant que le niveau soit stocké. */
     public static function levelForPosition(string $startLevel, int $index, int $total): string
     {

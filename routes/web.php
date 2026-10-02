@@ -101,6 +101,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('api/offline/packs', [\App\Http\Controllers\OfflinePackController::class, 'index'])->name('offline.packs.index');
         Route::post('api/offline/packs/{exam}/{exerciseType}', [\App\Http\Controllers\OfflinePackController::class, 'store'])->name('offline.packs.store');
 
+        // Examen de fin de palier : il consolide le niveau et declenche la promotion.
+        Route::get('niveau/{level}/examen', [\App\Http\Controllers\LevelExamController::class, 'start'])
+            ->name('level.exam');
+
         // Boss-level chapter synthesis
         Route::get('chapter/{chapterOrder}/synthesis', [\App\Http\Controllers\ChapterSynthesisController::class, 'start'])
             ->whereNumber('chapterOrder')

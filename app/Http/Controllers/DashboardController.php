@@ -35,6 +35,10 @@ class DashboardController extends Controller
             // Les parcours d'avant portaient tous leurs objectifs sans niveau : on les
             // fige au premier passage, sinon la pratique reste bloquée en A1.
             $skeleton->ensureObjectiveLevels($profile?->current_level ?? 'A1');
+            // Un examen clot chaque palier : sans lui, on enchainait les niveaux sans
+            // jamais verifier que le precedent tenait.
+            $skeleton->ensureLevelExams();
+            $pendingExam = $skeleton->pendingLevelExam();
 
             // New adaptive system
             $currentObjective = $skeleton->currentObjective();
@@ -115,6 +119,30 @@ class DashboardController extends Controller
                     $lessonUrl = $relatedLesson
                         ? route('lessons.show', $relatedLesson->id)
                         : route('lessons.next');
+
+                    // Un examen de palier n'a ni lecon ni pratique : c'est une epreuve,
+                    // affichee comme un seul noeud au bout de son niveau.
+                    if (($objective['is_level_exam'] ?? false) === true) {
+                        $examLevel = $objective['level'] ?? 'A1';
+                        $examStatus = ($objective['status'] ?? 'pending') === 'done'
+                            ? 'completed'
+                            : (($pendingExam['index'] ?? null) === $globalIndex ? 'available' : 'locked');
+
+                        $nodes[] = [
+                            'id' => 'x_' . $globalIndex,
+                            'title' => "Examen {$examLevel}",
+                            'description' => "Consolide tout le niveau {$examLevel}",
+                            'icon' => 'trophy',
+                            'skill_type' => 'exam',
+                            'level' => $examLevel,
+                            'status' => $examStatus,
+                            'xp_reward' => 60,
+                            'type' => 'level_exam',
+                            'action_url' => route('level.exam', $examLevel),
+                        ];
+
+                        continue;
+                    }
 
                     // Le niveau d'un objectif commande la difficulté des exercices générés.
                     // Écrit en dur à 'A1', il faisait traverser tout le parcours — jusqu'aux
