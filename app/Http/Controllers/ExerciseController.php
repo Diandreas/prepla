@@ -45,6 +45,7 @@ class ExerciseController extends Controller
             'exercise_ids.*' => 'integer|exists:exercises,id',
         ]);
 
+        $sessionCategories = [];
         $answersByExercise = $validated['answers_by_exercise'] ?? null;
         $answers = $validated['answers'] ?? [];
         $timeSpent = $validated['time_spent'] ?? 0;
@@ -125,6 +126,12 @@ class ExerciseController extends Controller
                         } else {
                             $lessonConcept = \App\Models\Lesson::where('node_id', $exercise->node_id)->value('concept');
                             [$errorCategory, $errorSubcategory] = \App\Models\UserError::deriveCategory($lessonConcept, $skillType, $slug);
+                        }
+
+                        // Concepts rates pendant cette seance : ils serviront a ecrire la
+                        // remediation si la seance est un examen de palier manque.
+                        if ($errorCategory) {
+                            $sessionCategories[] = $errorCategory;
                         }
 
                         // Store the explanation text so the Review Center can show *why*.
@@ -236,6 +243,13 @@ class ExerciseController extends Controller
             if ($accuracy >= \App\Services\LevelAdvancementService::ADVANCE_THRESHOLD) {
                 $this->levelAdvancement->assessAfterBossNode($user->id, $node->exam_id, $accuracy);
                 $skeleton?->completeLevelExam((string) $node->level);
+            } elseif ($skeleton) {
+                // Reproposer la meme epreuve a qui vient d'echouer ne lui apprend rien :
+                // il la repasserait avec les memes lacunes. On pose d'abord des reprises
+                // sur ce qu'il n'a pas compris — chacune avec sa lecon et sa pratique —
+                // et l'examen se referme le temps de les faire.
+                app(\App\Services\Curriculum\CurriculumPlannerService::class)
+                    ->insertRemedialBeforeExam($skeleton, (string) $node->level, $sessionCategories);
             }
         }
 
@@ -271,10 +285,10 @@ class ExerciseController extends Controller
                 if ($sessionAccuracy >= $MASTERY_THRESHOLD) {
                     $skeleton->completePractice($practiceIndex);
 
-                    // Seul endroit où un apprenant peut changer de niveau : la promotion
-                    // n'était appelée de nulle part, et chacun restait au niveau de son
-                    // test d'entrée, parcours terminé ou non.
-                    $this->levelAdvancement->assessAfterObjective($user->id, $skeleton->refresh());
+                    // La montee de niveau ne se joue plus ici : chaque palier se termine
+                    // par son examen, et c'est lui qui promeut. Promouvoir des la derniere
+                    // pratique validee rendait l'epreuve sans objet — l'apprenant y
+                    // arrivait deja promu.
                 } else {
                     // Strict mastery: stay on this objective + count the failure
                     $skeleton->consecutive_failures = ($skeleton->consecutive_failures ?? 0) + 1;

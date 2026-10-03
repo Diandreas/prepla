@@ -54,7 +54,7 @@ class CurriculumPlannerService
             $objectives[0]['status'] = 'current';
         }
 
-        return CurriculumSkeleton::updateOrCreate(
+        $skeleton = CurriculumSkeleton::updateOrCreate(
             ['user_id' => $user->id, 'exam_id' => $exam->id],
             [
                 'objectives' => $objectives,
@@ -63,6 +63,11 @@ class CurriculumPlannerService
                 'consecutive_failures' => 0,
             ]
         );
+
+        // Chaque palier se termine par son examen, pour tout le monde et des le depart.
+        $skeleton->ensureLevelExams();
+
+        return $skeleton->fresh();
     }
 
     /**
@@ -155,6 +160,9 @@ class CurriculumPlannerService
         $skeleton->consecutive_failures = 0;
         $skeleton->save();
 
+        // La nouvelle etape se termine elle aussi par son examen.
+        $skeleton->ensureLevelExams();
+
         Log::info('Parcours prolonge', [
             'user_id' => $user->id,
             'niveau' => $targetLevel,
@@ -162,6 +170,91 @@ class CurriculumPlannerService
         ]);
 
         return true;
+    }
+
+    /**
+     * Apres un examen de palier manque : des reprises sur ce qui n'a pas ete compris,
+     * posees AVANT l'epreuve.
+     *
+     * Reproposer le meme examen a quelqu'un qui vient d'echouer ne lui apprend rien :
+     * il le repasserait avec les memes lacunes. Chaque reprise est un objectif a part
+     * entiere, donc avec sa lecon et sa pratique, ecrites sur le concept rate. Et comme
+     * l'examen n'ouvre que lorsque tout son palier est termine, il se referme de
+     * lui-meme le temps de la remediation.
+     *
+     * @param  string[]  $categories  categories d'erreur relevees pendant l'examen
+     * @return int  nombre de reprises posees
+     */
+    public function insertRemedialBeforeExam(CurriculumSkeleton $skeleton, string $level, array $categories): int
+    {
+        $examIndex = null;
+        foreach ($skeleton->objectives ?? [] as $index => $objective) {
+            if (($objective['is_level_exam'] ?? false) === true
+                && ($objective['level'] ?? null) === $level
+                && ($objective['status'] ?? 'pending') !== 'done') {
+                $examIndex = $index;
+                break;
+            }
+        }
+
+        if ($examIndex === null) {
+            return 0;
+        }
+
+        // Deux reprises au plus : au-dela, la remediation devient un mur.
+        $categories = array_slice(array_values(array_unique(array_filter($categories))), 0, 2);
+        if ($categories === []) {
+            // Aucune categorie identifiee : on revise le palier dans son ensemble.
+            $categories = ['revision.' . strtolower($level)];
+        }
+
+        $inserted = 0;
+        $premier = null;
+
+        foreach ($categories as $category) {
+            // Une reprise deja en attente sur ce concept ne s'empile pas.
+            $deja = collect($skeleton->objectives)->contains(
+                fn ($objective) => ($objective['is_remedial'] ?? false) === true
+                    && ($objective['concept'] ?? null) === $category
+                    && ($objective['status'] ?? 'pending') !== 'done'
+            );
+
+            if ($deja) {
+                continue;
+            }
+
+            $position = $examIndex + $inserted - 1; // insertObjective() insere APRES
+            $skeleton->insertObjective([
+                'title' => 'Reprise : ' . $this->categoryToTitle($category),
+                'concept' => $category,
+                'level' => $level,
+                'status' => 'pending',
+                'priority' => 'high',
+                'is_remedial' => true,
+            ], $position);
+
+            $premier ??= $position + 1;
+            $inserted++;
+        }
+
+        if ($inserted === 0) {
+            return 0;
+        }
+
+        // L'apprenant reprend la, pas sur l'examen qu'il vient de manquer.
+        $objectives = $skeleton->objectives;
+        $objectives[$premier]['status'] = 'current';
+        $skeleton->objectives = $objectives;
+        $skeleton->current_objective_index = $premier;
+        $skeleton->save();
+
+        Log::info('Remediation posee apres un examen manque', [
+            'user_id' => $skeleton->user_id,
+            'niveau' => $level,
+            'reprises' => $inserted,
+        ]);
+
+        return $inserted;
     }
 
     public function reassess(User $user): void

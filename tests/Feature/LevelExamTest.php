@@ -140,8 +140,19 @@ test('echouer l examen laisse le niveau en place', function () {
         'time_spent' => 120,
     ])->assertRedirect();
 
+    $skeleton = $skeleton->fresh();
+    $reprises = collect($skeleton->objectives)->where('is_remedial', true);
+
     expect($user->profile->fresh()->current_level)->toBe('A1')
         ->and(LevelAssessment::count())->toBe(0)
-        // L'examen reste a repasser.
-        ->and($skeleton->fresh()->pendingLevelExam()['level'])->toBe('A1');
+        // Une reprise est posee sur ce qui n'a pas ete compris, et c'est la que
+        // l'apprenant reprend — pas sur l'epreuve qu'il vient de manquer.
+        ->and($reprises)->not->toBeEmpty()
+        ->and($reprises->first()['level'])->toBe('A1')
+        ->and($reprises->first()['title'])->toStartWith('Reprise :')
+        ->and($skeleton->currentObjective()['is_remedial'])->toBeTrue()
+        // L'examen se referme le temps de la remediation : il n'a plus a etre repasse
+        // tout de suite, il reviendra quand les reprises seront faites.
+        ->and($skeleton->pendingLevelExam())->toBeNull()
+        ->and(collect($skeleton->objectives)->firstWhere('is_level_exam', true)['status'])->toBe('pending');
 });

@@ -78,10 +78,12 @@ test('un parcours termine s ouvre sur l etape du niveau atteint', function () {
     $skeleton = CurriculumSkeleton::where('user_id', $user->id)->sole();
     $objectives = collect($skeleton->objectives);
 
-    expect($objectives)->toHaveCount(13) // 3 termines + 10 nouveaux, plafonnes a dix
-        ->and($objectives[3]['status'])->toBe('current')
-        ->and($objectives[3]['level'])->toBe('A2')
-        ->and($skeleton->current_objective_index)->toBe(3)
+    // 3 termines + l'examen du palier A1 + 10 nouveaux + l'examen du palier A2.
+    expect($objectives)->toHaveCount(15)
+        ->and($objectives[3]['is_level_exam'])->toBeTrue()
+        ->and($objectives[4]['status'])->toBe('current')
+        ->and($objectives[4]['level'])->toBe('A2')
+        ->and($skeleton->current_objective_index)->toBe(4)
         // Le niveau du profil suit : tous les objectifs A1 sont tenus a plus de 70 %.
         ->and($user->profile->fresh()->current_level)->toBe('A2')
         // Et une vraie leçon attend l'apprenant au bout du clic.
