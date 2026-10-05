@@ -39,6 +39,16 @@ test('rejouer un mot le meme jour ne multiplie ni les XP ni la preuve de rappel'
     expect($this->progress->fresh()->recall_count)->toBe(1)->and($this->learner->profile->fresh()->xp_total)->toBe(2);
 });
 
+test('un mot rate peut etre repris apres quinze minutes sans recompense repetee', function () {
+    $this->postJson('/dictionary/review-batch/submit', ['results' => [vocabularyAnswer($this->progress, 'wrong')]])->assertOk()->assertJson(['xp_earned' => 0]);
+    $this->travel(16)->minutes();
+    $payload = ['results' => [vocabularyAnswer($this->progress, 'hello')]];
+    $this->postJson('/dictionary/review-batch/submit', $payload)->assertOk()->assertJson(['xp_earned' => 2]);
+    $this->postJson('/dictionary/review-batch/submit', $payload)->assertOk()->assertJson(['xp_earned' => 0]);
+    expect($this->progress->fresh()->recall_count)->toBe(1)->and($this->progress->fresh()->next_review_at->isFuture())->toBeTrue();
+    $this->travelBack();
+});
+
 test('un lot contenant le mot dun autre compte ne modifie aucun mot', function () {
     $other = User::factory()->create();
     $foreign = UserWordProgress::create(['user_id' => $other->id, 'dictionary_word_id' => $this->word->id, 'status' => 'discovered']);

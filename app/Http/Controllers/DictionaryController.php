@@ -269,9 +269,10 @@ class DictionaryController extends Controller
                     'word2def' => $word->definition, 'translation' => $word->translation, default => $word->word,
                 };
                 $correct = filled($expected) && mb_strtolower(trim($result['answer'])) === mb_strtolower(trim($expected));
-                // Recognition and free recall are separate evidence. Replaying today's
-                // same word never creates extra mastery or XP.
-                if ($progress->last_reviewed_at?->isToday()) {
+                // Respect the scheduled interval. A failed word may return after
+                // 15 minutes; a successful retry schedules at least the next day,
+                // so it cannot be replayed for extra mastery or XP today.
+                if ($progress->next_review_at?->isFuture()) {
                     continue;
                 }
                 $recall = in_array($result['mode'], ['gapfill', 'dictation', 'recall'], true);
