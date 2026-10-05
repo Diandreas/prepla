@@ -54,6 +54,17 @@ class LessonController extends Controller
     {
         $user = auth()->user();
 
+        $skeleton = CurriculumSkeleton::where('user_id', $user->id)->first();
+        $skeleton?->ensureLevelExams();
+        if ($pending = $skeleton?->pendingLevelExam()) {
+            return redirect()->route('level.exam', $pending['level']);
+        }
+        if ($skeleton?->currentObjective()['is_level_exam'] ?? false) {
+            $pending = $skeleton->pendingLevelExam();
+            return $pending
+                ? redirect()->route('level.exam', $pending['level'])
+                : redirect()->route('dashboard')->with('error', 'Termine la pratique avant cet examen.');
+        }
         $lesson = $this->lessonGenerator->generate($user);
 
         if (!$lesson) {
@@ -132,7 +143,12 @@ class LessonController extends Controller
         // Record outcome for curriculum adaptation. Pass the explicit quiz verdict
         // ($passed, 2/3 threshold) so the practice phase opens for any passing score,
         // matching the "Pratiquer ce concept" CTA the UI shows on success.
-        $outcome = $this->planner->recordLessonOutcome($user, $accuracy, $accuracy === null ? null : $passed);
+        $path = CurriculumSkeleton::where('user_id', $user->id)->first();
+        $isCurrent = $path && $path->current_objective_index === (int) $lesson->skeleton_objective_index
+            && ($path->currentObjective()['status'] ?? '') === 'current';
+        $outcome = $isCurrent
+            ? $this->planner->recordLessonOutcome($user, $accuracy, $accuracy === null ? null : $passed)
+            : 'review';
 
         // Actually perform the skip the 'skip_ahead' signal promises — previously
         // this outcome only changed the message shown to the user, with no real
@@ -143,7 +159,7 @@ class LessonController extends Controller
         }
 
         // Award XP and update streak if passed
-        if ($passed) {
+        if ($passed && $isCurrent) {
             $xpReward = $lesson->node?->xp_reward ?? 20;
             $profile = $user->profile;
             $profile->xp_total = ($profile->xp_total ?? 0) + $xpReward;
@@ -177,7 +193,7 @@ class LessonController extends Controller
         // Trigger reassessment if needed. `null` veut dire « non évalué » : en PHP il
         // serait passé pour inférieur à 60 et aurait déclenché une réévaluation du
         // parcours à chaque leçon arrivée sans questions.
-        if ($accuracy !== null && $accuracy < 60) {
+        if ($isCurrent && $accuracy !== null && $accuracy < 60) {
             $this->planner->reassess($user);
         }
 

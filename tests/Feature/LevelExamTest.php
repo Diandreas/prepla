@@ -12,6 +12,20 @@ use App\Models\User;
 use App\Models\UserProfile;
 use Illuminate\Support\Facades\Http;
 
+function examTestPayload(Exercise $exercise, array $answers): array
+{
+    $parts = collect([$exercise]);
+    foreach ([2, 3] as $order) {
+        $part = $exercise->replicate();
+        $part->order_in_node = $order;
+        $part->save();
+        $parts->push($part);
+    }
+    return ['exercise_ids' => $parts->pluck('id')->all(),
+        'answers_by_exercise' => $parts->mapWithKeys(fn ($part) => [$part->id => $answers])->all(),
+        'time_spent' => 120];
+}
+
 /**
  * Un niveau s'achevait sans rien pour le consolider : on enchaînait sur le palier
  * suivant sans vérifier que le précédent tenait. La promotion existait dans le code
@@ -104,11 +118,8 @@ test('reussir l examen de palier fait monter de niveau', function () {
         ])->all(),
     ]);
 
-    $this->actingAs($user)->post(route('exercise.submit_session', $node), [
-        'exercise_ids' => [$exercise->id],
-        'answers_by_exercise' => [$exercise->id => ['q1' => 'A', 'q2' => 'A', 'q3' => 'A']],
-        'time_spent' => 120,
-    ])->assertRedirect();
+    $this->actingAs($user)->post(route('exercise.submit_session', $node),
+        examTestPayload($exercise, ['q1' => 'A', 'q2' => 'A', 'q3' => 'A']))->assertRedirect();
 
     expect($user->profile->fresh()->current_level)->toBe('A2')
         ->and(LevelAssessment::where('user_id', $user->id)->value('assessment_type'))->toBe('boss_test')
@@ -134,11 +145,8 @@ test('echouer l examen laisse le niveau en place', function () {
     ]);
 
     // Une seule bonne réponse sur trois : 33 %, loin des 70 % exigés.
-    $this->actingAs($user)->post(route('exercise.submit_session', $node), [
-        'exercise_ids' => [$exercise->id],
-        'answers_by_exercise' => [$exercise->id => ['q1' => 'A', 'q2' => 'B', 'q3' => 'B']],
-        'time_spent' => 120,
-    ])->assertRedirect();
+    $this->actingAs($user)->post(route('exercise.submit_session', $node),
+        examTestPayload($exercise, ['q1' => 'A', 'q2' => 'B', 'q3' => 'B']))->assertRedirect();
 
     $skeleton = $skeleton->fresh();
     $reprises = collect($skeleton->objectives)->where('is_remedial', true);
@@ -155,4 +163,62 @@ test('echouer l examen laisse le niveau en place', function () {
         // tout de suite, il reviendra quand les reprises seront faites.
         ->and($skeleton->pendingLevelExam())->toBeNull()
         ->and(collect($skeleton->objectives)->firstWhere('is_level_exam', true)['status'])->toBe('pending');
+});
+
+test('les reponses absentes ne gonflent pas le score et la reprise interdit un nouvel essai direct', function () {
+    [$user, $path, $exam] = pathWithTwoLevels(['done', 'done', 'pending', 'pending']);
+    $path->ensureLevelExams();
+    $node = LearningPathNode::create([
+        'exam_id' => $exam->id, 'title' => 'Examen de niveau A1', 'node_type' => 'level_exam',
+        'level' => 'A1', 'sort_order' => 0, 'chapter_order' => 99, 'xp_reward' => 60,
+    ]);
+    $exercise = Exercise::create([
+        'exam_id' => $exam->id, 'exercise_type_id' => ExerciseType::first()->id,
+        'node_id' => $node->id, 'order_in_node' => 1, 'difficulty' => 'A1', 'content' => [],
+        'questions' => collect(range(1, 3))->map(fn ($i) => [
+            'id' => "q{$i}", 'type' => 'mcq', 'text' => "Question {$i}", 'options' => ['Oui', 'Non'],
+            'correct_answer' => 'A', 'explanation' => 'Explication.', 'error_category' => 'grammar.articles',
+        ])->all(),
+    ]);
+    $payload = examTestPayload($exercise, ['q1' => 'A']);
+    $this->actingAs($user)->post(route('exercise.submit_session', $node), $payload)
+        ->assertRedirect()->assertSessionHas('last_session_report', fn ($r) =>
+            round($r['accuracy']) === 33.0 && $r['pass_threshold'] === 70 && !$r['exam_passed']);
+    expect($user->profile->fresh()->current_level)->toBe('A1')
+        ->and($path->fresh()->currentObjective()['concept'])->toBe('grammar.articles');
+    $this->post(route('exercise.submit_session', $node), $payload)->assertForbidden();
+});
+
+test('un ancien examen A1 ne promeut pas un profil deja A2 et ne se rejoue pas', function () {
+    [$user, $path, $exam] = pathWithTwoLevels(['done', 'done', 'pending', 'pending']);
+    $user->profile->update(['current_level' => 'A2']);
+    $path->ensureLevelExams();
+    $node = LearningPathNode::create([
+        'exam_id' => $exam->id, 'title' => 'Examen de niveau A1', 'node_type' => 'level_exam',
+        'level' => 'A1', 'sort_order' => 0, 'chapter_order' => 99, 'xp_reward' => 60,
+    ]);
+    $exercise = Exercise::create([
+        'exam_id' => $exam->id, 'exercise_type_id' => ExerciseType::first()->id,
+        'node_id' => $node->id, 'order_in_node' => 1, 'difficulty' => 'A1', 'content' => [],
+        'questions' => [['id' => 'q1', 'type' => 'mcq', 'text' => 'Question', 'options' => ['Oui', 'Non'],
+            'correct_answer' => 'A', 'explanation' => 'Explication.']],
+    ]);
+    $payload = examTestPayload($exercise, ['q1' => 'A']);
+    $this->actingAs($user)->post(route('exercise.submit_session', $node), $payload)->assertRedirect();
+    expect($user->profile->fresh()->current_level)->toBe('A2')->and(LevelAssessment::count())->toBe(0);
+    $this->post(route('exercise.submit_session', $node), $payload)->assertForbidden();
+});
+
+test('inserer un examen et une reprise conserve les liens des lecons et interdit de les sauter', function () {
+    [$user, $path] = pathWithTwoLevels(['done', 'done', 'current', 'pending']);
+    $lesson = \App\Models\Lesson::create(['user_id' => $user->id, 'skeleton_objective_index' => 2,
+        'title' => 'Objectif 2', 'concept' => 'grammar.basic', 'status' => 'published', 'theory_markdown' => 'Texte']);
+    $path->ensureLevelExams();
+    expect($lesson->fresh()->skeleton_objective_index)->toBe(3);
+    app(\App\Services\Curriculum\CurriculumPlannerService::class)
+        ->insertRemedialBeforeExam($path, 'A1', ['grammar.tense']);
+    expect($lesson->fresh()->skeleton_objective_index)->toBe(4);
+    $before = $path->objectives;
+    $path->skipAhead();
+    expect($path->fresh()->objectives)->toBe($before);
 });

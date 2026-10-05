@@ -23,6 +23,21 @@ class NodeStartController extends Controller
     public function __invoke(LearningPathNode $node, ExerciseGeneratorService $generator, TtsAudioGenerator $ttsAudio, StarterPracticeLibrary $library): Response|RedirectResponse
     {
         $user = auth()->user();
+        $ownLesson = \App\Models\Lesson::where('node_id', $node->id)->where('user_id', $user->id)->first();
+        $ownSkeleton = \App\Models\CurriculumSkeleton::where('user_id', $user->id)->first();
+        $isRemedial = $ownLesson && ($ownSkeleton?->objectives[$ownLesson->skeleton_objective_index]['is_remedial'] ?? false);
+        abort_if(!$ownLesson && \App\Models\Lesson::where('node_id', $node->id)->exists(), 403);
+        if ($isRemedial && ($ownSkeleton->objectives[$ownLesson->skeleton_objective_index]['status'] ?? '') !== 'current_practice') {
+            return redirect()->route('lessons.show', $ownLesson)->with('error', 'Valide le quiz de reprise avant de pratiquer.');
+        }
+        if ($node->node_type === 'level_exam') {
+            $skeleton = \App\Models\CurriculumSkeleton::where('user_id', $user->id)->where('exam_id', $node->exam_id)->first();
+            $pending = $skeleton?->pendingLevelExam();
+            if (!$pending || ($pending['level'] ?? null) !== $node->level
+                || $user->profile?->target_exam_id !== $node->exam_id) {
+                return redirect()->route('dashboard')->with('error', 'Termine tes reprises avant de repasser cet examen.');
+            }
+        }
         
         // 1. Vérifier/Récupérer la progression pour ce nœud
         $progress = UserLearningProgress::firstOrCreate(
@@ -44,6 +59,9 @@ class NodeStartController extends Controller
         // Un examen de palier est ecrit d'avance et ne se complete pas : y ajouter des
         // exercices generiques ou generes le transformerait en seance ordinaire.
         $isLevelExam = $node->node_type === 'level_exam';
+        if ($isLevelExam && $exercises->count() !== 3) {
+            return redirect()->route('level.exam', $node->level);
+        }
 
         // 3. Fallback générique : SAUTÉ pour les nodes de type 'lesson' car les exercices
         // génériques pris au hasard sont rarement alignés avec le concept de la leçon
@@ -107,7 +125,13 @@ class NodeStartController extends Controller
             $isBeginner = in_array($node->level, ['A0', 'A1', 'A2'], true);
             $speakingOdds = $isBeginner ? 8 : 3; // beginner: ~1/8 · intermediate+: ~1/3
 
-            if ($isLessonNode) {
+            if ($isRemedial) {
+                // Remediation must practise the missed concept, not drift to an
+                // unrelated listening/speaking activity or another exam's rubric.
+                $picked = ExerciseType::whereHas('section', fn ($q) => $q->where('exam_id', $node->exam_id))
+                    ->whereIn('component_key', ['mcq', 'gap-fill', 'sentence-completion'])
+                    ->inRandomOrder()->limit(3)->get();
+            } elseif ($isLessonNode) {
                 // 1) a concept exercise (grammar) — the heart of a lesson practice.
                 $concept = $pickBySkill(['grammar'])
                     ?? $pickBySkill(['reading']); // fallback if no grammar type exists
@@ -156,7 +180,7 @@ class NodeStartController extends Controller
             // node's own title — it IS the learning objective in this curriculum
             // (e.g. "Einfache Vorstellungsgespräche führen"). Without any context the
             // generator drifts to generic passages unrelated to the node.
-            $lesson = \App\Models\Lesson::where('node_id', $node->id)->first();
+            $lesson = $ownLesson;
             if ($lesson) {
                 $lessonContext = [
                     'title' => $lesson->title,
@@ -185,7 +209,7 @@ class NodeStartController extends Controller
                       ->orWhereIn('skill_type', ['grammar', 'vocabulary', 'use-of-english', 'writing']);
                 })
                 ->first();
-            $reviewLessonContext = $dueError ? array_merge($lessonContext, [
+            $reviewLessonContext = $dueError && !$isRemedial ? array_merge($lessonContext, [
                 'title' => $lessonContext['title'],
                 'concept' => $dueError->error_category ?: $lessonContext['concept'],
             ]) : null;
@@ -201,7 +225,7 @@ class NodeStartController extends Controller
                     $contextForThis = ($i === 0 && $reviewLessonContext) ? $reviewLessonContext : $lessonContext;
                     try {
                         $ex = $generator->generate($exerciseType, $node->exam, $node->level, $contextForThis);
-                        $ex->update(['node_id' => $node->id, 'order_in_node' => $i + 1]);
+                        $ex->update(['node_id' => $node->id, 'order_in_node' => $i + 1, 'lesson_id' => $lesson?->id]);
                         $ex->load(['exerciseType', 'exam.language']);
                         $generated->push($ex);
                     } catch (\Throwable $e) {
@@ -231,7 +255,7 @@ class NodeStartController extends Controller
         // mieux qu'un parcours bloqué : c'est exactement ce qui coinçait les nouveaux
         // comptes, dont tous les nœuds sont de type 'lesson' et sautaient donc le
         // repêchage de l'étape 3.
-        if ($exercises->isEmpty() && !$isLevelExam) {
+        if ($exercises->isEmpty() && !$isLevelExam && !$isRemedial) {
             $exercises = $this->genericExercises($node, $node->level);
 
             if ($exercises->isEmpty()) {
@@ -244,7 +268,7 @@ class NodeStartController extends Controller
         // que sur la pratique libre, jamais sur le parcours — or c'est le parcours que
         // suivent les apprenants. Quand l'IA ne répond plus et que la base ne contient
         // encore aucun exercice pour cet examen, le parcours s'arrêtait net.
-        if ($exercises->isEmpty()) {
+        if ($exercises->isEmpty() && !$isLevelExam && !$isRemedial) {
             $starter = $this->starterExercise($node, $library);
             if ($starter) {
                 $exercises = collect([$starter->load(['exerciseType', 'exam.language'])]);

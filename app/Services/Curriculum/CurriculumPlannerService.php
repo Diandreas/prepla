@@ -82,7 +82,7 @@ class CurriculumPlannerService
      * le test d'entree. Un apprenant qui allait au bout se retrouvait devant un
      * ecran « parcours termine » sans rien a faire, toujours marque debutant.
      *
-     * On promeut d'abord si c'est merite, puis on ecrit une etape au niveau atteint.
+     * L'examen valide d'abord le niveau ; on écrit ensuite une étape au niveau atteint.
      * Sans IA disponible, on reprend le programme de reference de ce niveau plutot
      * que de laisser l'impasse.
      *
@@ -95,6 +95,7 @@ class CurriculumPlannerService
             return false;
         }
 
+        $skeleton->ensureLevelExams();
         $objectives = $skeleton->objectives ?? [];
         if ($objectives === []) {
             return false;
@@ -107,7 +108,7 @@ class CurriculumPlannerService
             }
         }
 
-        $levels->assessAfterObjective($user->id, $skeleton);
+        // Seul l'examen valide un niveau, jamais la simple fin des pratiques.
 
         $profile = $user->profile()->first();
         $exam = $profile?->targetExam;
@@ -202,7 +203,9 @@ class CurriculumPlannerService
         }
 
         // Deux reprises au plus : au-dela, la remediation devient un mur.
-        $categories = array_slice(array_values(array_unique(array_filter($categories))), 0, 2);
+        $frequencies = array_count_values(array_filter($categories));
+        arsort($frequencies);
+        $categories = array_slice(array_keys($frequencies), 0, 2);
         if ($categories === []) {
             // Aucune categorie identifiee : on revise le palier dans son ensemble.
             $categories = ['revision.' . strtolower($level)];
@@ -243,6 +246,12 @@ class CurriculumPlannerService
 
         // L'apprenant reprend la, pas sur l'examen qu'il vient de manquer.
         $objectives = $skeleton->objectives;
+        foreach ($objectives as &$objective) {
+            if (($objective['status'] ?? '') === 'current') {
+                $objective['status'] = 'pending';
+            }
+        }
+        unset($objective);
         $objectives[$premier]['status'] = 'current';
         $skeleton->objectives = $objectives;
         $skeleton->current_objective_index = $premier;
@@ -355,7 +364,8 @@ class CurriculumPlannerService
             $skeleton->advanceToPractice();
 
             // A strong streak of high scores (≥80%) lets us skip the *next* lesson.
-            if ($accuracyPercent >= 80 && $skeleton->consecutive_successes >= 3) {
+            if ($accuracyPercent >= 80 && $skeleton->consecutive_successes >= 3
+                && !($skeleton->currentObjective()['is_remedial'] ?? false)) {
                 return 'skip_ahead';
             }
 

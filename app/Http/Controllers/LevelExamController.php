@@ -43,7 +43,7 @@ class LevelExamController extends Controller
             return redirect()->route('dashboard');
         }
 
-        $skeleton = CurriculumSkeleton::where('user_id', $user->id)->first();
+        $skeleton = CurriculumSkeleton::where('user_id', $user->id)->where('exam_id', $exam->id)->first();
         $pending = $skeleton?->pendingLevelExam();
 
         // On n'ouvre pas un examen dont le palier n'est pas fini : il sanctionnerait
@@ -67,11 +67,11 @@ class LevelExamController extends Controller
             ]
         );
 
-        if (Exercise::where('node_id', $node->id)->doesntExist()) {
+        if (Exercise::where('node_id', $node->id)->count() < count(self::TYPES)) {
             $this->writeExam($node, $exam, $level, $profile->native_language ?? 'Français', $generator);
         }
 
-        if (Exercise::where('node_id', $node->id)->doesntExist()) {
+        if (Exercise::where('node_id', $node->id)->count() < count(self::TYPES)) {
             return redirect()->route('dashboard')
                 ->with('error', "L'examen de niveau n'a pas pu être écrit. Réessaie dans quelques minutes.");
         }
@@ -80,8 +80,7 @@ class LevelExamController extends Controller
     }
 
     /**
-     * Écrit l'examen une fois pour toutes. Une génération par examen et par niveau
-     * et par heure : un échec partiel ne doit pas relancer trois appels à chaque clic.
+     * Répare uniquement les parties manquantes, sous verrou : jamais un examen partiel.
      */
     private function writeExam(LearningPathNode $node, $exam, string $level, string $nativeLanguage, ExerciseGeneratorService $generator): void
     {
@@ -91,9 +90,17 @@ class LevelExamController extends Controller
         }
 
         try {
-            $order = 1;
-            foreach (self::TYPES as $componentKey) {
-                $type = ExerciseType::where('component_key', $componentKey)->first();
+            $skeleton = CurriculumSkeleton::where('user_id', auth()->id())->where('exam_id', $exam->id)->first();
+            $concepts = collect($skeleton?->objectives ?? [])
+                ->where('level', $level)->reject(fn ($o) => $o['is_level_exam'] ?? false)
+                ->pluck('concept')->filter()->unique()->values()->all();
+            foreach (self::TYPES as $index => $componentKey) {
+                $order = $index + 1;
+                if (Exercise::where('node_id', $node->id)->where('order_in_node', $order)->exists()) {
+                    continue;
+                }
+                $type = ExerciseType::where('component_key', $componentKey)
+                    ->whereHas('section', fn ($q) => $q->where('exam_id', $exam->id))->first();
                 if (!$type) {
                     continue;
                 }
@@ -104,8 +111,9 @@ class LevelExamController extends Controller
                         'concept' => 'level_exam.' . strtolower($level),
                         'native_language' => $nativeLanguage,
                         'is_synthesis' => true,
+                        'concepts_to_mix' => $concepts,
                     ]);
-                    $exercise->update(['node_id' => $node->id, 'order_in_node' => $order++]);
+                    $exercise->update(['node_id' => $node->id, 'order_in_node' => $order]);
                 } catch (\Throwable $e) {
                     // Un type qui échoue ne doit pas emporter l'examen entier.
                     Log::warning('Examen de niveau : un exercice manque', [

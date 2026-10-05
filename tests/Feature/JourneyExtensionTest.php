@@ -52,11 +52,11 @@ test('un parcours termine s ouvre sur l etape du niveau atteint', function () {
 
     $user = User::factory()->create();
     UserProfile::factory()->for($user)->create([
-        'target_exam_id' => $exam->id, 'current_level' => 'A1',
+        'target_exam_id' => $exam->id, 'current_level' => 'A2',
         'native_language' => 'Français', 'onboarding_completed_at' => now(),
     ]);
 
-    CurriculumSkeleton::create([
+    $completedPath = CurriculumSkeleton::create([
         'user_id' => $user->id, 'exam_id' => $exam->id,
         'objectives' => collect(range(0, 2))->map(fn ($i) => [
             'order' => $i, 'title' => "Objectif A1 {$i}", 'concept' => 'grammar.basic',
@@ -64,6 +64,10 @@ test('un parcours termine s ouvre sur l etape du niveau atteint', function () {
         ])->all(),
         'current_objective_index' => 2, 'consecutive_successes' => 3, 'consecutive_failures' => 0,
     ]);
+    $completedPath->ensureLevelExams();
+    $completedObjectives = $completedPath->objectives;
+    $completedObjectives[3]['status'] = 'done';
+    $completedPath->update(['objectives' => $completedObjectives]);
 
     foreach (range(1, 6) as $ignored) {
         UserExerciseAttempt::create([
@@ -84,7 +88,7 @@ test('un parcours termine s ouvre sur l etape du niveau atteint', function () {
         ->and($objectives[4]['status'])->toBe('current')
         ->and($objectives[4]['level'])->toBe('A2')
         ->and($skeleton->current_objective_index)->toBe(4)
-        // Le niveau du profil suit : tous les objectifs A1 sont tenus a plus de 70 %.
+        // La prolongation conserve le niveau déjà validé par l'examen.
         ->and($user->profile->fresh()->current_level)->toBe('A2')
         // Et une vraie leçon attend l'apprenant au bout du clic.
         ->and(Lesson::where('user_id', $user->id)->count())->toBe(1);
@@ -114,5 +118,5 @@ test('un parcours encore en cours n est pas prolonge', function () {
         ->extendForNextLevel($user, app(\App\Services\LevelAdvancementService::class));
 
     expect($extended)->toBeFalse()
-        ->and(CurriculumSkeleton::where('user_id', $user->id)->sole()->objectives)->toHaveCount(2);
+        ->and(CurriculumSkeleton::where('user_id', $user->id)->sole()->objectives)->toHaveCount(3);
 });

@@ -93,7 +93,8 @@ class DashboardController extends Controller
             foreach ($groupedObjectives as $chunkIndex => $objChunk) {
                 $nodes = [];
                 foreach ($objChunk as $i => $objective) {
-                    $globalIndex = ($chunkIndex * 3) + $i;
+                    // chunk() preserves the original keys; $i already is the objective index.
+                    $globalIndex = $i;
                     
                     $lessonStatus = 'locked';
                     $practiceStatus = 'locked';
@@ -150,7 +151,7 @@ class DashboardController extends Controller
                     $objectiveLevel = $skeleton->levelForObjective($globalIndex, $profile?->current_level);
 
                     // Make sure a LearningPathNode exists for this objective for the Practice session
-                    $nodeEntity = LearningPathNode::firstOrCreate(
+                    $nodeEntity = $relatedLesson?->node ?? LearningPathNode::firstOrCreate(
                         ['exam_id' => $examId, 'title' => $objective['title']],
                         [
                             'chapter_name' => 'Étape ' . $chapterIndex,

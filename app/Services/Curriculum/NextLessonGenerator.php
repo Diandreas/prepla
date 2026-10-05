@@ -46,6 +46,9 @@ class NextLessonGenerator
         }
 
         $currentObjective = $skeleton->currentObjective();
+        if ($currentObjective['is_level_exam'] ?? false) {
+            return null;
+        }
 
         if (!$currentObjective || $skeleton->isComplete()) {
             // Parcours termine. Avant, on s'arretait la : plus d'objectif courant, donc
@@ -70,6 +73,9 @@ class NextLessonGenerator
             ->where('skeleton_objective_index', $skeleton->current_objective_index)
             ->first();
 
+        if ($existingLesson && $existingLesson->concept !== ($currentObjective['concept'] ?? null)) {
+            $existingLesson = null;
+        }
         if ($existingLesson && $existingLesson->status !== 'draft') {
             return $existingLesson;
         }
@@ -78,7 +84,7 @@ class NextLessonGenerator
         $context = $this->gatherContext($user, $skeleton);
 
         // Determine if this should be a consolidation lesson
-        $isConsolidation = $skeleton->consecutive_failures >= 2;
+        $isConsolidation = $skeleton->consecutive_failures >= 2 || ($currentObjective['is_remedial'] ?? false);
         $status = $isConsolidation ? 'consolidation' : 'published';
 
         // Generate via Mistral
@@ -173,6 +179,8 @@ class NextLessonGenerator
             ->where('mastered', false)
             ->whereNotNull('error_category')
             ->where('error_category', '!=', 'session_mistake')
+            ->when($skeleton->currentObjective()['is_remedial'] ?? false,
+                fn ($q) => $q->where('error_category', $skeleton->currentObjective()['concept']))
             ->orderByDesc('created_at')
             ->limit(10)
             ->get()
@@ -202,7 +210,7 @@ class NextLessonGenerator
             'recent_errors' => $recentErrors,
             'previous_lessons' => $previousLessons,
             'completed_objectives' => $completedObjectives,
-            'level' => $user->profile->current_level ?? 'A1',
+            'level' => $skeleton->levelForObjective($skeleton->current_objective_index, $user->profile->current_level),
             'native_language' => $user->profile->native_language ?? 'Français',
             'language' => $user->profile->targetExam->language->name ?? 'English',
             'exam_name' => $user->profile->targetExam->name ?? 'Language Exam',

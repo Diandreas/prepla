@@ -21,14 +21,26 @@ use Illuminate\Support\Facades\Http;
  * été exercé en vrai.
  */
 test('un apprenant manque son examen de palier, reprend, puis monte de niveau', function () {
+    config(['services.mistral.api_key' => 'test-key']);
     // L'IA rend des questions CONFORMES au type demandé : le générateur rejette les
     // questions mal formées pour leur composant, et il a raison de le faire.
     Http::fake(function ($request) {
         $prompt = $request->body();
+        if (str_contains($prompt, 'theory_markdown')) {
+            return Http::response(['choices' => [['message' => ['content' => json_encode([
+                'title' => 'Reprendre les temps verbaux',
+                'theory_markdown' => '## Le présent\nIch heiße Anna : je m’appelle Anna.',
+                'key_takeaways' => ['Ich heiße'], 'common_mistakes' => [],
+                'comprehension_quiz' => collect(range(1, 3))->map(fn ($i) => [
+                    'question' => "Quelle forme au présent ? {$i}", 'options' => ['heiße', 'heißen'],
+                    'correct_answer' => 'heiße', 'explanation' => 'À la première personne : heiße.',
+                ])->all(),
+            ])]]]]);
+        }
         // Chaque composant attend sa forme : un trou veut un mot, une completion de
         // phrase veut des choix et une lettre, comme le QCM.
-        $trous = str_contains($prompt, 'gap-fill');
-        $completion = str_contains($prompt, 'sentence-completion');
+        $trous = str_contains($prompt, 'Generate a gap-fill exercise');
+        $completion = str_contains($prompt, 'Generate a sentence-completion exercise');
 
         $questions = collect(range(1, 3))->map(fn ($i) => $trous
             ? [
@@ -69,6 +81,7 @@ test('un apprenant manque son examen de palier, reprend, puis monte de niveau', 
     UserProfile::factory()->for($user)->create([
         'target_exam_id' => $exam->id, 'current_level' => 'A1',
         'native_language' => 'Français', 'onboarding_completed_at' => now(),
+        'trial_ends_at' => now()->addDays(7),
     ]);
 
     // Palier A1 terminé, palier A2 devant : la situation de l'apprenant concerné.
@@ -93,6 +106,17 @@ test('un apprenant manque son examen de palier, reprend, puis monte de niveau', 
 
     $exercises = \App\Models\Exercise::where('node_id', $node->id)->get();
     expect($exercises)->toHaveCount(3); // trois exercices, comme une séance
+    Http::assertSentCount(3);
+    // Une partie manquante est réparée, sans régénérer les deux autres.
+    $exercises[1]->delete();
+    $this->get(route('level.exam', 'A1'))->assertRedirect();
+    Http::assertSentCount(4);
+    $exercises = \App\Models\Exercise::where('node_id', $node->id)->get();
+    expect($exercises)->toHaveCount(3);
+    $this->post(route('exercise.submit_session', $node), [
+        'exercise_ids' => [$exercises[0]->id],
+        'answers_by_exercise' => [$exercises[0]->id => ['q1' => 'A']],
+    ])->assertStatus(422);
 
     // Le player s'ouvre sur l'examen, sans rien y ajouter.
     $this->get(route('node.start', $node))
@@ -123,14 +147,26 @@ test('un apprenant manque son examen de palier, reprend, puis monte de niveau', 
         ->and($skeleton->pendingLevelExam())->toBeNull();
 
     // ─── 3. Il fait ses reprises ───
-    $objectives = $skeleton->objectives;
-    foreach ($objectives as $index => $objective) {
-        if (($objective['is_remedial'] ?? false) === true) {
-            $objectives[$index]['status'] = 'done';
-        }
-    }
-    $skeleton->objectives = $objectives;
-    $skeleton->save();
+    expect($reprises->first()['concept'])->toBe('grammar.tense');
+    $this->get(route('node.start', $node))->assertRedirect(route('dashboard'));
+    $this->get(route('lessons.next'))->assertRedirect();
+    $lesson = \App\Models\Lesson::where('user_id', $user->id)->sole();
+    expect($lesson->concept)->toBe('grammar.tense')
+        ->and($lesson->based_on_errors)->not->toBeEmpty();
+    $this->get(route('lessons.show', $lesson))->assertOk();
+    $this->post(route('lessons.quiz', $lesson), ['answers' => ['heiße', 'heiße', 'heiße']])
+        ->assertOk()->assertJsonPath('passed', true);
+    expect($skeleton->fresh()->pendingLevelExam())->toBeNull();
+    $this->get(route('node.start', $lesson->node_id))->assertOk();
+    $practice = \App\Models\Exercise::where('node_id', $lesson->node_id)->get();
+    expect($practice)->not->toBeEmpty();
+    $this->post(route('exercise.submit_session', $lesson->node_id), [
+        'exercise_ids' => $practice->pluck('id')->all(),
+        'answers_by_exercise' => $practice->mapWithKeys(fn ($ex) => [
+            $ex->id => collect($ex->questions)->mapWithKeys(fn ($q) => [$q['id'] => $q['correct_answer']])->all(),
+        ])->all(), 'time_spent' => 120,
+    ])->assertRedirect();
+    expect($user->profile->fresh()->current_level)->toBe('A1');
 
     // L'épreuve revient d'elle-même.
     expect($skeleton->fresh()->pendingLevelExam()['level'])->toBe('A1');

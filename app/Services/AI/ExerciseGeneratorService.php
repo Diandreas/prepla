@@ -471,6 +471,9 @@ This exercise MUST mix questions covering DIFFERENT concepts from the list above
 
 Output 5 questions. Each question's `text` should clearly indicate which concept
 it tests (e.g. "Pronoms : ___" or "Présent simple : ___").
+Each question MUST include `error_category`: the specific concept it assesses,
+using a dotted category such as grammar.tense, grammar.articles or vocabulary.basic.
+Never label every mistake level_exam or session_mistake: remediation uses these tags.
 DIRECTIVE;
             } else {
                 $lessonDirective = <<<DIRECTIVE

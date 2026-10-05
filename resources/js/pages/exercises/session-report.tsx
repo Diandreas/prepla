@@ -47,6 +47,10 @@ interface Props {
         xp_earned?: number;
         time_spent?: number;
         details?: ReportDetail[];
+        is_level_exam?: boolean;
+        exam_passed?: boolean;
+        pass_threshold?: number;
+        remediation_count?: number;
     };
     userLevel: string;
     /** La vraie leçon du concept : l'identifiant du nœud n'en est pas un (404). */
@@ -59,6 +63,9 @@ export default function SessionReport({ node, report, userLevel, lessonId }: Pro
     // Defensive fallbacks: a stale/partial report (old session shape left over
     // from before a deploy) must never crash this page to a blank screen.
     const accuracy = report?.accuracy ?? 0;
+    const isExam = report?.is_level_exam ?? false;
+    const threshold = report?.pass_threshold ?? (isExam ? 70 : 60);
+    const passed = isExam ? (report?.exam_passed ?? accuracy >= threshold) : accuracy >= threshold;
     const details = Array.isArray(report?.details) ? report.details : [];
     const xpEarned = report?.xp_earned ?? 0;
     const timeSpent = report?.time_spent ?? 0;
@@ -101,7 +108,7 @@ export default function SessionReport({ node, report, userLevel, lessonId }: Pro
                             {/* Animated trophy / encouragement based on accuracy */}
                             <div className="flex-shrink-0">
                                 <img
-                                    src={accuracy >= 80 ? '/animation/winner.gif' : accuracy >= 60 ? '/animation/big-trophy.gif' : '/animation/Fire.gif'}
+                                    src={accuracy >= 80 ? '/animation/winner.gif' : passed ? '/animation/big-trophy.gif' : '/animation/Fire.gif'}
                                     alt=""
                                     width={150}
                                     height={150}
@@ -110,19 +117,22 @@ export default function SessionReport({ node, report, userLevel, lessonId }: Pro
                             </div>
                             <div className="flex-1 text-center md:text-left">
                                 <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2 ${
-                                    accuracy >= 60
+                                    passed
                                         ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
                                         : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
                                 }`}>
-                                    {accuracy >= 60 ? 'Concept maîtrisé' : 'Maîtrise insuffisante'}
+                                    {isExam ? (passed ? 'Palier validé' : 'Reprises personnalisées') : (passed ? 'Concept maîtrisé' : 'Maîtrise insuffisante')}
                                 </span>
                                 <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
                                     {nodeTitle}
                                 </h1>
                                 <p className="text-slate-500 dark:text-slate-400">
-                                    {accuracy >= 60
-                                        ? `Concept validé (≥60%). Tu peux passer au suivant.`
-                                        : `Il te faut ≥60% pour valider ce concept. Tu es à ${Math.round(accuracy)}% — refais une session ou revois la leçon.`}
+                                    {isExam
+                                        ? passed
+                                            ? `Examen validé (≥${threshold} %). Continue ton parcours au niveau ${userLevel}.`
+                                            : `Il faut ${threshold} % pour valider ce palier. Revois les notions manquées avec une leçon ciblée et des exercices : l’examen se rouvrira ensuite.`
+                                        : passed ? `Concept validé (≥${threshold} %). Tu peux passer au suivant.`
+                                            : `Il te faut ${threshold} % pour valider ce concept. Tu es à ${Math.round(accuracy)} % — refais une session ou revois la leçon.`}
                                 </p>
                             </div>
 
@@ -239,13 +249,13 @@ export default function SessionReport({ node, report, userLevel, lessonId }: Pro
 
                     {/* Actions — adapt CTA to whether user mastered the concept */}
                     <motion.div variants={item} className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
-                        {accuracy >= 60 ? (
+                        {passed ? (
                             <>
                                 <Link
                                     href="/lessons/next"
                                     className="w-full sm:w-auto px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold shadow-lg transition-all transform hover:-translate-y-1 text-center"
                                 >
-                                    Concept suivant →
+                                    {isExam ? 'Continuer mon parcours →' : 'Concept suivant →'}
                                 </Link>
                                 <Link
                                     href="/dashboard"
@@ -257,16 +267,16 @@ export default function SessionReport({ node, report, userLevel, lessonId }: Pro
                         ) : (
                             <>
                                 <Link
-                                    href={route('node.start', node.id)}
+                                    href={isExam ? '/lessons/next' : route('node.start', node.id)}
                                     className="w-full sm:w-auto px-8 py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-bold shadow-lg transition-all transform hover:-translate-y-1 text-center"
                                 >
-                                    ↻ Refaire pour valider (≥60%)
+                                    {isExam ? 'Comprendre mes erreurs →' : `↻ Refaire pour valider (≥${threshold} %)`}
                                 </Link>
                                 <Link
-                                    href={lessonId ? `/lessons/${lessonId}` : '/lessons/next'}
+                                    href={isExam ? '/dashboard' : lessonId ? `/lessons/${lessonId}` : '/lessons/next'}
                                     className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white rounded-2xl font-bold border border-slate-200 dark:border-slate-700 transition-all text-center"
                                 >
-                                    Revoir la leçon
+                                    {isExam ? 'Voir mes reprises' : 'Revoir la leçon'}
                                 </Link>
                             </>
                         )}

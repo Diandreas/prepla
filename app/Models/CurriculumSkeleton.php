@@ -138,8 +138,10 @@ class CurriculumSkeleton extends Model
         $rebuilt = [];
         $newCurrent = null;
         $inserted = 0;
+        $lessonIndexMap = [];
 
         foreach ($objectives as $index => $objective) {
+            $lessonIndexMap[$index] = count($rebuilt);
             if ($index === $current) {
                 $newCurrent = count($rebuilt);
             }
@@ -180,6 +182,13 @@ class CurriculumSkeleton extends Model
         $this->objectives = $rebuilt;
         $this->current_objective_index = $newCurrent ?? $current;
         $this->save();
+        // Lessons carry an objective index too: keep their identity after insertion.
+        $this->lessons()->get()->each(function (Lesson $lesson) use ($lessonIndexMap) {
+            $oldIndex = $lesson->skeleton_objective_index;
+            if ($oldIndex !== null && isset($lessonIndexMap[$oldIndex]) && $lessonIndexMap[$oldIndex] !== $oldIndex) {
+                $lesson->update(['skeleton_objective_index' => $lessonIndexMap[$oldIndex]]);
+            }
+        });
     }
 
     /** L'examen de fin de palier a passer en premier, s'il en reste un. */
@@ -209,9 +218,8 @@ class CurriculumSkeleton extends Model
                 }
             }
 
-            if ($palierTenu) {
-                return $objective + ['index' => $index];
-            }
+            // A later exam cannot bypass the first unfinished level.
+            return $palierTenu ? $objective + ['index' => $index] : null;
         }
 
         return null;
@@ -221,10 +229,19 @@ class CurriculumSkeleton extends Model
     public function completeLevelExam(string $level): void
     {
         $objectives = $this->objectives ?? [];
+        $pending = $this->pendingLevelExam();
+        if (!$pending || $pending['level'] !== $level) {
+            return;
+        }
 
-        foreach ($objectives as $index => $objective) {
-            if (($objective['is_level_exam'] ?? false) === true && ($objective['level'] ?? null) === $level) {
-                $objectives[$index]['status'] = 'done';
+        $objectives[$pending['index']]['status'] = 'done';
+        if ($this->current_objective_index === $pending['index']) {
+            foreach ($objectives as $index => $objective) {
+                if (($objective['status'] ?? 'pending') === 'pending') {
+                    $objectives[$index]['status'] = 'current';
+                    $this->current_objective_index = $index;
+                    break;
+                }
             }
         }
 
@@ -417,6 +434,10 @@ class CurriculumSkeleton extends Model
         for ($skip = 0; $skip <= $count; $skip++) {
             $idx = $this->current_objective_index + $skip;
             if (isset($objectives[$idx])) {
+                if (($objectives[$idx]['is_level_exam'] ?? false)
+                    || ($objectives[$idx]['is_remedial'] ?? false)) {
+                    return;
+                }
                 $objectives[$idx]['status'] = 'done';
             }
         }
@@ -464,5 +485,8 @@ class CurriculumSkeleton extends Model
         }
 
         $this->save();
+        $this->lessons()
+            ->where('skeleton_objective_index', '>=', $afterIndex + 1)
+            ->increment('skeleton_objective_index');
     }
 }
