@@ -194,6 +194,7 @@ test('an exam simulation scores exactly the served set once even when question i
     $learner->profile->update(['current_level' => 'B1']);
     $first = accessExercise($this->exam, $this->type);
     $second = accessExercise($this->exam, $this->type);
+    accessExercise($this->exam, $this->type, ['difficulty' => 'C2']); // not suitable for B1
     $private = accessExercise($this->exam, $this->type, ['center_id' => $this->center->id]);
     $this->actingAs($learner);
 

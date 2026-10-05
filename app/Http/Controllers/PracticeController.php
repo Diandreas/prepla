@@ -227,6 +227,8 @@ class PracticeController extends Controller
     public function simulate(Exam $exam, Request $request): Response|\Illuminate\Http\RedirectResponse
     {
         $level = $request->user()->profile?->current_level ?? 'A1';
+        $cefrLevels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+        $allowedLevels = array_slice($cefrLevels, 0, (array_search($level, $cefrLevels, true) ?: 0) + 1);
         $isBeginner = in_array($level, ['A0', 'A1', 'A2'], true);
         if ($isBeginner && ! MockExam::where('is_published', true)->whereHas('exercises')
             ->whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id)->where('level', $level))->exists()) {
@@ -239,6 +241,7 @@ class PracticeController extends Controller
         $mockExamId = $request->query('mock_exam_id');
 
         $mockExam = MockExam::whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id))
+            ->whereHas('blueprint', fn ($q) => $q->where(fn ($levels) => $levels->whereNull('level')->orWhereIn('level', $allowedLevels)))
             ->when($isBeginner, fn ($q) => $q->whereHas('blueprint', fn ($blueprint) => $blueprint->where('level', $level))->whereHas('exercises'))
             ->where('is_published', true)
             ->when($mockExamId, fn ($q) => $q->whereKey($mockExamId), fn ($q) => $q->inRandomOrder())
@@ -263,6 +266,7 @@ class PracticeController extends Controller
             foreach ($exam->sections as $section) {
                 foreach ($section->exerciseTypes as $type) {
                     $exercises = Exercise::where('exam_id', $exam->id)
+                        ->whereIn('difficulty', $allowedLevels)
                         ->where('exercise_type_id', $type->id)
                         // General starter practice, private center or lesson content and
                         // other mock exams never join an open simulation.
@@ -281,6 +285,7 @@ class PracticeController extends Controller
 
         // List available mock exams for this exam (for the selector UI)
         $availableMockExams = MockExam::whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id))
+            ->whereHas('blueprint', fn ($q) => $q->where(fn ($levels) => $levels->whereNull('level')->orWhereIn('level', $allowedLevels)))
             ->when($isBeginner, fn ($q) => $q->whereHas('blueprint', fn ($blueprint) => $blueprint->where('level', $level))->whereHas('exercises'))
             ->where('is_published', true)
             ->withCount('exercises')
