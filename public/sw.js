@@ -1,11 +1,11 @@
 // Bump this version on every deploy that changes the app shell. Vite assets are
 // content-hashed, while this cache contains only public, non-personal assets.
-const CACHE_NAME = 'prepla-shell-v23';
+const CACHE_NAME = 'prepla-shell-v24';
 const OFFLINE_URL = '/offline';
 
 // Uploaded media under /storage can belong to a centre, so only first-party public
 // asset folders are ever written to this shared cache.
-const PUBLIC_ASSET_PATH = /^\/(build|icons|sounds|animation|screenshots)\/|^\/(favicon\.ico|logo\.svg)$/;
+const PUBLIC_ASSET_PATH = /^\/(build|icons|illustrations|sounds|animation|screenshots)\/|^\/(favicon\.ico|logo\.svg)$/;
 const STATIC_ASSET_EXTENSION = /\.(js|css|png|jpg|jpeg|gif|webp|avif|svg|ico|woff2?|ttf|mp3)$/i;
 
 function isPublicAsset(url) {

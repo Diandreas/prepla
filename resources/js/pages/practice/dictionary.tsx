@@ -1,7 +1,8 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import axios from 'axios';
 
 function Icon({ name, size = 20, className }: { name: string; size?: number; className?: string }) {
     return <img src={`/icons/${name}.png`} alt="" width={size} height={size} className={className} style={{ objectFit: 'contain' }} />;
@@ -23,14 +24,19 @@ interface Word {
 }
 
 interface Props {
+    language: string;
     words: Word[];
     reviewableCount: number;
 }
 
-export default function Dictionary({ words, reviewableCount }: Props) {
+export default function Dictionary({ words, reviewableCount, language }: Props) {
     const { t, i18n } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
     const [isDiscovering, setIsDiscovering] = useState(false);
+    const [lookupTerm, setLookupTerm] = useState('');
+    const [lookupWord, setLookupWord] = useState<(Word['dictionary_word'] & { id: number }) | null>(null);
+    const [lookupBusy, setLookupBusy] = useState(false);
+    const [lookupMessage, setLookupMessage] = useState('');
     
 
     const filteredWords = words.filter(w =>
@@ -54,20 +60,32 @@ export default function Dictionary({ words, reviewableCount }: Props) {
         }
     };
 
-    const getStatusPercent = (status: string) => {
-        switch(status) {
-            case 'discovered': return 33;
-            case 'learning': return 66;
-            case 'mastered': return 100;
-            default: return 0;
-        }
-    }
-
     return (
         <AppLayout>
-            <Head title={t('dictionary.title')} />
+            <Head title="Mes mots" />
             
             <div className="mx-auto max-w-5xl px-3 py-3 sm:px-4 sm:py-5">
+                <header className="mb-5 flex items-center gap-4 rounded-2xl border border-primary/15 bg-primary/5 p-4">
+                    <img src="/illustrations/prepla-guide/welcome.png" alt="" width="80" height="80" className="h-20 w-20 shrink-0 object-contain" />
+                    <div><h1 className="text-2xl font-extrabold">Mes mots</h1><p className="mt-1 text-sm text-muted-foreground">Des mots rencontrés dans tes séances, des exemples pour les réutiliser et de courtes révisions au bon moment.</p></div>
+                </header>
+                <form className="mb-4 flex gap-2" onSubmit={async e => {
+                    e.preventDefault(); if (!lookupTerm.trim() || lookupBusy) return;
+                    setLookupBusy(true); setLookupWord(null); setLookupMessage('');
+                    try { const { data } = await axios.get(`/dictionary/lookup/${encodeURIComponent(language)}/${encodeURIComponent(lookupTerm.trim())}`); setLookupWord(data); }
+                    catch { setLookupMessage('La recherche est indisponible. Réessaie dans un instant.'); }
+                    finally { setLookupBusy(false); }
+                }}>
+                    <input aria-label="Chercher un nouveau mot" maxLength={100} value={lookupTerm} onChange={e => setLookupTerm(e.target.value)} placeholder="Que veut dire ce mot ?" className="min-w-0 flex-1 rounded-xl border border-border bg-card px-4 py-3 text-sm" />
+                    <button disabled={lookupBusy || !lookupTerm.trim()} className="rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground disabled:opacity-50">{lookupBusy ? '…' : 'Chercher'}</button>
+                </form>
+                {lookupMessage && <p role="status" className="mb-4 text-sm text-muted-foreground">{lookupMessage}</p>}
+                {lookupWord && <div className="mb-5 rounded-2xl border border-primary/20 bg-card p-4"><h2 className="font-bold">{lookupWord.word} · {lookupWord.translation}</h2><p className="mt-2 text-sm text-muted-foreground">{lookupWord.definition}</p><p className="mt-2 text-sm italic">{lookupWord.example}</p><button disabled={lookupBusy} className="mt-3 text-sm font-bold text-primary" onClick={async () => {
+                    setLookupBusy(true);
+                    try { await axios.post(route('dictionary.save'), { dictionary_word_id: lookupWord.id }); setLookupMessage('Mot gardé dans Mes mots.'); setLookupWord(null); router.reload({ only: ['words', 'reviewableCount'] }); }
+                    catch { setLookupMessage('Le mot n’a pas été enregistré. Réessaie.'); }
+                    finally { setLookupBusy(false); }
+                }}>+ Garder ce mot</button></div>}
                 {/* Title moved to the global header → only the actions remain here,
                     freeing the vertical space for the word list. */}
                 <div className="flex gap-2 sm:gap-3 mb-3 sm:mb-4">
@@ -122,7 +140,7 @@ export default function Dictionary({ words, reviewableCount }: Props) {
                         <div className="flex items-center gap-2 mb-2.5">
                             <Icon name="check-circle" size={16} />
                             <h2 className="text-xs font-black uppercase tracking-widest text-green-600">
-                                Maîtrisés ({masteredWords.length})
+                                Retenus après révision ({masteredWords.length})
                             </h2>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 opacity-70">
@@ -151,6 +169,7 @@ export default function Dictionary({ words, reviewableCount }: Props) {
                                 {item.dictionary_word.word}
                             </h3>
                             <button
+                                aria-label={`Écouter ${item.dictionary_word.word}`}
                                 onClick={() => playAudio(item.dictionary_word_id)}
                                 className="shrink-0 p-1 hover:bg-blue-50 text-blue-400 rounded-md transition-colors"
                             >
@@ -170,18 +189,8 @@ export default function Dictionary({ words, reviewableCount }: Props) {
                     "{item.dictionary_word.definition}"
                 </p>
 
-                {/* Slim mastery bar with inline percentage */}
-                <div className="mt-2 flex items-center gap-2">
-                    <div className="h-1.5 flex-1 bg-slate-100 rounded-full overflow-hidden">
-                        <div
-                            className={`h-full transition-all duration-700 ${item.status === 'mastered' ? 'bg-green-500' : 'bg-blue-500'}`}
-                            style={{ width: `${getStatusPercent(item.status)}%` }}
-                        />
-                    </div>
-                    <span className={`text-[10px] font-black ${item.status === 'mastered' ? 'text-green-600' : 'text-blue-600'}`}>
-                        {getStatusPercent(item.status)}%
-                    </span>
-                </div>
+                <div className="mt-2 text-xs font-semibold text-muted-foreground">{item.status === 'mastered' ? 'Retenu · à revoir plus tard' : item.status === 'learning' ? 'À consolider' : 'Découvert'}</div>
+                <details className="mt-3 text-xs"><summary className="cursor-pointer font-semibold text-primary">Voir le sens et un exemple</summary><p className="mt-2 text-muted-foreground">{item.dictionary_word.definition}</p><p className="mt-2 leading-relaxed">{item.dictionary_word.example || 'Pas encore d’exemple disponible.'}</p></details>
             </div>
         );
     }

@@ -6,6 +6,7 @@ import axios from 'axios';
 import { ConfettiBurst } from '@/components/confetti-burst';
 import { playSound } from '@/hooks/use-sound';
 import { LearningScene } from '@/components/learning-scene';
+import { LessonWords, type LessonWord } from '@/components/lesson-words';
 
 interface QuizQuestion {
     question: string;
@@ -43,6 +44,7 @@ interface SkeletonInfo {
 }
 
 interface Props {
+    lessonWords?: LessonWord[];
     lesson: LessonData;
     skeleton: SkeletonInfo | null;
 }
@@ -111,7 +113,7 @@ function splitIntoSections(md: string): { title: string | null; content: string 
     return sections;
 }
 
-export default function LessonPage({ lesson, skeleton }: Props) {
+export default function LessonPage({ lesson, skeleton, lessonWords = [] }: Props) {
     const { t } = useTranslation();
     const [mounted, setMounted] = useState(false);
     const [phase, setPhase] = useState<Phase>('lesson');
@@ -409,6 +411,7 @@ export default function LessonPage({ lesson, skeleton }: Props) {
                     />
                 )}
 
+                {phase === 'lesson' && sectionIndex === 0 && <LessonWords words={lessonWords} />}
                 {/* Phase indicator — inutile (et trompeur) sur une leçon sans quiz :
                     elle n'a qu'une seule étape. */}
                 {hasQuiz && (

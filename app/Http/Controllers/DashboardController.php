@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Assignment;
 use App\Models\CurriculumSkeleton;
+use App\Models\Exercise;
 use App\Models\LearningPathNode;
 use App\Models\Lesson;
 use App\Models\UserError;
+use App\Models\UserExerciseAttempt;
 use App\Models\UserLearningProgress;
+use App\Services\LearningJourneyService;
+use App\Services\PersonalLexiconService;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -95,12 +100,12 @@ class DashboardController extends Controller
                 foreach ($objChunk as $i => $objective) {
                     // chunk() preserves the original keys; $i already is the objective index.
                     $globalIndex = $i;
-                    
+
                     $lessonStatus = 'locked';
                     $practiceStatus = 'locked';
-                    
+
                     $objStatus = $objective['status'] ?? 'pending';
-                    
+
                     if ($objStatus === 'done') {
                         $lessonStatus = 'completed';
                         $practiceStatus = 'completed';
@@ -133,7 +138,7 @@ class DashboardController extends Controller
                             : (($pendingExam['index'] ?? null) === $globalIndex ? 'available' : 'locked');
 
                         $nodes[] = [
-                            'id' => 'x_' . $globalIndex,
+                            'id' => 'x_'.$globalIndex,
                             'title' => "Examen {$examLevel}",
                             'description' => "Consolide tout le niveau {$examLevel}",
                             'icon' => 'trophy',
@@ -157,7 +162,7 @@ class DashboardController extends Controller
                     $nodeEntity = $relatedLesson?->node ?? LearningPathNode::firstOrCreate(
                         ['exam_id' => $examId, 'title' => $objective['title']],
                         [
-                            'chapter_name' => 'Étape ' . $chapterIndex,
+                            'chapter_name' => 'Étape '.$chapterIndex,
                             'chapter_order' => $chapterIndex,
                             'sort_order' => $globalIndex,
                             'description' => $objective['concept'],
@@ -175,7 +180,7 @@ class DashboardController extends Controller
 
                     // Nœud Théorique (Leçon)
                     $nodes[] = [
-                        'id' => 'l_' . $globalIndex,
+                        'id' => 'l_'.$globalIndex,
                         'title' => 'Théorie',
                         'description' => $objective['title'],
                         'icon' => 'book',
@@ -186,7 +191,7 @@ class DashboardController extends Controller
                         'type' => 'lesson', // New property for UI mapping
                         'action_url' => $lessonUrl,
                     ];
-                    
+
                     // If the practice is available but already attempted (started or
                     // completed a session) without mastering it yet, mark it as such
                     // so the UI can show "déjà fait / à améliorer" rather than "À faire".
@@ -196,9 +201,9 @@ class DashboardController extends Controller
 
                     // Nœud Pratique (Exercice)
                     $nodes[] = [
-                        'id' => 'p_' . $globalIndex,
+                        'id' => 'p_'.$globalIndex,
                         'title' => 'Pratique',
-                        'description' => 'Exercices: ' . $objective['title'],
+                        'description' => 'Exercices: '.$objective['title'],
                         'icon' => 'target',
                         'skill_type' => 'practice',
                         'level' => $objectiveLevel,
@@ -208,39 +213,39 @@ class DashboardController extends Controller
                         'action_url' => route('node.start', $nodeEntity->id),
                     ];
                 }
-                
+
                 $chapters[] = [
-                    'name' => 'Module ' . $chapterIndex,
+                    'name' => 'Module '.$chapterIndex,
                     'order' => $chapterIndex,
-                    'nodes' => $nodes
+                    'nodes' => $nodes,
                 ];
                 $chapterIndex++;
             }
         } elseif ($examId) {
             // Legacy roadmap system (kept for backwards compatibility)
             $userProgress = UserLearningProgress::where('user_id', $user->id)
-                ->with(['node' => function($q) use ($examId) {
+                ->with(['node' => function ($q) use ($examId) {
                     $q->where('exam_id', $examId);
                 }])
                 ->get()
-                ->filter(fn($p) => $p->node !== null) // Sécurité si un nœud a été supprimé
-                ->sortBy(function($p) {
+                ->filter(fn ($p) => $p->node !== null) // Sécurité si un nœud a été supprimé
+                ->sortBy(function ($p) {
                     return $p->node->chapter_order * 1000 + $p->node->sort_order;
                 });
 
-            if (!$hasCurriculum) {
+            if (! $hasCurriculum) {
                 $totalNodes = $userProgress->count();
                 $completedNodes = $userProgress->where('status', 'completed')->count();
             }
 
             // 2. Grouper par chapitre
-            $chapters = $userProgress->groupBy(function($p) {
+            $chapters = $userProgress->groupBy(function ($p) {
                 return $p->node->chapter_name ?? 'Introduction';
-            })->map(function($items, $name) {
+            })->map(function ($items, $name) {
                 return [
                     'name' => $name,
                     'order' => $items->first()->node->chapter_order ?? 1,
-                    'nodes' => $items->map(function($p) {
+                    'nodes' => $items->map(function ($p) {
                         return [
                             'id' => $p->node->id,
                             'title' => $p->node->title,
@@ -252,7 +257,7 @@ class DashboardController extends Controller
                             'scheduled_for' => $p->scheduled_for,
                             'xp_reward' => $p->node->xp_reward,
                         ];
-                    })->values()
+                    })->values(),
                 ];
             })->values()->sortBy('order')->values()->toArray();
         }
@@ -273,6 +278,8 @@ class DashboardController extends Controller
             'nextLesson' => $nextLesson,
             'errorDiagnostic' => $errorDiagnostic,
             'dueErrorsCount' => $dueErrorsCount,
+            'nextAction' => app(LearningJourneyService::class)->nextAction($user),
+            'wordReviewCount' => app(PersonalLexiconService::class)->due($user)->count(),
             // B2B: when the learner belongs to a center, their assignments take
             // priority over the personal AI journey.
             'centerMode' => $user->isCenterStudent(),
@@ -297,20 +304,20 @@ class DashboardController extends Controller
             return [];
         }
 
-        $assignments = \App\Models\Assignment::whereIn('classroom_id', $classroomIds)
+        $assignments = Assignment::whereIn('classroom_id', $classroomIds)
             ->whereNotNull('published_at')
             ->where('published_at', '<=', now())
             ->with('items')
             ->orderByRaw('due_at is null, due_at asc')
             ->get();
 
-        return $assignments->map(function (\App\Models\Assignment $a) use ($user) {
+        return $assignments->map(function (Assignment $a) use ($user) {
             $exerciseIds = $a->items
-                ->where('itemable_type', \App\Models\Exercise::class)
+                ->where('itemable_type', Exercise::class)
                 ->pluck('itemable_id');
             $total = $exerciseIds->count();
 
-            $done = \App\Models\UserExerciseAttempt::where('user_id', $user->id)
+            $done = UserExerciseAttempt::where('user_id', $user->id)
                 ->whereIn('exercise_id', $exerciseIds)
                 ->where('created_at', '>=', $a->published_at)
                 ->distinct('exercise_id')
@@ -325,7 +332,7 @@ class DashboardController extends Controller
                 'total' => $total,
                 'done' => $done,
                 // First not-yet-attempted exercise → entry point for the player.
-                'next_exercise_id' => $exerciseIds->first(fn ($id) => ! \App\Models\UserExerciseAttempt::where('user_id', $user->id)
+                'next_exercise_id' => $exerciseIds->first(fn ($id) => ! UserExerciseAttempt::where('user_id', $user->id)
                     ->where('exercise_id', $id)
                     ->where('created_at', '>=', $a->published_at)
                     ->exists()),

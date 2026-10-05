@@ -2,15 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CurriculumSkeleton;
 use App\Models\Exercise;
 use App\Models\ExerciseType;
 use App\Models\LearningPathNode;
+use App\Models\Lesson;
 use App\Models\UserError;
 use App\Models\UserLearningProgress;
 use App\Services\AI\ExerciseGeneratorService;
 use App\Services\AI\TtsAudioGenerator;
 use App\Services\Content\StarterPracticeLibrary;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -23,29 +27,35 @@ class NodeStartController extends Controller
     public function __invoke(LearningPathNode $node, ExerciseGeneratorService $generator, TtsAudioGenerator $ttsAudio, StarterPracticeLibrary $library): Response|RedirectResponse
     {
         $user = auth()->user();
-        $ownLesson = \App\Models\Lesson::where('node_id', $node->id)->where('user_id', $user->id)->first();
-        $ownSkeleton = \App\Models\CurriculumSkeleton::where('user_id', $user->id)->first();
+        $preferences = $user->profile?->learning_preferences ?? [];
+        $canSpeak = $preferences['speaking_enabled'] ?? true;
+        $canListen = $preferences['audio_enabled'] ?? true;
+        $compatible = static fn ($exercise) => ($canSpeak || (! in_array($exercise->exerciseType?->skill_type, ['speaking'], true)
+            && ! in_array($exercise->exerciseType?->component_key, ['listen-repeat', 'speaking-recorder', 'oral-debate', 'negotiation', 'speaking-elicitation'], true)))
+            && ($canListen || ($exercise->exerciseType?->skill_type !== 'listening' && $exercise->exerciseType?->component_key !== 'dictation'));
+        $ownLesson = Lesson::where('node_id', $node->id)->where('user_id', $user->id)->first();
+        $ownSkeleton = CurriculumSkeleton::where('user_id', $user->id)->first();
         $isRemedial = $ownLesson && ($ownSkeleton?->objectives[$ownLesson->skeleton_objective_index]['is_remedial'] ?? false);
-        abort_if(!$ownLesson && \App\Models\Lesson::where('node_id', $node->id)->exists(), 403);
+        abort_if(! $ownLesson && Lesson::where('node_id', $node->id)->exists(), 403);
         if ($isRemedial && ($ownSkeleton->objectives[$ownLesson->skeleton_objective_index]['status'] ?? '') !== 'current_practice') {
             return redirect()->route('lessons.show', $ownLesson)->with('error', 'Valide le quiz de reprise avant de pratiquer.');
         }
         if ($node->node_type === 'level_exam') {
-            $skeleton = \App\Models\CurriculumSkeleton::where('user_id', $user->id)->where('exam_id', $node->exam_id)->first();
+            $skeleton = CurriculumSkeleton::where('user_id', $user->id)->where('exam_id', $node->exam_id)->first();
             $pending = $skeleton?->pendingLevelExam();
-            if (!$pending || ($pending['level'] ?? null) !== $node->level
+            if (! $pending || ($pending['level'] ?? null) !== $node->level
                 || $user->profile?->target_exam_id !== $node->exam_id) {
                 return redirect()->route('dashboard')->with('error', 'Termine tes reprises avant de repasser cet examen.');
             }
         }
-        
+
         // 1. Vérifier/Récupérer la progression pour ce nœud
         $progress = UserLearningProgress::firstOrCreate(
             ['user_id' => $user->id, 'node_id' => $node->id],
             [
                 'status' => 'available',
                 'exercises_required' => 3,
-                'exercises_done' => 0
+                'exercises_done' => 0,
             ]
         );
 
@@ -53,8 +63,7 @@ class NodeStartController extends Controller
         $exercises = Exercise::where('node_id', $node->id)
             ->with(['exerciseType', 'exam.language'])
             ->orderBy('order_in_node')
-            ->limit(3)
-            ->get();
+            ->get()->filter($compatible)->take(3)->values();
 
         // Un examen de palier est ecrit d'avance et ne se complete pas : y ajouter des
         // exercices generiques ou generes le transformerait en seance ordinaire.
@@ -68,17 +77,17 @@ class NodeStartController extends Controller
         // (ex: leçon "Simple Present" + exercice générique sur Madrid = aucun rapport).
         // Pour les nodes de pratique générale (non-lesson) le fallback reste utile.
         $isLessonNode = $node->node_type === 'lesson';
-        if ($exercises->count() < 3 && !$isLessonNode && !$isLevelExam) {
+        if ($exercises->count() < 3 && ! $isLessonNode && ! $isLevelExam) {
             $generic = $this->genericExercises($node, $node->level, 3 - $exercises->count(), $exercises->pluck('id')->all());
 
-            $exercises = $exercises->concat($generic);
+            $exercises = $exercises->concat($generic->filter($compatible));
         }
 
         // 4. Génération IA si toujours pas assez d'exercices
         // On ne génère QUE si le nœud n'a jamais eu d'exercices générés (évite de reconsommer des tokens)
         $alreadyGenerated = Exercise::where('node_id', $node->id)->where('is_ai_generated', true)->exists();
 
-        if ($exercises->count() < 3 && !$alreadyGenerated && !$isLevelExam) {
+        if ($exercises->count() < 3 && (! $alreadyGenerated || ! $canSpeak || ! $canListen) && ! $isLevelExam) {
             $node->loadMissing('exam.language');
 
             // Variety: a quick session of 3 exercises should mix SKILLS, not just
@@ -99,10 +108,17 @@ class NodeStartController extends Controller
 
             // skill_type is a direct column on exercise_types (not via section), and
             // the types aren't scoped by exam_id — so we filter on the column directly.
-            $pickBySkill = function (array $skills, array $excludeIds = []) use ($shortComponents, $listeningComponents) {
+            $pickBySkill = function (array $skills, array $excludeIds = []) use ($shortComponents, $listeningComponents, $canSpeak, $canListen) {
+                $skills = array_values(array_filter($skills, fn ($skill) => ($canSpeak || $skill !== 'speaking') && ($canListen || $skill !== 'listening')));
+                if (! $skills) {
+                    $skills = ['grammar', 'reading'];
+                }
                 // En listening pur, restreindre aux composants adaptés à l'écoute.
                 $pool = ($skills === ['listening']) ? $listeningComponents : $shortComponents;
+
                 return ExerciseType::whereIn('component_key', $pool)
+                    ->when(! $canSpeak, fn ($q) => $q->whereNotIn('component_key', ['listen-repeat', 'speaking-recorder', 'oral-debate', 'negotiation', 'speaking-elicitation']))
+                    ->when(! $canListen, fn ($q) => $q->where('component_key', '!=', 'dictation'))
                     ->whereIn('skill_type', $skills)
                     ->whereNotIn('id', $excludeIds)
                     ->inRandomOrder()
@@ -140,7 +156,9 @@ class NodeStartController extends Controller
                     $picked->push($concept);
                 }
                 // 2) a second concept exercise, different component if possible.
-                if ($concept2 = $pickBySkill(['grammar', 'reading'], $picked->pluck('id')->all())) {
+                $sentenceType = ExerciseType::where('component_key', 'build-a-sentence')
+                    ->whereHas('section', fn ($q) => $q->where('exam_id', $node->exam_id))->first();
+                if ($concept2 = $sentenceType ?? $pickBySkill(['grammar', 'reading'], $picked->pluck('id')->all())) {
                     $picked->push($concept2);
                 }
                 // 3) round it out with a different skill so the session isn't monotone:
@@ -172,7 +190,10 @@ class NodeStartController extends Controller
 
             // Fallback: never leave the session empty.
             if ($variedTypes->isEmpty()) {
-                $variedTypes = ExerciseType::whereIn('component_key', $shortComponents)->inRandomOrder()->limit(3)->get();
+                $variedTypes = ExerciseType::whereIn('component_key', $shortComponents)
+                    ->when(! $canSpeak, fn ($q) => $q->where('skill_type', '!=', 'speaking')->whereNotIn('component_key', ['listen-repeat', 'speaking-recorder', 'oral-debate', 'negotiation', 'speaking-elicitation']))
+                    ->when(! $canListen, fn ($q) => $q->where('skill_type', '!=', 'listening')->where('component_key', '!=', 'dictation'))
+                    ->inRandomOrder()->limit(3)->get();
             }
 
             // Lesson context: ground the generated exercises in what's being taught so
@@ -187,6 +208,7 @@ class NodeStartController extends Controller
                     'title' => $lesson->title,
                     'concept' => $lesson->concept ?: $node->title,
                     'native_language' => $user->profile?->native_language ?? 'Français',
+                    'key_vocabulary' => collect($lesson->key_vocabulary ?? [])->pluck('word')->filter(fn ($word) => is_string($word) && mb_strlen($word) <= 100)->take(5)->values()->all(),
                 ];
             } else {
                 $lessonContext = [
@@ -207,10 +229,10 @@ class NodeStartController extends Controller
                 ->whereNotIn('skill_type', ['reading', 'listening'])
                 ->where(function ($q) {
                     $q->whereIn('exercise_type_slug', UserError::CONCEPT_SLUGS)
-                      ->orWhereIn('skill_type', ['grammar', 'vocabulary', 'use-of-english', 'writing']);
+                        ->orWhereIn('skill_type', ['grammar', 'vocabulary', 'use-of-english', 'writing']);
                 })
                 ->first();
-            $reviewLessonContext = $dueError && !$isRemedial ? array_merge($lessonContext, [
+            $reviewLessonContext = $dueError && ! $isRemedial ? array_merge($lessonContext, [
                 'title' => $lessonContext['title'],
                 'concept' => $dueError->error_category ?: $lessonContext['concept'],
             ]) : null;
@@ -226,12 +248,13 @@ class NodeStartController extends Controller
                     $contextForThis = ($i === 0 && $reviewLessonContext) ? $reviewLessonContext : $lessonContext;
                     try {
                         $ex = $generator->generate($exerciseType, $node->exam, $node->level, $contextForThis);
-                        $ex->update(['node_id' => $node->id, 'order_in_node' => $i + 1, 'lesson_id' => $lesson?->id]);
+                        $ex->update(['node_id' => $node->id, 'order_in_node' => (Exercise::where('node_id', $node->id)->max('order_in_node') ?? 0) + 1, 'lesson_id' => $lesson?->id]);
                         $ex->load(['exerciseType', 'exam.language']);
                         $generated->push($ex);
                     } catch (\Throwable $e) {
                         // One type failed → try the next instead of aborting the whole set.
-                        \Illuminate\Support\Facades\Log::error('NodeStart: exercise generation failed', ['error' => $e->getMessage()]);
+                        Log::error('NodeStart: exercise generation failed', ['error' => $e->getMessage()]);
+
                         continue;
                     }
                 }
@@ -243,25 +266,27 @@ class NodeStartController extends Controller
                 ->with(['exerciseType', 'exam.language'])
                 ->orderBy('order_in_node')
                 ->get();
-            $exercises = $existing;
+            $exercises = $existing->filter($compatible)->take(3)->values();
         }
 
         // 4-bis. Pré-générer l'audio TTS des exercices d'ÉCOUTE avant d'afficher le
         // player, pour que le son soit prêt instantanément (plus de latence au clic
         // sur "Écouter"). Idempotent : ignore les questions qui ont déjà un audio_url.
-        $this->pregenerateListeningAudio($exercises, $ttsAudio);
+        if ($canListen) {
+            $this->pregenerateListeningAudio($exercises, $ttsAudio);
+        }
 
         // 4-ter. Dernier recours : l'IA est indisponible (quota épuisé, panne) et le
         // nœud n'a aucun exercice statique. Un exercice générique du même examen vaut
         // mieux qu'un parcours bloqué : c'est exactement ce qui coinçait les nouveaux
         // comptes, dont tous les nœuds sont de type 'lesson' et sautaient donc le
         // repêchage de l'étape 3.
-        if ($exercises->isEmpty() && !$isLevelExam && !$isRemedial) {
-            $exercises = $this->genericExercises($node, $node->level);
+        if ($exercises->isEmpty() && ! $isLevelExam && ! $isRemedial) {
+            $exercises = $this->genericExercises($node, $node->level)->filter($compatible)->values();
 
             if ($exercises->isEmpty()) {
                 // Aucun exercice à ce niveau : on élargit avant d'abandonner.
-                $exercises = $this->genericExercises($node, null);
+                $exercises = $this->genericExercises($node, null)->filter($compatible)->values();
             }
         }
 
@@ -269,7 +294,7 @@ class NodeStartController extends Controller
         // que sur la pratique libre, jamais sur le parcours — or c'est le parcours que
         // suivent les apprenants. Quand l'IA ne répond plus et que la base ne contient
         // encore aucun exercice pour cet examen, le parcours s'arrêtait net.
-        if ($exercises->isEmpty() && !$isLevelExam && !$isRemedial) {
+        if ($exercises->isEmpty() && ! $isLevelExam && ! $isRemedial) {
             $starter = $this->starterExercise($node, $library);
             if ($starter) {
                 $exercises = collect([$starter->load(['exerciseType', 'exam.language'])]);
@@ -280,7 +305,7 @@ class NodeStartController extends Controller
         // réel), ne PAS afficher le player avec du contenu bidon → retour propre.
         if ($exercises->isEmpty()) {
             return redirect()->route('dashboard')
-                ->with('error', "La génération des exercices a échoué. Réessaie dans un instant.");
+                ->with('error', 'La génération des exercices a échoué. Réessaie dans un instant.');
         }
 
         // 5. Mettre à jour le statut du nœud
@@ -317,7 +342,8 @@ class NodeStartController extends Controller
             try {
                 $exercise = $library->ensure($node->exam, $type, $level);
             } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning('NodeStart: starter library unusable', ['error' => $e->getMessage()]);
+                Log::warning('NodeStart: starter library unusable', ['error' => $e->getMessage()]);
+
                 continue;
             }
             if ($exercise) {
@@ -361,7 +387,7 @@ class NodeStartController extends Controller
             // player reads content.audio_url first; without this only per-question
             // audio was pre-built and the passage still hit live TTS at click time.
             $content = $exercise->content ?? [];
-            if (is_array($content) && !$this->audioAvailable($content['audio_url'] ?? null)) {
+            if (is_array($content) && ! $this->audioAvailable($content['audio_url'] ?? null)) {
                 $contentText = $content['audio_text'] ?? $content['passage'] ?? null;
                 if (is_string($contentText) && trim($contentText) !== '') {
                     try {
@@ -370,14 +396,14 @@ class NodeStartController extends Controller
                             $content['audio_url'] = $url;
                             $exercise->content = $content;
                             $modified = true;
-                        } elseif (!empty($content['audio_url'])) {
+                        } elseif (! empty($content['audio_url'])) {
                             // A dead link only adds a failed download before the live fallback.
                             unset($content['audio_url']);
                             $exercise->content = $content;
                             $modified = true;
                         }
                     } catch (\Throwable $e) {
-                        \Illuminate\Support\Facades\Log::warning('Listening pre-gen TTS failed (content)', ['error' => $e->getMessage()]);
+                        Log::warning('Listening pre-gen TTS failed (content)', ['error' => $e->getMessage()]);
                     }
                 }
             }
@@ -391,13 +417,13 @@ class NodeStartController extends Controller
                     if ($url) {
                         $questions[$idx]['audio_url'] = $url;
                         $modified = true;
-                    } elseif (!empty($question['audio_url'])) {
+                    } elseif (! empty($question['audio_url'])) {
                         // A dead link only adds a failed download before the live fallback.
                         unset($questions[$idx]['audio_url']);
                         $modified = true;
                     }
                 } catch (\Throwable $e) {
-                    \Illuminate\Support\Facades\Log::warning('Listening pre-gen TTS failed', ['error' => $e->getMessage()]);
+                    Log::warning('Listening pre-gen TTS failed', ['error' => $e->getMessage()]);
                 }
             }
             if ($modified) {
@@ -410,15 +436,15 @@ class NodeStartController extends Controller
     /** A stored audio link is only worth keeping while its file is still on the public disk. */
     private function audioAvailable(mixed $url): bool
     {
-        if (!is_string($url) || $url === '') {
+        if (! is_string($url) || $url === '') {
             return false;
         }
 
         $path = parse_url($url, PHP_URL_PATH) ?: $url;
-        if (!str_starts_with($path, '/storage/')) {
+        if (! str_starts_with($path, '/storage/')) {
             return true; // external link: nothing to check locally
         }
 
-        return \Illuminate\Support\Facades\Storage::disk('public')->exists(substr($path, strlen('/storage/')));
+        return Storage::disk('public')->exists(substr($path, strlen('/storage/')));
     }
 }

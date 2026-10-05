@@ -27,7 +27,7 @@ class LexiconService
      */
     public function levelFor(string $word, string $language): ?string
     {
-        $key = "lex:{$language}:" . strtolower($word);
+        $key = "lex:{$language}:".strtolower($word);
 
         return Cache::remember($key, $this->cacheTtl, function () use ($word, $language) {
             // Tri en PHP plutôt que via SQL FIELD() pour rester portable MySQL/SQLite/PostgreSQL
@@ -37,10 +37,13 @@ class LexiconService
                 ->pluck('level')
                 ->all();
 
-            if (empty($levels)) return null;
+            if (empty($levels)) {
+                return null;
+            }
 
             // Renvoie le niveau le plus bas
             usort($levels, fn ($a, $b) => CefrLexicon::levelRank($a) <=> CefrLexicon::levelRank($b));
+
             return $levels[0];
         });
     }
@@ -49,7 +52,7 @@ class LexiconService
      * Variante batch : récupère les niveaux pour une liste de mots en une requête.
      *
      * @param  array<string>  $words
-     * @return array<string,?string>  ['word' => 'B1', ...]
+     * @return array<string,?string> ['word' => 'B1', ...]
      */
     public function levelsFor(array $words, string $language): array
     {
@@ -98,10 +101,10 @@ class LexiconService
         }
 
         return [
-            'total'   => \count($tokens),
+            'total' => \count($tokens),
             'covered' => $covered,
-            'pct'     => \count($tokens) > 0 ? round($covered / \count($tokens) * 100, 1) : 0,
-            'above'   => $above,
+            'pct' => \count($tokens) > 0 ? round($covered / \count($tokens) * 100, 1) : 0,
+            'above' => $above,
         ];
     }
 
@@ -112,6 +115,7 @@ class LexiconService
     public function newWordsFor(string $text, string $language, string $userLevel): array
     {
         $coverage = $this->coverage($text, $language, $userLevel);
+
         return $coverage['above'];
     }
 
@@ -120,6 +124,7 @@ class LexiconService
         $text = mb_strtolower($text);
         $text = preg_replace('/[^\p{L}\p{N}\s\'-]+/u', ' ', $text);
         $tokens = preg_split('/\s+/u', trim($text)) ?: [];
+
         return array_values(array_filter($tokens, fn ($t) => mb_strlen($t) > 1));
     }
 }

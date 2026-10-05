@@ -5,6 +5,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LoadingAnimation } from '@/components/loading-animation';
 import { ArtIcon } from '@/components/art-icon';
+import { DailyMission, type JourneyAction } from '@/components/daily-mission';
 import type { SharedData, UserProfile } from '@/types';
 
 function Icon({ name, size = 20, style, className }: { name: string; size?: number; style?: React.CSSProperties; className?: string }) {
@@ -63,6 +64,8 @@ interface ErrorDiag {
 }
 
 interface PageProps {
+    nextAction?: JourneyAction;
+    wordReviewCount?: number;
     profile: UserProfile | null;
     chapters: Chapter[];
     stats: {
@@ -213,7 +216,7 @@ function CenterAssignmentsBanner({ assignments }: { assignments: CenterAssignmen
 
 export default function Dashboard() {
     const { t } = useTranslation();
-    const { auth, profile, chapters, stats, curriculum, nextLesson, errorDiagnostic, dueErrorsCount, centerMode, centerAssignments } = usePage<SharedData & PageProps>().props;
+    const { auth, profile, chapters, stats, curriculum, nextLesson, errorDiagnostic, dueErrorsCount, centerMode, centerAssignments, nextAction, wordReviewCount } = usePage<SharedData & PageProps>().props;
 
     const [loadingNode, setLoadingNode] = useState<{ id: string | number; title: string } | null>(null);
 
@@ -261,13 +264,14 @@ export default function Dashboard() {
 
     return (
         <AppLayout>
-            <Head title="Mon Parcours" />
+            <Head title="Accueil" />
 
             {/* B2B: a center student sees their assigned work FIRST. The personal
                 AI journey stays below. */}
             {centerMode && (
                 <CenterAssignmentsBanner assignments={centerAssignments ?? []} />
             )}
+            {nextAction && <DailyMission action={nextAction} reviewCount={wordReviewCount ?? 0} />}
 
             {/* Loading overlay — marked data-page-loader so the global NavigationOverlay
                 stays hidden and we never stack two hourglasses. */}
@@ -285,12 +289,16 @@ export default function Dashboard() {
                 @keyframes floatUp { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-5px); } }
                 .chapter-hero-img { animation: floatUp 3.5s ease-in-out infinite; }
                 .step-card-active { box-shadow: 0 2px 16px rgba(74,144,226,0.12); }
+                @media (prefers-reduced-motion: reduce) { .chapter-hero-img { animation: none; } }
             `}</style>
 
             <div className="mx-auto max-w-lg lg:max-w-5xl px-4 py-6 lg:grid lg:grid-cols-3 lg:gap-6 lg:items-start">
 
                 {/* ─── Left column: chapter + steps ─── */}
                 <div className="lg:col-span-2">
+                <details className="rounded-2xl border border-border bg-card p-4">
+                    <summary className="cursor-pointer text-sm font-bold text-foreground">Voir mon parcours <span className="ml-2 font-normal text-muted-foreground">{stats.completed_nodes} étapes terminées</span></summary>
+                    <div className="mt-4">
 
                 {/* ── Chapter card (compact): navigation + progress + Commencer ── */}
                 {viewedChapter && (
@@ -549,16 +557,18 @@ export default function Dashboard() {
                     </Link>
                 )}
 
+                    </div>
+                </details>
                 </div>{/* /left column */}
 
                 {/* ─── Right column (desktop): actions + progress, sticky ─── */}
                 <aside className="lg:col-span-1 lg:sticky lg:top-20 space-y-4">
                     {/* Desktop quick actions */}
                     <div className="hidden lg:grid grid-cols-1 gap-2">
-                        <Link href="/lessons/next" className="duo-press flex items-center gap-3 rounded-2xl p-3.5 text-white"
+                        <Link href="/dictionary" className="duo-press flex items-center gap-3 rounded-2xl p-3.5 text-white"
                             style={{ background: `linear-gradient(135deg, ${SKY}, #3478c8)`, boxShadow: '0 4px 0 0 #2563a0' }}>
                             <ArtIcon name="lightbulb" size={34} />
-                            <span className="text-sm font-black">Prochaine leçon</span>
+                            <span className="text-sm font-black">Mes mots et mes exemples</span>
                         </Link>
                         <Link href={route('practice.index')} className="duo-press flex items-center gap-3 rounded-2xl p-3.5 text-white"
                             style={{ background: 'linear-gradient(135deg, #48b77b, #3a9d68)', boxShadow: '0 4px 0 0 #1f6e42' }}>

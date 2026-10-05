@@ -3,14 +3,14 @@
 namespace App\Services\Curriculum;
 
 use App\Models\CurriculumSkeleton;
-use App\Models\Exercise;
-use App\Models\Lesson;
 use App\Models\LearningPathNode;
+use App\Models\Lesson;
 use App\Models\User;
 use App\Models\UserError;
 use App\Services\AI\MistralService;
-use Illuminate\Support\Facades\Log;
+use App\Services\LevelAdvancementService;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Pilier 9: Just-In-Time lesson generator.
@@ -26,7 +26,7 @@ class NextLessonGenerator
     public function __construct(
         protected MistralService $mistral,
         protected CurriculumPlannerService $planner,
-        protected \App\Services\LevelAdvancementService $levels
+        protected LevelAdvancementService $levels
     ) {}
 
     /**
@@ -36,12 +36,12 @@ class NextLessonGenerator
     public function generate(User $user): ?Lesson
     {
         $profile = $user->profile?->load('targetExam.language');
-        if (!$profile || !$profile->targetExam) {
+        if (! $profile || ! $profile->targetExam) {
             return null;
         }
 
         $skeleton = CurriculumSkeleton::where('user_id', $user->id)->first();
-        if (!$skeleton) {
+        if (! $skeleton) {
             return null;
         }
 
@@ -50,7 +50,7 @@ class NextLessonGenerator
             return null;
         }
 
-        if (!$currentObjective || $skeleton->isComplete()) {
+        if (! $currentObjective || $skeleton->isComplete()) {
             // Parcours termine. Avant, on s'arretait la : plus d'objectif courant, donc
             // plus aucune lecon a ouvrir, et un niveau de profil fige depuis le test
             // d'entree. L'apprenant qui allait au bout tombait sur une impasse. On le
@@ -61,7 +61,7 @@ class NextLessonGenerator
             }
         }
 
-        if (!$currentObjective) {
+        if (! $currentObjective) {
             return null;
         }
 
@@ -90,7 +90,7 @@ class NextLessonGenerator
         // Generate via Mistral
         $lessonData = $this->generateWithMistral($user, $context, $currentObjective, $isConsolidation);
 
-        if (!$lessonData) {
+        if (! $lessonData) {
             return $existingLesson;
         }
 
@@ -117,6 +117,7 @@ class NextLessonGenerator
                 'concept' => $currentObjective['concept'] ?? null,
                 'theory_markdown' => $lessonData['theory_markdown'] ?? '',
                 'key_takeaways' => $lessonData['key_takeaways'] ?? [],
+                'key_vocabulary' => $lessonData['key_vocabulary'] ?? [],
                 'common_mistakes' => $lessonData['common_mistakes'] ?? [],
                 'comprehension_quiz' => $lessonData['comprehension_quiz'] ?? [],
                 'based_on_errors' => $context['recent_errors'] ?? [],
@@ -159,6 +160,7 @@ class NextLessonGenerator
             'concept' => $currentObjective['concept'] ?? null,
             'theory_markdown' => $lessonData['theory_markdown'] ?? '',
             'key_takeaways' => $lessonData['key_takeaways'] ?? [],
+            'key_vocabulary' => $lessonData['key_vocabulary'] ?? [],
             'common_mistakes' => $lessonData['common_mistakes'] ?? [],
             'comprehension_quiz' => $lessonData['comprehension_quiz'] ?? [],
             'based_on_errors' => $context['recent_errors'] ?? [],
@@ -226,13 +228,13 @@ class NextLessonGenerator
         $nativeKey = strtolower(preg_replace('/[^a-z]/i', '', $context['native_language']));
         $level = strtolower($context['level']);
         $concept = str_replace('.', '_', $objective['concept'] ?? 'general');
-        $hasErrors = !empty($context['recent_errors']);
+        $hasErrors = ! empty($context['recent_errors']);
 
         // HYBRID CACHING LOGIC
         // Cache key includes native_language so a French speaker doesn't get an English-explained lesson
-        if (!$isConsolidation && !$hasErrors) {
+        if (! $isConsolidation && ! $hasErrors) {
             $cachePath = storage_path("app/lessons/{$langKey}_via_{$nativeKey}/{$level}/{$concept}.json");
-            
+
             if (File::exists($cachePath)) {
                 $cachedJson = File::get($cachePath);
                 $decodedCache = json_decode($cachedJson, true);
@@ -243,15 +245,15 @@ class NextLessonGenerator
         }
 
         $errorsText = '';
-        if (!empty($context['recent_errors'])) {
+        if (! empty($context['recent_errors'])) {
             $errorsText = "The student's 5 most recent errors:\n";
             foreach (array_slice($context['recent_errors'], 0, 5) as $e) {
                 $errorsText .= "- [{$e['category']}] Question: {$e['question']} | Student said: {$e['user_answer']} | Correct: {$e['correct_answer']}\n";
             }
         }
 
-        $previousText = !empty($context['previous_lessons'])
-            ? "Previous lessons: " . implode(', ', $context['previous_lessons'])
+        $previousText = ! empty($context['previous_lessons'])
+            ? 'Previous lessons: '.implode(', ', $context['previous_lessons'])
             : "This is the student's first lesson.";
 
         $consolidationInstructions = $isConsolidation
@@ -267,15 +269,15 @@ class NextLessonGenerator
         $isIntermediate = in_array($upperLevel, ['B1', 'B2'], true);
 
         if ($isBeginner) {
-            $languagePolicy = "CRITICAL: The student is a beginner ({$upperLevel}) and DOES NOT SPEAK {$context['language']} fluently. " .
-                "Write ALL explanations, instructions, headings, key points, takeaways, common mistakes, AND quiz questions ENTIRELY in {$context['native_language']}. " .
-                "Only the {$context['language']} example words/phrases themselves should be in {$context['language']}, and they MUST be followed by their {$context['native_language']} translation. " .
-                "Example format for vocabulary: \"**hello** (en {$context['language']}) = bonjour (en {$context['native_language']})\". " .
+            $languagePolicy = "CRITICAL: The student is a beginner ({$upperLevel}) and DOES NOT SPEAK {$context['language']} fluently. ".
+                "Write ALL explanations, instructions, headings, key points, takeaways, common mistakes, AND quiz questions ENTIRELY in {$context['native_language']}. ".
+                "Only the {$context['language']} example words/phrases themselves should be in {$context['language']}, and they MUST be followed by their {$context['native_language']} translation. ".
+                "Example format for vocabulary: \"**hello** (en {$context['language']}) = bonjour (en {$context['native_language']})\". ".
                 "DO NOT write paragraphs in {$context['language']}. A beginner cannot read them.";
             $titleLang = $context['native_language'];
             $quizLang = $context['native_language'];
         } elseif ($isIntermediate) {
-            $languagePolicy = "The student is intermediate ({$upperLevel}). Write explanations 70% in {$context['native_language']} and 30% in {$context['language']}. " .
+            $languagePolicy = "The student is intermediate ({$upperLevel}). Write explanations 70% in {$context['native_language']} and 30% in {$context['language']}. ".
                 "Provide translations for key terms. Quiz questions in {$context['language']} with native-language instructions.";
             $titleLang = $context['language'];
             $quizLang = $context['language'];
@@ -304,6 +306,9 @@ Generate a complete lesson in JSON format:
   "concept": "Brief concept description",
   "theory_markdown": "Full lesson content in Markdown (500-800 words). Follow the language policy above. Structure:\n  - 3 to 5 H2 sections separated by '## Section Title' — each section short enough to fit on one mobile screen (≈150 words max per section)\n  - Clear pedagogical explanation of the rule/concept\n  - 5+ practical examples in {$context['language']} with {$context['native_language']} translations\n  - Use **bold** for key terms\n  - Tables for grammar rules or vocabulary when appropriate. IMPORTANT: no blank lines between table rows.\n  - End with a short 'Récap' / 'Summary' section",
   "key_takeaways": ["3 takeaways following the language policy"],
+  "key_vocabulary": [
+    {"word": "useful word or short expression in {$context['language']}", "translation": "meaning in {$context['native_language']}", "example": "short natural sentence actually used in this lesson", "definition": "brief meaning in {$context['language']}"}
+  ],
   "common_mistakes": [
     {"mistake": "description (following language policy)", "correction": "correct form", "tip": "how to remember (in {$context['native_language']} for beginners)"}
   ],
@@ -318,32 +323,37 @@ Generate a complete lesson in JSON format:
 }
 
 Generate exactly 3 comprehension quiz questions that test understanding of the lesson content.
+Include 3 to 5 key_vocabulary entries at {$context['level']} level. These MUST appear
+in the lesson examples and support the learning objective, not random dictionary words.
+Keep each explanatory section short; avoid repeating the same rule in several sections.
 PROMPT;
 
         $messages = [
             [
                 'role' => 'system',
-                'content' => "You are an expert language teacher who creates engaging, clear, and pedagogically sound lessons. Always respond in valid JSON format ONLY."
+                'content' => 'You are an expert language teacher who creates engaging, clear, and pedagogically sound lessons. Always respond in valid JSON format ONLY.',
             ],
-            ['role' => 'user', 'content' => $prompt]
+            ['role' => 'user', 'content' => $prompt],
         ];
 
         $response = $this->mistral->chat($messages);
-        if (!$response) {
+        if (! $response) {
             Log::warning('NextLessonGenerator: Mistral returned null for lesson generation');
+
             return $this->getDefaultLesson($objective, $context);
         }
 
         $decoded = json_decode($response, true);
-        if (!$decoded || !isset($decoded['theory_markdown'])) {
+        if (! $decoded || ! isset($decoded['theory_markdown'])) {
             Log::warning('NextLessonGenerator: Invalid JSON from Mistral', ['response' => $response]);
+
             return $this->getDefaultLesson($objective, $context);
         }
 
         // SAVE CACHE: If this was a standard lesson generation, save it to the static library
-        if (!$isConsolidation && !$hasErrors) {
+        if (! $isConsolidation && ! $hasErrors) {
             $cacheDir = storage_path("app/lessons/{$langKey}_via_{$nativeKey}/{$level}");
-            if (!File::exists($cacheDir)) {
+            if (! File::exists($cacheDir)) {
                 File::makeDirectory($cacheDir, 0755, true);
             }
             $cachePath = "{$cacheDir}/{$concept}.json";
@@ -376,12 +386,25 @@ PROMPT;
      */
     private function getIconForConcept(string $concept): string
     {
-        if (str_starts_with($concept, 'grammar')) return '📝';
-        if (str_starts_with($concept, 'vocabulary')) return '📚';
-        if (str_starts_with($concept, 'reading')) return '📖';
-        if (str_starts_with($concept, 'writing')) return '✍️';
-        if (str_starts_with($concept, 'listening')) return '👂';
-        if (str_starts_with($concept, 'speaking')) return '🗣️';
+        if (str_starts_with($concept, 'grammar')) {
+            return '📝';
+        }
+        if (str_starts_with($concept, 'vocabulary')) {
+            return '📚';
+        }
+        if (str_starts_with($concept, 'reading')) {
+            return '📖';
+        }
+        if (str_starts_with($concept, 'writing')) {
+            return '✍️';
+        }
+        if (str_starts_with($concept, 'listening')) {
+            return '👂';
+        }
+        if (str_starts_with($concept, 'speaking')) {
+            return '🗣️';
+        }
+
         return '📘';
     }
 
@@ -400,6 +423,7 @@ PROMPT;
             'speaking' => 'speaking',
             'exam' => 'reading',
         ];
+
         return $mapping[$prefix] ?? 'grammar';
     }
 }

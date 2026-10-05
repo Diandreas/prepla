@@ -5,13 +5,14 @@ namespace App\Services\AI;
 use App\Models\Exam;
 use App\Models\Exercise;
 use App\Models\ExerciseType;
+use App\Services\ImageLibraryService;
 use Illuminate\Support\Facades\Log;
 
 class ExerciseGeneratorService
 {
     public function __construct(
         protected MistralService $mistral,
-        protected \App\Services\ImageLibraryService $imageLibrary
+        protected ImageLibraryService $imageLibrary
     ) {}
 
     public function generateBatch(array $typeIds, Exam $exam, string $difficulty = 'B1'): array
@@ -23,6 +24,7 @@ class ExerciseGeneratorService
                 $exercises[] = $this->generate($exerciseType, $exam, $difficulty);
             }
         }
+
         return $exercises;
     }
 
@@ -46,11 +48,11 @@ class ExerciseGeneratorService
                 ['role' => 'user', 'content' => $prompt],
             ]);
 
-            if (!$response) {
+            if (! $response) {
                 continue;
             }
             $candidate = json_decode($response, true);
-            if (!isset($candidate['content'], $candidate['questions']) || count($candidate['questions']) === 0) {
+            if (! isset($candidate['content'], $candidate['questions']) || count($candidate['questions']) === 0) {
                 continue;
             }
 
@@ -75,7 +77,7 @@ class ExerciseGeneratorService
                 break;
             }
 
-            \Illuminate\Support\Facades\Log::info('Exercise generation: majority of questions rejected, retrying', [
+            Log::info('Exercise generation: majority of questions rejected, retrying', [
                 'component' => $exerciseType->component_key,
                 'produced' => $produced,
                 'kept' => $kept,
@@ -96,6 +98,7 @@ class ExerciseGeneratorService
                             $q['image_url'] = $pickedUrl;
                         }
                     }
+
                     return $q;
                 }, $data['questions']);
             }
@@ -118,7 +121,7 @@ class ExerciseGeneratorService
             'exercise_type' => $exerciseType->component_key,
             'exam_id' => $exam->id,
         ]);
-        throw new \RuntimeException('AI exercise generation failed for ' . $exerciseType->component_key);
+        throw new \RuntimeException('AI exercise generation failed for '.$exerciseType->component_key);
     }
 
     /** Strip letter prefixes like "A) ", "B) " that Mistral sometimes adds to options. */
@@ -127,10 +130,11 @@ class ExerciseGeneratorService
         return array_map(function ($q) {
             if (isset($q['options']) && is_array($q['options'])) {
                 $q['options'] = array_map(
-                    fn($opt) => is_string($opt) ? preg_replace('/^[A-D]\)\s*/u', '', $opt) : $opt,
+                    fn ($opt) => is_string($opt) ? preg_replace('/^[A-D]\)\s*/u', '', $opt) : $opt,
                     $q['options']
                 );
             }
+
             return $q;
         }, $questions);
     }
@@ -146,11 +150,11 @@ class ExerciseGeneratorService
         return array_map(function ($q) {
             $opts = $q['options'] ?? null;
             $ca = $q['correct_answer'] ?? null;
-            if (!is_array($opts) || count($opts) < 2 || !is_string($ca)) {
+            if (! is_array($opts) || count($opts) < 2 || ! is_string($ca)) {
                 return $q;
             }
             $letter = strtoupper(trim($ca));
-            if (!preg_match('/^[A-Z]$/', $letter)) {
+            if (! preg_match('/^[A-Z]$/', $letter)) {
                 return $q; // answer isn't a letter (free text) → leave as is
             }
             $correctIdx = ord($letter) - 65;
@@ -166,11 +170,16 @@ class ExerciseGeneratorService
                 ? array_map(fn ($k) => $arr[$k], $order) : $arr;
 
             $q['options'] = $reorder($opts);
-            if (isset($q['image_prompts'])) $q['image_prompts'] = $reorder($q['image_prompts']);
-            if (isset($q['image_options'])) $q['image_options'] = $reorder($q['image_options']);
+            if (isset($q['image_prompts'])) {
+                $q['image_prompts'] = $reorder($q['image_prompts']);
+            }
+            if (isset($q['image_options'])) {
+                $q['image_options'] = $reorder($q['image_options']);
+            }
 
             $newPos = array_search($correctIdx, $order, true);
             $q['correct_answer'] = chr(65 + ($newPos === false ? 0 : $newPos));
+
             return $q;
         }, $questions);
     }
@@ -210,12 +219,12 @@ class ExerciseGeneratorService
             // of a real exercise in the target language).
             $declaredType = $q['type'] ?? null;
             if ($componentKey && is_string($declaredType) && $declaredType !== $componentKey
-                && !in_array($declaredType, ['role-play', 'synthesis'], true)) {
+                && ! in_array($declaredType, ['role-play', 'synthesis'], true)) {
                 // role-play/synthesis are legitimate shared render types used by
                 // several component_keys (oral-debate, negotiation, synthesis-essay…).
                 return false;
             }
-            $text = mb_strtolower(trim((string)($q['text'] ?? '')));
+            $text = mb_strtolower(trim((string) ($q['text'] ?? '')));
             foreach (self::SENTINEL_TEXTS as $sentinel) {
                 if ($text !== '' && str_contains($text, $sentinel)) {
                     return false;
@@ -223,15 +232,16 @@ class ExerciseGeneratorService
             }
 
             $opts = $q['options'] ?? null;
-            if (!is_array($opts)) {
-                if ($requireExplanation && empty(trim((string)($q['explanation'] ?? '')))) {
+            if (! is_array($opts)) {
+                if ($requireExplanation && empty(trim((string) ($q['explanation'] ?? '')))) {
                     return false;
                 }
+
                 return true; // not a choice-based question type — nothing else to validate
             }
 
             // Options must be non-empty, distinct strings.
-            $normalized = array_map(fn($o) => is_string($o) ? trim(mb_strtolower($o)) : null, $opts);
+            $normalized = array_map(fn ($o) => is_string($o) ? trim(mb_strtolower($o)) : null, $opts);
             if (in_array(null, $normalized, true) || in_array('', $normalized, true)) {
                 return false;
             }
@@ -240,11 +250,11 @@ class ExerciseGeneratorService
             }
 
             $ca = $q['correct_answer'] ?? null;
-            if (!is_string($ca)) {
+            if (! is_string($ca)) {
                 return false;
             }
             $letter = strtoupper(trim($ca));
-            if (!preg_match('/^[A-Z]$/', $letter)) {
+            if (! preg_match('/^[A-Z]$/', $letter)) {
                 return false; // choice question must resolve to a single letter after shuffling
             }
             $idx = ord($letter) - 65;
@@ -252,7 +262,7 @@ class ExerciseGeneratorService
                 return false;
             }
 
-            if ($requireExplanation && empty(trim((string)($q['explanation'] ?? '')))) {
+            if ($requireExplanation && empty(trim((string) ($q['explanation'] ?? '')))) {
                 return false;
             }
 
@@ -278,7 +288,7 @@ class ExerciseGeneratorService
     {
         foreach ($items as $item) {
             $value = $item['value'] ?? null;
-            if (!is_string($value) || $value === '') {
+            if (! is_string($value) || $value === '') {
                 continue;
             }
             // "___", "____ Jahre", "___..." : suite de underscores en tête de valeur.
@@ -286,6 +296,7 @@ class ExerciseGeneratorService
                 return true;
             }
         }
+
         return false;
     }
 
@@ -300,7 +311,7 @@ class ExerciseGeneratorService
         if (empty($blanks)) {
             return true; // rien à compléter, correct_answers n'a pas d'importance ici
         }
-        if (!is_array($correctAnswers) || count($correctAnswers) === 0) {
+        if (! is_array($correctAnswers) || count($correctAnswers) === 0) {
             return false;
         }
 
@@ -312,17 +323,18 @@ class ExerciseGeneratorService
         $blankKeys = array_map('strval', $blanks);
         sort($caKeys);
         sort($blankKeys);
+
         return $caKeys === $blankKeys;
     }
 
     private function dropInvalidMultiFieldQuestions(array $questions, string $componentKey): array
     {
         $multiFieldTypes = ['note-completion', 'form-completion', 'summary-completion', 'table-completion', 'flow-chart-completion', 'multiple-matching', 'diagram-labeling', 'open-cloze'];
-        if (!in_array($componentKey, $multiFieldTypes, true)) {
+        if (! in_array($componentKey, $multiFieldTypes, true)) {
             return $questions;
         }
 
-        $norm = fn($s) => is_string($s) ? trim(mb_strtolower($s)) : null;
+        $norm = fn ($s) => is_string($s) ? trim(mb_strtolower($s)) : null;
 
         return array_values(array_filter($questions, function ($q) use ($componentKey, $norm) {
             $ca = $q['correct_answers'] ?? null;
@@ -338,66 +350,74 @@ class ExerciseGeneratorService
                     if ($this->hasFakeBlankMarker($q['notes'] ?? [])) {
                         return false;
                     }
-                    $blanks = array_keys(array_filter($q['notes'] ?? [], fn($n) => ($n['value'] ?? null) === ''));
+                    $blanks = array_keys(array_filter($q['notes'] ?? [], fn ($n) => ($n['value'] ?? null) === ''));
+
                     return $this->multiFieldAnswersMatchBlanks($ca, $blanks);
 
                 case 'form-completion':
                     if ($this->hasFakeBlankMarker($q['fields'] ?? [])) {
                         return false;
                     }
-                    $blanks = array_keys(array_filter($q['fields'] ?? [], fn($f) => ($f['value'] ?? null) === ''));
+                    $blanks = array_keys(array_filter($q['fields'] ?? [], fn ($f) => ($f['value'] ?? null) === ''));
+
                     return $this->multiFieldAnswersMatchBlanks($ca, $blanks);
 
                 case 'flow-chart-completion':
-                    $blanks = array_keys(array_filter($q['steps'] ?? [], fn($s) => !empty($s['is_blank'])));
+                    $blanks = array_keys(array_filter($q['steps'] ?? [], fn ($s) => ! empty($s['is_blank'])));
+
                     return empty($blanks) || (is_array($ca) && count($ca) > 0);
 
                 case 'summary-completion':
-                    if (!is_array($ca) || !isset($q['word_list']) || !is_array($q['word_list'])) {
-                        return !is_array($ca) ? true : false;
+                    if (! is_array($ca) || ! isset($q['word_list']) || ! is_array($q['word_list'])) {
+                        return ! is_array($ca) ? true : false;
                     }
                     $wordList = array_map($norm, $q['word_list']);
                     foreach ($ca as $v) {
-                        if (!in_array($norm($v), $wordList, true)) {
+                        if (! in_array($norm($v), $wordList, true)) {
                             return false; // answer not selectable from the dropdown → unsolvable
                         }
                     }
+
                     return true;
 
                 case 'table-completion':
                     $rows = $q['rows'] ?? null;
-                    if (!is_array($rows)) {
+                    if (! is_array($rows)) {
                         return true;
                     }
                     $blankCount = 0;
                     foreach ($rows as $row) {
                         if (is_array($row)) {
                             foreach ($row as $cell) {
-                                if ($cell === '') $blankCount++;
+                                if ($cell === '') {
+                                    $blankCount++;
+                                }
                             }
                         }
                     }
+
                     return $blankCount === 0 || (is_array($ca) && count($ca) > 0);
 
                 case 'multiple-matching':
-                    $textIds = array_map(fn($t) => $t['id'] ?? null, $q['texts'] ?? []);
-                    $statementIds = array_map(fn($s) => $s['id'] ?? null, $q['statements'] ?? []);
-                    if (empty($statementIds) || !is_array($ca)) {
-                        return !empty($statementIds) ? false : true;
+                    $textIds = array_map(fn ($t) => $t['id'] ?? null, $q['texts'] ?? []);
+                    $statementIds = array_map(fn ($s) => $s['id'] ?? null, $q['statements'] ?? []);
+                    if (empty($statementIds) || ! is_array($ca)) {
+                        return ! empty($statementIds) ? false : true;
                     }
                     foreach ($statementIds as $sid) {
-                        if (!array_key_exists($sid, $ca) || !in_array($ca[$sid], $textIds, true)) {
+                        if (! array_key_exists($sid, $ca) || ! in_array($ca[$sid], $textIds, true)) {
                             return false;
                         }
                     }
+
                     return true;
 
                 case 'diagram-labeling':
-                    $labelIds = array_map(fn($l) => $l['id'] ?? null, $q['labels'] ?? []);
+                    $labelIds = array_map(fn ($l) => $l['id'] ?? null, $q['labels'] ?? []);
                     if (empty($labelIds)) {
                         return true;
                     }
-                    if (!is_array($ca)) {
+                    if (! is_array($ca)) {
                         return false;
                     }
                     foreach ($labelIds as $lid) {
@@ -405,12 +425,14 @@ class ExerciseGeneratorService
                             return false;
                         }
                     }
+
                     return true;
 
                 case 'open-cloze':
                     $text = $q['text'] ?? '';
                     preg_match_all('/\((\d+)\)___/', is_string($text) ? $text : '', $matches);
                     $gapCount = count($matches[1] ?? []);
+
                     return $gapCount === 0 || (is_array($ca) && count($ca) >= $gapCount);
 
                 default:
@@ -451,7 +473,7 @@ class ExerciseGeneratorService
         if ($lessonContext) {
             $title = $lessonContext['title'] ?? '';
             $concept = $lessonContext['concept'] ?? '';
-            $isSynthesis = !empty($lessonContext['is_synthesis']);
+            $isSynthesis = ! empty($lessonContext['is_synthesis']);
             $conceptsMixed = $lessonContext['concepts_to_mix'] ?? [];
 
             if ($isSynthesis) {
@@ -498,6 +520,10 @@ DIRECTIVE;
             }
         }
 
+        if (! empty($lessonContext['key_vocabulary']) && empty($lessonContext['is_synthesis'])) {
+            $words = json_encode($lessonContext['key_vocabulary'], JSON_UNESCAPED_UNICODE);
+            $lessonDirective .= "\nUse these lesson words naturally in examples and sentence-building questions when relevant to the concept: {$words}. Keep the existing lesson concept as the main objective; do not introduce unrelated difficult vocabulary.\n";
+        }
         [$wMin, $wMax] = $this->wordRangeFor($difficulty);
 
         $isListening = $skillType === 'listening';
@@ -505,7 +531,7 @@ DIRECTIVE;
         // dialogue/monologue), and questions test comprehension of it by ear. The
         // spoken passage must carry the same audio_text on EACH question so the
         // player can play it. The questions must NOT restate the audio in writing.
-        $audioField = $isListening ? ', audio_text (string: the SAME spoken passage of 60-100 words in ' . $language . ' — a short dialogue or monologue — repeated identically on every question; questions ask about details/intentions/facts that can only be answered by listening, NOT by reading the question)' : '';
+        $audioField = $isListening ? ', audio_text (string: the SAME spoken passage of 60-100 words in '.$language.' — a short dialogue or monologue — repeated identically on every question; questions ask about details/intentions/facts that can only be answered by listening, NOT by reading the question)' : '';
 
         $listeningDirective = $isListening
             ? "\n\nLISTENING RULES:\n- audio_text is the recording (a 60-100-word dialogue/monologue). It is the SAME on every question.\n- Questions test comprehension BY EAR (who, what, where, why, intention). Do NOT write the answer in the question.\n- Never just name a term and ask to match it to its definition — that's not listening."
@@ -530,68 +556,68 @@ DIRECTIVE;
         // no lessonContext already handling the native-language instruction.
         $instructionAdaptedTypes = ['form-completion', 'table-completion', 'flow-chart-completion', 'diagram-labeling', 'gapped-text', 'ordering'];
         $instructionLang = ($isBeginnerLevel && in_array($componentKey, $instructionAdaptedTypes, true)) ? $nativeLang : $language;
-        $instructionDirective = ($isBeginnerLevel && in_array($componentKey, $instructionAdaptedTypes, true) && !$lessonContext)
+        $instructionDirective = ($isBeginnerLevel && in_array($componentKey, $instructionAdaptedTypes, true) && ! $lessonContext)
             ? "\n\nBEGINNER INSTRUCTION ({$difficulty}): the student does not read {$language} fluently yet.\n- The \"text\" instruction field MUST be written in {$nativeLang}, so the student understands WHAT is asked.\n- The actual content to complete/label/reorder (fields/rows/steps/labels/paragraphs/sentence) MUST STAY in {$language} — only the meta-instruction telling the student what to do switches language."
             : '';
 
         $questionFormat = match ($componentKey) {
             // --- Original components ---
-            'mcq' => 'Array of 3 questions, each with: id (string q1/q2/q3), type ("mcq"), text (question in ' . $language . '), options (array of exactly 4 answer choices in ' . $language . ', do NOT include letters like "A)" prefix), correct_answer (ONLY the letter: "A", "B", "C", or "D" corresponding to the correct option index), explanation (string in ' . $language . ')' . $audioField,
-            'true-false-ng' => 'Array of 3 statements, each with: id (string), type ("true-false-ng"), text (statement in ' . $language . '), correct_answer ("True"/"False"/"Not Given"), explanation (string)' . $audioField,
-            'gap-fill' => 'Array of 3 items, each with: id (string), type ("gap-fill"), text (sentence in ' . $language . ' containing EXACTLY ONE blank written as ___ — never two or more blanks in the same sentence), correct_answer (string: the single word or phrase that fills that one blank), explanation (string)' . $audioField,
-            'matching' => 'Array of 4 questions, each with: id (string q1-q4), type ("matching"), text (the term/concept to identify in ' . $language . '), options (array of exactly 4 definitions in ' . $language . ' — one correct, three plausible distractors, shuffled), correct_answer (ONLY the letter "A", "B", "C", or "D" for the correct option)' . $audioField,
-            'essay-editor' => 'Array of 1 question with: id (string), type ("essay-editor"), text (writing prompt in ' . $language . ', scoped to what a ' . $difficulty . ' learner can realistically write about), min_words (' . $wMin . '), max_words (' . $wMax . '), correct_answer (null — scored manually)',
-            'sentence-completion' => 'Array of 3 items, each with: id (string), type ("sentence-completion"), text (incomplete sentence in ' . $language . '), options (array of 4 choices), correct_answer (letter "A"/"B"/"C"/"D"), explanation (string)' . $audioField,
-            'short-answer' => 'Array of 3 items, each with: id (string), type ("short-answer"), text (question in ' . $language . '), correct_answer (' . (in_array($difficulty, ['C1', 'C2'], true) ? 'a concise written answer, one short sentence ~10-15 words, capturing the key idea' : 'short answer string, max 3 words') . '), explanation (string)' . $audioField,
-            'note-completion' => 'Array of 1 question with: id (string), type ("note-completion"), notes (array of objects {label: string, value: string} where value is blank "" for items the student must fill, or pre-filled text), correct_answers (object whose keys are the 0-BASED INDEX of each blank note in the notes array — e.g. if notes[1] and notes[3] are blank, correct_answers is {"1": "...", "3": "..."})' . ($isListening ? ', audio_text (string: spoken passage 80-120 words in ' . $language . ' — the recording students listen to)' : ''),
-            'ordering' => 'Array of 1 question with: id (string), type ("ordering"), text (instruction in ' . $instructionLang . '), items (array of 5-6 items to reorder, in CORRECT order), correct_order (array of ids in correct sequence)',
-            'dictation' => 'Array of 1 question with: id (string), type ("dictation"), audio_text (text to be read aloud in ' . $language . ', 30-50 words), text (instruction), correct_answer (the exact text)',
-            'open-cloze' => 'Array of 1 question with: id (string), type ("open-cloze"), text (a COHERENT connected passage of 80-120 words in ' . $language . ' with 8-10 numbered gaps written EXACTLY as (1)___, (2)___, (3)___ … in reading order; each gap targets grammar/function words the student must PRODUCE — articles, prepositions, verb forms, conjunctions, pronouns — NOT random content words copyable from context), correct_answers (object mapping "1","2",… to the exact expected word for each gap)',
+            'mcq' => 'Array of 3 questions, each with: id (string q1/q2/q3), type ("mcq"), text (question in '.$language.'), options (array of exactly 4 answer choices in '.$language.', do NOT include letters like "A)" prefix), correct_answer (ONLY the letter: "A", "B", "C", or "D" corresponding to the correct option index), explanation (string in '.$language.')'.$audioField,
+            'true-false-ng' => 'Array of 3 statements, each with: id (string), type ("true-false-ng"), text (statement in '.$language.'), correct_answer ("True"/"False"/"Not Given"), explanation (string)'.$audioField,
+            'gap-fill' => 'Array of 3 items, each with: id (string), type ("gap-fill"), text (sentence in '.$language.' containing EXACTLY ONE blank written as ___ — never two or more blanks in the same sentence), correct_answer (string: the single word or phrase that fills that one blank), explanation (string)'.$audioField,
+            'matching' => 'Array of 4 questions, each with: id (string q1-q4), type ("matching"), text (the term/concept to identify in '.$language.'), options (array of exactly 4 definitions in '.$language.' — one correct, three plausible distractors, shuffled), correct_answer (ONLY the letter "A", "B", "C", or "D" for the correct option)'.$audioField,
+            'essay-editor' => 'Array of 1 question with: id (string), type ("essay-editor"), text (writing prompt in '.$language.', scoped to what a '.$difficulty.' learner can realistically write about), min_words ('.$wMin.'), max_words ('.$wMax.'), correct_answer (null — scored manually)',
+            'sentence-completion' => 'Array of 3 items, each with: id (string), type ("sentence-completion"), text (incomplete sentence in '.$language.'), options (array of 4 choices), correct_answer (letter "A"/"B"/"C"/"D"), explanation (string)'.$audioField,
+            'short-answer' => 'Array of 3 items, each with: id (string), type ("short-answer"), text (question in '.$language.'), correct_answer ('.(in_array($difficulty, ['C1', 'C2'], true) ? 'a concise written answer, one short sentence ~10-15 words, capturing the key idea' : 'short answer string, max 3 words').'), explanation (string)'.$audioField,
+            'note-completion' => 'Array of 1 question with: id (string), type ("note-completion"), notes (array of objects {label: string, value: string} where value is blank "" for items the student must fill, or pre-filled text), correct_answers (object whose keys are the 0-BASED INDEX of each blank note in the notes array — e.g. if notes[1] and notes[3] are blank, correct_answers is {"1": "...", "3": "..."})'.($isListening ? ', audio_text (string: spoken passage 80-120 words in '.$language.' — the recording students listen to)' : ''),
+            'ordering' => 'Array of 1 question with: id (string), type ("ordering"), text (instruction in '.$instructionLang.'), items (array of 5-6 items to reorder, in CORRECT order), correct_order (array of ids in correct sequence)',
+            'dictation' => 'Array of 1 question with: id (string), type ("dictation"), audio_text (text to be read aloud in '.$language.', 30-50 words), text (instruction), correct_answer (the exact text)',
+            'open-cloze' => 'Array of 1 question with: id (string), type ("open-cloze"), text (a COHERENT connected passage of 80-120 words in '.$language.' with 8-10 numbered gaps written EXACTLY as (1)___, (2)___, (3)___ … in reading order; each gap targets grammar/function words the student must PRODUCE — articles, prepositions, verb forms, conjunctions, pronouns — NOT random content words copyable from context), correct_answers (object mapping "1","2",… to the exact expected word for each gap)',
             'word-formation' => 'Array of 3 items, each with: id (string), type ("word-formation"), text (sentence with ___ gap), root_word (base word to transform), correct_answer (the transformed word), explanation (string)',
-            'key-word-transformation' => 'Array of 3 items, each with: id (string), type ("key-word-transformation"), original_sentence (in ' . $language . '), key_word (word that must be used), correct_answer (transformed sentence), explanation (string)',
+            'key-word-transformation' => 'Array of 3 items, each with: id (string), type ("key-word-transformation"), original_sentence (in '.$language.'), key_word (word that must be used), correct_answer (transformed sentence), explanation (string)',
 
             // --- Sprint 1: Simple text components ---
-            'short-writing' => 'Array of 1 question with: id (string), type ("short-writing"), text (writing prompt in ' . $language . ', e.g. write a postcard/email/message), context (optional context string), min_words (30), max_words (80), correct_answer (null)',
-            'form-completion' => 'Array of 1 question with: id (string), type ("form-completion"), text (instruction in ' . $instructionLang . '), fields (array of 6-8 objects {label: string in ' . $language . ', value: string or "" for blanks, type: "text"|"date"|"select", options?: string[] for select}), correct_answers (object whose keys are the 0-BASED INDEX of each blank field in the fields array — e.g. if fields[2] is blank, correct_answers is {"2": "..."})',
-            'summary-completion' => 'Array of 1 question with: id (string), type ("summary-completion"), text (summary passage in ' . $language . ' with ___ for each blank), word_list (array of 8-10 words, including correct answers plus distractors), correct_answers (object mapping blank index "0","1",etc. to correct word)',
+            'short-writing' => 'Array of 1 question with: id (string), type ("short-writing"), text (writing prompt in '.$language.', e.g. write a postcard/email/message), context (optional context string), min_words (30), max_words (80), correct_answer (null)',
+            'form-completion' => 'Array of 1 question with: id (string), type ("form-completion"), text (instruction in '.$instructionLang.'), fields (array of 6-8 objects {label: string in '.$language.', value: string or "" for blanks, type: "text"|"date"|"select", options?: string[] for select}), correct_answers (object whose keys are the 0-BASED INDEX of each blank field in the fields array — e.g. if fields[2] is blank, correct_answers is {"2": "..."})',
+            'summary-completion' => 'Array of 1 question with: id (string), type ("summary-completion"), text (summary passage in '.$language.' with ___ for each blank), word_list (array of 8-10 words, including correct answers plus distractors), correct_answers (object mapping blank index "0","1",etc. to correct word)',
 
             // --- Sprint 2: Table/visual components ---
-            'table-completion' => 'Array of 1 question with: id (string), type ("table-completion"), text (instruction in ' . $instructionLang . '), headers (array of column header strings), rows (2D array of strings, use "" for blank cells students must fill), correct_answers (object mapping "rowIndex-colIndex" to correct value for each blank cell)',
-            'flow-chart-completion' => 'Array of 1 question with: id (string), type ("flow-chart-completion"), text (instruction in ' . $instructionLang . '), steps (array of objects {text: string or "" for blanks, is_blank: boolean}), correct_answers (object mapping blank step indices to correct text)',
-            'multiple-matching' => 'Array of 1 question with: id (string), type ("multiple-matching"), texts (array of 4 objects {id: "A"/"B"/"C"/"D", title: string, content: string in ' . $language . '}), statements (array of 6 objects {id: "s1"-"s6", text: string in ' . $language . '}), correct_answers (object mapping statement id to text id, e.g. {"s1":"B","s2":"A",...})',
+            'table-completion' => 'Array of 1 question with: id (string), type ("table-completion"), text (instruction in '.$instructionLang.'), headers (array of column header strings), rows (2D array of strings, use "" for blank cells students must fill), correct_answers (object mapping "rowIndex-colIndex" to correct value for each blank cell)',
+            'flow-chart-completion' => 'Array of 1 question with: id (string), type ("flow-chart-completion"), text (instruction in '.$instructionLang.'), steps (array of objects {text: string or "" for blanks, is_blank: boolean}), correct_answers (object mapping blank step indices to correct text)',
+            'multiple-matching' => 'Array of 1 question with: id (string), type ("multiple-matching"), texts (array of 4 objects {id: "A"/"B"/"C"/"D", title: string, content: string in '.$language.'}), statements (array of 6 objects {id: "s1"-"s6", text: string in '.$language.'}), correct_answers (object mapping statement id to text id, e.g. {"s1":"B","s2":"A",...})',
 
             // --- Sprint 3: Interactive components ---
-            'insert-text' => 'Array of 1 question with: id (string), type ("insert-text"), sentence (the sentence to insert, in ' . $language . '), passage (text with markers [A], [B], [C], [D] where sentence could be inserted), correct_answer ("A"/"B"/"C"/"D")',
-            'gapped-text' => 'Array of 1 question with: id (string), type ("gapped-text"), text (instruction in ' . $instructionLang . '), passage_parts (array of strings, the main text split at gaps), paragraphs (array of objects {id: "p1"-"p5", text: string in ' . $language . '} — paragraphs to place in gaps), correct_order (array of paragraph ids in correct gap order)',
-            'graph-description' => 'Array of 1 question with: id (string), type ("graph-description"), text (writing prompt describing the chart in ' . $language . '), chart_data ({type: "bar"|"line"|"pie", labels: string[], datasets: [{label: string, data: number[]}]}), min_words (' . $wMin . '), max_words (' . $wMax . '), correct_answer (null)',
-            'academic-discussion' => 'Array of 1 question with: id (string), type ("academic-discussion"), professor_prompt (discussion topic in ' . $language . '), student_posts (array of 2 objects {name: string, text: opinion in ' . $language . '}), writing_prompt (instruction for student response in ' . $language . '), min_words (' . $wMin . '), max_words (' . $wMax . '), correct_answer (null)',
+            'insert-text' => 'Array of 1 question with: id (string), type ("insert-text"), sentence (the sentence to insert, in '.$language.'), passage (text with markers [A], [B], [C], [D] where sentence could be inserted), correct_answer ("A"/"B"/"C"/"D")',
+            'gapped-text' => 'Array of 1 question with: id (string), type ("gapped-text"), text (instruction in '.$instructionLang.'), passage_parts (array of strings, the main text split at gaps), paragraphs (array of objects {id: "p1"-"p5", text: string in '.$language.'} — paragraphs to place in gaps), correct_order (array of paragraph ids in correct gap order)',
+            'graph-description' => 'Array of 1 question with: id (string), type ("graph-description"), text (writing prompt describing the chart in '.$language.'), chart_data ({type: "bar"|"line"|"pie", labels: string[], datasets: [{label: string, data: number[]}]}), min_words ('.$wMin.'), max_words ('.$wMax.'), correct_answer (null)',
+            'academic-discussion' => 'Array of 1 question with: id (string), type ("academic-discussion"), professor_prompt (discussion topic in '.$language.'), student_posts (array of 2 objects {name: string, text: opinion in '.$language.'}), writing_prompt (instruction for student response in '.$language.'), min_words ('.$wMin.'), max_words ('.$wMax.'), correct_answer (null)',
 
             // --- Sprint 4: Audio/Speaking components ---
             // scenario/role/prompt use $scenarioLang (native language for A0-A2 beginners,
             // target language otherwise) since they're instructions the student must
             // understand — only the examiner's spoken "text" stays in $language.
-            'speaking-recorder' => 'Array of 1 question with: id (string), type ("speaking-recorder"), text (speaking prompt in ' . $scenarioLang . ', e.g. describe an experience, give opinion on topic), prep_time (30), speak_time (60), image_url (null), correct_answer (null)',
-            'role-play' => 'Array of 1 question with: id (string), type ("role-play"), scenario (situation description in ' . $scenarioLang . '), role (candidate role in ' . $scenarioLang . '), dialogue_turns (array of 4-6 objects {speaker: "examiner"|"candidate", text: string for examiner lines in ' . $language . ', prompt: string for candidate hints in ' . $scenarioLang . '}), correct_answer (null)',
+            'speaking-recorder' => 'Array of 1 question with: id (string), type ("speaking-recorder"), text (speaking prompt in '.$scenarioLang.', e.g. describe an experience, give opinion on topic), prep_time (30), speak_time (60), image_url (null), correct_answer (null)',
+            'role-play' => 'Array of 1 question with: id (string), type ("role-play"), scenario (situation description in '.$scenarioLang.'), role (candidate role in '.$scenarioLang.'), dialogue_turns (array of 4-6 objects {speaker: "examiner"|"candidate", text: string for examiner lines in '.$language.', prompt: string for candidate hints in '.$scenarioLang.'}), correct_answer (null)',
             // Interactive speaking — all rendered by the role-play component (type "role-play"),
             // alternating examiner (spoken via TTS) ↔ candidate (records, live-scored).
-            'oral-debate' => 'Array of 1 question with: id (string), type ("role-play"), scenario (a debatable topic + the examiner\'s stance, in ' . $scenarioLang . '), role ("Tu défends ton point de vue face à l\'examinateur" translated to ' . $scenarioLang . ' if needed), dialogue_turns (array of 6 objects ALTERNATING: examiner turns have text = a provocative claim/counter-argument in ' . $language . '; candidate turns have prompt = what to argue, in ' . $scenarioLang . ', e.g. "Réfute cet argument avec un exemple"), correct_answer (null)',
-            'negotiation' => 'Array of 1 question with: id (string), type ("role-play"), scenario (a situation requiring agreement, e.g. planning an outing together / sharing tasks, in ' . $scenarioLang . '), role (candidate role, in ' . $scenarioLang . '), dialogue_turns (array of 6 objects ALTERNATING: examiner text = a proposal or objection in ' . $language . '; candidate prompt = in ' . $scenarioLang . ', e.g. "Propose une alternative et justifie" / "Trouve un compromis"), correct_answer (null)',
-            'speaking-elicitation' => 'Array of 1 question with: id (string), type ("role-play"), scenario (a context where the candidate must OBTAIN information, e.g. about a job ad / a course, in ' . $scenarioLang . '), role ("Tu poses des questions pour obtenir des informations" in ' . $scenarioLang . '), dialogue_turns (array of 5 objects: each examiner turn text = a brief setup/answer in ' . $language . ', each candidate prompt = in ' . $scenarioLang . ', e.g. "Pose une question pour savoir : [horaires/prix/lieu/…]"), correct_answer (null)',
-            'listen-repeat' => 'Array of 3 items, each with: id (string), type ("listen-repeat"), audio_text (a sentence of 8-15 words in ' . $language . ' to be read aloud and repeated), correct_answer (the same sentence exactly — used to score pronunciation fidelity)',
-            'picture-mcq' => 'Array of 3 questions, each with: id (string), type ("picture-mcq"), text (the question/instruction in ' . $language . '), image_prompts (array of EXACTLY 4 short English scene descriptions for image generation, e.g. "a woman drinking coffee at a café", "a man riding a bicycle"; concrete, distinct, simple), options (array of 4 short ' . $language . ' labels matching each image), correct_answer (the letter "A","B","C" or "D" of the right picture)' . ($isListening ? ', audio_text (the SAME spoken passage on each question — what the student hears and must match to a picture)' : ''),
+            'oral-debate' => 'Array of 1 question with: id (string), type ("role-play"), scenario (a debatable topic + the examiner\'s stance, in '.$scenarioLang.'), role ("Tu défends ton point de vue face à l\'examinateur" translated to '.$scenarioLang.' if needed), dialogue_turns (array of 6 objects ALTERNATING: examiner turns have text = a provocative claim/counter-argument in '.$language.'; candidate turns have prompt = what to argue, in '.$scenarioLang.', e.g. "Réfute cet argument avec un exemple"), correct_answer (null)',
+            'negotiation' => 'Array of 1 question with: id (string), type ("role-play"), scenario (a situation requiring agreement, e.g. planning an outing together / sharing tasks, in '.$scenarioLang.'), role (candidate role, in '.$scenarioLang.'), dialogue_turns (array of 6 objects ALTERNATING: examiner text = a proposal or objection in '.$language.'; candidate prompt = in '.$scenarioLang.', e.g. "Propose une alternative et justifie" / "Trouve un compromis"), correct_answer (null)',
+            'speaking-elicitation' => 'Array of 1 question with: id (string), type ("role-play"), scenario (a context where the candidate must OBTAIN information, e.g. about a job ad / a course, in '.$scenarioLang.'), role ("Tu poses des questions pour obtenir des informations" in '.$scenarioLang.'), dialogue_turns (array of 5 objects: each examiner turn text = a brief setup/answer in '.$language.', each candidate prompt = in '.$scenarioLang.', e.g. "Pose une question pour savoir : [horaires/prix/lieu/…]"), correct_answer (null)',
+            'listen-repeat' => 'Array of 3 items, each with: id (string), type ("listen-repeat"), audio_text (a sentence of 8-15 words in '.$language.' to be read aloud and repeated), correct_answer (the same sentence exactly — used to score pronunciation fidelity)',
+            'picture-mcq' => 'Array of 3 questions, each with: id (string), type ("picture-mcq"), text (the question/instruction in '.$language.'), image_prompts (array of EXACTLY 4 short English scene descriptions for image generation, e.g. "a woman drinking coffee at a café", "a man riding a bicycle"; concrete, distinct, simple), options (array of 4 short '.$language.' labels matching each image), correct_answer (the letter "A","B","C" or "D" of the right picture)'.($isListening ? ', audio_text (the SAME spoken passage on each question — what the student hears and must match to a picture)' : ''),
             // TOEFL 2026
-            'complete-the-words' => 'Array of 1 question with: id (string), type ("complete-the-words"), text (an academic paragraph of 60-90 words in ' . $language . ' where 6-10 words have MISSING LETTERS shown as the first 2-3 letters followed by underscores for each missing letter, e.g. "The eco___ grew while gov______ spending fell"), correct_answers (object mapping "0","1",… in reading order to the FULL correct word for each blanked word)',
-            'build-a-sentence' => 'Array of 3 questions, each with: id (string), type ("build-a-sentence"), text (the preceding line of a short student exchange in ' . $language . ', for context), words (array of the sentence tokens IN CORRECT ORDER — the UI shuffles them), correct_answer (the full correct sentence string)',
-            'listen-choose-response' => 'Array of 3 questions, each with: id (string), type ("listen-choose-response"), audio_text (a single short spoken sentence or question in ' . $language . ' — e.g. "Do you know where the library is?"), options (array of 4 possible spoken replies in ' . $language . ', one pragmatically correct, three plausible but wrong), correct_answer (the letter of the best reply)',
+            'complete-the-words' => 'Array of 1 question with: id (string), type ("complete-the-words"), text (an academic paragraph of 60-90 words in '.$language.' where 6-10 words have MISSING LETTERS shown as the first 2-3 letters followed by underscores for each missing letter, e.g. "The eco___ grew while gov______ spending fell"), correct_answers (object mapping "0","1",… in reading order to the FULL correct word for each blanked word)',
+            'build-a-sentence' => 'Array of 3 questions, each with: id (string), type ("build-a-sentence"), text (the preceding line of a short student exchange in '.$language.', for context), words (array of the sentence tokens IN CORRECT ORDER — the UI shuffles them), correct_answer (the full correct sentence string)',
+            'listen-choose-response' => 'Array of 3 questions, each with: id (string), type ("listen-choose-response"), audio_text (a single short spoken sentence or question in '.$language.' — e.g. "Do you know where the library is?"), options (array of 4 possible spoken replies in '.$language.', one pragmatically correct, three plausible but wrong), correct_answer (the letter of the best reply)',
             // Écriture guidée (AI-évaluée)
-            'guided-rewrite' => 'Array of 1 question with: id (string), type ("guided-rewrite"), source_text (a passage of 80-120 words in ' . $language . '), text (instruction in ' . $language . ': reformuler/résumer le passage en utilisant les mots imposés), must_use (array of 3-5 mandatory words/expressions in ' . $language . '), min_words (40), max_words (80), correct_answer (null — scored by AI)',
-            'text-continuation' => 'Array of 1 question with: id (string), type ("text-continuation"), source_text (the BEGINNING of a story/fait divers, 2-3 sentences in ' . $language . '), text (instruction: continuer le texte de façon cohérente), min_words (80), max_words (120), correct_answer (null — scored by AI)',
+            'guided-rewrite' => 'Array of 1 question with: id (string), type ("guided-rewrite"), source_text (a passage of 80-120 words in '.$language.'), text (instruction in '.$language.': reformuler/résumer le passage en utilisant les mots imposés), must_use (array of 3-5 mandatory words/expressions in '.$language.'), min_words (40), max_words (80), correct_answer (null — scored by AI)',
+            'text-continuation' => 'Array of 1 question with: id (string), type ("text-continuation"), source_text (the BEGINNING of a story/fait divers, 2-3 sentences in '.$language.'), text (instruction: continuer le texte de façon cohérente), min_words (80), max_words (120), correct_answer (null — scored by AI)',
 
             // --- Sprint 5: Complex components ---
-            'diagram-labeling' => 'Array of 1 question with: id (string), type ("diagram-labeling"), text (instruction in ' . $instructionLang . '), image_url (null — will use placeholder), labels (array of 4-6 objects {id: "l1"-"l6", x: number 10-90, y: number 10-90, answer: correct label string}), correct_answers (object mapping label id to correct text)',
-            'synthesis' => 'Array of 1 question with: id (string), type ("synthesis"), documents (array of 2-3 objects {title: string, content: text of 100-150 words in ' . $language . '}), writing_prompt (synthesis instruction in ' . $language . '), min_words (220), max_words (250), correct_answer (null)',
-            'synthesis-essay' => 'Array of 1 question with: id (string), type ("synthesis") [the component renders "synthesis"], documents (array of 2-3 objects {title: string, content: text of 120-180 words in ' . $language . ' presenting DIFFERENT viewpoints on a topic}), writing_prompt (instruction in ' . $language . ': first SYNTHESISE the documents, THEN take and defend a personal position — DALF C2 style), min_words (250), max_words (300), correct_answer (null)',
-            'integrated-task' => 'Array of 1 question with: id (string), type ("integrated-task"), reading_passage ({title: string, content: 200-word text in ' . $language . '}), audio_text (100-word listening text in ' . $language . ' for TTS), audio_lang ("' . strtolower(substr($language, 0, 2)) . '"), response_type ("writing"), writing_prompt (instruction in ' . $language . '), min_words (150), max_words (225), correct_answer (null)',
+            'diagram-labeling' => 'Array of 1 question with: id (string), type ("diagram-labeling"), text (instruction in '.$instructionLang.'), image_url (null — will use placeholder), labels (array of 4-6 objects {id: "l1"-"l6", x: number 10-90, y: number 10-90, answer: correct label string}), correct_answers (object mapping label id to correct text)',
+            'synthesis' => 'Array of 1 question with: id (string), type ("synthesis"), documents (array of 2-3 objects {title: string, content: text of 100-150 words in '.$language.'}), writing_prompt (synthesis instruction in '.$language.'), min_words (220), max_words (250), correct_answer (null)',
+            'synthesis-essay' => 'Array of 1 question with: id (string), type ("synthesis") [the component renders "synthesis"], documents (array of 2-3 objects {title: string, content: text of 120-180 words in '.$language.' presenting DIFFERENT viewpoints on a topic}), writing_prompt (instruction in '.$language.': first SYNTHESISE the documents, THEN take and defend a personal position — DALF C2 style), min_words (250), max_words (300), correct_answer (null)',
+            'integrated-task' => 'Array of 1 question with: id (string), type ("integrated-task"), reading_passage ({title: string, content: 200-word text in '.$language.'}), audio_text (100-word listening text in '.$language.' for TTS), audio_lang ("'.strtolower(substr($language, 0, 2)).'"), response_type ("writing"), writing_prompt (instruction in '.$language.'), min_words (150), max_words (225), correct_answer (null)',
 
             default => 'Array of 3 questions with: id (string), type ("mcq"), text, options (4 choices), correct_answer, explanation',
         };
@@ -607,8 +633,8 @@ DIRECTIVE;
         }
 
         $contentStructure = $needsPassage
-            ? '"content": {"passage": "A ' . $difficulty . '-level text in ' . $language . ' (150-200 words) — questions must require INFERENCE, not literal copying from the passage", "instructions": "Instructions in ' . $language . '"}'
-            : '"content": {"instructions": "Instructions in ' . $language . '"}';
+            ? '"content": {"passage": "A '.$difficulty.'-level text in '.$language.' (150-200 words) — questions must require INFERENCE, not literal copying from the passage", "instructions": "Instructions in '.$language.'"}'
+            : '"content": {"instructions": "Instructions in '.$language.'"}';
 
         $gapFillBan = $componentKey === 'gap-fill'
             ? "\n\nCRITICAL FOR GAP-FILL (grammar drilling — make it CHALLENGING):\n- The answer to each blank MUST NOT appear verbatim in the passage or in any other question.\n- Each gap tests grammar or vocabulary the student has to KNOW and PRODUCE, not COPY.\n- When the gap is a VERB: put the infinitive/base form in parentheses right after the blank so the learner knows what to conjugate, e.g. (in {$language}) 'Gestern ___ (gehen) ich ins Kino.' → answer 'ging' (correct tense + person).\n- When the gap tests WORD FORM/ENDINGS (e.g. German adjective endings, plurals, declensions): give the base word in parentheses and require the correctly inflected form, e.g. 'Ich sehe einen ___ (groß) Hund.' → 'großen'.\n- Vary tenses/persons/cases across the 3 items so it really tests the rule.\n- Bad: 'Madrid is a ___ city' with 'big' visible earlier. NEVER do this."

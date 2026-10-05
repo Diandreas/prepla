@@ -4,7 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\DictionaryWord;
 use App\Models\UserWordProgress;
+use App\Services\AI\MistralService;
+use App\Services\PersonalLexiconService;
+use App\Services\TTS\DeepgramTtsService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class DictionaryController extends Controller
@@ -43,6 +48,7 @@ class DictionaryController extends Controller
         if ($idx === false) {
             $idx = 0;
         }
+
         return array_slice($order, 0, $idx + 1);
     }
 
@@ -52,18 +58,19 @@ class DictionaryController extends Controller
     public function index()
     {
         $user = auth()->user();
+        $lexicon = app(PersonalLexiconService::class);
+        $lexicon->importLegacy($user);
         $words = UserWordProgress::where('user_id', $user->id)
             ->with('dictionaryWord')
             ->orderBy('updated_at', 'desc')
             ->get();
 
-        $reviewableCount = UserWordProgress::where('user_id', $user->id)
-            ->whereIn('status', ['discovered', 'learning'])
-            ->count();
+        $reviewableCount = $lexicon->due($user)->count();
 
         return Inertia::render('practice/dictionary', [
             'words' => $words,
             'reviewableCount' => $reviewableCount,
+            'language' => $lexicon->language($user),
         ]);
     }
 
@@ -75,7 +82,7 @@ class DictionaryController extends Controller
     {
         $user = auth()->user();
         $langName = $user->profile?->targetExam?->language?->name ?? 'English';
-        
+
         $isoCode = self::languageCode($langName);
 
         // Only suggest words at or below the learner's CEFR level — never above.
@@ -95,14 +102,14 @@ class DictionaryController extends Controller
         // 2. If not enough words, grow the database via AI
         if ($newWords->count() < 5) {
             try {
-                \Illuminate\Support\Facades\Log::info("Dictionary: Growing local database for {$isoCode}...");
-                $mistral = app(\App\Services\AI\MistralService::class);
-                
+                Log::info("Dictionary: Growing local database for {$isoCode}...");
+                $mistral = app(MistralService::class);
+
                 $prompt = "Génère 10 mots utiles en {$langName} adaptés à un apprenant de niveau {$userLevel} (CECRL) — des mots de ce niveau ou légèrement en dessous, JAMAIS au-dessus de {$userLevel}. Réponds UNIQUEMENT en JSON avec ce format : [{\"word\": \"...\", \"definition\": \"...\", \"example\": \"...\", \"translation\": \"...\", \"skill_level\": \"{$userLevel}\"}]. La 'definition' est dans la langue cible, 'example' est une phrase contenant le mot, 'translation' est en français.";
-                
+
                 $response = $mistral->chat([
-                    ['role' => 'system', 'content' => "Tu es un expert en lexicographie académique. Réponds uniquement avec un JSON pur."],
-                    ['role' => 'user', 'content' => $prompt]
+                    ['role' => 'system', 'content' => 'Tu es un expert en lexicographie académique. Réponds uniquement avec un JSON pur.'],
+                    ['role' => 'user', 'content' => $prompt],
                 ]);
 
                 $aiWords = json_decode($response, true);
@@ -110,19 +117,19 @@ class DictionaryController extends Controller
                     foreach ($aiWords as $w) {
                         // Avoid duplicates in the global dictionary
                         $exists = DictionaryWord::where('language', $isoCode)->where('word', $w['word'])->exists();
-                        if (!$exists) {
+                        if (! $exists) {
                             DictionaryWord::create([
                                 'word' => $w['word'],
                                 'language' => $isoCode,
                                 'definition' => $w['definition'],
                                 'example' => $w['example'],
                                 'translation' => $w['translation'],
-                                'skill_level' => $w['skill_level'] ?? 'B2'
+                                'skill_level' => $w['skill_level'] ?? 'B2',
                             ]);
                         }
                     }
                 }
-                
+
                 // Re-fetch now that database is grown
                 $newWords = DictionaryWord::where('language', $isoCode)
                     ->whereNotIn('id', $excludeIds)
@@ -130,19 +137,19 @@ class DictionaryController extends Controller
                     ->limit(5)
                     ->get();
             } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error("Dictionary Discovery Exception: " . $e->getMessage());
+                Log::error('Dictionary Discovery Exception: '.$e->getMessage());
             }
         }
 
         if ($newWords->isEmpty()) {
-            return back()->with('error', "Aucun nouveau mot trouvé. Réessayez plus tard.");
+            return back()->with('error', 'Aucun nouveau mot trouvé. Réessayez plus tard.');
         }
 
         foreach ($newWords as $word) {
             UserWordProgress::create([
                 'user_id' => $user->id,
                 'dictionary_word_id' => $word->id,
-                'status' => 'discovered'
+                'status' => 'discovered',
             ]);
         }
 
@@ -175,7 +182,7 @@ class DictionaryController extends Controller
         return response()->json([
             'saved' => true,
             // Already in the lexicon: the learner met this word before.
-            'already_known' => !$progress->wasRecentlyCreated,
+            'already_known' => ! $progress->wasRecentlyCreated,
         ]);
     }
 
@@ -184,10 +191,10 @@ class DictionaryController extends Controller
      */
     public function audio(DictionaryWord $word)
     {
-        $tts = app(\App\Services\TTS\DeepgramTtsService::class);
+        $tts = app(DeepgramTtsService::class);
         $url = $tts->speak($word->word, $word->language);
 
-        if (!$url) {
+        if (! $url) {
             return response()->json(['error' => 'Audio generation failed'], 500);
         }
 
@@ -208,11 +215,10 @@ class DictionaryController extends Controller
     public function reviewSession(Request $request)
     {
         $user = auth()->user();
-        $limit = $request->get('limit', 5);
+        $limit = (int) ($request->validate(['limit' => 'nullable|integer|min:1|max:10'])['limit'] ?? 5);
 
         // Get words that need review (priority: oldest review date or recently discovered)
-        $wordsToReview = UserWordProgress::where('user_id', $user->id)
-            ->whereIn('status', ['discovered', 'learning'])
+        $wordsToReview = app(PersonalLexiconService::class)->due($user)
             ->with('dictionaryWord')
             ->orderBy('last_reviewed_at', 'asc')
             ->limit($limit)
@@ -243,43 +249,57 @@ class DictionaryController extends Controller
     public function submitReviewBatch(Request $request)
     {
         $validated = $request->validate([
-            'results' => 'required|array',
-            'results.*.progress_id' => 'required|exists:user_word_progress,id',
+            'results' => 'required|array|min:1|max:10',
+            'results.*.progress_id' => 'required|distinct|exists:user_word_progress,id',
             'results.*.is_correct' => 'required|boolean',
+            'results.*.mode' => 'required|in:word2def,def2word,translation,gapfill,dictation,recall',
+            'results.*.answer' => 'required|string|max:2000',
         ]);
 
-        $xpTotal = 0;
-        foreach ($validated['results'] as $result) {
-            if ($result['is_correct']) {
-                $progress = UserWordProgress::find($result['progress_id']);
-                if ($progress->user_id !== auth()->id()) continue;
+        $ids = array_column($validated['results'], 'progress_id');
+        abort_unless(UserWordProgress::where('user_id', $request->user()->id)->whereIn('id', $ids)->count() === count($ids), 403);
 
-                $nextStatus = match ($progress->status) {
-                    'discovered' => 'learning',
-                    'learning' => 'mastered',
-                    default => 'mastered',
+        return DB::transaction(function () use ($validated) {
+            $xpTotal = 0;
+            foreach ($validated['results'] as $result) {
+                $progress = UserWordProgress::with('dictionaryWord')->lockForUpdate()->findOrFail($result['progress_id']);
+                abort_unless($progress->user_id === auth()->id(), 403);
+                $word = $progress->dictionaryWord;
+                $expected = match ($result['mode']) {
+                    'word2def' => $word->definition, 'translation' => $word->translation, default => $word->word,
                 };
-
-                $progress->update([
-                    'status' => $nextStatus,
-                    'last_reviewed_at' => now()
-                ]);
-                $xpTotal += 2;
+                $correct = filled($expected) && mb_strtolower(trim($result['answer'])) === mb_strtolower(trim($expected));
+                // Recognition and free recall are separate evidence. Replaying today's
+                // same word never creates extra mastery or XP.
+                if ($progress->last_reviewed_at?->isToday()) {
+                    continue;
+                }
+                $recall = in_array($result['mode'], ['gapfill', 'dictation', 'recall'], true);
+                if ($correct) {
+                    $progress->increment($recall ? 'recall_count' : 'recognition_count');
+                }
+                $progress->refresh();
+                $status = ! $correct ? 'learning' : (($progress->recall_count >= 2 && $progress->recognition_count >= 1) ? 'mastered' : 'learning');
+                $days = $status === 'mastered' ? 7 : ($progress->recall_count + $progress->recognition_count >= 2 ? 3 : 1);
+                $progress->update(['status' => $status, 'last_reviewed_at' => now(),
+                    'next_review_at' => $correct ? now()->addDays($days) : now()->addMinutes(15)]);
+                if ($correct) {
+                    $xpTotal += 2;
+                }
             }
-        }
 
-        $user = auth()->user();
-        if ($user->profile && $xpTotal > 0) {
-            $user->profile->increment('xp_total', $xpTotal);
-        }
+            $user = auth()->user();
+            if ($user->profile && $xpTotal > 0) {
+                $user->profile->increment('xp_total', $xpTotal);
+            }
 
-        return response()->json([
-            'success' => true,
-            'xp_earned' => $xpTotal,
-            'message' => "Session terminée ! +{$xpTotal} XP"
-        ]);
+            return response()->json([
+                'success' => true,
+                'xp_earned' => $xpTotal,
+                'message' => "Session terminée ! +{$xpTotal} XP",
+            ]);
+        });
     }
-
 
     /**
      * Look up a specific word (API/Legacy).
@@ -291,17 +311,17 @@ class DictionaryController extends Controller
             ->where('word', $word)
             ->first();
 
-        if (!$wordData) {
+        if (! $wordData) {
             // Fallback: Use AI to define the word
             try {
-                $mistral = app(\App\Services\AI\MistralService::class);
+                $mistral = app(MistralService::class);
                 $langName = self::languageName($isoCode);
 
                 $prompt = "Définit le mot '{$word}' en {$langName}. Réponds UNIQUEMENT en JSON avec ce format : {\"word\": \"{$word}\", \"definition\": \"...\", \"example\": \"...\", \"translation\": \"...\", \"skill_level\": \"B2\"}. La traduction doit être en français.";
-                
+
                 $response = $mistral->chat([
-                    ['role' => 'system', 'content' => "Tu es un lexicographe expert. Réponds uniquement en JSON pur."],
-                    ['role' => 'user', 'content' => $prompt]
+                    ['role' => 'system', 'content' => 'Tu es un lexicographe expert. Réponds uniquement en JSON pur.'],
+                    ['role' => 'user', 'content' => $prompt],
                 ]);
 
                 $data = json_decode($response, true);
@@ -312,7 +332,7 @@ class DictionaryController extends Controller
                         'definition' => $data['definition'],
                         'example' => $data['example'] ?? '',
                         'translation' => $data['translation'] ?? '',
-                        'skill_level' => $data['skill_level'] ?? 'B2'
+                        'skill_level' => $data['skill_level'] ?? 'B2',
                     ]);
                 }
             } catch (\Exception $e) {
@@ -320,7 +340,7 @@ class DictionaryController extends Controller
             }
         }
 
-        if (!$wordData) {
+        if (! $wordData) {
             return response()->json(['error' => 'Not found'], 404);
         }
 

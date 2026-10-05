@@ -3,14 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { playSound } from '@/hooks/use-sound';
 import { ArtIcon } from '@/components/art-icon';
 
-interface Tab { labelKey: string; href: string; icon: string; isCenter?: boolean }
+interface Tab { labelKey: string; label?: string; href: string; icon: string; isCenter?: boolean }
 
 const LEARNER_TABS: Tab[] = [
     { labelKey: 'sidebar.home', href: '/dashboard', icon: 'home' },
     { labelKey: 'sidebar.practice', href: '/practice', icon: 'puzzle' },
-    { labelKey: 'sidebar.ai_short', href: '/ai-tools', icon: 'sparkles', isCenter: true },
+    { labelKey: 'sidebar.my_words', label: 'Mes mots', href: '/dictionary', icon: 'book' },
     { labelKey: 'sidebar.results', href: '/results', icon: 'statistics' },
-    { labelKey: 'sidebar.profile', href: '/settings/profile', icon: 'profile' },
 ];
 
 const CENTER_TABS: Tab[] = [
@@ -60,7 +59,7 @@ export function MobileTabBar() {
                             <span
                                 className={`text-[10px] font-bold tracking-wide transition-colors ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}
                             >
-                                {t(tab.labelKey)}
+                                {t(tab.labelKey, tab.label ?? tab.labelKey)}
                             </span>
                         </Link>
                     );

@@ -96,9 +96,9 @@
     "call": "Appeler"
   },
   "page_titles": {
-    "dashboard": "Mon Parcours",
+    "dashboard": "Accueil",
     "practice": "Pratiquer",
-    "dictionary": "Dictionnaire",
+    "dictionary": "Mes mots",
     "writing_corrector": "Correcteur de rédaction",
     "explainer": "Explicateur IA",
     "generator": "Générateur d'exercices",

@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
+import { vocabularyOptions, vocabularyMode } from '@/lib/vocabulary-review.js';
 
 /**
  * Mixed vocabulary review session. For each word, a random exercise type is
@@ -25,14 +26,16 @@ interface Distractor {
     definition: string;
 }
 
-type ExType = 'word2def' | 'def2word' | 'gapfill' | 'dictation' | 'translation';
+type ExType = 'word2def' | 'def2word' | 'gapfill' | 'dictation' | 'translation' | 'recall';
 
 interface Props {
     words: ReviewWord[];
     distractors: Distractor[];
-    onPlayAudio: (wordId: number) => void;
-    onFinish: (results: { progress_id: number; is_correct: boolean }[]) => void;
+    onPlayAudio: (wordId: number) => Promise<boolean>;
+    onFinish: (results: ReviewResult[]) => void;
+    audioEnabled?: boolean;
 }
+export interface ReviewResult { progress_id: number; is_correct: boolean; mode: ExType; answer: string }
 
 const SKY = '#4A90E2';
 const GREEN = '#48b77b';
@@ -43,14 +46,19 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 // Pick the exercise type for a given word. Dictation needs audio; the rest are text.
-function pickType(): ExType {
-    const types: ExType[] = ['word2def', 'def2word', 'gapfill', 'dictation', 'translation'];
+function pickType(word: DictWord, audioEnabled: boolean): ExType {
+    const types: ExType[] = ['def2word'];
+    if (word.definition) types.push('word2def');
+    if (word.translation) types.push('translation');
+    if (word.example?.toLowerCase().includes(word.word.toLowerCase())) types.push('gapfill');
+    if (audioEnabled) types.push('dictation');
     return types[Math.floor(Math.random() * types.length)];
 }
 
-export function VocabReviewSession({ words, distractors, onPlayAudio, onFinish }: Props) {
+export function VocabReviewSession({ words, distractors, onPlayAudio, onFinish, audioEnabled = true }: Props) {
     const [index, setIndex] = useState(0);
-    const [results, setResults] = useState<{ progress_id: number; is_correct: boolean }[]>([]);
+    const [results, setResults] = useState<ReviewResult[]>([]);
+    const [withoutAudio, setWithoutAudio] = useState(false);
     const [typed, setTyped] = useState('');
     const [picked, setPicked] = useState<string | null>(null);
     const [checked, setChecked] = useState(false);
@@ -60,7 +68,7 @@ export function VocabReviewSession({ words, distractors, onPlayAudio, onFinish }
     // as a warm-up, then the per-word mixed exercises.
     const [matchingDone, setMatchingDone] = useState(false);
     const matchPairs = useMemo(
-        () => words.slice(0, 5).map(rw => ({ word: rw.dictionary_word.word, fr: rw.dictionary_word.translation })),
+        () => words.slice(0, 5).map(rw => ({ word: rw.dictionary_word.word, fr: rw.dictionary_word.translation })).filter((p, i, all) => p.fr && all.findIndex(q => q.fr === p.fr || q.word === p.word) === i),
         [words]
     );
     const leftCol = useMemo(() => shuffle(matchPairs.map(p => p.word)), [matchPairs]);
@@ -85,36 +93,29 @@ export function VocabReviewSession({ words, distractors, onPlayAudio, onFinish }
     };
 
     // Freeze one exercise type per word for the whole session.
-    const types = useMemo(() => words.map(() => pickType()), [words]);
+    const types = useMemo(() => words.map(w => pickType(w.dictionary_word, audioEnabled)), [words, audioEnabled]);
 
     const w = words[index];
     const dw = w?.dictionary_word;
-    const type = types[index];
+    const proposedType = withoutAudio && types[index] === 'dictation' ? 'recall' : types[index];
     const isLast = index === words.length - 1;
 
     // Build MCQ options (correct + 3 distractors), depends on the exercise type.
     const options = useMemo(() => {
         if (!dw) return [];
-        if (type === 'word2def') {
-            const wrong = shuffle(distractors).slice(0, 3).map(d => d.definition).filter(Boolean);
-            return shuffle([dw.definition, ...wrong]);
-        }
-        if (type === 'def2word') {
-            const wrong = shuffle(distractors).slice(0, 3).map(d => d.word).filter(Boolean);
-            return shuffle([dw.word, ...wrong]);
-        }
-        if (type === 'translation') {
-            const wrong = shuffle(distractors).slice(0, 3).map(d => d.translation).filter(Boolean);
-            return shuffle([dw.translation, ...wrong]);
-        }
-        return [];
-    }, [dw, type, distractors]);
+        const pool = [...distractors, ...words.filter(item => item.id !== w.id).map(item => item.dictionary_word)];
+        return shuffle(vocabularyOptions(dw, shuffle(pool), proposedType));
+    }, [dw, proposedType, distractors, words, w]);
+    const type = vocabularyMode(proposedType, options);
+    const isWrittenAnswer = ['gapfill', 'dictation', 'recall'].includes(type);
 
     // Play audio automatically for dictation.
     useEffect(() => {
-        if (type === 'dictation' && w) onPlayAudio(w.dictionary_word_id);
+        let active = true;
+        if (type === 'dictation' && w) onPlayAudio(w.dictionary_word_id).then(ok => { if (!ok && active) setWithoutAudio(true); });
+        return () => { active = false; };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [index]);
+    }, [index, type]);
 
     if (!w) return null;
 
@@ -180,7 +181,7 @@ export function VocabReviewSession({ words, distractors, onPlayAudio, onFinish }
     }
 
     const gapText = dw.example
-        ? dw.example.replace(new RegExp(`\\b${dw.word}\\b`, 'gi'), '_______')
+        ? dw.example.replace(new RegExp(dw.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), '_______')
         : `(${dw.definition})`;
 
     const correctValue =
@@ -192,14 +193,14 @@ export function VocabReviewSession({ words, distractors, onPlayAudio, onFinish }
     const check = () => {
         if (checked) return;
         let ok = false;
-        if (type === 'gapfill' || type === 'dictation') {
+        if (isWrittenAnswer) {
             ok = typed.trim().toLowerCase() === dw.word.trim().toLowerCase();
         } else {
             ok = picked === correctValue;
         }
         setIsCorrect(ok);
         setChecked(true);
-        const newResults = [...results, { progress_id: w.id, is_correct: ok }];
+        const newResults: ReviewResult[] = [...results, { progress_id: w.id, is_correct: ok, mode: type, answer: isWrittenAnswer ? typed : picked ?? '' }];
         setResults(newResults);
 
         setTimeout(() => {
@@ -214,13 +215,14 @@ export function VocabReviewSession({ words, distractors, onPlayAudio, onFinish }
         }, 1600);
     };
 
-    const canCheck = (type === 'gapfill' || type === 'dictation') ? typed.trim().length > 0 : picked !== null;
+    const canCheck = isWrittenAnswer ? typed.trim().length > 0 : picked !== null;
 
     const prompt =
         type === 'word2def' ? 'Quelle est la bonne définition ?'
         : type === 'def2word' ? 'Quel mot correspond à cette définition ?'
         : type === 'translation' ? 'Quelle est la bonne traduction ?'
         : type === 'gapfill' ? 'Complète la phrase avec le bon mot'
+        : type === 'recall' ? 'Retrouve et écris le mot correspondant'
         : ' Écoute et écris le mot';
 
     return (
@@ -241,6 +243,7 @@ export function VocabReviewSession({ words, distractors, onPlayAudio, onFinish }
             <div className="rounded-2xl border-2 border-gray-100 bg-white p-6 mb-5 text-center">
                 {type === 'word2def' && <p className="text-2xl font-black" style={{ color: OXFORD }}>{dw.word}</p>}
                 {type === 'def2word' && <p className="text-base font-semibold" style={{ color: OXFORD }}>{dw.definition}</p>}
+                {type === 'recall' && <p className="text-base font-semibold" style={{ color: OXFORD }}>{dw.definition || dw.translation}</p>}
                 {type === 'translation' && <p className="text-2xl font-black" style={{ color: OXFORD }}>{dw.word}</p>}
                 {type === 'gapfill' && (
                     <>
@@ -253,6 +256,7 @@ export function VocabReviewSession({ words, distractors, onPlayAudio, onFinish }
                     </>
                 )}
                 {type === 'dictation' && (
+                    <div>
                     <button
                         type="button"
                         onClick={() => onPlayAudio(w.dictionary_word_id)}
@@ -261,11 +265,13 @@ export function VocabReviewSession({ words, distractors, onPlayAudio, onFinish }
                     >
                          Réécouter
                     </button>
+                    <button type="button" onClick={() => setWithoutAudio(true)} className="block mx-auto mt-3 text-sm text-muted-foreground underline">Je ne peux pas écouter : continuer en texte</button>
+                    </div>
                 )}
             </div>
 
             {/* Answer zone */}
-            {(type === 'gapfill' || type === 'dictation') ? (
+            {isWrittenAnswer ? (
                 <input
                     autoFocus
                     value={typed}
@@ -273,6 +279,7 @@ export function VocabReviewSession({ words, distractors, onPlayAudio, onFinish }
                     onKeyDown={e => e.key === 'Enter' && canCheck && check()}
                     disabled={checked}
                     placeholder="Ta réponse…"
+                    aria-label="Ta réponse"
                     className="w-full rounded-xl border-2 border-gray-200 px-4 py-3 font-semibold focus:border-blue-400 focus:outline-none"
                 />
             ) : (
@@ -303,7 +310,7 @@ export function VocabReviewSession({ words, distractors, onPlayAudio, onFinish }
             {/* Feedback + check */}
             {checked ? (
                 <div className={`mt-5 rounded-xl p-3 text-center font-black ${isCorrect ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                    {isCorrect ? '✓ Correct !' : `✗ La réponse était : ${dw.word}`}
+                    {isCorrect ? '✓ Correct !' : `La réponse était : ${correctValue}`}
                 </div>
             ) : (
                 <button

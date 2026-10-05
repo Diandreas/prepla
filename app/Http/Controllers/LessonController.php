@@ -8,6 +8,8 @@ use App\Models\Lesson;
 use App\Models\UserError;
 use App\Services\Curriculum\CurriculumPlannerService;
 use App\Services\Curriculum\NextLessonGenerator;
+use App\Services\PersonalLexiconService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -50,7 +52,7 @@ class LessonController extends Controller
     /**
      * GET /lessons/next — generate and show the next lesson (JIT)
      */
-    public function next(): Response|\Illuminate\Http\RedirectResponse
+    public function next(): Response|RedirectResponse
     {
         $user = auth()->user();
 
@@ -61,13 +63,14 @@ class LessonController extends Controller
         }
         if ($skeleton?->currentObjective()['is_level_exam'] ?? false) {
             $pending = $skeleton->pendingLevelExam();
+
             return $pending
                 ? redirect()->route('level.exam', $pending['level'])
                 : redirect()->route('dashboard')->with('error', 'Termine la pratique avant cet examen.');
         }
         $lesson = $this->lessonGenerator->generate($user);
 
-        if (!$lesson) {
+        if (! $lesson) {
             return redirect()->route('lessons.index')->with('error', 'Impossible de générer la prochaine leçon.');
         }
 
@@ -90,6 +93,7 @@ class LessonController extends Controller
 
         return Inertia::render('learning/lesson', [
             'lesson' => $lesson,
+            'lessonWords' => app(PersonalLexiconService::class)->lessonWords($user, $lesson),
             'skeleton' => $skeleton ? [
                 'current_objective' => $skeleton->currentObjective(),
                 'current_index' => $skeleton->current_objective_index,
@@ -122,14 +126,16 @@ class LessonController extends Controller
         $correctCount = 0;
         foreach ($quiz as $index => $question) {
             $userAnswer = $validated['answers'][$index] ?? null;
-            $isCorrect = \App\Models\Lesson::isQuestionCorrect($question, $userAnswer);
-            if ($isCorrect) $correctCount++;
+            $isCorrect = Lesson::isQuestionCorrect($question, $userAnswer);
+            if ($isCorrect) {
+                $correctCount++;
+            }
             $results[] = [
                 'question' => $question['question'],
                 'user_answer' => $userAnswer,
                 // Return the full option text (not the stored "C" letter) so the
                 // UI shows the actual correct sentence.
-                'correct_answer' => \App\Models\Lesson::resolveCorrectAnswerText($question),
+                'correct_answer' => Lesson::resolveCorrectAnswerText($question),
                 'correct' => $isCorrect,
                 'explanation' => $question['explanation'] ?? null,
             ];
@@ -182,9 +188,9 @@ class LessonController extends Controller
             // Update weekly leaderboard entry
             $weekKey = now()->format('Y-\WW');
             $entry = LeaderboardEntry::firstOrNew([
-                'user_id'     => $user->id,
+                'user_id' => $user->id,
                 'period_type' => 'weekly',
-                'period_key'  => $weekKey,
+                'period_key' => $weekKey,
             ]);
             $entry->xp = ($entry->xp ?? 0) + $xpReward;
             $entry->save();
@@ -202,7 +208,7 @@ class LessonController extends Controller
             'accuracy' => $accuracy,
             'results' => $results,
             'outcome' => $outcome,
-            'message' => match($outcome) {
+            'message' => match ($outcome) {
                 'advance' => 'Bravo ! La leçon est validée, place à la pratique.',
                 'skip_ahead' => 'Excellent ! Tu progresses vite, on saute directement au concept suivant.',
                 'consolidation' => 'Ne t\'inquiète pas — la prochaine leçon reprendra ce concept différemment.',
@@ -220,9 +226,12 @@ class LessonController extends Controller
     private function calculateSkeletonProgress(CurriculumSkeleton $skeleton): int
     {
         $objectives = $skeleton->objectives ?? [];
-        if (empty($objectives)) return 0;
+        if (empty($objectives)) {
+            return 0;
+        }
 
         $done = collect($objectives)->filter(fn ($o) => ($o['status'] ?? '') === 'done')->count();
+
         return (int) round(($done / count($objectives)) * 100);
     }
 }

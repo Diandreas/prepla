@@ -58,7 +58,7 @@ class HandleInertiaRequests extends Middleware
         // EnsureExerciseQuota middleware blocks a 4th submission — the same
         // "communicate the rule before, not just after" principle already
         // applied to the mastery threshold on the exercise player.
-        $exercisesToday = (!$isPremium && $user)
+        $exercisesToday = (! $isPremium && $user)
             ? UserExerciseAttempt::where('user_id', $user->id)->whereDate('created_at', today())->count()
             : 0;
 
@@ -71,16 +71,18 @@ class HandleInertiaRequests extends Middleware
                 'center' => $center,           // null if the user has no center
             ],
             'userProfile' => $request->user()?->profile,
+            'learningPreferences' => array_merge(['speaking_enabled' => true, 'audio_enabled' => true],
+                $request->user()?->profile?->learning_preferences ?? []),
             'isPremium' => $isPremium,
             'onTrial' => $request->user()?->isOnTrial() ?? false,
             'trialDaysLeft' => $request->user()?->trialDaysLeft() ?? 0,
             'freeExercisesUsedToday' => $exercisesToday,
-            'freeExercisesLimit' => \App\Http\Middleware\EnsureExerciseQuota::DAILY_FREE_LIMIT,
+            'freeExercisesLimit' => EnsureExerciseQuota::DAILY_FREE_LIMIT,
             'vapidPublicKey' => config('webpush.vapid.public_key'),
             'flash' => [
-                'correction'  => $request->session()->get('correction'),
-                'success'     => $request->session()->get('success'),
-                'error'       => $request->session()->get('error'),
+                'correction' => $request->session()->get('correction'),
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
             ],
         ]);
     }

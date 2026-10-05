@@ -23,6 +23,7 @@ class Lesson extends Model
         'based_on_errors',
         'status',
         'generated_at',
+        'key_vocabulary',
     ];
 
     protected function casts(): array
@@ -33,6 +34,7 @@ class Lesson extends Model
             'comprehension_quiz' => 'array',
             'based_on_errors' => 'array',
             'generated_at' => 'datetime',
+            'key_vocabulary' => 'array',
         ];
     }
 
@@ -82,35 +84,35 @@ class Lesson extends Model
      */
     public static function checkAnswerMatch($userAnswer, $correctAnswer): bool
     {
-        $userClean = strtolower(trim((string)$userAnswer));
-        $correctClean = strtolower(trim((string)$correctAnswer));
-        
+        $userClean = strtolower(trim((string) $userAnswer));
+        $correctClean = strtolower(trim((string) $correctAnswer));
+
         if ($userClean === $correctClean) {
             return true;
         }
-        
+
         // Extract leading letter (e.g., "A) text" -> letter "A", text "text")
         preg_match('/^([a-z])[\)\.-]?\s*(.*)$/', $userClean, $userMatches);
         preg_match('/^([a-z])[\)\.-]?\s*(.*)$/', $correctClean, $correctMatches);
-        
+
         $userLetter = $userMatches[1] ?? $userClean;
         $correctLetter = $correctMatches[1] ?? $correctClean;
-        
+
         // Case 1: Just the letters match. (e.g., both are A, or user answered 'a) text' and correct is 'A')
         // We only do this if correct answer is explicitly designed as a letter or if parsed letters match.
         // Wait, if correct is "C", correctLetter is "c". userLetter is "c". Match!
         if ($userLetter === $correctLetter) {
             return true;
         }
-        
+
         // Case 2: The text bodies match. (e.g. user selected "B) Option 2" and correct is "A) Option 2" (typo in DB))
         $userText = $userMatches[2] ?? $userClean;
         $correctText = $correctMatches[2] ?? $correctClean;
-        
-        if (!empty($userText) && !empty($correctText) && $userText === $correctText) {
+
+        if (! empty($userText) && ! empty($correctText) && $userText === $correctText) {
             return true;
         }
-        
+
         return false;
     }
 
@@ -125,10 +127,10 @@ class Lesson extends Model
      */
     public static function resolveCorrectAnswerText(array $question): string
     {
-        $correct = trim((string)($question['correct_answer'] ?? ''));
+        $correct = trim((string) ($question['correct_answer'] ?? ''));
         $options = $question['options'] ?? [];
 
-        if (!is_array($options) || empty($options)) {
+        if (! is_array($options) || empty($options)) {
             return $correct;
         }
 
@@ -136,19 +138,19 @@ class Lesson extends Model
         if (preg_match('/^[a-zA-Z]$/', $correct)) {
             $idx = ord(strtoupper($correct)) - ord('A');
             if (isset($options[$idx])) {
-                return (string)$options[$idx];
+                return (string) $options[$idx];
             }
         }
 
         // Numeric index.
-        if (is_numeric($correct) && isset($options[(int)$correct])) {
-            return (string)$options[(int)$correct];
+        if (is_numeric($correct) && isset($options[(int) $correct])) {
+            return (string) $options[(int) $correct];
         }
 
         // Already the full text of one of the options.
         foreach ($options as $opt) {
-            if (static::checkAnswerMatch($correct, (string)$opt)) {
-                return (string)$opt;
+            if (static::checkAnswerMatch($correct, (string) $opt)) {
+                return (string) $opt;
             }
         }
 
@@ -161,7 +163,10 @@ class Lesson extends Model
      */
     public static function isQuestionCorrect(array $question, $userAnswer): bool
     {
-        if ($userAnswer === null) return false;
+        if ($userAnswer === null) {
+            return false;
+        }
+
         return static::checkAnswerMatch($userAnswer, static::resolveCorrectAnswerText($question));
     }
 
@@ -171,7 +176,9 @@ class Lesson extends Model
     public function isComprehensionPassed(array $answers): bool
     {
         $quiz = $this->comprehension_quiz ?? [];
-        if (empty($quiz)) return true;
+        if (empty($quiz)) {
+            return true;
+        }
 
         $correct = 0;
         foreach ($quiz as $index => $question) {
