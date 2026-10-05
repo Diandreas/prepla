@@ -8,6 +8,25 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CurriculumSkeleton extends Model
 {
+    protected static function booted(): void
+    {
+        static::retrieved(function (self $path): void {
+            $objectives = $path->objectives ?? [];
+            $changed = false;
+            foreach ($objectives as &$objective) {
+                if (($objective['status'] ?? '') === 'current_lesson') {
+                    $objective['status'] = 'current';
+                    $changed = true;
+                }
+            }
+            unset($objective);
+            if ($changed) {
+                // Legacy lesson state is equivalent to current, never completed.
+                $path->objectives = $objectives;
+            }
+        });
+    }
+
     protected $fillable = [
         'user_id',
         'exam_id',

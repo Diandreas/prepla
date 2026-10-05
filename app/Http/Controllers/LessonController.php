@@ -151,7 +151,7 @@ class LessonController extends Controller
         // matching the "Pratiquer ce concept" CTA the UI shows on success.
         $path = CurriculumSkeleton::where('user_id', $user->id)->first();
         $isCurrent = $path && $path->current_objective_index === (int) $lesson->skeleton_objective_index
-            && ($path->currentObjective()['status'] ?? '') === 'current';
+            && in_array($path->currentObjective()['status'] ?? '', ['current', 'current_lesson'], true);
         $outcome = $isCurrent
             ? $this->planner->recordLessonOutcome($user, $accuracy, $accuracy === null ? null : $passed)
             : 'review';

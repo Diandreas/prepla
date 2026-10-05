@@ -63,6 +63,16 @@ test('laccueil reprend la pratique avant de proposer la lecon suivante', functio
     expect($action['kind'])->toBe('practice')->and($action['url'])->toBe(route('node.start', $this->node));
 });
 
+test('un ancien statut de lecon ouvre la pratique apres le quiz sans boucle', function () {
+    $path = CurriculumSkeleton::create(['user_id' => $this->user->id, 'exam_id' => $this->exam->id, 'current_objective_index' => 0, 'objectives' => [['title' => $this->node->title, 'concept' => 'greetings', 'status' => 'current_lesson', 'level' => 'A1'], ['title' => 'Numbers', 'concept' => 'numbers', 'status' => 'pending', 'level' => 'A1']]]);
+    $lesson = Lesson::create(['user_id' => $this->user->id, 'node_id' => $this->node->id, 'skeleton_objective_index' => 0, 'title' => 'Introduction', 'concept' => 'greetings', 'theory_markdown' => 'Hello.', 'comprehension_quiz' => [['question' => 'Greeting?', 'options' => ['Hello', 'Goodbye'], 'correct_answer' => 'Hello']]]);
+    expect($path->fresh()->currentObjective()['status'])->toBe('current');
+
+    $this->postJson(route('lessons.quiz', $lesson), ['answers' => ['Hello']])->assertOk()->assertJsonPath('passed', true);
+    expect($path->fresh()->practiceObjectiveIndex())->toBe(0);
+    expect(app(LearningJourneyService::class)->nextAction($this->user)['url'])->toBe(route('node.start', $this->node));
+});
+
 test('une seance entierement indisponible ne cree ni erreur ni progression', function () {
     $type = ExerciseType::create(['section_id' => $this->section->id, 'slug' => 'speech', 'name' => 'Speech', 'skill_type' => 'speaking', 'component_key' => 'speaking-recorder']);
     $exercise = Exercise::create(['exam_id' => $this->exam->id, 'exam_section_id' => $this->section->id, 'exercise_type_id' => $type->id, 'node_id' => $this->node->id, 'difficulty' => 'A1', 'content' => [], 'questions' => [['id' => 'q1', 'type' => 'speaking-recorder', 'prompt' => 'Introduce yourself.']]]);
