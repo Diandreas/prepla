@@ -322,7 +322,13 @@ Generate a complete lesson in JSON format:
   ]
 }
 
-Generate exactly 3 comprehension quiz questions that test understanding of the lesson content.
+Generate exactly 4 progressive comprehension quiz questions grounded in this lesson:
+1. type "mcq": four plausible distinct options testing meaning in context (not an unrelated obvious distractor).
+2. type "recall": fill one missing word, options [], correct_answer is the missing word.
+3. type "sentence-order": options [], words contains every word of a short sentence in SHUFFLED order, correct_answer is the full sentence.
+4. type "recall": correct an incorrect sentence using the rule taught, options [], correct_answer is the corrected sentence.
+Every item needs question and a short explanatory correction. For open responses provide accepted_answers for genuinely equivalent variants.
+Keep vocabulary and sentence length suitable for the learner's level. Do not give away the answer in the instruction.
 Include 3 to 5 key_vocabulary entries at {$context['level']} level. These MUST appear
 in the lesson examples and support the learning objective, not random dictionary words.
 Keep each explanatory section short; avoid repeating the same rule in several sections.

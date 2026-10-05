@@ -10,7 +10,9 @@ import { LessonWords, type LessonWord } from '@/components/lesson-words';
 
 interface QuizQuestion {
     question: string;
-    options: string[];
+    options?: string[];
+    type?: 'mcq' | 'recall' | 'sentence-order';
+    words?: string[];
     correct_answer: string;
     explanation?: string;
 }
@@ -173,7 +175,7 @@ export default function LessonPage({ lesson, skeleton, lessonWords = [] }: Props
         setQuizAnswers(prev => ({ ...prev, [qIndex]: answer }));
     }, []);
 
-    const allQuizAnswered = quiz.length > 0 && Object.keys(quizAnswers).length >= quiz.length;
+    const allQuizAnswered = quiz.length > 0 && quiz.every((_, index) => Boolean(quizAnswers[index]?.trim()));
 
     const submitQuiz = async () => {
         if (!allQuizAnswered || submittingQuiz) return;
@@ -579,7 +581,7 @@ export default function LessonPage({ lesson, skeleton, lessonWords = [] }: Props
                             <p className="text-sm text-muted-foreground">
                                 {quiz.length === 1
                                     ? 'Une question pour vérifier ce que tu as retenu. Prends le temps de choisir ta réponse.'
-                                    : `${quiz.length} questions pour vérifier ce que tu as retenu. Prends le temps de choisir tes réponses.`}
+                                    : `${quiz.length} étapes pour utiliser ce que tu as appris. Choisis, complète et construis tes réponses.`}
                             </p>
                         </div>
 
@@ -593,7 +595,9 @@ export default function LessonPage({ lesson, skeleton, lessonWords = [] }: Props
                                         <span dangerouslySetInnerHTML={{ __html: inlineMd(q.question) }} />
                                     </p>
                                     <div className="space-y-2">
-                                        {q.options.map((opt: string, oIndex: number) => {
+                                        {q.type === 'sentence-order' && <p className="mb-3 rounded-lg bg-muted p-3 text-sm">Mots à remettre dans l’ordre : {q.words?.join(' · ')}</p>}
+                                        {(q.options ?? []).length === 0 && <input aria-label={`Réponse à la question ${qIndex + 1}`} autoComplete="off" spellCheck={false} disabled={submittingQuiz} value={quizAnswers[qIndex] ?? ''} onChange={event => handleQuizAnswer(qIndex, event.target.value)} placeholder="Écris ta réponse…" className="min-h-12 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm" />}
+                                        {(q.options ?? []).map((opt: string, oIndex: number) => {
                                             const selected = quizAnswers[qIndex] === opt;
                                             return (
                                                 <button
@@ -616,7 +620,7 @@ export default function LessonPage({ lesson, skeleton, lessonWords = [] }: Props
                         </div>
 
                         <p className="mt-4 text-center text-xs font-semibold text-muted-foreground" aria-live="polite">
-                            {Object.keys(quizAnswers).length} / {quiz.length} {quiz.length === 1 ? 'réponse choisie' : 'réponses choisies'}
+                            {quiz.filter((_, index) => quizAnswers[index]?.trim()).length} / {quiz.length} {quiz.length === 1 ? 'réponse renseignée' : 'réponses renseignées'}
                         </p>
                         {quizError && <p role="alert" className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200">{quizError}</p>}
                         <div className="mt-5 flex flex-col-reverse items-stretch justify-between gap-4 sm:flex-row sm:items-center">

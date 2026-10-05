@@ -118,6 +118,9 @@ class LevelExamController extends Controller
                 }
 
                 try {
+                    if (!$existingPart && app(\App\Services\Content\LevelExamLibrary::class)->ensure($node, $type, $order)) {
+                        continue;
+                    }
                     $exercise = $generator->generate($type, $exam, $level, [
                         'title' => "Examen de niveau {$level}",
                         'concept' => 'level_exam.' . strtolower($level),

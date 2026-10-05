@@ -89,6 +89,8 @@ class LessonController extends Controller
             abort(403);
         }
 
+        app(\App\Services\Content\IntroductionLesson::class)->strengthen($lesson);
+
         $skeleton = CurriculumSkeleton::where('user_id', $user->id)->first();
 
         return Inertia::render('learning/lesson', [

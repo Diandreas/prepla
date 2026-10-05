@@ -167,6 +167,12 @@ class Lesson extends Model
             return false;
         }
 
+        if (in_array($question['type'] ?? '', ['recall', 'sentence-order'], true)) {
+            $normalize = fn ($value) => preg_replace('/\s+/u', ' ', mb_strtolower(trim(str_replace('’', "'", (string) $value), " \t\n\r\0\x0B.!?")));
+            $accepted = array_merge([$question['correct_answer'] ?? ''], $question['accepted_answers'] ?? []);
+            return $normalize($userAnswer) !== '' && collect($accepted)->contains(fn ($answer) => $normalize($answer) === $normalize($userAnswer));
+        }
+
         return static::checkAnswerMatch($userAnswer, static::resolveCorrectAnswerText($question));
     }
 

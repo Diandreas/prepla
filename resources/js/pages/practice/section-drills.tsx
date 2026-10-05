@@ -19,6 +19,7 @@ interface Props {
     exam: ExamRecord;
     section: ExamSection;
     exerciseTypes: ExerciseTypeItem[];
+    learnerLevel?: string;
 }
 
 const skills: Record<string, { icon: string; tone: 'blue' | 'mint' | 'amber' | 'rose' }> = {
@@ -50,7 +51,7 @@ function csrfToken(): string {
     return (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
 }
 
-export default function SectionDrills({ exam, section, exerciseTypes = [] }: Props) {
+export default function SectionDrills({ exam, section, exerciseTypes = [], learnerLevel = 'A1' }: Props) {
     const { t } = useTranslation();
     const { flash } = usePage<SharedData & { flash?: { error?: string } }>().props;
     const [launching, setLaunching] = useState<number | null>(null);
@@ -118,7 +119,7 @@ export default function SectionDrills({ exam, section, exerciseTypes = [] }: Pro
                             <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
                             {t('practice.section_exercise_types', { count: exerciseTypes.length })}
                         </span>
-                        {section.time_limit != null && section.time_limit > 0 && (
+                        {!['A0', 'A1', 'A2'].includes(learnerLevel) && section.time_limit != null && section.time_limit > 0 && (
                             <span className="inline-flex items-center gap-1.5">
                                 <Clock3 className="h-3.5 w-3.5" aria-hidden="true" />
                                 {t('practice.section_exam_duration', { minutes: section.time_limit, defaultValue: '{{minutes}} min à l’examen' })}

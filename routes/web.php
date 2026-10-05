@@ -99,6 +99,7 @@ Route::middleware(['auth'])->group(function () {
         // Practice
         Route::get('practice', [PracticeController::class, 'index'])->name('practice.index');
         Route::get('practice/{exam}', [PracticeController::class, 'examDashboard'])->name('practice.exam');
+        Route::get('practice-skill/{skill}', [PracticeController::class, 'skill'])->whereIn('skill', ['speaking', 'listening'])->name('practice.skill');
         Route::get('practice/{exam}/section/{section}', [PracticeController::class, 'sectionDrills'])->name('practice.section');
         // Pratiquer par type : 1 clic sur un type → 1 exercice jamais fait, sinon généré.
         // Limité comme les autres appels IA : depuis que la route génère dès que

@@ -66,6 +66,20 @@ class PracticeController extends Controller
             'progress' => $progress,
         ]);
     }
+    public function skill(string $skill)
+    {
+        abort_unless(in_array($skill, ['speaking', 'listening'], true), 404);
+        $examId = auth()->user()->profile?->target_exam_id;
+        if ($skill === 'speaking' && ($exam = Exam::find($examId))) {
+            app(\App\Services\Content\OralStarter::class)->ensure($exam, auth()->user()->profile?->current_level ?? 'A1');
+        }
+        $section = ExamSection::where('exam_id', $examId)->where('skill_type', $skill)
+            ->whereHas('exerciseTypes')->first();
+        return $section
+            ? redirect()->route('practice.section', [$examId, $section])
+            : redirect()->route('practice.index')->with('error', 'Cette compétence n’est pas encore disponible pour ton objectif.');
+    }
+
     public function index()
     {
         $user = auth()->user();
@@ -180,15 +194,21 @@ class PracticeController extends Controller
         abort_unless($section->exam_id === $exam->id, 404);
         $section->load('exerciseTypes');
         $exam->load('language');
+        $learnerLevel = auth()->user()->profile?->current_level ?? 'A1';
+        $beginner = in_array($learnerLevel, ['A0', 'A1', 'A2'], true);
 
         // Galerie : les TYPES d'exercices de cette compétence. Cliquer un type →
         // drillByType (un exo au niveau du profil, biblio d'abord sinon généré).
         $exerciseTypes = $section->exerciseTypes
             ->reject(fn ($t) => $t->component_key === 'diagram-labeling')
+            ->when($beginner && in_array($section->skill_type, ['listening', 'speaking'], true), fn ($types) => $types->filter(fn ($type) => in_array($type->component_key, ['mcq', 'gap-fill', 'matching', 'sentence-completion', 'short-answer', 'dictation', 'listen-repeat', 'speaking-recorder', 'build-a-sentence'], true))
+                ->reject(fn ($type) => $section->skill_type === 'listening' && $type->component_key === 'matching')
+                ->sortByDesc(fn ($type) => $type->slug === 'guided-introduction')
+                ->unique('component_key')->take(3))
             ->unique('id')
             ->map(fn ($t) => [
                 'id' => $t->id,
-                'name' => $t->name,
+                'name' => $beginner ? (['mcq' => 'Choisir la bonne réponse', 'gap-fill' => 'Compléter les mots', 'sentence-completion' => 'Compléter une phrase', 'speaking-recorder' => 'Répondre à voix haute', 'listen-repeat' => 'Écouter et répéter', 'matching' => 'Associer les mots', 'short-answer' => 'Répondre en quelques mots', 'dictation' => 'Écrire ce que tu entends', 'build-a-sentence' => 'Construire une phrase'][$t->component_key] ?? $t->name) : $t->name,
                 'skill_type' => $t->skill_type,
                 'component_key' => $t->component_key,
                 'starter_available' => $library->template($exam, $t, auth()->user()->profile?->current_level ?? 'B1') !== null,
@@ -199,6 +219,7 @@ class PracticeController extends Controller
             'exam' => $exam,
             'section' => $section,
             'exerciseTypes' => $exerciseTypes,
+            'learnerLevel' => $learnerLevel,
         ]);
     }
 
