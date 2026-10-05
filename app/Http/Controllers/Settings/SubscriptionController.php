@@ -95,7 +95,10 @@ class SubscriptionController extends Controller
 
         return Inertia::render('settings/subscription', [
             'currentPlan'       => ($isSubscribed || $onTrial) ? 'premium' : 'free',
-            'stripeEnabled'     => true,
+            'stripeEnabled'     => filled(config('cashier.key'))
+                && filled(config('cashier.secret'))
+                && filled(config('services.stripe.prices.monthly'))
+                && filled(config('services.stripe.prices.annual')),
             'stripeKey'         => config('cashier.key'),
             'isSubscribed'      => $isSubscribed,
             'onTrial'           => $onTrial,

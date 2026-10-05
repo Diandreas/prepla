@@ -279,8 +279,8 @@ export default function Subscription({ currentPlan, stripeEnabled, isSubscribed,
                                 {processing ? 'Redirection...' : `S'abonner ${formatPrice(plans?.[selectedPlan])}${selectedPlan === 'monthly' ? '/mois' : '/an'}`}
                             </Button>
                         )}
-                        <p className="text-center text-[11px] text-muted-foreground">Paiement sécurisé Stripe · Annulable à tout moment</p>
-                        {!isPremium && (
+                        <p className="text-center text-[11px] text-muted-foreground">{stripeEnabled ? 'Paiement sécurisé Stripe · Annulable à tout moment' : 'Les abonnements sont temporairement indisponibles. Réessaie plus tard.'}</p>
+                        {!isPremium && stripeEnabled && (
                             <p className="text-center text-[11px] text-muted-foreground">Le montant est converti dans ta devise au moment du paiement.</p>
                         )}
                     </CardFooter>

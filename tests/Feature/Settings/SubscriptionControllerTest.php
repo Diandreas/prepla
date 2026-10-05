@@ -3,6 +3,15 @@
 use App\Models\User;
 use App\Models\UserProfile;
 
+test('subscription checkout is unavailable when payment configuration is missing', function () {
+    config(['cashier.secret' => '', 'services.stripe.prices.monthly' => '', 'services.stripe.prices.annual' => '']);
+    $user = User::factory()->create();
+    UserProfile::factory()->create(['user_id' => $user->id]);
+
+    $this->actingAs($user)->get(route('subscription.index'))
+        ->assertOk()->assertInertia(fn ($page) => $page->where('stripeEnabled', false));
+});
+
 test('subscription index shows free plan for a user with no subscription and no trial', function () {
     $user = User::factory()->create();
     UserProfile::factory()->create(['user_id' => $user->id]);
