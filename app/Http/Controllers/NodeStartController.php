@@ -129,6 +129,7 @@ class NodeStartController extends Controller
                 // Remediation must practise the missed concept, not drift to an
                 // unrelated listening/speaking activity or another exam's rubric.
                 $picked = ExerciseType::whereHas('section', fn ($q) => $q->where('exam_id', $node->exam_id))
+                    ->where('skill_type', 'grammar')
                     ->whereIn('component_key', ['mcq', 'gap-fill', 'sentence-completion'])
                     ->inRandomOrder()->limit(3)->get();
             } elseif ($isLessonNode) {

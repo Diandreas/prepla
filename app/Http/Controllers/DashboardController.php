@@ -117,6 +117,9 @@ class DashboardController extends Controller
 
                     // Try to link the exact lesson if already generated/started
                     $relatedLesson = $userLessons->get($globalIndex);
+                    if ($relatedLesson && $relatedLesson->concept !== ($objective['concept'] ?? null)) {
+                        $relatedLesson = null;
+                    }
                     $lessonUrl = $relatedLesson
                         ? route('lessons.show', $relatedLesson->id)
                         : route('lessons.next');

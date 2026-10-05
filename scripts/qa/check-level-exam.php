@@ -5,6 +5,10 @@
 require getcwd().'/vendor/autoload.php';
 $app = require getcwd().'/bootstrap/app.php';
 $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+set_exception_handler(function (Throwable $e): void {
+    fwrite(STDERR, 'ECHEC QA : '.$e->getMessage().PHP_EOL);
+    exit(1);
+});
 
 use App\Http\Controllers\ExerciseController;
 use App\Http\Controllers\LessonController;
@@ -22,7 +26,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 function check(bool $condition, string $message): void {
-    if (!$condition) throw new RuntimeException($message);
+    if (!$condition) {
+        fwrite(STDERR, 'ECHEC '.$message.PHP_EOL);
+        throw new RuntimeException($message);
+    }
     echo 'OK '.$message.PHP_EOL;
 }
 function submitPayload($exercises, bool $correct): array {

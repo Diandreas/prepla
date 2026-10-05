@@ -222,3 +222,20 @@ test('inserer un examen et une reprise conserve les liens des lecons et interdit
     $path->skipAhead();
     expect($path->fresh()->objectives)->toBe($before);
 });
+
+test('un examen sans formats grammaticaux recoit ses propres types de validation', function () {
+    [$user, $path, $exam] = pathWithTwoLevels(['done', 'done', 'pending', 'pending']);
+    ExerciseType::first()->update(['skill_type' => 'listening']);
+    $path->ensureLevelExams();
+    $this->mock(\App\Services\AI\ExerciseGeneratorService::class, function ($mock) use ($exam) {
+        $mock->shouldReceive('generate')->times(3)->andReturnUsing(function ($type, $target, $level, $context) use ($exam) {
+            expect($type->section->exam_id)->toBe($exam->id)->and($type->skill_type)->toBe('grammar')
+                ->and($context['concepts_to_mix'])->not->toBeEmpty();
+            return Exercise::create(['exam_id' => $exam->id, 'exercise_type_id' => $type->id,
+                'difficulty' => $level, 'content' => [], 'questions' => []]);
+        });
+    });
+    $this->actingAs($user)->get(route('level.exam', 'A1'))->assertRedirect();
+    expect(Exercise::whereNotNull('node_id')->count())->toBe(3)
+        ->and(ExamSection::where('exam_id', $exam->id)->where('slug', 'level-assessment')->count())->toBe(1);
+});

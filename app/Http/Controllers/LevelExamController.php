@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CurriculumSkeleton;
 use App\Models\Exercise;
+use App\Models\ExamSection;
 use App\Models\ExerciseType;
 use App\Models\LearningPathNode;
 use App\Services\AI\ExerciseGeneratorService;
@@ -67,11 +68,11 @@ class LevelExamController extends Controller
             ]
         );
 
-        if (Exercise::where('node_id', $node->id)->count() < count(self::TYPES)) {
+        if (Exercise::where('node_id', $node->id)->whereHas('exerciseType', fn ($q) => $q->where('skill_type', 'grammar'))->count() < count(self::TYPES)) {
             $this->writeExam($node, $exam, $level, $profile->native_language ?? 'Français', $generator);
         }
 
-        if (Exercise::where('node_id', $node->id)->count() < count(self::TYPES)) {
+        if (Exercise::where('node_id', $node->id)->whereHas('exerciseType', fn ($q) => $q->where('skill_type', 'grammar'))->count() < count(self::TYPES)) {
             return redirect()->route('dashboard')
                 ->with('error', "L'examen de niveau n'a pas pu être écrit. Réessaie dans quelques minutes.");
         }
@@ -84,7 +85,7 @@ class LevelExamController extends Controller
      */
     private function writeExam(LearningPathNode $node, $exam, string $level, string $nativeLanguage, ExerciseGeneratorService $generator): void
     {
-        $verrou = Cache::lock("level-exam:{$exam->id}:{$level}", 120);
+        $verrou = Cache::lock("level-exam:{$exam->id}:{$level}", 360);
         if (!$verrou->get()) {
             return;
         }
@@ -96,13 +97,24 @@ class LevelExamController extends Controller
                 ->pluck('concept')->filter()->unique()->values()->all();
             foreach (self::TYPES as $index => $componentKey) {
                 $order = $index + 1;
-                if (Exercise::where('node_id', $node->id)->where('order_in_node', $order)->exists()) {
+                $existingPart = Exercise::where('node_id', $node->id)->where('order_in_node', $order)->first();
+                if ($existingPart?->exerciseType?->skill_type === 'grammar') {
                     continue;
                 }
                 $type = ExerciseType::where('component_key', $componentKey)
+                    ->where('skill_type', 'grammar')
                     ->whereHas('section', fn ($q) => $q->where('exam_id', $exam->id))->first();
                 if (!$type) {
-                    continue;
+                    // CEFR mastery checks are not a mock IELTS listening paper.
+                    // Give every exam its own neutral, concept-focused types.
+                    $section = ExamSection::firstOrCreate(
+                        ['exam_id' => $exam->id, 'slug' => 'level-assessment'],
+                        ['name' => 'Validation de niveau', 'skill_type' => 'grammar']
+                    );
+                    $type = ExerciseType::firstOrCreate(
+                        ['section_id' => $section->id, 'component_key' => $componentKey],
+                        ['slug' => $componentKey, 'name' => $componentKey, 'skill_type' => 'grammar']
+                    );
                 }
 
                 try {
@@ -113,7 +125,12 @@ class LevelExamController extends Controller
                         'is_synthesis' => true,
                         'concepts_to_mix' => $concepts,
                     ]);
-                    $exercise->update(['node_id' => $node->id, 'order_in_node' => $order]);
+                    \Illuminate\Support\Facades\DB::transaction(function () use ($exercise, $node, $order, $existingPart) {
+                        $exercise->update(['node_id' => $node->id, 'order_in_node' => $order]);
+                        // Keep historical answers intact; only detach the legacy
+                        // listening/reading part after its replacement succeeded.
+                        $existingPart?->update(['node_id' => null]);
+                    });
                 } catch (\Throwable $e) {
                     // Un type qui échoue ne doit pas emporter l'examen entier.
                     Log::warning('Examen de niveau : un exercice manque', [

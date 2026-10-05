@@ -87,7 +87,7 @@ class PracticeController extends Controller
 
     public function examDashboard(Exam $exam): Response
     {
-        $exam->load(['language', 'sections.exerciseTypes']);
+        $exam->load(['language', 'sections' => fn ($q) => $q->where('slug', '!=', 'level-assessment')->with('exerciseTypes')]);
 
         $user = auth()->user();
         $sectionProgress = [];
@@ -222,7 +222,7 @@ class PracticeController extends Controller
 
     public function simulate(Exam $exam, Request $request): Response
     {
-        $exam->load(['language', 'sections.exerciseTypes']);
+        $exam->load(['language', 'sections' => fn ($q) => $q->where('slug', '!=', 'level-assessment')->with('exerciseTypes')]);
 
         // Try to load a specific mock exam, or pick a random one for this exam
         $mockExamId = $request->query('mock_exam_id');

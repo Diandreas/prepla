@@ -23,6 +23,9 @@ echo json_encode([
         'id' => $lesson->id, 'index' => $lesson->skeleton_objective_index, 'concept' => $lesson->concept,
     ])->values(),
     'node_id' => $node?->id,
+    'assessment_types' => App\Models\ExerciseType::whereHas('section', fn ($q) => $q->where('exam_id', $path->exam_id))
+        ->whereIn('component_key', ['mcq', 'gap-fill', 'sentence-completion'])
+        ->get()->map(fn ($type) => ['id' => $type->id, 'component' => $type->component_key, 'skill' => $type->skill_type]),
     'parts' => $node ? App\Models\Exercise::where('node_id', $node->id)->get()->map(fn ($exercise) => [
         'id' => $exercise->id, 'component' => $exercise->exerciseType?->component_key,
         'order' => $exercise->order_in_node, 'questions' => count($exercise->questions ?? []),
