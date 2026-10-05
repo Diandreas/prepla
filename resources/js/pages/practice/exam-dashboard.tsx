@@ -14,6 +14,8 @@ function FlagImg({ flag }: { flag: string }) {
 }
 
 interface Props {
+    learnerLevel: string;
+    canSimulate: boolean;
     exam: ExamRecord & { sections: ExamSection[] };
     sectionProgress: Record<number, number>;
 }
@@ -25,7 +27,9 @@ const skills: Record<string, { icon: string; tone: 'blue' | 'mint' | 'amber' | '
     speaking: { icon: 'speaking', tone: 'amber', description: 'Prends la parole et gagne en aisance.' },
 };
 
-export default function ExamDashboard({ exam, sectionProgress }: Props) {
+export default function ExamDashboard({ exam, sectionProgress, learnerLevel, canSimulate }: Props) {
+    const isBeginner = ['A0', 'A1', 'A2'].includes(learnerLevel);
+    const availableSections = exam.sections.filter(section => (section.exercise_types?.length ?? 0) > 0);
     const { t } = useTranslation();
     const { flash } = usePage<SharedData & { flash?: { error?: string; success?: string } }>().props;
     const totalExamMinutes = exam.sections.reduce((total, section) => total + (section.time_limit ?? 0), 0) || 180;
@@ -48,7 +52,7 @@ export default function ExamDashboard({ exam, sectionProgress }: Props) {
                                 {t('practice.studio_title', 'À chaque exercice, un pas de plus.')}
                             </h1>
                             <p className="text-muted-foreground mt-3 max-w-lg text-sm leading-relaxed">
-                                {t(
+                                {isBeginner ? `Des exercices au niveau ${learnerLevel}, une compétence à la fois. Commence par ton parcours si tu préfères être guidé.` : t(
                                     'practice.studio_description',
                                     'Travaille une compétence à ton rythme, puis mets-toi en situation avec un examen blanc.',
                                 )}
@@ -61,7 +65,7 @@ export default function ExamDashboard({ exam, sectionProgress }: Props) {
                     <div className="text-muted-foreground relative mt-5 flex flex-wrap gap-2 text-xs font-semibold">
                         <span className="border-border bg-background/70 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5">
                             <Layers3 className="h-3.5 w-3.5" aria-hidden="true" />
-                            {t('practice.skill_count', { count: exam.sections.length, defaultValue: '{{count}} compétences' })}
+                            {t('practice.skill_count', { count: availableSections.length, defaultValue: '{{count}} compétences' })}
                         </span>
                         <span className="border-border bg-background/70 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5">
                             <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
@@ -104,7 +108,7 @@ export default function ExamDashboard({ exam, sectionProgress }: Props) {
                         <p className="text-muted-foreground mt-1 text-sm">{t('practice.by_skill_hint', 'Choisis ton objectif du moment.')}</p>
                     </div>
                     <div className="grid gap-3 sm:grid-cols-2">
-                        {exam.sections.map((section) => {
+                        {availableSections.map((section) => {
                             const skill = skills[section.skill_type] ?? skills.reading;
                             const count = sectionProgress[section.id] ?? 0;
                             return (
@@ -126,10 +130,10 @@ export default function ExamDashboard({ exam, sectionProgress }: Props) {
                                             {t(`practice.skill_description_${section.skill_type}`, skill.description)}
                                         </p>
                                         <div className="text-muted-foreground mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-semibold">
-                                            {section.time_limit != null && section.time_limit > 0 && (
+                                            {!isBeginner && section.time_limit != null && section.time_limit > 0 && (
                                                 <span className="inline-flex items-center gap-1">
                                                     <Clock3 className="h-3 w-3" aria-hidden="true" />
-                                                    {section.time_limit} min
+                                                    Format de l’examen : {section.time_limit} min
                                                 </span>
                                             )}
                                             <span>{t('practice.section_exercise_types', { count: section.exercise_types?.length ?? 0 })}</span>
@@ -144,7 +148,7 @@ export default function ExamDashboard({ exam, sectionProgress }: Props) {
                             );
                         })}
                     </div>
-                    {exam.sections.length === 0 && (
+                    {availableSections.length === 0 && (
                         <div className="studio-card border-border bg-card text-muted-foreground rounded-2xl border p-6 text-center text-sm">
                             {t(
                                 'practice.no_sections',
@@ -154,15 +158,21 @@ export default function ExamDashboard({ exam, sectionProgress }: Props) {
                     )}
                 </section>
 
-                <section className="studio-card border-border bg-card flex flex-col gap-4 rounded-2xl border p-5 sm:flex-row sm:items-center sm:p-6">
+                {!canSimulate ? <section className="rounded-2xl border border-primary/15 bg-primary/5 p-4">
+                    <h2 className="text-sm font-bold">D’abord les bases · niveau {learnerLevel}</h2>
+                    <p className="mt-2 text-xs leading-relaxed text-muted-foreground">Travaille une compétence à la fois. Ton parcours alterne leçon, pratique et validation de palier ; l’examen complet n’est pas la prochaine étape.</p>
+                    <Link href={route('dashboard')} className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-primary">Continuer mon parcours <ArrowRight size={16} aria-hidden="true" /></Link>
+                </section> : <details className="studio-card rounded-2xl border border-border bg-card p-4">
+                <summary className="cursor-pointer text-sm font-semibold">{isBeginner ? `Épreuve niveau ${learnerLevel} · optionnelle` : 'Simulation longue · optionnelle'}</summary>
+                <section className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center">
                     <div className="flex flex-1 items-center gap-4">
                         <ArtIcon name="clock" size={56} tone="amber" />
                         <div>
                             <p className="text-muted-foreground mb-1 text-[10px] font-bold tracking-widest uppercase">
                                 {t('practice.test_yourself', 'Le grand entraînement')}
                             </p>
-                            <h2 className="text-foreground font-extrabold">{t('practice.exam_mode_title')}</h2>
-                            <p className="text-muted-foreground mt-1 text-xs">{t('practice.exam_mode_desc', { minutes: totalExamMinutes })}</p>
+                            <h2 className="text-foreground font-extrabold">{isBeginner ? `Entraînement préparé au niveau ${learnerLevel}` : t('practice.exam_mode_title')}</h2>
+                            <p className="text-muted-foreground mt-1 text-xs">{isBeginner ? 'Uniquement les sujets publiés pour ton niveau. Aucun résultat officiel de certification.' : `Durée de référence : ${totalExamMinutes} min. Le contenu disponible peut ne pas couvrir une épreuve complète.`}</p>
                         </div>
                     </div>
                     <Link
@@ -173,6 +183,7 @@ export default function ExamDashboard({ exam, sectionProgress }: Props) {
                         <ArrowRight className="h-4 w-4" aria-hidden="true" />
                     </Link>
                 </section>
+                </details>}
 
                 <section aria-labelledby="practice-personal-title">
                     <h2 id="practice-personal-title" className="text-foreground mb-3 text-lg font-extrabold">

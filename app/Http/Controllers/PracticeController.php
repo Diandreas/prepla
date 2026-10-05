@@ -101,6 +101,10 @@ class PracticeController extends Controller
         return Inertia::render('practice/exam-dashboard', [
             'exam' => $exam,
             'sectionProgress' => $sectionProgress,
+            'learnerLevel' => $user->profile?->current_level ?? 'A1',
+            'canSimulate' => ! in_array($user->profile?->current_level ?? 'A1', ['A0', 'A1', 'A2'], true)
+                || MockExam::where('is_published', true)->whereHas('exercises')
+                    ->whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id)->where('level', $user->profile?->current_level ?? 'A1'))->exists(),
         ]);
     }
 
@@ -220,19 +224,32 @@ class PracticeController extends Controller
         return back()->with('success', 'Exercices générés !');
     }
 
-    public function simulate(Exam $exam, Request $request): Response
+    public function simulate(Exam $exam, Request $request): Response|\Illuminate\Http\RedirectResponse
     {
+        $level = $request->user()->profile?->current_level ?? 'A1';
+        $isBeginner = in_array($level, ['A0', 'A1', 'A2'], true);
+        if ($isBeginner && ! MockExam::where('is_published', true)->whereHas('exercises')
+            ->whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id)->where('level', $level))->exists()) {
+            return redirect()->route('practice.exam', $exam)
+                ->with('error', "À ton niveau {$level}, commence par une compétence ou une séance de ton parcours. L’examen complet viendra plus tard.");
+        }
         $exam->load(['language', 'sections' => fn ($q) => $q->where('slug', '!=', 'level-assessment')->with('exerciseTypes')]);
 
         // Try to load a specific mock exam, or pick a random one for this exam
         $mockExamId = $request->query('mock_exam_id');
 
         $mockExam = MockExam::whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id))
+            ->when($isBeginner, fn ($q) => $q->whereHas('blueprint', fn ($blueprint) => $blueprint->where('level', $level))->whereHas('exercises'))
             ->where('is_published', true)
             ->when($mockExamId, fn ($q) => $q->whereKey($mockExamId), fn ($q) => $q->inRandomOrder())
             ->first();
 
-        $totalTime = $exam->sections->sum(fn ($s) => $s->time_limit ?? 30);
+        if ($isBeginner && ! $mockExam) {
+            return redirect()->route('practice.exam', $exam)->with('error', 'Choisis une épreuve préparée à ton niveau, ou continue ton parcours.');
+        }
+
+        $totalTime = $mockExam?->blueprint?->total_duration_minutes
+            ?? $exam->sections->sum(fn ($s) => $s->time_limit ?? 30);
 
         if ($mockExam) {
             // Load ALL exercises belonging to this mock exam, ordered by section
@@ -264,6 +281,7 @@ class PracticeController extends Controller
 
         // List available mock exams for this exam (for the selector UI)
         $availableMockExams = MockExam::whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id))
+            ->when($isBeginner, fn ($q) => $q->whereHas('blueprint', fn ($blueprint) => $blueprint->where('level', $level))->whereHas('exercises'))
             ->where('is_published', true)
             ->withCount('exercises')
             ->get(['id', 'title', 'description']);

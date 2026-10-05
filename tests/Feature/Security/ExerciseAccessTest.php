@@ -191,6 +191,7 @@ test('the learning session fallback never serves private centre lesson or mock c
 
 test('an exam simulation scores exactly the served set once even when question ids repeat', function () {
     $learner = accessLearner($this->exam);
+    $learner->profile->update(['current_level' => 'B1']);
     $first = accessExercise($this->exam, $this->type);
     $second = accessExercise($this->exam, $this->type);
     $private = accessExercise($this->exam, $this->type, ['center_id' => $this->center->id]);
@@ -239,6 +240,7 @@ test('une partie laissee vide compte dans le bilan de l examen blanc', function 
     // rempli annonçait la moyenne des seules parties faites. Une épreuve
     // d'entraînement sert justement à savoir où l'on en est.
     $learner = accessLearner($this->exam);
+    $learner->profile->update(['current_level' => 'B1']);
     $answered = accessExercise($this->exam, $this->type);
     accessExercise($this->exam, $this->type); // laissée vide
 

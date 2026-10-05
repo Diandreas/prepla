@@ -28,6 +28,24 @@ beforeEach(function () {
     $this->actingAs($this->user);
 });
 
+test('un debutant ne recoit pas un examen complet meme via son URL directe', function () {
+    $this->get(route('practice.simulate', $this->exam))->assertRedirect(route('practice.exam', $this->exam))->assertSessionHas('error');
+    $this->get(route('practice.exam', $this->exam))->assertInertia(fn (Assert $page) => $page->component('practice/exam-dashboard')->where('learnerLevel', 'A1'));
+});
+
+test('un sujet publie A1 reste accessible mais pas un sujet B2 pour le meme examen', function () {
+    $type = ExerciseType::create(['section_id' => $this->section->id, 'slug' => 'mcq', 'name' => 'MCQ', 'skill_type' => 'grammar', 'component_key' => 'mcq']);
+    $mocks = [];
+    foreach (['A1', 'B2'] as $level) {
+        $blueprint = App\Models\ExamBlueprint::create(['exam_id' => $this->exam->id, 'level' => $level, 'name' => $level, 'total_duration_minutes' => 15, 'scoring_config' => [], 'sections_config' => []]);
+        $mock = App\Models\MockExam::create(['blueprint_id' => $blueprint->id, 'title' => $level, 'is_published' => true]);
+        Exercise::create(['exam_id' => $this->exam->id, 'exam_section_id' => $this->section->id, 'exercise_type_id' => $type->id, 'mock_exam_id' => $mock->id, 'difficulty' => $level, 'content' => [], 'questions' => [['id' => 'q1', 'type' => 'mcq', 'text' => 'Hello?', 'options' => ['Yes', 'No'], 'correct_answer' => 'Yes']]]);
+        $mocks[$level] = $mock;
+    }
+    $this->get(route('practice.simulate', $this->exam))->assertInertia(fn (Assert $page) => $page->component('practice/exam-simulator')->where('mockExam.id', $mocks['A1']->id)->where('totalExamsTime', 15)->has('availableMockExams', 1));
+    $this->get(route('practice.simulate', $this->exam).'?mock_exam_id='.$mocks['B2']->id)->assertRedirect(route('practice.exam', $this->exam));
+});
+
 test('sans micro et audio les exercices en cache sont filtres sans nouvelle generation', function () {
     foreach (['speaking', 'listening', 'grammar', 'grammar', 'grammar'] as $index => $skill) {
         $type = ExerciseType::firstOrCreate(['section_id' => $this->section->id, 'slug' => $skill], ['name' => $skill, 'component_key' => $skill === 'speaking' ? 'speaking-recorder' : 'mcq', 'skill_type' => $skill]);

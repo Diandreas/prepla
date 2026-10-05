@@ -259,7 +259,9 @@ test('an unsupported learner level never silently receives a lower-level starter
 test('general starters are not presented as mock exam content', function () {
     [$exam, , $type] = starterPracticeFixture();
     app(StarterPracticeLibrary::class)->ensure($exam, $type, 'A2');
-    $this->actingAs(starterPracticeUser($exam));
+    $learner = starterPracticeUser($exam);
+    $learner->profile->update(['current_level' => 'B1']);
+    $this->actingAs($learner);
 
     $this->get(route('practice.simulate', $exam))->assertInertia(fn (Assert $page) => $page
         ->component('practice/exam-simulator')
