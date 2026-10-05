@@ -31,7 +31,7 @@ class LearningJourneyService
                 ->where('title', $objective['title'])->first();
 
             return ['kind' => 'practice', 'title' => $lesson?->title ?? $objective['title'],
-                'description' => 'La leçon est comprise. À toi de réutiliser ces notions dans des phrases.',
+                'description' => 'Tu as terminé la leçon. Entraîne-toi à réutiliser ces notions dans des phrases.',
                 'url' => $node ? route('node.start', $node) : ($lesson ? route('lessons.show', $lesson) : route('lessons.next'))];
         }
         $objective = $path->currentObjective();

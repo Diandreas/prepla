@@ -169,7 +169,7 @@ export default function ExamDashboard({ exam, sectionProgress, learnerLevel, can
                         <ArtIcon name="clock" size={56} tone="amber" />
                         <div>
                             <p className="text-muted-foreground mb-1 text-[10px] font-bold tracking-widest uppercase">
-                                {t('practice.test_yourself', 'Le grand entraînement')}
+                                {isBeginner ? 'À ton rythme' : t('practice.test_yourself', 'Le grand entraînement')}
                             </p>
                             <h2 className="text-foreground font-extrabold">{isBeginner ? `Entraînement préparé au niveau ${learnerLevel}` : t('practice.exam_mode_title')}</h2>
                             <p className="text-muted-foreground mt-1 text-xs">{isBeginner ? 'Uniquement les sujets publiés pour ton niveau. Aucun résultat officiel de certification.' : `Durée de référence : ${totalExamMinutes} min. Le contenu disponible peut ne pas couvrir une épreuve complète.`}</p>
