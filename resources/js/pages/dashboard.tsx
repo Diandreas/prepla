@@ -271,7 +271,7 @@ export default function Dashboard() {
             {centerMode && (
                 <CenterAssignmentsBanner assignments={centerAssignments ?? []} />
             )}
-            {nextAction && <DailyMission action={nextAction} reviewCount={wordReviewCount ?? 0} />}
+            {nextAction && <DailyMission action={nextAction} reviewCount={wordReviewCount ?? 0} name={auth.user?.name} level={profile?.current_level ?? undefined} />}
 
             {/* Loading overlay — marked data-page-loader so the global NavigationOverlay
                 stays hidden and we never stack two hourglasses. */}
@@ -564,6 +564,7 @@ export default function Dashboard() {
                 {/* ─── Right column (desktop): actions + progress, sticky ─── */}
                 <aside className="lg:col-span-1 lg:sticky lg:top-20 space-y-4">
                     {/* Desktop quick actions */}
+                    {!nextAction && (
                     <div className="hidden lg:grid grid-cols-1 gap-2">
                         <Link href="/dictionary" className="duo-press flex items-center gap-3 rounded-2xl p-3.5 text-white"
                             style={{ background: `linear-gradient(135deg, ${SKY}, #3478c8)`, boxShadow: '0 4px 0 0 #2563a0' }}>
@@ -582,6 +583,7 @@ export default function Dashboard() {
                         </Link>
                     </div>
 
+                    )}
                     {/* Overall progress */}
                     <div className="mt-4 lg:mt-0 rounded-2xl bg-card border border-border p-4">
                         <div className="flex items-center justify-between mb-2 text-xs font-black uppercase tracking-wider">
