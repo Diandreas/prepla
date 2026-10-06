@@ -107,8 +107,9 @@ class ExerciseController extends Controller
                 && $exercises->pluck('order_in_node')->sort()->values()->all() === [1, 2, 3],
                 422, 'Cet examen doit contenir ses trois parties avant de pouvoir être évalué.');
             if (! empty($validated['exercise_ids'])) {
-                $expectedIds = $exercises->pluck('id')->sort()->values()->all();
-                $givenIds = collect($validated['exercise_ids'])->unique()->sort()->values()->all();
+                $expectedIds = $exercises->pluck('id')->map(fn ($id) => (int) $id)->sort()->values()->all();
+                // Multipart form fields are strings even after Laravel's integer validation.
+                $givenIds = collect($validated['exercise_ids'])->map(fn ($id) => (int) $id)->unique()->sort()->values()->all();
                 abort_unless($expectedIds === $givenIds, 422, 'Toutes les parties de cet examen sont nécessaires.');
             }
         } elseif (! empty($validated['exercise_ids'])) {

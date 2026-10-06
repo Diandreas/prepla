@@ -19,6 +19,16 @@ test('english A1 exam opens with fifteen reviewed questions while AI is unavaila
     $exercises = Exercise::where('exam_id', $exam->id)->get();
     expect($exercises)->toHaveCount(3)->and($exercises->sum(fn ($exercise) => count($exercise->questions)))->toBe(15);
     $this->get($response->headers->get('Location'))->assertInertia(fn (Assert $page) => $page->component('exercises/player')->has('exercises', 3));
+    $node = $exercises->first()->node_id;
+    $answers = $exercises->mapWithKeys(fn ($exercise) => [$exercise->id => collect($exercise->questions)->pluck('correct_answer', 'id')->all()])->all();
+    $this->post(route('exercise.submit_session', $node), [
+        'exercise_ids' => [(string) $exercises->first()->id], 'answers_by_exercise' => $answers,
+    ])->assertStatus(422);
+    $this->post(route('exercise.submit_session', $node), [
+        'exercise_ids' => $exercises->pluck('id')->map(fn ($id) => (string) $id)->all(),
+        'answers_by_exercise' => $answers, 'time_spent' => '240',
+    ])->assertRedirect()->assertSessionHasNoErrors();
+    expect($user->profile->fresh()->current_level)->toBe('A2');
 });
 
 test('open sentence answers require the whole correct sentence', function () {
