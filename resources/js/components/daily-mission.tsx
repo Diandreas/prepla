@@ -1,10 +1,16 @@
 import { Link } from '@inertiajs/react';
+import { useState } from 'react';
 import { LearningModePicker } from './learning-mode-picker';
-import { ArrowRight, BookOpen, Headphones, Sparkles } from 'lucide-react';
+import { ArrowRight, BookOpen, Headphones, Loader2, Sparkles } from 'lucide-react';
 
 export interface JourneyAction { kind: string; title: string; description: string; url: string }
 export function DailyMission({ action, name, level }: { action: JourneyAction; reviewCount: number; name?: string; level?: string }) {
     const missionLabel = action.kind === 'exam' ? 'Ton prochain palier' : action.kind === 'remedial' ? 'Un point à consolider' : action.kind === 'practice' ? 'À toi de jouer' : 'Ta prochaine mission';
+    // Ouvrir une étape dont les exercices ne sont pas encore écrits demande une
+    // trentaine de secondes : l'IA les rédige à la demande. Sans état visible, le
+    // bouton restait muet tout ce temps et la séance paraissait ne pas démarrer.
+    const [preparing, setPreparing] = useState(false);
+    const actionLabel = action.kind === 'exam' ? 'Passer mon épreuve' : action.kind === 'onboarding' ? 'Créer mon parcours' : 'Continuer ma séance';
     return <section className="mx-auto max-w-5xl px-4 pt-4 sm:pt-5" aria-labelledby="daily-mission-title">
         <header className="mb-3 flex items-start justify-between gap-3">
             <p className="text-lg font-bold tracking-tight sm:text-xl">Bonjour{name ? `, ${name.split(' ')[0]}` : ''} <span className="text-primary">!</span></p>
@@ -17,7 +23,19 @@ export function DailyMission({ action, name, level }: { action: JourneyAction; r
                     <p className="mb-2 inline-flex items-center gap-2 text-[11px] font-semibold text-blue-100"><Sparkles size={13} aria-hidden="true" />{missionLabel}</p>
                     <h1 id="daily-mission-title" className="max-w-xl text-xl font-extrabold leading-tight tracking-tight text-white sm:text-3xl">{action.title}</h1>
                     <p className="mt-2 max-w-lg text-xs leading-relaxed text-blue-100/85 sm:text-sm">{action.description}</p>
-                    <Link href={action.url} className="mt-5 inline-flex min-h-12 items-center justify-center gap-3 rounded-xl bg-white px-4 py-3 text-sm font-bold text-[#193b67] shadow-sm transition hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white sm:px-6">{action.kind === 'exam' ? 'Passer mon épreuve' : action.kind === 'onboarding' ? 'Créer mon parcours' : 'Continuer ma séance'} <ArrowRight size={17} aria-hidden="true" /></Link>
+                    <Link
+                        href={action.url}
+                        onStart={() => setPreparing(true)}
+                        onFinish={() => setPreparing(false)}
+                        aria-busy={preparing}
+                        aria-live="polite"
+                        className="mt-5 inline-flex min-h-12 items-center justify-center gap-3 rounded-xl bg-white px-4 py-3 text-sm font-bold text-[#193b67] shadow-sm transition hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white aria-busy:pointer-events-none aria-busy:opacity-80 sm:px-6"
+                    >
+                        {preparing
+                            ? <>Préparation de ta séance… <Loader2 size={17} aria-hidden="true" className="animate-spin" /></>
+                            : <>{actionLabel} <ArrowRight size={17} aria-hidden="true" /></>}
+                    </Link>
+                    {preparing && <p className="mt-2 text-xs text-blue-100/85">Tes exercices sont en cours d’écriture, cela peut prendre une trentaine de secondes.</p>}
                 </div>
                 <div className="relative shrink-0"><div aria-hidden="true" className="absolute inset-3 rounded-full bg-blue-300/10 blur-xl" /><img src="/illustrations/prepla-guide/welcome.png" width="160" height="160" alt="" className="relative h-24 w-16 object-contain min-[400px]:w-20 sm:h-36 sm:w-32" /></div>
             </div>
