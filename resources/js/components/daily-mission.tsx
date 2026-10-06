@@ -3,7 +3,7 @@ import { LearningModePicker } from './learning-mode-picker';
 import { ArrowRight, BookOpen, Headphones, Sparkles } from 'lucide-react';
 
 export interface JourneyAction { kind: string; title: string; description: string; url: string }
-export function DailyMission({ action, reviewCount, name, level }: { action: JourneyAction; reviewCount: number; name?: string; level?: string }) {
+export function DailyMission({ action, name, level }: { action: JourneyAction; reviewCount: number; name?: string; level?: string }) {
     const missionLabel = action.kind === 'exam' ? 'Ton prochain palier' : action.kind === 'remedial' ? 'Un point à consolider' : action.kind === 'practice' ? 'À toi de jouer' : 'Ta prochaine mission';
     return <section className="mx-auto max-w-5xl px-4 pt-4 sm:pt-5" aria-labelledby="daily-mission-title">
         <header className="mb-3 flex items-start justify-between gap-3">
@@ -22,7 +22,12 @@ export function DailyMission({ action, reviewCount, name, level }: { action: Jou
                 <div className="relative shrink-0"><div aria-hidden="true" className="absolute inset-3 rounded-full bg-blue-300/10 blur-xl" /><img src="/illustrations/prepla-guide/welcome.png" width="160" height="160" alt="" className="relative h-24 w-16 object-contain min-[400px]:w-20 sm:h-36 sm:w-32" /></div>
             </div>
         </div>
-        <div className="mt-3"><LearningModePicker /></div>
+    </section>;
+}
+
+export function MissionExtras({ reviewCount }: { reviewCount: number }) {
+    return <section aria-label="Entraînements et préférences" className="space-y-4">
+        <LearningModePicker />
         <div className="mb-2 mt-4 flex items-center justify-between"><h2 className="text-xs font-bold">À ton rythme</h2><span className="text-xs text-muted-foreground">Facultatif</span></div>
         <div className="grid grid-cols-2 gap-3">
             <Link href={reviewCount > 0 ? route('dictionary.review_page') : route('dictionary.index')} className="group rounded-2xl border border-border/70 bg-card p-4 transition hover:border-primary/40 focus-visible:outline focus-visible:outline-primary">

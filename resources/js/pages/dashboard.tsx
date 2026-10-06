@@ -5,7 +5,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LoadingAnimation } from '@/components/loading-animation';
 import { ArtIcon } from '@/components/art-icon';
-import { DailyMission, type JourneyAction } from '@/components/daily-mission';
+import { DailyMission, MissionExtras, type JourneyAction } from '@/components/daily-mission';
 import type { SharedData, UserProfile } from '@/types';
 
 function Icon({ name, size = 20, style, className }: { name: string; size?: number; style?: React.CSSProperties; className?: string }) {
@@ -292,24 +292,16 @@ export default function Dashboard() {
                 @media (prefers-reduced-motion: reduce) { .chapter-hero-img { animation: none; } }
             `}</style>
 
-            <div className="mx-auto max-w-lg lg:max-w-5xl px-4 py-6 lg:grid lg:grid-cols-3 lg:gap-6 lg:items-start">
+            <div className="mx-auto max-w-lg lg:max-w-5xl px-4 py-4 lg:grid lg:grid-cols-3 lg:gap-6 lg:items-start">
 
                 {/* ─── Left column: chapter + steps ─── */}
                 <div className="lg:col-span-2">
-                <details className="rounded-2xl border border-border bg-card p-4">
-                    <summary className="cursor-pointer text-sm font-bold text-foreground">Voir mon parcours <span className="ml-2 font-normal text-muted-foreground">{stats.completed_nodes} étapes terminées</span></summary>
-                    <div className="mt-4">
+                <section aria-label="Mon parcours" className="rounded-2xl border border-border/70 bg-card p-4 sm:p-5">
+                    <div>
 
                 {/* ── Chapter card (compact): navigation + progress + Commencer ── */}
                 {viewedChapter && (
-                    <div className="studio-hero mb-4">
-                        <div className="mb-5 flex items-center gap-3">
-                            <ArtIcon name="target" size={48} tone="amber" />
-                            <div>
-                                <p className="studio-kicker">Ton objectif, pas à pas</p>
-                                <p className="mt-1 text-sm font-semibold text-foreground">Un peu de pratique. De vrais progrès.</p>
-                            </div>
-                        </div>
+                    <div className="mb-2 border-b border-border/60 pb-2">
                         <div className="flex items-center gap-2">
                             {/* Prev */}
                             <button
@@ -358,7 +350,7 @@ export default function Dashboard() {
                                 </div>
                                 <p className="mt-1 text-[10px] font-bold text-muted-foreground">{completedInChapter} / {totalInChapter} étapes</p>
                             </div>
-                            {firstActiveInChapter && (isViewingActive || viewedChapterIdx <= activeChapterIdx) && (
+                            {!nextAction && firstActiveInChapter && (isViewingActive || viewedChapterIdx <= activeChapterIdx) && (
                                 <button
                                     onClick={() => handleStartNode(firstActiveInChapter)}
                                     className="duo-press flex-shrink-0 rounded-xl px-4 py-2.5 font-black text-xs text-white flex items-center gap-1.5"
@@ -375,7 +367,7 @@ export default function Dashboard() {
                 {/* ── Quick actions (compact, MOBILE) — right under the chapter card
                     so the learner sees what to do without scrolling. On desktop they
                     move to the right column. ── */}
-                <div className="mb-5 grid grid-cols-3 gap-2 lg:hidden">
+                {!nextAction && <div className="mb-5 grid grid-cols-3 gap-2 lg:hidden">
                     <Link
                         href="/lessons/next"
                         className="duo-press flex flex-col items-center gap-1.5 rounded-2xl p-3 text-white text-center"
@@ -400,21 +392,20 @@ export default function Dashboard() {
                         <ArtIcon name="review" size={34} tone="amber" />
                         <span className="text-[10px] font-black leading-tight text-foreground">Révision{(dueErrorsCount ?? 0) > 0 ? ` (${dueErrorsCount})` : ''}</span>
                     </Link>
-                </div>
+                </div>}
 
                 {/* ── Steps List ── */}
                 {viewedChapter && (
                     <div>
-                        <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center justify-between gap-2 mb-2">
                             <div>
-                                <h3 className="text-base font-black text-foreground">Ton parcours</h3>
-                                <p className="text-xs text-muted-foreground font-medium">Apprends pas à pas</p>
+                                <h3 className="text-sm font-bold text-foreground">Ton parcours</h3>
                             </div>
                             <Link
                                 href="/lessons"
                                 className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-black border border-border text-muted-foreground hover:bg-accent transition"
                             >
-                                Voir le chapitre
+                                Mes leçons
                                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1" y="2" width="10" height="1.5" rx="0.75" fill="currentColor" /><rect x="1" y="5.25" width="10" height="1.5" rx="0.75" fill="currentColor" /><rect x="1" y="8.5" width="10" height="1.5" rx="0.75" fill="currentColor" /></svg>
                             </Link>
                         </div>
@@ -422,10 +413,10 @@ export default function Dashboard() {
                         {/* Roadmap — cercles décalés + ligne pointillée DERRIÈRE les cards (z-index) */}
                         <div className="relative py-2">
                             {(() => {
-                                const offsets = [0, 40, 70, 50, 20, 50, 70, 40];
-                                const CIRCLE_SIZE = 54;
-                                const ROW_HEIGHT = 84; // hauteur estimée d'une row (card)
-                                const GAP = 16;        // gap entre rows
+                                const offsets = [0];
+                                const CIRCLE_SIZE = 36;
+                                const ROW_HEIGHT = 72;
+                                const GAP = 8;
 
                                 // Only ONE step should read as "the next thing to do".
                                 // Steps unlocked *after* it are shown as waiting (locked-looking)
@@ -483,14 +474,14 @@ export default function Dashboard() {
                                                 <button
                                                     disabled={isLocked}
                                                     onClick={() => canClick && handleStartNode(node)}
-                                                    className={`flex-1 flex items-center justify-between rounded-2xl p-4 text-left border-2 ${canClick ? 'duo-press' : 'transition'} ${
+                                                    className={`min-w-0 flex-1 flex items-center justify-between rounded-xl p-3 text-left border transition ${
                                                         isActive
                                                             ? 'bg-card border-blue-200 dark:border-blue-900'
                                                             : isCompleted
                                                             ? 'bg-card border-border'
                                                             : 'bg-muted/50 border-border cursor-not-allowed'
                                                     }`}
-                                                    style={canClick ? { boxShadow: isActive ? '0 4px 0 0 var(--border)' : '0 3px 0 0 var(--border)' } : undefined}
+                                                    aria-current={isActive ? 'step' : undefined}
                                                 >
                                                     <div className="min-w-0 flex-1">
                                                         <p className="text-[10px] font-black uppercase tracking-widest mb-0.5" style={{ color: isActive ? SKY : undefined }}>
@@ -503,7 +494,7 @@ export default function Dashboard() {
                                                             {stepDescription(node, idx)}
                                                         </p>
                                                     </div>
-                                                    <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                                                    <div className="hidden sm:flex items-center gap-2 flex-shrink-0 ml-2">
                                                         <StatusBadge status={isWaiting ? 'locked' : node.status} />
                                                         {isLocked
                                                             ? <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="4" y="7" width="8" height="6" rx="1.5" fill="#d1d5db" /><path d="M6 7V5a2 2 0 0 1 4 0v2" stroke="#d1d5db" strokeWidth="1.5" /></svg>
@@ -558,7 +549,7 @@ export default function Dashboard() {
                 )}
 
                     </div>
-                </details>
+                </section>
                 </div>{/* /left column */}
 
                 {/* ─── Right column (desktop): actions + progress, sticky ─── */}
@@ -597,6 +588,7 @@ export default function Dashboard() {
                         </div>
                         <p className="mt-1.5 text-[10px] font-bold text-muted-foreground">{stats.completed_nodes} / {stats.total_nodes} étapes complétées</p>
                     </div>
+                    {nextAction && <MissionExtras reviewCount={wordReviewCount ?? 0} />}
                 </aside>
 
             </div>
