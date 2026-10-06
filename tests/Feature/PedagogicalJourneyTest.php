@@ -45,8 +45,14 @@ test('audio shortcut opens the target exams listening exercises', function () {
     $language = Language::create(['slug' => 'english', 'name' => 'English', 'native_name' => 'English', 'flag' => 'en']);
     $exam = Exam::create(['language_id' => $language->id, 'slug' => 'audio-path', 'name' => 'English']);
     $section = ExamSection::create(['exam_id' => $exam->id, 'slug' => 'listening', 'name' => 'Écoute', 'skill_type' => 'listening']);
-    ExerciseType::create(['section_id' => $section->id, 'slug' => 'mcq', 'component_key' => 'mcq', 'name' => 'Listening', 'skill_type' => 'listening']);
+    $type = ExerciseType::create(['section_id' => $section->id, 'slug' => 'mcq', 'component_key' => 'mcq', 'name' => 'Listening', 'skill_type' => 'listening']);
     $user = User::factory()->create();
     UserProfile::factory()->for($user)->create(['target_exam_id' => $exam->id, 'onboarding_completed_at' => now()]);
+    $availability = app(App\Services\Content\PracticeAvailability::class);
+    expect($availability->forUser($user))->toBe(['speaking' => true, 'listening' => false]);
+    $exercise = Exercise::create(['exam_id' => $exam->id, 'exam_section_id' => $section->id, 'exercise_type_id' => $type->id, 'difficulty' => 'B2', 'content' => [], 'questions' => [['id' => 'q1', 'text' => 'Listen', 'type' => 'mcq', 'options' => ['A', 'B'], 'correct_answer' => 'A']]]);
+    expect($availability->forUser($user)['listening'])->toBeFalse();
+    $exercise->update(['difficulty' => 'A1']);
+    expect($availability->forUser($user)['listening'])->toBeTrue();
     $this->actingAs($user)->get(route('practice.skill', 'listening'))->assertRedirect(route('practice.section', [$exam, $section]));
 });

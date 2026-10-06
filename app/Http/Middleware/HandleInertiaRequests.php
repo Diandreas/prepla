@@ -71,6 +71,7 @@ class HandleInertiaRequests extends Middleware
                 'center' => $center,           // null if the user has no center
             ],
             'userProfile' => $request->user()?->profile,
+            'practiceAvailability' => fn () => app(\App\Services\Content\PracticeAvailability::class)->forUser($user),
             'learningPreferences' => array_merge(['speaking_enabled' => true, 'audio_enabled' => true],
                 $request->user()?->profile?->learning_preferences ?? []),
             'isPremium' => $isPremium,
