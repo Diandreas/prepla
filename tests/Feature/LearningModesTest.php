@@ -73,6 +73,39 @@ test('un ancien statut de lecon ouvre la pratique apres le quiz sans boucle', fu
     expect(app(LearningJourneyService::class)->nextAction($this->user)['url'])->toBe(route('node.start', $this->node));
 });
 
+test('failed practice stays unvalidated and repeated failures open targeted remediation', function () {
+    $path = CurriculumSkeleton::create(['user_id' => $this->user->id, 'exam_id' => $this->exam->id, 'current_objective_index' => 1, 'objectives' => [
+        ['title' => $this->node->title, 'concept' => 'grammar.introductions', 'status' => 'current_practice', 'level' => 'A1'],
+        ['title' => 'Exam A1', 'concept' => 'level_exam.a1', 'status' => 'current', 'level' => 'A1', 'is_level_exam' => true],
+    ]]);
+    $lesson = Lesson::create(['user_id' => $this->user->id, 'node_id' => $this->node->id, 'skeleton_objective_index' => 0, 'title' => 'Introduction', 'concept' => 'grammar.introductions', 'theory_markdown' => 'Hello.']);
+    $type = ExerciseType::create(['section_id' => $this->section->id, 'slug' => 'mcq', 'name' => 'Grammar', 'skill_type' => 'grammar', 'component_key' => 'mcq']);
+    $exercise = Exercise::create(['exam_id' => $this->exam->id, 'exam_section_id' => $this->section->id, 'exercise_type_id' => $type->id, 'node_id' => $this->node->id, 'difficulty' => 'A1', 'content' => [], 'questions' => [['id' => 'q1', 'type' => 'mcq', 'text' => 'I ... Sam', 'options' => ['am', 'is'], 'correct_answer' => 'am']]]);
+    $progress = UserLearningProgress::create(['user_id' => $this->user->id, 'node_id' => $this->node->id, 'status' => 'in_progress', 'exercises_done' => 0, 'exercises_required' => 1]);
+    $payload = ['exercise_ids' => [$exercise->id], 'answers_by_exercise' => [$exercise->id => ['q1' => 'is']]];
+    $this->post(route('exercise.submit_session', $this->node), $payload)->assertSessionHasNoErrors();
+    expect($progress->fresh()->status)->toBe('in_progress')
+        ->and($path->fresh()->objectives[0]['status'])->toBe('current_practice')
+        ->and($path->fresh()->pendingLevelExam())->toBeNull();
+    $this->post(route('exercise.submit_session', $this->node), $payload)->assertSessionHasNoErrors();
+    expect($path->fresh()->objectives)->toHaveCount(3)
+        ->and($path->fresh()->currentObjective()['is_remedial'])->toBeTrue()
+        ->and($lesson->fresh()->skeleton_objective_index)->toBe(1)
+        ->and(app(LearningJourneyService::class)->nextAction($this->user)['kind'])->toBe('remedial')
+        ->and($this->user->profile->fresh()->current_level)->toBe('A1');
+    // Even after the targeted practice, the original objective must be reassessed.
+    $path = $path->fresh();
+    $path->advanceToPractice();
+    $path->completePractice(0);
+    expect($path->pendingLevelExam())->toBeNull();
+    $path->advanceToPractice();
+    $payload['answers_by_exercise'][$exercise->id]['q1'] = 'am';
+    $this->post(route('exercise.submit_session', $this->node), $payload)->assertSessionHasNoErrors();
+    expect($progress->fresh()->status)->toBe('completed')
+        ->and($path->fresh()->pendingLevelExam()['level'])->toBe('A1')
+        ->and($this->user->profile->fresh()->current_level)->toBe('A1');
+});
+
 test('une seance entierement indisponible ne cree ni erreur ni progression', function () {
     $type = ExerciseType::create(['section_id' => $this->section->id, 'slug' => 'speech', 'name' => 'Speech', 'skill_type' => 'speaking', 'component_key' => 'speaking-recorder']);
     $exercise = Exercise::create(['exam_id' => $this->exam->id, 'exam_section_id' => $this->section->id, 'exercise_type_id' => $type->id, 'node_id' => $this->node->id, 'difficulty' => 'A1', 'content' => [], 'questions' => [['id' => 'q1', 'type' => 'speaking-recorder', 'prompt' => 'Introduce yourself.']]]);

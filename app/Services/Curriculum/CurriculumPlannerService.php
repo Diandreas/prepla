@@ -266,6 +266,40 @@ class CurriculumPlannerService
         return $inserted;
     }
 
+    /** Return to a targeted explanation before another independent practice attempt. */
+    public function insertPracticeRemediation(CurriculumSkeleton $skeleton, int $index, array $categories): int
+    {
+        $objective = $skeleton->objectives[$index] ?? null;
+        // Never build an endless stack of remediation on remediation.
+        if (! $objective || ($objective['is_remedial'] ?? false)) {
+            return 0;
+        }
+        $frequencies = array_count_values(array_filter($categories));
+        arsort($frequencies);
+        $concept = array_key_first($frequencies) ?? $objective['concept'];
+        $objectives = $skeleton->objectives;
+        foreach ($objectives as &$item) {
+            if (($item['status'] ?? '') === 'current') {
+                $item['status'] = 'pending';
+            }
+        }
+        unset($item);
+        $objectives[$index]['status'] = 'pending';
+        $skeleton->objectives = $objectives;
+        $skeleton->insertObjective([
+            'title' => 'Reprise : '.$this->categoryToTitle($concept),
+            'concept' => $concept,
+            'level' => $objective['level'] ?? $skeleton->levelForObjective($index, $skeleton->user->profile?->current_level ?? 'A1'),
+            'status' => 'current',
+            'priority' => 'high',
+            'is_remedial' => true,
+        ], $index - 1);
+        $skeleton->current_objective_index = $index;
+        $skeleton->consecutive_failures = 0;
+        $skeleton->save();
+        return 1;
+    }
+
     public function reassess(User $user): void
     {
         $skeleton = CurriculumSkeleton::where('user_id', $user->id)->first();
@@ -363,11 +397,7 @@ class CurriculumPlannerService
             // Always open the practice phase for the just-learned concept.
             $skeleton->advanceToPractice();
 
-            // A strong streak of high scores (≥80%) lets us skip the *next* lesson.
-            if ($accuracyPercent >= 80 && $skeleton->consecutive_successes >= 3
-                && !($skeleton->currentObjective()['is_remedial'] ?? false)) {
-                return 'skip_ahead';
-            }
+            // A successful quiz never certifies an unattempted objective or exam.
 
             return 'advance';
         } else {
@@ -376,27 +406,12 @@ class CurriculumPlannerService
             $skeleton->consecutive_successes = 0;
             $skeleton->save();
 
-            // Beyond 5 consecutive failures, consolidation (reworded AI content)
-            // alone hasn't unblocked the learner — there was previously NO ceiling
-            // here, so a learner who never clears the mastery threshold on a
-            // concept could stay on it forever. Force-complete the stuck practice
-            // objective so the journey can move on; the concept still gets
-            // flagged for spaced-repetition review (UserError) rather than lost.
-            $STUCK_THRESHOLD = 5;
-            if ($skeleton->consecutive_failures >= $STUCK_THRESHOLD) {
-                $practiceIndex = $skeleton->practiceObjectiveIndex();
-                if ($practiceIndex !== null) {
-                    $skeleton->forceCompleteStuckPractice($practiceIndex);
-                    return 'unblocked_after_struggle';
-                }
-            }
-
             // If 2+ failures, don't advance — next lesson is consolidation
             if ($skeleton->consecutive_failures >= 2) {
                 return 'consolidation';
             }
 
-            // First failure: still advance but note it
+            // First failure: retry without certifying mastery.
             return 'retry_concept';
         }
     }

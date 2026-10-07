@@ -1,4 +1,5 @@
 import AppLayout from '@/layouts/app-layout';
+import { assessmentAnswers } from '@/lib/session-answers.js';
 import type { FormDataConvertible } from '@inertiajs/core';
 import { Head, router } from '@inertiajs/react';
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
@@ -633,8 +634,10 @@ export default function SessionPlayer({ node, exercises }: Props) {
     // leak each other's answer into the input. We strip the prefix before sending
     // to the backend, which expects a plain { questionId: answer } map.
     const answerKey = useCallback(
-        (qid: string | undefined, exIdx = currentExerciseIndex) => `${exIdx}::${qid ?? ''}`,
-        [currentExerciseIndex]
+        (qid: string | undefined, exIdx = currentExerciseIndex) => isReviewMode
+            ? `review-${question?.exercise_id}::${qid ?? ''}`
+            : `${exIdx}::${qid ?? ''}`,
+        [currentExerciseIndex, isReviewMode, question?.exercise_id]
     );
 
     const handleAnswer = useCallback((questionId: string, answer: FormDataConvertible) => {
@@ -904,7 +907,7 @@ export default function SessionPlayer({ node, exercises }: Props) {
         if (!isRight && !isReviewMode) {
             // Add to mistakes queue if not already a retry. We never grow the queue
             // during review mode itself, otherwise the end condition recedes forever.
-            const isAlreadyMistake = mistakes.some(m => m.id === question.id);
+            const isAlreadyMistake = mistakes.some(m => m.id === question.id && m.exercise_id === exercise.id);
             if (!isAlreadyMistake) {
                 setMistakes(prev => [...prev, { ...question, exercise_id: exercise.id, ...questionContext }]);
             }
@@ -953,16 +956,7 @@ export default function SessionPlayer({ node, exercises }: Props) {
             // was then scored against those, giving wrong grades AND polluting the
             // error-review log. We send { exerciseId: { questionId: answer } } instead.
             // The internal key is "exerciseIndex::questionId"; map the index → real id.
-            const answersByExercise: Record<string, Record<string, FormDataConvertible>> = {};
-            for (const [k, v] of Object.entries(answers)) {
-                const sep = k.indexOf('::');
-                if (sep === -1) continue; // skip non-namespaced keys (e.g. transcriptions)
-                const exIdx = Number(k.slice(0, sep));
-                const qid = k.slice(sep + 2);
-                const exId = exercises[exIdx]?.id;
-                if (exId === undefined) continue;
-                (answersByExercise[exId] ??= {})[qid] = v;
-            }
+            const answersByExercise = assessmentAnswers(answers, exercises);
 
             setSubmitting(true);
             playSound('complete');

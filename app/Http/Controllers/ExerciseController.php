@@ -88,7 +88,7 @@ class ExerciseController extends Controller
         $timeSpent = $validated['time_spent'] ?? 0;
         $ownLesson = Lesson::where('node_id', $node->id)->where('user_id', $user->id)->first();
         abort_if(! $ownLesson && Lesson::where('node_id', $node->id)->exists(), 403);
-        $path = CurriculumSkeleton::where('user_id', $user->id)->first();
+        $path = CurriculumSkeleton::where('user_id', $user->id)->where('exam_id', $node->exam_id)->first();
         $isRemedial = $ownLesson && ($path?->objectives[$ownLesson->skeleton_objective_index]['is_remedial'] ?? false);
         if ($isRemedial) {
             abort_unless(($path->objectives[$ownLesson->skeleton_objective_index]['status'] ?? '') === 'current_practice', 403);
@@ -282,7 +282,8 @@ class ExerciseController extends Controller
             ->where('node_id', $node->id)
             ->first();
 
-        if ($progress && ! $isLevelExam && $totalQuestions > 0) {
+        $sessionAccuracy = $totalQuestions > 0 ? ($totalCorrect / $totalQuestions) * 100 : 0;
+        if ($progress && ! $isLevelExam && $totalQuestions > 0 && $technicalFailures === 0 && $sessionAccuracy >= 60) {
             $progress->update([
                 'status' => 'completed',
                 'exercises_done' => $progress->exercises_required,
@@ -302,7 +303,7 @@ class ExerciseController extends Controller
                 ->first();
 
             if ($nextNode) {
-                UserLearningProgress::updateOrCreate(
+                UserLearningProgress::firstOrCreate(
                     ['user_id' => $user->id, 'node_id' => $nextNode->id],
                     ['status' => 'available']
                 );
@@ -315,7 +316,7 @@ class ExerciseController extends Controller
         $remediationCount = 0;
         if ($isLevelExam) {
             $accuracy = $totalQuestions > 0 ? ($totalCorrect / $totalQuestions) * 100 : 0;
-            $skeleton = CurriculumSkeleton::where('user_id', $user->id)->first();
+            $skeleton = CurriculumSkeleton::where('user_id', $user->id)->where('exam_id', $node->exam_id)->first();
 
             if ($technicalFailures > 0) {
                 // A provider failure is not evidence of a language gap, nor a pass.
@@ -339,7 +340,7 @@ class ExerciseController extends Controller
             }
         }
 
-        // --- MASTERY GATE (Bloom): ≥80% required to advance ---
+        // Practice is validated at 60%; technical failures cannot validate mastery.
         // Below threshold → track failures; after 2+ consecutive failures the
         // NextLessonGenerator switches to a 'consolidation' variant (alternate
         // explanation, more scaffolding, easier examples).
@@ -347,8 +348,8 @@ class ExerciseController extends Controller
         // 60% = pass. 80% was too punishing (forces redoing sessions over and over).
         // Aligned with the lesson quiz pass band (~2/3).
         $MASTERY_THRESHOLD = 60;
-        $skeleton = CurriculumSkeleton::where('user_id', $user->id)->first();
-        if ($skeleton && ! $isLevelExam && $totalQuestions > 0) {
+        $skeleton = CurriculumSkeleton::where('user_id', $user->id)->where('exam_id', $node->exam_id)->first();
+        if ($skeleton && ! $isLevelExam && $totalQuestions > 0 && $technicalFailures === 0) {
             // The objective being practiced is the one in 'current_practice', which is
             // usually *behind* current_objective_index (advanceToPractice already moved
             // the pointer to the next lesson). Target it explicitly so finishing a
@@ -389,6 +390,9 @@ class ExerciseController extends Controller
                     // Strict mastery: stay on this objective + count the failure
                     $skeleton->consecutive_failures = ($skeleton->consecutive_failures ?? 0) + 1;
                     $skeleton->save();
+                    if ($skeleton->consecutive_failures >= 2) {
+                        $remediationCount = app(CurriculumPlannerService::class)->insertPracticeRemediation($skeleton, $practiceIndex, $sessionCategories);
+                    }
                 }
             }
         }
@@ -411,6 +415,7 @@ class ExerciseController extends Controller
             'exam_passed' => $examPassed,
             'pass_threshold' => $isLevelExam ? LevelAdvancementService::ADVANCE_THRESHOLD : 60,
             'remediation_count' => $remediationCount,
+            'technical_failures' => $technicalFailures,
         ]]);
 
         return redirect()->route('node.session_result', $node->id);

@@ -51,6 +51,7 @@ interface Props {
         exam_passed?: boolean;
         pass_threshold?: number;
         remediation_count?: number;
+        technical_failures?: number;
     };
     userLevel: string;
     /** La vraie leçon du concept : l'identifiant du nœud n'en est pas un (404). */
@@ -65,7 +66,9 @@ export default function SessionReport({ node, report, userLevel, lessonId }: Pro
     const accuracy = report?.accuracy ?? 0;
     const isExam = report?.is_level_exam ?? false;
     const threshold = report?.pass_threshold ?? (isExam ? 70 : 60);
-    const passed = isExam ? (report?.exam_passed ?? accuracy >= threshold) : accuracy >= threshold;
+    const unavailable = (report?.technical_failures ?? 0) > 0;
+    const hasRemediation = (report?.remediation_count ?? 0) > 0;
+    const passed = !unavailable && (isExam ? (report?.exam_passed ?? accuracy >= threshold) : accuracy >= threshold);
     const details = Array.isArray(report?.details) ? report.details : [];
     const xpEarned = report?.xp_earned ?? 0;
     const timeSpent = report?.time_spent ?? 0;
@@ -92,7 +95,7 @@ export default function SessionReport({ node, report, userLevel, lessonId }: Pro
     return (
         <AppLayout>
             <Head title={`Résultats : ${nodeTitle}`} />
-            {accuracy >= 80 && <ConfettiBurst />}
+            {passed && accuracy >= 80 && <ConfettiBurst />}
 
             <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
                 <motion.div
@@ -121,13 +124,13 @@ export default function SessionReport({ node, report, userLevel, lessonId }: Pro
                                         ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
                                         : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
                                 }`}>
-                                    {isExam ? (passed ? 'Palier validé' : 'Reprises personnalisées') : (passed ? 'Concept maîtrisé' : 'Maîtrise insuffisante')}
+                                    {unavailable ? 'Correction incomplète' : isExam ? (passed ? 'Palier validé' : 'Reprises personnalisées') : (passed ? 'Concept validé' : 'À consolider')}
                                 </span>
                                 <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
                                     {nodeTitle}
                                 </h1>
                                 <p className="text-slate-500 dark:text-slate-400">
-                                    {isExam
+                                    {unavailable ? 'Une partie de la correction est indisponible. Ce problème technique ne compte pas comme une lacune : réessaie pour terminer la validation.' : hasRemediation ? 'Une reprise ciblée t’attend : revois la notion, entraîne-toi, puis valide à nouveau cet objectif.' : isExam
                                         ? passed
                                             ? `Examen validé (≥${threshold} %). Continue ton parcours au niveau ${userLevel}.`
                                             : `Il faut ${threshold} % pour valider ce palier. Revois les notions manquées avec une leçon ciblée et des exercices : l’examen se rouvrira ensuite.`
@@ -267,10 +270,10 @@ export default function SessionReport({ node, report, userLevel, lessonId }: Pro
                         ) : (
                             <>
                                 <Link
-                                    href={isExam ? '/lessons/next' : route('node.start', node.id)}
+                                    href={!unavailable && (isExam || hasRemediation) ? '/lessons/next' : route('node.start', node.id)}
                                     className="w-full sm:w-auto px-8 py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-bold shadow-lg transition-all transform hover:-translate-y-1 text-center"
                                 >
-                                    {isExam ? 'Comprendre mes erreurs →' : `↻ Refaire pour valider (≥${threshold} %)`}
+                                    {unavailable ? 'Réessayer la séance →' : isExam || hasRemediation ? 'Comprendre mes erreurs →' : `↻ Refaire pour valider (≥${threshold} %)`}
                                 </Link>
                                 <Link
                                     href={isExam ? '/dashboard' : lessonId ? `/lessons/${lessonId}` : '/lessons/next'}

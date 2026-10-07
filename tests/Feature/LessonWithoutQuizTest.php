@@ -88,13 +88,13 @@ test('une lecon avec questions reussies compte normalement', function () {
         ->postJson(route('lessons.quiz', $lesson), ['answers' => ['ging', 'war', 'hatte']])
         ->assertOk();
 
-    // Troisième réussite d'affilée à 100 % : le parcours saute la leçon suivante, et
-    // remet la série à zéro. C'est précisément ce qu'une leçon sans questions
-    // déclenchait sans qu'aucune connaissance n'ait été vérifiée.
+    // A streak opens practice, never certifies the following unattempted lessons.
     expect($response->json('accuracy'))->toBe(100)
         ->and($response->json('passed'))->toBeTrue()
-        ->and($response->json('outcome'))->toBe('skip_ahead')
-        ->and($skeleton->fresh()->current_objective_index)->toBeGreaterThan(0);
+        ->and($response->json('outcome'))->toBe('advance')
+        ->and($skeleton->fresh()->current_objective_index)->toBe(1)
+        ->and($skeleton->fresh()->objectives[0]['status'])->toBe('current_practice')
+        ->and($skeleton->fresh()->objectives[2]['status'])->toBe('pending');
 });
 
 test('le quiz d une lecon d un autre apprenant est refuse', function () {
