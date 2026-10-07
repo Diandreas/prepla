@@ -76,7 +76,8 @@ class NextLessonGenerator
         if ($existingLesson && $existingLesson->concept !== ($currentObjective['concept'] ?? null)) {
             $existingLesson = null;
         }
-        if ($existingLesson && $existingLesson->status !== 'draft') {
+        if ($existingLesson && $existingLesson->status !== 'draft'
+            && app(\App\Services\Content\LessonQuizQuality::class)->valid($existingLesson->comprehension_quiz ?? [])) {
             return $existingLesson;
         }
 
@@ -99,6 +100,8 @@ class NextLessonGenerator
             $status = 'draft';
 
             if ($existingLesson) {
+                // Keep the previous explanation intact if regeneration is unavailable.
+                if ($existingLesson->status !== 'draft') return $existingLesson;
                 // L'IA est toujours indisponible : le brouillon reste, mais son texte
                 // d'attente est remis à jour (les plus anciens datent d'avant ce garde-fou).
                 $existingLesson->update([
@@ -238,7 +241,9 @@ class NextLessonGenerator
             if (File::exists($cachePath)) {
                 $cachedJson = File::get($cachePath);
                 $decodedCache = json_decode($cachedJson, true);
-                if ($decodedCache && isset($decodedCache['theory_markdown'])) {
+                if ($decodedCache && isset($decodedCache['theory_markdown'])
+                    && app(\App\Services\Content\LessonQuizQuality::class)->valid($decodedCache['comprehension_quiz'] ?? [])) {
+                    $decodedCache['comprehension_quiz'] = app(\App\Services\Content\LessonQuizQuality::class)->normalize($decodedCache['comprehension_quiz']);
                     return $decodedCache;
                 }
             }
@@ -328,6 +333,8 @@ Generate exactly 4 progressive comprehension quiz questions grounded in this les
 3. type "sentence-order": options [], words contains every word of a short sentence in SHUFFLED order, correct_answer is the full sentence.
 4. type "recall": correct an incorrect sentence using the rule taught, options [], correct_answer is the corrected sentence.
 Every item needs question and a short explanatory correction. For open responses provide accepted_answers for genuinely equivalent variants.
+Always include the explicit type. Never put word tiles in options. A sentence-order question must include its subject and exactly the words required by its answer, with no missing or extra occurrences. Never print JSON markers such as [] in the question. Do not repeat choices inside the question text.
+Explain rules with accurate boundaries, not absolutes. Verify that each model sentence is natural and each correction is grounded in the lesson. For languages without spaces, choose recall rather than inventing whitespace-based word tiles.
 Keep vocabulary and sentence length suitable for the learner's level. Do not give away the answer in the instruction.
 Include 3 to 5 key_vocabulary entries at {$context['level']} level. These MUST appear
 in the lesson examples and support the learning objective, not random dictionary words.
@@ -342,19 +349,21 @@ PROMPT;
             ['role' => 'user', 'content' => $prompt],
         ];
 
-        $response = $this->mistral->chat($messages);
-        if (! $response) {
-            Log::warning('NextLessonGenerator: Mistral returned null for lesson generation');
-
-            return $this->getDefaultLesson($objective, $context);
+        $quality = app(\App\Services\Content\LessonQuizQuality::class);
+        $decoded = null;
+        for ($attempt = 0; $attempt < 2; $attempt++) {
+            $response = $this->mistral->chat($messages);
+            $candidate = $response ? json_decode($response, true) : null;
+            if (is_array($candidate) && ! empty($candidate['theory_markdown'])
+                && is_array($candidate['comprehension_quiz'] ?? null)
+                && $quality->valid($candidate['comprehension_quiz'])) {
+                $candidate['comprehension_quiz'] = $quality->normalize($candidate['comprehension_quiz']);
+                $decoded = $candidate;
+                break;
+            }
+            $messages[] = ['role' => 'user', 'content' => 'The lesson failed structural validation. Rewrite the complete JSON: explicit quiz types, selectable correct MCQ answers, complete sentence word banks and nonempty open answers.'];
         }
-
-        $decoded = json_decode($response, true);
-        if (! $decoded || ! isset($decoded['theory_markdown'])) {
-            Log::warning('NextLessonGenerator: Invalid JSON from Mistral', ['response' => $response]);
-
-            return $this->getDefaultLesson($objective, $context);
-        }
+        if (! $decoded) return $this->getDefaultLesson($objective, $context);
 
         // SAVE CACHE: If this was a standard lesson generation, save it to the static library
         if (! $isConsolidation && ! $hasErrors) {

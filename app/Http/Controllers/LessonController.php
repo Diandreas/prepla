@@ -90,6 +90,10 @@ class LessonController extends Controller
         }
 
         app(\App\Services\Content\IntroductionLesson::class)->strengthen($lesson);
+        $quality = app(\App\Services\Content\LessonQuizQuality::class);
+        $quiz = $lesson->comprehension_quiz ?? [];
+        $lesson->comprehension_quiz = $quality->normalize($quiz);
+        $lesson->setAttribute('quiz_needs_repair', count($quiz) > 0 && ! $quality->valid($quiz));
 
         $skeleton = CurriculumSkeleton::where('user_id', $user->id)->first();
 
@@ -120,6 +124,10 @@ class LessonController extends Controller
             'answers' => 'required|array',
         ]);
 
+        $quality = app(\App\Services\Content\LessonQuizQuality::class);
+        $quiz = $lesson->comprehension_quiz ?? [];
+        abort_if($quiz && ! $quality->valid($quiz), 422, 'Ce quiz doit être corrigé avant de pouvoir être évalué. Ta progression reste inchangée.');
+        $lesson->comprehension_quiz = $quality->normalize($quiz);
         $passed = $lesson->isComprehensionPassed($validated['answers']);
 
         // Calculate quiz results

@@ -149,7 +149,7 @@ class Lesson extends Model
 
         // Already the full text of one of the options.
         foreach ($options as $opt) {
-            if (static::checkAnswerMatch($correct, (string) $opt)) {
+            if (mb_strtolower(trim($correct)) === mb_strtolower(trim((string) $opt))) {
                 return (string) $opt;
             }
         }
@@ -167,13 +167,16 @@ class Lesson extends Model
             return false;
         }
 
-        if (in_array($question['type'] ?? '', ['recall', 'sentence-order'], true)) {
+        if (in_array($question['type'] ?? '', ['recall', 'sentence-order'], true) || empty($question['options'])) {
             $normalize = fn ($value) => preg_replace('/\s+/u', ' ', mb_strtolower(trim(str_replace('’', "'", (string) $value), " \t\n\r\0\x0B.!?")));
             $accepted = array_merge([$question['correct_answer'] ?? ''], $question['accepted_answers'] ?? []);
             return $normalize($userAnswer) !== '' && collect($accepted)->contains(fn ($answer) => $normalize($answer) === $normalize($userAnswer));
         }
 
-        return static::checkAnswerMatch($userAnswer, static::resolveCorrectAnswerText($question));
+        $resolved = static::resolveCorrectAnswerText($question);
+        // Compare complete choices, never merely their first letters.
+        $given = static::resolveCorrectAnswerText(array_merge($question, ['correct_answer' => $userAnswer]));
+        return mb_strtolower(trim($given)) === mb_strtolower(trim($resolved));
     }
 
     /**

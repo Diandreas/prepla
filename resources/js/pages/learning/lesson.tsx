@@ -7,6 +7,7 @@ import { ConfettiBurst } from '@/components/confetti-burst';
 import { playSound } from '@/hooks/use-sound';
 import { LearningScene } from '@/components/learning-scene';
 import { LessonWords, type LessonWord } from '@/components/lesson-words';
+import { BuildASentence } from '@/components/exercises/build-a-sentence';
 
 interface QuizQuestion {
     question: string;
@@ -32,6 +33,7 @@ interface LessonData {
     common_mistakes: CommonMistake[];
     comprehension_quiz: QuizQuestion[];
     status: string;
+    quiz_needs_repair?: boolean;
     generated_at: string;
     based_on_errors: any[];
     node_id?: number | null;
@@ -165,11 +167,11 @@ export default function LessonPage({ lesson, skeleton, lessonWords = [] }: Props
         transition: `all 0.5s cubic-bezier(0.22, 1, 0.36, 1) ${i * 100}ms`,
     });
 
-    const quiz = lesson.comprehension_quiz || [];
+    const quiz = lesson.quiz_needs_repair ? [] : lesson.comprehension_quiz || [];
     const hasQuiz = quiz.length > 0;
     // Brouillon = contenu de secours ecrit pendant une panne du service de generation.
     // On le dit franchement au lieu de laisser croire que la lecon est vide.
-    const isDraft = lesson.status === 'draft';
+    const isDraft = lesson.status === 'draft' || lesson.quiz_needs_repair;
 
     const handleQuizAnswer = useCallback((qIndex: number, answer: string) => {
         setQuizAnswers(prev => ({ ...prev, [qIndex]: answer }));
@@ -447,10 +449,9 @@ export default function LessonPage({ lesson, skeleton, lessonWords = [] }: Props
                     <div style={stagger(2)}>
                         {isDraft && (
                             <div className="duo-card mb-4 p-4 sm:p-5" style={{ background: 'rgba(245,166,35,0.08)', borderTop: `4px solid ${GOLD}` }}>
-                                <p className="text-sm font-black text-amber-700 dark:text-amber-300">Leçon pas encore rédigée</p>
+                                <p className="text-sm font-black text-amber-700 dark:text-amber-300">{lesson.quiz_needs_repair ? 'Quiz en attente de correction' : 'Leçon pas encore rédigée'}</p>
                                 <p className="mt-1 text-sm font-semibold text-muted-foreground">
-                                    Le service qui écrit les cours est momentanément indisponible. Ton parcours n’est pas bloqué :
-                                    relance la génération ci-dessous, ou passe directement aux exercices.
+                                    {lesson.quiz_needs_repair ? 'Ce quiz contient une incohérence et ne sera pas noté. Relance la génération depuis ton parcours ; tes progrès restent conservés.' : 'Le service qui écrit les cours est momentanément indisponible. Relance la génération ci-dessous.'}
                                 </p>
                             </div>
                         )}
@@ -595,8 +596,8 @@ export default function LessonPage({ lesson, skeleton, lessonWords = [] }: Props
                                         <span dangerouslySetInnerHTML={{ __html: inlineMd(q.question) }} />
                                     </p>
                                     <div className="space-y-2">
-                                        {q.type === 'sentence-order' && <p className="mb-3 rounded-lg bg-muted p-3 text-sm">Mots à remettre dans l’ordre : {q.words?.join(' · ')}</p>}
-                                        {(q.options ?? []).length === 0 && <input aria-label={`Réponse à la question ${qIndex + 1}`} autoComplete="off" spellCheck={false} disabled={submittingQuiz} value={quizAnswers[qIndex] ?? ''} onChange={event => handleQuizAnswer(qIndex, event.target.value)} placeholder="Écris ta réponse…" className="min-h-12 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm" />}
+                                        {q.type === 'sentence-order' && <BuildASentence question={{ id: String(qIndex), words: q.words }} selectedAnswer={quizAnswers[qIndex]} disabled={submittingQuiz} onAnswer={(_, answer) => handleQuizAnswer(qIndex, answer)} />}
+                                        {q.type !== 'sentence-order' && (q.options ?? []).length === 0 && <input aria-label={`Réponse à la question ${qIndex + 1}`} autoComplete="off" spellCheck={false} disabled={submittingQuiz} value={quizAnswers[qIndex] ?? ''} onChange={event => handleQuizAnswer(qIndex, event.target.value)} placeholder="Écris ta réponse…" className="min-h-12 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm" />}
                                         {(q.options ?? []).map((opt: string, oIndex: number) => {
                                             const selected = quizAnswers[qIndex] === opt;
                                             return (
