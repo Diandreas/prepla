@@ -30,6 +30,32 @@ function generationFixture(): array
     return [$exam, $type];
 }
 
+test('notes without editable blanks are rejected and regenerated', function () {
+    [$exam, $type] = generationFixture();
+    $type->update(['component_key' => 'note-completion']);
+    $bad = ['id' => 'q1', 'type' => 'note-completion', 'notes' => [['label' => 'Routine', 'value' => 'Sarah wakes up']], 'correct_answers' => ['0' => 'wakes up']];
+    $good = $bad;
+    $good['notes'][0]['value'] = '';
+    $this->mock(MistralService::class, function ($mock) use ($bad, $good) {
+        $mock->shouldReceive('chat')->once()->ordered()->andReturn(mcqPayload([$bad]));
+        $mock->shouldReceive('chat')->once()->ordered()->andReturn(mcqPayload([$good]));
+    });
+    expect(app(ExerciseGeneratorService::class)->generate($type, $exam)->questions[0]['notes'][0]['value'])->toBe('');
+});
+
+test('sentence tiles must match the answer including duplicate counts', function () {
+    [$exam, $type] = generationFixture();
+    $type->update(['component_key' => 'build-a-sentence']);
+    $bad = ['id' => 'q1', 'type' => 'build-a-sentence', 'words' => ['I', 'finish', 'finish', 'early'], 'correct_answer' => 'I finish early.'];
+    $good = $bad;
+    $good['words'] = ['I', 'finish', 'early'];
+    $this->mock(MistralService::class, function ($mock) use ($bad, $good) {
+        $mock->shouldReceive('chat')->once()->ordered()->andReturn(mcqPayload([$bad]));
+        $mock->shouldReceive('chat')->once()->ordered()->andReturn(mcqPayload([$good]));
+    });
+    expect(app(ExerciseGeneratorService::class)->generate($type, $exam)->questions[0]['words'])->toBe($good['words']);
+});
+
 function mcqPayload(array $questions): string
 {
     return json_encode([

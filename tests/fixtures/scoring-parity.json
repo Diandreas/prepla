@@ -2,6 +2,18 @@
     "_comment": "Cas partagés entre la correction serveur (ExerciseScoringService) et la correction côté client (resources/js/lib/scoring.js), utilisée par le joueur de parcours et l'espace hors ligne. Toute règle ajoutée d'un côté doit l'être de l'autre. Chaque question porte une explication pour que le serveur n'appelle jamais l'IA pendant le test.",
     "cases": [
         {
+            "name": "Phrase construite : ponctuation finale non fournie",
+            "question": {"id": "sentence1", "type": "build-a-sentence", "correct_answer": "I usually go to the gym three times a week."},
+            "answer": "I usually go to the gym three times a week",
+            "correct": true
+        },
+        {
+            "name": "Phrase construite : article manquant reste une erreur",
+            "question": {"id": "sentence2", "type": "build-a-sentence", "correct_answer": "I usually go to the gym three times a week."},
+            "answer": "I usually go to gym three times a week",
+            "correct": false
+        },
+        {
             "name": "QCM : lettre attendue",
             "question": {
                 "id": "q1",

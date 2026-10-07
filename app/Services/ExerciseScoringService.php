@@ -434,6 +434,12 @@ class ExerciseScoringService
                 }
                 $normalUser = $this->normalizeForComparison((string)$userAnswer);
                 $normalCorrect = $this->normalizeForComparison((string)$correctAnswer);
+                // Word tiles need not contain final punctuation; missing words still fail.
+                if (($question['type'] ?? '') === 'build-a-sentence') {
+                    $normalizeSentence = fn ($text) => preg_replace('/\s+/u', ' ', trim(preg_replace('/[.!?]+$/u', '', $text)));
+                    $normalUser = $normalizeSentence($normalUser);
+                    $normalCorrect = $normalizeSentence($normalCorrect);
+                }
                 // An empty user answer is NEVER correct, even if the expected answer
                 // is also empty/missing (malformed exercise). This stopped multi-field
                 // exercises like form-completion from showing "success" with nothing entered.

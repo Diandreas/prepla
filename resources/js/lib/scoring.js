@@ -214,8 +214,11 @@ function scoreExact(question, answer) {
         given = givenValues.join(' ');
     }
 
-    const givenValue = normalizeAnswer(given);
-    const expectedValue = normalizeAnswer(expected);
+    const normalize = question.type === 'build-a-sentence'
+        ? (value) => normalizeAnswer(value).replace(/[.!?]+$/u, '').trim().replace(/\s+/g, ' ')
+        : normalizeAnswer;
+    const givenValue = normalize(given);
+    const expectedValue = normalize(expected);
     // An empty answer is never correct, even when the exercise expects nothing.
     let correct = givenValue !== '' && givenValue === expectedValue;
 

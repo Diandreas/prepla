@@ -225,6 +225,22 @@ class ExerciseGeneratorService
                 return false;
             }
             $text = mb_strtolower(trim((string) ($q['text'] ?? '')));
+            if ($componentKey === 'build-a-sentence') {
+                $words = $q['words'] ?? null;
+                if (! is_array($words) || count($words) < 2 || ! is_string($q['correct_answer'] ?? null)) {
+                    return false;
+                }
+                // Every token, including duplicates, must be usable exactly once.
+                $normalize = fn ($value) => trim(preg_replace('/[.!?]+$/u', '', mb_strtolower(trim($value))));
+                foreach ($words as $word) {
+                    if (! is_string($word) || trim($word) === '') return false;
+                }
+                $tokens = preg_split('/\s+/u', $normalize(implode(' ', $words)), -1, PREG_SPLIT_NO_EMPTY);
+                $expected = preg_split('/\s+/u', $normalize($q['correct_answer']), -1, PREG_SPLIT_NO_EMPTY);
+                sort($tokens);
+                sort($expected);
+                if ($tokens !== $expected) return false;
+            }
             foreach (self::SENTINEL_TEXTS as $sentinel) {
                 if ($text !== '' && str_contains($text, $sentinel)) {
                     return false;
@@ -352,7 +368,7 @@ class ExerciseGeneratorService
                     }
                     $blanks = array_keys(array_filter($q['notes'] ?? [], fn ($n) => ($n['value'] ?? null) === ''));
 
-                    return $this->multiFieldAnswersMatchBlanks($ca, $blanks);
+                    return count($blanks) > 0 && $this->multiFieldAnswersMatchBlanks($ca, $blanks);
 
                 case 'form-completion':
                     if ($this->hasFakeBlankMarker($q['fields'] ?? [])) {
@@ -360,7 +376,7 @@ class ExerciseGeneratorService
                     }
                     $blanks = array_keys(array_filter($q['fields'] ?? [], fn ($f) => ($f['value'] ?? null) === ''));
 
-                    return $this->multiFieldAnswersMatchBlanks($ca, $blanks);
+                    return count($blanks) > 0 && $this->multiFieldAnswersMatchBlanks($ca, $blanks);
 
                 case 'flow-chart-completion':
                     $blanks = array_keys(array_filter($q['steps'] ?? [], fn ($s) => ! empty($s['is_blank'])));

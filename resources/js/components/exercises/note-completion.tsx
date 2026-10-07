@@ -16,7 +16,7 @@ interface NoteCompletionProps {
         text?: string;
         correct_answers?: Record<string, string>;
     };
-    onAnswer: (questionId: string, answer: Record<string, string>) => void;
+    onAnswer: (questionId: string, answer: Record<string, string> | string) => void;
     selectedAnswer?: Record<string, string>;
     disabled?: boolean;
 }
@@ -57,6 +57,7 @@ export function NoteCompletion({ question, onAnswer, selectedAnswer, disabled }:
             {blankAbsIndices.length === 0 ? (
                 <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
                     Ces notes n'ont aucun champ à compléter.
+                    {!disabled && <button type="button" className="mt-2 block rounded-lg bg-primary px-3 py-2 text-primary-foreground" onClick={() => onAnswer(question.id, '__skipped__')}>Signaler et passer sans pénalité</button>}
                 </div>
             ) : (
                 <div className="rounded-xl border bg-muted/30 p-4 space-y-2">
@@ -69,13 +70,14 @@ export function NoteCompletion({ question, onAnswer, selectedAnswer, disabled }:
                             );
                         }
                         return (
-                            <div key={i} className="flex items-center gap-2">
-                                <span className="text-sm font-medium min-w-[120px]">{note.label}:</span>
+                            <div key={i} className="flex flex-col gap-2 py-2">
+                                <label htmlFor={`note-${question.id}-${i}`} className="text-sm font-medium">{note.label}</label>
                                 <input
+                                    id={`note-${question.id}-${i}`}
                                     type="text"
                                     value={values[String(i)] ?? ''}
                                     onChange={(e) => setValue(String(i), e.target.value)}
-                                    className="flex-1 rounded border border-border bg-background px-3 py-1.5 text-sm focus:border-primary focus:outline-none disabled:opacity-50"
+                                    className="w-full min-w-0 rounded border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none disabled:opacity-50"
                                     disabled={disabled}
                                     placeholder="À compléter…"
                                 />
