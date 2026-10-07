@@ -39,6 +39,10 @@ class PersonalLexiconService
 
     public function word(string $text, string $language, array $data): DictionaryWord
     {
+        // Legacy words have no assessed CEFR level; let the schema default apply.
+        if (! isset($data['skill_level']) || trim((string) $data['skill_level']) === '') {
+            unset($data['skill_level']);
+        }
         return DictionaryWord::where('language', $language)->whereRaw('LOWER(word) = ?', [mb_strtolower(trim($text))])->first()
             ?? DictionaryWord::create(['word' => trim($text), 'language' => $language] + $data);
     }
