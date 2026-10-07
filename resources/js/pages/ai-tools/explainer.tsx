@@ -13,11 +13,13 @@ interface Message {
     content: string;
 }
 
-const STORAGE_KEY = 'prepla-explainer-chat';
-const GREETING: Message = {
-    role: 'assistant',
-    content: 'Bonjour ! Je suis ton tuteur linguistique IA. Pose-moi n\'importe quelle question sur la grammaire, le vocabulaire, les stratégies d\'examen ou l\'apprentissage des langues. Comment puis-je t\'aider aujourd\'hui ?',
-};
+interface TutorContext {
+    userId: number;
+    examId: number | null;
+    practiceLanguage: string | null;
+    explanationLanguage: string;
+    level: string | null;
+}
 
 const STARTERS = [
     'Explique-moi une règle de grammaire avec des exemples.',
@@ -25,14 +27,25 @@ const STARTERS = [
     'Comment structurer une réponse à l’oral ?',
 ];
 
-export default function Explainer() {
+export default function Explainer({ tutorContext }: { tutorContext: TutorContext }) {
+    return <Tutor key={`${tutorContext.userId}:${tutorContext.examId}:${tutorContext.explanationLanguage}:${tutorContext.level}`} tutorContext={tutorContext} />;
+}
+
+function Tutor({ tutorContext }: { tutorContext: TutorContext }) {
+    const STORAGE_KEY = `prepla-tutor-v2:${tutorContext.userId}:${tutorContext.examId ?? 'none'}:${tutorContext.explanationLanguage}`;
+    const GREETING: Message = {
+        role: 'assistant',
+        content: tutorContext.practiceLanguage
+            ? `Je t’aide à pratiquer : **${tutorContext.practiceLanguage}**${tutorContext.level ? ` · niveau **${tutorContext.level}**` : ''}. Mes explications suivent ta langue de profil : **${tutorContext.explanationLanguage}**. Quelle notion veux-tu travailler ?`
+            : 'Quelle langue souhaites-tu pratiquer ? Choisis ton objectif dans ton profil pour que je puisse adapter mes réponses.',
+    };
     // Persist the conversation so it survives reloads/navigation.
     const [messages, setMessages] = useState<Message[]>(() => {
         try {
             const saved = localStorage.getItem(STORAGE_KEY);
             if (saved) {
                 const parsed = JSON.parse(saved);
-                if (Array.isArray(parsed) && parsed.length) return parsed;
+                if (Array.isArray(parsed) && parsed.length) return [GREETING, ...parsed.slice(1).filter((message: Message) => ['user', 'assistant'].includes(message?.role) && typeof message?.content === 'string')];
             }
         } catch { /* ignore */ }
         return [GREETING];
@@ -46,7 +59,7 @@ export default function Explainer() {
     // Save on every change.
     useEffect(() => {
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(messages)); } catch { /* ignore */ }
-    }, [messages]);
+    }, [messages, STORAGE_KEY]);
 
     // Auto-scroll to the latest message.
     useEffect(() => {
@@ -106,7 +119,7 @@ export default function Explainer() {
                         </Link>
                         <div>
                             <h1 className="text-base font-bold text-foreground sm:text-lg">Ton tuteur, à ton rythme</h1>
-                            <p className="mt-0.5 text-xs text-muted-foreground">Une question est un bon début.</p>
+                            <p className="mt-0.5 text-xs text-muted-foreground">{tutorContext.practiceLanguage ?? 'Langue à choisir'}{tutorContext.level ? ` · ${tutorContext.level}` : ''} · Explications : {tutorContext.explanationLanguage}</p>
                         </div>
                     </div>
                     {messages.length > 1 && (
