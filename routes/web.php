@@ -166,6 +166,8 @@ Route::middleware(['auth'])->group(function () {
             Route::post('ai-tools/writing-corrector', [AiToolsController::class, 'submitWriting'])->name('ai-tools.writing-corrector.store');
             Route::post('ai-tools/writing-corrector/extract', [AiToolsController::class, 'extractWritingImage'])->name('ai-tools.writing-corrector.extract');
             Route::post('ai-tools/explainer/ask', [AiToolsController::class, 'askExplainer'])->name('ai-tools.explainer.ask');
+            Route::post('ai-tools/explainer/transcribe', [AiToolsController::class, 'transcribeTutor'])->name('ai-tools.explainer.transcribe');
+            Route::post('ai-tools/explainer/image', [AiToolsController::class, 'extractWritingImage'])->name('ai-tools.explainer.image');
         });
 
         // AI Tools — pages d'affichage (pas d'appel IA au chargement)

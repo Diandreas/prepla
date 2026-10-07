@@ -51,10 +51,11 @@ class DeepgramSttService
 
             $queryString = http_build_query($queryParams);
 
+            $mime = $file->getMimeType() ?: 'application/octet-stream';
             $response = Http::withHeaders([
                 'Authorization' => "Token {$apiKey}",
-                'Content-Type' => 'audio/webm',
-            ])->timeout(30)->withBody($audio, 'audio/webm')
+                'Content-Type' => $mime,
+            ])->timeout(30)->withBody($audio, $mime)
               ->post("https://api.deepgram.com/v1/listen?{$queryString}");
 
             if ($response->successful()) {

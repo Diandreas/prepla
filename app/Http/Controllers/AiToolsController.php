@@ -142,6 +142,16 @@ class AiToolsController extends Controller
         return response()->json(['reply' => $response]);
     }
 
+    public function transcribeTutor(Request $request, \App\Services\AI\DeepgramSttService $stt)
+    {
+        $request->validate(['audio' => 'required|file|mimes:mp3,wav,webm,ogg,m4a,mp4,mpga|max:10240']);
+        // The learner may explain a problem in their native OR target language.
+        $text = $stt->transcribe($request->file('audio'), null);
+        if ($text === null) return response()->json(['error' => 'La transcription est indisponible. Réessaie ou écris ta question.'], 503);
+        if (trim($text) === '') return response()->json(['error' => 'Aucune parole reconnue. Rapproche-toi du micro et réessaie.'], 422);
+        return response()->json(['text' => $text]);
+    }
+
     public function recommendations(): Response
     {
         $profile = auth()->user()->profile?->load('targetExam.language');

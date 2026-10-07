@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Markdown } from '@/components/markdown';
 import { useState, useEffect, useRef } from 'react';
+import { TutorInputTools } from '@/components/tutor-input-tools';
 
 interface Message {
     role: 'user' | 'assistant';
@@ -52,6 +53,7 @@ function Tutor({ tutorContext }: { tutorContext: TutorContext }) {
     });
     const [input, setInput] = useState('');
     const [sending, setSending] = useState(false);
+    const [mediaBusy, setMediaBusy] = useState(false);
     const [sendError, setSendError] = useState<string | null>(null);
     const endRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -78,7 +80,7 @@ function Tutor({ tutorContext }: { tutorContext: TutorContext }) {
     }
 
     async function handleSend() {
-        if (!input.trim() || sending) return;
+        if (!input.trim() || sending || mediaBusy) return;
         const question = input.trim();
         const userMessage: Message = { role: 'user', content: question };
         const newMessages = [...messages, userMessage];
@@ -187,6 +189,7 @@ function Tutor({ tutorContext }: { tutorContext: TutorContext }) {
 
                         {/* Input */}
                         <div className="shrink-0 border-t border-border bg-card p-3 sm:p-4">
+                            <TutorInputTools disabled={sending} onBusy={setMediaBusy} onText={text => { setInput(previous => previous.trim() ? `${previous}\n\n${text}` : text); inputRef.current?.focus(); }} />
                             {sendError && <p role="alert" className="mb-3 rounded-xl bg-rose-50 p-3 text-xs leading-relaxed text-rose-800 dark:bg-rose-950/40 dark:text-rose-200">{sendError}</p>}
                             <form className="flex items-end gap-2" onSubmit={(event) => { event.preventDefault(); void handleSend(); }}>
                                 <textarea
@@ -205,7 +208,7 @@ function Tutor({ tutorContext }: { tutorContext: TutorContext }) {
                                         }
                                     }}
                                 />
-                                <Button type="submit" size="icon" aria-label="Envoyer ma question" className="mb-1 h-11 w-11 shrink-0 rounded-xl bg-[#1a2b48] text-white hover:bg-[#2a4165] dark:bg-blue-800 dark:hover:bg-blue-700" disabled={!input.trim() || sending}>
+                                <Button type="submit" size="icon" aria-label="Envoyer ma question" className="mb-1 h-11 w-11 shrink-0 rounded-xl bg-[#1a2b48] text-white hover:bg-[#2a4165] dark:bg-blue-800 dark:hover:bg-blue-700" disabled={!input.trim() || sending || mediaBusy}>
                                     <Send className="h-4 w-4" aria-hidden="true" />
                                 </Button>
                             </form>
