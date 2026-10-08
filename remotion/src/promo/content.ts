@@ -164,8 +164,8 @@ export const DE: PromoContent = {
         headline: ['Choisis ton', '*certificat*'],
         pickLang: 2,
         exams: [
-            { label: 'Goethe-Zertifikat', w: 470 },
-            { label: 'TestDaF', w: 290 },
+            { label: 'Goethe-Zertifikat', w: 540 },
+            { label: 'TestDaF', w: 280 },
         ],
         levels: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'],
         pickLevel: 2,

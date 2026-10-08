@@ -8,19 +8,23 @@ import { C, EASE, FONT, SPRING, sp, tw } from '../../theme';
 import { PHASE_B, PhaseB } from '../S7AI';
 
 // Correction IA, version allemande (34–42 s) : « …, weil ich will in Deutschland studieren. »
-// L'IA repère le verbe mal placé et le fait glisser en fin de phrase : après « weil », le
-// verbe conjugué va à la fin. Puis la phase partagée « 30+ formats d'exercices ».
+// L'IA repère le verbe mal placé et le fait passer sous la phrase jusqu'à sa vraie place : après
+// « weil », le verbe conjugué va à la fin. Puis la phase partagée « 30+ formats d'exercices ».
 
 const SIZE = 50;
 const LINE_H = 76;
 const SPACE = textWidth(' ', 'jakarta600', SIZE);
-const TYPE = { start: 14, end: 56 };
-const SCAN = { start: 60, dur: 16 };
-const MARK = 78;
-const MOVE = { start: 86, dur: 18 };
-const LAND = MOVE.start + MOVE.dur;
-const EXPLAIN = 110;
-const XP = 124;
+const TYPE = { start: 12, end: 48 };
+const SCAN = { start: 50, dur: 14 };
+const MARK = 66;
+// Le verbe plonge sous la ligne, glisse jusqu'au bout pendant que les autres mots resserrent, puis remonte.
+const DIP = { start: 72, dur: 8 };
+const TRAVEL = { start: 76, dur: 16 };
+const RISE = { start: 90, dur: 8 };
+const DROP = 58;
+const LAND = 96;
+const EXPLAIN = 100;
+const XP = 118;
 
 const LINE1 = ['Ich', 'lerne', 'Deutsch,', 'weil', 'ich'];
 // Ligne 2 : ordre fautif puis ordre corrigé ; le point suit toujours le dernier mot.
@@ -67,23 +71,24 @@ const PhaseA: React.FC<{ frame: number }> = ({ frame }) => {
     const scan = tw(frame, SCAN.start, SCAN.dur, 0, 1, EASE.inOutSoft);
     const scanning = frame >= SCAN.start && frame < SCAN.start + SCAN.dur + 2;
     const mark = tw(frame, MARK, 8);
-    const move = tw(frame, MOVE.start, MOVE.dur, 0, 1, EASE.inOutSoft);
-    const others = tw(frame, MOVE.start + 3, MOVE.dur - 2, 0, 1, EASE.inOutSoft);
+    const travel = tw(frame, TRAVEL.start, TRAVEL.dur, 0, 1, EASE.inOutSoft);
+    const lift = tw(frame, DIP.start, DIP.dur, 0, 1, EASE.out) - tw(frame, RISE.start, RISE.dur, 0, 1, EASE.inOutSoft);
+    const others = tw(frame, TRAVEL.start + 2, TRAVEL.dur - 2, 0, 1, EASE.inOutSoft);
     const landed = frame >= LAND;
     const land = sp(frame, LAND, SPRING.bouncy);
     const weil = tw(frame, EXPLAIN - 4, 10);
     const explain = sp(frame, EXPLAIN, SPRING.soft);
     const xp = sp(frame, XP, SPRING.bouncy);
-    const arrow = Math.min(tw(frame, MARK + 2, 8), 1 - tw(frame, LAND + 6, 10));
+    const arrow = Math.min(tw(frame, MARK + 2, 8), 1 - tw(frame, TRAVEL.start + 4, 10));
 
     const visible = (index: number) => {
         const t = TYPED_ORDER[index];
         return t.word.slice(0, Math.max(0, Math.min(t.word.length, typed - START_INDEX[index])));
     };
 
-    // Position du verbe : arc de sa place fautive jusqu'à la fin de la phrase.
-    const willX = interpolate(move, [0, 1], [BEFORE.xs.will, AFTER.xs.will]);
-    const willY = -Math.sin(move * Math.PI) * 78;
+    // Position du verbe : sous la ligne, de sa place fautive jusqu'à la fin de la phrase.
+    const willX = interpolate(travel, [0, 1], [BEFORE.xs.will, AFTER.xs.will]);
+    const willY = lift * DROP;
     const dotX = interpolate(others, [0, 1], [BEFORE.end, AFTER.end]);
 
     const status = landed
@@ -138,7 +143,7 @@ const PhaseA: React.FC<{ frame: number }> = ({ frame }) => {
                         style={{
                             position: 'relative',
                             marginTop: 30,
-                            height: LINE_H * 2 + 64,
+                            height: LINE_H * 2 + 84,
                             borderRadius: 28,
                             background: C.paperSoft,
                             border: `2.5px solid ${C.paperLine}`,
@@ -187,17 +192,17 @@ const PhaseA: React.FC<{ frame: number }> = ({ frame }) => {
                             ))}
                             <span style={{ position: 'absolute', left: dotX, top: LINE_H, lineHeight: `${LINE_H}px` }}>{visible(TYPED_ORDER.length - 1)}</span>
 
-                            {/* Flèche qui annonce le déplacement */}
-                            <svg width={800} height={200} style={{ position: 'absolute', left: 0, top: LINE_H - 140, overflow: 'visible', opacity: arrow }}>
+                            {/* Flèche (sous la phrase) qui annonce le déplacement */}
+                            <svg width={800} height={120} style={{ position: 'absolute', left: 0, top: LINE_H * 2 - 14, overflow: 'visible', opacity: arrow }}>
                                 <path
-                                    d={`M ${BEFORE.xs.will + w('will') / 2} 150 C ${BEFORE.xs.will + 120} 40, ${AFTER.xs.will - 60} 40, ${AFTER.xs.will + w('will') / 2} 136`}
+                                    d={`M ${BEFORE.xs.will + w('will') / 2} 6 C ${BEFORE.xs.will + 150} 62, ${AFTER.xs.will - 110} 62, ${AFTER.xs.will + w('will') / 2} 10`}
                                     fill="none"
                                     stroke={C.sky}
                                     strokeWidth={5}
                                     strokeDasharray="4 12"
                                     strokeLinecap="round"
                                 />
-                                <path d={`M ${AFTER.xs.will + w('will') / 2 - 14} 122 L ${AFTER.xs.will + w('will') / 2} 140 L ${AFTER.xs.will + w('will') / 2 + 16} 124`} fill="none" stroke={C.sky} strokeWidth={5} strokeLinecap="round" strokeLinejoin="round" />
+                                <path d={`M ${AFTER.xs.will + w('will') / 2 - 16} 26 L ${AFTER.xs.will + w('will') / 2} 8 L ${AFTER.xs.will + w('will') / 2 + 14} 28`} fill="none" stroke={C.sky} strokeWidth={5} strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
 
                             {/* Le verbe conjugué */}
@@ -220,7 +225,7 @@ const PhaseA: React.FC<{ frame: number }> = ({ frame }) => {
                                         bottom: '10%',
                                         borderRadius: 12,
                                         background: landed ? `rgba(34,197,94,${0.18 * land})` : `rgba(239,68,68,${0.18 * mark})`,
-                                        boxShadow: move > 0 && !landed ? '0 14px 30px -8px rgba(19,35,63,0.35)' : undefined,
+                                        boxShadow: lift > 0 && !landed ? '0 14px 30px -8px rgba(19,35,63,0.35)' : undefined,
                                     }}
                                 />
                                 <span
@@ -229,7 +234,7 @@ const PhaseA: React.FC<{ frame: number }> = ({ frame }) => {
                                         display: 'inline-block',
                                         color: landed ? '#138a3e' : mark > 0.5 ? '#c42b2b' : C.ink,
                                         fontWeight: landed || mark > 0.5 ? 800 : 600,
-                                        transform: `scale(${landed ? 0.85 + 0.15 * land : 1 + 0.08 * Math.sin(move * Math.PI)})`,
+                                        transform: `scale(${landed ? 0.85 + 0.15 * land : 1 + 0.08 * lift})`,
                                     }}
                                 >
                                     {visible(LINE1.length)}
@@ -273,6 +278,12 @@ const PhaseA: React.FC<{ frame: number }> = ({ frame }) => {
                     </div>
                 </Card>
 
+                {/* L'étoile de l'app jaillit derrière le badge, qui reste lisible */}
+                {frame >= XP && frame < XP + 40 ? (
+                    <div style={{ position: 'absolute', right: -70, top: -130, opacity: 1 - tw(frame, XP + 26, 12) }}>
+                        <AppGif name="star" width={200} height={200} />
+                    </div>
+                ) : null}
                 <div
                     style={{
                         position: 'absolute',
@@ -295,11 +306,6 @@ const PhaseA: React.FC<{ frame: number }> = ({ frame }) => {
                     <AppIcon name="zap" size={58} tone="amber" shadow={false} />
                     +15 XP
                 </div>
-                {frame >= XP && frame < XP + 40 ? (
-                    <div style={{ position: 'absolute', right: -70, top: -130, opacity: 1 - tw(frame, XP + 26, 12) }}>
-                        <AppGif name="star" width={200} height={200} />
-                    </div>
-                ) : null}
             </div>
         </>
     );

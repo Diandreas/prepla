@@ -182,7 +182,7 @@ export const DeHook: React.FC = () => {
 
             {/* Tu hésites encore ? */}
             <div style={{ position: 'absolute', top: 1090, left: 0, right: 0 }}>
-                <KineticText lines={['Tu *hésites*', 'encore ?']} start={34} size={112} stagger={4} exit={100} wobbleAccent={4} />
+                <KineticText lines={['Tu *hésites*', 'encore ?']} start={34} size={112} stagger={4} exit={94} wobbleAccent={4} />
             </div>
         </AbsoluteFill>
     );

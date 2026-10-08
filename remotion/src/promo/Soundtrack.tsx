@@ -5,7 +5,7 @@ import { SCENES, TOTAL_FRAMES } from './theme';
 // Bande-son : la musique (scripts/compose-promo-music.py) + les bruitages, placés à l'image près
 // sur les animations. Les sons d'interface (click, pop, correct…) sont ceux de l'application.
 
-type Sfx = 'click' | 'pop' | 'correct' | 'incorrect' | 'xp' | 'complete' | 'whoosh' | 'swoosh' | 'key-0' | 'key-1' | 'key-2';
+export type Sfx = 'click' | 'pop' | 'correct' | 'incorrect' | 'xp' | 'complete' | 'whoosh' | 'swoosh' | 'key-0' | 'key-1' | 'key-2';
 
 const FILES: Record<Sfx, string> = {
     click: 'promo/sfx/click.mp3',
@@ -35,10 +35,10 @@ const LENGTH: Record<Sfx, number> = {
     'key-2': 3,
 };
 
-type Cue = [frame: number, sfx: Sfx, volume: number];
+export type Cue = [frame: number, sfx: Sfx, volume: number];
 
-const key = (i: number): Sfx => (['key-0', 'key-1', 'key-2'] as const)[i % 3];
-const range = (from: number, to: number, step: number) => {
+export const key = (i: number): Sfx => (['key-0', 'key-1', 'key-2'] as const)[i % 3];
+export const range = (from: number, to: number, step: number) => {
     const out: number[] = [];
     for (let f = from; f <= to; f += step) out.push(Math.round(f));
     return out;
@@ -46,7 +46,7 @@ const range = (from: number, to: number, step: number) => {
 
 const { hook, chaos, logo, exam, diag, path, ai, sim, progress, cta } = SCENES;
 
-const CUES: Cue[] = [
+export const FR_CUES: Cue[] = [
     // 1 · Accroche : la machine à sous des examens
     [hook.from + 6, 'click', 0.45],
     ...[8, 13, 18, 23, 28, 33, 39, 46, 54, 64].map((f, i): Cue => [hook.from + f, key(i), 0.5]),
@@ -126,11 +126,15 @@ const CUES: Cue[] = [
     [cta.from + 192, 'xp', 0.38],
 ];
 
-export const Soundtrack: React.FC<{ withMusic?: boolean }> = ({ withMusic = true }) => {
+export const Soundtrack: React.FC<{ withMusic?: boolean; music?: string; cues?: Cue[] }> = ({
+    withMusic = true,
+    music = 'promo/music.mp3',
+    cues = FR_CUES,
+}) => {
     return (
         <>
-            {withMusic ? <Audio src={staticFile('promo/music.mp3')} volume={0.9} /> : null}
-            {CUES.map(([frame, sfx, volume], i) => (
+            {withMusic ? <Audio src={staticFile(music)} volume={0.9} /> : null}
+            {cues.map(([frame, sfx, volume], i) => (
                 <Sequence key={i} from={frame} durationInFrames={Math.min(LENGTH[sfx], TOTAL_FRAMES - frame)} layout="none" name={`sfx ${sfx}`}>
                     <Audio src={staticFile(FILES[sfx])} volume={volume} />
                 </Sequence>

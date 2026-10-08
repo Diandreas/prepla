@@ -22,7 +22,7 @@ const EXAM_GAP = 26;
 // Deux mises en page : sans rangée de niveaux (examens à score) ou avec (Goethe A1 → C2).
 const LAYOUT = {
     plain: { cardTop: 720, cardH: 300, examTop: 1090, levelTop: 0, goalTop: 1250, statTop: 1500, tapExam: 86, tapLevel: 0, goalAt: 100, statAt: 118 },
-    levels: { cardTop: 690, cardH: 270, examTop: 1000, levelTop: 1146, goalTop: 1286, statTop: 1494, tapExam: 78, tapLevel: 102, goalAt: 112, statAt: 126 },
+    levels: { cardTop: 712, cardH: 270, examTop: 1022, levelTop: 1168, goalTop: 1308, statTop: 1516, tapExam: 78, tapLevel: 102, goalAt: 112, statAt: 126 },
 };
 const LEVEL_W = 118;
 const LEVEL_GAP = 18;

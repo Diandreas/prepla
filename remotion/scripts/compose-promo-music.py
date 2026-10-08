@@ -11,9 +11,13 @@ Tout est synthétisé ici (aucun échantillon externe, donc aucun problème de d
 
 Usage : python3 scripts/compose-promo-music.py   (depuis remotion/, nécessite numpy, scipy, ffmpeg)
 Sorties : public/promo/music.mp3 et public/promo/sfx/*.wav
+
+Variante de la version allemande (même partition, un ton plus haut, en ré majeur) :
+    python3 scripts/compose-promo-music.py --transpose 2 --out music-de.mp3 --no-sfx
 """
 from __future__ import annotations
 
+import argparse
 import json
 import shutil
 import subprocess
@@ -37,6 +41,7 @@ SFX_DIR = OUT_DIR / 'sfx'
 APP_SOUNDS = ROOT.parent / 'public' / 'sounds'
 
 rng = np.random.default_rng(20261008)
+TRANSPOSE = 0  # demi-tons ajoutés à toutes les notes (--transpose)
 
 
 # ---------------------------------------------------------------- outils
@@ -48,7 +53,7 @@ def at(bar: float, beat: float = 0.0) -> float:
 
 
 def hz(midi: float) -> float:
-    return 440.0 * 2 ** ((midi - 69) / 12)
+    return 440.0 * 2 ** ((midi + TRANSPOSE - 69) / 12)
 
 
 def tt(dur: float) -> np.ndarray:
@@ -484,12 +489,22 @@ def loudnorm_linear(src: Path, dst: Path, target: float = -16.0, peak: float = -
 
 
 def main():
+    global TRANSPOSE
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument('--transpose', type=int, default=0, help='transposition en demi-tons (version allemande : 2)')
+    parser.add_argument('--out', default='music.mp3', help='nom du fichier produit dans public/promo/')
+    parser.add_argument('--no-sfx', action='store_true', help='ne pas régénérer les bruitages')
+    args = parser.parse_args()
+    TRANSPOSE = args.transpose
+
     if not shutil.which('ffmpeg'):
         sys.exit('ffmpeg est requis.')
     tmp = ROOT / 'out' / 'music.wav'
     write_wav(tmp, compose())
-    loudnorm_linear(tmp, OUT_DIR / 'music.mp3')
-    print(f'Musique : {OUT_DIR / "music.mp3"}')
+    loudnorm_linear(tmp, OUT_DIR / args.out)
+    print(f'Musique : {OUT_DIR / args.out}')
+    if args.no_sfx:
+        return
 
     write_wav(SFX_DIR / 'whoosh.wav', whoosh(0.6, 400, 4800) * 0.8)
     write_wav(SFX_DIR / 'swoosh.wav', whoosh(0.32, 900, 7000) * 0.7)

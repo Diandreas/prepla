@@ -4,6 +4,7 @@ import { getAudioDurationInSeconds } from '@remotion/media-utils';
 import { QuizCard, type Episode } from './QuizCard';
 import ieltsEpisode from './data/would-you-pass-ielts-001.json';
 import { PreplaPromo } from './promo/PreplaPromo';
+import { PreplaPromoDE } from './promo/PreplaPromoDE';
 import { FPS as PROMO_FPS, H as PROMO_H, TOTAL_FRAMES as PROMO_FRAMES, W as PROMO_W } from './promo/theme';
 
 const FPS = 30;
@@ -27,6 +28,14 @@ export const RemotionRoot: React.FC = () => {
             <Composition
                 id="PreplaPromo"
                 component={PreplaPromo}
+                fps={PROMO_FPS}
+                width={PROMO_W}
+                height={PROMO_H}
+                durationInFrames={PROMO_FRAMES}
+            />
+            <Composition
+                id="PreplaPromoDE"
+                component={PreplaPromoDE}
                 fps={PROMO_FPS}
                 width={PROMO_W}
                 height={PROMO_H}
