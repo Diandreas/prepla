@@ -1,12 +1,36 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head, router } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
-import { isAnswerCorrect } from '@/lib/scoring';
+import { isAnswerCorrect, normalizeAnswer } from '@/lib/scoring';
 import { BlankSentence } from '@/components/blank-sentence';
 
 function Icon({ name, size = 20, className, style }: { name: string; size?: number; className?: string; style?: React.CSSProperties }) {
     return <img src={`/icons/${name}.png`} alt="" width={size} height={size} className={className} style={{ objectFit: 'contain', ...style }} />;
+}
+
+/**
+ * Une erreur est enregistree avec sa reponse attendue EN CLAIR : « C) Am Sonntag »
+ * pour un QCM. La comparaison accepte donc la chaine complete, la meme sans son
+ * prefixe de lettre, et la lettre seule — les erreurs deja en base gardent la
+ * lettre nue, il faut continuer a crediter celui qui la tape.
+ *
+ * Elle passe aussi par normalizeAnswer : une apostrophe de clavier mobile (’) etait
+ * comptee fausse alors que la correction de seance, elle, l'accepte depuis toujours.
+ */
+export function recallEstJuste(saisie: string, attendu: string | null | undefined): boolean {
+    const voulu = (attendu ?? '').trim();
+    const donne = normalizeAnswer(saisie);
+    if (donne === '' || voulu === '') return false;
+
+    const formes = new Set([normalizeAnswer(voulu)]);
+    const prefixe = voulu.match(/^([A-Za-z])\)\s*(.+)$/);
+    if (prefixe) {
+        formes.add(normalizeAnswer(prefixe[2]));
+        formes.add(normalizeAnswer(prefixe[1]));
+    }
+
+    return formes.has(donne);
 }
 
 interface UserError {
@@ -109,7 +133,7 @@ export default function ErrorsPractice({ errors }: Props) {
         const ans = (typed[error.id] ?? '').trim();
         if (!ans) return;
         setLoading(error.id);
-        const ok = ans.toLowerCase() === (error.correct_answer ?? '').trim().toLowerCase();
+        const ok = recallEstJuste(ans, error.correct_answer);
         setWasCorrect(prev => ({ ...prev, [error.id]: ok }));
         setRevealed(prev => ({ ...prev, [error.id]: true }));
         try {
@@ -170,15 +194,45 @@ export default function ErrorsPractice({ errors }: Props) {
 
                         <div className="p-5 space-y-4">
                             {/* L'enonce n'est affiche seul qu'une fois la solution vue :
-                                pendant le rappel, c'est la phrase a trou qui le porte. */}
-                            {error.prompt && revealed[error.id] && (
+                                pendant le rappel, c'est la phrase a trou qui le porte.
+                                Sauf pour une redaction sans reponse attendue : il n'y a
+                                aucun rappel, donc la consigne doit etre la des le depart,
+                                sinon la carte ne montre qu'une reponse sans sa question. */}
+                            {error.prompt && (revealed[error.id] || !(error.correct_answer ?? '').trim()) && (
                                 <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
                                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-1">{t('errors.question', 'Question')}</p>
                                     <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{error.prompt}</p>
                                 </div>
                             )}
 
-                            {!revealed[error.id] ? (
+                            {!(error.correct_answer ?? '').trim() ? (
+                                /* Une redaction corrigee par l'IA n'a pas de reponse
+                                   attendue : demander de la retaper la comptait fausse a
+                                   chaque revision, pour toujours. On montre ce qui a
+                                   vraiment une valeur pedagogique : sa reponse et
+                                   l'explication. */
+                                <>
+                                    <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-800/30">
+                                        <p className="text-xs font-bold text-red-400 uppercase tracking-wide mb-1">{t('errors.your_answer', 'Ta réponse')}</p>
+                                        <p className="text-sm text-red-700 dark:text-red-300 font-medium whitespace-pre-line">{error.user_answer}</p>
+                                    </div>
+                                    {error.explanation && (
+                                        <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800/30">
+                                            <p className="text-xs font-bold text-indigo-400 uppercase tracking-wide mb-1 flex items-center gap-1">
+                                                <Icon name="sparkles" size={11} />
+                                                {t('errors.explanation', 'Explication')}
+                                            </p>
+                                            <p className="text-sm text-indigo-700 dark:text-indigo-300 leading-relaxed">{error.explanation}</p>
+                                        </div>
+                                    )}
+                                    <button
+                                        onClick={() => dismiss(error)}
+                                        className="duo-press w-full py-2.5 rounded-xl bg-slate-200 dark:bg-slate-700 font-bold text-sm"
+                                    >
+                                        {t('errors.got_it', "C'est noté")}
+                                    </button>
+                                </>
+                            ) : !revealed[error.id] ? (
                                 <>
                                     {/* Active recall: re-answer BEFORE seeing the solution */}
                                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">

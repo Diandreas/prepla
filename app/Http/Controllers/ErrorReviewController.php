@@ -48,8 +48,20 @@ class ErrorReviewController extends Controller
             'family' => UserError::classifyFamily($e->exercise_type_slug, $e->skill_type),
         ]);
 
-        $errorsBySkill = UserError::where('user_id', $user->id)
+        // Les tuiles cliquables ne comptent que ce qui est REELLEMENT rejouable. Elles
+        // comptaient toutes les erreurs : une tuile « Lecture 12 » menait a une
+        // revision toujours vide, puisqu'une question de comprehension ne peut pas
+        // etre reposee sans son texte d'origine.
+        $errorsBySkill = UserError::concept($user->id)
+            ->selectRaw('skill_type, count(*) as count')
+            ->groupBy('skill_type')
+            ->pluck('count', 'skill_type');
+
+        // Les erreurs de comprehension restent affichees, mais comme bilan : elles
+        // disent a l'apprenant ou il bute, sans promettre une revision impossible.
+        $comprehensionBySkill = UserError::where('user_id', $user->id)
             ->where('mastered', false)
+            ->whereIn('skill_type', ['reading', 'listening', 'speaking'])
             ->selectRaw('skill_type, count(*) as count')
             ->groupBy('skill_type')
             ->pluck('count', 'skill_type');
@@ -57,12 +69,14 @@ class ErrorReviewController extends Controller
         // Pilier 4: Error category stats
         $errorsByCategory = UserError::categoryStats($user->id);
 
-        // Pilier 3: Due errors count
-        $dueForReviewCount = UserError::dueForReview($user->id)->count();
+        // Pilier 3: Due errors count — meme perimetre que la seance de revision,
+        // sinon le bouton « Reviser (N dues) » est un cul-de-sac.
+        $dueForReviewCount = UserError::conceptDue($user->id)->count();
 
         return Inertia::render('errors/index', [
             'errors' => $errors,
             'errorsBySkill' => $errorsBySkill,
+            'comprehensionBySkill' => $comprehensionBySkill,
             'errorsByCategory' => $errorsByCategory,
             'dueForReviewCount' => $dueForReviewCount,
         ]);
@@ -79,17 +93,16 @@ class ErrorReviewController extends Controller
         // Pilier 3: SM-2 due errors first, then recent unmastered — concept only.
         // Comprehension errors (reading/listening on a passage) are excluded: they
         // can't be re-posed without the original text.
-        $dueErrors = UserError::dueForReview($user->id)
-            ->whereNotIn('skill_type', ['reading', 'listening'])
-            ->where(function ($q) {
-                $q->whereIn('exercise_type_slug', UserError::CONCEPT_SLUGS)
-                  ->orWhereIn('skill_type', ['grammar', 'vocabulary', 'use-of-english', 'writing']);
-            })
+        $dueErrors = UserError::conceptDue($user->id)
             ->when($skillType, fn($q) => $q->where('skill_type', $skillType))
             ->limit(10)
             ->get();
 
         if ($dueErrors->isEmpty()) {
+            // Le repli prend TOUT, y compris les erreurs sans reponse attendue : la
+            // page les presente alors en lecture (enonce, reponse donnee,
+            // explication) au lieu de demander de les retaper. Les ecarter ici
+            // aurait vide la tuile « expression ecrite » de la page des erreurs.
             $dueErrors = UserError::concept($user->id)
                 ->when($skillType, fn($q) => $q->where('skill_type', $skillType))
                 ->orderByDesc('created_at')

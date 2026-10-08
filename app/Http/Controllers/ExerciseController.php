@@ -252,7 +252,12 @@ class ExerciseController extends Controller
                             [
                                 'question_text' => $questionData['text'] ?? $questionData['prompt'] ?? 'Exercice practice',
                                 'user_answer' => is_array($exerciseAnswers[$qFeedback['question_id']] ?? '') ? json_encode($exerciseAnswers[$qFeedback['question_id']]) : (string) ($exerciseAnswers[$qFeedback['question_id']] ?? ''),
-                                'correct_answer' => is_array($qFeedback['correct_answer'] ?? '') ? json_encode($qFeedback['correct_answer']) : (string) ($qFeedback['correct_answer'] ?? ''),
+                                // Reponse attendue EN CLAIR. On enregistrait la valeur brute :
+                                // « A » pour un QCM, du JSON pour un exercice a plusieurs trous.
+                                // Le centre de revision affichait donc « Bonne reponse : A » et
+                                // n'acceptait que « A » : l'apprenant qui ecrivait la vraie
+                                // reponse etait compte faux, a chaque revision, pour toujours.
+                                'correct_answer' => $this->lisibleAttendu($questionData ?? [], $qFeedback['correct_answer'] ?? ''),
                                 'explanation' => $explanationText,
                                 'skill_type' => $skillType,
                                 'exercise_type_slug' => $slug,
@@ -490,6 +495,22 @@ class ExerciseController extends Controller
      * impossible de savoir ce qui avait été raté. On joint donc à chaque retour
      * l'énoncé, la réponse donnée et la réponse attendue.
      */
+    /**
+     * La reponse attendue telle qu'on peut la lire : « C) Am Sonntag » plutot que
+     * « C », les valeurs attendues plutot que du JSON. Repli sur la valeur brute
+     * pour les questions sans options ni carte de reponses.
+     */
+    private function lisibleAttendu(array $questionData, mixed $brut): string
+    {
+        $lisible = $this->scoringService->expectedAnswerText($questionData);
+
+        if ($lisible !== '') {
+            return $lisible;
+        }
+
+        return is_array($brut) ? (string) json_encode($brut) : (string) $brut;
+    }
+
     private function describeFeedback(array $feedback, array $questions, array $answers): array
     {
         $byId = collect($questions)->keyBy(fn ($question) => (string) ($question['id'] ?? ''));

@@ -465,6 +465,27 @@ class ExerciseScoringService
                 }
             }
 
+            // Une lettre seule n'apprend rien : on rend le texte de l'option. Garde-fou
+            // indispensable — si le mot juste EST une lettre (« a / an / the »), le
+            // resoudre comme un indice remplacerait la bonne reponse par la premiere
+            // option. On ne resout donc que si la valeur n'est pas elle-meme une option.
+            $opts = $question['options'] ?? null;
+            $resolve = function ($value) use ($opts) {
+                if (! is_array($opts) || ! is_string($value) || ! preg_match('/^[A-Za-z]$/', trim($value))) {
+                    return $value;
+                }
+
+                foreach ($opts as $option) {
+                    if (is_scalar($option) && $this->normalizeForComparison($option) === $this->normalizeForComparison($value)) {
+                        return $value;
+                    }
+                }
+
+                $idx = ord(strtoupper(trim($value))) - 65;
+
+                return (is_scalar($opts[$idx] ?? null)) ? $opts[$idx] : $value;
+            };
+
             if (!$isCorrect) {
                  // Try to get a conceptual explanation
                  $explanation = $question['explanation'] ?? null;
@@ -477,15 +498,6 @@ class ExerciseScoringService
                  // AI (and anyone reading the raw feedback) reasons about real
                  // content instead of a bare letter.
                  if (!$explanation) {
-                     $opts = $question['options'] ?? null;
-                     $resolve = function ($value) use ($opts) {
-                         if (is_array($opts) && is_string($value) && preg_match('/^[A-Za-z]$/', trim($value))) {
-                             $idx = ord(strtoupper(trim($value))) - 65;
-                             return $opts[$idx] ?? $value;
-                         }
-                         return $value;
-                     };
-
                      $explanation = $this->mistralEval->explainMistake(
                          $question['prompt'] ?? $question['text'] ?? '',
                          is_string($userAnswer) ? $resolve($userAnswer) : $this->getTextToEvaluate($userAnswer),
@@ -502,7 +514,7 @@ class ExerciseScoringService
                 'question_id' => $questionId,
                 'correct' => $isCorrect,
                 'accuracy' => (float) $accuracy,
-                'correct_answer' => $correctAnswer,
+                'correct_answer' => is_string($correctAnswer) ? $resolve($correctAnswer) : $correctAnswer,
                 'explanation' => $explanation ?? $question['explanation'] ?? null,
                 'error_category' => !$isCorrect ? 'session_mistake' : null,
                 'error_subcategory' => null,

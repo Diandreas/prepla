@@ -262,8 +262,10 @@ class DashboardController extends Controller
             })->values()->sortBy('order')->values()->toArray();
         }
 
-        // Due errors count (Pilier 3: SM-2)
-        $dueErrorsCount = UserError::dueForReview($user->id)->count();
+        // Due errors count (Pilier 3: SM-2) — meme perimetre que la seance de
+        // revision. Il comptait toutes les erreurs dues, comprehension incluse :
+        // le badge promettait des revisions qui n'existaient pas.
+        $dueErrorsCount = UserError::conceptDue($user->id)->count();
 
         return Inertia::render('dashboard', [
             'profile' => $profile,

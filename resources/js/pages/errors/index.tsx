@@ -1,6 +1,5 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
-import { useTranslation } from 'react-i18next';
 
 function Icon({ name, size = 20, className, style }: { name: string; size?: number; className?: string; style?: React.CSSProperties }) {
     return <img src={`/icons/${name}.png`} alt="" width={size} height={size} className={className} style={{ objectFit: 'contain', ...style }} />;
@@ -29,7 +28,11 @@ interface PaginatedErrors {
 
 interface Props {
     errors: PaginatedErrors;
+    /** Competences reellement rejouables (grammaire, vocabulaire, expression ecrite). */
     errorsBySkill: Record<string, number>;
+    /** Comprehension : affiche comme bilan, pas comme revision — une question de
+     *  lecture ou d'ecoute ne peut pas etre reposee sans son texte d'origine. */
+    comprehensionBySkill?: Record<string, number>;
     errorsByCategory: Record<string, number>;
     dueForReviewCount: number;
 }
@@ -56,8 +59,7 @@ const skillIcons: Record<string, string> = {
     speaking:  'speaking',
 };
 
-export default function ErrorsIndex({ errors, errorsBySkill, errorsByCategory, dueForReviewCount }: Props) {
-    const { t } = useTranslation();
+export default function ErrorsIndex({ errors, errorsBySkill, comprehensionBySkill = {}, dueForReviewCount }: Props) {
     const totalErrors = errors.total;
 
     return (
@@ -140,6 +142,35 @@ export default function ErrorsIndex({ errors, errorsBySkill, errorsByCategory, d
                     </div>
                 )}
 
+                {/* Erreurs de comprehension : un bilan, pas une porte. Elles etaient
+                    melees aux autres et chaque tuile menait a une revision toujours
+                    vide — rien a l'ecran ne disait pourquoi. */}
+                {Object.keys(comprehensionBySkill).length > 0 && (
+                    <div>
+                        <h2 className="text-sm font-black uppercase tracking-widest mb-2" style={{ color: GOLD }}>
+                            Comprehension
+                        </h2>
+                        <p className="text-xs text-muted-foreground mb-4">
+                            Ces erreurs portent sur un texte ou un enregistrement precis : elles ne se
+                            rejouent pas telles quelles. Refais plutot une seance de la competence.
+                        </p>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            {Object.entries(comprehensionBySkill).map(([skill, count]) => (
+                                <div key={skill} className="p-4 bg-white rounded-2xl border border-gray-100">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <span className={`p-1.5 rounded-lg ${skillColors[skill] ?? 'bg-gray-100 text-gray-600'}`}>
+                                            <Icon name={skillIcons[skill] ?? 'book'} size={14} />
+                                        </span>
+                                        <span className="text-xs font-black uppercase tracking-wide text-muted-foreground">{skill}</span>
+                                    </div>
+                                    <p className="text-2xl font-black" style={{ color: RED }}>{count}</p>
+                                    <p className="text-xs text-muted-foreground">erreur{count !== 1 ? 's' : ''}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {/* Error list */}
                 {errors.data.length > 0 && (
                     <div>
@@ -176,11 +207,31 @@ export default function ErrorsIndex({ errors, errorsBySkill, errorsByCategory, d
                             ))}
                         </div>
 
-                        {/* Pagination info */}
+                        {/* La page annoncait « Page 1 sur 3 » sans aucun moyen d'atteindre
+                            les suivantes : les erreurs passe les vingt premieres etaient
+                            inaccessibles. */}
                         {errors.last_page > 1 && (
-                            <p className="text-center text-xs text-muted-foreground mt-4">
-                                Page {errors.current_page} sur {errors.last_page}
-                            </p>
+                            <div className="flex items-center justify-center gap-2 mt-4">
+                                {errors.current_page > 1 && (
+                                    <Link
+                                        href={`/errors?page=${errors.current_page - 1}`}
+                                        className="rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold hover:shadow-sm"
+                                    >
+                                        Precedent
+                                    </Link>
+                                )}
+                                <p className="text-center text-xs text-muted-foreground">
+                                    Page {errors.current_page} sur {errors.last_page}
+                                </p>
+                                {errors.current_page < errors.last_page && (
+                                    <Link
+                                        href={`/errors?page=${errors.current_page + 1}`}
+                                        className="rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold hover:shadow-sm"
+                                    >
+                                        Suivant
+                                    </Link>
+                                )}
+                            </div>
                         )}
                     </div>
                 )}

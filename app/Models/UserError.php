@@ -138,6 +138,29 @@ class UserError extends Model
     }
 
     /**
+     * Les erreurs vraiment rejouables en rappel actif : un concept, due au sens
+     * SM-2, et dont la reponse attendue est connue.
+     *
+     * Sans le dernier filtre, une erreur d'expression ecrite — corrigee par l'IA,
+     * donc sans reponse attendue — etait comparee a une chaine vide : comptee fausse
+     * a chaque revision, pour toujours, et son intervalle SM-2 ne montait jamais.
+     * Elle reste comptee dans le bilan par competence et par categorie, elle cesse
+     * seulement d'etre proposee au rappel.
+     */
+    public function scopeConceptDue($query, $userId)
+    {
+        // Construit SUR scopeConcept : recopier son predicat laissait les deux
+        // perimetres diverger, et c'est de la que venaient les compteurs qui
+        // promettaient des revisions inexistantes.
+        return $query->concept($userId)
+            ->whereNotNull('next_review_at')
+            ->where('next_review_at', '<=', now())
+            ->whereNotNull('correct_answer')
+            ->where('correct_answer', '!=', '')
+            ->orderBy('next_review_at');
+    }
+
+    /**
      * Scope: errors due for SM-2 review.
      */
     public function scopeDueForReview($query, $userId)
