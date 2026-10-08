@@ -109,7 +109,9 @@ class OfflinePackController extends Controller
                 'options' => $question['options'] ?? null,
                 'correct_answer' => $question['correct_answer'] ?? null,
                 'explanation' => $question['explanation'] ?? '',
-            ], $exercise->questions ?? []),
+            // Hors ligne, personne ne pourra reparer une question impossible : on ne
+            // telecharge que celles auxquelles on peut repondre.
+            ], $exercise->answerableQuestions()),
             'downloaded_at' => now()->toIso8601String(),
         ];
     }

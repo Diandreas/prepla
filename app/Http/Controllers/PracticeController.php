@@ -60,6 +60,22 @@ class PracticeController extends Controller
                 ->get();
         }
 
+        // Meme garde-fou qu'en seance : pas de question impossible a l'ecran.
+        $exercises = collect($exercises)->map(function ($exercise) {
+            $jouables = $exercise->answerableQuestions();
+            if (count($jouables) !== count($exercise->questions ?? [])) {
+                $exercise->questions = $jouables;
+                $exercise->syncOriginalAttribute('questions');
+            }
+
+            return $exercise;
+        })->filter(fn ($exercise) => count($exercise->questions ?? []) > 0)->values();
+
+        if ($exercises->isEmpty()) {
+            return redirect()->route('practice.index')
+                ->with('error', "Ces exercices etaient inutilisables. Choisis-en d'autres, ou reessaie plus tard.");
+        }
+
         return Inertia::render('exercises/player', [
             'node' => $node,
             'exercises' => $exercises,

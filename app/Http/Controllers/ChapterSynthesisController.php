@@ -104,6 +104,15 @@ class ChapterSynthesisController extends Controller
         $virtualNode = $chapterNodes->first();
         $synthesisExercise->load(['exerciseType', 'exam.language']);
 
+        // Une question impossible n'a rien a faire dans une synthese non plus.
+        $jouables = $synthesisExercise->answerableQuestions();
+        if ($jouables === []) {
+            return redirect()->route('dashboard')
+                ->with('error', "La synthese de ce chapitre etait inutilisable. Reessaie dans un instant.");
+        }
+        $synthesisExercise->questions = $jouables;
+        $synthesisExercise->syncOriginalAttribute('questions');
+
         return Inertia::render('exercises/player', [
             'node' => $virtualNode->load('exam.language'),
             'exercises' => collect([$synthesisExercise]),
