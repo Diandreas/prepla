@@ -235,6 +235,14 @@ Route::middleware(['auth'])->group(function () {
     });
 });
 
+// Un professeur ouvre son espace lui-meme : classes, codes d'invitation et suivi.
+// La creation d'un centre etait reservee au super-administrateur, donc un enseignant
+// devait nous ecrire et attendre avant de pouvoir suivre le moindre eleve.
+Route::middleware('auth')->group(function () {
+    Route::get('enseigner', [\App\Http\Controllers\TeacherSpaceController::class, 'show'])->name('teach.open');
+    Route::post('enseigner', [\App\Http\Controllers\TeacherSpaceController::class, 'store'])->name('teach.open.store');
+});
+
 // ───────────────────────── B2B « Centre de langue » ─────────────────────────
 // Super-admin : création/gestion manuelle des centres (réservé role super_admin).
 Route::middleware(['auth', EnsureSuperAdmin::class])

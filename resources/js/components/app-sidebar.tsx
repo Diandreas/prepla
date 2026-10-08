@@ -57,6 +57,16 @@ export function AppSidebar() {
     }
 
     const footerNavItems: NavItem[] = [
+        // Un professeur n'avait aucun moyen de trouver l'espace enseignant : la
+        // creation d'un centre etait reservee au super-administrateur et aucun lien
+        // n'y menait. On l'offre a qui n'appartient encore a aucun espace.
+        ...(!centerRole && role !== 'super_admin'
+            ? [{
+                title: t('sidebar.teach', 'Suivre mes eleves'),
+                url: '/enseigner',
+                icon: () => <SidebarIcon name="profile" />,
+            }]
+            : []),
         {
             title: t('sidebar.support', 'Aide & support'),
             url: SUPPORT_WHATSAPP_URL,
