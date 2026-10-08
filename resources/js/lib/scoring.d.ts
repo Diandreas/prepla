@@ -29,6 +29,9 @@ export function isSkippedAnswer(answer: unknown): boolean;
 /** Vrai pour une reponse vide : rien a corriger, « Verifier » doit rester eteint. */
 export function isBlankAnswer(value: unknown): boolean;
 
+/** Le texte d'un choix de QCM, meme rendu sous forme d'objet par l'IA. */
+export function optionText(option: unknown): string;
+
 export function normalizeAnswer(value: unknown): string;
 
 export function needsServerEvaluation(question: ScorableQuestion | null | undefined, fallbackType?: string): boolean;

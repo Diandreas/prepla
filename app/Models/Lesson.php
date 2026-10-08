@@ -136,24 +136,31 @@ class Lesson extends Model
             return $correct;
         }
 
+        // Les choix peuvent arriver sous forme d'objets : Exercise::optionText les lit,
+        // la ou un transtypage donnait « Array » et une alerte PHP.
         // 1. La valeur EST le texte d'une option : c'est ce que les prompts demandent.
         foreach ($options as $opt) {
-            if (mb_strtolower(trim($correct)) === mb_strtolower(trim((string) $opt))) {
-                return (string) $opt;
+            $texte = Exercise::optionText($opt);
+            if ($texte !== '' && mb_strtolower(trim($correct)) === mb_strtolower(trim($texte))) {
+                return $texte;
             }
         }
 
         // 2. Lettre → indice (A=0, B=1, …), sans tenir compte de la casse.
         if (preg_match('/^[a-zA-Z]$/', $correct)) {
             $idx = ord(strtoupper($correct)) - ord('A');
-            if (isset($options[$idx])) {
-                return (string) $options[$idx];
+            $texte = Exercise::optionText($options[$idx] ?? null);
+            if ($texte !== '') {
+                return $texte;
             }
         }
 
         // 3. Indice numerique.
-        if (is_numeric($correct) && isset($options[(int) $correct])) {
-            return (string) $options[(int) $correct];
+        if (is_numeric($correct)) {
+            $texte = Exercise::optionText($options[(int) $correct] ?? null);
+            if ($texte !== '') {
+                return $texte;
+            }
         }
 
         return $correct;

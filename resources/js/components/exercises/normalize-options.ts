@@ -1,3 +1,5 @@
+import { optionText } from '@/lib/scoring';
+
 // Le générateur IA renvoie parfois les options d'un exercice à choix sous une
 // forme inattendue. Si on rend un objet directement comme enfant React, on
 // déclenche "Minified React error #31" qui blanchit toute la page d'exercice.
@@ -23,11 +25,8 @@ export function normalizeOptions(raw: unknown): string[] {
     return [];
 }
 
+// Une seule regle de lecture, partagee avec les deux correcteurs : l'ecran
+// affichait un choix que la correction ne savait pas lire, et inversement.
 export function coerceOption(o: unknown): string {
-    if (typeof o === 'string') return o;
-    if (o && typeof o === 'object') {
-        const obj = o as Record<string, unknown>;
-        return String(obj.text ?? obj.label ?? obj.value ?? Object.values(obj)[0] ?? '');
-    }
-    return String(o ?? '');
+    return optionText(o);
 }

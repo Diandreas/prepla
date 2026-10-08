@@ -97,6 +97,46 @@ class Exercise extends Model
     ];
 
     /**
+     * Le texte d'un choix de QCM, quelle que soit la forme rendue par l'IA.
+     *
+     * Le generateur rend parfois les choix sous forme d'objets
+     * (`[{"text": "Ja"}, ...]`) au lieu de chaines. L'ecran savait deja les lire
+     * (coerceOption) ; la correction, non : elle passait le choix brut a une
+     * comparaison typee `?string` et levait une TypeError — 500 a l'envoi de la
+     * seance, tout le travail perdu — et la reponse attendue retombait sur la
+     * lettre nue, « Bonne reponse : A ».
+     *
+     * Regle identique dans resources/js/lib/scoring.js (optionText) : les deux
+     * correcteurs doivent lire un choix de la meme facon.
+     */
+    public static function optionText(mixed $option): string
+    {
+        if (is_bool($option)) {
+            return $option ? '1' : '';
+        }
+
+        if (is_scalar($option)) {
+            return (string) $option;
+        }
+
+        if (is_array($option)) {
+            foreach (['text', 'label', 'value'] as $cle) {
+                if (is_scalar($option[$cle] ?? null)) {
+                    return self::optionText($option[$cle]);
+                }
+            }
+
+            foreach ($option as $valeur) {
+                if (is_scalar($valeur)) {
+                    return self::optionText($valeur);
+                }
+            }
+        }
+
+        return '';
+    }
+
+    /**
      * Une question a laquelle un apprenant peut reellement repondre.
      *
      * Du contenu casse atteignait les apprenants : une consigne « completez les

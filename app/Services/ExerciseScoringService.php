@@ -455,12 +455,16 @@ class ExerciseScoringService
                     $isCorrect = $this->coversUndefinedBlanks($givenValues, $normalCorrect);
                 }
 
-                // Index-based matching fallback
+                // Index-based matching fallback. Le choix passe par optionText : rendu
+                // sous forme d'objet par l'IA, il arrivait brut dans une comparaison
+                // typee ?string et levait une TypeError — 500 a l'envoi de la seance.
                 if (!$isCorrect && preg_match('/^[a-d]$/', $normalUser) && isset($question['options'])) {
                     $options = $question['options'] ?? [];
                     $letterIndex = ord($normalUser) - ord('a');
                     if (isset($options[$letterIndex])) {
-                        $isCorrect = $this->normalizeForComparison($options[$letterIndex]) === $normalCorrect;
+                        $texteChoix = Exercise::optionText($options[$letterIndex]);
+                        $isCorrect = $texteChoix !== ''
+                            && $this->normalizeForComparison($texteChoix) === $normalCorrect;
                     }
                 }
             }
@@ -476,14 +480,16 @@ class ExerciseScoringService
                 }
 
                 foreach ($opts as $option) {
-                    if (is_scalar($option) && $this->normalizeForComparison($option) === $this->normalizeForComparison($value)) {
+                    $texte = Exercise::optionText($option);
+                    if ($texte !== '' && $this->normalizeForComparison($texte) === $this->normalizeForComparison($value)) {
                         return $value;
                     }
                 }
 
                 $idx = ord(strtoupper(trim($value))) - 65;
+                $texte = Exercise::optionText($opts[$idx] ?? null);
 
-                return (is_scalar($opts[$idx] ?? null)) ? $opts[$idx] : $value;
+                return $texte !== '' ? $texte : $value;
             };
 
             if (!$isCorrect) {
@@ -625,13 +631,16 @@ class ExerciseScoringService
             return '';
         }
 
-        // QCM : une lettre seule n'apprend rien, on rend "C) Am Sonntag".
+        // QCM : une lettre seule n'apprend rien, on rend "C) Am Sonntag". Le choix
+        // peut etre un objet rendu par l'IA : optionText le lit, sinon on retombe sur
+        // la lettre plutot que d'afficher « Array ».
         $letter = strtoupper(trim((string) $answer));
         $options = $question['options'] ?? null;
         if (is_array($options) && preg_match('/^[A-D]$/', $letter)) {
             $index = ord($letter) - ord('A');
-            if (isset($options[$index]) && is_scalar($options[$index])) {
-                return $letter . ') ' . $options[$index];
+            $texteChoix = Exercise::optionText($options[$index] ?? null);
+            if ($texteChoix !== '') {
+                return $letter.') '.$texteChoix;
             }
         }
 

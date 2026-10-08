@@ -434,6 +434,66 @@
                 "A"
             ],
             "correct": false
+        },
+        {
+            "name": "QCM aux choix mal formes : lettre juste creditee",
+            "question": {
+                "id": "obj1",
+                "type": "mcq",
+                "text": "Wie heisst du ?",
+                "options": [
+                    {
+                        "text": "Ich heisse Lina."
+                    },
+                    {
+                        "text": "Ich bin Montag."
+                    }
+                ],
+                "correct_answer": "Ich heisse Lina.",
+                "explanation": "On repond par son prenom."
+            },
+            "answer": "a",
+            "correct": true
+        },
+        {
+            "name": "QCM aux choix mal formes : mauvaise lettre reste fausse",
+            "question": {
+                "id": "obj2",
+                "type": "mcq",
+                "text": "Wie heisst du ?",
+                "options": [
+                    {
+                        "label": "Ich heisse Lina."
+                    },
+                    {
+                        "label": "Ich bin Montag."
+                    }
+                ],
+                "correct_answer": "Ich heisse Lina.",
+                "explanation": "On repond par son prenom."
+            },
+            "answer": "b",
+            "correct": false
+        },
+        {
+            "name": "QCM aux choix illisibles : rien n'est credite",
+            "question": {
+                "id": "obj3",
+                "type": "mcq",
+                "text": "Wie heisst du ?",
+                "options": [
+                    [
+                        []
+                    ],
+                    [
+                        []
+                    ]
+                ],
+                "correct_answer": "Ich heisse Lina.",
+                "explanation": "On repond par son prenom."
+            },
+            "answer": "a",
+            "correct": false
         }
     ]
 }

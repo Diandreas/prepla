@@ -81,6 +81,29 @@ export function isBlankAnswer(value) {
     return false;
 }
 
+/**
+ * Le texte d'un choix de QCM, quelle que soit la forme rendue par l'IA
+ * (`[{"text": "Ja"}, ...]` au lieu de chaines).
+ *
+ * Regle identique a Exercise::optionText cote serveur : les deux correcteurs
+ * doivent lire un choix de la meme facon, sinon une lettre juste est creditee
+ * d'un cote et pas de l'autre.
+ */
+export function optionText(option) {
+    if (isScalar(option)) return phpString(option);
+
+    if (isCollection(option)) {
+        for (const cle of ['text', 'label', 'value']) {
+            if (isScalar(option[cle])) return phpString(option[cle]);
+        }
+        for (const valeur of Object.values(option)) {
+            if (isScalar(valeur)) return phpString(valeur);
+        }
+    }
+
+    return '';
+}
+
 export function normalizeAnswer(value) {
     return phpString(value).trim().toLowerCase().replace(/[’`]/g, "'");
 }
@@ -245,8 +268,8 @@ function scoreExact(question, answer) {
 
     // A letter also matches when the expected answer is written out as the option text.
     if (!correct && /^[a-d]$/.test(givenValue) && isCollection(question.options)) {
-        const option = question.options[givenValue.charCodeAt(0) - 97];
-        if (option !== undefined && option !== null) correct = normalizeAnswer(option) === expectedValue;
+        const option = optionText(question.options[givenValue.charCodeAt(0) - 97]);
+        if (option !== '') correct = normalizeAnswer(option) === expectedValue;
     }
 
     return { correct, accuracy: correct ? 100 : 0 };
@@ -283,8 +306,8 @@ export function expectedAnswerText(question) {
     const text = phpString(expected).trim();
     if (/^[A-Za-z]$/.test(text) && isCollection(question?.options)) {
         const letter = text.toUpperCase();
-        const option = question.options[letter.charCodeAt(0) - 65];
-        if (option !== undefined && option !== null && phpString(option) !== '') return `${letter}) ${phpString(option)}`;
+        const option = optionText(question.options[letter.charCodeAt(0) - 65]);
+        if (option !== '') return `${letter}) ${option}`;
     }
 
     return text;
