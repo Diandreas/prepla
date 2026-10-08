@@ -31,6 +31,9 @@ return [
             'flag' => '🇩🇪',
             'exams' => [
                 ['slug' => 'goethe', 'name' => 'Goethe-Zertifikat', 'levels' => ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']],
+                // Seul le B2 est decrit : c'est le seul niveau OSD dont la structure a
+                // ete verifiee sur la source officielle (voir config/exams/osd.php).
+                ['slug' => 'osd', 'name' => 'ÖSD Zertifikat B2', 'levels' => ['B2']],
                 ['slug' => 'testdaf', 'name' => 'TestDaF', 'levels' => null],
             ],
         ],

@@ -75,9 +75,9 @@ class ExamSeeder extends Seeder
         'synthesis-essay'         => ['name' => 'Synthèse + Essai',             'component' => 'synthesis'],
 
         // ── Speaking types ──
-        'speaking-response'       => ['name' => 'Speaking Response',            'component' => 'speaking-recorder'],
-        'speaking-long-turn'      => ['name' => 'Speaking Long Turn',           'component' => 'speaking-recorder'],
-        'speaking-discussion'     => ['name' => 'Speaking Discussion',          'component' => 'speaking-recorder'],
+        'speaking-response'       => ['name' => "Répondre à l'examinateur",     'component' => 'speaking-recorder'],
+        'speaking-long-turn'      => ['name' => 'Exposé oral',                   'component' => 'speaking-recorder'],
+        'speaking-discussion'     => ['name' => 'Discussion argumentée',         'component' => 'speaking-recorder'],
         'role-play'               => ['name' => 'Role Play',                    'component' => 'role-play'],
         // ── Interactive speaking (live per-turn correction, render via role-play) ──
         'oral-debate'             => ['name' => 'Débat argumenté',              'component' => 'role-play'],
@@ -93,6 +93,11 @@ class ExamSeeder extends Seeder
         // ── Genres d'écrit (écriture guidée, AI-évaluée) ──
         'guided-rewrite'          => ['name' => 'Réécriture / résumé guidé',     'component' => 'guided-writing'],
         'text-continuation'       => ['name' => 'Continuer le texte',            'component' => 'guided-writing'],
+
+        // ── OSD (Osterreichisches Sprachdiplom) ──
+        // La Bildbesprechung : decrire une image puis la commenter, a l'oral. Pas de
+        // composant nouveau — l'enregistreur sait deja afficher une image.
+        'picture-description'     => ['name' => 'Décrire et commenter une image',  'component' => 'speaking-recorder'],
     ];
 
     public function run(): void
