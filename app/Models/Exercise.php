@@ -124,11 +124,12 @@ class Exercise extends Model
             return false;
         }
 
+        // Une carte de reponses attendues suffit : pour un tableau ou un formulaire,
+        // les champs peuvent venir du contenu de l'exercice et non de la question.
+        // Verifie sur la batterie de reference : exiger une structure ici rejetait
+        // des questions parfaitement jouables.
         if (is_array($map) && $map !== []) {
-            // Des reponses attendues, mais aucune structure pour les saisir.
-            return isset($question['rows']) || isset($question['table'])
-                || isset($question['items']) || isset($question['gaps'])
-                || isset($question['options']);
+            return true;
         }
 
         if (is_array($question['correct_order'] ?? null)) {
@@ -136,6 +137,12 @@ class Exercise extends Model
         }
 
         $expected = $question['correct_answer'] ?? null;
+
+        // Un ensemble de reponses (choix multiples, associations) est un tableau.
+        if (is_array($expected)) {
+            return $expected !== [];
+        }
+
         if (! is_scalar($expected) || trim((string) $expected) === '') {
             return false;
         }

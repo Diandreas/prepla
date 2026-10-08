@@ -92,7 +92,11 @@ class ExerciseScoringService
 
     public function score(Exercise $exercise, array $answers): array
     {
-        $questions = $exercise->questions;
+        // Les questions impossibles — aucune case a remplir, lettre attendue hors des
+        // choix — ne sont plus servies a l'apprenant. Les compter ici le punirait pour
+        // des questions qu'il n'a jamais vues : servir et corriger doivent s'accorder
+        // sur la meme regle.
+        $questions = $exercise->answerableQuestions();
         $correct = 0;
         $total = count($questions);
         $technicalFailures = 0;
