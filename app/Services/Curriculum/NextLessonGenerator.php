@@ -46,9 +46,6 @@ class NextLessonGenerator
         }
 
         $currentObjective = $skeleton->currentObjective();
-        if ($currentObjective['is_level_exam'] ?? false) {
-            return null;
-        }
 
         if (! $currentObjective || $skeleton->isComplete()) {
             // Parcours termine. Avant, on s'arretait la : plus d'objectif courant, donc
@@ -59,6 +56,16 @@ class NextLessonGenerator
                 $skeleton = $skeleton->fresh();
                 $currentObjective = $skeleton->currentObjective();
             }
+        }
+
+        // Un examen de palier n'est pas une lecon : ce controle venait AVANT le
+        // prolongement, or tout parcours se termine par son examen. Des qu'il etait
+        // reussi, l'objectif courant restait cet examen termine et le prolongement
+        // n'etait jamais atteint : l'apprenant tombait sur « Impossible de generer la
+        // prochaine lecon » pour toujours. Place ici, le controle ne refuse plus que
+        // les examens qui restent VRAIMENT a passer.
+        if ($currentObjective['is_level_exam'] ?? false) {
+            return null;
         }
 
         if (! $currentObjective) {

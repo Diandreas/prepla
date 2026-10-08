@@ -61,7 +61,12 @@ class LessonController extends Controller
         if ($pending = $skeleton?->pendingLevelExam()) {
             return redirect()->route('level.exam', $pending['level']);
         }
-        if ($skeleton?->currentObjective()['is_level_exam'] ?? false) {
+        // Un parcours TERMINE s'arrete sur son dernier examen, deja reussi : refuser
+        // la lecon ici renvoyait au tableau de bord avec un message faux (« Termine la
+        // pratique avant cet examen ») alors qu'il n'y avait plus rien a terminer. On
+        // ne refuse donc que si l'examen reste a passer ; sinon on laisse le
+        // generateur prolonger le parcours au niveau suivant.
+        if (($skeleton?->currentObjective()['is_level_exam'] ?? false) && ! $skeleton->isComplete()) {
             $pending = $skeleton->pendingLevelExam();
 
             return $pending
@@ -71,7 +76,13 @@ class LessonController extends Controller
         $lesson = $this->lessonGenerator->generate($user);
 
         if (! $lesson) {
-            return redirect()->route('lessons.index')->with('error', 'Impossible de générer la prochaine leçon.');
+            // Un parcours termine n'est pas une panne : le dire franchement plutot que
+            // d'annoncer un echec technique a quelqu'un qui a tout fait.
+            $message = $skeleton?->isComplete()
+                ? "Tu as terminé tout ton parcours. La suite s'écrit — réessaie dans un moment."
+                : 'Impossible de générer la prochaine leçon.';
+
+            return redirect()->route('lessons.index')->with('error', $message);
         }
 
         return redirect()->route('lessons.show', $lesson->id);

@@ -141,7 +141,27 @@ class CurriculumPlannerService
             $language
         );
 
+        // On ne reproposse pas ce qui a deja ete fait. Quand l'IA est indisponible
+        // (quota, panne), parseSkeletonResponse reprend le programme de reference du
+        // niveau : un apprenant qui reste au meme palier recevait alors dix fois les
+        // MEMES objectifs, le parcours s'allongeait indefiniment de doublons, avec un
+        // examen de palier de plus a chaque tour.
+        $dejaVus = collect($objectives)
+            ->map(fn ($o) => mb_strtolower(trim((string) ($o['concept'] ?? '')).'|'.mb_strtolower(trim((string) ($o['title'] ?? '')))))
+            ->all();
+
+        $fresh = array_values(array_filter(
+            $fresh,
+            fn ($o) => ! in_array(
+                mb_strtolower(trim((string) ($o['concept'] ?? ''))).'|'.mb_strtolower(trim((string) ($o['title'] ?? ''))),
+                $dejaVus,
+                true
+            )
+        ));
+
         if ($fresh === []) {
+            // Plus rien de neuf a proposer : on ne fabrique pas du remplissage.
+            // L'appelant le dit franchement a l'apprenant.
             return false;
         }
 
@@ -515,18 +535,26 @@ PROMPT;
 
         $path = base_path("database/data/curriculums/{$fileName}");
 
+        // Le niveau est estampille a la lecture. Sans lui, ces objectifs arrivaient
+        // sans palier : ils etaient alors deduits par tiers (un programme A1 devenait
+        // A1/A2/B1) et l'examen de palier A1 tombait apres un tiers du parcours, sur
+        // des lecons A1. On n'estampille que si le palier demande existe vraiment.
+        $palier = in_array($level, CurriculumSkeleton::CEFR_LEVELS, true) ? $level : null;
+
         if (file_exists($path)) {
             $json = file_get_contents($path);
             $data = json_decode($json, true);
             if (isset($data[$level])) {
-                return $data[$level];
+                return $palier
+                    ? array_map(fn ($o) => $o + ['level' => $palier], $data[$level])
+                    : $data[$level];
             }
         }
 
         // Ultimate safety fallback if file is missing
         return [
-            ['order' => 0, 'title' => 'Basic Fundamentals', 'concept' => 'grammar.basic', 'status' => 'pending', 'priority' => 'normal'],
-            ['order' => 1, 'title' => 'Essential Vocabulary', 'concept' => 'vocabulary.basic', 'status' => 'pending', 'priority' => 'normal']
+            ['order' => 0, 'title' => 'Basic Fundamentals', 'concept' => 'grammar.basic', 'status' => 'pending', 'priority' => 'normal', 'level' => $palier ?? 'A1'],
+            ['order' => 1, 'title' => 'Essential Vocabulary', 'concept' => 'vocabulary.basic', 'status' => 'pending', 'priority' => 'normal', 'level' => $palier ?? 'A1'],
         ];
     }
 
