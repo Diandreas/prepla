@@ -88,6 +88,7 @@ séries. La mention « plateforme indépendante, non affiliée aux organismes ce
 - `src/promo/` : composition (`PreplaPromo.tsx`), scènes (`scenes/S1Hook.tsx` … `S10Cta.tsx`),
   composants (logo vectoriel, typographie animée, cartes d'interface) et `theme.ts`
   (couleurs de la landing, courbes d'animation, minutage des scènes sur une grille à 120 BPM).
+- `src/promo/content.ts` : textes des scènes partagées, par version (`FR`, `DE`).
 - `public/promo/app/` : éléments de l'application (icônes, renard, GIF, deux écrans réels).
 - `public/promo/music.mp3` : musique originale synthétisée par `scripts/compose-promo-music.py`
   (aucun échantillon externe, donc libre de droits). `public/promo/sfx/` : bruitages, dont les
@@ -105,6 +106,36 @@ bash scripts/render-promo.sh           # MP4 final dans out/promo/ (reprend là 
 python3 scripts/compose-promo-music.py # régénérer musique et bruitages (numpy, scipy, ffmpeg)
 ```
 
-Pour changer un texte, modifier la scène concernée ; si un mot de la machine à sous de
-l'accroche change, rien d'autre à faire (les largeurs viennent de `fontMetrics.ts`). Si la
-police change, relancer `scripts/build-font-metrics.py` (fonttools, brotli).
+Pour changer un texte, modifier `src/promo/content.ts` (scènes partagées) ou la scène
+concernée ; si un mot de la machine à sous de l'accroche change, rien d'autre à faire (les
+largeurs viennent de `fontMetrics.ts`). Si la police change, relancer
+`scripts/build-font-metrics.py` (fonttools, brotli).
+
+### Version allemande (`PreplaPromoDE`)
+
+Même durée, même grille musicale et même montage, pour les francophones qui préparent le
+Goethe-Zertifikat ou le TestDaF. Les explications restent en français, l'allemand apparaît dans
+les exemples. Textes : `content.ts` (`DE`) ; scènes propres à cette version : `scenes/de/`.
+
+| Temps | Scène | Message |
+|---|---|---|
+| 0–4 s | Accroche | « [der / die / das] Mädchen ? » : l'article hésite (code couleur des manuels : der bleu, die rouge, das vert), « Tu hésites encore ? », compte à rebours « Goethe B1 · J-30 » |
+| 4–8 s | Problème | « Tu révises au hasard ? » — Akkusativ ? Dativ ? Wo steht das Verb ? Goethe ou TestDaF ? |
+| 8–12 s | Logo | « Deine Prüfung. Dein Niveau. Dein Weg. » |
+| 12–18 s | Étape 1 | Allemand → Goethe-Zertifikat → niveau B1 (A1 à C2) ; objectif « Goethe B1 dans 8 semaines » |
+| 18–26 s | Étape 2 | Test de placement en allemand (article, lecture, rédaction) → niveau A2, objectif B1, point fort Lesen, à travailler Sprechen |
+| 26–34 s | Étape 3 | Mission « Nebensätze (weil · dass · wenn) », révision ciblée « der, die, das », objectif « Goethe B1 · Modellprüfung » |
+| 34–42 s | Correction IA | « …, weil ich will in Deutschland studieren. » : l'IA renvoie le verbe conjugué en fin de phrase et explique la règle ; puis Lesen · Hören · Schreiben · Sprechen |
+| 42–46 s | Mode examen | Écran du mode examen recomposé avec le vrai sujet blanc Goethe B1 de l'app (Lesen Teil 1, blog de Lena) ; le chrono Lesen (65 min) sort du téléphone |
+| 46–52 s | Progrès | Lesen, Hören, Schreiben, Sprechen ; objectif Goethe B1 ; « 6 mots à revoir : der, die, das » |
+| 52–60 s | Final | « Prépare ton Goethe avec méthode. » + carte « Fais ton diagnostic d'allemand gratuit » ; le renard dit « Los geht's! » |
+
+Sources : sujet blanc `database/data/content/mock_exams/goethe/b1_sim1.json`, niveaux et durées
+`config/exams/goethe.php`, `config/exams/testdaf.php`. La mention finale précise que PrePla n'est
+affiliée ni au Goethe-Institut ni au TestDaF-Institut. Musique : même partition un ton plus haut
+(`public/promo/music-de.mp3`).
+
+```bash
+COMP=PreplaPromoDE OUT=out/promo-de NAME=prepla-allemand-9x16.mp4 bash scripts/render-promo.sh
+python3 scripts/compose-promo-music.py --transpose 2 --out music-de.mp3 --no-sfx   # musique
+```

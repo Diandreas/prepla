@@ -27,6 +27,7 @@ const SLOT: Array<{ at: number; word: 'der' | 'die' | 'das' }> = [
     { at: 94, word: 'der' },
 ];
 export const DE_HOOK_SLOT_FRAMES = SLOT.map((s) => s.at);
+const slotAt = (frame: number) => SLOT.reduce((current, slot, i) => (frame >= slot.at ? i : current), 0);
 
 const ARTICLE_SIZE = 120;
 const NOUN = 'Mädchen';
@@ -37,9 +38,7 @@ const GAP = 30;
 
 export const DeHook: React.FC = () => {
     const frame = useCurrentFrame();
-
-    let current = 0;
-    for (let i = 0; i < SLOT.length; i++) if (frame >= SLOT[i].at) current = i;
+    const current = slotAt(frame);
     const cur = SLOT[current];
     const next = SLOT[current + 1];
     const span = next ? next.at - cur.at : 8;
