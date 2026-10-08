@@ -80,4 +80,86 @@ class Exercise extends Model
     {
         return $this->belongsTo(User::class, 'creator_id');
     }
+    /**
+     * Types juges par l'IA : une question ouverte n'a pas de reponse attendue, et
+     * c'est normal. La meme liste que app/Services/ExerciseScoringService.php et
+     * resources/js/lib/scoring.js.
+     */
+    public const AI_EVALUATED_TYPES = [
+        'essay', 'essay-editor', 'speaking', 'writing', 'short-writing',
+        'graph-description', 'academic-discussion', 'speaking-recorder',
+        'role-play', 'synthesis', 'integrated-task',
+        'guided-rewrite', 'text-continuation', 'synthesis-essay',
+        'oral-debate', 'negotiation', 'speaking-elicitation', 'listen-repeat',
+    ];
+
+    /**
+     * Une question a laquelle un apprenant peut reellement repondre.
+     *
+     * Du contenu casse atteignait les apprenants : une consigne « completez les
+     * notes » dont aucune case n'etait vide (donc rien a remplir), une lettre
+     * attendue hors de la liste des choix (donc comptee fausse quoi qu'on reponde),
+     * des reponses attendues sans aucun champ pour les saisir. Releve sur les
+     * donnees reelles : 14 questions sur 1224.
+     */
+    public static function questionIsAnswerable(array $question, ?string $fallbackType = null): bool
+    {
+        $type = $question['type'] ?? $fallbackType ?? '';
+
+        // Une question ouverte est jugee par l'IA : pas de reponse attendue a trouver.
+        if (in_array($type, self::AI_EVALUATED_TYPES, true)) {
+            return true;
+        }
+
+        $fields = $question['notes'] ?? $question['fields'] ?? null;
+        $map = $question['correct_answers'] ?? null;
+
+        if (is_array($fields)) {
+            foreach ($fields as $field) {
+                if (is_array($field) && ($field['value'] ?? null) === '') {
+                    return true; // au moins une case a remplir
+                }
+            }
+
+            return false;
+        }
+
+        if (is_array($map) && $map !== []) {
+            // Des reponses attendues, mais aucune structure pour les saisir.
+            return isset($question['rows']) || isset($question['table'])
+                || isset($question['items']) || isset($question['gaps'])
+                || isset($question['options']);
+        }
+
+        if (is_array($question['correct_order'] ?? null)) {
+            return true;
+        }
+
+        $expected = $question['correct_answer'] ?? null;
+        if (! is_scalar($expected) || trim((string) $expected) === '') {
+            return false;
+        }
+
+        // Une lettre attendue doit designer un choix qui existe.
+        $options = $question['options'] ?? null;
+        $letter = strtoupper(trim((string) $expected));
+        if (is_array($options) && preg_match('/^[A-Z]$/', $letter)) {
+            $rank = ord($letter) - ord('A');
+
+            return $rank >= 0 && $rank < count($options);
+        }
+
+        return true;
+    }
+
+    /** Les questions de cet exercice auxquelles on peut repondre, renumerotees. */
+    public function answerableQuestions(): array
+    {
+        $fallback = $this->exerciseType?->component_key;
+
+        return array_values(array_filter(
+            $this->questions ?? [],
+            fn ($question) => is_array($question) && self::questionIsAnswerable($question, $fallback)
+        ));
+    }
 }

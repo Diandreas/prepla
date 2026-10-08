@@ -313,6 +313,29 @@ class NodeStartController extends Controller
             $progress->update(['status' => 'in_progress']);
         }
 
+        // 6-pre. Du contenu casse atteignait les apprenants : une consigne « completez
+        // les notes » sans aucune case vide, une lettre attendue hors des choix. On
+        // retire ces questions avant de servir la seance, et l'exercice entier s'il
+        // n'en reste aucune — mieux vaut deux exercices que trois dont un impossible.
+        $exercises = $exercises->map(function ($exercise) {
+            $answerable = $exercise->answerableQuestions();
+
+            if (count($answerable) !== count($exercise->questions ?? [])) {
+                // Sans setRawAttributes, l'ecriture serait persistee : on ne modifie
+                // que ce qui part a l'ecran, le contenu d'origine reste reparable.
+                $exercise->setRelation('exerciseType', $exercise->exerciseType);
+                $exercise->questions = $answerable;
+                $exercise->syncOriginalAttribute('questions');
+            }
+
+            return $exercise;
+        })->filter(fn ($exercise) => count($exercise->questions ?? []) > 0)->values();
+
+        if ($exercises->isEmpty()) {
+            return redirect()->route('dashboard')
+                ->with('error', "Les exercices de cette etape etaient inutilisables. Reessaie dans un instant.");
+        }
+
         // 6. Rendre la vue du "Player" (Moteur d'exercices)
         return Inertia::render('exercises/player', [
             'node' => $node->load('exam.language'),
