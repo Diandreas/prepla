@@ -53,3 +53,53 @@ npm run render -- <CompositionId> out/<nom>.mp4
 
 - La clé API ElevenLabs vit uniquement dans `remotion/.env` (ignoré par git). Ne
   jamais la committer ni la coller en clair ailleurs.
+
+## Vidéo de présentation PrePla (`PreplaPromo`)
+
+Vidéo de présentation en motion design, verticale 9:16 (1080×1920, 30 i/s, 60 s), pour
+attirer les candidats aux examens de langue. Elle suit la vidéo n°1 du plan vidéo
+(« Le stress devient un plan ») et se termine sur un appel à l'action unique :
+« Fais ton diagnostic gratuit » + `prepla.mirlab.cloud`.
+
+| Temps | Scène | Message |
+|---|---|---|
+| 0–4 s | Accroche | « Ton [IELTS / TCF / DELF / Goethe…] examen approche ? » sur un chrono qui se vide |
+| 4–8 s | Problème | « Tu révises au hasard ? » — les questions fusent, puis tout est aspiré |
+| 8–12 s | Logo | Le « P » facetté s'assemble — « Ton examen. Ton niveau. Ton parcours. » |
+| 12–18 s | Étape 1 | Choix de la langue, de l'examen (TCF) et de l'objectif — 3 langues · 8 examens |
+| 18–26 s | Étape 2 | Test de niveau (10 questions) → niveau CECR, point fort, point à travailler |
+| 26–34 s | Étape 3 | Le parcours se dessine ; une révision ciblée s'insère d'après les erreurs |
+| 34–42 s | Correction IA | Faute corrigée et expliquée, puis « 30+ formats d'exercices » |
+| 42–46 s | Mode examen | Examen blanc chronométré (épreuves du TCF Canada) |
+| 46–52 s | Progrès | Compétences, série de jours, objectif B2, erreurs à revoir |
+| 52–60 s | Final | « Ne révise plus au hasard. Prépare-toi avec méthode. » + logo + bouton + site |
+
+Les écrans de l'application sont redessinés (pas de captures) et ne montrent que des fonctions
+présentes dans le code : test de niveau à 10 questions, formats d'exercices de
+`resources/js/lib/exercise-schemas.ts`, correction IA, simulations, XP et séries. La mention
+« plateforme indépendante, non affiliée aux organismes certificateurs » figure à la fin.
+
+### Fichiers
+
+- `src/promo/` : composition (`PreplaPromo.tsx`), scènes (`scenes/S1Hook.tsx` … `S10Cta.tsx`),
+  composants (logo vectoriel, typographie animée, cartes d'interface) et `theme.ts`
+  (couleurs de la landing, courbes d'animation, minutage des scènes sur une grille à 120 BPM).
+- `public/promo/music.mp3` : musique originale synthétisée par `scripts/compose-promo-music.py`
+  (aucun échantillon externe, donc libre de droits). `public/promo/sfx/` : bruitages, dont les
+  sons d'interface de l'application.
+- `src/promo/fontMetrics.ts` : chasses des polices, générées par `scripts/build-font-metrics.py`
+  (largeurs de texte calculées sans mesure dans le navigateur).
+
+### Commandes
+
+```bash
+cd remotion
+npm install
+npm run start                          # prévisualiser dans Remotion Studio (composition PreplaPromo)
+bash scripts/render-promo.sh           # MP4 final dans out/promo/ (reprend là où il s'est arrêté)
+python3 scripts/compose-promo-music.py # régénérer musique et bruitages (numpy, scipy, ffmpeg)
+```
+
+Pour changer un texte, modifier la scène concernée ; si un mot de la machine à sous de
+l'accroche change, rien d'autre à faire (les largeurs viennent de `fontMetrics.ts`). Si la
+police change, relancer `scripts/build-font-metrics.py` (fonttools, brotli).

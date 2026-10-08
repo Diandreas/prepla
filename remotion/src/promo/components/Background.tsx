@@ -19,7 +19,7 @@ const Grain: React.FC<{ opacity: number }> = ({ opacity }) => {
         const h = canvas.height;
         const img = ctx.createImageData(w, h);
         // mulberry32, graine = numéro d'image : le grain bouge mais reste identique à chaque rendu.
-        let a = (Math.floor(frame / 2) + 1) * 0x9e3779b1;
+        let a = (Math.floor(frame / 3) + 1) * 0x9e3779b1;
         const rand = () => {
             a |= 0;
             a = (a + 0x6d2b79f5) | 0;
@@ -131,7 +131,7 @@ export const Background: React.FC = () => {
                 <rect width={W} height={H} fill="url(#promo-grid)" />
             </svg>
 
-            <Grain opacity={0.16} />
+            <Grain opacity={0.1} />
 
             {/* Vignette */}
             <AbsoluteFill
