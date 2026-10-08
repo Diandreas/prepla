@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { illustrationUrl } from '@/lib/illustration';
 
 interface ChartDataset {
     label: string;
@@ -16,6 +17,7 @@ interface GraphDescriptionProps {
         id: string;
         text: string;
         image_url?: string;
+        image_prompt?: string;
         chart_data?: ChartData;
         min_words?: number;
         max_words?: number;
@@ -163,6 +165,11 @@ export function GraphDescription({ question, onAnswer, selectedAnswer, disabled 
                     <SimpleChart data={question.chart_data} />
                 ) : question.image_url ? (
                     <img src={question.image_url} alt="Chart" className="mx-auto max-h-64 rounded-lg object-contain" />
+                ) : question.image_prompt ? (
+                    /* Ni donnees ni image preparee : l'illustration est fabriquee a
+                       partir de la description de la scene, plutot que de laisser un
+                       cadre vide sous « decrivez le graphique ». */
+                    <img src={illustrationUrl(question.image_prompt)} alt="" className="mx-auto max-h-64 rounded-lg object-contain" />
                 ) : (
                     <p className="py-8 text-center text-sm text-muted-foreground">Aucun graphique disponible</p>
                 )}

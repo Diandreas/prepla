@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAudioRecorder } from '@/hooks/use-audio-recorder';
 import { useTts } from '@/hooks/use-tts';
+import { illustrationUrl } from '@/lib/illustration';
 
 interface SpeakingRecorderProps {
     question: {
@@ -9,6 +10,7 @@ interface SpeakingRecorderProps {
         prep_time?: number;
         speak_time?: number;
         image_url?: string;
+        image_prompt?: string;
     };
     onAnswer: (questionId: string, answer: string | Blob) => void;
     selectedAnswer?: string | Blob;
@@ -144,8 +146,15 @@ export function SpeakingRecorder({ question, onAnswer, selectedAnswer, disabled,
                 </button>
             </div>
 
-            {question.image_url && (
-                <img src={question.image_url} alt="" className="mx-auto max-h-48 rounded-xl object-contain" />
+            {/* La tache de description d'image (Bildbesprechung OSD B2) montre son
+                visuel : une image deja preparee, ou une illustration fabriquee a
+                partir de la description de la scene. */}
+            {(question.image_url || question.image_prompt) && (
+                <img
+                    src={question.image_url ?? illustrationUrl(question.image_prompt ?? '')}
+                    alt=""
+                    className="mx-auto max-h-64 rounded-xl object-contain"
+                />
             )}
 
             {error && (

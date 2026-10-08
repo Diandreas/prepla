@@ -157,12 +157,20 @@ class PracticeController extends Controller
      * ainsi son rôle : du contenu gratuit et immédiat tant qu'il reste inédit, un
      * plancher quand le fournisseur ne répond plus, jamais un substitut à la variété.
      */
-    public function drillByType(Exam $exam, \App\Models\ExerciseType $exerciseType, \App\Services\AI\ExerciseGeneratorService $generator, \App\Services\Content\StarterPracticeLibrary $library)
+    public function drillByType(Exam $exam, \App\Models\ExerciseType $exerciseType, \App\Services\AI\ExerciseGeneratorService $generator, \App\Services\Content\StarterPracticeLibrary $library, \App\Services\Content\ExerciseTypeSuitability $pertinence)
     {
         $user = auth()->user();
         $difficulty = $user->profile?->current_level ?? 'B1';
         $exerciseType->loadMissing('section');
         abort_unless($exerciseType->section?->exam_id === $exam->id, 404);
+
+        // La galerie filtre deja, mais ce lien s'atteint aussi directement (favori,
+        // ancienne adresse) : sans ce controle, un apprenant A1 recevait « decrivez
+        // l'evolution du chomage en 150 mots ».
+        if ($raison = $pertinence->raison($exerciseType, $difficulty)) {
+            return redirect()->route('practice.section', [$exam->id, $exerciseType->section_id])
+                ->with('error', $raison);
+        }
 
         $pool = fn () => Exercise::where('exam_id', $exam->id)
             ->where('exercise_type_id', $exerciseType->id)
@@ -208,7 +216,7 @@ class PracticeController extends Controller
         return redirect()->route('exercise.show', $exercise->id);
     }
 
-    public function sectionDrills(Exam $exam, ExamSection $section, \App\Services\Content\StarterPracticeLibrary $library): Response
+    public function sectionDrills(Exam $exam, ExamSection $section, \App\Services\Content\StarterPracticeLibrary $library, \App\Services\Content\ExerciseTypeSuitability $pertinence): Response
     {
         abort_unless($section->exam_id === $exam->id, 404);
         $section->load('exerciseTypes');
@@ -219,7 +227,10 @@ class PracticeController extends Controller
         // Galerie : les TYPES d'exercices de cette compétence. Cliquer un type →
         // drillByType (un exo au niveau du profil, biblio d'abord sinon généré).
         $exerciseTypes = $section->exerciseTypes
-            ->reject(fn ($t) => $t->component_key === 'diagram-labeling')
+            // Une seule regle, partagee avec le lien direct : on ne propose pas un
+            // format qui demande un niveau que l'apprenant n'a pas, ni un exercice
+            // visuel qu'on ne saurait pas illustrer.
+            ->filter(fn ($t) => $pertinence->convient($t, $learnerLevel))
             ->when($beginner && in_array($section->skill_type, ['listening', 'speaking'], true), fn ($types) => $types->filter(fn ($type) => in_array($type->component_key, ['mcq', 'gap-fill', 'matching', 'sentence-completion', 'short-answer', 'dictation', 'listen-repeat', 'speaking-recorder', 'build-a-sentence'], true))
                 ->reject(fn ($type) => $section->skill_type === 'listening' && $type->component_key === 'matching')
                 ->sortByDesc(fn ($type) => $type->slug === 'guided-introduction')

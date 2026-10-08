@@ -137,6 +137,72 @@ class Exercise extends Model
     }
 
     /**
+     * La liste des choix d'un QCM, remise a plat, quelle que soit la forme rendue.
+     *
+     * Releve sur les donnees de production : un exercice porte
+     * `options: [{A: "...", B: "...", C: "...", D: "..."}, {A: ...}, {A: ...}, {A: ...}]`
+     * — la carte lettree entiere, repetee autant de fois qu'il y a de choix. Lu choix
+     * par choix, chacun rendait sa PREMIERE valeur : l'apprenant voyait quatre fois la
+     * meme reponse, et « Bonne reponse » affichait le choix A quelle que soit la lettre
+     * attendue. On remet donc la carte a plat, dans l'ordre des lettres.
+     *
+     * Regle identique dans resources/js/lib/scoring.js (optionList) et utilisee par
+     * normalizeOptions pour l'affichage.
+     *
+     * @return list<string>
+     */
+    public static function optionList(mixed $options): array
+    {
+        if (! is_array($options) || $options === []) {
+            return [];
+        }
+
+        // Carte lettree posee directement : {A: "...", B: "..."}.
+        if (self::estCarteLettree($options)) {
+            return self::valeursTriees($options);
+        }
+
+        // Carte lettree glissee DANS la liste, parfois repetee a chaque rang.
+        foreach ($options as $element) {
+            if (self::estCarteLettree($element)) {
+                return self::valeursTriees($element);
+            }
+
+            break; // on ne juge que le premier rang
+        }
+
+        return array_map(
+            fn ($option) => self::optionText($option),
+            array_values($options)
+        );
+    }
+
+    /** Une carte dont toutes les cles sont des lettres seules : {A: …, B: …}. */
+    private static function estCarteLettree(mixed $valeur): bool
+    {
+        if (! is_array($valeur) || count($valeur) < 2 || array_is_list($valeur)) {
+            return false;
+        }
+
+        foreach (array_keys($valeur) as $cle) {
+            if (! is_string($cle) || ! preg_match('/^[A-Za-z]$/', $cle)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /** @return list<string> */
+    private static function valeursTriees(array $carte): array
+    {
+        $cles = array_keys($carte);
+        sort($cles, SORT_NATURAL | SORT_FLAG_CASE);
+
+        return array_map(fn ($cle) => self::optionText($carte[$cle]), $cles);
+    }
+
+    /**
      * Une question a laquelle un apprenant peut reellement repondre.
      *
      * Du contenu casse atteignait les apprenants : une consigne « completez les
@@ -148,6 +214,14 @@ class Exercise extends Model
     public static function questionIsAnswerable(array $question, ?string $fallbackType = null): bool
     {
         $type = $question['type'] ?? $fallbackType ?? '';
+
+        // Un exercice visuel sans visuel demande de decrire quelque chose d'absent :
+        // le composant affichait « Aucun graphique disponible » sous une consigne qui
+        // disait « decrivez le graphique ». On l'ecarte plutot que de le servir.
+        if (in_array($type, ['graph-description', 'diagram-labeling'], true)
+            && ! \App\Services\Content\ImagePromptLibrary::questionIllustrable($question)) {
+            return false;
+        }
 
         // Une question ouverte est jugee par l'IA : pas de reponse attendue a trouver.
         if (in_array($type, self::AI_EVALUATED_TYPES, true)) {

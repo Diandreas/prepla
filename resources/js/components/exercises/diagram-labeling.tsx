@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { illustrationUrl } from '@/lib/illustration';
 
 interface Label {
     id: string;
@@ -12,6 +13,7 @@ interface DiagramLabelingProps {
         id: string;
         text: string;
         image_url?: string;
+        image_prompt?: string;
         labels: Label[];
     };
     onAnswer: (questionId: string, answer: Record<string, string>) => void;
@@ -42,9 +44,9 @@ export function DiagramLabeling({ question, onAnswer, selectedAnswer, disabled }
             <p className="text-sm font-medium">{question.text}</p>
 
             {/* Diagram with markers */}
-            {question.image_url ? (
+            {(question.image_url || question.image_prompt) ? (
                 <div className="relative overflow-hidden rounded-xl border bg-white">
-                    <img src={question.image_url} alt="Diagram" className="w-full object-contain" />
+                    <img src={question.image_url ?? illustrationUrl(question.image_prompt ?? '')} alt="Diagram" className="w-full object-contain" />
                     {/* Numbered markers positioned on the image */}
                     {labels.map((label, i) => (
                         <div

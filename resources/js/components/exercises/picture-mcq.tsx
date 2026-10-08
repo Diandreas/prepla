@@ -1,4 +1,5 @@
 import { normalizeOptions } from './normalize-options';
+import { illustrationUrl } from '@/lib/illustration';
 
 interface PictureMcqProps {
     question: {
@@ -15,17 +16,11 @@ interface PictureMcqProps {
     disabled?: boolean;
 }
 
-// Free image generation (no key) from a short description.
-function imgUrl(prompt: string): string {
-    const clean = prompt.replace(/\s+/g, ' ').trim();
-    return `https://image.pollinations.ai/prompt/${encodeURIComponent(clean + ', simple clear illustration, white background, no text')}?width=400&height=300&nologo=true`;
-}
-
 export function PictureMcq({ question, onAnswer, selectedAnswer, disabled }: PictureMcqProps) {
     const urls: string[] =
         (Array.isArray(question.image_options) && question.image_options.length)
             ? question.image_options
-            : (Array.isArray(question.image_prompts) ? question.image_prompts.map(imgUrl) : []);
+            : (Array.isArray(question.image_prompts) ? question.image_prompts.map((p: string) => illustrationUrl(p, { largeur: 400, hauteur: 300 })) : []);
     const labels = normalizeOptions(question.options);
     const correct = String(question.correct_answer ?? '').trim().toUpperCase();
 

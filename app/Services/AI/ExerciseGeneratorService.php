@@ -576,7 +576,13 @@ DIRECTIVE;
             ? "\n\nBEGINNER INSTRUCTION ({$difficulty}): the student does not read {$language} fluently yet.\n- The \"text\" instruction field MUST be written in {$nativeLang}, so the student understands WHAT is asked.\n- The actual content to complete/label/reorder (fields/rows/steps/labels/paragraphs/sentence) MUST STAY in {$language} — only the meta-instruction telling the student what to do switches language."
             : '';
 
-        $questionFormat = match ($componentKey) {
+        // Une tache de description d'image (Bildbesprechung de l'OSD B2) se reconnait
+        // par son slug : le composant, lui, est l'enregistreur oral ordinaire.
+        $estDescriptionImage = $exerciseType->slug === 'picture-description';
+
+        $questionFormat = match (true) {
+            $estDescriptionImage => 'Array of 1 question with: id (string), type ("speaking-recorder"), text (instruction in '.$scenarioLang.' asking the student to FIRST describe what the picture shows, THEN comment on it and give their own opinion), image_prompt (a short English description of an everyday scene to illustrate — people doing something ordinary, e.g. "a family having breakfast in a small kitchen" — no text, no charts), prep_time (60), speak_time (180), image_url (null), correct_answer (null)',
+            default => match ($componentKey) {
             // --- Original components ---
             'mcq' => 'Array of 3 questions, each with: id (string q1/q2/q3), type ("mcq"), text (question in '.$language.'), options (array of exactly 4 answer choices in '.$language.', do NOT include letters like "A)" prefix), correct_answer (ONLY the letter: "A", "B", "C", or "D" corresponding to the correct option index), explanation (string in '.$language.')'.$audioField,
             'true-false-ng' => 'Array of 3 statements, each with: id (string), type ("true-false-ng"), text (statement in '.$language.'), correct_answer ("True"/"False"/"Not Given"), explanation (string)'.$audioField,
@@ -605,7 +611,7 @@ DIRECTIVE;
             // --- Sprint 3: Interactive components ---
             'insert-text' => 'Array of 1 question with: id (string), type ("insert-text"), sentence (the sentence to insert, in '.$language.'), passage (text with markers [A], [B], [C], [D] where sentence could be inserted), correct_answer ("A"/"B"/"C"/"D")',
             'gapped-text' => 'Array of 1 question with: id (string), type ("gapped-text"), text (instruction in '.$instructionLang.'), passage_parts (array of strings, the main text split at gaps), paragraphs (array of objects {id: "p1"-"p5", text: string in '.$language.'} — paragraphs to place in gaps), correct_order (array of paragraph ids in correct gap order)',
-            'graph-description' => 'Array of 1 question with: id (string), type ("graph-description"), text (writing prompt describing the chart in '.$language.'), chart_data ({type: "bar"|"line"|"pie", labels: string[], datasets: [{label: string, data: number[]}]}), min_words ('.$wMin.'), max_words ('.$wMax.'), correct_answer (null)',
+            'graph-description' => 'Array of 1 question with: id (string), type ("graph-description"), text (writing prompt describing the chart in '.$language.'), chart_data ({type: "bar"|"line"|"pie", labels: string[], datasets: [{label: string, data: number[]}]} — REQUIRED, this is what the student sees), image_prompt (a short English description of the same chart, used only if chart_data is unusable), min_words ('.$wMin.'), max_words ('.$wMax.'), correct_answer (null)',
             'academic-discussion' => 'Array of 1 question with: id (string), type ("academic-discussion"), professor_prompt (discussion topic in '.$language.'), student_posts (array of 2 objects {name: string, text: opinion in '.$language.'}), writing_prompt (instruction for student response in '.$language.'), min_words ('.$wMin.'), max_words ('.$wMax.'), correct_answer (null)',
 
             // --- Sprint 4: Audio/Speaking components ---
@@ -614,6 +620,7 @@ DIRECTIVE;
             // understand — only the examiner's spoken "text" stays in $language.
             'speaking-recorder' => 'Array of 1 question with: id (string), type ("speaking-recorder"), text (speaking prompt in '.$scenarioLang.', e.g. describe an experience, give opinion on topic), prep_time (30), speak_time (60), image_url (null), correct_answer (null)',
             'role-play' => 'Array of 1 question with: id (string), type ("role-play"), scenario (situation description in '.$scenarioLang.'), role (candidate role in '.$scenarioLang.'), dialogue_turns (array of 4-6 objects {speaker: "examiner"|"candidate", text: string for examiner lines in '.$language.', prompt: string for candidate hints in '.$scenarioLang.'}), correct_answer (null)',
+            // (suite du match sur $componentKey)
             // Interactive speaking — all rendered by the role-play component (type "role-play"),
             // alternating examiner (spoken via TTS) ↔ candidate (records, live-scored).
             'oral-debate' => 'Array of 1 question with: id (string), type ("role-play"), scenario (a debatable topic + the examiner\'s stance, in '.$scenarioLang.'), role ("Tu défends ton point de vue face à l\'examinateur" translated to '.$scenarioLang.' if needed), dialogue_turns (array of 6 objects ALTERNATING: examiner turns have text = a provocative claim/counter-argument in '.$language.'; candidate turns have prompt = what to argue, in '.$scenarioLang.', e.g. "Réfute cet argument avec un exemple"), correct_answer (null)',
@@ -630,12 +637,13 @@ DIRECTIVE;
             'text-continuation' => 'Array of 1 question with: id (string), type ("text-continuation"), source_text (the BEGINNING of a story/fait divers, 2-3 sentences in '.$language.'), text (instruction: continuer le texte de façon cohérente), min_words (80), max_words (120), correct_answer (null — scored by AI)',
 
             // --- Sprint 5: Complex components ---
-            'diagram-labeling' => 'Array of 1 question with: id (string), type ("diagram-labeling"), text (instruction in '.$instructionLang.'), image_url (null — will use placeholder), labels (array of 4-6 objects {id: "l1"-"l6", x: number 10-90, y: number 10-90, answer: correct label string}), correct_answers (object mapping label id to correct text)',
+            'diagram-labeling' => 'Array of 1 question with: id (string), type ("diagram-labeling"), text (instruction in '.$instructionLang.'), image_url (null), image_prompt (a short English description of the diagram to illustrate, e.g. "a simple labelled diagram of a bicycle"), labels (array of 4-6 objects {id: "l1"-"l6", x: number 10-90, y: number 10-90, answer: correct label string}), correct_answers (object mapping label id to correct text)',
             'synthesis' => 'Array of 1 question with: id (string), type ("synthesis"), documents (array of 2-3 objects {title: string, content: text of 100-150 words in '.$language.'}), writing_prompt (synthesis instruction in '.$language.'), min_words (220), max_words (250), correct_answer (null)',
             'synthesis-essay' => 'Array of 1 question with: id (string), type ("synthesis") [the component renders "synthesis"], documents (array of 2-3 objects {title: string, content: text of 120-180 words in '.$language.' presenting DIFFERENT viewpoints on a topic}), writing_prompt (instruction in '.$language.': first SYNTHESISE the documents, THEN take and defend a personal position — DALF C2 style), min_words (250), max_words (300), correct_answer (null)',
             'integrated-task' => 'Array of 1 question with: id (string), type ("integrated-task"), reading_passage ({title: string, content: 200-word text in '.$language.'}), audio_text (100-word listening text in '.$language.' for TTS), audio_lang ("'.strtolower(substr($language, 0, 2)).'"), response_type ("writing"), writing_prompt (instruction in '.$language.'), min_words (150), max_words (225), correct_answer (null)',
 
-            default => 'Array of 3 questions with: id (string), type ("mcq"), text, options (4 choices), correct_answer, explanation',
+                default => 'Array of 3 questions with: id (string), type ("mcq"), text, options (4 choices), correct_answer, explanation',
+            },
         };
 
         // Determine content structure based on component type.

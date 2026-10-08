@@ -14,9 +14,17 @@ test('associations, etiquetage et organigramme sont jouables', function () {
         'statements' => [['id' => 's1', 'text' => 'Phrase', 'correct_text_id' => 't1']],
     ]))->toBeTrue();
 
+    // Un schema a etiqueter n'est jouable QUE s'il a de quoi montrer son schema :
+    // sans visuel, l'ecran demandait d'etiqueter une image absente.
     expect(Exercise::questionIsAnswerable([
         'id' => 'q2', 'type' => 'diagram-labeling',
         'labels' => [['id' => 'l1', 'text' => 'Etiquette']],
+    ]))->toBeFalse();
+
+    expect(Exercise::questionIsAnswerable([
+        'id' => 'q2b', 'type' => 'diagram-labeling',
+        'labels' => [['id' => 'l1', 'text' => 'Etiquette']],
+        'image_prompt' => 'a simple labelled diagram of a bicycle',
     ]))->toBeTrue();
 
     expect(Exercise::questionIsAnswerable([
