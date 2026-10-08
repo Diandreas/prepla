@@ -15,6 +15,13 @@ class EnsureOnboardingComplete
             return $next($request);
         }
 
+        // Le personnel d'un centre n'a pas de parcours d'apprentissage a configurer :
+        // l'envoyer choisir « son objectif » et « son niveau » est un cul-de-sac, et
+        // plusieurs liens en dur (logo, page d'accueil publique, favoris) y menaient.
+        if ($user->isSuperAdmin() || $user->isCenterStaff()) {
+            return $next($request);
+        }
+
         // Native language must be set first — lesson explanations are localized to it
         if (!$user->profile?->native_language) {
             return redirect()->route('onboarding.native-language');

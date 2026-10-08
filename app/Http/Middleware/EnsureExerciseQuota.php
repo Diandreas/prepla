@@ -36,7 +36,9 @@ class EnsureExerciseQuota
         // libre : son travail lui est donne par son professeur. Le quota gratuit le
         // renvoyait vers l'abonnement au quatrieme exercice de son devoir, alors que
         // ce devoir vient de son etablissement.
-        if ($user->isCenterStudent()) {
+        // Le personnel est dans le meme cas : un enseignant qui prepare ses exercices
+        // ou verifie un devoir n'est pas un apprenant libre.
+        if ($user->isCenterStudent() || $user->isCenterStaff() || $user->isSuperAdmin()) {
             return $next($request);
         }
 

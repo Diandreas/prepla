@@ -141,7 +141,14 @@ class TeacherInvitationController extends Controller
                 'password' => Hash::make($validated['password']),
             ]);
 
-            UserProfile::create(['user_id' => $user->id, 'target_exam_id' => $invitation->exam_id]);
+            // Inscription deja faite : sans cette date, le premier clic sur le logo
+            // renvoyait l'enseignant dans le questionnaire d'inscription apprenant
+            // (« choisis ton objectif »), sans aucun retour vers son espace.
+            UserProfile::create([
+                'user_id' => $user->id,
+                'target_exam_id' => $invitation->exam_id,
+                'onboarding_completed_at' => now(),
+            ]);
 
             $center = $invitation->center ?? LanguageCenter::create([
                 'name' => $invitation->space_name ?: ($invitation->name . ' — cours de langue'),

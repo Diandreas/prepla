@@ -3,7 +3,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-export default function Join({ alreadyInCenter }: { alreadyInCenter: boolean }) {
+export default function Join({ alreadyInCenter, currentCenter }: { alreadyInCenter: boolean; currentCenter?: string | null }) {
     const form = useForm({ code: '' });
 
     function submit(e: React.FormEvent) {
@@ -18,14 +18,16 @@ export default function Join({ alreadyInCenter }: { alreadyInCenter: boolean }) 
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">Rejoindre votre centre</h1>
                     <p className="text-sm text-muted-foreground">
-                        Saisissez le code d'invitation fourni par votre établissement.
+                        {currentCenter && !alreadyInCenter
+                            ? `Vous êtes inscrit à « ${currentCenter} ». Saisissez le code d'une autre classe de votre établissement pour la rejoindre.`
+                            : "Saisissez le code d'invitation fourni par votre établissement."}
                     </p>
                 </div>
 
                 {alreadyInCenter ? (
                     <Card>
                         <CardContent className="p-4 text-sm text-muted-foreground">
-                            Vous appartenez déjà à un centre. Contactez votre établissement pour changer.
+                            Vous encadrez déjà un espace : ce code est réservé aux élèves.
                         </CardContent>
                     </Card>
                 ) : (

@@ -57,6 +57,19 @@ class CenterController extends Controller
             'admin_email' => 'required|email|max:255',
         ]);
 
+        // Verifie AVANT de creer quoi que ce soit : un compte deja membre d'un autre
+        // espace n'etait pas rattache, mais le centre etait cree quand meme et le
+        // message annoncait pourtant « rattache comme administrateur ». Resultat : un
+        // espace sans aucun administrateur, que personne ne pouvait ouvrir.
+        $dejaMembre = User::where('email', $validated['admin_email'])->first();
+        if ($dejaMembre && ($lien = CenterUser::where('user_id', $dejaMembre->id)->first())) {
+            $nom = LanguageCenter::find($lien->center_id)?->name ?? 'un autre espace';
+
+            return back()->withInput()->withErrors([
+                'admin_email' => "Ce compte appartient déjà à l'espace « {$nom} » (rôle {$lien->role}). Détachez-le d'abord ou indiquez une autre adresse.",
+            ]);
+        }
+
         $center = LanguageCenter::create([
             'name' => $validated['name'],
             'slug' => $this->uniqueSlug($validated['name']),
@@ -83,15 +96,14 @@ class CenterController extends Controller
             );
         }
 
-        // Attach as center_admin (a user belongs to a single center in this lot).
-        if (! CenterUser::where('user_id', $admin->id)->exists()) {
-            CenterUser::create([
-                'center_id' => $center->id,
-                'user_id' => $admin->id,
-                'role' => 'center_admin',
-                'joined_at' => now(),
-            ]);
-        }
+        // Le cas conflictuel a ete ecarte plus haut : le rattachement ne peut plus
+        // etre silencieusement ignore, donc le message de succes ne peut plus mentir.
+        CenterUser::create([
+            'center_id' => $center->id,
+            'user_id' => $admin->id,
+            'role' => 'center_admin',
+            'joined_at' => now(),
+        ]);
 
         return redirect()
             ->route('admin.centers.show', $center->id)

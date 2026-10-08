@@ -116,12 +116,18 @@ class StudentController extends Controller
         /** @var LanguageCenter $center */
         $center = $request->attributes->get('center');
 
+        // La cible doit etre un ELEVE DE CETTE CLASSE. Sans ce controle, un
+        // identifiant saisi a la main suffisait pour qu'un enseignant detache un
+        // collegue — ou le responsable de l'etablissement — et lui supprime son
+        // appartenance au centre, donc tout son acces.
+        abort_unless($classroom->students()->whereKey($user->id)->exists(), 403);
+
         // Remove from the classroom; if no longer in any classroom of the center,
         // also free the center seat.
         $classroom->members()->detach($user->id);
 
         $stillInCenter = $user->classrooms()->where('center_id', $center->id)->exists();
-        if (! $stillInCenter) {
+        if (! $stillInCenter && $user->centerRoleIs('student')) {
             $user->centerMembership()->where('center_id', $center->id)->delete();
         }
 

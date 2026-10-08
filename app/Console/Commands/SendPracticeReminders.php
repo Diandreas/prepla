@@ -17,6 +17,10 @@ class SendPracticeReminders extends Command
         // utilisateurs puis une requête exists() par utilisateur.
         $users = User::with('profile')
             ->whereHas('profile', fn ($q) => $q->whereNotNull('onboarding_completed_at'))
+            // Le personnel d'un centre n'a pas de parcours a suivre : un enseignant
+            // recevait « va pratiquer » chaque soir depuis que son inscription est
+            // marquee faite.
+            ->whereDoesntHave('centerMembership', fn ($q) => $q->whereIn('role', ['center_admin', 'teacher']))
             ->whereDoesntHave('exerciseAttempts', fn ($q) => $q->whereDate('created_at', today()))
             ->get();
 
