@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
-# Rend la vidéo de présentation PrePla (composition PreplaPromo) en MP4 prêt à publier :
+# Rend une vidéo de présentation PrePla (composition PreplaPromo par défaut) en MP4 prêt à publier :
 # 1080×1920, H.264 + AAC, BT.709, loudness normalisée à -14 LUFS (réseaux sociaux).
 #
 # Les images sont rendues par tranches : si le rendu est interrompu, relancer le script
 # reprend à la première tranche manquante. Usage (depuis remotion/) :
 #   bash scripts/render-promo.sh            # CONCURRENCY=3 par défaut
 #   CRF=18 bash scripts/render-promo.sh     # qualité plus élevée (fichier plus lourd)
+#   COMP=PreplaPromoDE OUT=out/promo-de NAME=prepla-allemand-9x16.mp4 bash scripts/render-promo.sh
+#                                           # version allemande (Goethe / TestDaF)
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-COMP=PreplaPromo
+COMP="${COMP:-PreplaPromo}"
 TOTAL=1800
 CHUNK=300
-OUT=out/promo
+OUT="${OUT:-out/promo}"
 FRAMES="$OUT/frames"
-FINAL="$OUT/prepla-presentation-9x16.mp4"
+FINAL="$OUT/${NAME:-prepla-presentation-9x16.mp4}"
 mkdir -p "$FRAMES"
 
 for ((start = 0; start < TOTAL; start += CHUNK)); do

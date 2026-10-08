@@ -26,6 +26,8 @@ export interface PromoContent {
         b: { passage: string; question: string; options: string[]; correct: number };
         c: { prompt: string; essay: string };
         chips: [string, string];
+        /** Niveau obtenu (index A1 = 0 … C2 = 5) ; l'objectif est le niveau suivant. B1 par défaut. */
+        level?: number;
     };
     path: {
         mission: { title: string; subtitle?: string };
@@ -195,6 +197,8 @@ export const DE: PromoContent = {
         },
         c: { prompt: "Explique en allemand pourquoi tu apprends l'allemand.", essay: 'Ich lerne Deutsch, weil ich in Deutschland studieren möchte.' },
         chips: ['Point fort : Lesen', 'À travailler : Sprechen'],
+        // A2 aujourd'hui, objectif B1 : cohérent avec « Goethe B1 dans 8 semaines ».
+        level: 1,
     },
     path: {
         mission: { title: 'Nebensätze', subtitle: 'weil · dass · wenn' },

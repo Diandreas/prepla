@@ -101,7 +101,7 @@ const PlacementHeader: React.FC<{ section: string; title: string; progress: numb
 
 export const S5Diagnostic: React.FC = () => {
     const frame = useCurrentFrame();
-    const { sub: subtitle, a, b, c, chips } = usePromoContent().placement;
+    const { sub: subtitle, a, b, c, chips, level = 2 } = usePromoContent().placement;
     // Position du doigt : grille 2 × 2 en section A, liste en section B (sous une question d'1 ou 2 lignes).
     const tapA = { x: CARD.left + 44 + (a.correct % 2) * (406 + 20) + 203, y: CARD.top + 502 + Math.floor(a.correct / 2) * 124 };
     const questionLines = Math.min(2, Math.ceil(textWidth(b.question, 'jakarta800', 34) / (CARD.width - 88)));
@@ -273,18 +273,18 @@ export const S5Diagnostic: React.FC = () => {
                 hideAt={TAP2 + 10}
             />
 
-            {frame >= RESULT - 2 ? <Result frame={frame} chips={chips} /> : null}
+            {frame >= RESULT - 2 ? <Result frame={frame} chips={chips} level={level} /> : null}
         </Move>
     );
 };
 
 const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
-const Result: React.FC<{ frame: number; chips: [string, string] }> = ({ frame, chips }) => {
+const Result: React.FC<{ frame: number; chips: [string, string]; level: number }> = ({ frame, chips, level }) => {
     const ringPop = sp(frame, RESULT, SPRING.pop);
-    const arc = tw(frame, RESULT + 4, 34, 0, 1, EASE.out) * 0.5;
+    const arc = tw(frame, RESULT + 4, 34, 0, 1, EASE.out) * ((level + 1) / LEVELS.length);
     const circumference = 2 * Math.PI * RING.r;
-    const levelIdx = frame >= LAND ? 2 : frame >= RESULT + 10 ? 1 : 0;
+    const levelIdx = frame >= LAND ? level : frame >= RESULT + 10 ? Math.max(0, level - 1) : 0;
     const land = sp(frame, LAND, SPRING.bouncy);
     const burst = tw(frame, LAND, 26, 0, 1, EASE.out);
     const segW = (920 - 5 * 14) / 6;
@@ -364,14 +364,14 @@ const Result: React.FC<{ frame: number; chips: [string, string] }> = ({ frame, c
                 </span>
             </div>
 
-            {/* Progression CECRL */}
-            <div style={{ position: 'absolute', left: 80, top: 1318, fontFamily: FONT.sans, fontWeight: 700, fontSize: 24, letterSpacing: '0.16em', textTransform: 'uppercase', color: C.textMid, opacity: scaleIn }}>
+            {/* Progression CECRL (titre à droite quand la pastille « Objectif » tombe sur la gauche) */}
+            <div style={{ position: 'absolute', ...(level + 1 <= 2 ? { right: 80 } : { left: 80 }), top: 1318, fontFamily: FONT.sans, fontWeight: 700, fontSize: 24, letterSpacing: '0.16em', textTransform: 'uppercase', color: C.textMid, opacity: scaleIn }}>
                 Progression CECRL
             </div>
             <div style={{ position: 'absolute', left: 80, top: 1376, width: 920, display: 'flex', gap: 14 }}>
                 {LEVELS.map((lv, i) => {
-                    const filled = i <= 2 ? tw(frame, LAND + 2 + i * 4, 10) : 0;
-                    const isGoal = i === 3;
+                    const filled = i <= level ? tw(frame, LAND + 2 + i * 4, 10) : 0;
+                    const isGoal = i === level + 1;
                     return (
                         <div key={lv} style={{ width: segW, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, opacity: scaleIn }}>
                             <div
@@ -386,9 +386,9 @@ const Result: React.FC<{ frame: number; chips: [string, string] }> = ({ frame, c
                                     overflow: 'hidden',
                                 }}
                             >
-                                <div style={{ width: `${filled * 100}%`, height: '100%', background: i === 2 ? C.gold : C.sky, borderRadius: 11 }} />
+                                <div style={{ width: `${filled * 100}%`, height: '100%', background: i === level ? C.gold : C.sky, borderRadius: 11 }} />
                             </div>
-                            <span style={{ fontFamily: FONT.sans, fontWeight: 800, fontSize: 32, color: i === 2 ? C.gold : isGoal ? C.goldLight : i < 2 ? C.text : C.textDim }}>{lv}</span>
+                            <span style={{ fontFamily: FONT.sans, fontWeight: 800, fontSize: 32, color: i === level ? C.gold : isGoal ? C.goldLight : i < level ? C.text : C.textDim }}>{lv}</span>
                         </div>
                     );
                 })}
@@ -396,7 +396,7 @@ const Result: React.FC<{ frame: number; chips: [string, string] }> = ({ frame, c
             <div
                 style={{
                     position: 'absolute',
-                    left: 80 + 3 * (segW + 14) + segW / 2,
+                    left: 80 + (level + 1) * (segW + 14) + segW / 2,
                     top: 1312,
                     transform: `translateX(-50%) scale(${goal}) translateY(${(1 - goal) * 20}px)`,
                     display: 'flex',
