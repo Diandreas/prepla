@@ -5,17 +5,12 @@ import { AppGif, AppIcon } from '../components/AppAssets';
 import { Icon } from '../components/Icons';
 import { Move, SceneHeader } from '../components/SceneKit';
 import { Card, Pill, ProgressBar } from '../components/UI';
+import { usePromoContent } from '../content';
 import { C, EASE, FONT, SPRING, sp, tw } from '../theme';
 
 // Progrès (46–52 s) : compétences, série de jours, objectif B2, erreurs à revoir.
 // En sortie, les cartes sont aspirées vers le centre pour laisser place au message final.
 
-const SKILLS = [
-    { label: 'Compréhension écrite', value: 78, color: C.sky },
-    { label: 'Compréhension orale', value: 64, color: C.sky },
-    { label: 'Expression écrite', value: 58, color: C.gold },
-    { label: 'Expression orale', value: 46, color: C.gold },
-];
 const COLLAPSE = 158;
 const CENTER = { x: 540, y: 1060 };
 
@@ -47,6 +42,8 @@ const Collapse: React.FC<{ frame: number; index: number; box: { x: number; y: nu
 
 export const S9Progress: React.FC = () => {
     const frame = useCurrentFrame();
+    const content = usePromoContent().progress;
+    const skills = content.skills.map((s) => ({ ...s, color: s.tone === 'gold' ? C.gold : C.sky }));
     const streak = Math.round(tw(frame, 30, 26, 1, 12, EASE.out));
     const ring = tw(frame, 36, 40, 0, 0.72, EASE.out);
     const r = 66;
@@ -65,10 +62,10 @@ export const S9Progress: React.FC = () => {
                             <span style={{ fontSize: 38, fontWeight: 800, letterSpacing: '-0.02em' }}>Tes compétences</span>
                         </div>
                         <Pill tone="sky" size={26}>
-                            TCF · B1
+                            {content.pill}
                         </Pill>
                     </div>
-                    {SKILLS.map((s, i) => {
+                    {skills.map((s, i) => {
                         const v = tw(frame, 16 + i * 5, 34, 0, s.value, EASE.out);
                         return (
                             <div key={s.label} style={{ marginTop: 22 }}>
@@ -117,8 +114,8 @@ export const S9Progress: React.FC = () => {
                         </text>
                     </svg>
                     <div>
-                        <div style={{ fontSize: 26, fontWeight: 700, color: C.inkSoft }}>Objectif</div>
-                        <div style={{ fontSize: 46, fontWeight: 800, letterSpacing: '-0.02em' }}>Vers le B2</div>
+                        <div style={{ fontSize: 26, fontWeight: 700, color: C.inkSoft }}>{content.ring.label}</div>
+                        <div style={{ fontSize: 46, fontWeight: 800, letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>{content.ring.value}</div>
                     </div>
                 </Card>
             </Collapse>
@@ -138,9 +135,10 @@ export const S9Progress: React.FC = () => {
                         boxShadow: '0 30px 60px -30px rgba(0,0,0,0.8)',
                     }}
                 >
-                    <AppIcon name="review" size={72} tone="amber" shadow={false} />
+                    <AppIcon name={content.errors.icon} size={72} tone="amber" shadow={false} />
                     <span style={{ flex: 1, fontSize: 36, fontWeight: 700 }}>
-                        <b style={{ color: C.gold }}>6 erreurs</b> à revoir aujourd'hui
+                        <b style={{ color: C.gold }}>{content.errors.strong}</b>
+                        {content.errors.rest}
                     </span>
                     <Icon name="arrowRight" size={40} color={C.textMid} stroke={2.6} />
                 </div>

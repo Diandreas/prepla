@@ -5,6 +5,7 @@ import { type IconName } from '../components/Icons';
 import { SceneTag } from '../components/KineticText';
 import { Move, SceneHeader, TAG_TOP } from '../components/SceneKit';
 import { Card, Pill } from '../components/UI';
+import { usePromoContent } from '../content';
 import { C, EASE, FONT, SPRING, env, sp, tw } from '../theme';
 
 // Correction IA (34–42 s) : une phrase d'expression écrite est tapée, analysée, la faute est
@@ -21,7 +22,7 @@ const STRIKE = 82;
 const FIX = 88;
 const EXPLAIN = 100;
 const XP = 118;
-const PHASE_B = 152;
+export const PHASE_B = 152;
 
 // Libellés réels des formats (resources/js/lib/exercise-schemas.ts).
 const ROWS = [
@@ -235,14 +236,17 @@ const PhaseA: React.FC<{ frame: number }> = ({ frame }) => {
     );
 };
 
-const SKILLS: Array<{ icon: AppIconName; tone: AppTone; label: string }> = [
-    { icon: 'courses', tone: 'blue', label: 'Lecture' },
-    { icon: 'listening', tone: 'mint', label: 'Écoute' },
-    { icon: 'writing', tone: 'amber', label: 'Écrit' },
-    { icon: 'speaking', tone: 'rose', label: 'Oral' },
+// Libellés selon la version (Lecture… ou Lesen…) : usePromoContent().formats.
+const SKILLS: Array<{ icon: AppIconName; tone: AppTone }> = [
+    { icon: 'courses', tone: 'blue' },
+    { icon: 'listening', tone: 'mint' },
+    { icon: 'writing', tone: 'amber' },
+    { icon: 'speaking', tone: 'rose' },
 ];
 
-const PhaseB: React.FC<{ frame: number }> = ({ frame }) => {
+/** « 30+ formats d'exercices » : partagé par les versions française et allemande. */
+export const PhaseB: React.FC<{ frame: number }> = ({ frame }) => {
+    const labels = usePromoContent().formats.skills;
     const f = frame - PHASE_B;
     const count = Math.round(tw(f, 6, 24, 0, 30, EASE.out));
     const plus = sp(f, 30, SPRING.bouncy);
@@ -359,7 +363,7 @@ const PhaseB: React.FC<{ frame: number }> = ({ frame }) => {
                     const pop = sp(f, 26 + i * 4, SPRING.pop);
                     return (
                         <div
-                            key={s.label}
+                            key={labels[i]}
                             style={{
                                 flex: 1,
                                 height: 190,
@@ -380,7 +384,7 @@ const PhaseB: React.FC<{ frame: number }> = ({ frame }) => {
                             }}
                         >
                             <AppIcon name={s.icon} size={92} tone={s.tone} />
-                            {s.label}
+                            {labels[i]}
                         </div>
                     );
                 })}

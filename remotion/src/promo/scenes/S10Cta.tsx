@@ -5,6 +5,7 @@ import { Icon } from '../components/Icons';
 import { KineticText } from '../components/KineticText';
 import { LOGO_RATIO, LogoMark, Wordmark } from '../components/Logo';
 import { Pointer } from '../components/UI';
+import { usePromoContent } from '../content';
 import { BEAT, C, EASE, FONT, SPRING, env, sp, tw } from '../theme';
 
 // Final (52–60 s) : « Ne révise plus au hasard. » → « Prépare-toi avec méthode. », puis le
@@ -19,6 +20,8 @@ const URL = 'prepla.mirlab.cloud';
 
 export const S10Cta: React.FC = () => {
     const frame = useCurrentFrame();
+    const content = usePromoContent().cta;
+    const bubble = sp(frame, CARD_AT + 54, SPRING.bouncy);
     const card = sp(frame, CARD_AT + 26, SPRING.soft);
     const fox = sp(frame, CARD_AT + 40, SPRING.bouncy);
     const wave = Math.sin(((frame - CARD_AT) / (BEAT * 2)) * Math.PI * 2) * 4 * Math.min(1, fox);
@@ -33,10 +36,10 @@ export const S10Cta: React.FC = () => {
     return (
         <AbsoluteFill>
             <div style={{ position: 'absolute', top: 760, left: 0, right: 0 }}>
-                <KineticText lines={['Ne révise plus', '*au hasard*.']} start={0} size={132} stagger={4} exit={42} />
+                <KineticText lines={content.first} start={0} size={132} stagger={4} exit={42} />
             </div>
-            <div style={{ position: 'absolute', top: 760, left: 0, right: 0 }}>
-                <KineticText lines={['Prépare-toi', 'avec *méthode*.']} start={60} size={132} stagger={4} exit={102} />
+            <div style={{ position: 'absolute', top: content.secondTop, left: 0, right: 0 }}>
+                <KineticText lines={content.second} start={60} size={content.secondSize} stagger={4} exit={102} />
             </div>
 
             {frame >= CARD_AT - 2 ? (
@@ -103,11 +106,11 @@ export const S10Cta: React.FC = () => {
                                     transform: `translateY(${(1 - line(4)) * 20}px)`,
                                 }}
                             >
-                                Fais ton diagnostic{' '}
-                                <span style={{ fontFamily: FONT.serif, fontStyle: 'italic', fontWeight: 700, fontSize: '1.2em', color: C.goldLight }}>gratuit</span>
+                                {content.title}{' '}
+                                <span style={{ fontFamily: FONT.serif, fontStyle: 'italic', fontWeight: 700, fontSize: '1.2em', color: C.goldLight }}>{content.titleAccent}</span>
                             </div>
                             <div style={{ marginTop: 14, fontSize: 28, fontWeight: 500, lineHeight: 1.4, color: 'rgba(219,234,254,0.85)', opacity: line(8) }}>
-                                Ton niveau en quelques minutes, puis un parcours fait pour ton examen.
+                                {content.description}
                             </div>
                             <div
                                 style={{
@@ -162,6 +165,32 @@ export const S10Cta: React.FC = () => {
                         <Fox height={480} />
                     </div>
 
+                    {/* Bulle du renard (version allemande : « Los geht's! ») */}
+                    {content.foxSays && frame >= CARD_AT + 54 ? (
+                        <div
+                            style={{
+                                position: 'absolute',
+                                right: 300,
+                                top: MISSION.top - 96,
+                                transform: `scale(${bubble})`,
+                                transformOrigin: '100% 100%',
+                                padding: '16px 28px',
+                                borderRadius: 28,
+                                borderBottomRightRadius: 6,
+                                background: '#ffffff',
+                                color: '#193b67',
+                                fontFamily: FONT.sans,
+                                fontWeight: 800,
+                                fontSize: 40,
+                                letterSpacing: '-0.01em',
+                                whiteSpace: 'nowrap',
+                                boxShadow: '0 20px 40px -12px rgba(0,0,0,0.6)',
+                            }}
+                        >
+                            {content.foxSays}
+                        </div>
+                    ) : null}
+
                     {/* Adresse */}
                     <div
                         style={{
@@ -205,9 +234,12 @@ export const S10Cta: React.FC = () => {
                             transform: `translateY(${(1 - exams) * 16}px)`,
                         }}
                     >
-                        IELTS · TOEFL · Cambridge · DELF/DALF
-                        <br />
-                        TCF · TEF · Goethe · TestDaF
+                        {content.exams.map((line, i) => (
+                            <React.Fragment key={line}>
+                                {i > 0 ? <br /> : null}
+                                {line}
+                            </React.Fragment>
+                        ))}
                     </div>
                     <div
                         style={{
@@ -224,7 +256,7 @@ export const S10Cta: React.FC = () => {
                             opacity: legal,
                         }}
                     >
-                        PrePla est une plateforme indépendante, non affiliée aux organismes certificateurs.
+                        {content.legal}
                     </div>
 
                     <Pointer keys={[{ f: BUTTON_TAP, x: MISSION.left + 52 + 280, y: MISSION.top + 384, tap: true }]} hideAt={BUTTON_TAP + 16} />

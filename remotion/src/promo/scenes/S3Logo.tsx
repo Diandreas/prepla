@@ -4,6 +4,7 @@ import { KineticText } from '../components/KineticText';
 import { LOGO_RATIO, LogoMark, Wordmark } from '../components/Logo';
 import { MINI } from '../components/MiniLogo';
 import { textWidth } from '../components/textWidth';
+import { usePromoContent } from '../content';
 import { C, EASE, env, tw } from '../theme';
 
 // Révélation (8–12 s) : impact lumineux, les facettes du « P » s'assemblent, le cube doré
@@ -19,6 +20,7 @@ const LAND = 20;
 
 export const S3Logo: React.FC = () => {
     const frame = useCurrentFrame();
+    const { tagline } = usePromoContent().logo;
     const prePlaWidth = textWidth('PrePla', 'jakarta800', WORD_SIZE, -0.03);
 
     const flash = 1 - tw(frame, 0, 16, 0, 1, EASE.outSoft);
@@ -136,9 +138,9 @@ export const S3Logo: React.FC = () => {
 
             {/* Ton examen. Ton niveau. Ton parcours. */}
             <div style={{ position: 'absolute', left: 0, right: 0, top: 1150, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
-                <KineticText lines={['Ton *examen*.']} start={60} size={86} stagger={3} exit={98} accentScale={1.24} />
-                <KineticText lines={['Ton *niveau*.']} start={75} size={86} stagger={3} exit={100} accentScale={1.24} />
-                <KineticText lines={['Ton *parcours*.']} start={90} size={86} stagger={3} exit={102} accentScale={1.24} />
+                {tagline.map((line, i) => (
+                    <KineticText key={line} lines={[line]} start={60 + i * 15} size={86} stagger={3} exit={98 + i * 2} accentScale={1.24} />
+                ))}
             </div>
 
             {/* Flash d'impact */}

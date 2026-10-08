@@ -4,6 +4,8 @@ import { AppGif, AppIcon } from '../components/AppAssets';
 import { Icon } from '../components/Icons';
 import { Move, SceneHeader } from '../components/SceneKit';
 import { Card, Pill, Pointer, ProgressBar } from '../components/UI';
+import { textWidth } from '../components/textWidth';
+import { usePromoContent } from '../content';
 import { C, EASE, FONT, SPRING, sp, tw } from '../theme';
 
 // Étape 2 (18–26 s) : le « Test de placement » de l'app, tel qu'il est construit
@@ -99,6 +101,11 @@ const PlacementHeader: React.FC<{ section: string; title: string; progress: numb
 
 export const S5Diagnostic: React.FC = () => {
     const frame = useCurrentFrame();
+    const { sub: subtitle, a, b, c, chips } = usePromoContent().placement;
+    // Position du doigt : grille 2 × 2 en section A, liste en section B (sous une question d'1 ou 2 lignes).
+    const tapA = { x: CARD.left + 44 + (a.correct % 2) * (406 + 20) + 203, y: CARD.top + 502 + Math.floor(a.correct / 2) * 124 };
+    const questionLines = Math.min(2, Math.ceil(textWidth(b.question, 'jakarta800', 34) / (CARD.width - 88)));
+    const tapB = { x: CARD.left + 380, y: CARD.top + 723 - (2 - questionLines) * 44 + (b.correct - 1) * 98 };
 
     const c1Pop = sp(frame, 6, SPRING.soft);
     const c1Out = tw(frame, SWAP1, 14, 0, 1, EASE.in);
@@ -111,13 +118,13 @@ export const S5Diagnostic: React.FC = () => {
 
     const c3In = tw(frame, SWAP2 + 2, 14, 0, 1, EASE.out);
     const c3Out = tw(frame, RESULT - 10, 10, 0, 1, EASE.in);
-    const essay = 'À mon avis, les réseaux sociaux rapprochent les gens, mais…';
+    const essay = c.essay;
     const typed = Math.round(tw(frame, SWAP2 + 6, 16, 0, essay.length, (t) => t));
     const analyse = tw(frame, ANALYSE, 8);
 
     return (
         <Move enter="right" exit="zoom" exitAt={232} origin="50% 55%">
-            <SceneHeader tag="Étape 2 / 3" lines={['Découvre ton', '*vrai niveau*']} start={4} sub="Grammaire · Lecture · Rédaction" exit={226} />
+            <SceneHeader tag="Étape 2 / 3" lines={['Découvre ton', '*vrai niveau*']} start={4} sub={subtitle} exit={226} />
 
             {/* Section A — Grammaire & Vocabulaire */}
             {frame < SWAP1 + 16 ? (
@@ -132,10 +139,10 @@ export const S5Diagnostic: React.FC = () => {
                     }}
                 >
                     <Card padding={44}>
-                        <PlacementHeader section="Section A" title="Grammaire & Vocabulaire" progress={0.38 + 0.12 * tw(frame, TAP1 + 6, 14)} count="4 / 8" />
-                        <div style={{ marginTop: 30, fontSize: 30, fontWeight: 600, color: C.inkSoft }}>Complète la phrase :</div>
+                        <PlacementHeader section="Section A" title={a.title} progress={0.38 + 0.12 * tw(frame, TAP1 + 6, 14)} count={a.count} />
+                        <div style={{ marginTop: 30, fontSize: 30, fontWeight: 600, color: C.inkSoft }}>{a.instruction}</div>
                         <div style={{ marginTop: 12, fontSize: 50, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.35 }}>
-                            Il faut que tu{' '}
+                            {a.before ? `${a.before} ` : null}
                             <span
                                 style={{
                                     display: 'inline-block',
@@ -146,13 +153,13 @@ export const S5Diagnostic: React.FC = () => {
                                     lineHeight: 1.1,
                                 }}
                             >
-                                <span style={{ display: 'inline-block', transform: `scale(${frame >= TAP1 + 8 ? fill1 : 0})` }}>viennes</span>
+                                <span style={{ display: 'inline-block', transform: `scale(${frame >= TAP1 + 8 ? fill1 : 0})` }}>{a.answer}</span>
                             </span>{' '}
-                            à l'heure.
+                            {a.after}
                         </div>
                         <div style={{ marginTop: 30, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-                            {['viens', 'viennes', 'venir', 'viendras'].map((t, i) => (
-                                <Option key={t} letter={'ABCD'[i]} text={t} state={i === 1 ? c1State : 'idle'} width="100%" height={104} />
+                            {a.options.map((t, i) => (
+                                <Option key={t} letter={'ABCD'[i]} text={t} state={i === a.correct ? c1State : 'idle'} width="100%" height={104} />
                             ))}
                         </div>
                     </Card>
@@ -183,13 +190,13 @@ export const S5Diagnostic: React.FC = () => {
                         >
                             <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.inkDim }}>Texte à lire</div>
                             <div style={{ marginTop: 8, fontSize: 32, fontWeight: 500, lineHeight: 1.45, color: C.ink }}>
-                                Le télétravail s'est beaucoup développé. Il offre plus de liberté, mais il peut aussi isoler les salariés.
+                                {b.passage}
                             </div>
                         </div>
-                        <div style={{ marginTop: 22, fontSize: 34, fontWeight: 800, lineHeight: 1.3 }}>Selon le texte, quel est un inconvénient du télétravail ?</div>
+                        <div style={{ marginTop: 22, fontSize: 34, fontWeight: 800, lineHeight: 1.3 }}>{b.question}</div>
                         <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
-                            {['Le manque de liberté', "L'isolement", 'Le coût des transports'].map((t, i) => (
-                                <Option key={t} letter={'ABC'[i]} text={t} state={i === 1 ? c2State : 'idle'} width="100%" height={84} size={34} />
+                            {b.options.map((t, i) => (
+                                <Option key={t} letter={'ABC'[i]} text={t} state={i === b.correct ? c2State : 'idle'} width="100%" height={84} size={34} />
                             ))}
                         </div>
                     </Card>
@@ -213,7 +220,7 @@ export const S5Diagnostic: React.FC = () => {
                     <Card padding={44}>
                         <PlacementHeader section="Section C" title="Rédaction" progress={0.92} />
                         <div style={{ position: 'relative', marginTop: 26 }}>
-                            <div style={{ fontSize: 30, fontWeight: 600, color: C.inkSoft }}>Donne ton avis sur les réseaux sociaux.</div>
+                            <div style={{ fontSize: 30, fontWeight: 600, color: C.inkSoft }}>{c.prompt}</div>
                             <div
                                 style={{
                                     marginTop: 16,
@@ -260,20 +267,20 @@ export const S5Diagnostic: React.FC = () => {
 
             <Pointer
                 keys={[
-                    { f: TAP1, x: CARD.left + 44 + 406 + 20 + 203, y: CARD.top + 502, tap: true },
-                    { f: TAP2, x: CARD.left + 380, y: CARD.top + 723, tap: true },
+                    { f: TAP1, ...tapA, tap: true },
+                    { f: TAP2, ...tapB, tap: true },
                 ]}
                 hideAt={TAP2 + 10}
             />
 
-            {frame >= RESULT - 2 ? <Result frame={frame} /> : null}
+            {frame >= RESULT - 2 ? <Result frame={frame} chips={chips} /> : null}
         </Move>
     );
 };
 
 const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
-const Result: React.FC<{ frame: number }> = ({ frame }) => {
+const Result: React.FC<{ frame: number; chips: [string, string] }> = ({ frame, chips }) => {
     const ringPop = sp(frame, RESULT, SPRING.pop);
     const arc = tw(frame, RESULT + 4, 34, 0, 1, EASE.out) * 0.5;
     const circumference = 2 * Math.PI * RING.r;
@@ -411,8 +418,8 @@ const Result: React.FC<{ frame: number }> = ({ frame }) => {
 
             <div style={{ position: 'absolute', top: 1500, left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: 20 }}>
                 {[
-                    { tone: 'green' as const, icon: 'check' as const, text: 'Point fort : la lecture', d: 34 },
-                    { tone: 'gold' as const, icon: 'target' as const, text: 'À travailler : l’oral', d: 40 },
+                    { tone: 'green' as const, icon: 'check' as const, text: chips[0], d: 34 },
+                    { tone: 'gold' as const, icon: 'target' as const, text: chips[1], d: 40 },
                 ].map((p) => {
                     const pop = sp(frame, LAND + p.d, SPRING.pop);
                     return (

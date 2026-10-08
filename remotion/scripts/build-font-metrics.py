@@ -12,6 +12,7 @@ from fontTools.ttLib import TTFont
 
 ROOT = Path(__file__).resolve().parent.parent
 FONTS = {
+    'jakarta600': 'plus-jakarta-sans-latin-600-normal.woff2',
     'jakarta800': 'plus-jakarta-sans-latin-800-normal.woff2',
     'cormorant700i': 'cormorant-garamond-latin-700-italic.woff2',
 }

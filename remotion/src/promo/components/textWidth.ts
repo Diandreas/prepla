@@ -1,6 +1,6 @@
 import { ADVANCES } from '../fontMetrics';
 
-export type FontKey = 'jakarta800' | 'cormorant700i';
+export type FontKey = 'jakarta600' | 'jakarta800' | 'cormorant700i';
 
 /**
  * Largeur (px) d'un texte d'après les chasses des polices (crénage ignoré, ±2 %).

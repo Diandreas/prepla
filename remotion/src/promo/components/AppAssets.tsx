@@ -20,7 +20,10 @@ export type AppIconName =
     | 'statistics'
     | 'review'
     | 'clock'
-    | 'vocabulary';
+    | 'vocabulary'
+    | 'home'
+    | 'puzzle'
+    | 'profile';
 
 export type AppTone = 'blue' | 'mint' | 'amber' | 'rose' | 'neutral';
 

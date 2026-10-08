@@ -4,6 +4,7 @@ import { interpolate, useCurrentFrame } from 'remotion';
 import { AppGif, AppIcon, Fox, type AppIconName, type AppTone } from '../components/AppAssets';
 import { Icon } from '../components/Icons';
 import { Caption, Move, SceneHeader } from '../components/SceneKit';
+import { usePromoContent } from '../content';
 import { C, EASE, FONT, SPRING, env, sp, tw } from '../theme';
 
 // Étape 3 (26–34 s) : le parcours se dessine étape par étape, avec les icônes de l'app.
@@ -40,6 +41,7 @@ const NODES: Node[] = [
 
 export const S6Path: React.FC = () => {
     const frame = useCurrentFrame();
+    const content = usePromoContent().path;
     const drawBase = tw(frame, DRAW.start, DRAW.dur, 0, 1, EASE.inOutSoft) * (6 / LAST);
     const extend = tw(frame, INSERT + 2, 18, 0, 1, EASE.inOutSoft) * (1 / LAST);
     const drawn = drawBase + extend;
@@ -112,13 +114,13 @@ export const S6Path: React.FC = () => {
                     </div>
                 ) : null}
 
-                <MissionCallout frame={frame} from={MISSION_AT} to={INSERT - 4} y={current.y} />
-                <Callout frame={frame} from={INSERT + 12} to={300} y={inserted.y} label="Ajouté pour toi" title="Révision ciblée" meta="d'après tes erreurs" tone="gold" />
-                <Callout frame={frame} from={INSERT + 30} to={300} y={goal.y} label="Objectif" title="Examen blanc" meta="" tone="dark" />
+                <MissionCallout frame={frame} from={MISSION_AT} to={INSERT - 4} y={current.y} title={content.mission.title} subtitle={content.mission.subtitle} />
+                <Callout frame={frame} from={INSERT + 12} to={300} y={inserted.y} {...content.inserted} tone="gold" />
+                <Callout frame={frame} from={INSERT + 30} to={300} y={goal.y} {...content.goal} tone="dark" />
             </div>
 
             <Caption top={1530} start={152} exit={226}>
-                Ton plan s'adapte à tes erreurs.
+                {content.caption}
             </Caption>
         </Move>
     );
@@ -215,7 +217,7 @@ const Connector: React.FC<{ frame: number; from: number; to: number; node: { x: 
 };
 
 /** L'étape du jour, comme la carte « Ta prochaine mission » de l'accueil (daily-mission.tsx). */
-const MissionCallout: React.FC<{ frame: number; from: number; to: number; y: number }> = ({ frame, from, to, y }) => {
+const MissionCallout: React.FC<{ frame: number; from: number; to: number; y: number; title: string; subtitle?: string }> = ({ frame, from, to, y, title, subtitle }) => {
     if (frame < from) return null;
     const pop = sp(frame, from, SPRING.pop);
     const fox = sp(frame, from + 8, SPRING.bouncy);
@@ -264,7 +266,8 @@ const MissionCallout: React.FC<{ frame: number; from: number; to: number; y: num
                     <Icon name="sparkles" size={24} color="#c7dcff" stroke={2.2} />
                     Ta prochaine mission
                 </div>
-                <div style={{ marginTop: 6, fontSize: 44, fontWeight: 800, letterSpacing: '-0.03em' }}>Le subjonctif</div>
+                <div style={{ marginTop: 6, fontSize: 44, fontWeight: 800, letterSpacing: '-0.03em' }}>{title}</div>
+                {subtitle ? <div style={{ marginTop: 2, fontSize: 26, fontWeight: 700, color: '#c7dcff' }}>{subtitle}</div> : null}
                 <div
                     style={{
                         marginTop: 16,
