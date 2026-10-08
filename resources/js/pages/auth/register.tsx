@@ -12,6 +12,7 @@ import GoogleButton from '@/components/google-button';
 type RegisterForm = {
     name: string;
     email: string;
+    phone: string;
     password: string;
     password_confirmation: string;
 };
@@ -20,6 +21,7 @@ export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm<RegisterForm>({
         name: '',
         email: '',
+        phone: '',
         password: '',
         password_confirmation: '',
     });
@@ -81,12 +83,31 @@ export default function Register() {
                     </div>
 
                     <div className="grid gap-2">
+                        <Label htmlFor="phone">Numéro de téléphone</Label>
+                        <Input
+                            id="phone"
+                            type="tel"
+                            required
+                            tabIndex={3}
+                            autoComplete="tel"
+                            value={data.phone}
+                            onChange={(e) => setData('phone', e.target.value)}
+                            disabled={processing}
+                            placeholder="+237 6 00 00 00 00"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                            Pour te joindre si ton compte a un souci, et recueillir ton avis sur PrePla. Jamais partagé.
+                        </p>
+                        <InputError message={errors.phone} />
+                    </div>
+
+                    <div className="grid gap-2">
                         <Label htmlFor="password">Mot de passe</Label>
                         <Input
                             id="password"
                             type="password"
                             required
-                            tabIndex={3}
+                            tabIndex={4}
                             autoComplete="new-password"
                             value={data.password}
                             onChange={(e) => setData('password', e.target.value)}
@@ -102,7 +123,7 @@ export default function Register() {
                             id="password_confirmation"
                             type="password"
                             required
-                            tabIndex={4}
+                            tabIndex={5}
                             autoComplete="new-password"
                             value={data.password_confirmation}
                             onChange={(e) => setData('password_confirmation', e.target.value)}
@@ -112,7 +133,7 @@ export default function Register() {
                         <InputError message={errors.password_confirmation} />
                     </div>
 
-                    <Button type="submit" className="mt-2 w-full" tabIndex={5} disabled={processing}>
+                    <Button type="submit" className="mt-2 w-full" tabIndex={6} disabled={processing}>
                         {processing && <img src="/icons/loader.png" className="animate-spin" width={16} height={16} style={{ objectFit: 'contain' }} />}
                         Créer mon compte
                     </Button>
@@ -120,7 +141,7 @@ export default function Register() {
 
                 <div className="text-muted-foreground text-center text-sm">
                     Déjà un compte ?{' '}
-                    <TextLink href={route('login')} tabIndex={6}>
+                    <TextLink href={route('login')} tabIndex={7}>
                         Se connecter
                     </TextLink>
                 </div>

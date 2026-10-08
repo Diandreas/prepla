@@ -1,6 +1,7 @@
 import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
 import { type BreadcrumbItem } from '@/types';
 import { usePage } from '@inertiajs/react';
+import { PhonePrompt } from '@/components/phone-prompt';
 
 interface AppLayoutProps {
     children: React.ReactNode;
@@ -16,6 +17,7 @@ export default function AppLayout({ children, breadcrumbs, ...props }: AppLayout
     <AppLayoutTemplate breadcrumbs={breadcrumbs} {...props}>
         {flash?.error && !hasOwnErrorNotice && <p role="alert" className="mx-4 mt-4 rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-900 dark:border-red-800 dark:bg-red-950 dark:text-red-100">{flash.error}</p>}
         {children}
+        <PhonePrompt />
     </AppLayoutTemplate>
     );
 }

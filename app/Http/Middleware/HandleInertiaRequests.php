@@ -71,6 +71,9 @@ class HandleInertiaRequests extends Middleware
                 'center' => $center,           // null if the user has no center
             ],
             'userProfile' => $request->user()?->profile,
+            // Entrer par Google ne demande qu'un clic : personne n'a saisi de numero.
+            // On le demande une fois, sans bloquer, pour pouvoir recueillir les retours.
+            'needsPhone' => $user !== null && $user->phone === null && $user->phone_prompted_at === null,
             'practiceAvailability' => fn () => app(\App\Services\Content\PracticeAvailability::class)->forUser($user),
             'learningPreferences' => array_merge(['speaking_enabled' => true, 'audio_enabled' => true],
                 $request->user()?->profile?->learning_preferences ?? []),

@@ -235,6 +235,13 @@ Route::middleware(['auth'])->group(function () {
     });
 });
 
+// Numero de telephone de qui est entre par Google : ce chemin ne demande rien, et
+// sans numero on ne peut joindre personne pour recueillir un retour.
+Route::middleware('auth')->group(function () {
+    Route::post('telephone', [\App\Http\Controllers\PhoneNumberController::class, 'store'])->name('phone.store');
+    Route::post('telephone/plus-tard', [\App\Http\Controllers\PhoneNumberController::class, 'dismiss'])->name('phone.dismiss');
+});
+
 // Un professeur ouvre son espace lui-meme : classes, codes d'invitation et suivi.
 // La creation d'un centre etait reservee au super-administrateur, donc un enseignant
 // devait nous ecrire et attendre avant de pouvoir suivre le moindre eleve.

@@ -25,6 +25,10 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        // Numero de telephone : il sert a joindre l'apprenant pour recueillir ses
+        // retours. Demande a l'inscription, ou une fois apres une entree par Google.
+        'phone',
+        'phone_prompted_at',
         'password',
         'google_id',
         'avatar',

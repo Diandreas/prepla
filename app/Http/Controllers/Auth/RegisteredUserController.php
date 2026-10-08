@@ -35,12 +35,18 @@ class RegisteredUserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            // Un numero joignable, sans imposer un format : les apprenants ecrivent
+            // aussi bien +237 6XX que 06 XX, et un refus de format ferait perdre
+            // l'inscription pour rien.
+            'phone' => 'required|string|min:6|max:32',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
+            'phone' => $request->phone,
+            'phone_prompted_at' => now(),
             'password' => Hash::make($request->password),
         ]);
 

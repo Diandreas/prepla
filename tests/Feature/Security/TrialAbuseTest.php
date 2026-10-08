@@ -7,6 +7,7 @@ test('a brand new registration grants a trial and records the email as consumed'
     $response = $this->post(route('register'), [
         'name' => 'Nouvel Élève',
         'email' => 'nouvel-eleve@example.com',
+        'phone' => '+237 6 55 44 33 22',
         'password' => 'password123',
         'password_confirmation' => 'password123',
     ]);
@@ -26,6 +27,7 @@ test('re-registering with an email that already consumed a trial grants no new t
     $this->post(route('register'), [
         'name' => 'Deuxième Compte',
         'email' => 'recycle@example.com',
+        'phone' => '+237 6 55 44 33 22',
         'password' => 'password123',
         'password_confirmation' => 'password123',
     ]);
@@ -39,6 +41,7 @@ test('deleting an account and re-registering with the same email does not grant 
     $this->post(route('register'), [
         'name' => 'Premier Passage',
         'email' => 'delete-then-retry@example.com',
+        'phone' => '+237 6 55 44 33 22',
         'password' => 'password123',
         'password_confirmation' => 'password123',
     ]);
@@ -54,6 +57,7 @@ test('deleting an account and re-registering with the same email does not grant 
     $response = $this->post(route('register'), [
         'name' => 'Deuxième Passage',
         'email' => 'delete-then-retry@example.com',
+        'phone' => '+237 6 55 44 33 22',
         'password' => 'password123',
         'password_confirmation' => 'password123',
     ]);
