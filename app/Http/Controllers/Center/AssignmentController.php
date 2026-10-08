@@ -18,12 +18,31 @@ use Inertia\Response;
 
 class AssignmentController extends Controller
 {
+    /** Les classes sur lesquelles cette personne a reellement la main. */
+    private function classroomIdsFor(\App\Models\User $user, LanguageCenter $center): array
+    {
+        if ($user->isSuperAdmin() || $user->centerRole() === 'center_admin') {
+            return $center->classrooms()->pluck('id')->all();
+        }
+
+        return $user->classrooms()
+            ->wherePivot('role_in_class', 'teacher')
+            ->where('classrooms.center_id', $center->id)
+            ->pluck('classrooms.id')
+            ->all();
+    }
+
     public function index(Request $request): Response
     {
         /** @var LanguageCenter $center */
         $center = $request->attributes->get('center');
 
-        $assignments = Assignment::whereHas('classroom', fn ($q) => $q->where('center_id', $center->id))
+        // Un responsable d'espace voit tout ; un enseignant seulement ses classes.
+        // Sans cela, la liste montrait les devoirs des collegues et chaque clic
+        // tombait sur un refus, la politique n'autorisant que ses propres classes.
+        $mesClasses = $this->classroomIdsFor($request->user(), $center);
+
+        $assignments = Assignment::whereIn('classroom_id', $mesClasses)
             ->with(['classroom:id,name', 'items'])
             ->latest()
             ->get()
@@ -47,7 +66,12 @@ class AssignmentController extends Controller
         $center = $request->attributes->get('center');
 
         return Inertia::render('center/assignments/create', [
-            'classrooms' => $center->classrooms()->whereNull('archived_at')->get(['id', 'name']),
+            // Meme regle a la creation : proposer une classe qu'il n'encadre pas
+            // menait a un refus apres coup, apres avoir choisi ses exercices.
+            'classrooms' => $center->classrooms()
+                ->whereNull('archived_at')
+                ->whereKey($this->classroomIdsFor($request->user(), $center))
+                ->get(['id', 'name']),
             'exercises' => Exercise::where('center_id', $center->id)
                 ->with('exerciseType:id,name')
                 ->latest()

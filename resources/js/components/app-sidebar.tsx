@@ -44,6 +44,11 @@ export function AppSidebar() {
             { title: 'Élèves', url: '/center/students', icon: () => <SidebarIcon name="profile" /> },
             { title: 'Contenu', url: '/center/exercises', icon: () => <SidebarIcon name="puzzle" /> },
             { title: 'Devoirs', url: '/center/assignments', icon: () => <SidebarIcon name="tasks" /> },
+            // Inviter un collegue etait possible cote serveur sans qu'aucun lien n'y
+            // mene. Reserve au responsable de l'espace, comme l'autorisation.
+            ...(centerRole === 'center_admin'
+                ? [{ title: 'Inviter un prof', url: '/invitations', icon: () => <SidebarIcon name="profile" /> }]
+                : []),
         ];
     } else {
         mainNavItems = [
@@ -53,6 +58,9 @@ export function AppSidebar() {
             { title: t('sidebar.ai_tools', 'Outils IA'), url: '/ai-tools', icon: () => <SidebarIcon name="sparkles" /> },
             { title: t('sidebar.results', 'Résultats'), url: '/results', icon: () => <SidebarIcon name="statistics" /> },
             { title: t('sidebar.leaderboard', 'Classement'), url: '/leaderboard', icon: () => <SidebarIcon name="trophy" /> },
+            // Rejoindre la classe de son professeur avec un code n'etait propose
+            // nulle part : l'ecran existait, aucun chemin n'y conduisait.
+            { title: t('sidebar.join_class', 'Rejoindre une classe'), url: '/join', icon: () => <SidebarIcon name="layout-grid" /> },
         ];
     }
 

@@ -24,7 +24,11 @@ interface Stats {
 }
 
 export default function ClassShow({ classroom, students, stats, exams }: { classroom: Classroom; students: Student[]; stats: Stats; exams: ExamOption[] }) {
-    const { flash } = usePage().props as any;
+    const page = usePage().props as any;
+    const { flash } = page;
+    // Archiver est reserve au responsable de l'espace : le bouton etait aussi
+    // montre aux enseignants, chez qui il ne pouvait que renvoyer un refus.
+    const peutArchiver = page.auth?.center?.role === 'center_admin' || page.auth?.role === 'super_admin';
 
     // Renommer une classe, corriger son niveau ou changer son examen etait possible
     // cote serveur depuis le debut, mais aucun bouton n'y menait.
@@ -75,9 +79,11 @@ export default function ClassShow({ classroom, students, stats, exams }: { class
                         <Button variant="ghost" onClick={() => setEditing((open) => !open)} aria-expanded={editing}>
                             {editing ? 'Annuler' : 'Modifier'}
                         </Button>
-                        <Button variant="ghost" className="text-rose-500 hover:text-rose-600" onClick={archiveClass}>
-                            Archiver
-                        </Button>
+                        {peutArchiver && (
+                            <Button variant="ghost" className="text-rose-500 hover:text-rose-600" onClick={archiveClass}>
+                                Archiver
+                            </Button>
+                        )}
                     </div>
                 </div>
 
