@@ -3,6 +3,8 @@ import { Composition, staticFile } from 'remotion';
 import { getAudioDurationInSeconds } from '@remotion/media-utils';
 import { QuizCard, type Episode } from './QuizCard';
 import ieltsEpisode from './data/would-you-pass-ielts-001.json';
+import { PreplaPromo } from './promo/PreplaPromo';
+import { FPS as PROMO_FPS, H as PROMO_H, TOTAL_FRAMES as PROMO_FRAMES, W as PROMO_W } from './promo/theme';
 
 const FPS = 30;
 const OUTRO_SECONDS = 3;
@@ -22,6 +24,14 @@ const episodes: Array<{ id: string; episode: Episode; audioSrc: string }> = [
 export const RemotionRoot: React.FC = () => {
     return (
         <>
+            <Composition
+                id="PreplaPromo"
+                component={PreplaPromo}
+                fps={PROMO_FPS}
+                width={PROMO_W}
+                height={PROMO_H}
+                durationInFrames={PROMO_FRAMES}
+            />
             {episodes.map(({ id, episode, audioSrc }) => (
                 <Composition
                     key={id}

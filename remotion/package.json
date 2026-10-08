@@ -9,8 +9,16 @@
         "voiceover": "node scripts/generate-voiceover.mjs"
     },
     "dependencies": {
+        "@fontsource/cormorant-garamond": "5.2.5",
+        "@fontsource/plus-jakarta-sans": "5.2.5",
         "@remotion/cli": "4.0.290",
+        "@remotion/fonts": "4.0.290",
+        "@remotion/layout-utils": "4.0.290",
         "@remotion/media-utils": "4.0.290",
+        "@remotion/noise": "4.0.290",
+        "@remotion/paths": "4.0.290",
+        "@remotion/shapes": "4.0.290",
+        "@remotion/transitions": "4.0.290",
         "react": "19.0.0",
         "react-dom": "19.0.0",
         "remotion": "4.0.290"

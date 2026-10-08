@@ -1,0 +1,268 @@
+import { evolvePath, getLength, getPointAtLength } from '@remotion/paths';
+import React from 'react';
+import { interpolate, useCurrentFrame } from 'remotion';
+import { Icon, type IconName } from '../components/Icons';
+import { Caption, Move, SceneHeader } from '../components/SceneKit';
+import { C, EASE, FONT, SPRING, env, sp, tw } from '../theme';
+
+// Étape 3 (26–34 s) : le parcours se dessine étape par étape. Puis une révision ciblée
+// s'insère d'elle-même : les étapes suivantes remontent pour lui faire de la place.
+
+const SLOTS = Array.from({ length: 8 }, (_, i) => ({ x: i % 2 === 0 ? 640 : 900, y: 1440 - i * 101 }));
+const PATH = SLOTS.reduce((d, p, i) => {
+    if (i === 0) return `M ${p.x} ${p.y}`;
+    const prev = SLOTS[i - 1];
+    const h = (prev.y - p.y) / 2;
+    return `${d} C ${prev.x} ${prev.y - h}, ${p.x} ${p.y + h}, ${p.x} ${p.y}`;
+}, '');
+const LEN = getLength(PATH);
+const LAST = SLOTS.length - 1;
+const at = (slot: number) => getPointAtLength(PATH, (Math.max(0, Math.min(LAST, slot)) / LAST) * LEN);
+
+const DRAW = { start: 8, dur: 70 };
+const CURRENT_SLOT = 3;
+const INSERT = 128;
+
+type Node = { icon: IconName; from: number; to: number; kind: 'done' | 'current' | 'next' | 'goal' };
+const NODES: Node[] = [
+    { icon: 'book', from: 0, to: 0, kind: 'done' },
+    { icon: 'headphones', from: 1, to: 1, kind: 'done' },
+    { icon: 'pen', from: 2, to: 2, kind: 'done' },
+    { icon: 'book', from: 3, to: 3, kind: 'current' },
+    { icon: 'mic', from: 4, to: 5, kind: 'next' },
+    { icon: 'message', from: 5, to: 6, kind: 'next' },
+    { icon: 'trophy', from: 6, to: 7, kind: 'goal' },
+];
+
+export const S6Path: React.FC = () => {
+    const frame = useCurrentFrame();
+    const drawBase = tw(frame, DRAW.start, DRAW.dur, 0, 1, EASE.inOutSoft) * (6 / LAST);
+    const extend = tw(frame, INSERT + 2, 18, 0, 1, EASE.inOutSoft) * (1 / LAST);
+    const drawn = drawBase + extend;
+    const solid = evolvePath(Math.min(drawn, CURRENT_SLOT / LAST), PATH);
+    const ghost = evolvePath(drawn, PATH);
+    const shift = tw(frame, INSERT, 20, 0, 1, EASE.inOutSoft);
+    const insertPop = sp(frame, INSERT + 2, SPRING.bouncy);
+    const cam = interpolate(frame, [0, 240], [1, 1.04]);
+
+    const current = at(CURRENT_SLOT);
+    const inserted = at(4);
+    const goal = at(interpolate(shift, [0, 1], [6, 7]));
+
+    return (
+        <Move enter="zoom" exit="zoom" exitAt={224} origin="50% 52%">
+            <SceneHeader tag="Étape 3 / 3" lines={['Suis ton', '*parcours*']} start={4} exit={222} />
+
+            <div style={{ position: 'absolute', inset: 0, transform: `scale(${cam})`, transformOrigin: '540px 1090px' }}>
+                <svg width={1080} height={1920} style={{ position: 'absolute', inset: 0, overflow: 'visible' }}>
+                    <defs>
+                        <linearGradient id="path-solid" x1="0" y1="1" x2="0" y2="0">
+                            <stop offset="0" stopColor={C.sky} />
+                            <stop offset="1" stopColor={C.skyLight} />
+                        </linearGradient>
+                        <mask id="path-reveal" maskUnits="userSpaceOnUse" x="0" y="0" width="1080" height="1920">
+                            <path d={PATH} fill="none" stroke="#fff" strokeWidth={40} strokeDasharray={ghost.strokeDasharray} strokeDashoffset={ghost.strokeDashoffset} />
+                        </mask>
+                    </defs>
+                    <path d={PATH} fill="none" stroke="rgba(255,255,255,0.28)" strokeWidth={10} strokeLinecap="round" strokeDasharray="1 24" mask="url(#path-reveal)" />
+                    <path
+                        d={PATH}
+                        fill="none"
+                        stroke="url(#path-solid)"
+                        strokeWidth={16}
+                        strokeLinecap="round"
+                        strokeDasharray={solid.strokeDasharray}
+                        strokeDashoffset={solid.strokeDashoffset}
+                        style={{ filter: 'drop-shadow(0 0 14px rgba(59,130,224,0.75))' }}
+                    />
+                    <Connector frame={frame} from={98} to={INSERT - 4} node={current} y={current.y} />
+                    <Connector frame={frame} from={INSERT + 12} to={300} node={inserted} y={inserted.y} />
+                    <Connector frame={frame} from={INSERT + 30} to={300} node={goal} y={goal.y} />
+                </svg>
+
+                {NODES.map((node, i) => {
+                    const slot = interpolate(shift, [0, 1], [node.from, node.to]);
+                    const p = at(slot);
+                    const appearAt = DRAW.start + (node.from / 6) * DRAW.dur * 0.92;
+                    const appear = drawBase >= node.from / LAST - 0.004 ? sp(frame, appearAt, SPRING.pop) : 0;
+                    return <PathNode key={i} x={p.x} y={p.y} icon={node.icon} kind={node.kind} appear={appear} frame={frame} checkAt={appearAt + 6} />;
+                })}
+
+                {frame >= INSERT ? (
+                    <div
+                        style={{
+                            position: 'absolute',
+                            left: inserted.x - 56,
+                            top: inserted.y - 56,
+                            width: 112,
+                            height: 112,
+                            borderRadius: '50%',
+                            border: `4px dashed ${C.gold}`,
+                            background: 'radial-gradient(circle, rgba(245,166,35,0.32), rgba(245,166,35,0.12))',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transform: `scale(${insertPop}) rotate(${(1 - insertPop) * -120}deg)`,
+                            boxShadow: '0 0 50px rgba(245,166,35,0.5)',
+                        }}
+                    >
+                        <Icon name="sparkles" size={54} color={C.goldLight} stroke={2.2} />
+                    </div>
+                ) : null}
+
+                <Callout frame={frame} from={98} to={INSERT - 4} y={current.y} label="Aujourd'hui" title="Le subjonctif" meta="Leçon · 15 min" tone="light" />
+                <Callout frame={frame} from={INSERT + 12} to={300} y={inserted.y} label="Ajouté pour toi" title="Révision ciblée" meta="d'après tes erreurs" tone="gold" />
+                <Callout frame={frame} from={INSERT + 30} to={300} y={goal.y} label="Objectif" title="Examen blanc" meta="" tone="dark" />
+            </div>
+
+            <Caption top={1530} start={152} exit={222}>
+                Ton plan s'adapte à tes erreurs.
+            </Caption>
+        </Move>
+    );
+};
+
+const PathNode: React.FC<{ x: number; y: number; icon: IconName; kind: Node['kind']; appear: number; frame: number; checkAt: number }> = ({
+    x,
+    y,
+    icon,
+    kind,
+    appear,
+    frame,
+    checkAt,
+}) => {
+    const size = kind === 'current' ? 128 : 104;
+    const pulse = kind === 'current' ? (frame % 15) / 15 : 0;
+    const bg = {
+        done: `linear-gradient(135deg, ${C.skyLight}, ${C.sky})`,
+        current: `linear-gradient(135deg, ${C.goldLight}, ${C.gold})`,
+        next: '#15233d',
+        goal: '#1d2a44',
+    }[kind];
+    const lit = kind === 'done' || kind === 'current';
+    return (
+        <div style={{ position: 'absolute', left: x - size / 2, top: y - size / 2, width: size, height: size, transform: `scale(${appear})` }}>
+            {kind === 'current' ? (
+                <div
+                    style={{
+                        position: 'absolute',
+                        inset: 0,
+                        borderRadius: '50%',
+                        border: `4px solid ${C.gold}`,
+                        transform: `scale(${1 + pulse * 0.65})`,
+                        opacity: (1 - pulse) * 0.85,
+                    }}
+                />
+            ) : null}
+            <div
+                style={{
+                    position: 'absolute',
+                    inset: 0,
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: bg,
+                    border: lit ? '5px solid rgba(255,255,255,0.92)' : kind === 'goal' ? `4px solid rgba(245,166,35,0.6)` : '4px solid rgba(255,255,255,0.22)',
+                    boxShadow: kind === 'current'
+                        ? '0 0 50px rgba(245,166,35,0.75), 0 20px 40px rgba(0,0,0,0.5)'
+                        : kind === 'done'
+                          ? '0 0 30px rgba(59,130,224,0.5), 0 16px 30px rgba(0,0,0,0.45)'
+                          : '0 16px 30px rgba(0,0,0,0.45)',
+                }}
+            >
+                <Icon name={icon} size={kind === 'current' ? 60 : 46} color={lit ? '#fff' : kind === 'goal' ? C.gold : 'rgba(238,243,251,0.55)'} stroke={2.4} />
+            </div>
+            {kind === 'done' ? (
+                <div
+                    style={{
+                        position: 'absolute',
+                        right: -10,
+                        bottom: -10,
+                        width: 46,
+                        height: 46,
+                        borderRadius: '50%',
+                        background: C.green,
+                        border: '4px solid #0b1322',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transform: `scale(${sp(frame, checkAt, SPRING.bouncy)})`,
+                    }}
+                >
+                    <Icon name="check" size={24} color="#fff" stroke={3.6} />
+                </div>
+            ) : null}
+        </div>
+    );
+};
+
+const CALLOUT_RIGHT = 520;
+
+const Connector: React.FC<{ frame: number; from: number; to: number; node: { x: number; y: number }; y: number }> = ({ frame, from, to, node, y }) => {
+    const t = env(frame, from + 4, 12, to, 8);
+    if (t <= 0) return null;
+    const x1 = CALLOUT_RIGHT + 6;
+    const x2 = node.x - 70;
+    return (
+        <line
+            x1={x1}
+            y1={y}
+            x2={x1 + (x2 - x1) * t}
+            y2={node.y}
+            stroke="rgba(255,255,255,0.45)"
+            strokeWidth={3}
+            strokeDasharray="2 10"
+            strokeLinecap="round"
+        />
+    );
+};
+
+const Callout: React.FC<{
+    frame: number;
+    from: number;
+    to: number;
+    y: number;
+    label: string;
+    title: string;
+    meta: string;
+    tone: 'light' | 'gold' | 'dark';
+}> = ({ frame, from, to, y, label, title, meta, tone }) => {
+    if (frame < from) return null;
+    const pop = sp(frame, from, SPRING.pop);
+    const out = tw(frame, to, 8, 0, 1, EASE.in);
+    if (out >= 1) return null;
+    const styles = {
+        light: { bg: '#ffffff', fg: C.ink, label: '#b86e00', meta: C.inkSoft, border: 'rgba(255,255,255,0.6)' },
+        gold: { bg: 'rgba(40,31,14,0.95)', fg: C.text, label: C.gold, meta: C.textMid, border: 'rgba(245,166,35,0.75)' },
+        dark: { bg: 'rgba(21,35,61,0.95)', fg: C.text, label: C.skyLight, meta: C.textMid, border: 'rgba(255,255,255,0.18)' },
+    }[tone];
+    return (
+        <div
+            style={{
+                position: 'absolute',
+                top: y,
+                right: 1080 - CALLOUT_RIGHT,
+                transform: `translateY(-50%) translateX(${(1 - pop) * -50 - out * 30}px) scale(${(0.75 + 0.25 * pop) * (1 - out * 0.1)})`,
+                transformOrigin: '100% 50%',
+                opacity: Math.min(1, pop * 1.6) * (1 - out),
+                padding: '22px 30px',
+                borderRadius: 28,
+                background: styles.bg,
+                border: `2.5px solid ${styles.border}`,
+                boxShadow: '0 30px 60px -20px rgba(0,0,0,0.7)',
+                fontFamily: FONT.sans,
+                color: styles.fg,
+                whiteSpace: 'nowrap',
+            }}
+        >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 24, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: styles.label }}>
+                {tone === 'gold' ? <Icon name="sparkles" size={26} color={styles.label} stroke={2.4} /> : null}
+                {tone === 'dark' ? <Icon name="trophy" size={26} color={styles.label} stroke={2.4} /> : null}
+                {label}
+            </div>
+            <div style={{ marginTop: 6, fontSize: 42, fontWeight: 800, letterSpacing: '-0.02em' }}>{title}</div>
+            {meta ? <div style={{ marginTop: 4, fontSize: 28, fontWeight: 600, color: styles.meta }}>{meta}</div> : null}
+        </div>
+    );
+};
