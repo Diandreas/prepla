@@ -20,7 +20,7 @@ const STRIKE = 82;
 const FIX = 88;
 const EXPLAIN = 100;
 const XP = 118;
-const PHASE_B = 150;
+const PHASE_B = 152;
 
 // Libellés réels des formats (resources/js/lib/exercise-schemas.ts).
 const ROWS = [
@@ -32,8 +32,8 @@ const ROWS = [
 export const S7AI: React.FC = () => {
     const frame = useCurrentFrame();
     return (
-        <Move enter="zoom" exit="top" exitAt={226}>
-            {frame < PHASE_B + 14 ? <PhaseA frame={frame} /> : null}
+        <Move enter="zoom" exit="top" exitAt={232}>
+            {frame < PHASE_B + 2 ? <PhaseA frame={frame} /> : null}
             {frame >= PHASE_B ? <PhaseB frame={frame} /> : null}
         </Move>
     );
@@ -44,7 +44,7 @@ const PhaseA: React.FC<{ frame: number }> = ({ frame }) => {
     const part = (from: number, text: string) => text.slice(0, Math.max(0, Math.min(text.length, typed - from)));
     const caretOn = frame < SCAN.start && Math.floor(frame / 8) % 2 === 0;
     const cardPop = sp(frame, 4, SPRING.soft);
-    const out = tw(frame, PHASE_B - 2, 14, 0, 1, EASE.in);
+    const out = tw(frame, PHASE_B - 12, 12, 0, 1, EASE.in);
     const scan = tw(frame, SCAN.start, SCAN.dur, 0, 1, EASE.inOutSoft);
     const scanning = frame >= SCAN.start && frame < SCAN.start + SCAN.dur + 4;
     const mark = tw(frame, MARK, 8);
@@ -57,14 +57,14 @@ const PhaseA: React.FC<{ frame: number }> = ({ frame }) => {
 
     return (
         <>
-            <SceneHeader tag="Correction IA" lines={["L'*IA* te corrige"]} size={112} start={2} sub="…et t'explique pourquoi." exit={PHASE_B - 4} />
+            <SceneHeader tag="Correction IA" lines={["L'*IA* te corrige"]} size={112} start={2} sub="…et t'explique pourquoi." exit={PHASE_B - 16} />
             <div
                 style={{
                     position: 'absolute',
                     left: 80,
                     top: 680,
                     width: 920,
-                    transform: `translateY(${(1 - cardPop) * 160 - out * 260}px) scale(${(0.92 + 0.08 * cardPop) * (1 - out * 0.1)})`,
+                    transform: `translateY(${(1 - cardPop) * 160 + out * 340}px) scale(${(0.92 + 0.08 * cardPop) * (1 - out * 0.12)})`,
                     opacity: Math.min(1, cardPop * 1.5) * (1 - out),
                 }}
             >
@@ -252,7 +252,7 @@ const PhaseB: React.FC<{ frame: number }> = ({ frame }) => {
                     textShadow: '0 0 60px rgba(245,166,35,0.35)',
                 }}
             >
-                <span style={{ fontVariantNumeric: 'tabular-nums' }}>{count}</span>
+                <span style={{ fontVariantNumeric: 'lining-nums tabular-nums' }}>{count}</span>
                 <span style={{ display: 'inline-block', transform: `scale(${plus})`, transformOrigin: '20% 70%' }}>+</span>
             </div>
             <div

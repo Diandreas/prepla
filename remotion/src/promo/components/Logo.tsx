@@ -203,7 +203,16 @@ export const Wordmark: React.FC<{ size: number; revealAt?: number; badgeAt?: num
                 {letters.map((ch, i) => {
                     const t = revealAt === undefined ? 1 : tw(frame, revealAt + i * 2, 16);
                     return (
-                        <span key={i} style={{ display: 'inline-block', overflow: 'hidden', padding: '0.1em 0.02em 0.14em', margin: '-0.1em -0.02em -0.14em' }}>
+                        <span
+                            key={i}
+                            style={{
+                                display: 'inline-block',
+                                overflow: 'hidden',
+                                padding: '0.1em 0.02em 0.14em',
+                                margin: '-0.1em -0.02em -0.14em',
+                                visibility: t <= 0.001 ? 'hidden' : 'visible',
+                            }}
+                        >
                             <span
                                 style={{
                                     display: 'inline-block',

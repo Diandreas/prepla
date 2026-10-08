@@ -56,7 +56,7 @@ export const S9Progress: React.FC = () => {
         <Move enter="bottom">
             <SceneHeader tag="Suivi" lines={['Vois tes', '*progrès*']} start={2} exit={COLLAPSE - 2} />
 
-            <Collapse frame={frame} index={0} box={{ x: 80, y: 660, w: 920, h: 470 }}>
+            <Collapse frame={frame} index={0} box={{ x: 80, y: 692, w: 920, h: 470 }}>
                 <Card padding="40px 44px">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                         <span style={{ fontSize: 38, fontWeight: 800, letterSpacing: '-0.02em' }}>Tes compétences</span>
@@ -81,7 +81,7 @@ export const S9Progress: React.FC = () => {
                 </Card>
             </Collapse>
 
-            <Collapse frame={frame} index={1} box={{ x: 80, y: 1160, w: 440, h: 220 }}>
+            <Collapse frame={frame} index={1} box={{ x: 80, y: 1192, w: 440, h: 220 }}>
                 <Card padding="30px 34px" style={{ display: 'flex', alignItems: 'center', gap: 24, height: 220, boxSizing: 'border-box' }}>
                     <div
                         style={{
@@ -105,7 +105,7 @@ export const S9Progress: React.FC = () => {
                 </Card>
             </Collapse>
 
-            <Collapse frame={frame} index={2} box={{ x: 540, y: 1160, w: 460, h: 220 }}>
+            <Collapse frame={frame} index={2} box={{ x: 540, y: 1192, w: 460, h: 220 }}>
                 <Card padding="26px 30px" style={{ display: 'flex', alignItems: 'center', gap: 22, height: 220, boxSizing: 'border-box' }}>
                     <svg width={160} height={160} style={{ flexShrink: 0 }}>
                         <circle cx={80} cy={80} r={r} fill="none" stroke="#e6edf6" strokeWidth={16} />
@@ -131,7 +131,7 @@ export const S9Progress: React.FC = () => {
                 </Card>
             </Collapse>
 
-            <Collapse frame={frame} index={3} box={{ x: 80, y: 1406, w: 920, h: 112 }}>
+            <Collapse frame={frame} index={3} box={{ x: 80, y: 1438, w: 920, h: 112 }}>
                 <div
                     style={{
                         display: 'flex',

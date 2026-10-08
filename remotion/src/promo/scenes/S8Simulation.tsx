@@ -25,11 +25,11 @@ export const S8Simulation: React.FC = () => {
     const card = sp(frame, 12, SPRING.soft);
 
     return (
-        <Move enter="bottom" exit="top" exitAt={106}>
-            <SceneHeader tag="Mode examen" lines={['Simule le', '*jour J*']} start={2} sub="Examens blancs chronométrés, en conditions réelles." exit={104} />
+        <Move enter="bottom" exit="top" exitAt={112}>
+            <SceneHeader tag="Mode examen" lines={['Simule le', '*jour J*']} start={2} sub="Examens blancs chronométrés" exit={108} />
 
             {/* Bandeau chrono, comme dans l'app */}
-            <div style={{ position: 'absolute', top: 770, left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
+            <div style={{ position: 'absolute', top: 800, left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
                 <div
                     style={{
                         display: 'flex',
@@ -72,7 +72,7 @@ export const S8Simulation: React.FC = () => {
                 style={{
                     position: 'absolute',
                     left: 80,
-                    top: 990,
+                    top: 1024,
                     width: 920,
                     transform: `translateY(${(1 - card) * 200}px)`,
                     opacity: Math.min(1, card * 1.5),

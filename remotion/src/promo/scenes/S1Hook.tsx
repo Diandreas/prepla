@@ -2,7 +2,7 @@ import React from 'react';
 import { AbsoluteFill, interpolate, useCurrentFrame } from 'remotion';
 import { Icon } from '../components/Icons';
 import { KineticText } from '../components/KineticText';
-import { useTextWidths } from '../components/useTextWidths';
+import { textWidth } from '../components/textWidth';
 import { BEAT, C, EASE, FONT, SPRING, sp, tw } from '../theme';
 
 // Accroche (0–4 s) : « Ton [IELTS / TCF / DELF / Goethe…] approche ? » — une machine à sous
@@ -29,13 +29,6 @@ const CENTER = { x: 540, y: 930 };
 
 export const S1Hook: React.FC = () => {
     const frame = useCurrentFrame();
-    const widths = useTextWidths(
-        SLOT.map((s, i) =>
-            i === FINAL
-                ? { text: s.word, fontFamily: FONT.serif, fontSize: FINAL_SIZE, fontWeight: 700, italic: true, letterSpacing: '-0.015em' }
-                : { text: s.word, fontFamily: FONT.sans, fontSize: SLOT_SIZE, fontWeight: 800, letterSpacing: '-0.035em' },
-        ),
-    );
 
     // --- Chrono circulaire : se vide par à-coups, à chaque temps (tic-tac).
     const beats = frame / BEAT;
@@ -67,7 +60,8 @@ export const S1Hook: React.FC = () => {
     const slotExit = tw(frame, 98, 12, 0, 1, EASE.in);
     const pillFade = tw(frame, SLOT[FINAL].at, 10);
 
-    const wordWidth = (i: number) => (widths ? widths[i] : SLOT[i].word.length * SLOT_SIZE * 0.62);
+    const wordWidth = (i: number) =>
+        i === FINAL ? textWidth(SLOT[i].word, 'cormorant700i', FINAL_SIZE, -0.015) : textWidth(SLOT[i].word, 'jakarta800', SLOT_SIZE, -0.035);
     const prevW = current > 0 ? wordWidth(current - 1) : wordWidth(0);
     const pillW = interpolate(moveT, [0, 1], [prevW, wordWidth(current)]) + 110;
 

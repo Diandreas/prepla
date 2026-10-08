@@ -31,7 +31,7 @@ export const SceneHeader: React.FC<{
                 <div
                     style={{
                         position: 'absolute',
-                        top: subTop ?? HEAD_TOP + lines.length * size * 1.06 + 22,
+                        top: subTop ?? HEAD_TOP + lines.length * size * 1.06 + 22 + (lines[lines.length - 1].includes('*') ? size * 0.24 : 0),
                         left: 60,
                         right: 60,
                         textAlign: 'center',

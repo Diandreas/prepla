@@ -44,7 +44,7 @@ export const S4Exam: React.FC = () => {
     const dim = tw(frame, TAP_LANG + 2, 10);
 
     return (
-        <Move enter="none" exit="left" exitAt={164}>
+        <Move enter="none" exit="left" exitAt={172}>
             <SceneHeader tag="Étape 1 / 3" lines={['Choisis ton', '*examen*']} start={2} />
 
             {/* Cartes de langue */}
@@ -233,11 +233,11 @@ const StatLine: React.FC<{ frame: number }> = ({ frame }) => {
                 }}
             >
                 <span>
-                    <b style={{ fontFamily: FONT.serif, fontStyle: 'italic', fontSize: 64, color: C.gold }}>3</b> langues
+                    <b style={{ fontFamily: FONT.serif, fontStyle: 'italic', fontSize: 64, color: C.gold, fontVariantNumeric: 'lining-nums' }}>3</b> langues
                 </span>
                 <span style={{ color: C.textDim }}>·</span>
                 <span>
-                    <b style={{ fontFamily: FONT.serif, fontStyle: 'italic', fontSize: 64, color: C.gold }}>8</b> examens officiels
+                    <b style={{ fontFamily: FONT.serif, fontStyle: 'italic', fontSize: 64, color: C.gold, fontVariantNumeric: 'lining-nums' }}>8</b> examens officiels
                 </span>
             </div>
         </AbsoluteFill>

@@ -3,8 +3,8 @@ import { AbsoluteFill, random, useCurrentFrame } from 'remotion';
 import { KineticText } from '../components/KineticText';
 import { LOGO_RATIO, LogoMark, Wordmark } from '../components/Logo';
 import { MINI } from '../components/MiniLogo';
-import { useTextWidths } from '../components/useTextWidths';
-import { C, EASE, FONT, env, tw } from '../theme';
+import { textWidth } from '../components/textWidth';
+import { C, EASE, env, tw } from '../theme';
 
 // Révélation (8–12 s) : impact lumineux, les facettes du « P » s'assemblent, le cube doré
 // tombe à sa place, puis « Ton examen. Ton niveau. Ton parcours. » sur trois temps.
@@ -19,7 +19,7 @@ const LAND = 20;
 
 export const S3Logo: React.FC = () => {
     const frame = useCurrentFrame();
-    const [prePlaWidth] = useTextWidths([{ text: 'PrePla', fontFamily: FONT.sans, fontSize: WORD_SIZE, fontWeight: 800, letterSpacing: '-0.03em' }]) ?? [WORD_SIZE * 3.6];
+    const prePlaWidth = textWidth('PrePla', 'jakarta800', WORD_SIZE, -0.03);
 
     const flash = 1 - tw(frame, 0, 16, 0, 1, EASE.outSoft);
     const wave = tw(frame, 0, 34, 0, 1, EASE.out);

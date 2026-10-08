@@ -29,11 +29,11 @@ export const S10Cta: React.FC = () => {
         <AbsoluteFill>
             {/* 1. Ne révise plus au hasard. */}
             <div style={{ position: 'absolute', top: 760, left: 0, right: 0 }}>
-                <KineticText lines={['Ne révise plus', '*au hasard*.']} start={0} size={132} stagger={4} exit={52} />
+                <KineticText lines={['Ne révise plus', '*au hasard*.']} start={0} size={132} stagger={4} exit={42} />
             </div>
             {/* 2. Prépare-toi avec méthode. */}
             <div style={{ position: 'absolute', top: 760, left: 0, right: 0 }}>
-                <KineticText lines={['Prépare-toi', 'avec *méthode*.']} start={60} size={132} stagger={4} exit={110} />
+                <KineticText lines={['Prépare-toi', 'avec *méthode*.']} start={60} size={132} stagger={4} exit={102} />
             </div>
 
             {/* 3. Carte de fin */}

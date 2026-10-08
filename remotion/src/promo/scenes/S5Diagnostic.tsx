@@ -8,14 +8,14 @@ import { C, EASE, FONT, SPRING, sp, tw } from '../theme';
 
 // Étape 2 (18–26 s) : le test de niveau (10 questions dans l'app), puis le résultat CECR.
 
-const CARD = { left: 80, top: 740, width: 920 };
+const CARD = { left: 80, top: 770, width: 920 };
 const TAP1 = 40;
 const SWAP = 62;
 const TAP2 = 96;
 const RAMP = 108;
 const RESULT = 136;
 const LAND = 160;
-const RING = { x: 540, y: 1060, r: 232 };
+const RING = { x: 540, y: 1024, r: 232 };
 
 type OptionState = 'idle' | 'picked' | 'right';
 
@@ -101,12 +101,12 @@ export const S5Diagnostic: React.FC = () => {
     // --- Accélération : 6 → 10
     const rampIn = tw(frame, RAMP + 2, 8, 0, 1, EASE.out);
     const rampCount = Math.min(10, 6 + Math.max(0, Math.floor((frame - (RAMP + 4)) / 4)));
-    const rampOut = tw(frame, RESULT - 4, 10, 0, 1, EASE.in);
+    const rampOut = tw(frame, RESULT - 10, 8, 0, 1, EASE.in);
     const rampPulse = 1 + 0.035 * Math.max(0, 1 - ((frame - (RAMP + 4)) % 4) / 3);
 
     return (
-        <Move enter="right" exit="zoom" exitAt={224} origin="50% 55%">
-            <SceneHeader tag="Étape 2 / 3" lines={['Découvre ton', '*vrai niveau*']} start={4} sub="10 questions pour situer ton niveau" exit={222} />
+        <Move enter="right" exit="zoom" exitAt={232} origin="50% 55%">
+            <SceneHeader tag="Étape 2 / 3" lines={['Découvre ton', '*vrai niveau*']} start={4} sub="10 questions pour situer ton niveau" exit={226} />
 
             {/* Carte 1 */}
             {frame < SWAP + 16 ? (
@@ -207,7 +207,7 @@ export const S5Diagnostic: React.FC = () => {
             ) : null}
 
             {/* Questions 6 à 10, en accéléré */}
-            {frame >= RAMP && frame < RESULT + 8 ? (
+            {frame >= RAMP && frame < RESULT ? (
                 <div
                     style={{
                         position: 'absolute',
@@ -242,8 +242,8 @@ export const S5Diagnostic: React.FC = () => {
 
             <Pointer
                 keys={[
-                    { f: TAP1, x: CARD.left + 44 + 405 + 22 + 202, y: 1220, tap: true },
-                    { f: TAP2, x: CARD.left + 460, y: 1350, tap: true },
+                    { f: TAP1, x: CARD.left + 44 + 405 + 22 + 202, y: CARD.top + 384, tap: true },
+                    { f: TAP2, x: CARD.left + 460, y: CARD.top + 641, tap: true },
                 ]}
                 hideAt={TAP2 + 12}
             />

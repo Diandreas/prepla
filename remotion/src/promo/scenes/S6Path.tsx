@@ -8,7 +8,7 @@ import { C, EASE, FONT, SPRING, env, sp, tw } from '../theme';
 // Étape 3 (26–34 s) : le parcours se dessine étape par étape. Puis une révision ciblée
 // s'insère d'elle-même : les étapes suivantes remontent pour lui faire de la place.
 
-const SLOTS = Array.from({ length: 8 }, (_, i) => ({ x: i % 2 === 0 ? 640 : 900, y: 1440 - i * 101 }));
+const SLOTS = Array.from({ length: 8 }, (_, i) => ({ x: i % 2 === 0 ? 640 : 900, y: 1452 - i * 96 }));
 const PATH = SLOTS.reduce((d, p, i) => {
     if (i === 0) return `M ${p.x} ${p.y}`;
     const prev = SLOTS[i - 1];
@@ -50,8 +50,8 @@ export const S6Path: React.FC = () => {
     const goal = at(interpolate(shift, [0, 1], [6, 7]));
 
     return (
-        <Move enter="zoom" exit="zoom" exitAt={224} origin="50% 52%">
-            <SceneHeader tag="Étape 3 / 3" lines={['Suis ton', '*parcours*']} start={4} exit={222} />
+        <Move enter="zoom" exit="zoom" exitAt={232} origin="50% 52%">
+            <SceneHeader tag="Étape 3 / 3" lines={['Suis ton', '*parcours*']} start={4} exit={226} />
 
             <div style={{ position: 'absolute', inset: 0, transform: `scale(${cam})`, transformOrigin: '540px 1090px' }}>
                 <svg width={1080} height={1920} style={{ position: 'absolute', inset: 0, overflow: 'visible' }}>
@@ -115,7 +115,7 @@ export const S6Path: React.FC = () => {
                 <Callout frame={frame} from={INSERT + 30} to={300} y={goal.y} label="Objectif" title="Examen blanc" meta="" tone="dark" />
             </div>
 
-            <Caption top={1530} start={152} exit={222}>
+            <Caption top={1530} start={152} exit={226}>
                 Ton plan s'adapte à tes erreurs.
             </Caption>
         </Move>

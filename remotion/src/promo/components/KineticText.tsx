@@ -188,6 +188,8 @@ const WordBlock: React.FC<{
     }
 
     // Masque : le mot glisse de derrière une fenêtre invisible (padding = marge pour accents et jambages).
+    // Hors animation, le mot est masqué pour de bon : sinon un jambage (p, g, j) dépasse du masque.
+    const hidden = tIn <= 0.001 || tOut >= 0.999;
     return (
         <span
             style={{
@@ -195,12 +197,13 @@ const WordBlock: React.FC<{
                 overflow: 'hidden',
                 padding: '0.16em 0.1em 0.2em',
                 margin: '-0.16em -0.1em -0.2em',
+                visibility: hidden ? 'hidden' : 'visible',
             }}
         >
             <span
                 style={{
                     display: 'inline-block',
-                    transform: `translateY(${(1 - tIn) * 118 - tOut * 118}%) rotate(${(1 - tIn) * 6}deg)`,
+                    transform: `translateY(${(1 - tIn) * 130 - tOut * 140}%) rotate(${(1 - tIn) * 6}deg)`,
                     transformOrigin: '0% 100%',
                 }}
             >
