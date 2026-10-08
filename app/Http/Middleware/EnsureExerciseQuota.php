@@ -32,6 +32,14 @@ class EnsureExerciseQuota
             return $next($request);
         }
 
+        // Un eleve inscrit dans la classe d'un enseignant n'est pas un apprenant
+        // libre : son travail lui est donne par son professeur. Le quota gratuit le
+        // renvoyait vers l'abonnement au quatrieme exercice de son devoir, alors que
+        // ce devoir vient de son etablissement.
+        if ($user->isCenterStudent()) {
+            return $next($request);
+        }
+
         // The count-then-act check below has a TOCTOU race: the controller's
         // AI scoring call happens between this count and the attempt insert,
         // so several concurrent submissions can all pass the check before

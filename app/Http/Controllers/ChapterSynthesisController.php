@@ -60,12 +60,10 @@ class ChapterSynthesisController extends Controller
 
         // 3. Reuse or create a synthesis-typed exercise for this chapter
         $synthesisExerciseTypeSlug = 'mcq'; // start with MCQ for simplicity; future: multiple component types
-        $exerciseType = ExerciseType::where('exam_id', $exam->id)
-            ->where('component_key', $synthesisExerciseTypeSlug)
-            ->first();
-        if (!$exerciseType) {
-            $exerciseType = ExerciseType::where('component_key', $synthesisExerciseTypeSlug)->first();
-        }
+        // La table exercise_types n'a PAS de colonne exam_id : les types ne sont pas
+        // rattaches a un examen. Filtrer dessus levait une erreur SQL, donc « Boss du
+        // chapitre » renvoyait une erreur serveur a chaque clic.
+        $exerciseType = ExerciseType::where('component_key', $synthesisExerciseTypeSlug)->first();
         if (!$exerciseType) {
             return redirect()->route('dashboard')->with('error', "Aucun type d'exercice n'est disponible pour cette synthèse.");
         }
