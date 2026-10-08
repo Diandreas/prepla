@@ -139,6 +139,8 @@ interface Props {
         id: number;
         status: string;
     };
+    /** Jeton a usage unique de cette seance : il empeche qu'un renvoi recredite l'XP. */
+    sessionToken?: string;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- each renderer declares its own question and answer shape
@@ -476,7 +478,7 @@ function FormattedFeedback({ text, className }: { text: string; className?: stri
     );
 }
 
-export default function SessionPlayer({ node, exercises }: Props) {
+export default function SessionPlayer({ node, exercises, sessionToken }: Props) {
     const { t, i18n } = useTranslation();
     const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);

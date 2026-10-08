@@ -53,7 +53,23 @@ class ExerciseController extends Controller
         if (! $lock->get()) {
             return back()->with('error', 'La séance précédente est encore en cours de correction.');
         }
+
         try {
+            // Le verrou ne protege que des envois simultanes. Renvoyer la MEME fin de
+            // seance plus tard — bouton Retour, double envoi, actualisation — creditait
+            // a nouveau l'XP, une tentative par exercice et une progression de noeud.
+            // Le jeton remis avec la seance est consomme ici : un renvoi ne compte plus.
+            $token = $request->input('session_token');
+
+            if (is_string($token) && $token !== '') {
+                $cle = 'session-token:'.auth()->id().':'.$token;
+
+                if (Cache::pull($cle) === null) {
+                    return redirect()->route('node.session_result', $node->id)
+                        ->with('error', 'Cette séance a déjà été corrigée.');
+                }
+            }
+
             return $this->recordSession($request, $node);
         } finally {
             $lock->release();
