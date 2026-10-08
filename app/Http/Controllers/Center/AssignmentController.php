@@ -9,7 +9,9 @@ use App\Models\Exercise;
 use App\Models\LanguageCenter;
 use App\Models\Lesson;
 use App\Services\Center\AssignmentProgressService;
+use App\Notifications\AssignmentPublishedNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -96,8 +98,18 @@ class AssignmentController extends Controller
             ]);
         }
 
+        // Un devoir publié que personne n'annonce n'est découvert qu'au hasard d'une
+        // ouverture de l'application. On prévient les élèves de la classe visée.
+        $students = $classroom->students()->get();
+        Notification::send(
+            $students,
+            AssignmentPublishedNotification::forAssignment($assignment, $request->user()->name)
+        );
+
+        $prevenus = $students->count();
+
         return redirect()->route('center.assignments.show', $assignment->id)
-            ->with('success', 'Devoir créé et publié.');
+            ->with('success', "Devoir créé et publié. {$prevenus} élève" . ($prevenus > 1 ? 's prévenus.' : ' prévenu.'));
     }
 
     public function show(Request $request, Assignment $assignment, AssignmentProgressService $progress): Response
