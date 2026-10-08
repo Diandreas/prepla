@@ -7,12 +7,9 @@ import { Img, staticFile } from 'remotion';
 
 export type AppIconName =
     | 'courses'
-    | 'book'
     | 'listening'
-    | 'headphones'
     | 'writing'
     | 'speaking'
-    | 'mic'
     | 'message-square'
     | 'trophy'
     | 'sparkles'
@@ -23,12 +20,6 @@ export type AppIconName =
     | 'statistics'
     | 'review'
     | 'clock'
-    | 'star'
-    | 'check-circle'
-    | 'puzzle'
-    | 'home'
-    | 'profile'
-    | 'trending-up'
     | 'vocabulary';
 
 export type AppTone = 'blue' | 'mint' | 'amber' | 'rose' | 'neutral';
@@ -77,7 +68,7 @@ export const Fox: React.FC<{ height: number; style?: React.CSSProperties }> = ({
 );
 
 /** Animation GIF de l'app, lue en phase avec l'image (Remotion). */
-export const AppGif: React.FC<{ name: 'Fire' | 'star' | 'Trophy' | 'big-trophy' | 'loading'; width: number; height: number; style?: React.CSSProperties }> = ({
+export const AppGif: React.FC<{ name: 'Fire' | 'star' | 'Trophy' | 'loading'; width: number; height: number; style?: React.CSSProperties }> = ({
     name,
     width,
     height,
