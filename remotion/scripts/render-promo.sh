@@ -26,7 +26,7 @@ for ((start = 0; start < TOTAL; start += CHUNK)); do
     [[ -f "$marker" ]] && continue
     echo "Images $start → $end"
     npx remotion render "$COMP" "$FRAMES" --sequence --image-format=jpeg --jpeg-quality=95 \
-        --frames="$start-$end" --concurrency="${CONCURRENCY:-3}" --log=error
+        --frames="$start-$end" --concurrency="${CONCURRENCY:-3}" --timeout=120000 --log=error
     touch "$marker"
 done
 
@@ -42,7 +42,7 @@ count=$(find "$FRAMES" -name 'frame-*.jpeg' | wc -l)
 
 if [[ ! -f "$OUT/audio.wav" ]]; then
     echo "Audio"
-    npx remotion render "$COMP" "$OUT/audio.wav" --codec=wav --log=error
+    npx remotion render "$COMP" "$OUT/audio.wav" --codec=wav --timeout=120000 --log=error
 fi
 
 # Gain pour atteindre -14 LUFS, puis limiteur à -1,2 dBFS pour garder une marge de crête.
