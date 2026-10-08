@@ -119,11 +119,13 @@ class Lesson extends Model
     /**
      * Resolve a quiz question's stored correct answer to the full option text.
      *
-     * The AI generator stores `correct_answer` as a letter ("A".."D") or an
-     * index, while `options` holds the actual answer texts and the frontend
-     * submits the chosen option's full text. This maps the letter/index back to
-     * its option text so grading and display compare like-for-like. Falls back
-     * to the raw value when it can't be resolved (already text, no options…).
+     * Les deux prompts generateurs demandent le TEXTE de l'option ; la lettre et
+     * l'indice ne sont que des replis pour ce qu'ils renvoient parfois quand meme.
+     * Les hypotheses sont donc rangees du plus sur au plus devinatoire : texte
+     * exact, puis lettre, puis indice. Dans l'autre ordre, une bonne reponse d'un
+     * seul caractere (« a » parmi « a / an / the ») etait lue comme la lettre A et
+     * le quiz annoncait la premiere option ; « 2 » parmi « 1 / 2 / 3 » annoncait
+     * « 3 ». Repli sur la valeur brute quand rien ne correspond.
      */
     public static function resolveCorrectAnswerText(array $question): string
     {
@@ -134,7 +136,14 @@ class Lesson extends Model
             return $correct;
         }
 
-        // Single letter → index (A=0, B=1, …), case-insensitive.
+        // 1. La valeur EST le texte d'une option : c'est ce que les prompts demandent.
+        foreach ($options as $opt) {
+            if (mb_strtolower(trim($correct)) === mb_strtolower(trim((string) $opt))) {
+                return (string) $opt;
+            }
+        }
+
+        // 2. Lettre → indice (A=0, B=1, …), sans tenir compte de la casse.
         if (preg_match('/^[a-zA-Z]$/', $correct)) {
             $idx = ord(strtoupper($correct)) - ord('A');
             if (isset($options[$idx])) {
@@ -142,16 +151,9 @@ class Lesson extends Model
             }
         }
 
-        // Numeric index.
+        // 3. Indice numerique.
         if (is_numeric($correct) && isset($options[(int) $correct])) {
             return (string) $options[(int) $correct];
-        }
-
-        // Already the full text of one of the options.
-        foreach ($options as $opt) {
-            if (mb_strtolower(trim($correct)) === mb_strtolower(trim((string) $opt))) {
-                return (string) $opt;
-            }
         }
 
         return $correct;
