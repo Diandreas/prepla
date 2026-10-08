@@ -11,6 +11,7 @@ use App\Models\Lesson;
 use App\Services\Center\AssignmentProgressService;
 use App\Notifications\AssignmentPublishedNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -101,15 +102,27 @@ class AssignmentController extends Controller
         // Un devoir publié que personne n'annonce n'est découvert qu'au hasard d'une
         // ouverture de l'application. On prévient les élèves de la classe visée.
         $students = $classroom->students()->get();
-        Notification::send(
-            $students,
-            AssignmentPublishedNotification::forAssignment($assignment, $request->user()->name)
-        );
-
         $prevenus = $students->count();
 
-        return redirect()->route('center.assignments.show', $assignment->id)
-            ->with('success', "Devoir créé et publié. {$prevenus} élève" . ($prevenus > 1 ? 's prévenus.' : ' prévenu.'));
+        // La file tourne en mode synchrone : un envoi qui échoue (notification
+        // refusée, SMTP indisponible) remonterait ici et ferait échouer la
+        // publication d'un devoir pourtant enregistré. L'enseignant doit garder son
+        // devoir, et savoir que l'avis n'est peut-être pas parti.
+        try {
+            Notification::send(
+                $students,
+                AssignmentPublishedNotification::forAssignment($assignment, $request->user()->name)
+            );
+            $message = "Devoir créé et publié. {$prevenus} élève" . ($prevenus > 1 ? 's prévenus.' : ' prévenu.');
+        } catch (\Throwable $e) {
+            Log::warning('Devoir publié mais notification non partie', [
+                'assignment_id' => $assignment->id,
+                'error' => $e->getMessage(),
+            ]);
+            $message = "Devoir créé et publié, mais l'avis aux élèves n'a pas pu être envoyé. Préviens-les directement.";
+        }
+
+        return redirect()->route('center.assignments.show', $assignment->id)->with('success', $message);
     }
 
     public function show(Request $request, Assignment $assignment, AssignmentProgressService $progress): Response
