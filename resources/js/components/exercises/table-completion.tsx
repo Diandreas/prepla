@@ -48,7 +48,13 @@ export function TableCompletion({ question, onAnswer, selectedAnswer, disabled }
     const handleChange = (key: string, val: string) => {
         setValues((prev) => {
             const next = { ...prev, [key]: val };
-            if (blankCells.length > 0 && blankCells.every((k) => (next[k] ?? '').trim() !== '')) {
+            // La carte est transmise a chaque frappe, meme partielle, meme vide.
+            // Avant, il fallait TOUTES les cellules : « Verifier » restait eteint et
+            // l'apprenant qui butait sur une cellule ne pouvait plus avancer. Et
+            // transmettre seulement quand il reste du texte laissait le lecteur sur
+            // la reponse precedente quand on vidait la derniere cellule.
+            // La note reste calculee sur l'ensemble des cellules attendues.
+            if (blankCells.length > 0) {
                 onAnswer(question.id, next);
             }
             return next;

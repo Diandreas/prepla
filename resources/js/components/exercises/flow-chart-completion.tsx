@@ -36,24 +36,20 @@ export function FlowChartCompletion({ question, onAnswer, selectedAnswer, disabl
         .map((s, i) => (isBlankStep(s) ? String(i) : null))
         .filter(Boolean) as string[];
 
-    // Write BOTH the absolute step index and the blank-relative index so scoring
-    // matches whichever key the generator's correct_answers map uses.
-    const blankRel = new Map<string, string>();
-    let rel = 0;
-    steps.forEach((s, i) => { if (isBlankStep(s)) blankRel.set(String(i), String(rel++)); });
-
+    // Cles = index absolu uniquement. L'ancien double-envoi (absolu + relatif) se
+    // telescopait des que les trous n'etaient pas en tete : la cle relative d'un trou
+    // valait la cle absolue d'un autre, donc taper dans un champ reecrivait un autre
+    // champ sous les yeux de l'apprenant. Le serveur rattrape lui-meme les
+    // correct_answers aux cles desalignees.
     const setBoth = (absKey: string, val: string) => {
         setValues((prev) => {
             const next = { ...prev, [absKey]: val };
-            const relKey = blankRel.get(absKey);
-            if (relKey != null) next[relKey] = val;
-            // Un seul champ rempli suffit pour que la réponse existe. Tant qu'il en
-            // manquait un, rien n'était transmis : « Vérifier » restait éteint et
-            // l'apprenant qui butait sur un champ ne pouvait plus avancer du tout.
-            // Se tromper vaut mieux que rester bloqué — la note reste calculée sur
+            // Transmise a chaque frappe, meme partielle, meme vide. Tant qu'il
+            // manquait un champ, rien n'etait transmis : « Verifier » restait eteint et
+            // l'apprenant qui butait sur un champ ne pouvait plus avancer du tout. Se
+            // tromper vaut mieux que rester bloque — la note reste calculee sur
             // l'ensemble des champs attendus.
-            const answered = blankIndices.some((k) => (next[k] ?? '').trim() !== '');
-            if (blankIndices.length > 0 && answered) onAnswer(question.id, next);
+            if (blankIndices.length > 0) onAnswer(question.id, next);
             return next;
         });
     };

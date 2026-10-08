@@ -109,6 +109,8 @@ class ExerciseScoringService
             'graph-description', 'academic-discussion', 'speaking-recorder',
             'role-play', 'synthesis', 'integrated-task',
             'guided-rewrite', 'text-continuation', 'synthesis-essay',
+            // « Ecriture guidee » : notee par l'IA comme les autres redactions.
+            'guided-writing',
         ];
 
         foreach ($questions as $index => $question) {

@@ -17,8 +17,18 @@ export function MultipleMatching({ question, onAnswer, selectedAnswer, disabled 
 
     const handleSelect = (statementId: string, textId: string) => {
         if (disabled) return;
-        const next = { ...values, [statementId]: textId };
-        setValues(next);
+        // Calcule depuis l'etat precedent : deux clics dans le meme cycle de rendu
+        // repartaient sinon du meme etat et la premiere association etait perdue.
+        setValues((prev) => {
+            const next = { ...prev, [statementId]: textId };
+            // La reponse est transmise des le premier choix. Avant, il fallait trouver
+            // un bouton « Valider » cache dans l'exercice ET avoir associe TOUTES les
+            // phrases : « Verifier » restait eteint sans un mot d'explication. La note
+            // reste calculee sur l'ensemble des associations attendues.
+            onAnswer(question.id, next);
+
+            return next;
+        });
     };
 
     // Coerce every IA-generated field defensively — a malformed object here
@@ -35,14 +45,6 @@ export function MultipleMatching({ question, onAnswer, selectedAnswer, disabled 
     }));
     const textIds = texts.map((t) => t.id);
 
-    // Une seule association suffit pour que la réponse existe. Tant qu'il en manquait
-    // une, rien n'était transmis : « Vérifier » restait éteint sans explication et
-    // l'apprenant bloqué sur un énoncé ne pouvait plus avancer.
-    const handleSubmit = () => {
-        if (Object.keys(values).length > 0) {
-            onAnswer(question.id, values);
-        }
-    };
 
     return (
         <div className="space-y-5">
@@ -93,15 +95,6 @@ export function MultipleMatching({ question, onAnswer, selectedAnswer, disabled 
                 })}
             </div>
 
-            {!disabled && (
-                <button
-                    onClick={handleSubmit}
-                    disabled={Object.keys(values).length < statements.length}
-                    className="rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground disabled:opacity-50"
-                >
-                    Valider
-                </button>
-            )}
         </div>
     );
 }

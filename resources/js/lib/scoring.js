@@ -28,6 +28,7 @@ const SERVER_EVALUATED_TYPES = [
     'guided-rewrite',
     'text-continuation',
     'synthesis-essay',
+    'guided-writing',
 ];
 
 /** PHP's (string) cast: null → '', true → '1', false → '', arrays → '' (malformed data). */

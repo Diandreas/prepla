@@ -25,14 +25,16 @@ export function DiagramLabeling({ question, onAnswer, selectedAnswer, disabled }
     const labels = question.labels || [];
 
     const handleChange = (labelId: string, val: string) => {
-        const next = { ...values, [labelId]: val };
-        setValues(next);
-    };
+        // Depuis l'etat precedent : deux saisies dans le meme cycle de rendu
+        // repartaient sinon du meme etat et la premiere etiquette etait perdue.
+        setValues((prev) => {
+            const next = { ...prev, [labelId]: val };
+            // Transmise des la premiere etiquette : le bouton « Valider » cache dans
+            // l'exercice exigeait TOUTES les etiquettes, et « Verifier » restait eteint.
+            onAnswer(question.id, next);
 
-    const handleSubmit = () => {
-        if (labels.every((l) => values[l.id]?.trim())) {
-            onAnswer(question.id, values);
-        }
+            return next;
+        });
     };
 
     return (
@@ -83,15 +85,6 @@ export function DiagramLabeling({ question, onAnswer, selectedAnswer, disabled }
                 ))}
             </div>
 
-            {!disabled && (
-                <button
-                    onClick={handleSubmit}
-                    disabled={!labels.every((l) => values[l.id]?.trim())}
-                    className="rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground disabled:opacity-50"
-                >
-                    Valider
-                </button>
-            )}
         </div>
     );
 }

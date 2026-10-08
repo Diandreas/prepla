@@ -91,6 +91,9 @@ class Exercise extends Model
         'role-play', 'synthesis', 'integrated-task',
         'guided-rewrite', 'text-continuation', 'synthesis-essay',
         'oral-debate', 'negotiation', 'speaking-elicitation', 'listen-repeat',
+        // « Ecriture guidee » manquait : la question etait ecartee comme impossible
+        // a repondre, donc la redaction etait notee zero quoi que l'eleve ecrive.
+        'guided-writing',
     ];
 
     /**
@@ -113,6 +116,17 @@ class Exercise extends Model
 
         $fields = $question['notes'] ?? $question['fields'] ?? null;
         $map = $question['correct_answers'] ?? null;
+
+        // Les champs ne s'appellent pas « notes » partout : associations (statements
+        // + texts), etiquetage de schema (labels) et organigramme (steps) portaient
+        // les leurs sous un autre nom. Faute de les reconnaitre, ces trois familles
+        // etaient jugees impossibles a repondre A 100 %, et les quatre chemins qui
+        // filtrent jetaient l'exercice entier sans un mot.
+        foreach (['statements', 'labels', 'steps'] as $forme) {
+            if (is_array($question[$forme] ?? null) && $question[$forme] !== []) {
+                return true;
+            }
+        }
 
         if (is_array($fields)) {
             foreach ($fields as $field) {

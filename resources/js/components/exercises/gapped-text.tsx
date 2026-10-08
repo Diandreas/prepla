@@ -45,12 +45,20 @@ export function GappedText({ question, onAnswer, selectedAnswer, disabled }: Gap
 
     const placedKeys = new Set(Object.values(placements));
 
-    const reportIfComplete = (next: Record<string, string>) => {
-        const filled = Array.from({ length: gapCount }).every((_, gi) => next[String(gi)]);
-        if (gapCount > 0 && filled) {
-            // Send both a gap→key map and (for generator) the ordered key list under "order".
-            onAnswer(question.id, next);
-        }
+    // Un placement suffit pour que la reponse existe : il fallait avant remplir TOUS
+    // les trous, sinon rien n'etait transmis et « Verifier » restait eteint. Retirer
+    // un paragraphe ne changeait rien non plus a ce qui serait corrige.
+    // La carte envoyee reste DENSE (une entree par trou, '' si vide) : le correcteur
+    // trie les cles puis compacte les valeurs, donc un trou absent decalerait d'un
+    // cran tous les paragraphes suivants et les compterait faux.
+    const report = (next: Record<string, string>) => {
+        if (gapCount <= 0) return;
+        const dense = Object.fromEntries(
+            Array.from({ length: gapCount }, (_, gi) => [String(gi), next[String(gi)] ?? '']),
+        );
+        // Transmise meme entierement vide : sinon retirer le dernier paragraphe
+        // laissait le lecteur sur le placement precedent, et c'est lui qui etait note.
+        onAnswer(question.id, dense);
     };
 
     const handleGapClick = (gapKey: string) => {
@@ -59,13 +67,14 @@ export function GappedText({ question, onAnswer, selectedAnswer, disabled }: Gap
             const next = { ...placements };
             delete next[gapKey];
             setPlacements(next);
+            report(next);
             return;
         }
         if (selectedItem) {
             const next = { ...placements, [gapKey]: selectedItem };
             setPlacements(next);
             setSelectedItem(null);
-            reportIfComplete(next);
+            report(next);
         }
     };
 

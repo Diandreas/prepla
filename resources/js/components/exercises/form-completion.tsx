@@ -60,8 +60,12 @@ export function FormCompletion({ question, onAnswer, selectedAnswer, disabled }:
                         const setValue = (val: string) => {
                             setValues((prev) => {
                                 const next = { ...prev, [absKey]: val };
-                                const blanksFilled = fields.filter((f, fi) => isBlankField(f) && (next[String(fi)] ?? '').trim() !== '').length;
-                                if (blankCount > 0 && blanksFilled >= blankCount) {
+                                // Transmise a chaque frappe, meme partielle, meme vide
+                                // (meme raison que les composants freres) : exiger le
+                                // formulaire entier laissait « Verifier » eteint sans un
+                                // mot d'explication, et ne rien transmettre sur un champ
+                                // vide laissait noter la reponse precedente.
+                                if (blankCount > 0) {
                                     onAnswer(question.id, next);
                                 }
                                 return next;

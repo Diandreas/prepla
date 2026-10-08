@@ -1,23 +1,25 @@
 import { useState } from 'react';
 import { useTts } from '@/hooks/use-tts';
+import { SpeakingRecorder } from './speaking-recorder';
 
 interface IntegratedTaskProps {
     question: {
         id: string;
+        text?: string;
         reading_passage?: { title: string; content: string };
         audio_text?: string;
         audio_url?: string;
         audio_lang?: string;
         writing_prompt?: string;
         speaking_prompt?: string;
-        response_type: 'writing' | 'speaking';
+        response_type?: 'writing' | 'speaking';
         min_words?: number;
         max_words?: number;
         prep_time?: number;
         speak_time?: number;
     };
-    onAnswer: (questionId: string, answer: string) => void;
-    selectedAnswer?: string;
+    onAnswer: (questionId: string, answer: string | Blob) => void;
+    selectedAnswer?: string | Blob;
     disabled?: boolean;
     lang?: string;
 }
@@ -30,7 +32,9 @@ export function IntegratedTask({ question, onAnswer, selectedAnswer, disabled, l
 
     const initialStep: Step = hasReading ? 'reading' : hasAudio ? 'listening' : 'responding';
     const [step, setStep] = useState<Step>(selectedAnswer ? 'responding' : initialStep);
-    const [value, setValue] = useState(selectedAnswer ?? '');
+    // La reponse orale est un fichier : l'etat texte ne se remplit que depuis une
+    // chaine, sinon value.trim() plantait l'ecran au remontage de la question.
+    const [value, setValue] = useState(typeof selectedAnswer === 'string' ? selectedAnswer : '');
     const { speak, stop, isSpeaking, isSupported } = useTts();
 
     const minWords = question.min_words ?? 150;
@@ -164,10 +168,10 @@ export function IntegratedTask({ question, onAnswer, selectedAnswer, disabled, l
             )}
 
             {/* Responding step — writing */}
-            {step === 'responding' && question.response_type === 'writing' && (
+            {step === 'responding' && question.response_type !== 'speaking' && (
                 <div className="space-y-3">
                     <div className="rounded-xl border-2 border-primary/20 bg-primary/5 p-4">
-                        <p className="text-sm font-medium">{question.writing_prompt}</p>
+                        <p className="text-sm font-medium">{question.writing_prompt ?? question.text}</p>
                     </div>
                     <textarea
                         className="min-h-[200px] w-full rounded-lg border border-border bg-background p-4 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
@@ -195,16 +199,20 @@ export function IntegratedTask({ question, onAnswer, selectedAnswer, disabled, l
                 </div>
             )}
 
-            {/* Responding step — speaking (simplified, just shows prompt) */}
+            {/* Etape orale : l'ecran annoncait un enregistreur qui n'etait nulle part. */}
             {step === 'responding' && question.response_type === 'speaking' && (
-                <div className="space-y-3">
-                    <div className="rounded-xl border-2 border-primary/20 bg-primary/5 p-4">
-                        <p className="text-sm font-medium">{question.speaking_prompt}</p>
-                    </div>
-                    <p className="text-center text-sm text-muted-foreground">
-                        Utilisez le composant d'enregistrement oral pour cette partie.
-                    </p>
-                </div>
+                <SpeakingRecorder
+                    question={{
+                        id: question.id,
+                        text: question.speaking_prompt ?? question.text ?? 'Repondez a l oral.',
+                        prep_time: question.prep_time,
+                        speak_time: question.speak_time,
+                    }}
+                    onAnswer={(_id, answer) => onAnswer(question.id, answer)}
+                    selectedAnswer={selectedAnswer}
+                    disabled={disabled}
+                    lang={lang}
+                />
             )}
         </div>
     );
