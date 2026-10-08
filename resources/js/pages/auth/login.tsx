@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
 
 import InputError from '@/components/input-error';
@@ -22,6 +22,7 @@ interface LoginProps {
 }
 
 export default function Login({ status, canResetPassword }: LoginProps) {
+    const flash = usePage().props.flash as { error?: string } | undefined;
     const { data, setData, post, processing, errors, reset } = useForm<LoginForm>({
         email: '',
         password: '',
@@ -109,6 +110,14 @@ export default function Login({ status, canResetPassword }: LoginProps) {
             </form>
 
             {status && <div className="mb-4 text-center text-sm font-medium text-green-600">{status}</div>}
+            {/* Un message d'erreur depose avant une redirection ici n'etait affiche
+                nulle part : « ce lien d'invitation n'est plus valable » se perdait, et
+                la personne voyait un formulaire de connexion sans explication. */}
+            {flash?.error && (
+                <div role="alert" className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-3 text-center text-sm font-medium text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200">
+                    {flash.error}
+                </div>
+            )}
         </AuthLayout>
     );
 }
