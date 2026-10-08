@@ -87,6 +87,9 @@ class HandleInertiaRequests extends Middleware
                 'correction' => $request->session()->get('correction'),
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
+                // Le lien d'invitation n'est affiche qu'une fois : la base n'en garde
+                // qu'une empreinte, on ne peut pas le reconstituer ensuite.
+                'invitationLink' => $request->session()->get('invitationLink'),
             ],
         ]);
     }

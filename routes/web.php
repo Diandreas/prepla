@@ -235,6 +235,18 @@ Route::middleware(['auth'])->group(function () {
     });
 });
 
+// Invitations d'enseignants : un lien a usage unique, ou la personne choisit son
+// mot de passe et trouve son espace deja monte. Fabriquer un compte a sa place
+// obligeait a se passer son mot de passe de main en main.
+Route::middleware('auth')->group(function () {
+    Route::get('invitations', [\App\Http\Controllers\TeacherInvitationController::class, 'index'])->name('teach.invitations');
+    Route::post('invitations', [\App\Http\Controllers\TeacherInvitationController::class, 'store'])->name('teach.invitations.store');
+});
+
+// Ouvert sans compte : l'invite n'en a precisement pas encore.
+Route::get('invitation/{token}', [\App\Http\Controllers\TeacherInvitationController::class, 'show'])->name('teach.invitation.show');
+Route::post('invitation/{token}', [\App\Http\Controllers\TeacherInvitationController::class, 'accept'])->name('teach.invitation.accept');
+
 // Numero de telephone de qui est entre par Google : ce chemin ne demande rien, et
 // sans numero on ne peut joindre personne pour recueillir un retour.
 Route::middleware('auth')->group(function () {
