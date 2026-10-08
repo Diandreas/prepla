@@ -34,6 +34,7 @@ import { MultipleMatching } from './multiple-matching';
 import { Ordering } from './ordering';
 import { ShortWriting } from './short-writing';
 import { IntegratedTask } from './integrated-task';
+import { isBlankAnswer } from '@/lib/scoring';
 import { AcademicDiscussion } from './academic-discussion';
 import { RolePlay } from './role-play';
 import { Synthesis } from './synthesis';
@@ -159,8 +160,9 @@ export function ExercisePlayer({ exercise }: ExercisePlayerProps) {
     const isStarter = exercise.content?.source === 'starter-library';
     const passage = exercise.content?.passage ?? exercise.content?.text;
     const currentAnswer = answers[question?.id];
-    const hasAnswer = currentAnswer !== undefined && currentAnswer !== null
-        && (typeof currentAnswer !== 'string' || currentAnswer.trim().length > 0);
+    // Meme regle que le lecteur du parcours : un objet dont tous les champs sont
+    // vides, ou un enregistrement efface, ne sont pas des reponses.
+    const hasAnswer = !isBlankAnswer(currentAnswer);
 
     // Prefetch the exercise's audio at mount (TTS texts + pre-generated MP3s)
     // so "Écouter" plays instantly instead of calling the TTS API at click time.

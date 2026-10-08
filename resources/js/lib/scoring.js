@@ -63,6 +63,24 @@ export function isSkippedAnswer(answer) {
     return typeof answer === 'string' && SKIPPED_ANSWERS.includes(answer);
 }
 
+/**
+ * Une reponse vide n'est pas une reponse. « Verifier » restait allume sur une chaine
+ * vide : juste apres « Refaire l'enregistrement » (l'enregistreur transmet '' pour
+ * effacer l'audio) ou apres avoir efface un mot au clavier, un appui envoyait une
+ * reponse vide a la correction et la question etait perdue. Les deux lecteurs
+ * partagent desormais la meme regle.
+ */
+export function isBlankAnswer(value) {
+    if (value === undefined || value === null) return true;
+    if (typeof value === 'string') return value.trim() === '';
+    if (typeof value === 'number' || typeof value === 'boolean') return false;
+    if (typeof Blob !== 'undefined' && value instanceof Blob) return value.size === 0;
+    if (Array.isArray(value)) return value.every((v) => isBlankAnswer(v));
+    if (typeof value === 'object') return Object.values(value).every((v) => isBlankAnswer(v));
+
+    return false;
+}
+
 export function normalizeAnswer(value) {
     return phpString(value).trim().toLowerCase().replace(/[’`]/g, "'");
 }

@@ -80,6 +80,9 @@ class PracticeController extends Controller
             'node' => $node,
             'exercises' => $exercises,
             'progress' => $progress,
+            // Sans jeton, renvoyer la meme seance de pratique libre recreditait XP
+            // et tentatives : la protection ne couvrait que le parcours.
+            'sessionToken' => $this->jetonDeSeance(auth()->id()),
         ]);
     }
     public function skill(string $skill)

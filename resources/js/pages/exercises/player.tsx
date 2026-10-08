@@ -7,7 +7,7 @@ import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { playSound } from '@/hooks/use-sound';
 import { getCachedTtsUrl, rememberTtsUrl, prefetchExercisesAudio } from '@/lib/tts-cache';
-import { evaluateAnswer, isSkippedAnswer, expectedAnswerText, needsServerEvaluation } from '@/lib/scoring';
+import { evaluateAnswer, expectedAnswerText, isBlankAnswer, isSkippedAnswer, needsServerEvaluation } from '@/lib/scoring';
 import { LearningScene, sceneVariantForSkill } from '@/components/learning-scene';
 
 // Read the freshest CSRF token. The XSRF-TOKEN cookie tracks the live session,
@@ -65,6 +65,7 @@ import { RolePlay } from '@/components/exercises/role-play';
 import { DiagramLabeling } from '@/components/exercises/diagram-labeling';
 import { Synthesis } from '@/components/exercises/synthesis';
 import { IntegratedTask } from '@/components/exercises/integrated-task';
+import { ExerciseErrorBoundary } from '@/components/exercises/exercise-error-boundary';
 import { VocabularyCard } from '@/components/exercises/vocabulary-card';
 import { ListenRepeat } from '@/components/exercises/listen-repeat';
 import { PictureMcq } from '@/components/exercises/picture-mcq';
@@ -811,7 +812,9 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
     const checkAnswer = useCallback(async () => {
         if (!question || isChecked || isVerifying) return;
         const currentAnswer = answers[answerKey(question.id)];
-        if (currentAnswer === undefined) return;
+        // Une reponse vide n'est pas une reponse : l'envoyer a la correction perdait
+        // la question (champ efface, « Refaire l'enregistrement »).
+        if (isBlankAnswer(currentAnswer)) return;
 
         // Une question passee parce qu'elle ne s'affichait pas n'est pas une erreur de
         // l'apprenant. Le serveur la sort deja du score ; l'ecran, lui, jouait le son
@@ -820,7 +823,6 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
         if (isSkippedAnswer(currentAnswer)) {
             setIsChecked(true);
             setIsCorrect(null);
-        setSkipped(false);
             setSkipped(true);
             return;
         }
@@ -930,6 +932,9 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
 
         setIsChecked(false);
         setIsCorrect(null);
+        // Sans cette remise a zero, « Question passee » restait affiche sur toutes les
+        // questions suivantes et masquait leur correction.
+        setSkipped(false);
         setExplanation(null);
         setHighlightedText(null);
         setSpeakingPoints(null);
@@ -967,6 +972,9 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
                 node_id: node.id,
                 time_spent: timeSpentRef.current,
                 exercise_ids: exercises.map((e) => e.id),
+                // Jeton a usage unique : il empeche qu'un renvoi de la meme seance
+                // (bouton Retour, double envoi) recredite XP et tentatives.
+                session_token: sessionToken ?? '',
             }, {
                 forceFormData: true,
                 // A successful submit leaves the page; any failure hands the session back for a retry.
@@ -990,24 +998,52 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
             setTimerKey(k => k + 1);
             advancingRef.current = false;
         }, 220);
-    }, [currentExerciseIndex, currentQuestionIndex, exercises, questions.length, answers, node.id, mistakes, reviewQueue, isReviewMode, exercise]);
+    }, [currentExerciseIndex, currentQuestionIndex, exercises, questions.length, answers, node.id, mistakes, reviewQueue, isReviewMode, exercise, sessionToken]);
 
     const handleTimeUpdate = useCallback((elapsed: number) => {
         timeSpentRef.current += 1;
         setTimerSeconds(TIME_PER_QUESTION - elapsed);
     }, [TIME_PER_QUESTION]);
 
-    const handleTimeExpire = useCallback(() => {
+    const handleTimeExpire = useCallback(async () => {
+        // Une correction est deja en vol (clic sur « Verifier » juste avant la fin) :
+        // la laisser poser son verdict et declencher elle-meme la suite. Appeler
+        // checkAnswer ici n'aurait rien fait — sa propre garde le refuse — et
+        // l'avance programmee aurait repeint ce verdict sur la question SUIVANTE.
+        if (isVerifying) return;
+
         if (!isChecked) {
-            setIsChecked(true);
-            setIsCorrect(false);
-            setMistakes(prev => [...prev, { ...question, ...questionContext }]);
+            const saisie = answers[answerKey(question?.id)];
+
+            if (isBlankAnswer(saisie)) {
+                // Rien n'a ete repondu : la question est comptee fausse, comme avant.
+                setIsChecked(true);
+                setIsCorrect(false);
+                setMistakes(prev => [...prev, { ...question, ...questionContext }]);
+            } else {
+                // Une reponse etait saisie : on la corrige vraiment. Le temps ecoule la
+                // declarait fausse sans jamais la regarder — son d'erreur, cadre rouge
+                // et « reponse attendue » qui etait mot pour mot ce que l'apprenant
+                // venait d'ecrire — alors que le serveur, lui, l'enregistrait comme
+                // juste. On attend la correction (locale ou serveur) avant de
+                // programmer l'avance, sinon elle se repeindrait sur la question
+                // suivante.
+                try {
+                    await checkAnswer();
+                } catch {
+                    // La correction a echoue : on retombe sur l'ancien comportement
+                    // plutot que de laisser la question sans verdict ni avance.
+                    setIsChecked(true);
+                    setIsCorrect(false);
+                    setMistakes(prev => [...prev, { ...question, ...questionContext }]);
+                }
+            }
         }
         // Track the pending auto-advance so a manual advance (or another expiry) can
         // cancel it — otherwise nextStep runs twice and overshoots the last question.
         if (expireTimeoutRef.current) clearTimeout(expireTimeoutRef.current);
         expireTimeoutRef.current = setTimeout(() => nextStep(), 1200);
-    }, [isChecked, nextStep, question, questionContext]);
+    }, [isChecked, isVerifying, nextStep, question, questionContext, answers, answerKey, checkAnswer]);
 
     // Keyboard shortcut: Space / Enter
     useEffect(() => {
@@ -1016,7 +1052,9 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
             if (e.code === 'Space' || e.code === 'Enter') {
                 e.preventDefault();
                 if (isChecked) nextStep();
-                else if (answers[answerKey(question?.id)] !== undefined) checkAnswer();
+                // Pendant l'oral le focus n'est dans aucun champ : Espace/Entree
+                // envoyait encore une reponse vide.
+                else if (!isBlankAnswer(answers[answerKey(question?.id)])) checkAnswer();
             }
         };
         window.addEventListener('keydown', onKey);
@@ -1028,7 +1066,11 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
     const timerExpired = timerSeconds === 0 && timerKey > 0;
 
     const isLastQuestion = currentExerciseIndex === exercises.length - 1 && currentQuestionIndex === questions.length - 1;
-    const hasAnswer = answers[answerKey(question?.id)] !== undefined;
+    const hasAnswer = !isBlankAnswer(answers[answerKey(question?.id)]);
+    // Les ids de questions generees par l'IA se repetent : la cle de remontage est
+    // composite, et la barriere d'erreur doit utiliser la MEME, sinon elle reste
+    // bloquee en erreur quand deux questions consecutives partagent un id.
+    const remountKey = `${isReviewMode ? 'r' : 'q'}-${currentExerciseIndex}-${currentQuestionIndex}-${question?.id ?? ''}`;
     // Shown with every wrong answer: note taking and tables never display it otherwise.
     const expectedText = isChecked && isCorrect === false && question ? expectedAnswerText(question) : '';
     // What the learner actually answered, in words — a wrong answer is only
@@ -1339,17 +1381,28 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
                         >
                             <Icon name={playingTts === 'question' ? 'volume-2' : 'volume-1'} size={18} />
                         </button>
-                        <Component
-                            // Always-unique key so the input component fully remounts between
-                            // questions (AI-generated questions can share/duplicate ids, which
-                            // left the previous answer stuck in the text field).
-                            key={`${isReviewMode ? 'r' : 'q'}-${currentExerciseIndex}-${currentQuestionIndex}-${question.id ?? ''}`}
-                            question={{ ...exercise.content, ...question }}
-                            lang={nodeCode}
-                            onAnswer={(_childId: string, ans: FormDataConvertible) => handleAnswer(question.id ?? String(currentQuestionIndex), ans)}
-                            selectedAnswer={answers[answerKey(question.id ?? String(currentQuestionIndex))]}
-                            disabled={isChecked}
-                        />
+                        {/* Sans cette barriere, un seul champ mal forme venu de l'IA
+                            (un objet la ou une chaine etait attendue) vidait l'ecran de
+                            la seance et effacait toutes les reponses deja donnees. Elle
+                            n'entoure que le champ de saisie : barre d'action, minuteur
+                            et reponses du parent restent intacts, et la question peut
+                            etre passee sans compter. */}
+                        <ExerciseErrorBoundary
+                            resetKey={remountKey}
+                            onSkip={() => handleAnswer(question.id ?? String(currentQuestionIndex), '__skipped__')}
+                        >
+                            <Component
+                                // Always-unique key so the input component fully remounts between
+                                // questions (AI-generated questions can share/duplicate ids, which
+                                // left the previous answer stuck in the text field).
+                                key={remountKey}
+                                question={{ ...exercise.content, ...question }}
+                                lang={nodeCode}
+                                onAnswer={(_childId: string, ans: FormDataConvertible) => handleAnswer(question.id ?? String(currentQuestionIndex), ans)}
+                                selectedAnswer={answers[answerKey(question.id ?? String(currentQuestionIndex))]}
+                                disabled={isChecked}
+                            />
+                        </ExerciseErrorBoundary>
 
                         {/* Speaking: show what the AI heard (the transcription) so the
                             learner can tell a real mistake from a mis-transcription. */}

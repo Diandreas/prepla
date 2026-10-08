@@ -26,6 +26,9 @@ export const SKIPPED_ANSWERS: string[];
 /** Vrai pour une question passee a cause d'une panne de notre cote. */
 export function isSkippedAnswer(answer: unknown): boolean;
 
+/** Vrai pour une reponse vide : rien a corriger, « Verifier » doit rester eteint. */
+export function isBlankAnswer(value: unknown): boolean;
+
 export function normalizeAnswer(value: unknown): string;
 
 export function needsServerEvaluation(question: ScorableQuestion | null | undefined, fallbackType?: string): boolean;

@@ -115,3 +115,39 @@ test('une seance entierement indisponible ne cree ni erreur ni progression', fun
     expect($progress->fresh()->status)->toBe('in_progress')->and(UserError::where('user_id', $this->user->id)->count())->toBe(0);
     expect($this->user->profile->fresh()->streak_current)->toBe(0);
 });
+
+/**
+ * Une seule question impossible a afficher bloquait TOUTE la seance : le noeud ne se
+ * terminait pas, l'objectif n'etait pas valide et la suite restait verrouillee.
+ * Depuis que le lecteur propose de passer une question cassee, l'apprenant croyait
+ * avoir termine et rejouait indefiniment la meme seance.
+ */
+test('une question passee ne bloque pas la fin de la seance', function () {
+    $type = ExerciseType::create(['section_id' => $this->section->id, 'slug' => 'mcq2', 'name' => 'MCQ', 'skill_type' => 'grammar', 'component_key' => 'mcq']);
+    $exercise = Exercise::create([
+        'exam_id' => $this->exam->id, 'exam_section_id' => $this->section->id, 'exercise_type_id' => $type->id,
+        'node_id' => $this->node->id, 'difficulty' => 'A1', 'content' => [],
+        'questions' => [
+            ['id' => 'q1', 'type' => 'mcq', 'text' => 'Hello?', 'options' => ['Yes', 'No'], 'correct_answer' => 'Yes', 'explanation' => 'Oui.'],
+            ['id' => 'q2', 'type' => 'mcq', 'text' => 'Cassee', 'options' => ['Yes', 'No'], 'correct_answer' => 'Yes', 'explanation' => 'Oui.'],
+        ],
+    ]);
+    $progress = UserLearningProgress::create([
+        'user_id' => $this->user->id, 'node_id' => $this->node->id,
+        'status' => 'in_progress', 'exercises_done' => 0, 'exercises_required' => 1,
+    ]);
+    $path = CurriculumSkeleton::create([
+        'user_id' => $this->user->id, 'exam_id' => $this->exam->id, 'current_objective_index' => 0,
+        'objectives' => [['title' => $this->node->title, 'concept' => 'greetings', 'status' => 'current_practice', 'level' => 'A1']],
+    ]);
+
+    $this->post(route('exercise.submit_session', $this->node), [
+        'exercise_ids' => [$exercise->id],
+        // La question cassee est passee par la barriere d'erreur du lecteur.
+        'answers_by_exercise' => [$exercise->id => ['q1' => 'Yes', 'q2' => '__skipped__']],
+    ])->assertSessionHasNoErrors();
+
+    // La seance compte sur la question reellement posee : 100 %.
+    expect($progress->fresh()->status)->toBe('completed')
+        ->and($path->fresh()->objectives[0]['status'])->toBe('done');
+});

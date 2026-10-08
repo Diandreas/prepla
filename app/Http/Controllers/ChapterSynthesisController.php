@@ -116,6 +116,8 @@ class ChapterSynthesisController extends Controller
             'exercises' => collect([$synthesisExercise]),
             'progress' => null,
             'isSynthesis' => true,
+            // Meme protection que le parcours : la synthese restait rejouable.
+            'sessionToken' => $this->jetonDeSeance(auth()->id()),
             'chapterOrder' => $chapterOrder,
             'conceptsMixed' => $lessonConcepts,
         ]);

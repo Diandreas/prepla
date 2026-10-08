@@ -336,19 +336,9 @@ class NodeStartController extends Controller
                 ->with('error', "Les exercices de cette etape etaient inutilisables. Reessaie dans un instant.");
         }
 
-        // Jeton a usage unique : renvoyer la meme fin de seance (bouton Retour, double
-        // envoi) creditait de l'XP et une tentative a chaque fois. Le jeton est
-        // consomme a la correction, donc un renvoi ne compte plus.
-        $sessionToken = \Illuminate\Support\Str::random(32);
-        \Illuminate\Support\Facades\Cache::put(
-            "session-token:{$user->id}:{$sessionToken}",
-            $node->id,
-            now()->addHours(4)
-        );
-
         // 6. Rendre la vue du "Player" (Moteur d'exercices)
         return Inertia::render('exercises/player', [
-            'sessionToken' => $sessionToken,
+            'sessionToken' => $this->jetonDeSeance($user->id),
             'node' => $node->load('exam.language'),
             'exercises' => $exercises,
             'progress' => $progress,

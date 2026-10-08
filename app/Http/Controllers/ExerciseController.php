@@ -60,6 +60,7 @@ class ExerciseController extends Controller
             // a nouveau l'XP, une tentative par exercice et une progression de noeud.
             // Le jeton remis avec la seance est consomme ici : un renvoi ne compte plus.
             $token = $request->input('session_token');
+            $cle = null;
 
             if (is_string($token) && $token !== '') {
                 $cle = 'session-token:'.auth()->id().':'.$token;
@@ -70,7 +71,18 @@ class ExerciseController extends Controller
                 }
             }
 
-            return $this->recordSession($request, $node);
+            try {
+                return $this->recordSession($request, $node);
+            } catch (\Throwable $e) {
+                // La correction a echoue : rien n'a ete enregistre, donc le jeton doit
+                // redevenir valable. Sans cela l'apprenant qui reessayait s'entendait
+                // repondre « deja corrigee » et perdait toute sa seance.
+                if ($cle !== null) {
+                    Cache::put($cle, true, now()->addHours(4));
+                }
+
+                throw $e;
+            }
         } finally {
             $lock->release();
         }
@@ -299,7 +311,12 @@ class ExerciseController extends Controller
             ->first();
 
         $sessionAccuracy = $totalQuestions > 0 ? ($totalCorrect / $totalQuestions) * 100 : 0;
-        if ($progress && ! $isLevelExam && $totalQuestions > 0 && $technicalFailures === 0 && $sessionAccuracy >= 60) {
+        // $totalQuestions a deja ete diminue des questions impossibles a afficher :
+        // en exiger ZERO interdisait de terminer le noeud des qu'une seule question
+        // etait cassee. L'apprenant finissait le reste a 100 % et restait bloque,
+        // a rejouer la meme seance. « $totalQuestions > 0 » suffit : il garantit
+        // qu'au moins une vraie question a ete corrigee.
+        if ($progress && ! $isLevelExam && $totalQuestions > 0 && $sessionAccuracy >= 60) {
             $progress->update([
                 'status' => 'completed',
                 'exercises_done' => $progress->exercises_required,
@@ -331,11 +348,17 @@ class ExerciseController extends Controller
         $examPassed = false;
         $remediationCount = 0;
         if ($isLevelExam) {
-            $accuracy = $totalQuestions > 0 ? ($totalCorrect / $totalQuestions) * 100 : 0;
+            // L'examen se juge sur les questions reellement posees. Une seule question
+            // impossible a afficher renvoyait l'epreuve a « en cours » SANS la faire
+            // passer et SANS poser de reprises : aucune issue, l'apprenant tournait en
+            // rond. Elle sort donc du denominateur, comme en pratique.
+            $questionsReelles = max(0, $totalQuestions - $technicalFailures);
+            $accuracy = $questionsReelles > 0 ? ($totalCorrect / $questionsReelles) * 100 : 0;
             $skeleton = CurriculumSkeleton::where('user_id', $user->id)->where('exam_id', $node->exam_id)->first();
 
-            if ($technicalFailures > 0) {
-                // A provider failure is not evidence of a language gap, nor a pass.
+            if ($questionsReelles === 0) {
+                // Toute l'epreuve a echoue de notre cote : ce n'est ni une lacune de
+                // l'apprenant, ni une reussite.
                 $progress?->update(['status' => 'in_progress', 'exercises_done' => 0]);
             } elseif ($accuracy >= LevelAdvancementService::ADVANCE_THRESHOLD) {
                 // An old A1 assessment must not promote an already-A2 learner again.
@@ -365,7 +388,9 @@ class ExerciseController extends Controller
         // Aligned with the lesson quiz pass band (~2/3).
         $MASTERY_THRESHOLD = 60;
         $skeleton = CurriculumSkeleton::where('user_id', $user->id)->where('exam_id', $node->exam_id)->first();
-        if ($skeleton && ! $isLevelExam && $totalQuestions > 0 && $technicalFailures === 0) {
+        // Meme raison : une question cassee ne doit pas empecher de valider l'objectif,
+        // elle est deja sortie du denominateur.
+        if ($skeleton && ! $isLevelExam && $totalQuestions > 0) {
             // The objective being practiced is the one in 'current_practice', which is
             // usually *behind* current_objective_index (advanceToPractice already moved
             // the pointer to the next lesson). Target it explicitly so finishing a
