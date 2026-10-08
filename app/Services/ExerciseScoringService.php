@@ -226,7 +226,7 @@ class ExerciseScoringService
                     $points = ($aiResult['score'] ?? 0) / 9; // Normalize IELTS 1-9 to 0-1
                     $isCorrect = $points >= 0.6;
                     $accuracy = ($points * 100);
-                    
+
                     $feedback[] = [
                         'question_id' => $questionId,
                         'correct' => $isCorrect,
@@ -459,12 +459,11 @@ class ExerciseScoringService
                 // sous forme d'objet par l'IA, il arrivait brut dans une comparaison
                 // typee ?string et levait une TypeError — 500 a l'envoi de la seance.
                 if (!$isCorrect && preg_match('/^[a-d]$/', $normalUser) && isset($question['options'])) {
-                    $options = $question['options'] ?? [];
+                    $options = Exercise::optionList($question['options'] ?? []);
                     $letterIndex = ord($normalUser) - ord('a');
-                    if (isset($options[$letterIndex])) {
-                        $texteChoix = Exercise::optionText($options[$letterIndex]);
-                        $isCorrect = $texteChoix !== ''
-                            && $this->normalizeForComparison($texteChoix) === $normalCorrect;
+                    $texteChoix = $options[$letterIndex] ?? '';
+                    if ($texteChoix !== '') {
+                        $isCorrect = $this->normalizeForComparison($texteChoix) === $normalCorrect;
                     }
                 }
             }
@@ -473,21 +472,19 @@ class ExerciseScoringService
             // indispensable — si le mot juste EST une lettre (« a / an / the »), le
             // resoudre comme un indice remplacerait la bonne reponse par la premiere
             // option. On ne resout donc que si la valeur n'est pas elle-meme une option.
-            $opts = $question['options'] ?? null;
+            $opts = Exercise::optionList($question['options'] ?? null);
             $resolve = function ($value) use ($opts) {
-                if (! is_array($opts) || ! is_string($value) || ! preg_match('/^[A-Za-z]$/', trim($value))) {
+                if ($opts === [] || ! is_string($value) || ! preg_match('/^[A-Za-z]$/', trim($value))) {
                     return $value;
                 }
 
-                foreach ($opts as $option) {
-                    $texte = Exercise::optionText($option);
+                foreach ($opts as $texte) {
                     if ($texte !== '' && $this->normalizeForComparison($texte) === $this->normalizeForComparison($value)) {
                         return $value;
                     }
                 }
 
-                $idx = ord(strtoupper(trim($value))) - 65;
-                $texte = Exercise::optionText($opts[$idx] ?? null);
+                $texte = $opts[ord(strtoupper(trim($value))) - 65] ?? '';
 
                 return $texte !== '' ? $texte : $value;
             };
@@ -635,10 +632,9 @@ class ExerciseScoringService
         // peut etre un objet rendu par l'IA : optionText le lit, sinon on retombe sur
         // la lettre plutot que d'afficher « Array ».
         $letter = strtoupper(trim((string) $answer));
-        $options = $question['options'] ?? null;
-        if (is_array($options) && preg_match('/^[A-D]$/', $letter)) {
-            $index = ord($letter) - ord('A');
-            $texteChoix = Exercise::optionText($options[$index] ?? null);
+        $options = Exercise::optionList($question['options'] ?? null);
+        if ($options !== [] && preg_match('/^[A-D]$/', $letter)) {
+            $texteChoix = $options[ord($letter) - ord('A')] ?? '';
             if ($texteChoix !== '') {
                 return $letter.') '.$texteChoix;
             }

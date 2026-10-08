@@ -3,13 +3,21 @@
     "cases": [
         {
             "name": "Phrase construite : ponctuation finale non fournie",
-            "question": {"id": "sentence1", "type": "build-a-sentence", "correct_answer": "I usually go to the gym three times a week."},
+            "question": {
+                "id": "sentence1",
+                "type": "build-a-sentence",
+                "correct_answer": "I usually go to the gym three times a week."
+            },
             "answer": "I usually go to the gym three times a week",
             "correct": true
         },
         {
             "name": "Phrase construite : article manquant reste une erreur",
-            "question": {"id": "sentence2", "type": "build-a-sentence", "correct_answer": "I usually go to the gym three times a week."},
+            "question": {
+                "id": "sentence2",
+                "type": "build-a-sentence",
+                "correct_answer": "I usually go to the gym three times a week."
+            },
             "answer": "I usually go to gym three times a week",
             "correct": false
         },
@@ -493,6 +501,82 @@
                 "explanation": "On repond par son prenom."
             },
             "answer": "a",
+            "correct": false
+        },
+        {
+            "name": "QCM : carte lettree repetee a chaque rang, lettre juste",
+            "question": {
+                "id": "carte1",
+                "type": "mcq",
+                "text": "Quel temps ?",
+                "options": [
+                    {
+                        "A": "Present Simple (habitual action)",
+                        "B": "Present Continuous (action happening now)",
+                        "C": "Past Simple (completed action)",
+                        "D": "Future Simple (planned action)"
+                    },
+                    {
+                        "A": "Present Simple (habitual action)",
+                        "B": "Present Continuous (action happening now)",
+                        "C": "Past Simple (completed action)",
+                        "D": "Future Simple (planned action)"
+                    },
+                    {
+                        "A": "Present Simple (habitual action)",
+                        "B": "Present Continuous (action happening now)",
+                        "C": "Past Simple (completed action)",
+                        "D": "Future Simple (planned action)"
+                    },
+                    {
+                        "A": "Present Simple (habitual action)",
+                        "B": "Present Continuous (action happening now)",
+                        "C": "Past Simple (completed action)",
+                        "D": "Future Simple (planned action)"
+                    }
+                ],
+                "correct_answer": "Present Continuous (action happening now)",
+                "explanation": "Action en cours."
+            },
+            "answer": "b",
+            "correct": true
+        },
+        {
+            "name": "QCM : carte lettree repetee a chaque rang, mauvaise lettre",
+            "question": {
+                "id": "carte2",
+                "type": "mcq",
+                "text": "Quel temps ?",
+                "options": [
+                    {
+                        "A": "Present Simple (habitual action)",
+                        "B": "Present Continuous (action happening now)",
+                        "C": "Past Simple (completed action)",
+                        "D": "Future Simple (planned action)"
+                    },
+                    {
+                        "A": "Present Simple (habitual action)",
+                        "B": "Present Continuous (action happening now)",
+                        "C": "Past Simple (completed action)",
+                        "D": "Future Simple (planned action)"
+                    },
+                    {
+                        "A": "Present Simple (habitual action)",
+                        "B": "Present Continuous (action happening now)",
+                        "C": "Past Simple (completed action)",
+                        "D": "Future Simple (planned action)"
+                    },
+                    {
+                        "A": "Present Simple (habitual action)",
+                        "B": "Present Continuous (action happening now)",
+                        "C": "Past Simple (completed action)",
+                        "D": "Future Simple (planned action)"
+                    }
+                ],
+                "correct_answer": "Present Continuous (action happening now)",
+                "explanation": "Action en cours."
+            },
+            "answer": "c",
             "correct": false
         }
     ]

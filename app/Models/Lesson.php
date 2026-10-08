@@ -130,17 +130,16 @@ class Lesson extends Model
     public static function resolveCorrectAnswerText(array $question): string
     {
         $correct = trim((string) ($question['correct_answer'] ?? ''));
-        $options = $question['options'] ?? [];
+        // Les choix peuvent arriver sous forme d'objets, ou en carte lettree glissee
+        // dans la liste : Exercise::optionList remet tout a plat.
+        $options = Exercise::optionList($question['options'] ?? []);
 
-        if (! is_array($options) || empty($options)) {
+        if ($options === []) {
             return $correct;
         }
 
-        // Les choix peuvent arriver sous forme d'objets : Exercise::optionText les lit,
-        // la ou un transtypage donnait « Array » et une alerte PHP.
         // 1. La valeur EST le texte d'une option : c'est ce que les prompts demandent.
-        foreach ($options as $opt) {
-            $texte = Exercise::optionText($opt);
+        foreach ($options as $texte) {
             if ($texte !== '' && mb_strtolower(trim($correct)) === mb_strtolower(trim($texte))) {
                 return $texte;
             }
@@ -148,8 +147,7 @@ class Lesson extends Model
 
         // 2. Lettre → indice (A=0, B=1, …), sans tenir compte de la casse.
         if (preg_match('/^[a-zA-Z]$/', $correct)) {
-            $idx = ord(strtoupper($correct)) - ord('A');
-            $texte = Exercise::optionText($options[$idx] ?? null);
+            $texte = $options[ord(strtoupper($correct)) - ord('A')] ?? '';
             if ($texte !== '') {
                 return $texte;
             }
@@ -157,7 +155,7 @@ class Lesson extends Model
 
         // 3. Indice numerique.
         if (is_numeric($correct)) {
-            $texte = Exercise::optionText($options[(int) $correct] ?? null);
+            $texte = $options[(int) $correct] ?? '';
             if ($texte !== '') {
                 return $texte;
             }

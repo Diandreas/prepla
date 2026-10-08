@@ -7,7 +7,7 @@ import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { playSound } from '@/hooks/use-sound';
 import { getCachedTtsUrl, rememberTtsUrl, prefetchExercisesAudio } from '@/lib/tts-cache';
-import { evaluateAnswer, expectedAnswerText, isBlankAnswer, isSkippedAnswer, needsServerEvaluation, optionText } from '@/lib/scoring';
+import { evaluateAnswer, expectedAnswerText, isBlankAnswer, isSkippedAnswer, needsServerEvaluation, optionList } from '@/lib/scoring';
 import { LearningScene, sceneVariantForSkill } from '@/components/learning-scene';
 
 // Read the freshest CSRF token. The XSRF-TOKEN cookie tracks the live session,
@@ -437,8 +437,9 @@ function givenAnswerText(question: PlayerQuestion, given: unknown): string {
     const text = String(given).trim();
     if (/^[A-Za-z]$/.test(text) && Array.isArray(question.options)) {
         const letter = text.toUpperCase();
-        // Un choix rendu sous forme d'objet s'affichait « [object Object] ».
-        const option = optionText(question.options[letter.charCodeAt(0) - 65]);
+        // Un choix rendu sous forme d'objet s'affichait « [object Object] », et une
+        // carte lettree glissee dans la liste rendait toujours le premier choix.
+        const option = optionList(question.options)[letter.charCodeAt(0) - 65] ?? '';
         if (option !== '') return `${letter}) ${option}`;
     }
     return text;

@@ -1,4 +1,4 @@
-import { optionText } from '@/lib/scoring';
+import { optionList, optionText } from '@/lib/scoring';
 
 // Le générateur IA renvoie parfois les options d'un exercice à choix sous une
 // forme inattendue. Si on rend un objet directement comme enfant React, on
@@ -10,19 +10,11 @@ import { optionText } from '@/lib/scoring';
 //  - objet associatif lettré                     { A: "...", B: "...", ... }
 //  - array contenant un seul objet lettré        [{ A: "...", B: "...", ... }]
 //  - array d'objets { text | label | value }     [{ text: "..." }, ...]
+// Une seule regle de mise a plat, partagee avec les deux correcteurs : l'ecran
+// montrait quatre fois le meme choix la ou la correction en attendait quatre
+// differents.
 export function normalizeOptions(raw: unknown): string[] {
-    if (Array.isArray(raw)) {
-        // Cas [{ A, B, C, D }] : un seul objet lettré dans un array → on l'aplatit
-        if (raw.length === 1 && raw[0] && typeof raw[0] === 'object' && !Array.isArray(raw[0])) {
-            return normalizeOptions(raw[0]);
-        }
-        return raw.map(coerceOption);
-    }
-    if (raw && typeof raw === 'object') {
-        // Objet { A: "...", B: "..." } → valeurs dans l'ordre des clés
-        return Object.values(raw as Record<string, unknown>).map(coerceOption);
-    }
-    return [];
+    return optionList(raw);
 }
 
 // Une seule regle de lecture, partagee avec les deux correcteurs : l'ecran

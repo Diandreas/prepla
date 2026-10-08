@@ -182,10 +182,7 @@ class ErrorReviewController extends Controller
                     'prompt' => $first['text'] ?? $first['prompt'] ?? $first['statement'] ?? '',
                     // Les choix sont LUS, pas filtres : les jeter recalculait les
                     // positions et la lettre attendue designait alors un autre choix.
-                    'options' => array_map(
-                        fn ($o) => \App\Models\Exercise::optionText($o),
-                        array_values((array) ($first['options'] ?? []))
-                    ),
+                    'options' => \App\Models\Exercise::optionList($first['options'] ?? []),
                     'correct_answer' => is_scalar($first['correct_answer'] ?? null) ? (string) $first['correct_answer'] : '',
                     'explanation' => is_string($first['explanation'] ?? null) ? $first['explanation'] : '',
                 ];

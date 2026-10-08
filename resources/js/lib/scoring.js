@@ -104,6 +104,41 @@ export function optionText(option) {
     return '';
 }
 
+/**
+ * La liste des choix d'un QCM, remise a plat.
+ *
+ * Releve en production : un exercice porte la carte lettree ENTIERE a chaque rang
+ * (`[{A, B, C, D}, {A, B, C, D}, ...]`). Lu rang par rang, chacun rendait sa
+ * premiere valeur : l'apprenant voyait quatre fois la meme reponse.
+ *
+ * Regle identique a Exercise::optionList cote serveur.
+ */
+export function optionList(options) {
+    if (!isCollection(options)) return [];
+
+    if (estCarteLettree(options)) return valeursTriees(options);
+
+    const rangs = Array.isArray(options) ? options : Object.values(options);
+    if (rangs.length === 0) return [];
+    if (estCarteLettree(rangs[0])) return valeursTriees(rangs[0]);
+
+    return rangs.map(optionText);
+}
+
+/** Une carte dont toutes les cles sont des lettres seules : {A: …, B: …}. */
+function estCarteLettree(valeur) {
+    if (!isCollection(valeur) || Array.isArray(valeur)) return false;
+    const cles = Object.keys(valeur);
+
+    return cles.length >= 2 && cles.every((cle) => /^[A-Za-z]$/.test(cle));
+}
+
+function valeursTriees(carte) {
+    return Object.keys(carte)
+        .sort((a, b) => a.toUpperCase().localeCompare(b.toUpperCase()))
+        .map((cle) => optionText(carte[cle]));
+}
+
 export function normalizeAnswer(value) {
     return phpString(value).trim().toLowerCase().replace(/[’`]/g, "'");
 }
@@ -268,7 +303,7 @@ function scoreExact(question, answer) {
 
     // A letter also matches when the expected answer is written out as the option text.
     if (!correct && /^[a-d]$/.test(givenValue) && isCollection(question.options)) {
-        const option = optionText(question.options[givenValue.charCodeAt(0) - 97]);
+        const option = optionList(question.options)[givenValue.charCodeAt(0) - 97] ?? '';
         if (option !== '') correct = normalizeAnswer(option) === expectedValue;
     }
 
@@ -306,7 +341,7 @@ export function expectedAnswerText(question) {
     const text = phpString(expected).trim();
     if (/^[A-Za-z]$/.test(text) && isCollection(question?.options)) {
         const letter = text.toUpperCase();
-        const option = optionText(question.options[letter.charCodeAt(0) - 65]);
+        const option = optionList(question.options)[letter.charCodeAt(0) - 65] ?? '';
         if (option !== '') return `${letter}) ${option}`;
     }
 

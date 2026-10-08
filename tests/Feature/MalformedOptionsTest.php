@@ -106,3 +106,31 @@ test('le quiz de lecon lit aussi un choix mal forme', function () {
         ->and(Lesson::isQuestionCorrect($question, 'She knew.'))->toBeTrue()
         ->and(Lesson::isQuestionCorrect($question, 'She was knew.'))->toBeFalse();
 });
+
+/**
+ * Forme relevee sur les donnees de production (exercice 391) : la carte lettree
+ * ENTIERE repetee a chaque rang. Lu rang par rang, chaque choix rendait sa
+ * premiere valeur — l'apprenant voyait quatre fois la meme reponse, et « Bonne
+ * reponse » affichait le choix A quelle que soit la lettre attendue.
+ */
+test('une carte lettree repetee a chaque rang est remise a plat', function () {
+    $carte = [
+        'A' => 'Present Simple (habitual action)',
+        'B' => 'Present Continuous (action happening now)',
+        'C' => 'Past Simple (completed action)',
+        'D' => 'Future Simple (planned action)',
+    ];
+
+    expect(Exercise::optionList([$carte, $carte, $carte, $carte]))->toBe(array_values($carte))
+        // Posee directement, ou glissee une seule fois dans la liste : meme resultat.
+        ->and(Exercise::optionList($carte))->toBe(array_values($carte))
+        ->and(Exercise::optionList([$carte]))->toBe(array_values($carte))
+        // Une liste ordinaire n'est pas touchee.
+        ->and(Exercise::optionList(['Ja', 'Nein']))->toBe(['Ja', 'Nein'])
+        ->and(Exercise::optionList([['text' => 'Ja'], ['text' => 'Nein']]))->toBe(['Ja', 'Nein']);
+
+    $service = app(ExerciseScoringService::class);
+
+    expect($service->expectedAnswerText(['correct_answer' => 'B', 'options' => [$carte, $carte, $carte, $carte]]))
+        ->toBe('B) Present Continuous (action happening now)');
+});
