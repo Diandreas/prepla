@@ -9,6 +9,7 @@ use App\Models\Lesson;
 use App\Services\AI\ExerciseGeneratorService;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Response;
 
 /**
@@ -23,12 +24,18 @@ use Inertia\Response;
  */
 class ChapterSynthesisController extends Controller
 {
-    public function start(int $chapterOrder, ExerciseGeneratorService $generator): Response
+    /**
+     * Les quatre sorties d'erreur rendaient une page « errors/access-denied » qui
+     * n'existe pas : chacune se terminait donc en erreur 500 au lieu d'expliquer le
+     * probleme. On renvoie l'apprenant a son tableau de bord avec un message lisible,
+     * comme ailleurs dans l'application.
+     */
+    public function start(int $chapterOrder, ExerciseGeneratorService $generator): Response|RedirectResponse
     {
         $user = auth()->user();
         $profile = $user->profile?->load('targetExam.language');
         if (!$profile?->targetExam) {
-            return Inertia::render('errors/access-denied', ['message' => 'Examen non défini.']);
+            return redirect()->route('dashboard')->with('error', "Choisis d'abord l'examen que tu prépares.");
         }
 
         $exam = $profile->targetExam;
@@ -40,7 +47,7 @@ class ChapterSynthesisController extends Controller
             ->get();
 
         if ($chapterNodes->isEmpty()) {
-            return Inertia::render('errors/access-denied', ['message' => 'Chapitre introuvable.']);
+            return redirect()->route('dashboard')->with('error', 'Ce chapitre n’existe pas encore dans ton parcours.');
         }
 
         // 2. Collect concepts from the lessons within this chapter
@@ -60,7 +67,7 @@ class ChapterSynthesisController extends Controller
             $exerciseType = ExerciseType::where('component_key', $synthesisExerciseTypeSlug)->first();
         }
         if (!$exerciseType) {
-            return Inertia::render('errors/access-denied', ['message' => 'Type d\'exercice indisponible.']);
+            return redirect()->route('dashboard')->with('error', "Aucun type d'exercice n'est disponible pour cette synthèse.");
         }
 
         $cacheKey = "synthesis_chapter_{$exam->id}_{$chapterOrder}_{$profile->current_level}";
@@ -88,7 +95,7 @@ class ChapterSynthesisController extends Controller
                 $synthesisExercise->save();
             } catch (\Throwable $e) {
                 Log::error('Chapter synthesis generation failed', ['error' => $e->getMessage()]);
-                return Inertia::render('errors/access-denied', ['message' => 'Erreur lors de la génération de la synthèse.']);
+                return redirect()->route('dashboard')->with('error', "La synthèse n'a pas pu être écrite. Réessaie dans quelques minutes.");
             }
         }
 
