@@ -69,22 +69,24 @@ const CUES: Cue[] = [
     [exam.from + 99, 'swoosh', 0.25],
     [exam.from + 170, 'whoosh', 0.5],
 
-    // 5 · Diagnostic
+    // 5 · Test de placement : section A, section B, rédaction, analyse, résultat
     [diag.from + 40, 'click', 0.75],
     [diag.from + 46, 'correct', 0.5],
     [diag.from + 61, 'swoosh', 0.38],
-    [diag.from + 96, 'click', 0.75],
-    [diag.from + 102, 'correct', 0.45],
-    [diag.from + 107, 'swoosh', 0.3],
-    ...[112, 116, 120, 124, 128].map((f, i): Cue => [diag.from + f, key(i), 0.4]),
-    [diag.from + 160, 'complete', 0.3],
-    [diag.from + 194, 'pop', 0.18],
-    [diag.from + 200, 'pop', 0.18],
+    [diag.from + 94, 'click', 0.75],
+    [diag.from + 100, 'correct', 0.45],
+    [diag.from + 105, 'swoosh', 0.3],
+    ...range(112, 126, 2).map((f, i): Cue => [diag.from + f, key(i), 0.3]),
+    [diag.from + 126, 'swoosh', 0.15],
+    [diag.from + 162, 'complete', 0.3],
+    [diag.from + 196, 'pop', 0.18],
+    [diag.from + 202, 'pop', 0.18],
     [diag.from + 230, 'whoosh', 0.42],
 
     // 6 · Parcours : un « pop » par étape qui apparaît, une étincelle pour la leçon ajoutée
     ...[0, 1, 2, 3, 4, 5, 6].map((n): Cue => [path.from + Math.round(8 + (n / 6) * 70 * 0.92), 'pop', 0.13]),
-    [path.from + 98, 'swoosh', 0.22],
+    [path.from + 92, 'swoosh', 0.22],
+    [path.from + 100, 'pop', 0.2],
     [path.from + 130, 'xp', 0.45],
     [path.from + 140, 'swoosh', 0.18],
     [path.from + 230, 'whoosh', 0.42],
@@ -102,11 +104,11 @@ const CUES: Cue[] = [
     ...[178, 182, 186, 190].map((f): Cue => [ai.from + f, 'pop', 0.09]),
     [ai.from + 232, 'whoosh', 0.4],
 
-    // 8 · Simulation
-    [sim.from + 6, 'pop', 0.3],
-    [sim.from + 30, 'correct', 0.32],
-    [sim.from + 44, 'correct', 0.32],
-    [sim.from + 50, 'click', 0.35],
+    // 8 · Simulation : le téléphone monte, tap sur « Commencer l'examen », le chrono jaillit
+    [sim.from + 4, 'swoosh', 0.3],
+    [sim.from + 34, 'click', 0.75],
+    [sim.from + 40, 'swoosh', 0.2],
+    [sim.from + 52, 'pop', 0.45],
     [sim.from + 112, 'whoosh', 0.4],
 
     // 9 · Progrès
@@ -114,13 +116,14 @@ const CUES: Cue[] = [
     [progress.from + 56, 'xp', 0.3],
     [progress.from + 158, 'swoosh', 0.4],
 
-    // 10 · Appel à l'action
+    // 10 · Appel à l'action : logo, carte « Ta prochaine mission », renard, adresse, tap
     [cta.from + 140, 'pop', 0.5],
-    [cta.from + 146, 'click', 0.4],
-    [cta.from + 150, 'swoosh', 0.3],
-    ...range(164, 184, 2).map((f, i): Cue => [cta.from + f, key(i), 0.26]),
-    [cta.from + 188, 'click', 0.8],
-    [cta.from + 190, 'xp', 0.38],
+    [cta.from + 144, 'click', 0.4],
+    [cta.from + 146, 'swoosh', 0.3],
+    [cta.from + 160, 'pop', 0.35],
+    ...range(176, 194, 2).map((f, i): Cue => [cta.from + f, key(i), 0.24]),
+    [cta.from + 190, 'click', 0.8],
+    [cta.from + 192, 'xp', 0.38],
 ];
 
 export const Soundtrack: React.FC<{ withMusic?: boolean }> = ({ withMusic = true }) => {

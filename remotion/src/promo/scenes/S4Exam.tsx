@@ -1,5 +1,6 @@
 import React from 'react';
 import { AbsoluteFill, useCurrentFrame } from 'remotion';
+import { AppIcon } from '../components/AppAssets';
 import { Flag, Icon, type FlagCode } from '../components/Icons';
 import { Move, SceneHeader } from '../components/SceneKit';
 import { Card, Pointer } from '../components/UI';
@@ -182,23 +183,11 @@ const GoalCard: React.FC<{ frame: number }> = ({ frame }) => {
         >
             <Card radius={40} padding="34px 40px" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 {[
-                    { icon: 'target' as const, color: C.sky, label: 'Objectif', value: 'Niveau B2', d: 4 },
-                    { icon: 'calendar' as const, color: C.gold, label: 'Mon examen', value: 'dans 8 semaines', d: 9 },
+                    { icon: 'target' as const, tone: 'blue' as const, label: 'Objectif', value: 'Niveau B2', d: 4 },
+                    { icon: 'calendar-days' as const, tone: 'amber' as const, label: 'Mon examen', value: 'dans 8 semaines', d: 9 },
                 ].map((item, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 22, opacity: row(item.d), transform: `translateX(${(1 - row(item.d)) * 30}px)` }}>
-                        <div
-                            style={{
-                                width: 84,
-                                height: 84,
-                                borderRadius: 26,
-                                background: `${item.color}1f`,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                            }}
-                        >
-                            <Icon name={item.icon} size={46} color={item.color} stroke={2.4} />
-                        </div>
+                        <AppIcon name={item.icon} size={88} tone={item.tone} shadow={false} />
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                             <span style={{ fontSize: 28, fontWeight: 600, color: C.inkSoft }}>{item.label}</span>
                             <span style={{ fontSize: 40, fontWeight: 800, letterSpacing: '-0.02em' }}>{item.value}</span>

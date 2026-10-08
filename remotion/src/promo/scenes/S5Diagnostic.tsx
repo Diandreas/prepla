@@ -1,25 +1,36 @@
-import { noise2D } from '@remotion/noise';
 import React from 'react';
-import { interpolate, useCurrentFrame } from 'remotion';
+import { useCurrentFrame } from 'remotion';
+import { AppGif, AppIcon } from '../components/AppAssets';
 import { Icon } from '../components/Icons';
 import { Move, SceneHeader } from '../components/SceneKit';
 import { Card, Pill, Pointer, ProgressBar } from '../components/UI';
 import { C, EASE, FONT, SPRING, sp, tw } from '../theme';
 
-// Étape 2 (18–26 s) : le test de niveau (10 questions dans l'app), puis le résultat CECR.
+// Étape 2 (18–26 s) : le « Test de placement » de l'app, tel qu'il est construit
+// (resources/js/pages/onboarding/placement-test.tsx) : section A grammaire & vocabulaire,
+// section B compréhension écrite, section C rédaction, puis « Analyse de ton niveau… »
+// et l'écran de résultat (« Parfait point de départ ! », « Progression CECRL »).
 
-const CARD = { left: 80, top: 770, width: 920 };
+const CARD = { left: 80, top: 760, width: 920 };
 const TAP1 = 40;
-const SWAP = 62;
-const TAP2 = 96;
-const RAMP = 108;
-const RESULT = 136;
-const LAND = 160;
-const RING = { x: 540, y: 1024, r: 232 };
+const SWAP1 = 62;
+const TAP2 = 94;
+const SWAP2 = 106;
+const ANALYSE = 126;
+const RESULT = 142;
+const LAND = 162;
+const RING = { x: 540, y: 1030, r: 240 };
 
 type OptionState = 'idle' | 'picked' | 'right';
 
-const Option: React.FC<{ letter: string; text: string; state: OptionState; width: number; height: number }> = ({ letter, text, state, width, height }) => {
+const Option: React.FC<{ letter: string; text: string; state: OptionState; width: number | string; height: number; size?: number }> = ({
+    letter,
+    text,
+    state,
+    width,
+    height,
+    size = 40,
+}) => {
     const colors = {
         idle: { border: C.paperLine, bg: '#ffffff', badge: '#eef2f7', badgeFg: C.inkSoft },
         picked: { border: C.sky, bg: C.skyPale, badge: C.sky, badgeFg: '#fff' },
@@ -30,54 +41,58 @@ const Option: React.FC<{ letter: string; text: string; state: OptionState; width
             style={{
                 width,
                 height,
-                borderRadius: 28,
+                borderRadius: 26,
                 border: `3.5px solid ${colors.border}`,
                 background: colors.bg,
                 display: 'flex',
                 alignItems: 'center',
-                gap: 22,
-                padding: '0 26px',
+                gap: 20,
+                padding: '0 24px',
                 boxSizing: 'border-box',
-                fontSize: 40,
+                fontSize: size,
                 fontWeight: 700,
                 color: C.ink,
             }}
         >
             <span
                 style={{
-                    width: 56,
-                    height: 56,
+                    width: 52,
+                    height: 52,
                     borderRadius: '50%',
                     background: colors.badge,
                     color: colors.badgeFg,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: 28,
+                    fontSize: 26,
                     fontWeight: 800,
                     flexShrink: 0,
                 }}
             >
-                {state === 'right' ? <Icon name="check" size={32} color="#fff" stroke={3.4} /> : letter}
+                {state === 'right' ? <Icon name="check" size={30} color="#fff" stroke={3.4} /> : letter}
             </span>
             {text}
         </div>
     );
 };
 
-const QuizHeader: React.FC<{ n: number; progress: number }> = ({ n, progress }) => (
+const PlacementHeader: React.FC<{ section: string; title: string; progress: number; count?: string }> = ({ section, title, progress, count }) => (
     <>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Pill tone="sky" icon="sparkles" size={28}>
-                Test de niveau
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <AppIcon name="sparkles" size={64} tone="blue" shadow={false} />
+                <span style={{ fontSize: 30, fontWeight: 800, color: '#1d63c4', letterSpacing: '-0.01em' }}>Test de placement</span>
+            </div>
+            <Pill tone="neutral" size={26}>
+                {section}
             </Pill>
-            <span style={{ fontSize: 32, fontWeight: 800, color: C.inkSoft, fontVariantNumeric: 'tabular-nums' }}>
-                {n}
-                <span style={{ color: C.inkDim }}> / 10</span>
-            </span>
         </div>
-        <div style={{ marginTop: 26 }}>
-            <ProgressBar value={progress} width={CARD.width - 88} />
+        <div style={{ marginTop: 22, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <span style={{ fontSize: 40, fontWeight: 800, letterSpacing: '-0.02em' }}>{title}</span>
+            {count ? <span style={{ fontSize: 28, fontWeight: 700, color: C.inkDim, fontVariantNumeric: 'tabular-nums' }}>{count}</span> : null}
+        </div>
+        <div style={{ marginTop: 16 }}>
+            <ProgressBar value={progress} width={CARD.width - 88} height={12} />
         </div>
     </>
 );
@@ -85,31 +100,27 @@ const QuizHeader: React.FC<{ n: number; progress: number }> = ({ n, progress }) 
 export const S5Diagnostic: React.FC = () => {
     const frame = useCurrentFrame();
 
-    // --- Carte 1 : grammaire
     const c1Pop = sp(frame, 6, SPRING.soft);
-    const c1Out = tw(frame, SWAP, 14, 0, 1, EASE.in);
+    const c1Out = tw(frame, SWAP1, 14, 0, 1, EASE.in);
     const c1State: OptionState = frame >= TAP1 + 6 ? 'right' : frame >= TAP1 ? 'picked' : 'idle';
     const fill1 = sp(frame, TAP1 + 8, SPRING.bouncy);
-    const prog1 = 0.3 + 0.1 * tw(frame, TAP1 + 6, 16);
 
-    // --- Carte 2 : compréhension orale
-    const c2In = tw(frame, SWAP + 2, 16, 0, 1, EASE.out);
-    const c2Out = tw(frame, RAMP, 10, 0, 1, EASE.in);
+    const c2In = tw(frame, SWAP1 + 2, 16, 0, 1, EASE.out);
+    const c2Out = tw(frame, SWAP2, 12, 0, 1, EASE.in);
     const c2State: OptionState = frame >= TAP2 + 6 ? 'right' : frame >= TAP2 ? 'picked' : 'idle';
-    const prog2 = 0.4 + 0.1 * tw(frame, TAP2 + 6, 14);
 
-    // --- Accélération : 6 → 10
-    const rampIn = tw(frame, RAMP + 2, 8, 0, 1, EASE.out);
-    const rampCount = Math.min(10, 6 + Math.max(0, Math.floor((frame - (RAMP + 4)) / 4)));
-    const rampOut = tw(frame, RESULT - 10, 8, 0, 1, EASE.in);
-    const rampPulse = 1 + 0.035 * Math.max(0, 1 - ((frame - (RAMP + 4)) % 4) / 3);
+    const c3In = tw(frame, SWAP2 + 2, 14, 0, 1, EASE.out);
+    const c3Out = tw(frame, RESULT - 10, 10, 0, 1, EASE.in);
+    const essay = 'À mon avis, les réseaux sociaux rapprochent les gens, mais…';
+    const typed = Math.round(tw(frame, SWAP2 + 6, 16, 0, essay.length, (t) => t));
+    const analyse = tw(frame, ANALYSE, 8);
 
     return (
         <Move enter="right" exit="zoom" exitAt={232} origin="50% 55%">
-            <SceneHeader tag="Étape 2 / 3" lines={['Découvre ton', '*vrai niveau*']} start={4} sub="10 questions pour situer ton niveau" exit={226} />
+            <SceneHeader tag="Étape 2 / 3" lines={['Découvre ton', '*vrai niveau*']} start={4} sub="Grammaire · Lecture · Rédaction" exit={226} />
 
-            {/* Carte 1 */}
-            {frame < SWAP + 16 ? (
+            {/* Section A — Grammaire & Vocabulaire */}
+            {frame < SWAP1 + 16 ? (
                 <div
                     style={{
                         position: 'absolute',
@@ -121,9 +132,9 @@ export const S5Diagnostic: React.FC = () => {
                     }}
                 >
                     <Card padding={44}>
-                        <QuizHeader n={4} progress={prog1} />
-                        <div style={{ marginTop: 34, fontSize: 30, fontWeight: 600, color: C.inkSoft }}>Complète la phrase</div>
-                        <div style={{ marginTop: 14, fontSize: 52, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.35 }}>
+                        <PlacementHeader section="Section A" title="Grammaire & Vocabulaire" progress={0.38 + 0.12 * tw(frame, TAP1 + 6, 14)} count="4 / 8" />
+                        <div style={{ marginTop: 30, fontSize: 30, fontWeight: 600, color: C.inkSoft }}>Complète la phrase :</div>
+                        <div style={{ marginTop: 12, fontSize: 50, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.35 }}>
                             Il faut que tu{' '}
                             <span
                                 style={{
@@ -139,17 +150,17 @@ export const S5Diagnostic: React.FC = () => {
                             </span>{' '}
                             à l'heure.
                         </div>
-                        <div style={{ marginTop: 34, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 22 }}>
+                        <div style={{ marginTop: 30, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
                             {['viens', 'viennes', 'venir', 'viendras'].map((t, i) => (
-                                <Option key={t} letter={'ABCD'[i]} text={t} state={i === 1 ? c1State : 'idle'} width={405} height={110} />
+                                <Option key={t} letter={'ABCD'[i]} text={t} state={i === 1 ? c1State : 'idle'} width="100%" height={104} />
                             ))}
                         </div>
                     </Card>
                 </div>
             ) : null}
 
-            {/* Carte 2 */}
-            {frame >= SWAP && frame < RAMP + 12 ? (
+            {/* Section B — Compréhension écrite */}
+            {frame >= SWAP1 && frame < SWAP2 + 14 ? (
                 <div
                     style={{
                         position: 'absolute',
@@ -160,92 +171,99 @@ export const S5Diagnostic: React.FC = () => {
                     }}
                 >
                     <Card padding={44}>
-                        <QuizHeader n={5} progress={prog2} />
-                        <div style={{ marginTop: 34, fontSize: 30, fontWeight: 600, color: C.inkSoft }}>Écoute et choisis la bonne réponse</div>
-                        <div style={{ marginTop: 22, display: 'flex', alignItems: 'center', gap: 28 }}>
-                            <div
-                                style={{
-                                    width: 96,
-                                    height: 96,
-                                    borderRadius: '50%',
-                                    background: `linear-gradient(135deg, ${C.skyLight}, ${C.sky})`,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    boxShadow: `0 0 0 ${8 + 6 * Math.sin(frame * 0.5)}px rgba(59,130,224,0.15)`,
-                                    flexShrink: 0,
-                                }}
-                            >
-                                <Icon name="headphones" size={46} color="#fff" stroke={2.4} />
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 7, height: 96 }}>
-                                {Array.from({ length: 30 }).map((_, i) => {
-                                    const playing = frame > SWAP + 12 && frame < TAP2 + 4;
-                                    const base = 0.25 + 0.35 * Math.abs(Math.sin(i * 1.7));
-                                    const live = playing ? Math.abs(noise2D(`wv${i}`, frame * 0.18, i * 0.3)) * 0.9 : 0;
-                                    return (
-                                        <div
-                                            key={i}
-                                            style={{
-                                                width: 11,
-                                                height: 96 * Math.min(1, base + live),
-                                                borderRadius: 6,
-                                                background: i / 30 < interpolate(frame, [SWAP + 12, TAP2 + 4], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' }) ? C.sky : '#d5e0ef',
-                                            }}
-                                        />
-                                    );
-                                })}
+                        <PlacementHeader section="Section B" title="Compréhension écrite" progress={0.66 + 0.1 * tw(frame, TAP2 + 6, 12)} />
+                        <div
+                            style={{
+                                marginTop: 26,
+                                padding: '22px 26px',
+                                borderRadius: 22,
+                                background: '#eef3fa',
+                                border: `2px solid ${C.paperLine}`,
+                            }}
+                        >
+                            <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.inkDim }}>Texte à lire</div>
+                            <div style={{ marginTop: 8, fontSize: 32, fontWeight: 500, lineHeight: 1.45, color: C.ink }}>
+                                Le télétravail s'est beaucoup développé. Il offre plus de liberté, mais il peut aussi isoler les salariés.
                             </div>
                         </div>
-                        <div style={{ marginTop: 30, display: 'flex', flexDirection: 'column', gap: 18 }}>
-                            {['À la gare', 'Au marché', 'À la banque'].map((t, i) => (
-                                <Option key={t} letter={'ABC'[i]} text={t} state={i === 2 ? c2State : 'idle'} width={CARD.width - 88} height={98} />
+                        <div style={{ marginTop: 22, fontSize: 34, fontWeight: 800, lineHeight: 1.3 }}>Selon le texte, quel est un inconvénient du télétravail ?</div>
+                        <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
+                            {['Le manque de liberté', "L'isolement", 'Le coût des transports'].map((t, i) => (
+                                <Option key={t} letter={'ABC'[i]} text={t} state={i === 1 ? c2State : 'idle'} width="100%" height={84} size={34} />
                             ))}
                         </div>
                     </Card>
                 </div>
             ) : null}
 
-            {/* Questions 6 à 10, en accéléré */}
-            {frame >= RAMP && frame < RESULT ? (
+            {/* Section C — Rédaction, puis « Analyse de ton niveau… » */}
+            {frame >= SWAP2 && frame < RESULT ? (
                 <div
                     style={{
                         position: 'absolute',
                         left: CARD.left,
                         top: CARD.top,
                         width: CARD.width,
-                        transform: `translateX(${(1 - rampIn) * 1150}px) scale(${rampPulse * (1 - rampOut * 0.7)})`,
+                        transform: `translateX(${(1 - c3In) * 1150}px) scale(${1 - c3Out * 0.6})`,
                         transformOrigin: '50% 60%',
-                        opacity: 1 - rampOut,
-                        filter: rampOut > 0.05 ? `blur(${rampOut * 10}px)` : undefined,
+                        opacity: 1 - c3Out,
+                        filter: c3Out > 0.05 ? `blur(${c3Out * 10}px)` : undefined,
                     }}
                 >
                     <Card padding={44}>
-                        <QuizHeader n={rampCount} progress={rampCount / 10} />
-                        {[0.8, 0.55, 1, 1, 1].map((w, i) => (
+                        <PlacementHeader section="Section C" title="Rédaction" progress={0.92} />
+                        <div style={{ position: 'relative', marginTop: 26 }}>
+                            <div style={{ fontSize: 30, fontWeight: 600, color: C.inkSoft }}>Donne ton avis sur les réseaux sociaux.</div>
                             <div
-                                key={i}
                                 style={{
-                                    marginTop: i === 0 ? 40 : i === 2 ? 40 : 20,
-                                    height: i < 2 ? 34 : 96,
-                                    width: `${w * 100}%`,
-                                    borderRadius: i < 2 ? 12 : 28,
-                                    background: i < 2 ? '#e3e9f2' : '#f0f4f9',
-                                    border: i < 2 ? undefined : `3.5px solid ${C.paperLine}`,
-                                    transform: `translateX(${noise2D(`rs${i}`, frame * 0.6, 0) * 6}px)`,
+                                    marginTop: 16,
+                                    minHeight: 200,
+                                    padding: '22px 26px',
+                                    borderRadius: 22,
+                                    border: `2.5px solid ${C.sky}`,
+                                    background: '#fff',
+                                    fontSize: 36,
+                                    fontWeight: 500,
+                                    lineHeight: 1.45,
+                                    color: C.ink,
                                 }}
-                            />
-                        ))}
+                            >
+                                {essay.slice(0, typed)}
+                                <span style={{ display: 'inline-block', width: 4, height: 40, marginLeft: 3, background: C.sky, verticalAlign: 'middle', opacity: Math.floor(frame / 6) % 2 }} />
+                            </div>
+                            <div style={{ marginTop: 14, fontSize: 24, fontWeight: 600, color: C.inkDim }}>
+                                Prends ton temps, la longueur de ta réponse confirme ton niveau
+                            </div>
+                            {/* Écran d'analyse de l'app */}
+                            <div
+                                style={{
+                                    position: 'absolute',
+                                    inset: -10,
+                                    borderRadius: 24,
+                                    background: '#fbfdff',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: 14,
+                                    opacity: analyse,
+                                }}
+                            >
+                                <AppGif name="loading" width={110} height={110} />
+                                <div style={{ fontSize: 40, fontWeight: 800, letterSpacing: '-0.02em' }}>Analyse de ton niveau…</div>
+                                <div style={{ fontSize: 26, fontWeight: 600, color: C.inkSoft }}>L'IA analyse tes réponses de grammaire et de lecture</div>
+                            </div>
+                        </div>
                     </Card>
                 </div>
             ) : null}
 
             <Pointer
                 keys={[
-                    { f: TAP1, x: CARD.left + 44 + 405 + 22 + 202, y: CARD.top + 384, tap: true },
-                    { f: TAP2, x: CARD.left + 460, y: CARD.top + 641, tap: true },
+                    { f: TAP1, x: CARD.left + 44 + 406 + 20 + 203, y: CARD.top + 502, tap: true },
+                    { f: TAP2, x: CARD.left + 380, y: CARD.top + 723, tap: true },
                 ]}
-                hideAt={TAP2 + 12}
+                hideAt={TAP2 + 10}
             />
 
             {frame >= RESULT - 2 ? <Result frame={frame} /> : null}
@@ -259,17 +277,16 @@ const Result: React.FC<{ frame: number }> = ({ frame }) => {
     const ringPop = sp(frame, RESULT, SPRING.pop);
     const arc = tw(frame, RESULT + 4, 34, 0, 1, EASE.out) * 0.5;
     const circumference = 2 * Math.PI * RING.r;
-    const levelIdx = frame >= LAND ? 2 : frame >= RESULT + 14 ? 1 : 0;
+    const levelIdx = frame >= LAND ? 2 : frame >= RESULT + 10 ? 1 : 0;
     const land = sp(frame, LAND, SPRING.bouncy);
     const burst = tw(frame, LAND, 26, 0, 1, EASE.out);
-
     const segW = (920 - 5 * 14) / 6;
     const scaleIn = tw(frame, LAND + 4, 14);
-    const goal = sp(frame, LAND + 26, SPRING.bouncy);
+    const goal = sp(frame, LAND + 24, SPRING.bouncy);
+    const praise = tw(frame, LAND + 4, 14);
 
     return (
         <>
-            {/* Jauge */}
             <svg width={1080} height={1920} style={{ position: 'absolute', inset: 0, overflow: 'visible' }}>
                 <defs>
                     <linearGradient id="diag-arc" x1="0" y1="0" x2="1" y2="1">
@@ -278,14 +295,14 @@ const Result: React.FC<{ frame: number }> = ({ frame }) => {
                     </linearGradient>
                 </defs>
                 <g transform={`translate(${RING.x} ${RING.y}) scale(${0.6 + 0.4 * ringPop}) translate(${-RING.x} ${-RING.y})`} opacity={Math.min(1, ringPop * 1.5)}>
-                    <circle cx={RING.x} cy={RING.y} r={RING.r} fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.09)" strokeWidth={28} />
+                    <circle cx={RING.x} cy={RING.y} r={RING.r} fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.09)" strokeWidth={26} />
                     <circle
                         cx={RING.x}
                         cy={RING.y}
                         r={RING.r}
                         fill="none"
                         stroke="url(#diag-arc)"
-                        strokeWidth={28}
+                        strokeWidth={26}
                         strokeLinecap="round"
                         strokeDasharray={`${circumference * arc} ${circumference}`}
                         transform={`rotate(-90 ${RING.x} ${RING.y})`}
@@ -297,10 +314,10 @@ const Result: React.FC<{ frame: number }> = ({ frame }) => {
             <div
                 style={{
                     position: 'absolute',
-                    left: RING.x - 220,
-                    top: RING.y - 150,
-                    width: 440,
-                    height: 300,
+                    left: RING.x - 230,
+                    top: RING.y - 170,
+                    width: 460,
+                    height: 340,
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
@@ -312,33 +329,39 @@ const Result: React.FC<{ frame: number }> = ({ frame }) => {
                 <span style={{ fontSize: 26, fontWeight: 700, letterSpacing: '0.24em', color: C.textMid, textTransform: 'uppercase' }}>Ton niveau</span>
                 <span
                     style={{
-                        fontSize: 178,
+                        fontSize: 172,
                         fontWeight: 800,
                         letterSpacing: '-0.04em',
                         lineHeight: 1,
                         color: C.text,
                         transform: `scale(${frame >= LAND ? 0.7 + 0.3 * land : 1})`,
-                        marginTop: 8,
+                        marginTop: 6,
                     }}
                 >
                     {LEVELS[levelIdx]}
                 </span>
                 <span
                     style={{
+                        marginTop: 4,
                         fontFamily: FONT.serif,
                         fontStyle: 'italic',
                         fontWeight: 700,
-                        fontSize: 46,
+                        fontSize: 40,
                         color: C.gold,
-                        opacity: tw(frame, LAND + 2, 12),
+                        whiteSpace: 'nowrap',
+                        opacity: praise,
+                        transform: `translateY(${(1 - praise) * 10}px)`,
                     }}
                 >
-                    intermédiaire
+                    Parfait point de départ !
                 </span>
             </div>
 
-            {/* Échelle CECR */}
-            <div style={{ position: 'absolute', left: 80, top: 1370, width: 920, display: 'flex', gap: 14 }}>
+            {/* Progression CECRL */}
+            <div style={{ position: 'absolute', left: 80, top: 1318, fontFamily: FONT.sans, fontWeight: 700, fontSize: 24, letterSpacing: '0.16em', textTransform: 'uppercase', color: C.textMid, opacity: scaleIn }}>
+                Progression CECRL
+            </div>
+            <div style={{ position: 'absolute', left: 80, top: 1376, width: 920, display: 'flex', gap: 14 }}>
                 {LEVELS.map((lv, i) => {
                     const filled = i <= 2 ? tw(frame, LAND + 2 + i * 4, 10) : 0;
                     const isGoal = i === 3;
@@ -358,16 +381,7 @@ const Result: React.FC<{ frame: number }> = ({ frame }) => {
                             >
                                 <div style={{ width: `${filled * 100}%`, height: '100%', background: i === 2 ? C.gold : C.sky, borderRadius: 11 }} />
                             </div>
-                            <span
-                                style={{
-                                    fontFamily: FONT.sans,
-                                    fontWeight: 800,
-                                    fontSize: 32,
-                                    color: i === 2 ? C.gold : isGoal ? C.goldLight : i < 2 ? C.text : C.textDim,
-                                }}
-                            >
-                                {lv}
-                            </span>
+                            <span style={{ fontFamily: FONT.sans, fontWeight: 800, fontSize: 32, color: i === 2 ? C.gold : isGoal ? C.goldLight : i < 2 ? C.text : C.textDim }}>{lv}</span>
                         </div>
                     );
                 })}
@@ -376,7 +390,7 @@ const Result: React.FC<{ frame: number }> = ({ frame }) => {
                 style={{
                     position: 'absolute',
                     left: 80 + 3 * (segW + 14) + segW / 2,
-                    top: 1306,
+                    top: 1312,
                     transform: `translateX(-50%) scale(${goal}) translateY(${(1 - goal) * 20}px)`,
                     display: 'flex',
                     alignItems: 'center',
@@ -395,7 +409,6 @@ const Result: React.FC<{ frame: number }> = ({ frame }) => {
                 Objectif
             </div>
 
-            {/* Forces / faiblesses */}
             <div style={{ position: 'absolute', top: 1500, left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: 20 }}>
                 {[
                     { tone: 'green' as const, icon: 'check' as const, text: 'Point fort : la lecture', d: 34 },

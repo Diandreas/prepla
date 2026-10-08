@@ -1,25 +1,27 @@
 import { noise2D } from '@remotion/noise';
 import React from 'react';
 import { AbsoluteFill, interpolate, random, useCurrentFrame } from 'remotion';
+import { AppIcon, type AppIconName } from '../components/AppAssets';
 import { KineticText } from '../components/KineticText';
 import { C, EASE, FONT, SPRING, sp, tw } from '../theme';
 
 // Le problème (4–8 s) : « Tu révises au hasard ? » entouré de questions qui flottent
 // dans tous les sens, puis tout est aspiré vers un point lumineux d'où naîtra le logo.
 
-const CHIPS: Array<{ text: string; x: number; y: number; z: number }> = [
-    { text: 'Grammaire ?', x: 250, y: 400, z: 0.95 },
+// Les icônes sont celles de l'application (public/icons).
+const CHIPS: Array<{ text: string; x: number; y: number; z: number; icon?: AppIconName }> = [
+    { text: 'Grammaire ?', x: 250, y: 400, z: 0.95, icon: 'courses' },
     { text: 'Par où commencer ?', x: 690, y: 330, z: 0.72 },
-    { text: 'Vocabulaire ?', x: 800, y: 540, z: 1.0 },
-    { text: 'Quel niveau ?', x: 290, y: 640, z: 1.08 },
+    { text: 'Vocabulaire ?', x: 790, y: 540, z: 1.0, icon: 'vocabulary' },
+    { text: 'Quel niveau ?', x: 290, y: 650, z: 1.08, icon: 'statistics' },
     { text: 'Subjonctif ?', x: 560, y: 470, z: 0.6 },
-    { text: 'Oral ?', x: 210, y: 1200, z: 1.02 },
-    { text: 'Combien de temps ?', x: 650, y: 1250, z: 0.86 },
-    { text: 'Écoute ?', x: 880, y: 1420, z: 0.74 },
+    { text: 'Oral ?', x: 220, y: 1200, z: 1.02, icon: 'speaking' },
+    { text: 'Combien de temps ?', x: 650, y: 1250, z: 0.86, icon: 'clock' },
+    { text: 'Écoute ?', x: 870, y: 1420, z: 0.74, icon: 'listening' },
     { text: 'Conjugaison ?', x: 330, y: 1430, z: 0.92 },
-    { text: 'Écrit ?', x: 640, y: 1580, z: 1.06 },
+    { text: 'Écrit ?', x: 640, y: 1580, z: 1.06, icon: 'writing' },
     { text: 'Lecture ?', x: 870, y: 1120, z: 0.64 },
-    { text: 'Quel examen ?', x: 170, y: 1600, z: 0.7 },
+    { text: 'Quel examen ?', x: 190, y: 1600, z: 0.7, icon: 'target' },
 ];
 
 const CENTER = { x: 540, y: 930 };
@@ -62,7 +64,10 @@ export const S2Chaos: React.FC = () => {
                             transform: `translate(-50%, -50%) rotate(${rot}deg) scale(${scale})`,
                             opacity: Math.min(1, pop * 1.6) * (chip.z < 0.8 ? 0.6 : 0.95) * (1 - Math.pow(k, 3)),
                             filter: depthBlur + k * 8 > 0.3 ? `blur(${depthBlur + k * 8}px)` : undefined,
-                            padding: '20px 36px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 16,
+                            padding: chip.icon ? '10px 34px 10px 10px' : '20px 36px',
                             borderRadius: 999,
                             background: 'rgba(255,255,255,0.07)',
                             border: '2px solid rgba(255,255,255,0.16)',
@@ -74,6 +79,7 @@ export const S2Chaos: React.FC = () => {
                             boxShadow: '0 20px 40px -20px rgba(0,0,0,0.6)',
                         }}
                     >
+                        {chip.icon ? <AppIcon name={chip.icon} size={60} tone="blue" shadow={false} /> : null}
                         {chip.text}
                     </div>
                 );

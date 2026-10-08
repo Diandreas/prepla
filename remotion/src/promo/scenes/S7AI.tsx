@@ -1,6 +1,7 @@
 import React from 'react';
 import { useCurrentFrame } from 'remotion';
-import { Icon, type IconName } from '../components/Icons';
+import { AppGif, AppIcon, type AppIconName, type AppTone } from '../components/AppAssets';
+import { type IconName } from '../components/Icons';
 import { SceneTag } from '../components/KineticText';
 import { Move, SceneHeader, TAG_TOP } from '../components/SceneKit';
 import { Card, Pill } from '../components/UI';
@@ -71,14 +72,32 @@ const PhaseA: React.FC<{ frame: number }> = ({ frame }) => {
                 <Card padding={44}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-                            <div style={{ width: 76, height: 76, borderRadius: 24, background: C.skyPale, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <Icon name="pen" size={40} color={C.sky} stroke={2.4} />
-                            </div>
+                            <AppIcon name="writing" size={80} tone="blue" shadow={false} />
                             <span style={{ fontSize: 38, fontWeight: 800, letterSpacing: '-0.02em' }}>Expression écrite</span>
                         </div>
-                        <Pill tone={status.tone} icon={status.icon} size={28}>
-                            {status.text}
-                        </Pill>
+                        {scanning && frame < FIX ? (
+                            <div
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 10,
+                                    padding: '8px 22px 8px 12px',
+                                    borderRadius: 999,
+                                    background: C.skyPale,
+                                    border: '2px solid rgba(59,130,224,0.35)',
+                                    color: '#1d63c4',
+                                    fontSize: 28,
+                                    fontWeight: 700,
+                                }}
+                            >
+                                <AppGif name="loading" width={44} height={44} />
+                                Analyse…
+                            </div>
+                        ) : (
+                            <Pill tone={status.tone} icon={status.icon} size={28}>
+                                {status.text}
+                            </Pill>
+                        )}
                     </div>
 
                     <div
@@ -177,9 +196,7 @@ const PhaseA: React.FC<{ frame: number }> = ({ frame }) => {
                             opacity: Math.min(1, explain * 1.5),
                         }}
                     >
-                        <div style={{ width: 64, height: 64, borderRadius: '50%', background: C.sky, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <Icon name="bulb" size={36} color="#fff" stroke={2.4} />
-                        </div>
+                        <AppIcon name="lightbulb" size={68} tone="amber" shadow={false} />
                         <div style={{ fontSize: 36, fontWeight: 600, lineHeight: 1.4, color: C.ink }}>
                             Après « <b>si</b> », on utilise l'<b style={{ color: '#1d63c4' }}>imparfait</b>, pas le conditionnel.
                         </div>
@@ -192,7 +209,7 @@ const PhaseA: React.FC<{ frame: number }> = ({ frame }) => {
                         right: -18,
                         top: -40,
                         transform: `scale(${xp}) rotate(${(1 - xp) * 30 + 6}deg)`,
-                        padding: '14px 26px',
+                        padding: '8px 28px 8px 8px',
                         borderRadius: 999,
                         background: `linear-gradient(135deg, ${C.goldLight}, ${C.gold})`,
                         color: '#1b1204',
@@ -205,19 +222,24 @@ const PhaseA: React.FC<{ frame: number }> = ({ frame }) => {
                         gap: 10,
                     }}
                 >
-                    <Icon name="star" size={36} color="#1b1204" fill="#1b1204" stroke={1.5} />
+                    <AppIcon name="zap" size={58} tone="amber" shadow={false} />
                     +15 XP
                 </div>
+                {frame >= XP && frame < XP + 40 ? (
+                    <div style={{ position: 'absolute', right: -70, top: -130, opacity: 1 - tw(frame, XP + 26, 12) }}>
+                        <AppGif name="star" width={200} height={200} />
+                    </div>
+                ) : null}
             </div>
         </>
     );
 };
 
-const SKILLS: Array<{ icon: IconName; label: string }> = [
-    { icon: 'book', label: 'Lecture' },
-    { icon: 'headphones', label: 'Écoute' },
-    { icon: 'pen', label: 'Écrit' },
-    { icon: 'mic', label: 'Oral' },
+const SKILLS: Array<{ icon: AppIconName; tone: AppTone; label: string }> = [
+    { icon: 'courses', tone: 'blue', label: 'Lecture' },
+    { icon: 'listening', tone: 'mint', label: 'Écoute' },
+    { icon: 'writing', tone: 'amber', label: 'Écrit' },
+    { icon: 'speaking', tone: 'rose', label: 'Oral' },
 ];
 
 const PhaseB: React.FC<{ frame: number }> = ({ frame }) => {
@@ -357,9 +379,7 @@ const PhaseB: React.FC<{ frame: number }> = ({ frame }) => {
                                 color: C.text,
                             }}
                         >
-                            <div style={{ width: 76, height: 76, borderRadius: 24, background: 'rgba(59,130,224,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <Icon name={s.icon} size={42} color={C.skyLight} stroke={2.4} />
-                            </div>
+                            <AppIcon name={s.icon} size={92} tone={s.tone} />
                             {s.label}
                         </div>
                     );

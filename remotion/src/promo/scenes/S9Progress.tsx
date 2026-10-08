@@ -1,6 +1,7 @@
 import { noise2D } from '@remotion/noise';
 import React from 'react';
 import { useCurrentFrame } from 'remotion';
+import { AppGif, AppIcon } from '../components/AppAssets';
 import { Icon } from '../components/Icons';
 import { Move, SceneHeader } from '../components/SceneKit';
 import { Card, Pill, ProgressBar } from '../components/UI';
@@ -59,8 +60,11 @@ export const S9Progress: React.FC = () => {
             <Collapse frame={frame} index={0} box={{ x: 80, y: 692, w: 920, h: 470 }}>
                 <Card padding="40px 44px">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                        <span style={{ fontSize: 38, fontWeight: 800, letterSpacing: '-0.02em' }}>Tes compétences</span>
-                        <Pill tone="sky" icon="trend" size={26}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+                            <AppIcon name="statistics" size={68} tone="blue" shadow={false} />
+                            <span style={{ fontSize: 38, fontWeight: 800, letterSpacing: '-0.02em' }}>Tes compétences</span>
+                        </div>
+                        <Pill tone="sky" size={26}>
                             TCF · B1
                         </Pill>
                     </div>
@@ -83,20 +87,8 @@ export const S9Progress: React.FC = () => {
 
             <Collapse frame={frame} index={1} box={{ x: 80, y: 1192, w: 440, h: 220 }}>
                 <Card padding="30px 34px" style={{ display: 'flex', alignItems: 'center', gap: 24, height: 220, boxSizing: 'border-box' }}>
-                    <div
-                        style={{
-                            width: 108,
-                            height: 108,
-                            borderRadius: 32,
-                            background: 'linear-gradient(160deg, #ffb347 0%, #f2683a 100%)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            boxShadow: '0 12px 30px -8px rgba(242,104,58,0.7)',
-                            flexShrink: 0,
-                        }}
-                    >
-                        <Icon name="flame" size={60} color="#fff" fill="rgba(255,255,255,0.25)" stroke={2.2} style={{ transform: `scale(${flame})` }} />
+                    <div style={{ width: 108, height: 150, flexShrink: 0, transform: `scale(${flame})`, filter: 'drop-shadow(0 10px 18px rgba(242,104,58,0.45))' }}>
+                        <AppGif name="Fire" width={108} height={150} />
                     </div>
                     <div>
                         <div style={{ fontSize: 60, fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{streak} jours</div>
@@ -146,9 +138,7 @@ export const S9Progress: React.FC = () => {
                         boxShadow: '0 30px 60px -30px rgba(0,0,0,0.8)',
                     }}
                 >
-                    <div style={{ width: 64, height: 64, borderRadius: 20, background: 'rgba(245,166,35,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Icon name="rotate" size={36} color={C.gold} stroke={2.4} />
-                    </div>
+                    <AppIcon name="review" size={72} tone="amber" shadow={false} />
                     <span style={{ flex: 1, fontSize: 36, fontWeight: 700 }}>
                         <b style={{ color: C.gold }}>6 erreurs</b> à revoir aujourd'hui
                     </span>

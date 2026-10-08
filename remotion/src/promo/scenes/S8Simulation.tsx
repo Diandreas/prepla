@@ -1,169 +1,97 @@
 import React from 'react';
-import { useCurrentFrame } from 'remotion';
-import { Icon, type IconName } from '../components/Icons';
+import { interpolate, useCurrentFrame } from 'remotion';
+import { AppIcon, AppScreen, Phone } from '../components/AppAssets';
 import { Move, SceneHeader } from '../components/SceneKit';
-import { Card, Pill, ProgressBar } from '../components/UI';
-import { BEAT, C, FONT, SPRING, sp, tw } from '../theme';
+import { Pointer } from '../components/UI';
+import { BEAT, C, EASE, FONT, SPRING, sp, tw } from '../theme';
 
-// Simulation (42–46 s) : le bandeau « MODE EXAMEN » de l'app et les épreuves du TCF Canada.
+// Simulation (42–46 s) : les vrais écrans de l'app (release/google-play/screenshots) —
+// « Prêt à commencer ? » puis l'exercice en « MODE EXAMEN ». Le chrono de l'app sort du
+// téléphone et continue de défiler au format de l'app (minutes:secondes).
 
-const SECTIONS: Array<{ icon: IconName; label: string; doneAt?: number; currentAt?: number }> = [
-    { icon: 'headphones', label: 'Compréhension orale', doneAt: 30 },
-    { icon: 'book', label: 'Compréhension écrite', doneAt: 44 },
-    { icon: 'pen', label: 'Expression écrite', currentAt: 50 },
-    { icon: 'mic', label: 'Expression orale' },
-];
+const PHONE = { width: 620, left: 230, top: 772 };
+const SCREEN_SCALE = (PHONE.width - PHONE.width * 0.064) / 1080;
+const SCREEN_LEFT = PHONE.left + PHONE.width * 0.032;
+const SCREEN_TOP = PHONE.top + PHONE.width * 0.032 + PHONE.width * 0.05;
+const TAP = 34;
+const SWITCH = 40;
+const POP = 52;
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
 export const S8Simulation: React.FC = () => {
     const frame = useCurrentFrame();
-    const totalSeconds = 2 * 3600 + 47 * 60 - Math.max(0, Math.floor((frame - 8) / BEAT) + 1);
-    const time = `${Math.floor(totalSeconds / 3600)}:${pad(Math.floor((totalSeconds % 3600) / 60))}:${pad(totalSeconds % 60)}`;
-    const pill = sp(frame, 6, SPRING.bouncy);
-    const tick = 1 + 0.025 * Math.max(0, 1 - ((frame - 8) % BEAT) / 5);
-    const card = sp(frame, 12, SPRING.soft);
+    const rise = sp(frame, 2, SPRING.soft);
+    const switchT = tw(frame, SWITCH, 8, 0, 1, EASE.inOutSoft);
+    const pop = sp(frame, POP, SPRING.bouncy);
+    const popped = frame >= POP;
+
+    // Chrono au format de l'app (« 163:36 »), une seconde par temps.
+    const seconds = 163 * 60 + 36 - Math.max(0, Math.floor((frame - SWITCH) / BEAT));
+    const time = `${Math.floor(seconds / 60)}:${pad(seconds % 60)}`;
+    const tick = popped ? 1 + 0.03 * Math.max(0, 1 - ((frame - POP) % BEAT) / 5) : 1;
+
+    // Position du bandeau chrono dans la capture (≈ x 524, y 85 sur 1080 × 1920).
+    const fromX = SCREEN_LEFT + 524 * SCREEN_SCALE;
+    const fromY = SCREEN_TOP + 85 * SCREEN_SCALE;
+    const toX = 540;
+    const toY = 846;
+    const pillX = interpolate(pop, [0, 1], [fromX, toX]);
+    const pillY = interpolate(pop, [0, 1], [fromY, toY]);
+    const pillScale = interpolate(pop, [0, 1], [SCREEN_SCALE * 1.05, 1]);
 
     return (
         <Move enter="bottom" exit="top" exitAt={112}>
             <SceneHeader tag="Mode examen" lines={['Simule le', '*jour J*']} start={2} sub="Examens blancs chronométrés" exit={108} />
 
-            {/* Bandeau chrono, comme dans l'app */}
-            <div style={{ position: 'absolute', top: 800, left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
+            {/* Le vrai écran de l'app */}
+            <div
+                style={{
+                    position: 'absolute',
+                    left: PHONE.left,
+                    top: PHONE.top,
+                    transform: `translateY(${(1 - rise) * 700}px) perspective(1800px) rotateX(${(1 - rise) * 18}deg) scale(${1 - pop * 0.03})`,
+                    transformOrigin: '50% 0%',
+                    filter: popped ? `brightness(${1 - pop * 0.18})` : undefined,
+                }}
+            >
+                <Phone width={PHONE.width}>
+                    <AppScreen name="03-simulation" />
+                    <AppScreen name="04-exercice" style={{ opacity: switchT, transform: `translateX(${(1 - switchT) * 40}px)` }} />
+                </Phone>
+            </div>
+
+            <Pointer keys={[{ f: TAP, x: SCREEN_LEFT + 524 * SCREEN_SCALE, y: SCREEN_TOP + 1440 * SCREEN_SCALE, tap: true }]} hideAt={TAP + 10} />
+
+            {/* Le chrono sort du téléphone */}
+            {popped ? (
                 <div
                     style={{
+                        position: 'absolute',
+                        left: pillX,
+                        top: pillY,
+                        transform: `translate(-50%, -50%) scale(${pillScale * tick})`,
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 30,
-                        padding: '26px 52px 26px 30px',
+                        gap: 26,
+                        padding: '22px 46px 22px 24px',
                         borderRadius: 999,
-                        background: 'linear-gradient(180deg, #172a4b 0%, #0f1d36 100%)',
-                        border: '2.5px solid rgba(255,255,255,0.14)',
-                        boxShadow: '0 40px 80px -30px rgba(0,0,0,0.8), 0 0 60px rgba(59,130,224,0.25)',
-                        transform: `translateY(${(1 - pill) * -120}px) scale(${(0.7 + 0.3 * pill) * tick})`,
-                        opacity: Math.min(1, pill * 1.6),
+                        background: 'linear-gradient(180deg, #1d2f50 0%, #13233f 100%)',
+                        border: '2.5px solid rgba(255,255,255,0.16)',
+                        boxShadow: `0 ${30 * pop}px ${80 * pop}px -20px rgba(0,0,0,0.85), 0 0 ${70 * pop}px rgba(59,130,224,0.35)`,
                         fontFamily: FONT.sans,
+                        whiteSpace: 'nowrap',
                     }}
                 >
-                    <div
-                        style={{
-                            width: 100,
-                            height: 100,
-                            borderRadius: '50%',
-                            background: 'rgba(255,255,255,0.1)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        }}
-                    >
-                        <Icon name="timer" size={58} color="#fff" stroke={2.2} />
-                    </div>
-                    <span style={{ fontSize: 104, fontWeight: 800, letterSpacing: '-0.02em', color: C.text, fontVariantNumeric: 'tabular-nums' }}>{time}</span>
-                    <span style={{ fontSize: 30, fontWeight: 800, letterSpacing: '0.14em', color: C.skyLight }}>
+                    <AppIcon name="clock" size={96} tone="blue" shadow={false} />
+                    <span style={{ fontSize: 108, fontWeight: 800, letterSpacing: '-0.02em', color: C.text, fontVariantNumeric: 'tabular-nums' }}>{time}</span>
+                    <span style={{ fontSize: 30, fontWeight: 800, letterSpacing: '0.14em', color: C.skyLight, lineHeight: 1.15 }}>
                         MODE
                         <br />
                         EXAMEN
                     </span>
                 </div>
-            </div>
-
-            {/* Épreuves */}
-            <div
-                style={{
-                    position: 'absolute',
-                    left: 80,
-                    top: 1024,
-                    width: 920,
-                    transform: `translateY(${(1 - card) * 200}px)`,
-                    opacity: Math.min(1, card * 1.5),
-                }}
-            >
-                <Card padding="38px 44px">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                        <span style={{ fontSize: 36, fontWeight: 800, letterSpacing: '-0.02em' }}>TCF Canada · Examen blanc</span>
-                        <Pill tone="neutral" size={26}>
-                            4 épreuves
-                        </Pill>
-                    </div>
-                    {SECTIONS.map((s, i) => {
-                        const rowIn = tw(frame, 18 + i * 5, 14);
-                        const done = s.doneAt !== undefined && frame >= s.doneAt;
-                        const current = s.currentAt !== undefined && frame >= s.currentAt;
-                        const check = s.doneAt !== undefined ? sp(frame, s.doneAt, SPRING.bouncy) : 0;
-                        const pulse = current ? (frame % BEAT) / BEAT : 0;
-                        return (
-                            <div
-                                key={s.label}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 24,
-                                    padding: '18px 0',
-                                    borderTop: i === 0 ? undefined : `2px solid ${C.paperLine}`,
-                                    opacity: rowIn,
-                                    transform: `translateX(${(1 - rowIn) * 40}px)`,
-                                }}
-                            >
-                                <div
-                                    style={{
-                                        width: 72,
-                                        height: 72,
-                                        borderRadius: 22,
-                                        background: done ? C.greenPale : current ? C.skyPale : '#eef2f7',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        flexShrink: 0,
-                                    }}
-                                >
-                                    <Icon name={s.icon} size={38} color={done ? '#138a3e' : current ? C.sky : C.inkDim} stroke={2.4} />
-                                </div>
-                                <div style={{ flex: 1 }}>
-                                    <div style={{ fontSize: 38, fontWeight: 700, color: done || current ? C.ink : C.inkSoft }}>{s.label}</div>
-                                    {current ? (
-                                        <div style={{ marginTop: 12 }}>
-                                            <ProgressBar value={0.15 + tw(frame, s.currentAt ?? 0, 60) * 0.35} width={520} height={12} />
-                                        </div>
-                                    ) : null}
-                                </div>
-                                {done ? (
-                                    <div
-                                        style={{
-                                            width: 58,
-                                            height: 58,
-                                            borderRadius: '50%',
-                                            background: C.green,
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            transform: `scale(${check})`,
-                                        }}
-                                    >
-                                        <Icon name="check" size={32} color="#fff" stroke={3.4} />
-                                    </div>
-                                ) : current ? (
-                                    <div style={{ position: 'relative', width: 58, height: 58 }}>
-                                        <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: `5px solid ${C.sky}` }} />
-                                        <div
-                                            style={{
-                                                position: 'absolute',
-                                                inset: 0,
-                                                borderRadius: '50%',
-                                                border: `4px solid ${C.sky}`,
-                                                transform: `scale(${1 + pulse * 0.7})`,
-                                                opacity: 1 - pulse,
-                                            }}
-                                        />
-                                        <div style={{ position: 'absolute', inset: 17, borderRadius: '50%', background: C.sky }} />
-                                    </div>
-                                ) : (
-                                    <div style={{ width: 58, height: 58, borderRadius: '50%', border: `4px solid ${C.paperLine}` }} />
-                                )}
-                            </div>
-                        );
-                    })}
-                </Card>
-            </div>
+            ) : null}
         </Move>
     );
 };

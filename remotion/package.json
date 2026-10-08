@@ -13,6 +13,7 @@
         "@fontsource/plus-jakarta-sans": "5.2.5",
         "@remotion/cli": "4.0.290",
         "@remotion/fonts": "4.0.290",
+        "@remotion/gif": "4.0.290",
         "@remotion/media-utils": "4.0.290",
         "@remotion/noise": "4.0.290",
         "@remotion/paths": "4.0.290",
