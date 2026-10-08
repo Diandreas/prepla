@@ -372,6 +372,9 @@ function ExpectedPointsFields({ question, onChange }: { question: any; onChange:
 function MediaPicker({ type, value, onChange }: { type: 'image' | 'audio'; value?: string; onChange: (url: string) => void }) {
     const [uploading, setUploading] = useState(false);
     const [err, setErr] = useState<string | null>(null);
+    // L'identifiant du fichier envoye depuis cet ecran : il permet de le supprimer
+    // vraiment, et pas seulement de le detacher de la question.
+    const [uploadedId, setUploadedId] = useState<number | null>(null);
 
     async function upload(file: File) {
         setUploading(true);
@@ -382,10 +385,30 @@ function MediaPicker({ type, value, onChange }: { type: 'image' | 'audio'; value
         try {
             const res = await axios.post(route('center.media.store'), fd, { headers: { 'Content-Type': 'multipart/form-data' } });
             onChange(res.data.url);
+            setUploadedId(res.data.id ?? null);
         } catch (e: any) {
             setErr(e?.response?.data?.message ?? "Échec de l'envoi.");
         } finally {
             setUploading(false);
+        }
+    }
+
+    // Se tromper de fichier n'avait aucune issue : rien ne permettait de le retirer
+    // de la question, et encore moins de l'effacer de la mediatheque.
+    function detach() {
+        onChange('');
+        setUploadedId(null);
+        setErr(null);
+    }
+
+    async function remove() {
+        if (!uploadedId) { detach(); return; }
+        if (!confirm('Supprimer définitivement ce fichier de la médiathèque ?')) return;
+        try {
+            await axios.delete(route('center.media.destroy', uploadedId));
+            detach();
+        } catch (e: any) {
+            setErr(e?.response?.data?.message ?? 'Suppression impossible.');
         }
     }
 
@@ -399,6 +422,18 @@ function MediaPicker({ type, value, onChange }: { type: 'image' | 'audio'; value
             {err && <p className="mt-1 text-xs text-rose-500">{err}</p>}
             {value && type === 'image' && <img src={value} alt="" className="mt-2 h-24 rounded-md object-cover" />}
             {value && type === 'audio' && <audio src={value} controls className="mt-2 w-full" />}
+            {value && (
+                <div className="mt-2 flex items-center gap-3">
+                    <button type="button" onClick={detach} className="text-xs font-bold text-muted-foreground hover:text-foreground">
+                        Retirer de la question
+                    </button>
+                    {uploadedId && (
+                        <button type="button" onClick={remove} className="text-xs font-bold text-rose-500 hover:text-rose-600">
+                            Supprimer le fichier
+                        </button>
+                    )}
+                </div>
+            )}
         </div>
     );
 }
