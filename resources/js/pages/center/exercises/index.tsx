@@ -14,6 +14,13 @@ interface ExerciseRow {
 }
 
 export default function ExercisesIndex({ exercises }: { exercises: ExerciseRow[] }) {
+    // Creer et modifier etaient possibles, retirer ne l'etait pas : un brouillon
+    // rate restait dans la liste pour toujours.
+    function remove(exercise: ExerciseRow) {
+        if (!confirm('Supprimer cet exercice ? Il reste conservé s’il est déjà donné en devoir ou déjà travaillé par un élève.')) return;
+        router.delete(route('center.exercises.destroy', exercise.id), { preserveScroll: true });
+    }
+
     const columns: Column<ExerciseRow>[] = [
         { key: 'type', header: 'Type', cell: (e) => <span className="font-semibold">{e.type ?? e.component_key}</span> },
         { key: 'difficulty', header: 'Niveau' },
@@ -22,6 +29,20 @@ export default function ExercisesIndex({ exercises }: { exercises: ExerciseRow[]
             key: 'is_ai_generated',
             header: 'Origine',
             cell: (e) => <Badge variant="secondary">{e.is_ai_generated ? 'IA éditée' : 'Manuel'}</Badge>,
+        },
+        {
+            key: 'actions',
+            header: '',
+            cell: (e) => (
+                <button
+                    type="button"
+                    onClick={(event) => { event.stopPropagation(); remove(e); }}
+                    className="rounded-lg px-2 py-1 text-xs font-bold text-rose-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40"
+                    aria-label="Supprimer cet exercice"
+                >
+                    Supprimer
+                </button>
+            ),
         },
     ];
 

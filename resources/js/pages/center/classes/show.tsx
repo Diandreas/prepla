@@ -1,4 +1,5 @@
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,8 +10,10 @@ interface Classroom {
     name: string;
     level: string | null;
     exam: string | null;
+    exam_id: number | null;
     invite_code: string;
 }
+interface ExamOption { id: number; name: string; language?: string | null }
 interface Student { id: number; name: string; email: string }
 interface Weakness { category: string; subcategory: string | null; count: number }
 interface Stats {
@@ -20,8 +23,25 @@ interface Stats {
     common_weaknesses: Weakness[];
 }
 
-export default function ClassShow({ classroom, students, stats }: { classroom: Classroom; students: Student[]; stats: Stats }) {
+export default function ClassShow({ classroom, students, stats, exams }: { classroom: Classroom; students: Student[]; stats: Stats; exams: ExamOption[] }) {
     const { flash } = usePage().props as any;
+
+    // Renommer une classe, corriger son niveau ou changer son examen etait possible
+    // cote serveur depuis le debut, mais aucun bouton n'y menait.
+    const [editing, setEditing] = useState(false);
+    const edit = useForm({
+        name: classroom.name,
+        level: classroom.level ?? '',
+        exam_id: classroom.exam_id ? String(classroom.exam_id) : '',
+    });
+
+    function saveClass(event: React.FormEvent) {
+        event.preventDefault();
+        edit.patch(route('center.classes.update', classroom.id), {
+            preserveScroll: true,
+            onSuccess: () => setEditing(false),
+        });
+    }
 
     function regenerate() {
         router.post(route('center.classes.regenerate-code', classroom.id), {}, { preserveScroll: true });
@@ -51,10 +71,71 @@ export default function ClassShow({ classroom, students, stats }: { classroom: C
                             {classroom.level ?? 'Niveau libre'} · {classroom.exam ?? 'Examen par défaut'}
                         </p>
                     </div>
-                    <Button variant="ghost" className="text-rose-500 hover:text-rose-600" onClick={archiveClass}>
-                        Archiver
-                    </Button>
+                    <div className="flex shrink-0 items-center gap-1">
+                        <Button variant="ghost" onClick={() => setEditing((open) => !open)} aria-expanded={editing}>
+                            {editing ? 'Annuler' : 'Modifier'}
+                        </Button>
+                        <Button variant="ghost" className="text-rose-500 hover:text-rose-600" onClick={archiveClass}>
+                            Archiver
+                        </Button>
+                    </div>
                 </div>
+
+                {editing && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-base">Modifier la classe</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <form onSubmit={saveClass} className="space-y-4">
+                                <div className="grid gap-2">
+                                    <label htmlFor="class-edit-name" className="text-sm font-semibold">Nom</label>
+                                    <input
+                                        id="class-edit-name"
+                                        className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                        value={edit.data.name}
+                                        onChange={(event) => edit.setData('name', event.target.value)}
+                                    />
+                                    {edit.errors.name && <p className="text-xs text-rose-500">{edit.errors.name}</p>}
+                                </div>
+
+                                <div className="grid gap-4 sm:grid-cols-[7rem_1fr]">
+                                    <div className="grid gap-2">
+                                        <label htmlFor="class-edit-level" className="text-sm font-semibold">Niveau</label>
+                                        <input
+                                            id="class-edit-level"
+                                            placeholder="A2"
+                                            className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm uppercase focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                            value={edit.data.level}
+                                            onChange={(event) => edit.setData('level', event.target.value.toUpperCase())}
+                                            maxLength={10}
+                                        />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <label htmlFor="class-edit-exam" className="text-sm font-semibold">Examen</label>
+                                        <select
+                                            id="class-edit-exam"
+                                            className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                            value={edit.data.exam_id}
+                                            onChange={(event) => edit.setData('exam_id', event.target.value)}
+                                        >
+                                            <option value="">Examen par défaut de l'espace</option>
+                                            {exams.map((exam) => (
+                                                <option key={exam.id} value={exam.id}>
+                                                    {exam.language ? `${exam.language} — ${exam.name}` : exam.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <Button type="submit" disabled={edit.processing || !edit.data.name.trim()}>
+                                    {edit.processing ? 'Enregistrement…' : 'Enregistrer'}
+                                </Button>
+                            </form>
+                        </CardContent>
+                    </Card>
+                )}
 
                 {flash?.success && (
                     <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300">

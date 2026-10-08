@@ -305,6 +305,9 @@ Route::middleware(['auth', EnsureCenterStaff::class])
         Route::post('exercises', [ExerciseBuilderController::class, 'store'])->name('exercises.store');
         Route::get('exercises/{exercise}/edit', [ExerciseBuilderController::class, 'edit'])->name('exercises.edit');
         Route::patch('exercises/{exercise}', [ExerciseBuilderController::class, 'update'])->name('exercises.update');
+        // Un brouillon rate restait dans la liste pour toujours : on peut desormais
+        // le retirer, sauf s'il a deja ete donne en devoir ou travaille.
+        Route::delete('exercises/{exercise}', [ExerciseBuilderController::class, 'destroy'])->name('exercises.destroy');
 
         // Devoirs / assignations
         Route::get('assignments', [AssignmentController::class, 'index'])->name('assignments.index');

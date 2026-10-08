@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Center;
 
 use App\Http\Controllers\Controller;
+use App\Models\AssignmentItem;
 use App\Models\CenterMedia;
 use App\Models\Exam;
 use App\Models\Exercise;
 use App\Models\ExerciseType;
+use App\Models\UserExerciseAttempt;
 use App\Models\LanguageCenter;
 use App\Services\AI\ExerciseGeneratorService;
 use App\Services\Content\ExerciseSchemaRegistry;
@@ -235,5 +237,33 @@ class ExerciseBuilderController extends Controller
             abort_if(! in_array($url, $ownedUrls, true), 422,
                 "Un média référencé n'appartient pas à votre centre.");
         }
+    }
+    /**
+     * Retire un exercice du centre.
+     *
+     * Un enseignant pouvait créer et modifier ses exercices, mais jamais en retirer
+     * un : un brouillon raté restait dans sa liste pour toujours. On refuse en
+     * revanche d'effacer un exercice déjà donné en devoir ou déjà travaillé — cela
+     * viderait le travail de ses élèves et l'historique de leurs tentatives.
+     */
+    public function destroy(Request $request, Exercise $exercise)
+    {
+        $this->authorize('delete', $exercise);
+
+        $usedInAssignment = AssignmentItem::where('itemable_type', Exercise::class)
+            ->where('itemable_id', $exercise->id)
+            ->exists();
+
+        if ($usedInAssignment) {
+            return back()->with('error', "Cet exercice est utilisé dans un devoir : il ne peut pas être supprimé.");
+        }
+
+        if (UserExerciseAttempt::where('exercise_id', $exercise->id)->exists()) {
+            return back()->with('error', "Des élèves ont déjà travaillé sur cet exercice : il est conservé pour leur historique.");
+        }
+
+        $exercise->delete();
+
+        return redirect()->route('center.exercises.index')->with('success', 'Exercice supprimé.');
     }
 }

@@ -91,10 +91,15 @@ class ClassroomController extends Controller
                 'name' => $classroom->name,
                 'level' => $classroom->level,
                 'exam' => $classroom->exam?->name,
+                // L'identifiant, pas seulement le nom : sans lui, impossible de
+                // pre-remplir le formulaire de modification de la classe.
+                'exam_id' => $classroom->exam_id,
                 'invite_code' => $classroom->invite_code,
             ],
             'students' => $students,
             'stats' => $stats->forClassroom($classroom),
+            'exams' => \App\Models\Exam::with('language:id,name')->get(['id', 'name', 'language_id'])
+                ->map(fn ($exam) => ['id' => $exam->id, 'name' => $exam->name, 'language' => $exam->language?->name]),
         ]);
     }
 

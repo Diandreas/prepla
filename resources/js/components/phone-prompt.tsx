@@ -1,5 +1,5 @@
-import { useForm, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { router, useForm, usePage } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 
 /**
@@ -12,19 +12,31 @@ import { Button } from '@/components/ui/button';
  */
 export function PhonePrompt() {
     const needsPhone = usePage().props.needsPhone as boolean | undefined;
-    const [closed, setClosed] = useState(false);
+    // La question est marquee posee DES l'affichage. Sans cela, elle revenait a
+    // chaque page tant qu'on n'avait ni repondu ni clique « Plus tard » : naviguer
+    // n'est pas une reponse, et on se faisait demander son numero deux ou trois fois.
+    const [visible, setVisible] = useState(needsPhone === true);
     const form = useForm({ phone: '' });
 
-    if (!needsPhone || closed) return null;
+    useEffect(() => {
+        if (needsPhone) {
+            setVisible(true);
+            router.post(route('phone.dismiss'), {}, { preserveState: true, preserveScroll: true });
+        }
+        // Volontairement au montage seulement : la fenetre ne doit s'annoncer qu'une fois.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    if (!visible) return null;
 
     function submit(event: React.FormEvent) {
         event.preventDefault();
-        form.post(route('phone.store'), { preserveScroll: true, onSuccess: () => setClosed(true) });
+        form.post(route('phone.store'), { preserveScroll: true, onSuccess: () => setVisible(false) });
     }
 
     function later() {
-        setClosed(true);
-        form.post(route('phone.dismiss'), { preserveScroll: true });
+        // La question est deja marquee posee a l'affichage : fermer suffit.
+        setVisible(false);
     }
 
     return (
