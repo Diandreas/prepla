@@ -187,3 +187,52 @@ test('un module monte autant de taches que la structure en annonce', function ()
     expect($mock->exercises()->count())->toBe(6)
         ->and($mock->description)->toContain('6 tâches');
 });
+
+/**
+ * Un module varie ses formats : l'OSD B2 demande un entretien, une description
+ * d'image puis une discussion — pas trois fois la meme tache.
+ */
+test('un module varie ses formats avant d en repeter un', function () {
+    $language = Language::create(['slug' => 'german', 'name' => 'German', 'native_name' => 'Deutsch', 'flag' => 'de']);
+    $exam = Exam::create(['language_id' => $language->id, 'slug' => 'osd', 'name' => 'ÖSD Zertifikat']);
+    $section = ExamSection::create(['exam_id' => $exam->id, 'slug' => 'sprechen', 'name' => 'Sprechen', 'skill_type' => 'speaking']);
+    $autre = ExamSection::create(['exam_id' => $exam->id, 'slug' => 'lesen', 'name' => 'Lesen', 'skill_type' => 'reading']);
+
+    foreach (['entretien', 'discussion', 'expose'] as $slug) {
+        $type = ExerciseType::create([
+            'section_id' => $section->id, 'slug' => $slug, 'name' => $slug,
+            'skill_type' => 'speaking', 'component_key' => 'speaking-recorder',
+        ]);
+        foreach (range(1, 3) as $i) {
+            Exercise::create([
+                'exam_id' => $exam->id, 'exercise_type_id' => $type->id, 'exam_section_id' => $section->id,
+                'difficulty' => 'B2', 'content' => [],
+                'questions' => [['id' => 'q1', 'type' => 'speaking-recorder', 'text' => "Parle de {$slug} {$i}."]],
+            ]);
+        }
+    }
+
+    // Un second module, pour atteindre le minimum de deux.
+    $typeLecture = ExerciseType::create([
+        'section_id' => $autre->id, 'slug' => 'mcq', 'name' => 'QCM',
+        'skill_type' => 'reading', 'component_key' => 'mcq',
+    ]);
+    Exercise::create([
+        'exam_id' => $exam->id, 'exercise_type_id' => $typeLecture->id, 'exam_section_id' => $autre->id,
+        'difficulty' => 'B2', 'content' => [],
+        'questions' => [['id' => 'q1', 'type' => 'mcq', 'text' => 'Wo?', 'options' => ['A', 'B'], 'correct_answer' => 'A']],
+    ]);
+
+    ExamBlueprint::create([
+        'exam_id' => $exam->id, 'level' => 'B2', 'variant' => null,
+        'name' => 'B2', 'total_duration_minutes' => 120, 'scoring_config' => [],
+        'sections_config' => [['slug' => 'sprechen', 'task_count' => 3], ['slug' => 'lesen', 'task_count' => 1]],
+    ]);
+
+    $mock = app(MockExamComposer::class)->pour($exam->fresh(), 'B2');
+    $formats = $mock->exercises()->where('exam_section_id', $section->id)->pluck('exercise_type_id');
+
+    // Trois taches orales, trois formats differents.
+    expect($formats)->toHaveCount(3)
+        ->and($formats->unique())->toHaveCount(3);
+});

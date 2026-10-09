@@ -72,14 +72,16 @@ class MockExamComposer
             // annonce, et on s'arrete a ce qu'on sait vraiment servir.
             $voulues = $this->nombreDeTaches($blueprint, $section);
             $dejaPris = [];
+            $typesUtilises = [];
             $pourCeModule = 0;
 
             for ($i = 0; $i < $voulues; $i++) {
-                $exercice = $this->exercicePour($exam, $section, $niveau, $avecGeneration, $dejaPris);
+                $exercice = $this->exercicePour($exam, $section, $niveau, $avecGeneration, $dejaPris, $typesUtilises);
                 if (! $exercice) {
                     break;
                 }
                 $dejaPris[] = $exercice->id;
+                $typesUtilises[] = $exercice->exercise_type_id;
                 $choisis[] = [$section, $exercice];
                 $pourCeModule++;
             }
@@ -199,8 +201,11 @@ class MockExamComposer
     }
 
     /** Un exercice utilisable pour ce module, à ce niveau. */
-    /** @param  list<int>  $dejaPris  les exercices deja retenus pour ce module */
-    private function exercicePour(Exam $exam, ExamSection $section, string $niveau, bool $avecGeneration, array $dejaPris = []): ?Exercise
+    /**
+     * @param  list<int>  $dejaPris  les exercices deja retenus pour ce module
+     * @param  list<int>  $typesUtilises  les formats deja poses dans ce module
+     */
+    private function exercicePour(Exam $exam, ExamSection $section, string $niveau, bool $avecGeneration, array $dejaPris = [], array $typesUtilises = []): ?Exercise
     {
         $types = $section->exerciseTypes
             ->filter(fn (ExerciseType $type) => $this->pertinence->convient($type, $niveau));
@@ -209,18 +214,28 @@ class MockExamComposer
             return null;
         }
 
-        // 1. Le vivier déjà en base.
-        $duVivier = Exercise::where('exam_id', $exam->id)
-            ->whereIn('exercise_type_id', $types->pluck('id'))
-            ->where('difficulty', $niveau)
-            ->whereNull('center_id')->whereNull('lesson_id')
-            ->whereNull('node_id')->whereNull('mock_exam_id')
-            ->whereNotIn('id', $dejaPris)
-            ->inRandomOrder()
-            ->first();
+        // Un module varie ses formats : l'OSD B2 demande un entretien, une description
+        // d'image puis une discussion, pas trois fois la meme tache. On essaie donc
+        // d'abord les formats pas encore poses ici, et on ne repete que s'il n'y en a
+        // pas assez.
+        $types = $types
+            ->sortBy(fn (ExerciseType $type) => in_array($type->id, $typesUtilises, true) ? 1 : 0)
+            ->values();
 
-        if ($duVivier && $duVivier->answerableQuestions() !== []) {
-            return $duVivier;
+        // 1. Le vivier deja en base, format par format pour garder cet ordre.
+        foreach ($types as $type) {
+            $duVivier = Exercise::where('exam_id', $exam->id)
+                ->where('exercise_type_id', $type->id)
+                ->where('difficulty', $niveau)
+                ->whereNull('center_id')->whereNull('lesson_id')
+                ->whereNull('node_id')->whereNull('mock_exam_id')
+                ->whereNotIn('id', $dejaPris)
+                ->inRandomOrder()
+                ->first();
+
+            if ($duVivier && $duVivier->answerableQuestions() !== []) {
+                return $duVivier;
+            }
         }
 
         // 2. La série préparée : gratuite, immédiate, et disponible même sans IA.
