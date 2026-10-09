@@ -152,6 +152,7 @@ test('un niveau sans structure officielle est annonce comme un entrainement', fu
         ->and($mock->description)->toContain("ne propose pas d'épreuve officielle");
 
     // Quand la structure existe vraiment a ce niveau, c'est bien une epreuve blanche.
+    $exam->update(['levels' => ['B1']]);
     ExamBlueprint::create([
         'exam_id' => $exam->id, 'level' => 'B1', 'variant' => null,
         'name' => 'Officiel B1', 'total_duration_minutes' => 120,
@@ -171,6 +172,7 @@ test('un niveau sans structure officielle est annonce comme un entrainement', fu
 test('un module monte autant de taches que la structure en annonce', function () {
     [$exam] = examenAvecVivier('B1', 4);
 
+    $exam->update(['levels' => ['B1']]);
     ExamBlueprint::create([
         'exam_id' => $exam->id, 'level' => 'B1', 'variant' => null,
         'name' => 'Officiel B1', 'total_duration_minutes' => 120, 'scoring_config' => [],
@@ -223,6 +225,7 @@ test('un module varie ses formats avant d en repeter un', function () {
         'questions' => [['id' => 'q1', 'type' => 'mcq', 'text' => 'Wo?', 'options' => ['A', 'B'], 'correct_answer' => 'A']],
     ]);
 
+    $exam->update(['levels' => ['B2']]);
     ExamBlueprint::create([
         'exam_id' => $exam->id, 'level' => 'B2', 'variant' => null,
         'name' => 'B2', 'total_duration_minutes' => 120, 'scoring_config' => [],
@@ -235,4 +238,29 @@ test('un module varie ses formats avant d en repeter un', function () {
     // Trois taches orales, trois formats differents.
     expect($formats)->toHaveCount(3)
         ->and($formats->unique())->toHaveCount(3);
+});
+
+/**
+ * Un plan derive gardait la photo du jour ou il avait ete fabrique : quand on
+ * corrigeait le nombre de taches d'un examen, les niveaux derives continuaient de
+ * composer avec l'ancien compte, sans que rien ne le montre.
+ */
+test('un plan derive reprend la structure a jour', function () {
+    [$exam] = examenAvecVivier('A2', 4);
+
+    // Plan de reference, d'abord avec une seule tache par module.
+    $reference = ExamBlueprint::create([
+        'exam_id' => $exam->id, 'level' => null, 'variant' => null,
+        'name' => 'Reference', 'total_duration_minutes' => 120, 'scoring_config' => [],
+        'sections_config' => [['slug' => 'lesen'], ['slug' => 'hoeren']],
+    ]);
+
+    app(MockExamComposer::class)->pour($exam->fresh(), 'A2');
+
+    // La structure est corrigee : trois textes a lire.
+    $reference->update(['sections_config' => [['slug' => 'lesen', 'task_count' => 3], ['slug' => 'hoeren']]]);
+
+    $refait = app(MockExamComposer::class)->pour($exam->fresh(), 'A2', false, true);
+
+    expect($refait->exercises()->count())->toBeGreaterThan(3);
 });

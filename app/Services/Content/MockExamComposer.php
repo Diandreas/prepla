@@ -56,7 +56,7 @@ class MockExamComposer
             return $existante;
         }
 
-        $officiel = ExamBlueprint::where('exam_id', $exam->id)->where('level', $niveau)->exists();
+        $officiel = $this->niveauOfficiel($exam, $niveau);
         $blueprint = $this->blueprintPour($exam, $niveau);
         $sections = $exam->sections()->where('slug', '!=', 'level-assessment')->with('exerciseTypes')->get();
 
@@ -163,6 +163,20 @@ class MockExamComposer
         return $parties > 0 ? min($parties, 8) : 1;
     }
 
+    /**
+     * Ce niveau est-il DECRIT par l'examen, ou seulement derive par nos soins ?
+     *
+     * On ne peut pas en juger a l'existence d'un plan : des qu'on en avait derive
+     * un, le niveau passait pour officiel — et l'epreuve suivante etait titree
+     * « epreuve blanche » alors que l'examen ne propose rien a ce niveau. La
+     * reponse est dans les niveaux declares par l'examen.
+     */
+    private function niveauOfficiel(Exam $exam, string $niveau): bool
+    {
+        return in_array($niveau, $exam->levels ?? [], true)
+            && ExamBlueprint::where('exam_id', $exam->id)->where('level', $niveau)->exists();
+    }
+
     /** Une épreuve déjà publiée pour ce niveau, et qui porte vraiment des exercices. */
     private function existante(Exam $exam, string $niveau): ?MockExam
     {
@@ -182,14 +196,28 @@ class MockExamComposer
      */
     private function blueprintPour(Exam $exam, string $niveau): ExamBlueprint
     {
-        $officiel = ExamBlueprint::where('exam_id', $exam->id)->where('level', $niveau)->first();
-        if ($officiel) {
-            return $officiel;
+        if ($this->niveauOfficiel($exam, $niveau)) {
+            $plan = ExamBlueprint::where('exam_id', $exam->id)->where('level', $niveau)->first();
+
+            if ($plan) {
+                return $plan;
+            }
         }
 
-        $reference = ExamBlueprint::where('exam_id', $exam->id)->first();
+        // La reference est un plan DECRIT par l'examen, jamais un plan derive : se
+        // recopier soi-meme aurait fige la structure pour toujours.
+        $officiels = $exam->levels ?? [];
+        $reference = ExamBlueprint::where('exam_id', $exam->id)
+            ->where(fn ($q) => $q->whereNull('level')->orWhereIn('level', $officiels ?: ['__aucun__']))
+            ->whereNotNull('sections_config')
+            ->first()
+            ?? ExamBlueprint::where('exam_id', $exam->id)->whereNotNull('sections_config')->first();
 
-        return ExamBlueprint::firstOrCreate(
+        // La structure est RECOPIEE a chaque passage, pas seulement a la creation :
+        // un plan derive gardait sinon la photo du jour ou il avait ete fabrique.
+        // Quand on corrigeait le nombre de taches d'un examen, les niveaux derives
+        // continuaient de composer avec l'ancien compte, sans que rien ne le montre.
+        return ExamBlueprint::updateOrCreate(
             ['exam_id' => $exam->id, 'level' => $niveau, 'variant' => null],
             [
                 'name' => $exam->name.' — entraînement niveau '.$niveau,
