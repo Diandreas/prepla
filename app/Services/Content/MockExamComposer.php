@@ -202,6 +202,12 @@ class MockExamComposer
 
     /** Un exercice utilisable pour ce module, à ce niveau. */
     /**
+     * Un exercice utilisable pour ce module, a ce niveau.
+     *
+     * On parcourt les FORMATS d'abord, les sources ensuite : sinon le format qui a
+     * deja du contenu en base gagnait toujours, et un module rendait trois fois la
+     * meme tache alors que l'examen en demande trois differentes.
+     *
      * @param  list<int>  $dejaPris  les exercices deja retenus pour ce module
      * @param  list<int>  $typesUtilises  les formats deja poses dans ce module
      */
@@ -214,57 +220,65 @@ class MockExamComposer
             return null;
         }
 
-        // Un module varie ses formats : l'OSD B2 demande un entretien, une description
-        // d'image puis une discussion, pas trois fois la meme tache. On essaie donc
-        // d'abord les formats pas encore poses ici, et on ne repete que s'il n'y en a
-        // pas assez.
-        $types = $types
+        // Les formats pas encore poses dans ce module passent en premier ; on n'en
+        // repete un que s'il n'y a pas assez de formats pour le nombre de taches.
+        $ordonnes = $types
             ->sortBy(fn (ExerciseType $type) => in_array($type->id, $typesUtilises, true) ? 1 : 0)
             ->values();
 
-        // 1. Le vivier deja en base, format par format pour garder cet ordre.
-        foreach ($types as $type) {
-            $duVivier = Exercise::where('exam_id', $exam->id)
-                ->where('exercise_type_id', $type->id)
-                ->where('difficulty', $niveau)
-                ->whereNull('center_id')->whereNull('lesson_id')
-                ->whereNull('node_id')->whereNull('mock_exam_id')
-                ->whereNotIn('id', $dejaPris)
-                ->inRandomOrder()
-                ->first();
-
-            if ($duVivier && $duVivier->answerableQuestions() !== []) {
-                return $duVivier;
+        foreach ($ordonnes as $type) {
+            $exercice = $this->pourCeFormat($exam, $type, $niveau, $avecGeneration, $dejaPris);
+            if ($exercice) {
+                return $exercice;
             }
         }
 
-        // 2. La série préparée : gratuite, immédiate, et disponible même sans IA.
-        foreach ($types as $type) {
-            $starter = $this->starters->ensure($exam, $type, $niveau);
-            if ($starter && ! in_array($starter->id, $dejaPris, true)) {
-                return $starter;
-            }
+        return null;
+    }
+
+    /**
+     * Ce qu'on sait servir pour UN format, de la source la plus sure a la plus
+     * couteuse : le vivier deja en base, la serie preparee, puis la generation.
+     *
+     * @param  list<int>  $dejaPris
+     */
+    private function pourCeFormat(Exam $exam, ExerciseType $type, string $niveau, bool $avecGeneration, array $dejaPris): ?Exercise
+    {
+        $duVivier = Exercise::where('exam_id', $exam->id)
+            ->where('exercise_type_id', $type->id)
+            ->where('difficulty', $niveau)
+            ->whereNull('center_id')->whereNull('lesson_id')
+            ->whereNull('node_id')->whereNull('mock_exam_id')
+            ->whereNotIn('id', $dejaPris)
+            ->inRandomOrder()
+            ->first();
+
+        if ($duVivier && $duVivier->answerableQuestions() !== []) {
+            return $duVivier;
+        }
+
+        $starter = $this->starters->ensure($exam, $type, $niveau);
+        if ($starter && ! in_array($starter->id, $dejaPris, true)) {
+            return $starter;
         }
 
         if (! $avecGeneration) {
             return null;
         }
 
-        // 3. En dernier, écrire ce qui manque.
-        foreach ($types as $type) {
-            try {
-                $exercice = app(ExerciseGeneratorService::class)->generate($type, $exam, $niveau);
-                if ($exercice && $exercice->answerableQuestions() !== []) {
-                    return $exercice;
-                }
-            } catch (\Throwable $e) {
-                Log::warning('Epreuve blanche : generation impossible', [
-                    'exam' => $exam->slug, 'type' => $type->slug, 'niveau' => $niveau,
-                    'message' => $e->getMessage(),
-                ]);
+        try {
+            $exercice = app(ExerciseGeneratorService::class)->generate($type, $exam, $niveau);
+            if ($exercice && $exercice->answerableQuestions() !== []) {
+                return $exercice;
             }
+        } catch (\Throwable $e) {
+            Log::warning('Epreuve blanche : generation impossible', [
+                'exam' => $exam->slug, 'type' => $type->slug, 'niveau' => $niveau,
+                'message' => $e->getMessage(),
+            ]);
         }
 
         return null;
     }
+
 }
