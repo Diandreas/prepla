@@ -55,6 +55,7 @@ class MockExamComposer
             return $existante;
         }
 
+        $officiel = ExamBlueprint::where('exam_id', $exam->id)->where('level', $niveau)->exists();
         $blueprint = $this->blueprintPour($exam, $niveau);
         $sections = $exam->sections()->where('slug', '!=', 'level-assessment')->with('exerciseTypes')->get();
 
@@ -78,13 +79,20 @@ class MockExamComposer
             return null;
         }
 
-        return DB::transaction(function () use ($blueprint, $exam, $niveau, $sections, $choisis) {
+        return DB::transaction(function () use ($blueprint, $officiel, $exam, $niveau, $sections, $choisis) {
+            // On n'appelle « épreuve blanche » que ce qui suit une structure officielle
+            // à ce niveau. Ailleurs c'est un entraînement au format de l'examen, servi
+            // à la difficulté de l'apprenant — et c'est ce qu'on écrit.
+            $complet = count($choisis) === $sections->count();
+
             $mock = MockExam::create([
                 'blueprint_id' => $blueprint->id,
-                'title' => $exam->name.' — épreuve blanche '.$niveau,
-                'description' => count($choisis) === $sections->count()
-                    ? 'Toutes les épreuves, au niveau '.$niveau.'.'
-                    : count($choisis).' épreuves sur '.$sections->count().', au niveau '.$niveau.'.',
+                'title' => $officiel
+                    ? $exam->name.' — épreuve blanche '.$niveau
+                    : $exam->name.' — entraînement au format, niveau '.$niveau,
+                'description' => ($officiel
+                    ? ($complet ? 'Toutes les épreuves, au niveau '.$niveau.'.' : count($choisis).' épreuves sur '.$sections->count().', au niveau '.$niveau.'.')
+                    : "Cet examen ne propose pas d'épreuve officielle au niveau {$niveau} : tu t'entraînes à son format, avec des exercices de ton niveau."),
                 'is_published' => true,
             ]);
 

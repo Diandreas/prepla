@@ -136,3 +136,29 @@ test('un contenu prepare se recopie sans heurter sa cle unique', function () {
         ->and($mock->exercises()->whereNotNull('catalog_key')->count())->toBe(0)
         ->and(Exercise::whereNotNull('catalog_key')->count())->toBe(2);
 });
+
+/**
+ * Tous les examens n'ont pas d'epreuve officielle a chaque niveau. On ne fait pas
+ * passer un entrainement au format pour un sujet officiel : le titre le dit.
+ */
+test('un niveau sans structure officielle est annonce comme un entrainement', function () {
+    [$exam] = examenAvecVivier('A2');
+
+    // Aucun blueprint declare pour l'examen : le niveau est donc derive.
+    $mock = app(MockExamComposer::class)->pour($exam->fresh(), 'A2');
+
+    expect($mock->title)->toContain('entraînement au format')
+        ->and($mock->title)->not->toContain('épreuve blanche')
+        ->and($mock->description)->toContain("ne propose pas d'épreuve officielle");
+
+    // Quand la structure existe vraiment a ce niveau, c'est bien une epreuve blanche.
+    App\Models\ExamBlueprint::create([
+        'exam_id' => $exam->id, 'level' => 'B1', 'variant' => null,
+        'name' => 'Officiel B1', 'total_duration_minutes' => 120,
+        'scoring_config' => [], 'sections_config' => [],
+    ]);
+    App\Models\Exercise::where('exam_id', $exam->id)->update(['difficulty' => 'B1']);
+
+    expect(app(MockExamComposer::class)->pour($exam->fresh(), 'B1')->title)
+        ->toContain('épreuve blanche B1');
+});
