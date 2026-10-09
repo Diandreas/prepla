@@ -109,6 +109,10 @@ return [
         // ─── SCHREIBEN (Writing) ───
         [
             'slug' => 'schreiben',
+            // Formats repris des taches decrites ci-dessous : sans eux, ce module
+            // ne declarait AUCUN format et ne pouvait rien produire — le sujet
+            // sortait ampute de cette epreuve.
+            'exercise_types' => ['graph-description', 'essay'],
             'name' => 'Schreiben (Writing)',
             'skill_type' => 'writing',
             'time_limit' => 60,
@@ -137,6 +141,10 @@ return [
         // ─── SPRECHEN (Speaking) ───
         [
             'slug' => 'sprechen',
+            // Formats repris des taches decrites ci-dessous : sans eux, ce module
+            // ne declarait AUCUN format et ne pouvait rien produire — le sujet
+            // sortait ampute de cette epreuve.
+            'exercise_types' => ['speaking-response', 'speaking-long-turn', 'speaking-discussion', 'negotiation', 'oral-debate', 'role-play', 'speaking-elicitation'],
             'name' => 'Sprechen (Speaking)',
             'skill_type' => 'speaking',
             'time_limit' => 30,

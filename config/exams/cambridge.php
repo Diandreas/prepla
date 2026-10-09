@@ -51,6 +51,10 @@ return [
         // ─── READING AND USE OF ENGLISH ───
         [
             'slug' => 'reading-use-of-english',
+            // Formats repris des taches decrites ci-dessous : sans eux, ce module
+            // ne declarait AUCUN format et ne pouvait rien produire — le sujet
+            // sortait ampute de cette epreuve.
+            'exercise_types' => ['mcq-cloze', 'open-cloze', 'word-formation', 'key-word-transformation', 'mcq', 'gapped-text', 'multiple-matching'],
             'name' => 'Reading and Use of English',
             'skill_type' => 'reading',
             'time_limit' => 90, // B2: 75min, C1: 90min, C2: 90min
@@ -126,6 +130,9 @@ return [
         // ─── WRITING ───
         [
             'slug' => 'writing',
+            // Formats repris des taches decrites ci-dessous : sans eux, ce module
+            // ne declarait AUCUN format et ne pouvait rien produire.
+            'exercise_types' => ['essay', 'article-writing', 'letter-email-writing', 'report-writing', 'review-writing'],
             'name' => 'Writing',
             'skill_type' => 'writing',
             'time_limit' => 80, // B2: 80min, C1: 90min, C2: 90min
@@ -167,6 +174,10 @@ return [
         // ─── LISTENING ───
         [
             'slug' => 'listening',
+            // Formats repris des taches decrites ci-dessous : sans eux, ce module
+            // ne declarait AUCUN format et ne pouvait rien produire — le sujet
+            // sortait ampute de cette epreuve.
+            'exercise_types' => ['mcq', 'sentence-completion', 'multiple-matching', 'note-completion'],
             'name' => 'Listening',
             'skill_type' => 'listening',
             'time_limit' => 40,
@@ -207,6 +218,10 @@ return [
         // ─── SPEAKING ───
         [
             'slug' => 'speaking',
+            // Formats repris des taches decrites ci-dessous : sans eux, ce module
+            // ne declarait AUCUN format et ne pouvait rien produire — le sujet
+            // sortait ampute de cette epreuve.
+            'exercise_types' => ['speaking-response', 'speaking-long-turn', 'negotiation', 'speaking-discussion'],
             'name' => 'Speaking',
             'skill_type' => 'speaking',
             'time_limit' => 14,

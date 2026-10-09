@@ -171,6 +171,10 @@ return [
         // ─── EXPRESSION ORALE ───
         [
             'slug' => 'expression-orale',
+            // Formats repris des taches decrites ci-dessous : sans eux, ce module
+            // ne declarait AUCUN format et ne pouvait rien produire — le sujet
+            // sortait ampute de cette epreuve.
+            'exercise_types' => ['role-play', 'negotiation', 'speaking-response'],
             'name' => 'Expression orale',
             'skill_type' => 'speaking',
             'time_limit' => 15,
