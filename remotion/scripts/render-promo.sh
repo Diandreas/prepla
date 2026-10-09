@@ -12,7 +12,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 COMP="${COMP:-PreplaPromo}"
-TOTAL=1800
+TOTAL="${TOTAL:-1800}"  # nombre d'images de la composition
 CHUNK=300
 OUT="${OUT:-out/promo}"
 FRAMES="$OUT/frames"

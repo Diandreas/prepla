@@ -435,7 +435,11 @@ def compose():
     music.add(bell(84, 2.4), at(30), 0.18)
     sub.add(bass(36, 1.8), at(30), 0.34)
 
-    # --- mixage : sidechain, réverbération, master
+    return master(drums, music, send, sub, kick_times)
+
+
+def master(drums: Bus, music: Bus, send: Bus, sub: Bus, kick_times: list[float], fade: float = 1.6) -> np.ndarray:
+    """Mixage : sidechain sur les kicks, réverbération, fondu final et saturation douce du master."""
     side = np.ones(N)
     seg = tt(0.32)
     duck = 1 - 0.55 * np.exp(-seg / 0.1)
@@ -451,7 +455,7 @@ def compose():
     mix = 0.95 * drums.buf + music.buf + sub.buf + 0.55 * wet
     mix = hp(mix, 28)
     # Fin : tout s'éteint doucement sur les dernières images.
-    fade_n = int(1.6 * SR)
+    fade_n = int(fade * SR)
     mix[:, N - fade_n:] *= np.cos(np.linspace(0, np.pi / 2, fade_n)) ** 2
     mix = np.tanh(1.1 * norm(mix, 0.95)) / np.tanh(1.1)
     return norm(mix, 0.89)
