@@ -286,3 +286,24 @@ test('un sujet ne contient que les epreuves de son niveau', function () {
 
     expect($slugs->sort()->values()->all())->toBe(['hoeren', 'lesen']);
 });
+
+/**
+ * Cambridge declare ses niveaux par le NOM de l'epreuve — « B2 First »,
+ * « C1 Advanced » — pas par le code CECR. Compares tels quels, aucun ne
+ * correspondait : le B2 First etait annonce comme un simple entrainement au
+ * format alors que c'est bien un examen de B2.
+ */
+test('un niveau nomme par son epreuve reste un niveau officiel', function () {
+    [$exam] = examenAvecVivier('B2');
+    $exam->update(['levels' => ['A2 Key', 'B1 Preliminary', 'B2 First', 'C1 Advanced']]);
+
+    $mock = app(MockExamComposer::class)->pour($exam->fresh(), 'B2');
+
+    expect($mock->title)->toContain('épreuve blanche B2')
+        ->and($mock->title)->not->toContain('entraînement au format');
+
+    // Et un niveau que l'examen ne propose pas reste un entrainement.
+    App\Models\Exercise::where('exam_id', $exam->id)->update(['difficulty' => 'A1']);
+    expect(app(MockExamComposer::class)->pour($exam->fresh(), 'A1')->title)
+        ->toContain('entraînement au format');
+});

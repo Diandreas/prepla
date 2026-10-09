@@ -33,6 +33,8 @@ return [
             'sections' => [
                 [
                     'slug' => 'lesen',
+                    // Nombre de taches a l'examen reel (source : goethe.de).
+                    'task_count' => 3,
                     'name' => 'Lesen (Reading)',
                     'skill_type' => 'reading',
                     'time_limit' => 25,
@@ -42,6 +44,8 @@ return [
                 ],
                 [
                     'slug' => 'hoeren',
+                    // Nombre de taches a l'examen reel (source : goethe.de).
+                    'task_count' => 3,
                     'name' => 'Hören (Listening)',
                     'skill_type' => 'listening',
                     'time_limit' => 20,
@@ -51,6 +55,8 @@ return [
                 ],
                 [
                     'slug' => 'schreiben',
+                    // Nombre de taches a l'examen reel (source : goethe.de).
+                    'task_count' => 2,
                     'name' => 'Schreiben (Writing)',
                     'skill_type' => 'writing',
                     'time_limit' => 20,
@@ -60,6 +66,8 @@ return [
                 ],
                 [
                     'slug' => 'sprechen',
+                    // Nombre de taches a l'examen reel (source : goethe.de).
+                    'task_count' => 3,
                     'name' => 'Sprechen (Speaking)',
                     'skill_type' => 'speaking',
                     'time_limit' => 15,
@@ -82,6 +90,8 @@ return [
             'sections' => [
                 [
                     'slug' => 'lesen',
+                    // Nombre de taches a l'examen reel (source : goethe.de).
+                    'task_count' => 4,
                     'name' => 'Lesen (Reading)',
                     'skill_type' => 'reading',
                     'time_limit' => 30,
@@ -91,24 +101,30 @@ return [
                 ],
                 [
                     'slug' => 'hoeren',
+                    // Nombre de taches a l'examen reel (source : goethe.de).
+                    'task_count' => 4,
                     'name' => 'Hören (Listening)',
                     'skill_type' => 'listening',
-                    'time_limit' => 20,
+                    'time_limit' => 30,
                     'scoring_weight' => 25,
                     'description' => 'Comprendre des annonces, conversations téléphoniques et dialogues courants.',
                     'exercise_types' => ['mcq', 'true-false-not-given', 'picture-mcq', 'multiple-matching'],
                 ],
                 [
                     'slug' => 'schreiben',
+                    // Nombre de taches a l'examen reel (source : goethe.de).
+                    'task_count' => 2,
                     'name' => 'Schreiben (Writing)',
                     'skill_type' => 'writing',
-                    'time_limit' => 20,
+                    'time_limit' => 30,
                     'scoring_weight' => 25,
                     'description' => 'Écrire un message court (SMS, email, note) en réponse à une situation.',
                     'exercise_types' => ['short-writing', 'essay'],
                 ],
                 [
                     'slug' => 'sprechen',
+                    // Nombre de taches a l'examen reel (source : goethe.de).
+                    'task_count' => 3,
                     'name' => 'Sprechen (Speaking)',
                     'skill_type' => 'speaking',
                     'time_limit' => 15,
@@ -248,6 +264,8 @@ return [
             'sections' => [
                 [
                     'slug' => 'lesen',
+                    // Nombre de taches a l'examen reel (source : goethe.de).
+                    'task_count' => 4,
                     'name' => 'Lesen (Reading)',
                     'skill_type' => 'reading',
                     'time_limit' => 70,
@@ -257,6 +275,8 @@ return [
                 ],
                 [
                     'slug' => 'hoeren',
+                    // Nombre de taches a l'examen reel (source : goethe.de).
+                    'task_count' => 4,
                     'name' => 'Hören (Listening)',
                     'skill_type' => 'listening',
                     'time_limit' => 40,
@@ -270,7 +290,7 @@ return [
                     'task_count' => 2,
                     'name' => 'Schreiben (Writing)',
                     'skill_type' => 'writing',
-                    'time_limit' => 80,
+                    'time_limit' => 75,
                     'scoring_weight' => 25,
                     'description' => '2 tâches : rédaction structurée (essai argumentatif) + lettre formelle.',
                     'exercise_types' => ['essay', 'letter-writing'],
@@ -285,6 +305,8 @@ return [
                 ],
                 [
                     'slug' => 'sprechen',
+                    // Nombre de taches a l'examen reel (source : goethe.de).
+                    'task_count' => 2,
                     'name' => 'Sprechen (Speaking)',
                     'skill_type' => 'speaking',
                     'time_limit' => 15,
@@ -306,6 +328,8 @@ return [
             'sections' => [
                 [
                     'slug' => 'lesen',
+                    // Nombre de taches a l'examen reel (source : goethe.de).
+                    'task_count' => 4,
                     'name' => 'Lesen (Reading)',
                     'skill_type' => 'reading',
                     'time_limit' => 80,
@@ -315,6 +339,8 @@ return [
                 ],
                 [
                     'slug' => 'hoeren',
+                    // Nombre de taches a l'examen reel (source : goethe.de).
+                    'task_count' => 3,
                     'name' => 'Hören (Listening)',
                     'skill_type' => 'listening',
                     'time_limit' => 35,
@@ -343,6 +369,8 @@ return [
                 ],
                 [
                     'slug' => 'sprechen',
+                    // Nombre de taches a l'examen reel (source : goethe.de).
+                    'task_count' => 2,
                     'name' => 'Sprechen (Speaking)',
                     'skill_type' => 'speaking',
                     'time_limit' => 15,

@@ -185,8 +185,30 @@ class MockExamComposer
      */
     private function niveauOfficiel(Exam $exam, string $niveau): bool
     {
-        return in_array($niveau, $exam->levels ?? [], true)
-            && ExamBlueprint::where('exam_id', $exam->id)->where('level', $niveau)->exists();
+        return in_array($niveau, $this->niveauxDeclares($exam), true);
+    }
+
+    /**
+     * Les paliers CECR que l'examen propose vraiment.
+     *
+     * Un examen peut les nommer : Cambridge declare « B2 First », « C1 Advanced »
+     * — des noms d'epreuves, pas des codes. Compares tels quels, aucun ne
+     * correspondait, et le B2 First se retrouvait annonce comme un simple
+     * entrainement au format alors que c'est bien un examen de B2.
+     *
+     * @return list<string>
+     */
+    private function niveauxDeclares(Exam $exam): array
+    {
+        $paliers = [];
+
+        foreach ($exam->levels ?? [] as $declare) {
+            if (preg_match('/^([ABC][12])/', trim((string) $declare), $trouve)) {
+                $paliers[] = $trouve[1];
+            }
+        }
+
+        return array_values(array_unique($paliers));
     }
 
     /** Une épreuve déjà publiée pour ce niveau, et qui porte vraiment des exercices. */
@@ -218,7 +240,7 @@ class MockExamComposer
 
         // La reference est un plan DECRIT par l'examen, jamais un plan derive : se
         // recopier soi-meme aurait fige la structure pour toujours.
-        $officiels = $exam->levels ?? [];
+        $officiels = $this->niveauxDeclares($exam);
         $reference = ExamBlueprint::where('exam_id', $exam->id)
             ->where(fn ($q) => $q->whereNull('level')->orWhereIn('level', $officiels ?: ['__aucun__']))
             ->whereNotNull('sections_config')
