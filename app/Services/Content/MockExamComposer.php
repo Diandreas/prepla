@@ -47,10 +47,11 @@ class MockExamComposer
      * L'épreuve blanche de cet examen à ce niveau, composée au besoin.
      *
      * @param  bool  $avecGeneration  autoriser l'IA à écrire ce qui manque
+     * @param  bool  $forcer  en composer une nouvelle même s'il en existe déjà une
      */
-    public function pour(Exam $exam, string $niveau, bool $avecGeneration = false): ?MockExam
+    public function pour(Exam $exam, string $niveau, bool $avecGeneration = false, bool $forcer = false): ?MockExam
     {
-        $existante = $this->existante($exam, $niveau);
+        $existante = $forcer ? null : $this->existante($exam, $niveau);
         if ($existante) {
             return $existante;
         }
