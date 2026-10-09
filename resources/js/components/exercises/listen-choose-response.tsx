@@ -1,4 +1,5 @@
 import { useTts } from '@/hooks/use-tts';
+import { coerceOption } from './normalize-options';
 import { normalizeOptions } from './normalize-options';
 
 interface ListenChooseResponseProps {
@@ -24,7 +25,9 @@ export function ListenChooseResponse({ question, onAnswer, selectedAnswer, disab
     const { speak, stop, isSpeaking } = useTts();
     const options = normalizeOptions(question.options);
     const correct = String(question.correct_answer ?? '').trim().toUpperCase();
-    const prompt = question.audio_text ?? '';
+    // Enonce LU : un objet est « vrai » mais n'a pas de .trim — la lecture a voix
+    // haute levait une erreur dans le clic, hors de portee des barrieres React.
+    const prompt = coerceOption(question.audio_text);
 
     const playPrompt = () => {
         if (isSpeaking) { stop(); return; }

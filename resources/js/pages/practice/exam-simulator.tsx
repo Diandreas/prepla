@@ -1,4 +1,5 @@
 import type { FormDataConvertible } from '@inertiajs/core';
+import { coerceOption } from '@/components/exercises/normalize-options';
 import { Head, router, usePage } from '@inertiajs/react';
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -487,7 +488,7 @@ export default function ExamSimulator({ exam, exercises, totalExamsTime }: Props
                 >
                     {exercise.content?.passage && (
                         <div className="passage-card prose prose-slate dark:prose-invert max-w-none">
-                            {exercise.content.passage}
+                            {coerceOption(exercise.content.passage)}
                         </div>
                     )}
 

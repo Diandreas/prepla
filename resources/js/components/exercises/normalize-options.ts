@@ -19,6 +19,18 @@ export function normalizeOptions(raw: unknown): string[] {
 
 // Une seule regle de lecture, partagee avec les deux correcteurs : l'ecran
 // affichait un choix que la correction ne savait pas lire, et inversement.
+/**
+ * Un contenu que l'on va parcourir (documents, textes, affirmations, points cles).
+ * Le modele rend tantot une liste, tantot une carte numerotee : parcourir une carte
+ * avec .map() levait une TypeError pendant le rendu, donc un ecran blanc.
+ */
+export function collection<T = unknown>(raw: unknown): T[] {
+    if (Array.isArray(raw)) return raw as T[];
+    if (raw && typeof raw === 'object') return Object.values(raw as Record<string, T>);
+
+    return [];
+}
+
 export function coerceOption(o: unknown): string {
     return optionText(o);
 }

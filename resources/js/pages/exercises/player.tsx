@@ -1,4 +1,5 @@
 import AppLayout from '@/layouts/app-layout';
+import { coerceOption, collection } from '@/components/exercises/normalize-options';
 import { assessmentAnswers } from '@/lib/session-answers.js';
 import type { FormDataConvertible } from '@inertiajs/core';
 import { Head, router } from '@inertiajs/react';
@@ -590,7 +591,10 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
     const activeComponentKey = isReviewMode ? (question?.component_key ?? 'mcq') : componentKey;
     const activeSkillType = isReviewMode ? (question?.skill_type ?? '') : skillType;
     const activeTypeName = isReviewMode ? (question?.type_name ?? '') : (exercise?.exercise_type?.name ?? '');
-    const activePassage = isReviewMode ? (question?.passage ?? '') : (exercise?.content?.passage ?? '');
+    // Passage LU : il est rendu HORS de la barriere d'erreur, donc un passage
+    // arrive en liste de paragraphes ou en objet vidait la seance entiere, pas
+    // seulement la question.
+    const activePassage = coerceOption(isReviewMode ? question?.passage : exercise?.content?.passage);
     const isListening = activeSkillType === 'listening';
     const Component = componentMap[activeComponentKey] ?? Mcq;
 
@@ -1426,9 +1430,9 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
                                     <div className="rounded-xl border-2 border-emerald-100 bg-emerald-50/60 p-3">
                                         <p className="text-[10px] font-black uppercase tracking-widest text-emerald-500 mb-1.5">Bien dit</p>
                                         <ul className="space-y-1">
-                                            {speakingPoints.covered.map((p, i) => (
+                                            {collection<unknown>(speakingPoints.covered).map((p, i) => (
                                                 <li key={i} className="text-xs font-medium text-slate-700 flex gap-1.5">
-                                                    <span className="text-emerald-500">✓</span>{p}
+                                                    <span className="text-emerald-500">✓</span>{coerceOption(p)}
                                                 </li>
                                             ))}
                                         </ul>
@@ -1438,9 +1442,9 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
                                     <div className="rounded-xl border-2 border-amber-100 bg-amber-50/60 p-3">
                                         <p className="text-[10px] font-black uppercase tracking-widest text-amber-500 mb-1.5">Pour aller plus loin</p>
                                         <ul className="space-y-1">
-                                            {speakingPoints.missing.map((p, i) => (
+                                            {collection<unknown>(speakingPoints.missing).map((p, i) => (
                                                 <li key={i} className="text-xs font-medium text-slate-700 flex gap-1.5">
-                                                    <span className="text-amber-500">+</span>{p}
+                                                    <span className="text-amber-500">+</span>{coerceOption(p)}
                                                 </li>
                                             ))}
                                         </ul>

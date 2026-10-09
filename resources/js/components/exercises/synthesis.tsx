@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { coerceOption } from './normalize-options';
+import { coerceOption, collection } from './normalize-options';
 
 interface SynthesisProps {
     question: {
@@ -32,7 +32,7 @@ export function Synthesis({ question, onAnswer, selectedAnswer, disabled }: Synt
         <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-4">
                 <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Documents sources</p>
-                {(question.documents || question.sources || []).map((doc, i) => {
+                {collection<any>(question.documents ?? question.sources).map((doc, i) => {
                     const title = coerceOption(doc?.title);
                     const content = coerceOption(doc?.content);
                     return (
@@ -63,7 +63,7 @@ export function Synthesis({ question, onAnswer, selectedAnswer, disabled }: Synt
 
             {/* Writing prompt */}
             <div className="rounded-xl border-2 border-primary/20 bg-primary/5 p-4">
-                <p className="text-sm font-medium">{question.writing_prompt}</p>
+                <p className="text-sm font-medium">{coerceOption(question.writing_prompt)}</p>
             </div>
 
             {/* Textarea */}

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { coerceOption } from './normalize-options';
 
 interface FlowStep {
     text?: string;
@@ -24,8 +25,9 @@ interface FlowChartCompletionProps {
 function isBlankStep(s: FlowStep): boolean {
     if (typeof s.is_blank === 'boolean') return s.is_blank;
     if (typeof s.blank === 'boolean') return s.blank;
-    // New shape sometimes marks a blank by an empty text.
-    return (s.text ?? '') === '';
+    // New shape sometimes marks a blank by an empty text. Le texte est lu : un
+    // objet n'est pas '' et l'etape passait pour pleine, donc aucun champ de saisie.
+    return coerceOption(s.text) === '';
 }
 
 export function FlowChartCompletion({ question, onAnswer, selectedAnswer, disabled }: FlowChartCompletionProps) {
@@ -88,7 +90,7 @@ export function FlowChartCompletion({ question, onAnswer, selectedAnswer, disabl
                                 </div>
                             ) : (
                                 <div className="w-full max-w-md rounded-xl border-2 border-border bg-background p-3 text-center text-sm font-medium shadow-sm">
-                                    {step.text}
+                                    {coerceOption(step.text)}
                                 </div>
                             )}
                         </div>

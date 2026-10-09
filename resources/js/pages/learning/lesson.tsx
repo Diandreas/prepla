@@ -1,4 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
+import { coerceOption, collection } from '@/components/exercises/normalize-options';
 import AppLayout from '@/layouts/app-layout';
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -479,10 +480,10 @@ export default function LessonPage({ lesson, skeleton, lessonWords = [] }: Props
                                     {t('lesson.key_takeaways', 'Points clés à retenir')}
                                 </p>
                                 <div className="space-y-3">
-                                    {(lesson.key_takeaways || []).map((tk: string, i: number) => (
+                                    {collection<unknown>(lesson.key_takeaways).map((brut, i: number) => (
                                         <div key={i} className="flex items-start gap-2">
                                             <div className="mt-1.5 h-2 w-2 rounded-full shrink-0" style={{ background: SKY }} />
-                                            <p className="text-sm font-semibold" style={{ color: OXFORD }} dangerouslySetInnerHTML={{ __html: inlineMd(tk) }} />
+                                            <p className="text-sm font-semibold" style={{ color: OXFORD }} dangerouslySetInnerHTML={{ __html: inlineMd(coerceOption(brut)) }} />
                                         </div>
                                     ))}
                                 </div>

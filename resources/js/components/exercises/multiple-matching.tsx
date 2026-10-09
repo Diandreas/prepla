@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { coerceOption } from './normalize-options';
+import { coerceOption, collection } from './normalize-options';
 
 interface MultipleMatchingProps {
     question: {
@@ -34,7 +34,9 @@ export function MultipleMatching({ question, onAnswer, selectedAnswer, disabled 
     // Coerce every IA-generated field defensively — a malformed object here
     // (instead of a plain string) would otherwise crash the whole session with
     // React error #31, the same class of bug already fixed on mcq/matching/ordering.
-    const texts = (Array.isArray(question.texts) ? question.texts : []).map((t) => ({
+    // Les textes et les affirmations arrivent tantot en liste, tantot en carte :
+    // lus comme une liste seulement, l'exercice s'affichait sans aucun choix.
+    const texts = collection<any>(question.texts).map((t) => ({
         id: coerceOption(t?.id),
         title: coerceOption(t?.title),
         content: coerceOption(t?.content),

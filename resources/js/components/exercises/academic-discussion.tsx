@@ -37,7 +37,7 @@ export function AcademicDiscussion({ question, onAnswer, selectedAnswer, disable
                     </div>
                     <span className="text-sm font-bold">Professeur</span>
                 </div>
-                <p className="text-sm leading-relaxed">{question.professor_prompt}</p>
+                <p className="text-sm leading-relaxed">{coerceOption(question.professor_prompt)}</p>
             </div>
 
             {/* Student posts */}
@@ -62,7 +62,7 @@ export function AcademicDiscussion({ question, onAnswer, selectedAnswer, disable
             {/* Your contribution */}
             <div className="rounded-xl border-2 border-primary/30 p-4">
                 <p className="mb-2 text-xs font-bold uppercase tracking-wider text-primary">Votre contribution</p>
-                <p className="mb-3 text-sm">{question.writing_prompt}</p>
+                <p className="mb-3 text-sm">{coerceOption(question.writing_prompt)}</p>
                 <textarea
                     className="min-h-[120px] w-full rounded-lg border border-border bg-background p-3 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
                     placeholder="Rédigez votre réponse..."

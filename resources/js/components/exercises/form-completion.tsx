@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { coerceOption } from './normalize-options';
+import { optionList } from '@/lib/scoring';
 
 interface FormField {
     label: string;
@@ -56,7 +58,10 @@ export function FormCompletion({ question, onAnswer, selectedAnswer, disabled }:
                         // → réponses corrompues. Le serveur rattrape désormais lui-même
                         // les correct_answers aux clés désalignées.
                         const absKey = String(i);
-                        const display = field.answer ?? field.value ?? '—';
+                        // Valeur LUE : un objet n'etait ni vide ni affichable —
+                        // le trou passait pour rempli (aucun champ de saisie) et la
+                        // valeur partait brute dans le JSX, ce qui vide l'ecran.
+                        const display = coerceOption(field.answer ?? field.value) || '—';
                         const setValue = (val: string) => {
                             setValues((prev) => {
                                 const next = { ...prev, [absKey]: val };
@@ -89,7 +94,7 @@ export function FormCompletion({ question, onAnswer, selectedAnswer, disabled }:
                                             className="flex-1 rounded border border-border bg-background px-3 py-1.5 text-sm focus:border-primary focus:outline-none disabled:opacity-50"
                                         >
                                             <option value="">—</option>
-                                            {field.options.map((opt, j) => (
+                                            {optionList(field.options).map((opt, j) => (
                                                 <option key={j} value={opt}>{opt}</option>
                                             ))}
                                         </select>

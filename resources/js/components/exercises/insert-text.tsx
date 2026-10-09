@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { coerceOption } from './normalize-options';
 
 interface InsertTextProps {
     question: {
@@ -16,7 +17,9 @@ interface InsertTextProps {
 export function InsertText({ question, onAnswer, selectedAnswer, disabled }: InsertTextProps) {
     const [selected, setSelected] = useState<string | null>(selectedAnswer ?? null);
 
-    const passage = question.passage || '';
+    // Le passage est LU : rendu en liste de paragraphes ou en objet, .match
+    // n'existait pas dessus et la question plantait au rendu.
+    const passage = coerceOption(question.passage);
     const markers = passage.match(/\[([A-Z])\]/g) ?? [];
     const parts = passage.split(/\[[A-Z]\]/);
 
