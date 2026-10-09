@@ -281,10 +281,18 @@ class PracticeController extends Controller
         $cefrLevels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
         $allowedLevels = array_slice($cefrLevels, 0, (array_search($level, $cefrLevels, true) ?: 0) + 1);
         $isBeginner = in_array($level, ['A0', 'A1', 'A2'], true);
+
+        // Les epreuves blanches etaient ecrites a la main, presque toutes sans niveau :
+        // un debutant etait renvoye sans rien. On en compose une a son niveau avec ce
+        // qui existe deja, et on ne refuse que s'il n'y a vraiment pas de quoi.
         if ($isBeginner && ! MockExam::where('is_published', true)->whereHas('exercises')
             ->whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id)->where('level', $level))->exists()) {
-            return redirect()->route('practice.exam', $exam)
-                ->with('error', "À ton niveau {$level}, commence par une compétence ou une séance de ton parcours. L’examen complet viendra plus tard.");
+            $composee = app(\App\Services\Content\MockExamComposer::class)->pour($exam, $level);
+
+            if (! $composee) {
+                return redirect()->route('practice.exam', $exam)
+                    ->with('error', "À ton niveau {$level}, commence par une compétence ou une séance de ton parcours. L’examen complet viendra plus tard.");
+            }
         }
         $exam->load(['language', 'sections' => fn ($q) => $q->where('slug', '!=', 'level-assessment')->with('exerciseTypes')]);
 

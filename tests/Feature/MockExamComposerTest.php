@@ -1,0 +1,121 @@
+<?php
+
+use App\Models\Exam;
+use App\Models\ExamBlueprint;
+use App\Models\ExamSection;
+use App\Models\Exercise;
+use App\Models\ExerciseType;
+use App\Models\Language;
+use App\Models\MockExam;
+use App\Models\User;
+use App\Models\UserProfile;
+use App\Services\Content\MockExamComposer;
+
+/**
+ * Les épreuves blanches étaient écrites à la main : seize sujets pour seize
+ * examens, presque tous sans niveau. Un apprenant A1 ou A2 était donc renvoyé
+ * avec « à ton niveau, commence par une compétence », et un examen récemment
+ * ajouté n'avait rien du tout.
+ */
+function examenAvecVivier(string $niveau = 'A2', int $parSection = 2): array
+{
+    $language = Language::create(['slug' => 'german', 'name' => 'German', 'native_name' => 'Deutsch', 'flag' => 'de']);
+    $exam = Exam::create(['language_id' => $language->id, 'slug' => 'osd', 'name' => 'ÖSD Zertifikat']);
+
+    $sections = [];
+    foreach ([['lesen', 'reading', 'mcq'], ['hoeren', 'listening', 'mcq'], ['schreiben', 'writing', 'short-writing']] as [$slug, $skill, $composant]) {
+        $section = ExamSection::create([
+            'exam_id' => $exam->id, 'slug' => $slug, 'name' => $slug, 'skill_type' => $skill, 'time_limit' => 30,
+        ]);
+        $type = ExerciseType::create([
+            'section_id' => $section->id, 'slug' => $slug.'-'.$composant, 'name' => $slug,
+            'skill_type' => $skill, 'component_key' => $composant,
+        ]);
+
+        foreach (range(1, $parSection) as $i) {
+            Exercise::create([
+                'exam_id' => $exam->id, 'exercise_type_id' => $type->id, 'exam_section_id' => $section->id,
+                'difficulty' => $niveau, 'content' => [],
+                'questions' => [[
+                    'id' => 'q1', 'type' => $composant === 'mcq' ? 'mcq' : 'short-writing',
+                    'text' => "Question {$slug} {$i}",
+                    'options' => $composant === 'mcq' ? ['Ja', 'Nein'] : null,
+                    'correct_answer' => $composant === 'mcq' ? 'A' : null,
+                    'explanation' => 'Parce que.',
+                ]],
+            ]);
+        }
+        $sections[$slug] = $section;
+    }
+
+    return [$exam, $sections];
+}
+
+test('une epreuve blanche est composee a partir du vivier existant', function () {
+    [$exam] = examenAvecVivier('A2');
+
+    $mock = app(MockExamComposer::class)->pour($exam->fresh(), 'A2');
+
+    expect($mock)->not->toBeNull()
+        ->and($mock->is_published)->toBeTrue()
+        ->and($mock->title)->toContain('A2')
+        // Un exercice par module.
+        ->and($mock->exercises()->count())->toBe(3)
+        ->and($mock->blueprint->level)->toBe('A2');
+});
+
+test('les exercices du vivier sont recopies, jamais deplaces', function () {
+    [$exam] = examenAvecVivier('A2');
+    $libresAvant = Exercise::whereNull('mock_exam_id')->count();
+
+    app(MockExamComposer::class)->pour($exam->fresh(), 'A2');
+
+    // La pratique libre exclut ce qui appartient a une epreuve : deplacer les
+    // originaux l'aurait videe.
+    expect(Exercise::whereNull('mock_exam_id')->count())->toBe($libresAvant);
+});
+
+test('une epreuve deja composee est reservie au lieu d etre refaite', function () {
+    [$exam] = examenAvecVivier('A2');
+    $composeur = app(MockExamComposer::class);
+
+    $premier = $composeur->pour($exam->fresh(), 'A2');
+    $second = $composeur->pour($exam->fresh(), 'A2');
+
+    expect($second->id)->toBe($premier->id)
+        ->and(MockExam::count())->toBe(1);
+});
+
+test('sans assez de modules on ne pretend pas servir une epreuve', function () {
+    $language = Language::create(['slug' => 'english', 'name' => 'English', 'native_name' => 'English', 'flag' => 'gb']);
+    $exam = Exam::create(['language_id' => $language->id, 'slug' => 'ielts', 'name' => 'IELTS']);
+    $section = ExamSection::create(['exam_id' => $exam->id, 'slug' => 'writing', 'name' => 'Writing', 'skill_type' => 'writing']);
+    $type = ExerciseType::create([
+        'section_id' => $section->id, 'slug' => 'short-writing', 'name' => 'Court écrit',
+        'skill_type' => 'writing', 'component_key' => 'short-writing',
+    ]);
+    Exercise::create([
+        'exam_id' => $exam->id, 'exercise_type_id' => $type->id, 'exam_section_id' => $section->id,
+        'difficulty' => 'B1', 'content' => [],
+        'questions' => [['id' => 'q1', 'type' => 'short-writing', 'text' => 'Ecris un message.']],
+    ]);
+
+    expect(app(MockExamComposer::class)->pour($exam->fresh(), 'B1'))->toBeNull()
+        ->and(MockExam::count())->toBe(0);
+});
+
+test('un apprenant debutant atteint enfin une epreuve a son niveau', function () {
+    [$exam] = examenAvecVivier('A2');
+
+    $user = User::factory()->create();
+    UserProfile::factory()->for($user)->create([
+        'target_exam_id' => $exam->id, 'current_level' => 'A2', 'onboarding_completed_at' => now(),
+    ]);
+
+    // Avant, le simulateur refusait : « à ton niveau, commence par une compétence ».
+    $this->actingAs($user)->get(route('practice.simulate', $exam->id))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->component('practice/exam-simulator')->has('mockExam'));
+
+    expect(ExamBlueprint::where('exam_id', $exam->id)->where('level', 'A2')->exists())->toBeTrue();
+});
