@@ -152,7 +152,7 @@ test('un niveau sans structure officielle est annonce comme un entrainement', fu
         ->and($mock->description)->toContain("ne propose pas d'épreuve officielle");
 
     // Quand la structure existe vraiment a ce niveau, c'est bien une epreuve blanche.
-    App\Models\ExamBlueprint::create([
+    ExamBlueprint::create([
         'exam_id' => $exam->id, 'level' => 'B1', 'variant' => null,
         'name' => 'Officiel B1', 'total_duration_minutes' => 120,
         'scoring_config' => [], 'sections_config' => [],
@@ -161,4 +161,29 @@ test('un niveau sans structure officielle est annonce comme un entrainement', fu
 
     expect(app(MockExamComposer::class)->pour($exam->fresh(), 'B1')->title)
         ->toContain('épreuve blanche B1');
+});
+
+/**
+ * Un vrai sujet compte plusieurs taches par module — quatre textes a lire, deux
+ * redactions. En n'en posant qu'une, on servait le bon format au bon niveau, mais
+ * pas l'epreuve.
+ */
+test('un module monte autant de taches que la structure en annonce', function () {
+    [$exam] = examenAvecVivier('B1', 4);
+
+    ExamBlueprint::create([
+        'exam_id' => $exam->id, 'level' => 'B1', 'variant' => null,
+        'name' => 'Officiel B1', 'total_duration_minutes' => 120, 'scoring_config' => [],
+        'sections_config' => [
+            ['slug' => 'lesen', 'task_count' => 3],
+            ['slug' => 'hoeren', 'task_count' => 2],
+            ['slug' => 'schreiben'],
+        ],
+    ]);
+
+    $mock = app(MockExamComposer::class)->pour($exam->fresh(), 'B1');
+
+    // 3 lectures + 2 ecoutes + 1 redaction (aucun nombre annonce : une tache).
+    expect($mock->exercises()->count())->toBe(6)
+        ->and($mock->description)->toContain('6 tâches');
 });

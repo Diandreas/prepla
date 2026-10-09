@@ -44,6 +44,8 @@ return [
             'sections' => [
                 [
                     'slug' => 'lesen',
+                    // Nombre de taches a l'examen reel (source officielle).
+                    'task_count' => 5,
                     'name' => 'Lesen (Compréhension écrite)',
                     'skill_type' => 'reading',
                     'time_limit' => 65,
@@ -54,6 +56,8 @@ return [
                 ],
                 [
                     'slug' => 'hoeren',
+                    // Nombre de taches a l'examen reel (source officielle).
+                    'task_count' => 4,
                     'name' => 'Hören (Compréhension orale)',
                     'skill_type' => 'listening',
                     'time_limit' => 40,
@@ -64,6 +68,8 @@ return [
                 ],
                 [
                     'slug' => 'schreiben',
+                    // Nombre de taches a l'examen reel (source officielle).
+                    'task_count' => 3,
                     'name' => 'Schreiben (Expression écrite)',
                     'skill_type' => 'writing',
                     'time_limit' => 60,
@@ -79,6 +85,8 @@ return [
                 ],
                 [
                     'slug' => 'sprechen',
+                    // Nombre de taches a l'examen reel (source officielle).
+                    'task_count' => 3,
                     'name' => 'Sprechen (Expression orale)',
                     'skill_type' => 'speaking',
                     'time_limit' => 15,
@@ -103,6 +111,8 @@ return [
             'sections' => [
                 [
                     'slug' => 'lesen',
+                    // Nombre de taches a l'examen reel (source officielle).
+                    'task_count' => 4,
                     'name' => 'Lesen (Compréhension écrite)',
                     'skill_type' => 'reading',
                     'time_limit' => 90,
@@ -113,6 +123,8 @@ return [
                 ],
                 [
                     'slug' => 'hoeren',
+                    // Nombre de taches a l'examen reel (source officielle).
+                    'task_count' => 2,
                     'name' => 'Hören (Compréhension orale)',
                     'skill_type' => 'listening',
                     'time_limit' => 30,
@@ -123,6 +135,8 @@ return [
                 ],
                 [
                     'slug' => 'schreiben',
+                    // Nombre de taches a l'examen reel (source officielle).
+                    'task_count' => 2,
                     'name' => 'Schreiben (Expression écrite)',
                     'skill_type' => 'writing',
                     'time_limit' => 90,
@@ -145,6 +159,8 @@ return [
                 ],
                 [
                     'slug' => 'sprechen',
+                    // Nombre de taches a l'examen reel (source officielle).
+                    'task_count' => 3,
                     'name' => 'Sprechen (Expression orale)',
                     'skill_type' => 'speaking',
                     // 15-20 min en individuel, 20-25 min en binôme : on retient 20.

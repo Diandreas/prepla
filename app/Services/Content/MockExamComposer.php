@@ -64,26 +64,45 @@ class MockExamComposer
         }
 
         $choisis = [];
+        $modulesServis = 0;
         foreach ($sections as $section) {
-            $exercice = $this->exercicePour($exam, $section, $niveau, $avecGeneration);
-            if ($exercice) {
+            // Un vrai sujet compte plusieurs taches par module — quatre textes a lire,
+            // deux redactions. En n'en posant qu'une, on servait le bon format au bon
+            // niveau, mais pas l'epreuve. On en monte autant que la structure en
+            // annonce, et on s'arrete a ce qu'on sait vraiment servir.
+            $voulues = $this->nombreDeTaches($blueprint, $section);
+            $dejaPris = [];
+            $pourCeModule = 0;
+
+            for ($i = 0; $i < $voulues; $i++) {
+                $exercice = $this->exercicePour($exam, $section, $niveau, $avecGeneration, $dejaPris);
+                if (! $exercice) {
+                    break;
+                }
+                $dejaPris[] = $exercice->id;
                 $choisis[] = [$section, $exercice];
+                $pourCeModule++;
+            }
+
+            if ($pourCeModule > 0) {
+                $modulesServis++;
             }
         }
 
-        if (count($choisis) < self::MODULES_MINIMUM) {
+        if ($modulesServis < self::MODULES_MINIMUM) {
             Log::info('Epreuve blanche non composable', [
-                'exam' => $exam->slug, 'niveau' => $niveau, 'modules' => count($choisis),
+                'exam' => $exam->slug, 'niveau' => $niveau, 'modules' => $modulesServis,
             ]);
 
             return null;
         }
 
-        return DB::transaction(function () use ($blueprint, $officiel, $exam, $niveau, $sections, $choisis) {
+        return DB::transaction(function () use ($blueprint, $officiel, $exam, $niveau, $sections, $choisis, $modulesServis) {
             // On n'appelle « épreuve blanche » que ce qui suit une structure officielle
             // à ce niveau. Ailleurs c'est un entraînement au format de l'examen, servi
             // à la difficulté de l'apprenant — et c'est ce qu'on écrit.
-            $complet = count($choisis) === $sections->count();
+            $complet = $modulesServis === $sections->count();
+            $taches = count($choisis);
 
             $mock = MockExam::create([
                 'blueprint_id' => $blueprint->id,
@@ -91,7 +110,9 @@ class MockExamComposer
                     ? $exam->name.' — épreuve blanche '.$niveau
                     : $exam->name.' — entraînement au format, niveau '.$niveau,
                 'description' => ($officiel
-                    ? ($complet ? 'Toutes les épreuves, au niveau '.$niveau.'.' : count($choisis).' épreuves sur '.$sections->count().', au niveau '.$niveau.'.')
+                    ? ($complet
+                        ? 'Toutes les épreuves, au niveau '.$niveau.' — '.$taches.' tâches.'
+                        : $modulesServis.' épreuves sur '.$sections->count().', au niveau '.$niveau.'.')
                     : "Cet examen ne propose pas d'épreuve officielle au niveau {$niveau} : tu t'entraînes à son format, avec des exercices de ton niveau."),
                 'is_published' => true,
             ]);
@@ -113,6 +134,30 @@ class MockExamComposer
 
             return $mock->fresh();
         });
+    }
+
+    /**
+     * Le nombre de tâches d'un module.
+     *
+     * Il vient de la structure officielle quand elle le dit (`task_count`). Sinon on
+     * se rabat sur le nombre de parties décrites, puis sur une tâche : on ne gonfle
+     * pas une épreuve avec des exercices que la source ne réclame pas.
+     */
+    private function nombreDeTaches(ExamBlueprint $blueprint, ExamSection $section): int
+    {
+        foreach (($blueprint->sections_config ?? []) as $config) {
+            if (($config['slug'] ?? null) !== $section->slug) {
+                continue;
+            }
+
+            if (is_int($config['task_count'] ?? null) && $config['task_count'] > 0) {
+                return min($config['task_count'], 8);
+            }
+        }
+
+        $parties = is_array($section->parts_config) ? count($section->parts_config) : 0;
+
+        return $parties > 0 ? min($parties, 8) : 1;
     }
 
     /** Une épreuve déjà publiée pour ce niveau, et qui porte vraiment des exercices. */
@@ -154,7 +199,8 @@ class MockExamComposer
     }
 
     /** Un exercice utilisable pour ce module, à ce niveau. */
-    private function exercicePour(Exam $exam, ExamSection $section, string $niveau, bool $avecGeneration): ?Exercise
+    /** @param  list<int>  $dejaPris  les exercices deja retenus pour ce module */
+    private function exercicePour(Exam $exam, ExamSection $section, string $niveau, bool $avecGeneration, array $dejaPris = []): ?Exercise
     {
         $types = $section->exerciseTypes
             ->filter(fn (ExerciseType $type) => $this->pertinence->convient($type, $niveau));
@@ -169,6 +215,7 @@ class MockExamComposer
             ->where('difficulty', $niveau)
             ->whereNull('center_id')->whereNull('lesson_id')
             ->whereNull('node_id')->whereNull('mock_exam_id')
+            ->whereNotIn('id', $dejaPris)
             ->inRandomOrder()
             ->first();
 
@@ -179,7 +226,7 @@ class MockExamComposer
         // 2. La série préparée : gratuite, immédiate, et disponible même sans IA.
         foreach ($types as $type) {
             $starter = $this->starters->ensure($exam, $type, $niveau);
-            if ($starter) {
+            if ($starter && ! in_array($starter->id, $dejaPris, true)) {
                 return $starter;
             }
         }

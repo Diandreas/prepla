@@ -19,9 +19,33 @@ class ComposeMockExams extends Command
     protected $signature = 'prepla:compose-mock-exams
         {--exam= : ne traiter que cet examen (slug)}
         {--level= : ne traiter que ce niveau}
-        {--ia : autoriser la génération de ce qui manque}';
+        {--ia : autoriser la génération de ce qui manque}
+        {--refaire : recomposer les épreuves existantes, sauf celles déjà travaillées}';
 
     protected $description = 'Compose une épreuve blanche par examen et par niveau';
+
+    /**
+     * Efface une épreuve composée pour qu'elle soit refaite — mais seulement si
+     * personne ne l'a encore passée. Supprimer un exercice déjà tenté emporterait
+     * le travail de l'apprenant avec lui.
+     */
+    private function effacerSiIntacte(int $examId, string $niveau): void
+    {
+        $epreuves = MockExam::whereHas('blueprint', fn ($q) => $q->where('exam_id', $examId)->where('level', $niveau))->get();
+
+        foreach ($epreuves as $epreuve) {
+            $ids = $epreuve->exercises()->pluck('id');
+
+            if (\App\Models\UserExerciseAttempt::whereIn('exercise_id', $ids)->exists()) {
+                $this->line("  = déjà travaillée, on n'y touche pas : {$epreuve->title}");
+
+                continue;
+            }
+
+            \App\Models\Exercise::whereIn('id', $ids)->delete();
+            $epreuve->delete();
+        }
+    }
 
     public function handle(MockExamComposer $composeur): int
     {
@@ -37,6 +61,10 @@ class ComposeMockExams extends Command
 
         foreach ($examens as $exam) {
             foreach ($niveaux as $niveau) {
+                if ($this->option('refaire')) {
+                    $this->effacerSiIntacte($exam->id, $niveau);
+                }
+
                 $avant = MockExam::whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id)->where('level', $niveau))
                     ->where('is_published', true)->whereHas('exercises')->exists();
 
