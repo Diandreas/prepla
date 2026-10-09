@@ -71,6 +71,8 @@ return [
         // ─── READING (differs Academic vs General) ───
         [
             'slug' => 'reading',
+            // Structure officielle : 3 textes.
+            'task_count' => 3,
             'name' => 'Reading',
             'skill_type' => 'reading',
             'time_limit' => 60,
@@ -107,6 +109,8 @@ return [
         // ─── WRITING (differs Academic vs General) ───
         [
             'slug' => 'writing',
+            // Structure officielle : 2 taches.
+            'task_count' => 2,
             'name' => 'Writing',
             'skill_type' => 'writing',
             'time_limit' => 60,

@@ -131,6 +131,8 @@ return [
             'sections' => [
                 [
                     'slug' => 'lesen',
+                    // Nombre de taches a l'examen reel (cf. description).
+                    'task_count' => 5,
                     'name' => 'Lesen (Reading)',
                     'skill_type' => 'reading',
                     'time_limit' => 65,
@@ -140,6 +142,8 @@ return [
                 ],
                 [
                     'slug' => 'hoeren',
+                    // Nombre de taches a l'examen reel (cf. description).
+                    'task_count' => 4,
                     'name' => 'Hören (Listening)',
                     'skill_type' => 'listening',
                     'time_limit' => 40,
@@ -150,6 +154,8 @@ return [
                 ],
                 [
                     'slug' => 'schreiben',
+                    // Nombre de taches a l'examen reel (cf. description).
+                    'task_count' => 3,
                     'name' => 'Schreiben (Writing)',
                     'skill_type' => 'writing',
                     'time_limit' => 60,
@@ -181,6 +187,8 @@ return [
             'sections' => [
                 [
                     'slug' => 'lesen',
+                    // Nombre de taches a l'examen reel (cf. description).
+                    'task_count' => 5,
                     'name' => 'Lesen (Reading)',
                     'skill_type' => 'reading',
                     'time_limit' => 65,
@@ -190,6 +198,8 @@ return [
                 ],
                 [
                     'slug' => 'hoeren',
+                    // Nombre de taches a l'examen reel (cf. description).
+                    'task_count' => 4,
                     'name' => 'Hören (Listening)',
                     'skill_type' => 'listening',
                     'time_limit' => 30,
@@ -199,6 +209,8 @@ return [
                 ],
                 [
                     'slug' => 'schreiben',
+                    // Nombre de taches a l'examen reel (cf. description).
+                    'task_count' => 2,
                     'name' => 'Schreiben (Writing)',
                     'skill_type' => 'writing',
                     'time_limit' => 75,
@@ -254,6 +266,8 @@ return [
                 ],
                 [
                     'slug' => 'schreiben',
+                    // Nombre de taches a l'examen reel (cf. description).
+                    'task_count' => 2,
                     'name' => 'Schreiben (Writing)',
                     'skill_type' => 'writing',
                     'time_limit' => 80,
@@ -310,6 +324,8 @@ return [
                 ],
                 [
                     'slug' => 'schreiben',
+                    // Nombre de taches a l'examen reel (cf. description).
+                    'task_count' => 2,
                     'name' => 'Schreiben (Writing)',
                     'skill_type' => 'writing',
                     'time_limit' => 80,
