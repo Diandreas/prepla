@@ -239,7 +239,18 @@ class ExamSeeder extends Seeder
             $exerciseTypes = $sectionConfig['exercise_types'] ?? [];
             foreach ($exerciseTypes as $typeSlug) {
                 $registry = self::EXERCISE_TYPE_REGISTRY[$typeSlug] ?? null;
-                if (! $registry) continue;
+                if (! $registry) {
+                    // Un format mal nomme etait ignore SANS RIEN DIRE : la section se
+                    // retrouvait avec moins de formats que prevu, et l'epreuve blanche
+                    // repetait la meme tache faute de choix. On le signale.
+                    \Illuminate\Support\Facades\Log::warning("Format d'exercice inconnu dans la configuration d'un examen", [
+                        'exam' => $exam->slug,
+                        'section' => $sectionConfig['slug'],
+                        'format' => $typeSlug,
+                    ]);
+
+                    continue;
+                }
 
                 ExerciseType::updateOrCreate(
                     ['section_id' => $section->id, 'slug' => $typeSlug],

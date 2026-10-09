@@ -89,7 +89,10 @@ return [
             'question_count' => 4,
             'scoring_weight' => 25,
             // Types practisables (le seeder lit 'exercise_types' ; 'tasks' = métadonnée examen).
-            'exercise_types' => ['listen-repeat', 'speaking-response', 'integrated-task'],
+                    // « integrated-task » est le COMPOSANT ; le format s'appelle integrated-speaking.
+                    // Mal nomme, il etait ignore en silence et l'oral n'avait plus que deux formats
+                    // pour cinq taches — d'ou la meme tache repetee quatre fois.
+                    'exercise_types' => ['speaking-response', 'integrated-speaking', 'listen-repeat'],
             'tasks' => [
                 [
                     'task' => 0,
