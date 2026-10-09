@@ -221,7 +221,16 @@ class ExerciseScoringService
                         continue;
                     }
                     
-                    $aiResult = $this->writingCorrector->correct($textToEvaluate, $question['prompt'] ?? $question['text'] ?? "Write an essay", $exercise->exam?->name ?? 'IELTS', 'Français', $cefrLevel);
+                    // Les criteres de l'epreuve visee, quand elle en declare : la
+                    // correction les nommait jamais, alors qu'ils sont enregistres
+                    // avec l'examen (« Inhalt », « Textaufbau », « Korrektheit »...).
+                    $criteres = collect($exercise->examSection?->rubric['criteria'] ?? [])
+                        ->map(fn ($critere) => Exercise::optionText($critere['name'] ?? $critere))
+                        ->filter()
+                        ->values()
+                        ->all();
+
+                    $aiResult = $this->writingCorrector->correct($textToEvaluate, $question['prompt'] ?? $question['text'] ?? "Write an essay", $exercise->exam?->name ?? 'IELTS', 'Français', $cefrLevel, $criteres);
                     
                     // Normalize IELTS 1-9 to 0-1. La note est verifiee : rendue en
                     // texte ou en objet, la division levait une erreur et la seance

@@ -4,10 +4,10 @@
  * ÖSD — Österreichisches Sprachdiplom Deutsch
  * Source : osd.at (page officielle ÖSD Zertifikat B2, consultée le 2026-10-09)
  *
- * Seul le niveau B2 est décrit ici, parce que c'est le seul dont la structure a été
- * vérifiée sur la source officielle. Les autres niveaux ÖSD (A1, A2, B1, C1, C2) ont
- * chacun leur propre format : ils seront ajoutés quand leur structure aura été
- * vérifiée de la même façon, plutôt que devinée à partir du B2.
+ * Deux niveaux sont décrits : B1 et B2, les seuls dont la structure a été vérifiée
+ * sur la source officielle. Les autres (A1, A2, C1, C2) ont chacun leur propre
+ * format : ils seront ajoutés quand il aura été vérifié de la même façon, plutôt que
+ * deviné à partir de ceux-ci.
  *
  * Le module Sprechen compte TROIS tâches, et c'est la deuxième — la Bildbesprechung —
  * qui demande de décrire et commenter une image. C'est une tâche de B2 : elle n'a pas
@@ -33,6 +33,68 @@ return [
     'variants' => null,
 
     'levels' => [
+        // ━━━━━━━━━━ B1 : ÖSD Zertifikat B1 (ZB1) ━━━━━━━━━━
+        // Source : osd.at (page officielle ZB1, consultee le 2026-10-09). Cette
+        // epreuve est un produit COMMUN a l'OSD, au Goethe-Institut et a
+        // l'universite de Fribourg : sa structure est donc celle du
+        // Goethe-Zertifikat B1, verifiee des deux cotes.
+        'B1' => [
+            'name' => 'ÖSD Zertifikat B1',
+            'total_duration' => 180,
+            'sections' => [
+                [
+                    'slug' => 'lesen',
+                    'name' => 'Lesen (Compréhension écrite)',
+                    'skill_type' => 'reading',
+                    'time_limit' => 65,
+                    'scoring_weight' => 100,
+                    'max_score' => 100,
+                    'description' => '5 tâches : blog, courriel, article de presse, petites annonces, consignes écrites.',
+                    'exercise_types' => ['mcq', 'true-false-not-given', 'matching', 'matching-headings', 'gap-fill'],
+                ],
+                [
+                    'slug' => 'hoeren',
+                    'name' => 'Hören (Compréhension orale)',
+                    'skill_type' => 'listening',
+                    'time_limit' => 40,
+                    'scoring_weight' => 100,
+                    'max_score' => 100,
+                    'description' => '4 tâches : annonces, conversations, émissions courtes.',
+                    'exercise_types' => ['mcq', 'true-false-not-given', 'matching', 'note-completion'],
+                ],
+                [
+                    'slug' => 'schreiben',
+                    'name' => 'Schreiben (Expression écrite)',
+                    'skill_type' => 'writing',
+                    'time_limit' => 60,
+                    'scoring_weight' => 100,
+                    'max_score' => 100,
+                    'description' => '3 tâches : un courriel personnel, une prise de position, une excuse formelle.',
+                    'parts' => [
+                        ['name' => 'Persönliche E-Mail', 'description' => 'Écrire un courriel personnel'],
+                        ['name' => 'Meinung äußern', 'description' => 'Donner son opinion sur un sujet'],
+                        ['name' => 'Formelle Entschuldigung', 'description' => 'Écrire une excuse formelle'],
+                    ],
+                    'exercise_types' => ['essay', 'letter-writing', 'short-writing'],
+                ],
+                [
+                    'slug' => 'sprechen',
+                    'name' => 'Sprechen (Expression orale)',
+                    'skill_type' => 'speaking',
+                    'time_limit' => 15,
+                    'scoring_weight' => 100,
+                    'max_score' => 100,
+                    'description' => '3 tâches : planifier ensemble, présenter un thème, réagir à la présentation du partenaire. À l\'examen, en binôme avec un autre candidat ; ici tu t\'entraînes seul, au micro.',
+                    'parts' => [
+                        ['name' => 'Planungsgespräch', 'description' => 'Planifier quelque chose ensemble'],
+                        ['name' => 'Kurzvortrag', 'description' => 'Présenter brièvement un thème familier'],
+                        ['name' => 'Nachfragen', 'description' => 'Réagir à la présentation du partenaire et poser des questions'],
+                    ],
+                    'exercise_types' => ['speaking-response', 'speaking-long-turn', 'speaking-discussion'],
+                ],
+            ],
+        ],
+
         // ━━━━━━━━━━ B2 : ÖSD Zertifikat B2 (ZB2) ━━━━━━━━━━
         'B2' => [
             'name' => 'ÖSD Zertifikat B2',
@@ -89,7 +151,7 @@ return [
                     'time_limit' => 20,
                     'scoring_weight' => 100,
                     'max_score' => 100,
-                    'description' => '3 tâches : un entretien d\'information, la description et le commentaire d\'une image, puis une discussion argumentée. 15 à 20 minutes seul, 20 à 25 minutes en binôme.',
+                    'description' => '3 tâches : un entretien d\'information, la description et le commentaire d\'une image, puis une discussion argumentée. À l\'examen, 15 à 20 minutes seul ou 20 à 25 minutes en binôme avec un autre candidat ; ici tu t\'entraînes seul, au micro.',
                     'parts' => [
                         [
                             'name' => 'Informationsgespräch',
