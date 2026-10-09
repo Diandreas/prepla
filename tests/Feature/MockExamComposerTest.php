@@ -264,3 +264,25 @@ test('un plan derive reprend la structure a jour', function () {
 
     expect($refait->exercises()->count())->toBeGreaterThan(3);
 });
+
+/**
+ * Les sections sont partagees entre les niveaux d'un examen (une ligne par examen
+ * et par slug) : un sujet A1 du DELF embarquait les epreuves combinees qui
+ * n'existent qu'au C2.
+ */
+test('un sujet ne contient que les epreuves de son niveau', function () {
+    [$exam] = examenAvecVivier('A2', 2);
+    $exam->update(['levels' => ['A2']]);
+
+    // Le plan du niveau ne retient que deux des trois modules de l'examen.
+    ExamBlueprint::create([
+        'exam_id' => $exam->id, 'level' => 'A2', 'variant' => null,
+        'name' => 'A2', 'total_duration_minutes' => 60, 'scoring_config' => [],
+        'sections_config' => [['slug' => 'lesen'], ['slug' => 'hoeren']],
+    ]);
+
+    $mock = app(MockExamComposer::class)->pour($exam->fresh(), 'A2');
+    $slugs = $mock->exercises()->with('examSection')->get()->pluck('examSection.slug')->unique();
+
+    expect($slugs->sort()->values()->all())->toBe(['hoeren', 'lesen']);
+});

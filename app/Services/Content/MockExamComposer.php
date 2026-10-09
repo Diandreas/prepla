@@ -60,6 +60,18 @@ class MockExamComposer
         $blueprint = $this->blueprintPour($exam, $niveau);
         $sections = $exam->sections()->where('slug', '!=', 'level-assessment')->with('exerciseTypes')->get();
 
+        // Les modules de CE niveau, pas tous ceux de l'examen. Les sections sont
+        // partagees entre les niveaux (une ligne par examen et par slug), donc un
+        // sujet A1 du DELF embarquait les epreuves combinees qui n'existent qu'au
+        // C2. Le plan du niveau dit lesquelles comptent.
+        $duNiveau = collect($blueprint->sections_config ?? [])->pluck('slug')->filter()->all();
+        if ($duNiveau !== []) {
+            $retenues = $sections->whereIn('slug', $duNiveau);
+            if ($retenues->isNotEmpty()) {
+                $sections = $retenues->values();
+            }
+        }
+
         if ($sections->isEmpty()) {
             return null;
         }
