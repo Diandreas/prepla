@@ -198,11 +198,15 @@ function scoreOrder(question, answer) {
             .map((key) => answer[key]);
     }
 
-    const expected = Array.isArray(question.items) && question.items.length === given.length ? question.items : question.correct_order;
+    // Chaque element est LU : le generateur rend parfois les items en objets
+    // ({id, text}), et le serveur plantait dessus. Les deux correcteurs doivent lire
+    // la sequence de la meme facon.
+    const brut = Array.isArray(question.items) && question.items.length === given.length ? question.items : question.correct_order;
+    const expected = (brut ?? []).map(optionText);
     const compared = Math.min(expected.length, given.length);
     let hits = 0;
     for (let index = 0; index < compared; index++) {
-        if (normalizeAnswer(given[index] ?? '') === normalizeAnswer(expected[index] ?? '')) hits++;
+        if (normalizeAnswer(optionText(given[index] ?? '')) === normalizeAnswer(expected[index] ?? '')) hits++;
     }
 
     const accuracy = expected.length > 0 ? (hits / expected.length) * 100 : 0;
@@ -324,16 +328,16 @@ export function isAnswerCorrect(question, answer) {
 export function expectedAnswerText(question) {
     if (hasOrder(question)) {
         const sequence = Array.isArray(question.items) && question.items.length === question.correct_order.length ? question.items : question.correct_order;
-        return sequence.map(phpString).filter(Boolean).join(' → ');
+        return sequence.map(optionText).filter(Boolean).join(' → ');
     }
     if (hasFields(question)) {
-        return Object.values(expectedFields(question)).map(phpString).filter(Boolean).join(', ');
+        return Object.values(expectedFields(question)).map(optionText).filter(Boolean).join(', ');
     }
 
     const expected = question?.correct_answer;
     if (isCollection(expected)) {
         return entries(expected)
-            .map(([, value]) => phpString(value))
+            .map(([, value]) => optionText(value))
             .filter(Boolean)
             .join(', ');
     }

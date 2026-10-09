@@ -370,6 +370,10 @@ PROMPT;
                 !isset($decoded['section_a'], $decoded['section_b'], $decoded['section_c']) ||
                 !is_array($decoded['section_a']) || count($decoded['section_a']) < 6 ||
                 !isset($decoded['section_b']['passage'], $decoded['section_b']['questions']) ||
+                // Les questions de la section B doivent etre une LISTE : rendues en
+                // chaine ou en nombre, elles partaient dans array_map et le test de
+                // placement tombait en 500 des son ouverture, pour un compte neuf.
+                !is_array($decoded['section_b']['questions']) || count($decoded['section_b']['questions']) < 2 ||
                 !isset($decoded['section_c']['prompt'])
             ) {
                 continue;

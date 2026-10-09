@@ -11,7 +11,9 @@ class LessonQuizQuality
     {
         return array_map(function ($q) {
             if (! is_array($q)) return [];
-            $q['question'] = trim(preg_replace('/\s*\[\s*\]\s*$/u', '', (string) ($q['question'] ?? '')));
+            // L'enonce est LU, pas transtype : rendu en objet, le transtypage levait
+            // « Array to string conversion » et la lecon ne s'ouvrait plus du tout.
+            $q['question'] = trim(preg_replace('/\s*\[\s*\]\s*$/u', '', \App\Models\Exercise::optionText($q['question'] ?? '')));
             $options = is_array($q['options'] ?? null) ? $q['options'] : [];
             if (empty($q['type'])) {
                 $q['type'] = count($options) ? 'mcq' : 'recall';

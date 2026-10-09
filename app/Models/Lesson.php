@@ -176,7 +176,17 @@ class Lesson extends Model
 
         if (in_array($question['type'] ?? '', ['recall', 'sentence-order'], true) || empty($question['options'])) {
             $normalize = fn ($value) => preg_replace('/\s+/u', ' ', mb_strtolower(trim(str_replace('’', "'", (string) $value), " \t\n\r\0\x0B.!?")));
-            $accepted = array_merge([$question['correct_answer'] ?? ''], $question['accepted_answers'] ?? []);
+            // Les reponses acceptees arrivent parfois en une seule chaine
+            // (« a; an ») ou melangees a des objets : transtypees telles quelles,
+            // elles levaient « Array to string conversion » et le quiz ne se
+            // corrigeait plus. On les lit, on ecarte ce qui n'est pas du texte.
+            $variantes = $question['accepted_answers'] ?? null;
+            if (is_string($variantes)) {
+                $variantes = preg_split('/\s*[;,]\s*/u', $variantes, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+            }
+            $variantes = array_filter(is_array($variantes) ? $variantes : [], 'is_scalar');
+            $attendu = $question['correct_answer'] ?? '';
+            $accepted = array_merge([is_scalar($attendu) ? $attendu : ''], $variantes);
             return $normalize($userAnswer) !== '' && collect($accepted)->contains(fn ($answer) => $normalize($answer) === $normalize($userAnswer));
         }
 

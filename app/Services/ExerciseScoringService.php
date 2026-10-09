@@ -223,7 +223,11 @@ class ExerciseScoringService
                     
                     $aiResult = $this->writingCorrector->correct($textToEvaluate, $question['prompt'] ?? $question['text'] ?? "Write an essay", $exercise->exam?->name ?? 'IELTS', 'Français', $cefrLevel);
                     
-                    $points = ($aiResult['score'] ?? 0) / 9; // Normalize IELTS 1-9 to 0-1
+                    // Normalize IELTS 1-9 to 0-1. La note est verifiee : rendue en
+                    // texte ou en objet, la division levait une erreur et la seance
+                    // entiere partait en 500.
+                    $noteBrute = $aiResult['score'] ?? 0;
+                    $points = (is_numeric($noteBrute) ? (float) $noteBrute : 0.0) / 9;
                     $isCorrect = $points >= 0.6;
                     $accuracy = ($points * 100);
 
@@ -315,14 +319,21 @@ class ExerciseScoringService
                     }
                 }
                 // Expected sequence: prefer items (texts) for ordering, else correct_order (ids).
-                $expectedSeq = $correctOrder;
+                // Chaque element est LU : le generateur rend parfois les items en objets
+                // ({id, text}), et l'element brut partait dans une comparaison typee
+                // ?string — TypeError, donc 500 a l'envoi de la seance, pour l'apprenant
+                // qui venait justement de terminer l'exercice. Sa seance devenait meme
+                // definitivement inenvoyable, puisque le renvoi retombait sur la meme
+                // erreur.
+                $expectedSeq = array_map(fn ($valeur) => Exercise::optionText($valeur), $correctOrder);
                 if (isset($question['items']) && is_array($question['items']) && count($question['items']) === count($userSeq)) {
-                    $expectedSeq = $question['items'];
+                    $expectedSeq = array_map(fn ($valeur) => Exercise::optionText($valeur), $question['items']);
                 }
                 $n = min(count($expectedSeq), count($userSeq));
                 $hit = 0;
                 for ($i = 0; $i < $n; $i++) {
-                    if ($this->normalizeForComparison($userSeq[$i] ?? '') === $this->normalizeForComparison($expectedSeq[$i] ?? '')) {
+                    $donne = Exercise::optionText($userSeq[$i] ?? '');
+                    if ($this->normalizeForComparison($donne) === $this->normalizeForComparison($expectedSeq[$i] ?? '')) {
                         $hit++;
                     }
                 }
@@ -376,8 +387,8 @@ class ExerciseScoringService
                 // fois la même saisie) — sinon des réponses justes sortaient à 0%.
                 $givenPool = [];
                 foreach ($userAnswer as $v) {
-                    if (is_scalar($v)) {
-                        $n = $this->normalizeForComparison((string) $v);
+                    if (true) {
+                        $n = $this->normalizeForComparison(Exercise::optionText($v));
                         if ($n !== '') {
                             $givenPool[$n] = ($givenPool[$n] ?? 0) + 1;
                         }
@@ -385,9 +396,12 @@ class ExerciseScoringService
                 }
 
                 foreach ($correctAnswers as $key => $expected) {
-                    $expectedNorm = $this->normalizeForComparison(is_scalar($expected) ? (string) $expected : '');
+                    // La valeur attendue est LUE quelle que soit sa forme : rendue en
+                    // objet, elle devenait une chaine vide et le champ n'etait jamais
+                    // creditable — l'exercice sortait a 0 % quoi que l'apprenant ecrive.
+                    $expectedNorm = $this->normalizeForComparison(Exercise::optionText($expected));
                     $given = $userAnswer[$key] ?? '';
-                    $givenNorm = is_scalar($given) ? $this->normalizeForComparison((string) $given) : '';
+                    $givenNorm = $this->normalizeForComparison(Exercise::optionText($given));
 
                     if ($givenNorm !== '' && $givenNorm === $expectedNorm) {
                         $fieldCorrect++;
@@ -504,7 +518,7 @@ class ExerciseScoringService
                      $explanation = $this->mistralEval->explainMistake(
                          $question['prompt'] ?? $question['text'] ?? '',
                          is_string($userAnswer) ? $resolve($userAnswer) : $this->getTextToEvaluate($userAnswer),
-                         (string) $resolve($correctAnswer ?? ''),
+                         Exercise::optionText($resolve($correctAnswer ?? '')),
                          $exercise->exam?->language?->name ?? 'English'
                      );
                  }
@@ -617,12 +631,14 @@ class ExerciseScoringService
             $items = $question['items'] ?? null;
             $sequence = (is_array($items) && count($items) === count($order)) ? $items : $order;
 
-            return implode(' → ', array_map(fn ($value) => (string) $value, $sequence));
+            // Chaque element est LU : transtyper un objet donnait « Array » et une
+            // alerte PHP, qui fait tomber le bilan de seance en 500.
+            return implode(' → ', array_filter(array_map(fn ($value) => Exercise::optionText($value), $sequence)));
         }
 
         $answer = $question['correct_answer'] ?? null;
         if (is_array($answer)) {
-            return implode(', ', array_map(fn ($value) => (string) $value, $answer));
+            return implode(', ', array_filter(array_map(fn ($value) => Exercise::optionText($value), $answer)));
         }
         if (!is_scalar($answer) || (string) $answer === '') {
             return '';

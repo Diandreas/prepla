@@ -249,7 +249,10 @@ class ExerciseGeneratorService
 
             $opts = $q['options'] ?? null;
             if (! is_array($opts)) {
-                if ($requireExplanation && empty(trim((string) ($q['explanation'] ?? '')))) {
+                // L'explication est LUE : rendue en objet (concept/evidence/hint), le
+                // transtypage levait une alerte et la question etait jetee — parfois
+                // toute la fournee, donc aucun exercice servi.
+                if ($requireExplanation && trim(\App\Models\Exercise::optionText($q['explanation'] ?? '')) === '') {
                     return false;
                 }
 

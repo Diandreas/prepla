@@ -578,6 +578,74 @@
             },
             "answer": "c",
             "correct": false
+        },
+        {
+            "name": "Remise en ordre : items rendus en objets, ordre juste",
+            "question": {
+                "id": "ordre1",
+                "type": "ordering",
+                "text": "Remets la phrase dans l'ordre",
+                "items": [
+                    {
+                        "id": "i1",
+                        "text": "Ich"
+                    },
+                    {
+                        "id": "i2",
+                        "text": "heisse"
+                    },
+                    {
+                        "id": "i3",
+                        "text": "Lina"
+                    }
+                ],
+                "correct_order": [
+                    "i1",
+                    "i2",
+                    "i3"
+                ],
+                "explanation": "Sujet, verbe, complement."
+            },
+            "answer": [
+                "Ich",
+                "heisse",
+                "Lina"
+            ],
+            "correct": true
+        },
+        {
+            "name": "Remise en ordre : items rendus en objets, ordre faux",
+            "question": {
+                "id": "ordre2",
+                "type": "ordering",
+                "text": "Remets la phrase dans l'ordre",
+                "items": [
+                    {
+                        "id": "i1",
+                        "text": "Ich"
+                    },
+                    {
+                        "id": "i2",
+                        "text": "heisse"
+                    },
+                    {
+                        "id": "i3",
+                        "text": "Lina"
+                    }
+                ],
+                "correct_order": [
+                    "i1",
+                    "i2",
+                    "i3"
+                ],
+                "explanation": "Sujet, verbe, complement."
+            },
+            "answer": [
+                "Lina",
+                "heisse",
+                "Ich"
+            ],
+            "correct": false
         }
     ]
 }
