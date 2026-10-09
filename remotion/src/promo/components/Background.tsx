@@ -48,19 +48,26 @@ const Grain: React.FC<{ opacity: number }> = ({ opacity }) => {
     );
 };
 
+type Keys = { frames: number[]; values: number[] };
+
+// Par défaut (vidéos de 60 s) : teinte d'urgence pendant l'accroche, effacée à l'impact du logo,
+// et grille qui accélère pendant le chaos.
+const STRESS: Keys = { frames: [0, 30, SCENES.logo.from - 20, SCENES.logo.from + 10], values: [0.4, 1, 1, 0] };
+const GRID_RUSH: [number, number] = [SCENES.chaos.from, SCENES.logo.from];
+
 /**
  * Décor continu de toute la vidéo : dégradé navy, grille « blueprint » qui dérive,
  * halos bleu/or qui respirent, teinte d'urgence au début (stress) qui s'efface au logo.
  */
-export const Background: React.FC = () => {
+export const Background: React.FC<{ stressKeys?: Keys; gridRush?: [number, number] | null }> = ({ stressKeys = STRESS, gridRush = GRID_RUSH }) => {
     const frame = useCurrentFrame();
     const t = frame / 30;
 
-    // Teinte « stress » (ambre/rouge) pendant l'accroche, disparaît à l'impact du logo.
-    const stress = interpolate(frame, [0, 30, SCENES.logo.from - 20, SCENES.logo.from + 10], [0.4, 1, 1, 0], CLAMP);
+    // Teinte « stress » (ambre/rouge).
+    const stress = interpolate(frame, stressKeys.frames, stressKeys.values, CLAMP);
 
     // La grille avance comme une caméra qui monte doucement ; elle accélère pendant le chaos.
-    const gridShift = frame * 0.6 + interpolate(frame, [SCENES.chaos.from, SCENES.logo.from], [0, 140], CLAMP);
+    const gridShift = frame * 0.6 + (gridRush ? interpolate(frame, gridRush, [0, 140], CLAMP) : 0);
 
     const g1x = 0.28 + noise2D('g1x', t * 0.08, 0) * 0.12;
     const g1y = 0.22 + noise2D('g1y', t * 0.08, 0) * 0.08;

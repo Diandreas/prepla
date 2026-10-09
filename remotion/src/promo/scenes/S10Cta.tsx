@@ -12,15 +12,59 @@ import { BEAT, C, EASE, FONT, SPRING, env, sp, tw } from '../theme';
 // logo et la carte « Ta prochaine mission » de l'accueil de l'app (components/daily-mission.tsx)
 // avec le renard-guide, le bouton « Créer mon parcours » et l'adresse du site.
 
-const CARD_AT = 120;
-const LOGO = { size: 230, y: 430 };
-const MISSION = { left: 80, top: 760, width: 920, height: 470 };
-const BUTTON_TAP = CARD_AT + 70;
+type CtaLayout = {
+    logo: { size: number; y: number };
+    wordTop: number;
+    wordSize: number;
+    mission: { left: number; top: number; width: number; height: number };
+    fox: { left: number; height: number };
+    /** Centre du bouton « Créer mon parcours », depuis le haut de la carte. */
+    buttonY: number;
+    urlTop: number;
+    examsTop: number;
+    legalTop: number;
+};
+
+const LAYOUTS: Record<'full' | 'compact', CtaLayout> = {
+    full: {
+        logo: { size: 230, y: 430 },
+        wordTop: 590,
+        wordSize: 104,
+        mission: { left: 80, top: 760, width: 920, height: 470 },
+        fox: { left: 655, height: 480 },
+        buttonY: 384,
+        urlTop: 1262,
+        examsTop: 1374,
+        legalTop: 1506,
+    },
+    // Format court : sans description, tout tient au-dessus de y 1420 (zone sûre des réseaux sociaux).
+    compact: {
+        logo: { size: 190, y: 410 },
+        wordTop: 530,
+        wordSize: 96,
+        mission: { left: 80, top: 700, width: 920, height: 380 },
+        fox: { left: 660, height: 400 },
+        buttonY: 298,
+        urlTop: 1120,
+        examsTop: 1220,
+        legalTop: 1350,
+    },
+};
 const URL = 'prepla.mirlab.cloud';
 
-export const S10Cta: React.FC = () => {
+export const S10Cta: React.FC<{
+    /** Image (relative à la séquence) de l'impact du logo ; la carte et le reste suivent. */
+    cardAt?: number;
+    /** Phrases d'introduction (« Ne révise plus au hasard. »…) avant le logo. */
+    intro?: boolean;
+    layout?: 'full' | 'compact';
+    tapOffset?: number;
+    showDescription?: boolean;
+}> = ({ cardAt: CARD_AT = 120, intro = true, layout = 'full', tapOffset = 70, showDescription = true }) => {
     const frame = useCurrentFrame();
     const content = usePromoContent().cta;
+    const { logo: LOGO, mission: MISSION, ...L } = LAYOUTS[layout];
+    const BUTTON_TAP = CARD_AT + tapOffset;
     const bubble = sp(frame, CARD_AT + 54, SPRING.bouncy);
     const card = sp(frame, CARD_AT + 26, SPRING.soft);
     const fox = sp(frame, CARD_AT + 40, SPRING.bouncy);
@@ -35,12 +79,16 @@ export const S10Cta: React.FC = () => {
 
     return (
         <AbsoluteFill>
-            <div style={{ position: 'absolute', top: 760, left: 0, right: 0 }}>
-                <KineticText lines={content.first} start={0} size={132} stagger={4} exit={42} />
-            </div>
-            <div style={{ position: 'absolute', top: content.secondTop, left: 0, right: 0 }}>
-                <KineticText lines={content.second} start={60} size={content.secondSize} stagger={4} exit={102} />
-            </div>
+            {intro ? (
+                <>
+                    <div style={{ position: 'absolute', top: 760, left: 0, right: 0 }}>
+                        <KineticText lines={content.first} start={0} size={132} stagger={4} exit={42} />
+                    </div>
+                    <div style={{ position: 'absolute', top: content.secondTop, left: 0, right: 0 }}>
+                        <KineticText lines={content.second} start={60} size={content.secondSize} stagger={4} exit={102} />
+                    </div>
+                </>
+            ) : null}
 
             {frame >= CARD_AT - 2 ? (
                 <>
@@ -66,8 +114,8 @@ export const S10Cta: React.FC = () => {
                     >
                         <LogoMark size={LOGO.size} assembleAt={CARD_AT} glossAt={CARD_AT + 36} />
                     </div>
-                    <div style={{ position: 'absolute', top: 590, left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
-                        <Wordmark size={104} revealAt={CARD_AT + 12} badgeAt={CARD_AT + 24} />
+                    <div style={{ position: 'absolute', top: L.wordTop, left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
+                        <Wordmark size={L.wordSize} revealAt={CARD_AT + 12} badgeAt={CARD_AT + 24} />
                     </div>
 
                     {/* Carte « Ta prochaine mission » de l'accueil de l'app */}
@@ -109,9 +157,11 @@ export const S10Cta: React.FC = () => {
                                 {content.title}{' '}
                                 <span style={{ fontFamily: FONT.serif, fontStyle: 'italic', fontWeight: 700, fontSize: '1.2em', color: C.goldLight }}>{content.titleAccent}</span>
                             </div>
-                            <div style={{ marginTop: 14, fontSize: 28, fontWeight: 500, lineHeight: 1.4, color: 'rgba(219,234,254,0.85)', opacity: line(8) }}>
-                                {content.description}
-                            </div>
+                            {showDescription ? (
+                                <div style={{ marginTop: 14, fontSize: 28, fontWeight: 500, lineHeight: 1.4, color: 'rgba(219,234,254,0.85)', opacity: line(8) }}>
+                                    {content.description}
+                                </div>
+                            ) : null}
                             <div
                                 style={{
                                     position: 'relative',
@@ -154,15 +204,15 @@ export const S10Cta: React.FC = () => {
                     <div
                         style={{
                             position: 'absolute',
-                            left: 655,
-                            top: MISSION.top + MISSION.height - 480,
+                            left: L.fox.left,
+                            top: MISSION.top + MISSION.height - L.fox.height,
                             transform: `translateY(${(1 - fox) * 260}px) rotate(${wave}deg) scale(${0.85 + 0.15 * Math.min(1, fox)})`,
                             transformOrigin: '50% 100%',
                             opacity: Math.min(1, fox * 2),
                             filter: 'drop-shadow(0 24px 30px rgba(0,0,0,0.45))',
                         }}
                     >
-                        <Fox height={480} />
+                        <Fox height={L.fox.height} />
                     </div>
 
                     {/* Bulle du renard (version allemande : « Los geht's! ») */}
@@ -195,7 +245,7 @@ export const S10Cta: React.FC = () => {
                     <div
                         style={{
                             position: 'absolute',
-                            top: 1262,
+                            top: L.urlTop,
                             left: 0,
                             right: 0,
                             display: 'flex',
@@ -220,7 +270,7 @@ export const S10Cta: React.FC = () => {
                     <div
                         style={{
                             position: 'absolute',
-                            top: 1374,
+                            top: L.examsTop,
                             left: 60,
                             right: 60,
                             textAlign: 'center',
@@ -244,7 +294,7 @@ export const S10Cta: React.FC = () => {
                     <div
                         style={{
                             position: 'absolute',
-                            top: 1506,
+                            top: L.legalTop,
                             left: 90,
                             right: 90,
                             textAlign: 'center',
@@ -259,7 +309,7 @@ export const S10Cta: React.FC = () => {
                         {content.legal}
                     </div>
 
-                    <Pointer keys={[{ f: BUTTON_TAP, x: MISSION.left + 52 + 280, y: MISSION.top + 384, tap: true }]} hideAt={BUTTON_TAP + 16} />
+                    <Pointer keys={[{ f: BUTTON_TAP, x: MISSION.left + 52 + 280, y: MISSION.top + L.buttonY, tap: true }]} hideAt={BUTTON_TAP + 16} />
                 </>
             ) : null}
         </AbsoluteFill>

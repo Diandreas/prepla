@@ -5,7 +5,8 @@ import { QuizCard, type Episode } from './QuizCard';
 import ieltsEpisode from './data/would-you-pass-ielts-001.json';
 import { PreplaPromo } from './promo/PreplaPromo';
 import { PreplaPromoDE } from './promo/PreplaPromoDE';
-import { FPS as PROMO_FPS, H as PROMO_H, TOTAL_FRAMES as PROMO_FRAMES, W as PROMO_W } from './promo/theme';
+import { PreplaQuiz15 } from './promo/PreplaQuiz15';
+import { FPS as PROMO_FPS, H as PROMO_H, QUIZ_TOTAL, TOTAL_FRAMES as PROMO_FRAMES, W as PROMO_W } from './promo/theme';
 
 const FPS = 30;
 const OUTRO_SECONDS = 3;
@@ -32,6 +33,14 @@ export const RemotionRoot: React.FC = () => {
                 width={PROMO_W}
                 height={PROMO_H}
                 durationInFrames={PROMO_FRAMES}
+            />
+            <Composition
+                id="PreplaQuiz15"
+                component={PreplaQuiz15}
+                fps={PROMO_FPS}
+                width={PROMO_W}
+                height={PROMO_H}
+                durationInFrames={QUIZ_TOTAL}
             />
             <Composition
                 id="PreplaPromoDE"

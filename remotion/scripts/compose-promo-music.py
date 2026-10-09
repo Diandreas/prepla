@@ -14,6 +14,8 @@ Sorties : public/promo/music.mp3 et public/promo/sfx/*.wav
 
 Variante de la version allemande (même partition, un ton plus haut, en ré majeur) :
     python3 scripts/compose-promo-music.py --transpose 2 --out music-de.mp3 --no-sfx
+Version de 15 s (quiz PreplaQuiz15) :
+    python3 scripts/compose-promo-music.py --short --out music-15s.mp3 --no-sfx
 """
 from __future__ import annotations
 
@@ -301,14 +303,52 @@ CHORDS = {
 GROOVE = ['C', 'G', 'Am', 'F']
 
 
-def compose():
-    drums, music, send, sub = Bus(), Bus(), Bus(), Bus()
-    kick_times: list[float] = []
+class Arrangement:
+    """Les quatre bus d'un morceau et les gestes communs (kick, mesure de groove)."""
 
-    def hit_kick(t: float, gain: float = 1.0, soft: bool = False):
-        drums.add(kick(soft), t, 0.9 * gain)
+    def __init__(self):
+        self.drums, self.music, self.send, self.sub = Bus(), Bus(), Bus(), Bus()
+        self.kick_times: list[float] = []
+
+    def hit_kick(self, t: float, gain: float = 1.0, soft: bool = False):
+        self.drums.add(kick(soft), t, 0.9 * gain)
         if not soft:
-            kick_times.append(t)
+            self.kick_times.append(t)
+
+    def groove_bar(self, bar: int, chord: str, clap_on: bool, arp_gain: float, open_hat: bool, bells: bool = False):
+        drums, music, send, sub = self.drums, self.music, self.send, self.sub
+        c = CHORDS[chord]
+        for b in range(4):
+            self.hit_kick(at(bar, b))
+            drums.add(hat(), at(bar, b + 0.5), 0.22, pan=0.3)
+            if b % 2 == 1 and clap_on:
+                drums.add(clap(), at(bar, b), 0.42)
+                send.add(clap(), at(bar, b), 0.1)
+        if open_hat:
+            drums.add(hat(True), at(bar, 3.5), 0.16, pan=-0.3)
+        for e in range(8):
+            m = c['bass'] + (12 if e % 2 else 0)
+            sub.add(bass(m, BEAT / 2 * 0.92), at(bar, e / 2), 0.36 if e % 2 == 0 else 0.26)
+        music.add(pad(c['pad'], BAR, bright=0.95, attack=0.05, release=0.35), at(bar), 0.5)
+        if arp_gain > 0:
+            pattern = [0, 1, 2, 3, 4, 3, 2, 1, 0, 2, 3, 4, 3, 2, 1, 2]
+            for s, idx in enumerate(pattern):
+                note = pluck(c['arp'][idx], 0.6)
+                pan = -0.45 if s % 2 else 0.45
+                music.add(note, at(bar, s / 4), arp_gain * (1.0 if s % 4 == 0 else 0.72), pan=pan)
+                send.add(note, at(bar, s / 4), arp_gain * 0.35)
+        if bells:
+            send.add(bell(c['arp'][4] + 12, 2.0), at(bar), 0.1)
+            music.add(bell(c['arp'][4] + 12, 2.0), at(bar), 0.1, pan=0.2)
+
+    def master(self, fade: float = 1.6) -> np.ndarray:
+        return master(self.drums, self.music, self.send, self.sub, self.kick_times, fade)
+
+
+def compose():
+    a = Arrangement()
+    drums, music, send, sub, kick_times = a.drums, a.music, a.send, a.sub, a.kick_times
+    hit_kick, groove_bar = a.hit_kick, a.groove_bar
 
     # --- 1-2 : tension (la mineur), tic-tac en croches, battements de cœur
     for i in range(16):
@@ -351,31 +391,6 @@ def compose():
         drums.add(snare(), at(6, 3) + i * BEAT / 8, 0.12 + 0.06 * i)
 
     # --- 7-21 : groove
-    def groove_bar(bar: int, chord: str, clap_on: bool, arp_gain: float, open_hat: bool, bells: bool = False):
-        c = CHORDS[chord]
-        for b in range(4):
-            hit_kick(at(bar, b))
-            drums.add(hat(), at(bar, b + 0.5), 0.22, pan=0.3)
-            if b % 2 == 1 and clap_on:
-                drums.add(clap(), at(bar, b), 0.42)
-                send.add(clap(), at(bar, b), 0.1)
-        if open_hat:
-            drums.add(hat(True), at(bar, 3.5), 0.16, pan=-0.3)
-        for e in range(8):
-            m = c['bass'] + (12 if e % 2 else 0)
-            sub.add(bass(m, BEAT / 2 * 0.92), at(bar, e / 2), 0.36 if e % 2 == 0 else 0.26)
-        music.add(pad(c['pad'], BAR, bright=0.95, attack=0.05, release=0.35), at(bar), 0.5)
-        if arp_gain > 0:
-            pattern = [0, 1, 2, 3, 4, 3, 2, 1, 0, 2, 3, 4, 3, 2, 1, 2]
-            for s, idx in enumerate(pattern):
-                note = pluck(c['arp'][idx], 0.6)
-                pan = -0.45 if s % 2 else 0.45
-                music.add(note, at(bar, s / 4), arp_gain * (1.0 if s % 4 == 0 else 0.72), pan=pan)
-                send.add(note, at(bar, s / 4), arp_gain * 0.35)
-        if bells:
-            send.add(bell(c['arp'][4] + 12, 2.0), at(bar), 0.1)
-            music.add(bell(c['arp'][4] + 12, 2.0), at(bar), 0.1, pan=0.2)
-
     for bar in range(7, 22):
         chord = GROOVE[(bar - 7) % 4]
         groove_bar(
@@ -438,6 +453,83 @@ def compose():
     return master(drums, music, send, sub, kick_times)
 
 
+def compose_short():
+    """Version de 15 s (quiz « Tu as 3 secondes », 7,5 mesures) : tension, silence avant le
+    verdict, soulagement, groove, impact du logo et accord final."""
+    a = Arrangement()
+    drums, music, send, sub = a.drums, a.music, a.send, a.sub
+
+    # --- 1 : tension en la mineur dès la première image (boum + battement par chiffre)
+    drums.add(impact(), 0.0, 0.4)
+    for k in range(3):
+        a.hit_kick(k * 2 * BEAT, 0.7, soft=True)
+    for i in range(8):
+        drums.add(tick(i % 2 == 0), i * BEAT / 2, 0.22 + 0.06 * (i % 2 == 0), pan=0.25 if i % 2 else -0.25)
+    music.add(pad(CHORDS['Am']['pad'], BAR, bright=0.5, attack=0.05, release=0.3), 0.0, 0.7)
+    sub.add(bass(33, BAR), 0.0, 0.32)
+
+    # --- 2 : doubles croches qui montent, riser jusqu'au silence (3,5 s)
+    for i in range(12):
+        drums.add(tick(i % 2 == 0), at(2) + i * BEAT / 4, 0.14 + 0.14 * i / 12, pan=0.35 if i % 2 else -0.35)
+    music.add(pad(CHORDS['F']['pad'], 2 * BEAT, bright=0.6, attack=0.05, release=0.2), at(2), 0.7)
+    music.add(pad(CHORDS['E']['pad'], BEAT, bright=0.75, attack=0.05, release=0.2), at(2, 2), 0.75)
+    sub.add(bass(29, 2 * BEAT), at(2), 0.3)
+    sub.add(bass(28, BEAT), at(2, 2), 0.3)
+    music.add(riser(1.5), at(2), 0.42)
+
+    # --- 3 : le verdict (place au son « incorrect » de l'app), puis soulagement
+    sub.add(bass(33, 1.2), at(3), 0.42)
+    a.hit_kick(at(3), 0.6, soft=True)
+    music.add(pad(CHORDS['F']['pad'], BEAT * 2, bright=0.4, attack=0.02, release=0.4), at(3), 0.4)
+    for s16, m in enumerate([65, 69, 72, 77, 72, 76, 79, 84]):
+        note = pluck(m, 0.6)
+        music.add(note, at(3, 2) + s16 * BEAT / 4, 0.13, pan=-0.4 if s16 % 2 else 0.4)
+        send.add(note, at(3, 2) + s16 * BEAT / 4, 0.05)
+    bl = bell(84, 2.4)
+    music.add(bl, at(3, 3), 0.22)
+    send.add(bl, at(3, 3), 0.2)
+
+    # --- 4-5 : groove qui revient (do, puis sol avec les claps), roulement vers le logo
+    a.groove_bar(4, 'C', clap_on=False, arp_gain=0.12, open_hat=False)
+    a.groove_bar(5, 'G', clap_on=True, arp_gain=0.16, open_hat=True)
+    music.add(reverse_crash(1.3), at(6) - 1.3, 0.3)
+    for i in range(8):
+        drums.add(snare(), at(5, 2) + i * BEAT / 4, 0.08 + 0.05 * i)
+
+    # --- 6-7 : impact du logo, groove complet sous la carte et l'adresse
+    drums.add(impact(), at(6), 0.85)
+    a.kick_times.append(at(6))
+    drums.add(crash(), at(6), 0.26)
+    music.add(pad(CHORDS['C']['pad'] + [72], BAR, bright=1.1, attack=0.02, release=0.6), at(6), 0.5)
+    for k, m in enumerate([84, 91]):
+        send.add(bell(m, 2.6), at(6) + 0.02 * k, 0.12, pan=-0.4 + 0.8 * k)
+    a.groove_bar(6, 'C', clap_on=True, arp_gain=0.2, open_hat=False)
+    a.groove_bar(7, 'F', clap_on=True, arp_gain=0.2, open_hat=True, bells=True)
+    music.add(pad(CHORDS['G']['pad'] + [74], BEAT * 2, bright=1.0, attack=0.05, release=0.3), at(7, 2), 0.35)
+
+    # --- 8 (demi-mesure) : accord final de do majeur qui résonne
+    final = pad(CHORDS['C']['pad'] + [72, 76], 1.0, bright=1.1, attack=0.02, release=0.4)
+    music.add(final, at(8), 0.6)
+    a.hit_kick(at(8), 0.9)
+    drums.add(impact(), at(8), 0.35)
+    for k, m in enumerate([84, 88, 91]):
+        bl = bell(m, 1.6)
+        music.add(bl, at(8) + 0.03 * k, 0.16, pan=(-0.3, 0.0, 0.3)[k])
+        send.add(bl, at(8) + 0.03 * k, 0.14)
+    sub.add(bass(36, 1.0), at(8), 0.34)
+
+    # Silence de suspense avant le verdict : tout se coupe de 3,5 à 4 s (seule la réverbération
+    # de ce qui précède continue de sonner).
+    gate = np.ones(N)
+    i0, i1 = int(at(2, 3) * SR), int(at(3) * SR)
+    ramp = int(0.01 * SR)
+    gate[i0:i1] = 0.0
+    gate[i0 - ramp:i0] = np.linspace(1, 0, ramp)
+    for bus in (drums, music, send, sub):
+        bus.buf[:, i0 - ramp:i1] *= gate[i0 - ramp:i1]
+    return a.master(fade=0.5)
+
+
 def master(drums: Bus, music: Bus, send: Bus, sub: Bus, kick_times: list[float], fade: float = 1.6) -> np.ndarray:
     """Mixage : sidechain sur les kicks, réverbération, fondu final et saturation douce du master."""
     side = np.ones(N)
@@ -493,18 +585,22 @@ def loudnorm_linear(src: Path, dst: Path, target: float = -16.0, peak: float = -
 
 
 def main():
-    global TRANSPOSE
+    global TRANSPOSE, DUR, N
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument('--transpose', type=int, default=0, help='transposition en demi-tons (version allemande : 2)')
     parser.add_argument('--out', default='music.mp3', help='nom du fichier produit dans public/promo/')
     parser.add_argument('--no-sfx', action='store_true', help='ne pas régénérer les bruitages')
+    parser.add_argument('--short', action='store_true', help='version de 15 s (vidéo PreplaQuiz15)')
     args = parser.parse_args()
     TRANSPOSE = args.transpose
 
     if not shutil.which('ffmpeg'):
         sys.exit('ffmpeg est requis.')
     tmp = ROOT / 'out' / 'music.wav'
-    write_wav(tmp, compose())
+    if args.short:
+        DUR = 15.0
+        N = int(DUR * SR)
+    write_wav(tmp, compose_short() if args.short else compose())
     loudnorm_linear(tmp, OUT_DIR / args.out)
     print(f'Musique : {OUT_DIR / args.out}')
     if args.no_sfx:

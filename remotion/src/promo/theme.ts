@@ -23,6 +23,9 @@ export const SCENES = {
 
 export const TOTAL_FRAMES = 1800;
 
+// Format court (quiz de 15 s, PreplaQuiz15.tsx), même grille musicale.
+export const QUIZ_TOTAL = 450;
+
 // Couleurs de la landing PrePla (resources/js/components/landing/landing-theme.tsx).
 export const C = {
     bg: '#0b1322',

@@ -147,6 +147,7 @@ const WordBlock: React.FC<{
                           fontWeight: 700,
                           fontSize: `${accentScale}em`,
                           letterSpacing: '-0.015em',
+                          fontVariantNumeric: 'lining-nums',
                           color: accentColor,
                           paddingRight: '0.04em',
                       }

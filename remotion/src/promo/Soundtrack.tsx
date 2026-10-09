@@ -126,16 +126,17 @@ export const FR_CUES: Cue[] = [
     [cta.from + 192, 'xp', 0.38],
 ];
 
-export const Soundtrack: React.FC<{ withMusic?: boolean; music?: string; cues?: Cue[] }> = ({
+export const Soundtrack: React.FC<{ withMusic?: boolean; music?: string; cues?: Cue[]; total?: number }> = ({
     withMusic = true,
     music = 'promo/music.mp3',
     cues = FR_CUES,
+    total = TOTAL_FRAMES,
 }) => {
     return (
         <>
             {withMusic ? <Audio src={staticFile(music)} volume={0.9} /> : null}
             {cues.map(([frame, sfx, volume], i) => (
-                <Sequence key={i} from={frame} durationInFrames={Math.min(LENGTH[sfx], TOTAL_FRAMES - frame)} layout="none" name={`sfx ${sfx}`}>
+                <Sequence key={i} from={frame} durationInFrames={Math.min(LENGTH[sfx], total - frame)} layout="none" name={`sfx ${sfx}`}>
                     <Audio src={staticFile(FILES[sfx])} volume={volume} />
                 </Sequence>
             ))}

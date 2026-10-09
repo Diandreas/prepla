@@ -16,8 +16,8 @@ export const MINI = {
     wordLeft: LEFT + MARK_SIZE * LOGO_RATIO + 18,
 };
 
-/** Visible entre `from` et `to` (images relatives à sa séquence). */
-export const MiniLogo: React.FC<{ hideAt: number }> = ({ hideAt }) => {
+/** Visible jusqu'à `hideAt` (image relative à sa séquence). */
+export const MiniLogo: React.FC<{ hideAt: number; top?: number }> = ({ hideAt, top = TOP }) => {
     const frame = useCurrentFrame();
     const out = tw(frame, hideAt, 12, 0, 1, EASE.in);
     return (
@@ -25,7 +25,7 @@ export const MiniLogo: React.FC<{ hideAt: number }> = ({ hideAt }) => {
             style={{
                 position: 'absolute',
                 left: LEFT,
-                top: TOP,
+                top,
                 display: 'flex',
                 alignItems: 'center',
                 gap: 18,
