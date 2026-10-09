@@ -90,6 +90,10 @@ class MockExamComposer
 
             foreach ($choisis as [$section, $exercice]) {
                 $copie = $exercice->replicate(['created_at', 'updated_at']);
+                // La cle de catalogue identifie un contenu PREPARE, une seule fois :
+                // la recopier violait sa contrainte d'unicite et faisait echouer
+                // toute la composition.
+                $copie->catalog_key = null;
                 $copie->mock_exam_id = $mock->id;
                 $copie->exam_section_id = $section->id;
                 $copie->node_id = null;

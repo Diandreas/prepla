@@ -119,3 +119,20 @@ test('un apprenant debutant atteint enfin une epreuve a son niveau', function ()
 
     expect(ExamBlueprint::where('exam_id', $exam->id)->where('level', 'A2')->exists())->toBeTrue();
 });
+
+/**
+ * Les contenus prepares portent une cle de catalogue unique : la recopier
+ * violait sa contrainte et faisait echouer toute la composition.
+ */
+test('un contenu prepare se recopie sans heurter sa cle unique', function () {
+    [$exam] = examenAvecVivier('B1');
+
+    Exercise::where('exam_id', $exam->id)->take(2)->get()
+        ->each(fn ($e, $i) => $e->update(['catalog_key' => "starter-v1:{$exam->id}:{$i}"]));
+
+    $mock = app(MockExamComposer::class)->pour($exam->fresh(), 'B1');
+
+    expect($mock)->not->toBeNull()
+        ->and($mock->exercises()->whereNotNull('catalog_key')->count())->toBe(0)
+        ->and(Exercise::whereNotNull('catalog_key')->count())->toBe(2);
+});
