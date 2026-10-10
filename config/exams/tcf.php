@@ -82,6 +82,11 @@ return [
     'optional_sections' => [
         [
             'slug' => 'expression-ecrite',
+            // Sans formats declares, ce module ne produisait rien. Trois taches :
+            // un message, un article ou un compte rendu, puis un texte argumente
+            // confrontant deux points de vue (source : france-education-international.fr).
+            'task_count' => 3,
+            'exercise_types' => ['short-writing', 'letter-email-writing', 'essay'],
             'name' => 'Expression écrite',
             'skill_type' => 'writing',
             'time_limit' => 60,
@@ -123,6 +128,10 @@ return [
         ],
         [
             'slug' => 'expression-orale',
+            // Meme panne. Trois taches : entretien dirige, exercice en interaction,
+            // puis expression d'un point de vue.
+            'task_count' => 3,
+            'exercise_types' => ['speaking-response', 'role-play', 'speaking-long-turn'],
             'name' => 'Expression orale',
             'skill_type' => 'speaking',
             'time_limit' => 12,

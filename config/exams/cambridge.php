@@ -27,6 +27,11 @@
  *   2. Le « Use of English » n'est pas une compétence du moteur : il est décrit
  *      avec la lecture, comme sur la copie du candidat.
  *
+ * Les niveaux sont indexés par leur CODE CECR — c'est ce que le moteur cherche
+ * pour retrouver le plan d'un palier — et le nom de la qualification vit dans
+ * « name ». Indexer par le nom laissait le moteur sans plan et lui faisait
+ * fabriquer des sujets génériques à la place.
+ *
  * Résultat : chaque qualification délivre PLUSIEURS niveaux CECR selon le score
  * (A2 Key certifie A1, A2 ou B1 ; B1 Preliminary certifie A2, B1 ou B2). Les
  * bornes figurent dans « variants ».
@@ -99,7 +104,7 @@ return [
         // Reading and Writing : 7 parties, 32 questions, 60 min, 50 % de la note.
         // Listening : 5 parties, 25 questions, 30 min (6 min de report inclus), 25 %.
         // Speaking : 2 parties, 8 à 10 min en binôme, 25 %.
-        'A2 Key' => [
+        'A2' => [
             'name' => 'A2 Key (KET)',
             'total_duration' => 120,
             'sections' => [
@@ -162,7 +167,7 @@ return [
         // ━━━━━━━━━━ B1 Preliminary (PET) ━━━━━━━━━━
         // Quatre modules séparés depuis la réforme de 2020 : Reading et Writing
         // ne forment plus un seul papier. 25 % chacun.
-        'B1 Preliminary' => [
+        'B1' => [
             'name' => 'B1 Preliminary (PET)',
             'total_duration' => 140,
             'sections' => [
@@ -226,7 +231,7 @@ return [
         // ━━━━━━━━━━ B2 First (FCE) ━━━━━━━━━━
         // Reading and Use of English : 7 parties, 52 questions, 75 MINUTES — et non
         // 90, ce que ce fichier annonçait pour les trois qualifications à la fois.
-        'B2 First' => [
+        'B2' => [
             'name' => 'B2 First (FCE)',
             'total_duration' => 209,
             'sections' => [
@@ -287,7 +292,7 @@ return [
         // Reading and Use of English : HUIT parties, 56 questions, 90 minutes. La
         // huitième est un appariement croisé entre plusieurs textes, qui n'existe
         // ni au B2 ni au C2.
-        'C1 Advanced' => [
+        'C1' => [
             'name' => 'C1 Advanced (CAE)',
             'total_duration' => 235,
             'sections' => [
@@ -341,7 +346,7 @@ return [
         // ━━━━━━━━━━ C2 Proficiency (CPE) ━━━━━━━━━━
         // Le Speaking n'a que TROIS parties, contrairement au B2 First et au
         // C1 Advanced qui en ont quatre.
-        'C2 Proficiency' => [
+        'C2' => [
             'name' => 'C2 Proficiency (CPE)',
             'total_duration' => 236,
             'sections' => [
