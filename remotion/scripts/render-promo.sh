@@ -45,7 +45,7 @@ if [[ ! -f "$OUT/audio.wav" ]]; then
     npx remotion render "$COMP" "$OUT/audio.wav" --codec=wav --timeout=120000 --log=error
 fi
 
-# Gain pour atteindre -14 LUFS, puis limiteur à -1,2 dBFS pour garder une marge de crête.
+# Gain pour atteindre -14 LUFS, puis limiteur (-1,2 dBFS par défaut, LIMIT=0.8 pour plus de marge).
 measured=$(ffmpeg -hide_banner -i "$OUT/audio.wav" -af loudnorm=I=-14:TP=-1:print_format=json -f null - 2>&1 |
     sed -n 's/.*"input_i" : "\(-\{0,1\}[0-9.]*\)".*/\1/p')
 gain=$(awk -v m="$measured" 'BEGIN { printf "%.2f", -14 - m }')
@@ -53,7 +53,7 @@ echo "Loudness mesurée : $measured LUFS → gain $gain dB"
 
 ffmpeg -y -hide_banner -loglevel error \
     -framerate 30 -i "$FRAMES/frame-%04d.jpeg" -i "$OUT/audio.wav" \
-    -filter_complex "[0:v]scale=out_color_matrix=bt709:out_range=tv,format=yuv420p[v];[1:a]volume=${gain}dB,alimiter=limit=0.87:attack=3:release=60:level=false[a]" \
+    -filter_complex "[0:v]scale=out_color_matrix=bt709:out_range=tv,format=yuv420p[v];[1:a]volume=${gain}dB,alimiter=limit=${LIMIT:-0.87}:attack=3:release=60:level=false[a]" \
     -map "[v]" -map "[a]" \
     -c:v libx264 -preset slow -crf "${CRF:-21}" -profile:v high -level 4.2 \
     -colorspace bt709 -color_primaries bt709 -color_trc bt709 \

@@ -139,3 +139,28 @@ affiliée ni au Goethe-Institut ni au TestDaF-Institut. Musique : même partitio
 COMP=PreplaPromoDE OUT=out/promo-de NAME=prepla-allemand-9x16.mp4 bash scripts/render-promo.sh
 python3 scripts/compose-promo-music.py --transpose 2 --out music-de.mp3 --no-sfx   # musique
 ```
+
+### Format court de 15 s (`PreplaQuiz15`)
+
+Pour TikTok / Reels / Shorts : un défi de grammaire qui accroche dès la première image, puis le
+diagnostic gratuit. Choisi parmi trois storyboards notés par trois jurys (impact, lisibilité,
+exactitude) ; les deux autres sont décrits dans `release/videos/coulisses/README.md`.
+
+| Temps | Message |
+|---|---|
+| 0–3 s | « Tu as 3 secondes. » + carte QCM de l'app (« TCF · TEF · Grammaire », B2) : « Bien qu’il ___ fatigué, il a continué à travailler. » (soit / est / était / serait), anneau 3-2-1 |
+| 3–4 s | Le doigt choisit le piège « était » ; silence musical avant le verdict |
+| 4–5 s | Tampon « Incorrect », options rouge/vert de l'app, « soit » se pose dans le blanc |
+| 5–7,5 s | « PrePla t’explique pourquoi. » : panneau de correction (« Réponse attendue : soit », « Bien que + subjonctif », « Même dans un récit au passé. »), « Ton erreur reviendra en révision » |
+| 7,5–10 s | « Et ton vrai niveau ? », zoom arrière ; le logo se forme sur l'impact |
+| 10–15 s | Carte « Ta prochaine mission » : « Fais ton diagnostic gratuit », renard, « Créer mon parcours », adresse, examens, mention d'indépendance |
+
+La question vient d'un examen blanc TEF du dépôt (`database/data/content/mock_exams/tef/simulation_1.json`,
+`tef1_str_b_q6`) ; les couleurs, libellés et sons du verdict et de la correction sont ceux de l'app
+(`mcq.tsx`, `player.tsx`). Fichiers : `src/promo/PreplaQuiz15.tsx`, `src/promo/scenes/short/QuizChallenge.tsx`,
+`src/promo/components/Stamp.tsx`, carte finale `S10Cta` en `layout="compact"`, musique `public/promo/music-15s.mp3`.
+
+```bash
+COMP=PreplaQuiz15 TOTAL=450 OUT=out/promo-15s NAME=prepla-15s-9x16.mp4 bash scripts/render-promo.sh
+python3 scripts/compose-promo-music.py --short --out music-15s.mp3 --no-sfx   # musique
+```

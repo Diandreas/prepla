@@ -8,9 +8,13 @@
   (Goethe-Zertifikat, TestDaF), même format : accroche « der / die / das Mädchen ? », correction
   de la place du verbe après « weil », examen blanc Goethe B1 chronométré.
 - `prepla-allemand-cover.jpg` : image de couverture de la version allemande.
+- `prepla-15s-9x16.mp4` : format court de 15 s (quiz « Tu as 3 secondes » → diagnostic gratuit),
+  même format, pensé pour TikTok, Reels et Shorts ; la vidéo boucle proprement.
+- `prepla-15s-cover.jpg` : sa couverture (la première image, le défi complet).
+- `coulisses/` : versions non retenues et bêtisier (voir `coulisses/README.md`).
 
-Les vidéos sont générées par le projet Remotion (`remotion/`, compositions `PreplaPromo` et
-`PreplaPromoDE`) ; le découpage, les sources et les commandes de rendu sont décrits dans
+Les vidéos sont générées par le projet Remotion (`remotion/`, compositions `PreplaPromo`,
+`PreplaPromoDE` et `PreplaQuiz15`) ; le découpage, les sources et les commandes de rendu sont décrits dans
 `docs/content-studio.md`.
 La musique est une composition originale synthétisée (`remotion/scripts/compose-promo-music.py`),
 sans échantillon externe : aucune restriction de droits à la publication.
@@ -44,3 +48,11 @@ sans échantillon externe : aucune restriction de droits à la publication.
 >
 > #Goethe #GoetheZertifikat #TestDaF #allemand #apprendrelallemand #DeutschLernen #Deutsch
 > #GoetheB1 #étudierenallemagne
+
+## Légende proposée (format court de 15 s)
+
+> Tu as 3 secondes ⏱️ « Bien qu’il ___ fatigué… » : soit, est, était ou serait ? Réponds en
+> commentaire avant la fin 👇 Sur PrePla, chaque erreur est corrigée et expliquée, puis revient en
+> révision. Et ton vrai niveau ? Fais ton diagnostic gratuit 👉 prepla.mirlab.cloud
+>
+> #TCF #TEF #TCFCanada #DELF #grammairefrançaise #subjonctif #françaisfacile #quiz
