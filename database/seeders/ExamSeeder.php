@@ -174,7 +174,13 @@ class ExamSeeder extends Seeder
                 }
             }
 
-            $sections = $config['sections'] ?? $config['mandatory_sections'] ?? [];
+            // Les epreuves FACULTATIVES comptent aussi. Avec un simple ??, le TCF
+            // ne gardait que ses trois epreuves obligatoires : son expression
+            // ecrite et son expression orale n'ont jamais existe en base, alors
+            // qu'elles sont obligatoires pour le TCF Canada et le TCF Quebec.
+            // La troisieme branche, plus bas, fusionnait deja correctement.
+            $sections = $config['sections']
+                ?? array_merge($config['mandatory_sections'] ?? [], $config['optional_sections'] ?? []);
 
             foreach ($normalized as $variantSlug => $variantData) {
                 $blueprint = ExamBlueprint::updateOrCreate(
