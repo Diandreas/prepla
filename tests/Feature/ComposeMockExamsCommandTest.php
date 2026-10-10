@@ -31,7 +31,10 @@ function examenRecomposable(): Exam
         ]);
         Exercise::create([
             'exam_id' => $exam->id, 'exercise_type_id' => $type->id, 'exam_section_id' => $section->id,
-            'difficulty' => 'B2', 'content' => [],
+            // L'epreuve d'ecoute doit porter son enregistrement, sinon elle est ecartee.
+            'difficulty' => 'B2', 'content' => $skill === 'listening'
+                ? ['audio_text' => 'Ein kurzer Hortext zum Uben.']
+                : [],
             'questions' => [['id' => 'q1', 'type' => 'mcq', 'text' => 'Wo?', 'options' => ['A', 'B'], 'correct_answer' => 'A']],
         ]);
     }

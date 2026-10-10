@@ -35,7 +35,11 @@ function examenAvecVivier(string $niveau = 'A2', int $parSection = 2): array
         foreach (range(1, $parSection) as $i) {
             Exercise::create([
                 'exam_id' => $exam->id, 'exercise_type_id' => $type->id, 'exam_section_id' => $section->id,
-                'difficulty' => $niveau, 'content' => [],
+                // Une epreuve d'ecoute sans enregistrement est ecartee : le vivier
+                // doit donc en porter un, comme les vraies.
+                'difficulty' => $niveau, 'content' => $skill === 'listening'
+                    ? ['audio_text' => "Ein kurzer Hortext, {$slug} {$i}."]
+                    : [],
                 'questions' => [[
                     'id' => 'q1', 'type' => $composant === 'mcq' ? 'mcq' : 'short-writing',
                     'text' => "Question {$slug} {$i}",

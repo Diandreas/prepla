@@ -94,7 +94,9 @@ test('une reponse attendue rendue en objet reste creditable', function () {
     ]);
     $exercise = Exercise::create([
         'exam_id' => $exam->id, 'exercise_type_id' => $type->id, 'exam_section_id' => $section->id,
-        'difficulty' => 'B1', 'content' => [],
+        // Une epreuve d'ecoute porte son enregistrement, sinon elle est ecartee
+        // avant meme d'etre corrigee.
+        'difficulty' => 'B1', 'content' => ['audio_text' => 'Wir treffen uns am Montag um acht Uhr.'],
         'questions' => [[
             'id' => 'q1', 'type' => 'note-completion',
             'notes' => [['label' => 'Jour', 'value' => ''], ['label' => 'Heure', 'value' => '']],

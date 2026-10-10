@@ -3,7 +3,7 @@ import { router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { ExerciseTimer } from './exercise-timer';
 import { ExerciseProgress } from './exercise-progress';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ExerciseRecord } from '@/types';
 import { prefetchExercisesAudio } from '@/lib/tts-cache';
 import { LearningScene, sceneVariantForSkill } from '@/components/learning-scene';
@@ -159,6 +159,20 @@ export function ExercisePlayer({ exercise }: ExercisePlayerProps) {
     const skillType = exercise.exercise_type?.skill_type;
     const isStarter = exercise.content?.source === 'starter-library';
     const passage = exercise.content?.passage ?? exercise.content?.text;
+    // Le passage parle n'est pas toujours range dans la question : le generateur
+    // l'ecrit souvent dans l'exercice, sous « audio_text », parfois sous « passage »
+    // quand il a cru ecrire une lecture. Le pre-chargement suivait deja cette regle
+    // (tts-cache) : le son etait prepare, mais aucun bouton ne le jouait, et
+    // l'epreuve sortait muette.
+    const texteAEcouter = useMemo(() => {
+        const dit = (v: unknown) => (typeof v === 'string' && v.trim() !== '' ? v.trim() : '');
+        const deLaQuestion = dit(question?.audio_text);
+        if (deLaQuestion) return deLaQuestion;
+        if (skillType !== 'listening') return '';
+        const c = (exercise.content ?? {}) as Record<string, unknown>;
+        return dit(c.audio_text) || dit(c.transcript) || dit(c.script) || dit(c.dialogue) || dit(passage);
+    }, [question, skillType, exercise.content, passage]);
+
     const currentAnswer = answers[question?.id];
     // Meme regle que le lecteur du parcours : un objet dont tous les champs sont
     // vides, ou un enregistrement efface, ne sont pas des reponses.
@@ -249,9 +263,9 @@ export function ExercisePlayer({ exercise }: ExercisePlayerProps) {
 
             {/* Fallback TTS : exercice d'écoute sans audio pré-généré mais avec un texte à dire.
                 Évite un listening totalement muet ; lit le texte via Deepgram dans la bonne langue. */}
-            {!question.audio_url && skillType === 'listening' && typeof question.audio_text === 'string' && question.audio_text.trim() !== '' && (
+            {!question.audio_url && skillType === 'listening' && texteAEcouter !== '' && (
                 <div className="flex items-center gap-3 rounded-xl border-2 border-primary bg-primary/5 px-5 py-3">
-                    <SpeakButton text={question.audio_text} lang={lang} label="Écouter l'enregistrement" />
+                    <SpeakButton text={texteAEcouter} lang={lang} label="Écouter l'enregistrement" />
                 </div>
             )}
 

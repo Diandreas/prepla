@@ -203,6 +203,51 @@ class Exercise extends Model
     }
 
     /**
+     * Les formats qui font ecouter quelque chose meme quand leur competence
+     * declaree n'est pas « listening ».
+     */
+    public const FORMATS_SONORES = [
+        'dictation', 'listen-repeat', 'listen-choose-response', 'integrated-task',
+    ];
+
+    /** Cet exercice fait-il ecouter un enregistrement ? */
+    public function estUneEcoute(): bool
+    {
+        return $this->exerciseType?->skill_type === 'listening'
+            || in_array($this->exerciseType?->component_key, self::FORMATS_SONORES, true);
+    }
+
+    /**
+     * Le texte que l'apprenant doit ENTENDRE pour cette question.
+     *
+     * Le generateur range le passage parle tantot dans la question, tantot dans
+     * le contenu de l'exercice : sous « audio_text », et parfois sous « passage »
+     * quand il a cru ecrire une epreuve de lecture. Le lecteur ne regardait que
+     * la question. Resultat sur les donnees reelles : 41 epreuves d'ecoute
+     * sortaient MUETTES alors que leur texte existait — invisible, puisqu'un
+     * passage n'est jamais affiche a l'ecran pour une epreuve d'ecoute.
+     */
+    public function texteParle(array $question = []): string
+    {
+        foreach (['audio_text', 'audio_script'] as $cle) {
+            $valeur = $question[$cle] ?? null;
+            if (is_string($valeur) && trim($valeur) !== '') {
+                return trim($valeur);
+            }
+        }
+
+        $contenu = is_array($this->content) ? $this->content : [];
+        foreach (['audio_text', 'transcript', 'script', 'dialogue', 'passage', 'text'] as $cle) {
+            $valeur = $contenu[$cle] ?? null;
+            if (is_string($valeur) && trim($valeur) !== '') {
+                return trim($valeur);
+            }
+        }
+
+        return '';
+    }
+
+    /**
      * Une question a laquelle un apprenant peut reellement repondre.
      *
      * Du contenu casse atteignait les apprenants : une consigne « completez les
@@ -291,10 +336,25 @@ class Exercise extends Model
     public function answerableQuestions(): array
     {
         $fallback = $this->exerciseType?->component_key;
+        $ecoute = $this->estUneEcoute();
 
         return array_values(array_filter(
             $this->questions ?? [],
-            fn ($question) => is_array($question) && self::questionIsAnswerable($question, $fallback)
+            function ($question) use ($fallback, $ecoute) {
+                if (! is_array($question) || ! self::questionIsAnswerable($question, $fallback)) {
+                    return false;
+                }
+
+                // Une epreuve d'ecoute sans le moindre son demande de comprendre un
+                // enregistrement qui n'existe pas : l'apprenant voyait les questions
+                // et n'entendait rien, sans meme un bouton a presser. On l'ecarte
+                // plutot que de la servir, ici comme a la composition d'un sujet.
+                if ($ecoute && empty($question['audio_url']) && $this->texteParle($question) === '') {
+                    return false;
+                }
+
+                return true;
+            }
         ));
     }
 }
