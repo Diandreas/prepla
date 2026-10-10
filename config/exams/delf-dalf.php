@@ -37,6 +37,8 @@ return [
             'sections' => [
                 [
                     'slug' => 'comprehension-orale',
+                    // Nombre d'exercices a l'examen reel (source : france-education-international.fr).
+                    'task_count' => 4,
                     'name' => 'Compréhension de l\'oral',
                     'skill_type' => 'listening',
                     'time_limit' => 20,
@@ -46,6 +48,8 @@ return [
                 ],
                 [
                     'slug' => 'comprehension-ecrite',
+                    // Nombre d'exercices a l'examen reel (source : france-education-international.fr).
+                    'task_count' => 4,
                     'name' => 'Compréhension des écrits',
                     'skill_type' => 'reading',
                     'time_limit' => 30,
@@ -55,6 +59,8 @@ return [
                 ],
                 [
                     'slug' => 'production-ecrite',
+                    // Nombre d'exercices a l'examen reel (source : france-education-international.fr).
+                    'task_count' => 2,
                     'name' => 'Production écrite',
                     'skill_type' => 'writing',
                     'time_limit' => 30,
@@ -64,6 +70,8 @@ return [
                 ],
                 [
                     'slug' => 'production-orale',
+                    // Nombre d'exercices a l'examen reel (source : france-education-international.fr).
+                    'task_count' => 3,
                     'name' => 'Production orale',
                     'skill_type' => 'speaking',
                     'time_limit' => 7, // 5-7 min
@@ -86,6 +94,8 @@ return [
             'sections' => [
                 [
                     'slug' => 'comprehension-orale',
+                    // Nombre d'exercices a l'examen reel (source : france-education-international.fr).
+                    'task_count' => 4,
                     'name' => 'Compréhension de l\'oral',
                     'skill_type' => 'listening',
                     'time_limit' => 25,
@@ -95,6 +105,8 @@ return [
                 ],
                 [
                     'slug' => 'comprehension-ecrite',
+                    // Nombre d'exercices a l'examen reel (source : france-education-international.fr).
+                    'task_count' => 4,
                     'name' => 'Compréhension des écrits',
                     'skill_type' => 'reading',
                     'time_limit' => 30,
@@ -104,6 +116,8 @@ return [
                 ],
                 [
                     'slug' => 'production-ecrite',
+                    // Nombre d'exercices a l'examen reel (source : france-education-international.fr).
+                    'task_count' => 2,
                     'name' => 'Production écrite',
                     'skill_type' => 'writing',
                     'time_limit' => 45,
@@ -114,6 +128,8 @@ return [
                 ],
                 [
                     'slug' => 'production-orale',
+                    // Nombre d'exercices a l'examen reel (source : france-education-international.fr).
+                    'task_count' => 3,
                     'name' => 'Production orale',
                     'skill_type' => 'speaking',
                     'time_limit' => 8, // 6-8 min
@@ -136,6 +152,8 @@ return [
             'sections' => [
                 [
                     'slug' => 'comprehension-orale',
+                    // Nombre d'exercices a l'examen reel (source : france-education-international.fr).
+                    'task_count' => 3,
                     'name' => 'Compréhension de l\'oral',
                     'skill_type' => 'listening',
                     'time_limit' => 25,
@@ -145,15 +163,19 @@ return [
                 ],
                 [
                     'slug' => 'comprehension-ecrite',
+                    // Nombre d'exercices a l'examen reel (source : france-education-international.fr).
+                    'task_count' => 2,
                     'name' => 'Compréhension des écrits',
                     'skill_type' => 'reading',
-                    'time_limit' => 35,
+                    'time_limit' => 45,
                     'scoring_weight' => 25,
                     'description' => '2 exercices. Comprendre des textes informatifs et reconnaître des positions.',
                     'exercise_types' => ['mcq', 'true-false', 'matching', 'short-answer'],
                 ],
                 [
                     'slug' => 'production-ecrite',
+                    // Nombre d'exercices a l'examen reel (source : france-education-international.fr).
+                    'task_count' => 1,
                     'name' => 'Production écrite',
                     'skill_type' => 'writing',
                     'time_limit' => 45,
@@ -164,6 +186,8 @@ return [
                 ],
                 [
                     'slug' => 'production-orale',
+                    // Nombre d'exercices a l'examen reel (source : france-education-international.fr).
+                    'task_count' => 3,
                     'name' => 'Production orale',
                     'skill_type' => 'speaking',
                     'time_limit' => 15,
@@ -186,6 +210,8 @@ return [
             'sections' => [
                 [
                     'slug' => 'comprehension-orale',
+                    // Nombre d'exercices a l'examen reel (source : france-education-international.fr).
+                    'task_count' => 2,
                     'name' => 'Compréhension de l\'oral',
                     'skill_type' => 'listening',
                     'time_limit' => 30,
@@ -195,6 +221,8 @@ return [
                 ],
                 [
                     'slug' => 'comprehension-ecrite',
+                    // Nombre d'exercices a l'examen reel (source : france-education-international.fr).
+                    'task_count' => 2,
                     'name' => 'Compréhension des écrits',
                     'skill_type' => 'reading',
                     'time_limit' => 60,
@@ -204,6 +232,8 @@ return [
                 ],
                 [
                     'slug' => 'production-ecrite',
+                    // Nombre d'exercices a l'examen reel (source : france-education-international.fr).
+                    'task_count' => 1,
                     'name' => 'Production écrite',
                     'skill_type' => 'writing',
                     'time_limit' => 60,
@@ -214,6 +244,8 @@ return [
                 ],
                 [
                     'slug' => 'production-orale',
+                    // Nombre d'exercices a l'examen reel (source : france-education-international.fr).
+                    'task_count' => 2,
                     'name' => 'Production orale',
                     'skill_type' => 'speaking',
                     'time_limit' => 20,
@@ -232,6 +264,8 @@ return [
             'sections' => [
                 [
                     'slug' => 'comprehension-orale',
+                    // Nombre d'exercices a l'examen reel (source : france-education-international.fr).
+                    'task_count' => 2,
                     'name' => 'Compréhension de l\'oral',
                     'skill_type' => 'listening',
                     'time_limit' => 40,
@@ -241,6 +275,8 @@ return [
                 ],
                 [
                     'slug' => 'comprehension-ecrite',
+                    // Nombre d'exercices a l'examen reel (source : france-education-international.fr).
+                    'task_count' => 1,
                     'name' => 'Compréhension des écrits',
                     'skill_type' => 'reading',
                     'time_limit' => 50,
@@ -250,8 +286,13 @@ return [
                 ],
                 [
                     'slug' => 'production-ecrite',
+                    // Nombre d'exercices a l'examen reel (source : france-education-international.fr).
+                    'task_count' => 2,
                     'name' => 'Production écrite',
                     'skill_type' => 'writing',
+                    // Sans formats declares, ce module ne pouvait rien fabriquer.
+                    // Ils sont repris de ses deux taches, decrites plus bas.
+                    'exercise_types' => ['synthesis', 'essay'],
                     'time_limit' => 150, // 2h30 pour synthèse + essai
                     'scoring_weight' => 25,
                     'description' => '2 exercices : (1) Synthèse de documents (~220 mots) + (2) Essai argumenté (~250 mots). Domaine au choix : Lettres et sciences humaines OU Sciences.',
@@ -273,6 +314,8 @@ return [
                 ],
                 [
                     'slug' => 'production-orale',
+                    // Nombre d'exercices a l'examen reel (source : france-education-international.fr).
+                    'task_count' => 2,
                     'name' => 'Production orale',
                     'skill_type' => 'speaking',
                     'time_limit' => 30,
@@ -292,6 +335,8 @@ return [
             'sections' => [
                 [
                     'slug' => 'comprehension-production-orales',
+                    // Nombre d'exercices a l'examen reel (source : france-education-international.fr).
+                    'task_count' => 3,
                     'name' => 'Compréhension et production orales',
                     'skill_type' => 'speaking', // Combined listening+speaking
                     'time_limit' => 30,
@@ -307,6 +352,8 @@ return [
                 ],
                 [
                     'slug' => 'comprehension-production-ecrites',
+                    // Nombre d'exercices a l'examen reel (source : france-education-international.fr).
+                    'task_count' => 1,
                     'name' => 'Compréhension et production écrites',
                     'skill_type' => 'writing', // Combined reading+writing
                     'time_limit' => 210, // 3h30

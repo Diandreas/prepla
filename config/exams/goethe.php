@@ -181,6 +181,8 @@ return [
                 ],
                 [
                     'slug' => 'sprechen',
+                    // Source : goethe.de, Durchfuehrungsbestimmungen officiels (2026-10-10).
+                    'task_count' => 3,
                     'name' => 'Sprechen (Speaking)',
                     'skill_type' => 'speaking',
                     'time_limit' => 15,
@@ -218,7 +220,7 @@ return [
                     'task_count' => 4,
                     'name' => 'Hören (Listening)',
                     'skill_type' => 'listening',
-                    'time_limit' => 30,
+                    'time_limit' => 40,
                     'scoring_weight' => 25,
                     'description' => '4 parties : émission radio, interview, conversation informelle, conférence.',
                     'exercise_types' => ['mcq', 'true-false-not-given', 'matching', 'note-completion'],
@@ -243,6 +245,8 @@ return [
                 ],
                 [
                     'slug' => 'sprechen',
+                    // Source : goethe.de, Durchfuehrungsbestimmungen officiels (2026-10-10).
+                    'task_count' => 2,
                     'name' => 'Sprechen (Speaking)',
                     'skill_type' => 'speaking',
                     'time_limit' => 15,
@@ -268,7 +272,7 @@ return [
                     'task_count' => 4,
                     'name' => 'Lesen (Reading)',
                     'skill_type' => 'reading',
-                    'time_limit' => 70,
+                    'time_limit' => 65,
                     'scoring_weight' => 25,
                     'description' => 'Textes complexes : articles scientifiques, commentaires, textes littéraires, résumés.',
                     'exercise_types' => ['mcq', 'true-false-not-given', 'matching', 'matching-headings', 'gap-fill', 'sentence-completion', 'short-answer'],
@@ -309,7 +313,7 @@ return [
                     'task_count' => 2,
                     'name' => 'Sprechen (Speaking)',
                     'skill_type' => 'speaking',
-                    'time_limit' => 15,
+                    'time_limit' => 20,
                     'scoring_weight' => 25,
                     'description' => '2 parties : présentation argumentée + discussion.',
                     'parts' => [
