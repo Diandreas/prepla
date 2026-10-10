@@ -35,6 +35,10 @@ return [
                 // ete verifiee sur la source officielle (voir config/exams/osd.php).
                 ['slug' => 'osd', 'name' => 'ÖSD Zertifikat', 'levels' => ['B1', 'B2']],
                 ['slug' => 'testdaf', 'name' => 'TestDaF', 'levels' => null],
+                // L'echelle generale de telc, A1 a C2, verifiee page par page sur
+                // telc.net le 2026-10-10. Les vingt-quatre epreuves specialisees
+                // (Beruf, Pflege, Medizin, Hochschule...) ne sont pas decrites.
+                ['slug' => 'telc', 'name' => 'telc Deutsch', 'levels' => ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']],
             ],
         ],
     ],
