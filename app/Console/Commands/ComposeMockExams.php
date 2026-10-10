@@ -3,7 +3,9 @@
 namespace App\Console\Commands;
 
 use App\Models\Exam;
+use App\Models\ExamBlueprint;
 use App\Models\MockExam;
+use App\Models\UserExerciseAttempt;
 use App\Services\Content\MockExamComposer;
 use Illuminate\Console\Command;
 
@@ -57,6 +59,25 @@ class ComposeMockExams extends Command
         }
     }
 
+    /**
+     * Les declinaisons reellement decrites pour cet examen : TCF Canada, TEF
+     * Quebec... Leurs plans existaient depuis le debut mais n'etaient jamais
+     * servis, la commande ne travaillant que par palier : trois versions du TCF
+     * sur quatre n'avaient donc aucun sujet.
+     *
+     * @return list<string>
+     */
+    private function declinaisons(Exam $exam): array
+    {
+        return ExamBlueprint::where('exam_id', $exam->id)
+            ->whereNotNull('variant')
+            ->whereNotNull('sections_config')
+            ->pluck('variant')
+            ->unique()
+            ->values()
+            ->all();
+    }
+
     public function handle(MockExamComposer $composeur): int
     {
         $niveaux = $this->option('level') ? [$this->option('level')] : ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
@@ -70,6 +91,27 @@ class ComposeMockExams extends Command
         $manquantes = [];
 
         foreach ($examens as $exam) {
+            foreach ($this->declinaisons($exam) as $variante) {
+                $refaire = (bool) $this->option('refaire');
+                $avant = MockExam::whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id)->where('variant', $variante))
+                    ->where('is_published', true)->whereHas('exercises')->exists();
+
+                $anciennes = $refaire
+                    ? MockExam::whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id)->where('variant', $variante))->get()
+                        ->filter(fn ($m) => ! UserExerciseAttempt::whereIn('exercise_id', $m->exercises()->pluck('id'))->exists())
+                    : collect();
+
+                $mock = $composeur->pour($exam, 'B1', $avecIa, $refaire, $variante);
+
+                if ($mock) {
+                    $this->effacer($anciennes->where('id', '!=', $mock->id));
+                    $this->line("  + {$exam->slug} [{$variante}] : ".$mock->exercises()->count().' épreuves');
+                    $avant && ! $refaire ? $dejaLa++ : $composees++;
+                } else {
+                    $manquantes[] = "{$exam->slug} [{$variante}]";
+                }
+            }
+
             foreach ($niveaux as $niveau) {
                 $refaire = (bool) $this->option('refaire');
 

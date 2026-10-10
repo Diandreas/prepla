@@ -38,6 +38,13 @@ class MockExamComposer
     /** Au moins deux modules, sinon ce n'est pas une épreuve. */
     public const MODULES_MINIMUM = 2;
 
+    /**
+     * Les paliers parcourus quand on monte une DECLINAISON plutot qu'un niveau.
+     * Le TCF et le TEF sont des epreuves uniques a difficulte progressive : la
+     * premiere tache d'un module est plus simple que la derniere.
+     */
+    public const PALIERS_PROGRESSIFS = ['A2', 'B1', 'B2', 'C1'];
+
     public function __construct(
         private StarterPracticeLibrary $starters,
         private ExerciseTypeSuitability $pertinence,
@@ -49,15 +56,32 @@ class MockExamComposer
      * @param  bool  $avecGeneration  autoriser l'IA à écrire ce qui manque
      * @param  bool  $forcer  en composer une nouvelle même s'il en existe déjà une
      */
-    public function pour(Exam $exam, string $niveau, bool $avecGeneration = false, bool $forcer = false): ?MockExam
-    {
-        $existante = $forcer ? null : $this->existante($exam, $niveau);
+    public function pour(
+        Exam $exam,
+        string $niveau,
+        bool $avecGeneration = false,
+        bool $forcer = false,
+        ?string $variante = null,
+    ): ?MockExam {
+        $existante = $forcer ? null : $this->existante($exam, $niveau, $variante);
         if ($existante) {
             return $existante;
         }
 
-        $officiel = $this->niveauOfficiel($exam, $niveau);
-        $blueprint = $this->blueprintPour($exam, $niveau);
+        // Une DECLINAISON — TCF Canada, TEF Quebec — n'est pas un palier : c'est
+        // l'examen lui-meme, dans une de ses versions reelles. Son plan existe
+        // deja, decrit par la configuration ; on ne le derive jamais, et le sujet
+        // qui en sort est une vraie epreuve blanche, pas un entrainement.
+        if ($variante !== null) {
+            $blueprint = ExamBlueprint::where('exam_id', $exam->id)->where('variant', $variante)->first();
+            if (! $blueprint) {
+                return null;
+            }
+            $officiel = true;
+        } else {
+            $officiel = $this->niveauOfficiel($exam, $niveau);
+            $blueprint = $this->blueprintPour($exam, $niveau);
+        }
         $sections = $exam->sections()->where('slug', '!=', 'level-assessment')->with('exerciseTypes')->get();
 
         // Les modules de CE niveau, pas tous ceux de l'examen. Les sections sont
@@ -89,7 +113,15 @@ class MockExamComposer
             $pourCeModule = 0;
 
             for ($i = 0; $i < $voulues; $i++) {
-                $exercice = $this->exercicePour($exam, $section, $niveau, $avecGeneration, $dejaPris, $typesUtilises);
+                // Le TCF et le TEF ne s'inscrivent pas a un palier : une seule
+                // epreuve, de difficulte PROGRESSIVE, dont le resultat situe le
+                // candidat. On monte donc chaque module en montant les niveaux,
+                // au lieu de servir six fois le meme.
+                $difficulte = $variante !== null
+                    ? self::PALIERS_PROGRESSIFS[$i % count(self::PALIERS_PROGRESSIFS)]
+                    : $niveau;
+
+                $exercice = $this->exercicePour($exam, $section, $difficulte, $avecGeneration, $dejaPris, $typesUtilises);
                 if (! $exercice) {
                     break;
                 }
@@ -112,7 +144,7 @@ class MockExamComposer
             return null;
         }
 
-        return DB::transaction(function () use ($blueprint, $officiel, $exam, $niveau, $sections, $choisis, $modulesServis) {
+        return DB::transaction(function () use ($blueprint, $officiel, $exam, $niveau, $variante, $sections, $choisis, $modulesServis) {
             // On n'appelle « épreuve blanche » que ce qui suit une structure officielle
             // à ce niveau. Ailleurs c'est un entraînement au format de l'examen, servi
             // à la difficulté de l'apprenant — et c'est ce qu'on écrit.
@@ -121,14 +153,18 @@ class MockExamComposer
 
             $mock = MockExam::create([
                 'blueprint_id' => $blueprint->id,
-                'title' => $officiel
-                    ? $exam->name.' — épreuve blanche '.$niveau
-                    : $exam->name.' — entraînement au format, niveau '.$niveau,
-                'description' => ($officiel
+                'title' => $variante !== null
+                    ? $blueprint->name.' — épreuve blanche'
+                    : ($officiel
+                        ? $exam->name.' — épreuve blanche '.$niveau
+                        : $exam->name.' — entraînement au format, niveau '.$niveau),
+                'description' => $variante !== null
+                    ? 'Toutes les épreuves de cette version, à difficulté progressive — '.count($choisis).' tâches.'
+                    : ($officiel
                     ? ($complet
                         ? 'Toutes les épreuves, au niveau '.$niveau.' — '.$taches.' tâches.'
                         : $modulesServis.' épreuves sur '.$sections->count().', au niveau '.$niveau.'.')
-                    : "Cet examen ne propose pas d'épreuve officielle au niveau {$niveau} : tu t'entraînes à son format, avec des exercices de ton niveau."),
+                        : "Cet examen ne propose pas d'épreuve officielle au niveau {$niveau} : tu t'entraînes à son format, avec des exercices de ton niveau."),
                 'is_published' => true,
             ]);
 
@@ -143,7 +179,10 @@ class MockExamComposer
                 $copie->node_id = null;
                 $copie->lesson_id = null;
                 $copie->center_id = null;
-                $copie->difficulty = $niveau;
+                // Pour un NIVEAU, le sujet est a ce niveau. Pour une DECLINAISON,
+                // chaque tache garde SA difficulte : c'est elle qui fait la
+                // progression de l'epreuve, et l'ecraser la supprimait.
+                $copie->difficulty = $variante !== null ? $exercice->difficulty : $niveau;
                 $copie->save();
             }
 
@@ -211,12 +250,15 @@ class MockExamComposer
         return array_values(array_unique($paliers));
     }
 
-    /** Une épreuve déjà publiée pour ce niveau, et qui porte vraiment des exercices. */
-    private function existante(Exam $exam, string $niveau): ?MockExam
+    /** Une épreuve déjà publiée pour ce niveau ou cette déclinaison, et qui porte vraiment des exercices. */
+    private function existante(Exam $exam, string $niveau, ?string $variante = null): ?MockExam
     {
         return MockExam::where('is_published', true)
             ->whereHas('exercises')
-            ->whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id)->where('level', $niveau))
+            ->whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id)
+                ->when($variante !== null,
+                    fn ($q) => $q->where('variant', $variante),
+                    fn ($q) => $q->where('level', $niveau)))
             ->first();
     }
 
