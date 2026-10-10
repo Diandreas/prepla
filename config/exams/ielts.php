@@ -30,6 +30,8 @@ return [
             'slug' => 'listening',
             'name' => 'Listening',
             'skill_type' => 'listening',
+        // 4 parties de 10 questions, 40 au total (source : ielts.org).
+        'task_count' => 4,
             'time_limit' => 30, // +10min transfer time on paper
             'question_count' => 40,
             'scoring_weight' => 25,
@@ -113,6 +115,10 @@ return [
             'task_count' => 2,
             'name' => 'Writing',
             'skill_type' => 'writing',
+        // Sans formats declares, ce module ne pouvait rien produire. Task 1 de
+        // l'Academic decrit une information visuelle (courbe, tableau, schema),
+        // Task 2 est un essai argumente — source : ielts.org, format Writing.
+        'exercise_types' => ['graph-description', 'essay'],
             'time_limit' => 60,
             'question_count' => 2,
             'scoring_weight' => 25,
@@ -174,6 +180,10 @@ return [
             'slug' => 'speaking',
             'name' => 'Speaking',
             'skill_type' => 'speaking',
+        // Meme panne. Les trois parties de l'oral : entretien, prise de parole
+        // longue sur une fiche, puis discussion — source : ielts.org.
+        'exercise_types' => ['speaking-response', 'speaking-long-turn', 'speaking-discussion'],
+        'task_count' => 3,
             'time_limit' => 14,
             'question_count' => 3, // 3 parts
             'scoring_weight' => 25,
