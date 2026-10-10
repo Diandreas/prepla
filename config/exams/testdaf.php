@@ -4,11 +4,24 @@
  * TestDaF - Test Deutsch als Fremdsprache
  * Source: testdaf.de
  *
- * Single exam, no levels/variants
- * Digital TestDaF (since 2020): 4 sections
+ * LE FORMAT DIGITAL, et lui seul. testdaf.de propose aujourd'hui DEUX formats
+ * cote a cote — « Der digitale TestDaF » et « Der papierbasierte TestDaF » —
+ * dont les structures different nettement : le format papier compte 3 taches de
+ * Leseverstehen la ou le digital en compte 7, et une seule tache d'ecrit contre
+ * deux. La refonte a AJOUTE le digital, elle n'a pas supprime le papier. Seul le
+ * digital est decrit ici ; le papier le sera quand sa structure aura ete
+ * verifiee de la meme facon, plutot que deduite de celle-ci.
+ *
+ * PAS DE NIVEAUX. Le TestDaF ne se passe pas « en B2 » : un seul test, dont le
+ * resultat se situe sous TDN 3, ou a TDN 3, TDN 4 ou TDN 5 (B2 a C1). Ne jamais
+ * creer de « TestDaF A2 » ni de « TestDaF C2 ».
+ *
+ * Nombres de taches et durees verifies sur testdaf.de le 2026-10-10. Le site
+ * precise que « die Bearbeitungszeit und die Anzahl der Aufgaben koennen in
+ * jedem Pruefungsteil variieren » : ces comptes sont ceux d'une session type.
+ *
  * Scoring: TDN 3, TDN 4, TDN 5 per section (Unter TDN 3 = fail)
  * University admission typically requires TDN 4 in all sections
- * CEFR: B2–C1
  */
 
 return [
@@ -33,6 +46,7 @@ return [
         // ─── LESEN (Reading) ───
         [
             'slug' => 'lesen',
+            'task_count' => 7,
             'name' => 'Lesen (Reading)',
             'skill_type' => 'reading',
             'time_limit' => 55,
@@ -71,6 +85,7 @@ return [
         // ─── HÖREN (Listening) ───
         [
             'slug' => 'hoeren',
+            'task_count' => 7,
             'name' => 'Hören (Listening)',
             'skill_type' => 'listening',
             'time_limit' => 40,
@@ -109,6 +124,7 @@ return [
         // ─── SCHREIBEN (Writing) ───
         [
             'slug' => 'schreiben',
+            'task_count' => 2,
             // Formats repris des taches decrites ci-dessous : sans eux, ce module
             // ne declarait AUCUN format et ne pouvait rien produire — le sujet
             // sortait ampute de cette epreuve.
@@ -141,13 +157,14 @@ return [
         // ─── SPRECHEN (Speaking) ───
         [
             'slug' => 'sprechen',
+            'task_count' => 7,
             // Formats repris des taches decrites ci-dessous : sans eux, ce module
             // ne declarait AUCUN format et ne pouvait rien produire — le sujet
             // sortait ampute de cette epreuve.
             'exercise_types' => ['speaking-response', 'speaking-long-turn', 'speaking-discussion', 'negotiation', 'oral-debate', 'role-play', 'speaking-elicitation'],
             'name' => 'Sprechen (Speaking)',
             'skill_type' => 'speaking',
-            'time_limit' => 30,
+            'time_limit' => 35,
             'question_count' => 7,
             'scoring_weight' => 25,
             'parts' => [

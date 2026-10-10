@@ -28,9 +28,11 @@ return [
         // ─── READING (2026: adaptatif, ~27 min) ───
         [
             'slug' => 'reading',
+            // Blueprint officiel ETS du format « 2026 Update » : 50 items.
+            'task_count' => 3,
             'name' => 'Reading',
             'skill_type' => 'reading',
-            'time_limit' => 27,
+            'time_limit' => 30,
             'question_count' => 40,
             'scoring_weight' => 25,
             'parts' => [
@@ -59,9 +61,11 @@ return [
         // ─── LISTENING (2026: tâches dynamiques) ───
         [
             'slug' => 'listening',
+            // Blueprint officiel ETS du format « 2026 Update » : 47 items.
+            'task_count' => 4,
             'name' => 'Listening',
             'skill_type' => 'listening',
-            'time_limit' => 30,
+            'time_limit' => 29,
             'question_count' => 28,
             'scoring_weight' => 25,
             'parts' => [
@@ -83,9 +87,11 @@ return [
         // ─── SPEAKING ───
         [
             'slug' => 'speaking',
+            // Blueprint officiel ETS du format « 2026 Update » : 11 items.
+            'task_count' => 2,
             'name' => 'Speaking',
             'skill_type' => 'speaking',
-            'time_limit' => 16,
+            'time_limit' => 8,
             'question_count' => 4,
             'scoring_weight' => 25,
             // Types practisables (le seeder lit 'exercise_types' ; 'tasks' = métadonnée examen).
@@ -148,9 +154,11 @@ return [
         // ─── WRITING ───
         [
             'slug' => 'writing',
+            // Blueprint officiel ETS du format « 2026 Update » : 12 items.
+            'task_count' => 3,
             'name' => 'Writing',
             'skill_type' => 'writing',
-            'time_limit' => 29,
+            'time_limit' => 23,
             'question_count' => 2,
             'scoring_weight' => 25,
             'exercise_types' => ['build-a-sentence', 'integrated-writing', 'academic-discussion'],
