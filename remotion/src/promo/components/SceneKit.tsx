@@ -63,10 +63,11 @@ export const Move: React.FC<{
     enterDur?: number;
     exitDur?: number;
     origin?: string;
-}> = ({ children, enter = 'none', exit = 'none', exitAt = Infinity, enterDur = 16, exitDur = 14, origin = '50% 50%' }) => {
+    exitEase?: (t: number) => number;
+}> = ({ children, enter = 'none', exit = 'none', exitAt = Infinity, enterDur = 16, exitDur = 14, origin = '50% 50%', exitEase = EASE.in }) => {
     const frame = useCurrentFrame();
     const e = enter === 'none' ? 1 : tw(frame, 0, enterDur, 0, 1, EASE.out);
-    const x = exit === 'none' || !Number.isFinite(exitAt) ? 0 : tw(frame, exitAt, exitDur, 0, 1, EASE.in);
+    const x = exit === 'none' || !Number.isFinite(exitAt) ? 0 : tw(frame, exitAt, exitDur, 0, 1, exitEase);
 
     let tx = 0;
     let ty = 0;

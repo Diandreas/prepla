@@ -117,7 +117,7 @@ export const KineticText: React.FC<KineticTextProps> = ({
                         const rot = noise2D(`wob-rot-${li}-${gi}`, frame * 0.09, 0) * wobbleAccent;
                         const dy = noise2D(`wob-y-${li}-${gi}`, frame * 0.11, 0) * wobbleAccent * 1.6;
                         return (
-                            <span key={gi} style={{ display: 'inline-block', transform: `translateY(${dy}px) rotate(${rot}deg)` }}>
+                            <span key={gi} style={{ display: 'inline-flex', transform: `translateY(${dy}px) rotate(${rot}deg)` }}>
                                 {block}
                             </span>
                         );

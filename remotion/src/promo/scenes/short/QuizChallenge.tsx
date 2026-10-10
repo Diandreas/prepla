@@ -1,6 +1,6 @@
 import React from 'react';
 import { AbsoluteFill, interpolate, useCurrentFrame } from 'remotion';
-import { AppGif, AppIcon } from '../../components/AppAssets';
+import { AppIcon } from '../../components/AppAssets';
 import { Icon } from '../../components/Icons';
 import { KineticText } from '../../components/KineticText';
 import { Move } from '../../components/SceneKit';
@@ -11,7 +11,7 @@ import { C, EASE, FONT, SPRING, sp, tw } from '../../theme';
 // Quiz de 15 s (0–10 s) : « Tu as 3 secondes. » sur un QCM de grammaire tel que l'app l'affiche
 // (components/exercises/mcq.tsx), le doigt choisit le piège « était », verdict « Incorrect »,
 // puis le panneau de correction de l'app (pages/exercises/player.tsx : « Réponse attendue »,
-// « Analyse de ton erreur… », règle en gras rouge + indice) et le pont « Et ton vrai niveau ? ».
+// règle en gras rouge + indice) et le pont « Et ton vrai niveau ? ».
 // La question vient d'un examen blanc TEF du dépôt (mock_exams/tef/simulation_1.json, tef1_str_b_q6).
 
 const TAP = 90;
@@ -44,7 +44,7 @@ export const QuizChallenge: React.FC = () => {
         0.02 * (1 - tw(frame, 0, 30, 0, 1, EASE.out)) +
         0.015 * tw(frame, 100, 20, 0, 1, EASE.inOutSoft) * (1 - tw(frame, VERDICT, 6)) +
         0.02 * tw(frame, EXPLAIN, 75, 0, 1, EASE.inOutSoft);
-    const dim = 1 - 0.1 * tw(frame, 240, 10);
+    const dim = 1 - 0.1 * tw(frame, 236, 18, 0, 1, EASE.inOutSoft);
     const flash = frame >= VERDICT ? 1 - tw(frame, VERDICT, 12) : 0;
 
     const state = (i: number): OptionState => {
@@ -56,22 +56,19 @@ export const QuizChallenge: React.FC = () => {
     const review = sp(frame, REVIEW, SPRING.bouncy);
 
     return (
-        <Move exit="zoom" exitAt={QUIZ_EXIT} exitDur={14}>
+        <Move exit="zoom" exitAt={QUIZ_EXIT} exitDur={14} exitEase={EASE.inOutSoft}>
             {/* Lueur rouge du verdict */}
             <AbsoluteFill style={{ background: 'radial-gradient(120% 90% at 50% 50%, rgba(239,68,68,0) 55%, rgba(239,68,68,0.22) 100%)', opacity: flash }} />
 
             {/* Titres successifs */}
             <div style={{ position: 'absolute', top: 356, left: 0, right: 0 }}>
-                <KineticText lines={['Tu as *3 secondes*.']} start={-18} size={104} stagger={3} exit={96} />
-            </div>
-            <div style={{ position: 'absolute', top: 366, left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
-                <Stamp text="Incorrect" icon="x" tone="red" at={VERDICT} exitAt={EXPLAIN} />
+                <KineticText lines={['Tu as *3 secondes.*']} start={-18} size={104} stagger={3} exit={96} />
             </div>
             <div style={{ position: 'absolute', top: 384, left: 0, right: 0 }}>
-                <KineticText lines={['PrePla t’explique *pourquoi*.']} start={EXPLAIN + 2} size={72} stagger={3} exit={222} />
+                <KineticText lines={['PrePla t’explique *pourquoi.*']} start={EXPLAIN + 4} size={72} stagger={3} exit={BRIDGE - 14} />
             </div>
             <div style={{ position: 'absolute', top: 362, left: 0, right: 0 }}>
-                <KineticText lines={['Et ton *vrai niveau* ?']} start={BRIDGE} size={100} stagger={3} wobbleAccent={3} />
+                <KineticText lines={['Et ton *vrai niveau*\u00a0?']} start={BRIDGE} size={100} stagger={3} wobbleAccent={3} />
             </div>
 
             {/* La carte d'exercice */}
@@ -120,6 +117,11 @@ export const QuizChallenge: React.FC = () => {
                 </Card>
             </div>
 
+            {/* Verdict, par-dessus la carte */}
+            <div style={{ position: 'absolute', top: 366, left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
+                <Stamp text="Incorrect" icon="x" tone="red" at={VERDICT} exitAt={EXPLAIN - 6} />
+            </div>
+
             {/* « Ton erreur reviendra en révision » */}
             {frame >= REVIEW ? (
                 <div
@@ -166,9 +168,10 @@ const Sentence: React.FC<{ frame: number }> = ({ frame }) => {
     const picked = tw(frame, TAP, 8, 0, 1, EASE.out);
     const wrong = frame >= VERDICT;
     const strike = tw(frame, VERDICT + 2, 8, 0, 1, EASE.inOutSoft);
-    const away = tw(frame, FIX, 12, 0, 1, EASE.in);
-    const fixed = sp(frame, FIX, SPRING.bouncy);
-    const isFixed = frame >= FIX;
+    // « était » (barré à VERDICT + 10) libère le blanc juste avant que « soit » s'y pose.
+    const away = tw(frame, FIX - 2, 5, 0, 1, EASE.out);
+    const fixed = sp(frame, FIX + 2, SPRING.bouncy);
+    const isFixed = frame >= FIX + 2;
     const lineColor = isFixed ? C.green : C.sky;
     return (
         <div
@@ -207,7 +210,7 @@ const Sentence: React.FC<{ frame: number }> = ({ frame }) => {
                             lineHeight: 1,
                             color: wrong ? '#c42b2b' : C.sky,
                             opacity: picked * (1 - away),
-                            transform: `translateY(${(1 - picked) * 40 - away * 40}px)`,
+                            transform: `translateY(${(1 - picked) * 40 - away * 70}px)`,
                         }}
                     >
                         <span style={{ position: 'relative', padding: '0 6px', borderRadius: 10, background: wrong ? 'rgba(239,68,68,0.16)' : undefined }}>
@@ -237,7 +240,7 @@ const Sentence: React.FC<{ frame: number }> = ({ frame }) => {
                             lineHeight: 1,
                             color: '#138a3e',
                             transform: `scale(${0.6 + 0.4 * fixed})`,
-                            opacity: Math.min(1, fixed * 2),
+                            opacity: Math.min(1, fixed * 2) * away,
                         }}
                     >
                         soit
@@ -308,10 +311,9 @@ const QuizOption: React.FC<{ letter: string; text: string; state: OptionState; p
     );
 };
 
-/** Panneau de correction de l'app : réponse attendue, analyse, règle en rouge et indice. */
+/** Panneau de correction de l'app : réponse attendue, règle en rouge et indice. */
 const Correction: React.FC<{ frame: number; open: number }> = ({ frame, open }) => {
     const row1 = tw(frame, EXPLAIN + 6, 10);
-    const analysing = frame >= EXPLAIN + 6 && frame < RULE;
     const rule = tw(frame, RULE, 14, 0, 1, EASE.out);
     const hint = tw(frame, RULE + 7, 14, 0, 1, EASE.out);
     return (
@@ -334,12 +336,6 @@ const Correction: React.FC<{ frame: number; open: number }> = ({ frame, open }) 
                     Réponse attendue : <b style={{ fontWeight: 800 }}>soit</b>
                 </div>
                 <div style={{ position: 'relative', height: 92 }}>
-                    {analysing ? (
-                        <div style={{ position: 'absolute', top: 18, display: 'flex', alignItems: 'center', gap: 12, fontSize: 30, fontStyle: 'italic', fontWeight: 600, color: 'rgba(220,38,38,0.8)' }}>
-                            <AppGif name="loading" width={40} height={40} />
-                            Analyse de ton erreur…
-                        </div>
-                    ) : null}
                     <div
                         style={{
                             position: 'absolute',

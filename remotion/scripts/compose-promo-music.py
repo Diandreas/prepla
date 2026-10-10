@@ -462,20 +462,20 @@ def compose_short():
     # --- 1 : tension en la mineur dès la première image (boum + battement par chiffre)
     drums.add(impact(), 0.0, 0.4)
     for k in range(3):
-        a.hit_kick(k * 2 * BEAT, 0.7, soft=True)
+        a.hit_kick(k * 2 * BEAT, 0.85, soft=True)
     for i in range(8):
-        drums.add(tick(i % 2 == 0), i * BEAT / 2, 0.22 + 0.06 * (i % 2 == 0), pan=0.25 if i % 2 else -0.25)
-    music.add(pad(CHORDS['Am']['pad'], BAR, bright=0.5, attack=0.05, release=0.3), 0.0, 0.7)
-    sub.add(bass(33, BAR), 0.0, 0.32)
+        drums.add(tick(i % 2 == 0), i * BEAT / 2, 0.31 + 0.08 * (i % 2 == 0), pan=0.25 if i % 2 else -0.25)
+    music.add(pad(CHORDS['Am']['pad'], BAR, bright=0.75, attack=0.05, release=0.3), 0.0, 0.95)
+    sub.add(bass(33, BAR), 0.0, 0.38)
 
     # --- 2 : doubles croches qui montent, riser jusqu'au silence (3,5 s)
     for i in range(12):
-        drums.add(tick(i % 2 == 0), at(2) + i * BEAT / 4, 0.14 + 0.14 * i / 12, pan=0.35 if i % 2 else -0.35)
+        drums.add(tick(i % 2 == 0), at(2) + i * BEAT / 4, 0.2 + 0.2 * i / 12, pan=0.35 if i % 2 else -0.35)
     music.add(pad(CHORDS['F']['pad'], 2 * BEAT, bright=0.6, attack=0.05, release=0.2), at(2), 0.7)
     music.add(pad(CHORDS['E']['pad'], BEAT, bright=0.75, attack=0.05, release=0.2), at(2, 2), 0.75)
     sub.add(bass(29, 2 * BEAT), at(2), 0.3)
     sub.add(bass(28, BEAT), at(2, 2), 0.3)
-    music.add(riser(1.5), at(2), 0.42)
+    music.add(riser(1.5), at(2), 0.55)
 
     # --- 3 : le verdict (place au son « incorrect » de l'app), puis soulagement
     sub.add(bass(33, 1.2), at(3), 0.42)
@@ -494,17 +494,21 @@ def compose_short():
     a.groove_bar(5, 'G', clap_on=True, arp_gain=0.16, open_hat=True)
     music.add(reverse_crash(1.3), at(6) - 1.3, 0.3)
     for i in range(8):
-        drums.add(snare(), at(5, 2) + i * BEAT / 4, 0.08 + 0.05 * i)
+        drums.add(snare(), at(5, 2) + i * BEAT / 4, 0.05 + 0.03 * i)
 
-    # --- 6-7 : impact du logo, groove complet sous la carte et l'adresse
+    # --- 6-7 : impact du logo (aigus compris, pour les haut-parleurs de téléphone), groove sous la carte
     drums.add(impact(), at(6), 0.85)
     a.kick_times.append(at(6))
-    drums.add(crash(), at(6), 0.26)
+    drums.add(crash(), at(6), 0.5)
+    drums.add(clap(), at(6), 0.5)
+    drums.add(hat(True), at(6), 0.3)
     music.add(pad(CHORDS['C']['pad'] + [72], BAR, bright=1.1, attack=0.02, release=0.6), at(6), 0.5)
     for k, m in enumerate([84, 91]):
         send.add(bell(m, 2.6), at(6) + 0.02 * k, 0.12, pan=-0.4 + 0.8 * k)
     a.groove_bar(6, 'C', clap_on=True, arp_gain=0.2, open_hat=False)
-    a.groove_bar(7, 'F', clap_on=True, arp_gain=0.2, open_hat=True, bells=True)
+    # Mesure 7 plus légère pendant la frappe de l'adresse ; pas de clap sur le tap du bouton (12,5 s).
+    a.groove_bar(7, 'F', clap_on=False, arp_gain=0.14, open_hat=False, bells=True)
+    drums.add(clap(), at(7, 3), 0.42)
     music.add(pad(CHORDS['G']['pad'] + [74], BEAT * 2, bright=1.0, attack=0.05, release=0.3), at(7, 2), 0.35)
 
     # --- 8 (demi-mesure) : accord final de do majeur qui résonne
@@ -527,7 +531,7 @@ def compose_short():
     gate[i0 - ramp:i0] = np.linspace(1, 0, ramp)
     for bus in (drums, music, send, sub):
         bus.buf[:, i0 - ramp:i1] *= gate[i0 - ramp:i1]
-    return a.master(fade=0.5)
+    return a.master(fade=0.25)
 
 
 def master(drums: Bus, music: Bus, send: Bus, sub: Bus, kick_times: list[float], fade: float = 1.6) -> np.ndarray:
