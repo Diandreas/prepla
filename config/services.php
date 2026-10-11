@@ -48,6 +48,12 @@ return [
         'key' => env('FORVO_API_KEY'),
     ],
 
+    // Voix a deux locuteurs pour les dialogues d'ecoute. Sans cle, le service
+    // se declare indisponible et Deepgram continue de tout lire : rien ne casse.
+    'elevenlabs' => [
+        'api_key' => env('ELEVENLABS_API_KEY'),
+    ],
+
     'deepgram' => [
         'api_key' => env('DEEPGRAM_API_KEY'),
     ],

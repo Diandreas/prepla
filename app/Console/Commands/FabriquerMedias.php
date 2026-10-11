@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Exercise;
 use App\Services\TTS\DeepgramTtsService;
+use App\Services\TTS\ElevenLabsTtsService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -29,13 +30,14 @@ class FabriquerMedias extends Command
         {--image : ne fabriquer que les images}
         {--sujets : se limiter aux exercices des epreuves blanches}
         {--limite=0 : s arreter apres ce nombre de fichiers}
+        {--dialogues : donner une voix par locuteur aux passages a deux voix (ElevenLabs)}
         {--sec : annoncer ce qui serait fabrique, sans rien ecrire}';
 
     protected $description = 'Fabrique et range le son et les images des exercices, pour que rien ne se genere pendant une epreuve';
 
     private const DOSSIER_IMAGES = 'exercise-images';
 
-    public function handle(DeepgramTtsService $tts): int
+    public function handle(DeepgramTtsService $tts, ElevenLabsTtsService $deuxVoix): int
     {
         $sec = (bool) $this->option('sec');
         $limite = (int) $this->option('limite');
@@ -48,7 +50,7 @@ class FabriquerMedias extends Command
 
         Exercise::with('exerciseType:id,skill_type,component_key', 'exam:id,language_id', 'exam.language:id,name')
             ->when($this->option('sujets'), fn ($q) => $q->whereNotNull('mock_exam_id'))
-            ->chunkById(200, function ($lot) use ($tts, $sec, $limite, $toutFaire, &$faits, &$equipees, &$echecs, &$octets) {
+            ->chunkById(200, function ($lot) use ($tts, $deuxVoix, $sec, $limite, $toutFaire, &$faits, &$equipees, &$echecs, &$octets) {
                 foreach ($lot as $exercice) {
                     $questions = is_array($exercice->questions) ? $exercice->questions : [];
                     $modifie = false;
@@ -64,7 +66,7 @@ class FabriquerMedias extends Command
 
                         if (($toutFaire || $this->option('son')) && $exercice->estUneEcoute()) {
                             $avant = $question['audio_url'] ?? null;
-                            [$question, $fait, $erreur] = $this->poserLeSon($tts, $exercice, $question, $sec);
+                            [$question, $fait, $erreur] = $this->poserLeSon($tts, $deuxVoix, $exercice, $question, $sec);
                             $faits += $fait ? 1 : 0;
                             $modifie = $modifie || ($question['audio_url'] ?? null) !== $avant;
                             if ($erreur) {
@@ -118,7 +120,7 @@ class FabriquerMedias extends Command
      *
      * @return array{0: array, 1: bool, 2: ?string}
      */
-    private function poserLeSon(DeepgramTtsService $tts, Exercise $exercice, array $question, bool $sec): array
+    private function poserLeSon(DeepgramTtsService $tts, ElevenLabsTtsService $deuxVoix, Exercise $exercice, array $question, bool $sec): array
     {
         if (! empty($question['audio_url'])) {
             return [$question, false, null];
@@ -143,13 +145,29 @@ class FabriquerMedias extends Command
             return [$question, ! $dejaLa, null];
         }
 
-        $url = $tts->speak($texte, $langue);
+        // Un DIALOGUE merite une voix par locuteur : c'est la seule difference
+        // qui s'entend vraiment, et c'est une competence evaluee a l'examen —
+        // savoir qui dit quoi. On n'y recourt que la, le quota se comptant en
+        // caracteres. Sans cle, le service se declare indisponible et Deepgram
+        // lit tout, comme avant.
+        $url = null;
+        if ($this->option('dialogues') && $deuxVoix->disponible() && $deuxVoix->estUnDialogue($texte)) {
+            $url = $deuxVoix->parler($texte, $langue);
+            if ($url) {
+                $this->line('  <fg=cyan>♫</> #'.$exercice->id.' '.$langue.' dialogue a '
+                    .count(array_unique(array_column($deuxVoix->repliques($texte), 'locuteur'))).' voix');
+            }
+        }
+
+        $url = $url ?? $tts->speak($texte, $langue);
         if (! $url) {
             return [$question, false, 'synthese refusee'];
         }
 
         $question['audio_url'] = $url;
-        $this->line('  <fg=green>♪</> #'.$exercice->id.' '.$langue.' '.mb_strlen($texte).' car.');
+        if (! str_contains($url, '/el-')) {
+            $this->line('  <fg=green>♪</> #'.$exercice->id.' '.$langue.' '.mb_strlen($texte).' car.');
+        }
 
         return [$question, ! $dejaLa, null];
     }
