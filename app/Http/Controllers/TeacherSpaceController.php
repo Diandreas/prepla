@@ -29,7 +29,7 @@ class TeacherSpaceController extends Controller
             // Un espace déjà ouvert : la page le dit au lieu d'en proposer un second.
             'existing' => $user->center()?->only(['id', 'name']),
             'role' => $user->centerRole(),
-            'exams' => Exam::with('language:id,name')
+            'exams' => Exam::proposables()->with('language:id,name')
                 ->get(['id', 'name', 'language_id'])
                 ->map(fn (Exam $exam) => [
                     'id' => $exam->id,

@@ -27,7 +27,7 @@ class ProfileController extends Controller
     {
         $user = $request->user();
         $profile = $user->profile?->load('targetExam.language');
-        $exams = Exam::with('language')->get();
+        $exams = Exam::proposables()->with('language')->get();
 
         return Inertia::render('settings/profile', [
             'mustVerifyEmail' => $user instanceof MustVerifyEmail,

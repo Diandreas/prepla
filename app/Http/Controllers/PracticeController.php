@@ -120,6 +120,11 @@ class PracticeController extends Controller
 
     public function examDashboard(Exam $exam): Response
     {
+        // Masquer un examen des listes ne suffit pas : son adresse restait
+        // ouverte. Sept langues ne sont pas travaillees et leurs examens n'ont
+        // qu'un squelette generique — on ne les sert pas non plus en direct.
+        abort_unless($exam->language?->is_active, 404);
+
         $exam->load(['language', 'sections' => fn ($q) => $q->where('slug', '!=', 'level-assessment')->with('exerciseTypes')]);
 
         $user = auth()->user();

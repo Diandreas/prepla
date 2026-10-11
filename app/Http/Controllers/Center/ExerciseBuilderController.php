@@ -166,7 +166,7 @@ class ExerciseBuilderController extends Controller
                     'skill_type' => $t->skill_type,
                     'exam_id' => $t->section?->exam_id,
                 ]),
-            'exams' => Exam::get(['id', 'name']),
+            'exams' => Exam::proposables()->get(['id', 'name']),
             'defaultExamId' => $center->default_exam_id,
         ];
     }

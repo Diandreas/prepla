@@ -43,7 +43,7 @@ class ClassroomController extends Controller
 
         return Inertia::render('center/classes/index', [
             'classrooms' => $classrooms,
-            'exams' => Exam::get(['id', 'name']),
+            'exams' => Exam::proposables()->get(['id', 'name']),
             'seatsAvailable' => $center->seatsAvailable(),
         ]);
     }
@@ -98,7 +98,7 @@ class ClassroomController extends Controller
             ],
             'students' => $students,
             'stats' => $stats->forClassroom($classroom),
-            'exams' => \App\Models\Exam::with('language:id,name')->get(['id', 'name', 'language_id'])
+            'exams' => \App\Models\Exam::proposables()->with('language:id,name')->get(['id', 'name', 'language_id'])
                 ->map(fn ($exam) => ['id' => $exam->id, 'name' => $exam->name, 'language' => $exam->language?->name]),
         ]);
     }

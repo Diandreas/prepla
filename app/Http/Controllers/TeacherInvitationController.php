@@ -55,7 +55,7 @@ class TeacherInvitationController extends Controller
                 ]),
             // Un responsable d'espace invite DANS son espace ; l'équipe en ouvre un.
             'ownCenter' => $request->user()->isSuperAdmin() ? null : $request->user()->center()?->only(['id', 'name']),
-            'exams' => Exam::with('language:id,name')->get(['id', 'name', 'language_id'])
+            'exams' => Exam::proposables()->with('language:id,name')->get(['id', 'name', 'language_id'])
                 ->map(fn (Exam $exam) => ['id' => $exam->id, 'name' => $exam->name, 'language' => $exam->language?->name]),
         ]);
     }
