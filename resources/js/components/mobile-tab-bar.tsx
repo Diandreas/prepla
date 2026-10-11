@@ -8,6 +8,10 @@ interface Tab { labelKey: string; label?: string; href: string; icon: string; is
 const LEARNER_TABS: Tab[] = [
     { labelKey: 'sidebar.home', href: '/dashboard', icon: 'home' },
     { labelKey: 'sidebar.practice', href: '/practice', icon: 'puzzle' },
+    // Les Outils IA vivaient dans le menu lateral seulement : sur telephone, ou
+    // se fait l'essentiel des seances, ils etaient hors d'atteinte. Au centre et
+    // en relief, comme les devoirs cote enseignant.
+    { labelKey: 'sidebar.ai_tools', label: 'Outils IA', href: '/ai-tools', icon: 'sparkles', isCenter: true },
     { labelKey: 'sidebar.my_words', label: 'Mes mots', href: '/dictionary', icon: 'book' },
     { labelKey: 'sidebar.results', href: '/results', icon: 'statistics' },
 ];
