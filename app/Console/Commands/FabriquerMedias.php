@@ -41,13 +41,14 @@ class FabriquerMedias extends Command
         $limite = (int) $this->option('limite');
         $toutFaire = ! $this->option('son') && ! $this->option('image');
 
-        $faits = 0;
+        $faits = 0;       // fichiers reellement fabriques
+        $equipees = 0;    // questions qui ont recu leur adresse
         $echecs = [];
         $octets = 0;
 
         Exercise::with('exerciseType:id,skill_type,component_key', 'exam:id,language_id', 'exam.language:id,name')
             ->when($this->option('sujets'), fn ($q) => $q->whereNotNull('mock_exam_id'))
-            ->chunkById(200, function ($lot) use ($tts, $sec, $limite, $toutFaire, &$faits, &$echecs, &$octets) {
+            ->chunkById(200, function ($lot) use ($tts, $sec, $limite, $toutFaire, &$faits, &$equipees, &$echecs, &$octets) {
                 foreach ($lot as $exercice) {
                     $questions = is_array($exercice->questions) ? $exercice->questions : [];
                     $modifie = false;
@@ -62,23 +63,21 @@ class FabriquerMedias extends Command
                         }
 
                         if (($toutFaire || $this->option('son')) && $exercice->estUneEcoute()) {
+                            $avant = $question['audio_url'] ?? null;
                             [$question, $fait, $erreur] = $this->poserLeSon($tts, $exercice, $question, $sec);
-                            if ($fait) {
-                                $faits++;
-                                $modifie = true;
-                            }
+                            $faits += $fait ? 1 : 0;
+                            $modifie = $modifie || ($question['audio_url'] ?? null) !== $avant;
                             if ($erreur) {
                                 $echecs[] = "#{$exercice->id} son : {$erreur}";
                             }
                         }
 
                         if ($toutFaire || $this->option('image')) {
+                            $avant = json_encode($question);
                             [$question, $fait, $erreur, $poids] = $this->poserLesImages($question, $sec);
-                            if ($fait) {
-                                $faits += $fait;
-                                $octets += $poids;
-                                $modifie = true;
-                            }
+                            $faits += $fait;
+                            $octets += $poids;
+                            $modifie = $modifie || json_encode($question) !== $avant;
                             if ($erreur) {
                                 $echecs[] = "#{$exercice->id} image : {$erreur}";
                             }
@@ -87,9 +86,12 @@ class FabriquerMedias extends Command
                         $questions[$i] = $question;
                     }
 
-                    if ($modifie && ! $sec) {
-                        $exercice->questions = $questions;
-                        $exercice->saveQuietly();
+                    if ($modifie) {
+                        $equipees++;
+                        if (! $sec) {
+                            $exercice->questions = $questions;
+                            $exercice->saveQuietly();
+                        }
                     }
                 }
 
@@ -98,7 +100,8 @@ class FabriquerMedias extends Command
 
         $this->newLine();
         $this->info(($sec ? 'A fabriquer : ' : 'Fabriques : ').$faits.' fichier(s)'
-            .($octets ? ', '.round($octets / 1048576, 1).' Mo d images' : ''));
+            .($octets ? ', '.round($octets / 1048576, 1).' Mo d images' : '')
+            .' — '.$equipees.' exercice(s) equipe(s)');
 
         if ($echecs !== []) {
             $this->warn(count($echecs).' echec(s) :');

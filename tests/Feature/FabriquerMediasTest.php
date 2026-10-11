@@ -91,6 +91,42 @@ test('ce qui est deja fabrique n est pas refait', function () {
         ->and($exercice->refresh()->questions[0]['audio_url'])->toContain('tts/');
 });
 
+test('une question qui partage un passage deja fabrique recoit quand meme son adresse', function () {
+    // Le defaut qui a laisse 904 questions sans adresse : plusieurs questions
+    // d'une meme epreuve d'ecoute partagent le passage, le fichier n'est fabrique
+    // qu'une fois, et seule la premiere question etait enregistree.
+    $exercice = exerciceAMedias();
+    $exercice->update(['questions' => [
+        ['id' => 'q1', 'type' => 'mcq', 'text' => 'Wo arbeitet Anna?', 'options' => ['A', 'B'], 'correct_answer' => 'B'],
+        ['id' => 'q2', 'type' => 'mcq', 'text' => 'Wo wohnt Anna?', 'options' => ['A', 'B'], 'correct_answer' => 'A'],
+        ['id' => 'q3', 'type' => 'mcq', 'text' => 'Wie heisst sie?', 'options' => ['A', 'B'], 'correct_answer' => 'A'],
+    ]]);
+
+    $this->artisan('prepla:fabriquer-medias')->assertSuccessful();
+
+    $questions = $exercice->refresh()->questions;
+    foreach ([0, 1, 2] as $i) {
+        expect($questions[$i]['audio_url'] ?? null)->toContain('tts/');
+    }
+
+    // Un seul fichier, malgre trois questions : le passage est le meme.
+    expect(collect(Storage::disk('public')->allFiles())->filter(fn ($f) => str_starts_with($f, 'tts/')))->toHaveCount(1);
+});
+
+test('une seconde passe rattrape une question laissee sans adresse', function () {
+    $exercice = exerciceAMedias();
+    $this->artisan('prepla:fabriquer-medias')->assertSuccessful();
+
+    // On retire l'adresse comme si la premiere passe l'avait oubliee.
+    $questions = $exercice->refresh()->questions;
+    unset($questions[0]['audio_url']);
+    $exercice->update(['questions' => $questions]);
+
+    $this->artisan('prepla:fabriquer-medias')->assertSuccessful();
+
+    expect($exercice->refresh()->questions[0]['audio_url'] ?? null)->toContain('tts/');
+});
+
 test('un exercice sans son ni image est laisse tel quel', function () {
     $exercice = exerciceAMedias();
     $exercice->update([
