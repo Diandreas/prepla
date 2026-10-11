@@ -20,12 +20,17 @@ function scoringServiceForSelfEvaluatedExercise(): ExerciseScoringService
 function selfEvaluatedExercise(string $type): Exercise
 {
     $exercise = new Exercise([
-        'questions' => [[
+        'questions' => [array_filter([
             'id' => 'q1',
             'type' => $type,
             'text' => 'Speak clearly.',
             'correct_answer' => null,
-        ]],
+            // Un format sonore sans enregistrement est ecarte : « ecoute et repete »
+            // porte la phrase a entendre, comme en production.
+            'audio_text' => in_array($type, Exercise::FORMATS_SONORES, true)
+                ? 'Repeat this sentence.'
+                : null,
+        ], fn ($v) => $v !== null)],
         'difficulty' => 'B1',
         'xp_reward' => 10,
     ]);
