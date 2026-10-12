@@ -64,3 +64,21 @@ test('un exercice a champs multiples recoit la consigne sur la grille', function
     expect($prompt)->toContain('CRITICAL FOR MULTI-FIELD TYPES')
         ->and($prompt)->toContain('word_list');
 });
+
+test('une tache orale interdit explicitement le QCM', function () {
+    // Rien ne l'interdisait, et la directive orale ne valait qu'aux niveaux
+    // debutants : au B1, Mistral rendait cinq questions de comprehension ecrite.
+    $prompt = promptPour('speaking-recorder');
+
+    expect($prompt)->toContain('THIS IS A SPEAKING TASK')
+        ->and($prompt)->toContain('EXACTLY ONE question object')
+        ->and($prompt)->toContain('NEVER include an "options" array');
+});
+
+test('un jeu de role recoit la meme interdiction', function () {
+    expect(promptPour('role-play'))->toContain('THIS IS A SPEAKING TASK');
+});
+
+test('un QCM de lecture ne recoit pas cette interdiction', function () {
+    expect(promptPour('mcq', 'reading'))->not->toContain('THIS IS A SPEAKING TASK');
+});

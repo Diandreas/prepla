@@ -593,6 +593,21 @@ DIRECTIVE;
             ? "\n\nBEGINNER SPEAKING ({$difficulty}): the student does not read {$language} fluently yet.\n- \"scenario\", \"role\", and every candidate \"prompt\" (hint) MUST be written in {$nativeLang}, so the student understands WHAT to do.\n- Only the examiner's spoken \"text\" lines (read aloud via TTS) stay in {$language}, and must use SIMPLE, SHORT, high-frequency {$difficulty}-level sentences.\n- Never require the student to have read a {$language} instruction to know how to respond — the instruction itself must be in {$nativeLang}."
             : '';
 
+        // Rien n'INTERDISAIT le QCM pour une tache orale, et la directive
+        // ci-dessus ne vaut qu'aux niveaux debutants. Au B1, interroge sur une
+        // « Discussion argumentee », Mistral rendait cinq questions a choix de
+        // comprehension ecrite. Le validateur refusait la fournee entiere, a
+        // juste titre, et aucun exercice oral ne pouvait entrer dans le vivier.
+        $speakingDirective .= in_array($componentKey, ['speaking-recorder', 'role-play'], true)
+            ? "
+
+THIS IS A SPEAKING TASK — the student RECORDS their own voice. It is NOT a comprehension test.
+- Return EXACTLY ONE question object, never several.
+- NEVER include an \"options\" array, and NEVER write comprehension questions about a text.
+- \"correct_answer\" is null: nothing here is marked right or wrong automatically.
+- The question must give the student something to SAY."
+            : '';
+
         // Same beginner problem as speaking, but for the plain "text" instruction
         // field of types that have a REAL standalone instruction (as opposed to
         // summary-completion/open-cloze, where "text" IS the content to fill in —
