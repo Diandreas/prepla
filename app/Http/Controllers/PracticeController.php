@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Exam;
+use App\Models\ExamBlueprint;
 use App\Models\ExamSection;
 use App\Models\Exercise;
 use App\Models\ExerciseType;
@@ -128,6 +129,34 @@ class PracticeController extends Controller
         $exam->load(['language', 'sections' => fn ($q) => $q->where('slug', '!=', 'level-assessment')->with('exerciseTypes')]);
 
         $user = auth()->user();
+        $niveau = $user->profile?->current_level ?: 'A1';
+
+        // LES MODULES DE SON NIVEAU, pas tous ceux de l'examen. Les sections sont
+        // partagees entre les niveaux — une ligne par examen et par slug — et la
+        // page les affichait toutes, avec la duree du dernier niveau enregistre.
+        // Un candidat telc A1 voyait donc les Sprachbausteine, qui n'existent pas
+        // a son niveau, et « Horen und Schreiben », qui n'existe qu'au C2 : six
+        // modules et 305 minutes au lieu de quatre et 80. Au DELF, il voyait les
+        // deux epreuves combinees du DALF C2 a cote des quatre epreuves normales.
+        $plan = ExamBlueprint::where('exam_id', $exam->id)->where('level', $niveau)->first();
+        $duNiveau = collect($plan?->sections_config ?? [])->filter(fn ($m) => ! empty($m['slug']))->keyBy('slug');
+
+        if ($duNiveau->isNotEmpty()) {
+            $exam->setRelation('sections', $exam->sections
+                ->filter(fn ($section) => $duNiveau->has($section->slug))
+                // Les durees et le nombre de taches sont ceux du niveau, pas ceux
+                // de la derniere section ecrite en base.
+                ->each(function ($section) use ($duNiveau) {
+                    $module = $duNiveau->get($section->slug);
+                    $section->time_limit = $module['time_limit'] ?? $section->time_limit;
+                    $section->task_count = $module['task_count'] ?? null;
+                    $section->name = $module['name'] ?? $section->name;
+                    $section->description = $module['description'] ?? $section->description;
+                })
+                // Dans l'ordre de l'epreuve, pas dans l'ordre alphabetique.
+                ->sortBy(fn ($section) => array_search($section->slug, $duNiveau->keys()->all(), true))
+                ->values());
+        }
         $sectionProgress = [];
         foreach ($exam->sections as $section) {
             $totalAttempts = $user->exerciseAttempts()
@@ -139,7 +168,12 @@ class PracticeController extends Controller
         return Inertia::render('practice/exam-dashboard', [
             'exam' => $exam,
             'sectionProgress' => $sectionProgress,
-            'learnerLevel' => $user->profile?->current_level ?? 'A1',
+            // La duree officielle du niveau, quand l'examen en decrit une : la
+            // somme des modules affiches ne la donne pas toujours, l'examen
+            // pouvant annoncer un temps commun a deux modules.
+            'levelDuration' => $plan?->total_duration_minutes,
+            'levelIsOfficial' => $duNiveau->isNotEmpty(),
+            'learnerLevel' => $niveau,
             'canSimulate' => ! in_array($user->profile?->current_level ?? 'A1', ['A0', 'A1', 'A2'], true)
                 || MockExam::where('is_published', true)->whereHas('exercises')
                     ->whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id)->where('level', $user->profile?->current_level ?? 'A1'))->exists(),

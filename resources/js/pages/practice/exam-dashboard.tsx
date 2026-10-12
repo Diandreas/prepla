@@ -16,6 +16,9 @@ function FlagImg({ flag }: { flag: string }) {
 interface Props {
     learnerLevel: string;
     canSimulate: boolean;
+    /** La durée officielle du niveau, quand l'examen en décrit une. */
+    levelDuration?: number | null;
+    levelIsOfficial?: boolean;
     exam: ExamRecord & { sections: ExamSection[] };
     sectionProgress: Record<number, number>;
 }
@@ -27,12 +30,16 @@ const skills: Record<string, { icon: string; tone: 'blue' | 'mint' | 'amber' | '
     speaking: { icon: 'speaking', tone: 'amber', description: 'Prends la parole et gagne en aisance.' },
 };
 
-export default function ExamDashboard({ exam, sectionProgress, learnerLevel, canSimulate }: Props) {
+export default function ExamDashboard({ exam, sectionProgress, learnerLevel, canSimulate, levelDuration, levelIsOfficial }: Props) {
     const isBeginner = ['A0', 'A1', 'A2'].includes(learnerLevel);
     const availableSections = exam.sections.filter(section => (section.exercise_types?.length ?? 0) > 0);
     const { t } = useTranslation();
     const { flash } = usePage<SharedData & { flash?: { error?: string; success?: string } }>().props;
-    const totalExamMinutes = exam.sections.reduce((total, section) => total + (section.time_limit ?? 0), 0) || 180;
+    // La durée du niveau quand l'examen la publie : un examen peut annoncer un
+    // temps COMMUN à deux modules — telc donne 90 minutes pour la lecture et les
+    // Sprachbausteine ensemble — et la somme des modules la dépasserait alors.
+    const totalExamMinutes =
+        levelDuration ?? (exam.sections.reduce((total, section) => total + (section.time_limit ?? 0), 0) || 180);
     const attempts = Object.values(sectionProgress).reduce((total, count) => total + count, 0);
 
     return (
@@ -162,8 +169,8 @@ export default function ExamDashboard({ exam, sectionProgress, learnerLevel, can
                     <h2 className="text-sm font-bold">D’abord les bases · niveau {learnerLevel}</h2>
                     <p className="mt-2 text-xs leading-relaxed text-muted-foreground">Travaille une compétence à la fois. Ton parcours alterne leçon, pratique et validation de palier ; l’examen complet n’est pas la prochaine étape.</p>
                     <Link href={route('dashboard')} className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-primary">Continuer mon parcours <ArrowRight size={16} aria-hidden="true" /></Link>
-                </section> : <details className="studio-card rounded-2xl border border-border bg-card p-4">
-                <summary className="cursor-pointer text-sm font-semibold">{isBeginner ? `Épreuve niveau ${learnerLevel} · optionnelle` : 'Simulation longue · optionnelle'}</summary>
+                </section> : <details open className="studio-card rounded-2xl border border-border bg-card p-4">
+                <summary className="cursor-pointer text-sm font-semibold">{levelIsOfficial ? `Épreuve blanche complète · ${learnerLevel}` : `Entraînement au format · ${learnerLevel}`}</summary>
                 <section className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center">
                     <div className="flex flex-1 items-center gap-4">
                         <ArtIcon name="clock" size={56} tone="amber" />
