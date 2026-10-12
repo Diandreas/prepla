@@ -65,6 +65,7 @@ class ExerciseGeneratorService
             }
 
             $produced = count($candidate['questions']);
+            $avantFiltre = $candidate['questions'];
             $candidate['questions'] = $this->normalizeOptionLetters($candidate['questions']);
             $candidate['questions'] = $this->shuffleOptions($candidate['questions']);
             $candidate['questions'] = $this->dropInvalidChoiceQuestions($candidate['questions'], $exerciseType->component_key);
@@ -72,7 +73,15 @@ class ExerciseGeneratorService
             $kept = count($candidate['questions']);
 
             if ($kept === 0) {
-                $raisons[] = 'les '.$produced.' question(s) ecrites ont toutes ete refusees par le schema '.$exerciseType->component_key;
+                // Le nombre de refus ne suffisait pas a savoir POURQUOI : on garde
+                // le type que chaque question se declare et ses champs, c'est ce
+                // qui montre si Mistral a repondu a cote ou s'il a juste oublie
+                // un champ attendu.
+                $vus = array_map(fn ($q) => is_array($q)
+                    ? ($q['type'] ?? 'sans type').'{'.implode(',', array_slice(array_keys($q), 0, 8)).'}'
+                    : gettype($q), $avantFiltre);
+                $raisons[] = 'les '.$produced.' question(s) ecrites ont toutes ete refusees par le schema '
+                    .$exerciseType->component_key.' — recu : '.implode(' | ', array_unique($vus));
 
                 continue;
             }
