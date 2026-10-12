@@ -66,6 +66,7 @@ class ExerciseGeneratorService
 
             $produced = count($candidate['questions']);
             $avantFiltre = $candidate['questions'];
+            $candidate['questions'] = $this->rectifierLeType($candidate['questions'], $exerciseType->component_key);
             $candidate['questions'] = $this->normalizeOptionLetters($candidate['questions']);
             $candidate['questions'] = $this->shuffleOptions($candidate['questions']);
             $candidate['questions'] = $this->dropInvalidChoiceQuestions($candidate['questions'], $exerciseType->component_key);
@@ -727,6 +728,61 @@ For writing/speaking exercises, correct_answer should be null (these are scored 
 PROMPT;
     }
 
+
+
+    /**
+     * Remet la bonne etiquette aux questions dont la STRUCTURE est celle du type
+     * demande.
+     *
+     * Mistral ecrivait un jeu de role parfaitement forme — scenario, role,
+     * dialogue_turns — puis l'etiquetait « multiple_choice ». Le validateur ne
+     * regardait que l'etiquette et jetait tout : les debats oraux du telc B1
+     * echouaient a chaque essai alors que leur contenu etait bon.
+     *
+     * L'etiquette ne sert a rien pour l'affichage, c'est le component_key qui
+     * decide. On ne corrige que ce qui est sans ambiguite ; une vraie reponse a
+     * cote — un QCM de lecture pour un expose oral — n'a pas la structure
+     * attendue et reste refusee.
+     */
+    private function rectifierLeType(array $questions, ?string $componentKey): array
+    {
+        $formes = [
+            'role-play' => ['exiges' => ['scenario', 'role', 'dialogue_turns'], 'aRetirer' => ['options']],
+            'speaking-recorder' => ['exiges' => ['text'], 'interdits' => ['options'], 'aRetirer' => []],
+        ];
+
+        if (! isset($formes[$componentKey])) {
+            return $questions;
+        }
+        $forme = $formes[$componentKey];
+
+        return array_map(function ($question) use ($componentKey, $forme) {
+            if (! is_array($question) || ($question['type'] ?? null) === $componentKey) {
+                return $question;
+            }
+
+            foreach ($forme['exiges'] as $champ) {
+                if (! isset($question[$champ]) || $question[$champ] === '' || $question[$champ] === []) {
+                    return $question;   // structure absente : on ne corrige rien
+                }
+            }
+            foreach ($forme['interdits'] ?? [] as $champ) {
+                if (isset($question[$champ])) {
+                    return $question;   // un champ qui n'a rien a faire la : reponse a cote
+                }
+            }
+
+            // Un champ surnumeraire que le composant n'affiche pas ferait echouer
+            // la validation des questions a choix : il n'a pas lieu d'etre garde.
+            foreach ($forme['aRetirer'] as $champ) {
+                unset($question[$champ]);
+            }
+
+            $question['type'] = $componentKey;
+
+            return $question;
+        }, $questions);
+    }
 
     /**
      * Les consignes de correction propres aux exercices a choix et a champs
