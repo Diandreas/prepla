@@ -42,6 +42,7 @@ class ExerciseGeneratorService
         // dropping only the broken questions. This is what was producing exercises
         // where the marked-correct option didn't match the explanation at all.
         $data = null;
+        $raisons = [];
         for ($attempt = 0; $attempt < 2; $attempt++) {
             $response = $this->mistral->chat([
                 ['role' => 'system', 'content' => 'You are an expert language exam content creator. Always respond with valid JSON only.'],
@@ -49,10 +50,17 @@ class ExerciseGeneratorService
             ]);
 
             if (! $response) {
+                $raisons[] = 'aucune reponse du fournisseur';
+
                 continue;
             }
             $candidate = json_decode($response, true);
             if (! isset($candidate['content'], $candidate['questions']) || count($candidate['questions']) === 0) {
+                // « AI failed » sans la raison a coute une enquete entiere : on
+                // garde le debut de la reponse, c'est ce qui permet de trancher
+                // entre un quota epuise, un JSON casse et un schema refuse.
+                $raisons[] = 'reponse illisible ou sans question : '.mb_substr(trim($response), 0, 180);
+
                 continue;
             }
 
@@ -64,6 +72,8 @@ class ExerciseGeneratorService
             $kept = count($candidate['questions']);
 
             if ($kept === 0) {
+                $raisons[] = 'les '.$produced.' question(s) ecrites ont toutes ete refusees par le schema '.$exerciseType->component_key;
+
                 continue;
             }
 
@@ -77,6 +87,7 @@ class ExerciseGeneratorService
                 break;
             }
 
+            $raisons[] = $kept.' question(s) gardees sur '.$produced;
             Log::info('Exercise generation: majority of questions rejected, retrying', [
                 'component' => $exerciseType->component_key,
                 'produced' => $produced,
@@ -119,9 +130,13 @@ class ExerciseGeneratorService
         // the caller can skip this type / retry / show a clean message instead.
         Log::warning('ExerciseGenerator: AI failed, no exercise generated', [
             'exercise_type' => $exerciseType->component_key,
+            'exercise_type_slug' => $exerciseType->slug,
             'exam_id' => $exam->id,
+            'niveau' => $difficulty,
+            'raisons' => $raisons,
         ]);
-        throw new \RuntimeException('AI exercise generation failed for '.$exerciseType->component_key);
+        throw new \RuntimeException('AI exercise generation failed for '.$exerciseType->component_key
+            .($raisons ? ' — '.implode(' ; ', $raisons) : ''));
     }
 
     /** Strip letter prefixes like "A) ", "B) " that Mistral sometimes adds to options. */
