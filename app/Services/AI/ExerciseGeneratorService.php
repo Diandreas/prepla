@@ -692,6 +692,13 @@ DIRECTIVE;
 
         // Level guard: keep vocabulary and structures within the target CEFR level so
         // the learner isn't tested on notions far beyond what they're learning.
+        // Ces deux consignes ne concernent que les exercices a choix ou a champs
+        // multiples. Envoyees a un expose oral, elles tiraient Mistral vers un QCM :
+        // pour « speaking-long-turn » il repondait « Sie horen gleich einen Text »,
+        // et le validateur refusait l'integralite de la fournee — donc aucun exercice
+        // oral ne pouvait entrer dans le vivier. On ne parle d'options qu'a qui en a.
+        $consignesDeCorrection = $this->consignesDeCorrection($componentKey);
+
         $levelGuard = "\n\nLEVEL: Keep vocabulary, grammar and topics appropriate for CEFR {$difficulty}. Do not use structures or rare vocabulary clearly above {$difficulty}.";
 
         return <<<PROMPT
@@ -707,22 +714,54 @@ Return JSON with exactly this structure:
 
 Important: ALL text (passage, questions, options, explanations) must be in {$language}, EXCEPT where a field above is explicitly marked to be in the student's native language (beginner speaking/instruction fields). No English unless it's an English exam.
 For writing/speaking exercises, correct_answer should be null (these are scored differently).
+{$consignesDeCorrection}
+PROMPT;
+    }
 
+
+    /**
+     * Les consignes de correction propres aux exercices a choix et a champs
+     * multiples — vides pour les autres.
+     *
+     * Un expose oral n'a ni option ni grille de reponses : lui rappeler que
+     * « correct_answer doit etre la lettre de l'option » l'invitait a en
+     * inventer, et c'est un QCM d'ecoute qui revenait.
+     */
+    private function consignesDeCorrection(?string $componentKey): string
+    {
+        $aChoix = ['mcq', 'gap-fill', 'sentence-completion', 'matching', 'matching-headings',
+            'true-false-notgiven', 'grammar-mcq', 'mcq-cloze', 'listen-choose-response',
+            'insert-text', 'gapped-text'];
+        $aChamps = ['summary-completion', 'note-completion', 'form-completion', 'table-completion',
+            'flow-chart-completion', 'diagram-labeling', 'fill-table', 'open-cloze',
+            'word-formation', 'complete-the-words', 'prose-summary'];
+
+        $consignes = '';
+
+        if (in_array($componentKey, $aChoix, true)) {
+            $consignes .= PHP_EOL.PHP_EOL.<<<'TEXTE'
 CRITICAL FOR ANY QUESTION WITH "options": correct_answer MUST be the letter of
 the option that is WORD-FOR-WORD identical to one of the strings in "options".
 Before answering, re-read your own "options" array and pick the letter that
 matches EXACTLY — do not answer with a word that isn't literally one of the
 options (e.g. do not explain "Morgen" if "Morgen" isn't in the options list).
 The "explanation" must refer only to the text of the actual chosen option.
+TEXTE;
+        }
 
-CRITICAL FOR MULTI-FIELD TYPES (correct_answers is a key→value map): the keys
+        if (in_array($componentKey, $aChamps, true)) {
+            $consignes .= PHP_EOL.PHP_EOL.<<<'TEXTE'
+CRITICAL FOR MULTI-FIELD TYPES (correct_answers is a key-value map): the keys
 of correct_answers MUST exactly match the blank positions declared in the
 structural field (notes/fields/steps/rows/labels) — do not invent extra keys
 or omit any blank. FOR SUMMARY-COMPLETION SPECIFICALLY: every value in
 correct_answers MUST be a word/phrase that appears WORD-FOR-WORD in word_list
 — re-check that each correct answer is literally present in your own
 word_list array before answering, since the student can only pick from it.
-PROMPT;
+TEXTE;
+        }
+
+        return $consignes;
     }
 
     // (getFallbackContent / getFallbackQuestions supprimés : ils créaient des
