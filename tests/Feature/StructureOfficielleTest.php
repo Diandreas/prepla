@@ -170,3 +170,44 @@ test('la page distingue les exercices pedagogiques des parties d examen', functi
 
     expect($props['pedagogicalTypeIds'])->toHaveCount(1);
 });
+
+test('la galerie d un module distingue les parties de l epreuve', function () {
+    $exam = examenStructure();
+    $section = ExamSection::where('exam_id', $exam->id)->where('slug', 'lesen')->first();
+
+    $props = $this->actingAs(apprenantStructure('B2'))
+        ->get('/practice/'.$exam->id.'/section/'.$section->id)->viewData('page')['props'];
+
+    $types = collect($props['exerciseTypes'])->keyBy('name');
+
+    // Les deux formats du Leseverstehen qui SONT des parties portent leur nom
+    // officiel ; celui qui n'en est pas n'en porte aucun.
+    expect($types['matching-headings']['exam_part_name'])->toBe('Leseverstehen, Teil 1')
+        ->and($types['mcq']['exam_part_name'])->toBe('Leseverstehen, Teil 2')
+        ->and($types['read-daily-life']['exam_part_name'])->toBeNull();
+});
+
+test('les parties de l epreuve viennent avant les exercices d entrainement', function () {
+    $exam = examenStructure();
+    $section = ExamSection::where('exam_id', $exam->id)->where('slug', 'lesen')->first();
+
+    $props = $this->actingAs(apprenantStructure('B2'))
+        ->get('/practice/'.$exam->id.'/section/'.$section->id)->viewData('page')['props'];
+
+    // C'est ce que le candidat vient chercher : les parties d'abord, dans leur
+    // ordre, et l'entrainement pedagogique ensuite.
+    expect(collect($props['exerciseTypes'])->pluck('name')->all())
+        ->toBe(['matching-headings', 'mcq', 'read-daily-life']);
+});
+
+test('la page d un module porte le nom et la duree du niveau', function () {
+    $exam = examenStructure();
+    $section = ExamSection::where('exam_id', $exam->id)->where('slug', 'lesen')->first();
+
+    // En base, la section porte « Lesen » et 60 minutes. Le plan du B2 annonce
+    // « Leseverstehen » : c'est ce que le candidat doit lire.
+    $props = $this->actingAs(apprenantStructure('B2'))
+        ->get('/practice/'.$exam->id.'/section/'.$section->id)->viewData('page')['props'];
+
+    expect($props['section']['name'])->toBe('Leseverstehen');
+});

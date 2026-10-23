@@ -278,6 +278,26 @@ class PracticeController extends Controller
         $learnerLevel = auth()->user()->profile?->current_level ?? 'A1';
         $beginner = in_array($learnerLevel, ['A0', 'A1', 'A2'], true);
 
+        // Lesquels de ces formats sont une PARTIE de l'epreuve, et sous quel nom.
+        // Melanges aux autres, ils laissaient croire au candidat qu'il
+        // s'entrainait au format alors qu'il travaillait un exercice
+        // pedagogique — utile pour progresser, mais absent de l'examen.
+        $parties = collect(app(\App\Services\Content\StructureOfficielle::class)->parties($exam, $learnerLevel))
+            ->filter(fn ($partie) => $partie['section_slug'] === $section->slug && $partie['exercise_type_id'])
+            ->keyBy('exercise_type_id');
+
+        // Le nom et la duree du NIVEAU, pas ceux de la ligne partagee. Les
+        // sections valent pour tous les niveaux d'un examen, et la page affichait
+        // donc le dernier nom enregistre : un candidat B2 lisait « Lesen » et
+        // « 80 min » la ou telc annonce « Leseverstehen » et 90 minutes.
+        $duNiveau = collect(ExamBlueprint::where('exam_id', $exam->id)->where('level', $learnerLevel)->first()?->sections_config ?? [])
+            ->firstWhere('slug', $section->slug);
+        if ($duNiveau) {
+            $section->name = $duNiveau['name'] ?? $section->name;
+            $section->time_limit = $duNiveau['time_limit'] ?? $section->time_limit;
+            $section->description = $duNiveau['description'] ?? $section->description;
+        }
+
         // Galerie : les TYPES d'exercices de cette compétence. Cliquer un type →
         // drillByType (un exo au niveau du profil, biblio d'abord sinon généré).
         $exerciseTypes = $section->exerciseTypes
@@ -296,7 +316,16 @@ class PracticeController extends Controller
                 'skill_type' => $t->skill_type,
                 'component_key' => $t->component_key,
                 'starter_available' => $library->template($exam, $t, auth()->user()->profile?->current_level ?? 'B1') !== null,
+                // Le nom officiel de la partie quand ce format en est une, null sinon.
+                'exam_part_name' => $parties->get($t->id)['name'] ?? null,
+                'exam_part_task' => $parties->get($t->id)['task'] ?? null,
+                'exam_part_source' => $parties->get($t->id)['source'] ?? null,
             ])
+            // Les parties de l'epreuve d'abord, dans leur ordre : c'est ce que le
+            // candidat vient chercher.
+            ->sortBy(fn ($t) => $parties->has($t['id'])
+                ? $parties->keys()->search($t['id'])
+                : 1000)
             ->values();
 
         return Inertia::render('practice/section-drills', [

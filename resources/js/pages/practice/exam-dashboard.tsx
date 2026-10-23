@@ -51,6 +51,9 @@ const skills: Record<string, { icon: string; tone: 'blue' | 'mint' | 'amber' | '
     listening: { icon: 'listening', tone: 'mint', description: 'Entraîne ton oreille et repère les informations utiles.' },
     writing: { icon: 'writing', tone: 'rose', description: 'Structure tes idées et trouve les mots justes.' },
     speaking: { icon: 'speaking', tone: 'amber', description: 'Prends la parole et gagne en aisance.' },
+    // Les Sprachbausteine de telc sont un module de GRAMMAIRE : sans entrée ici,
+    // ils héritaient de la description de la lecture — « comprends les textes ».
+    grammar: { icon: 'writing', tone: 'blue', description: 'Travaille les structures et le choix des mots.' },
 };
 
 export default function ExamDashboard({
@@ -156,12 +159,12 @@ export default function ExamDashboard({
                     <section aria-labelledby="practice-exam-parts-title">
                         <div className="mb-4">
                             <h2 id="practice-exam-parts-title" className="text-foreground text-lg font-extrabold">
-                                Les epreuves du {exam.name} &middot; {learnerLevel}
+                                Les épreuves du {exam.name} &middot; {learnerLevel}
                             </h2>
                             <p className="text-muted-foreground mt-1 text-sm">
                                 {allPartsOfficial
-                                    ? "Chaque partie telle qu'elle tombe a l'examen, dans l'ordre, avec son nombre de questions et ses points."
-                                    : "Chaque partie telle qu'elle tombe a l'examen, dans l'ordre. Les parties marquees \u00ab structure deduite \u00bb suivent l'architecture officielle de l'examen sans que nous ayons pu verifier leur bareme."}
+                                    ? "Chaque partie telle qu'elle tombe à l'examen, dans l'ordre, avec son nombre de questions et ses points."
+                                    : "Chaque partie telle qu'elle tombe à l'examen, dans l'ordre. Les parties marquées \u00ab structure déduite \u00bb suivent l'architecture officielle de l'examen, sans que nous ayons pu vérifier leur barème."}
                             </p>
                         </div>
                         <div className="space-y-4">
@@ -191,7 +194,7 @@ export default function ExamDashboard({
                                                     <div className="text-muted-foreground mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-semibold">
                                                         {part.items != null && (
                                                             <span>
-                                                                {part.items === 1 ? '1 tache' : part.items + ' questions'}
+                                                                {part.items === 1 ? '1 tâche' : part.items + ' questions'}
                                                                 {part.item_range ? ' \u00b7 ' + part.item_range : ''}
                                                             </span>
                                                         )}
@@ -199,9 +202,9 @@ export default function ExamDashboard({
                                                         {part.source === 'officiel' ? (
                                                             <span className="text-emerald-700 dark:text-emerald-300">structure officielle</span>
                                                         ) : (
-                                                            <span className="text-amber-700 dark:text-amber-300">structure deduite</span>
+                                                            <span className="text-amber-700 dark:text-amber-300">structure déduite</span>
                                                         )}
-                                                        {!part.exercise_type_id && <span>entrainement pas encore disponible</span>}
+                                                        {!part.exercise_type_id && <span>entraînement pas encore disponible</span>}
                                                     </div>
                                                 </>
                                             );
@@ -236,12 +239,12 @@ export default function ExamDashboard({
                     <div className="mb-4">
                         <h2 id="practice-skills-title" className="text-foreground text-lg font-extrabold">
                             {partsBySection.length > 0
-                                ? 'Travailler une competence, hors format d\u2019examen'
+                                ? 'Travailler une compétence, hors format d\u2019examen'
                                 : t('practice.by_skill', 'Quelle compétence veux-tu travailler ?')}
                         </h2>
                         <p className="text-muted-foreground mt-1 text-sm">
                             {partsBySection.length > 0
-                                ? 'Des exercices pour progresser, qui ne reproduisent pas une partie de l\u2019epreuve'
+                                ? 'Des exercices pour progresser, qui ne reproduisent pas une partie de l\u2019épreuve'
                                   + (pedagogicalCount > 0 ? ' (' + pedagogicalCount + ' formats).' : '.')
                                 : t('practice.by_skill_hint', 'Choisis ton objectif du moment.')}
                         </p>

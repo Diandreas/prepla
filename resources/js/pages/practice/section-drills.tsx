@@ -13,6 +13,10 @@ interface ExerciseTypeItem {
     skill_type: string;
     component_key: string;
     starter_available?: boolean;
+    /** Le nom officiel de la partie de l'épreuve, quand ce format en est une. */
+    exam_part_name?: string | null;
+    exam_part_task?: string | null;
+    exam_part_source?: string | null;
 }
 
 interface Props {
@@ -230,7 +234,18 @@ export default function SectionDrills({ exam, section, exerciseTypes = [], learn
                                                     />
                                                 )}
                                             </div>
-                                            <h3 className="text-foreground text-sm leading-snug font-extrabold">{type.name}</h3>
+                                            <h3 className="text-foreground text-sm leading-snug font-extrabold">
+                                                {type.exam_part_name ?? type.name}
+                                            </h3>
+                                            {type.exam_part_name ? (
+                                                <span className="mt-2 inline-flex w-fit items-center gap-1 rounded-full bg-sky-100 px-2 py-1 text-[10px] font-bold text-sky-900 dark:bg-sky-900/50 dark:text-sky-100">
+                                                    {type.exam_part_source === 'officiel' ? "Partie de l'épreuve" : "Partie de l'épreuve · structure déduite"}
+                                                </span>
+                                            ) : (
+                                                <span className="text-muted-foreground mt-2 inline-flex w-fit items-center rounded-full border px-2 py-1 text-[10px] font-bold">
+                                                    Exercice d'entraînement
+                                                </span>
+                                            )}
                                             {type.starter_available && (
                                                 <span className="mt-2 inline-flex w-fit items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-bold text-emerald-900 dark:bg-emerald-900/50 dark:text-emerald-100">
                                                     <CheckCircle2 className="h-3 w-3 shrink-0" aria-hidden="true" />
@@ -238,7 +253,7 @@ export default function SectionDrills({ exam, section, exerciseTypes = [], learn
                                                 </span>
                                             )}
                                             <p className="text-muted-foreground mt-2 flex-1 text-xs leading-relaxed">
-                                                {t(`practice.format_hint_${presentation.key}`, presentation.hint)}
+                                                {type.exam_part_task ?? t(`practice.format_hint_${presentation.key}`, presentation.hint)}
                                             </p>
                                             <span className="text-primary mt-4 text-xs font-bold">
                                                 {busy
