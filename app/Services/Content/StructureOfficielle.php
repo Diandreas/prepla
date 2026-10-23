@@ -123,6 +123,22 @@ class StructureOfficielle
         return $this->parties($exam, $niveau) !== [];
     }
 
+/**
+     * Ce plan decrit-il vraiment la structure de l'epreuve ?
+     *
+     * Il ne suffit pas qu'il porte des parties : d'anciennes configurations les
+     * decrivaient sans leur donner de type, et les plans derives en ont garde
+     * la copie. Une partie sans type ne s'ouvre pas — au TestDaF, le plan
+     * derive du C1 passait devant l'epreuve reelle et ses sept taches orales
+     * s'affichaient sans pouvoir etre travaillees.
+     */
+    private function decritSaStructure(ExamBlueprint $plan): bool
+    {
+        return collect($plan->sections_config ?? [])
+            ->contains(fn ($section) => collect($section['parts'] ?? [])
+                ->contains(fn ($partie) => is_array($partie) && ! empty($partie['type'])));
+    }
+
     /**
      * Le plan qui decrit cet examen pour cet apprenant.
      *
@@ -144,7 +160,7 @@ class StructureOfficielle
             // ne decrit pas — ne porte aucune partie. S'en contenter masquait la
             // structure officielle : au TCF, le plan « entrainement niveau B1 »
             // passait devant l'epreuve reelle, et le candidat ne voyait rien.
-            if ($duNiveau && collect($duNiveau->sections_config ?? [])->contains(fn ($s) => ! empty($s['parts']))) {
+            if ($duNiveau && $this->decritSaStructure($duNiveau)) {
                 return $duNiveau;
             }
         }
@@ -158,8 +174,7 @@ class StructureOfficielle
         // derives — composes par nos soins pour un palier que l'examen ignore —
         // n'en decrivent aucun : les prendre pour des niveaux declares privait
         // le TCF de toute structure, alors qu'il n'a qu'une epreuve.
-        $declareDesNiveaux = (clone $plans)->whereNotNull('level')->get()
-            ->contains(fn ($plan) => collect($plan->sections_config ?? [])->contains(fn ($s) => ! empty($s['parts'])));
+        $declareDesNiveaux = (clone $plans)->whereNotNull('level')->get()->contains(fn ($plan) => $this->decritSaStructure($plan));
 
         if ($niveau && $declareDesNiveaux) {
             return null;

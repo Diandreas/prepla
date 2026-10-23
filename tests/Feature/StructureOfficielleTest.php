@@ -266,3 +266,33 @@ test('un examen qui declare des niveaux ne montre rien hors de ces niveaux', fun
     // lui ferait croire qu'il peut s'y presenter.
     expect(app(StructureOfficielle::class)->parties($exam, 'A1'))->toBe([]);
 });
+
+test('un plan dont les parties n ont pas de type ne compte pas comme structure', function () {
+    $langue = Language::create(['slug' => 'german', 'name' => 'Allemand', 'native_name' => 'Deutsch', 'flag' => 'de', 'is_active' => true]);
+    $exam = Exam::create(['language_id' => $langue->id, 'slug' => 'testdaf-test', 'name' => 'TestDaF']);
+    $section = ExamSection::create(['exam_id' => $exam->id, 'slug' => 'lesen', 'name' => 'Lesen', 'skill_type' => 'reading', 'time_limit' => 55]);
+    ExerciseType::create(['section_id' => $section->id, 'slug' => 'open-cloze', 'name' => 'Texte à trous', 'skill_type' => 'reading', 'component_key' => 'open-cloze']);
+
+    // L'epreuve reelle, decrite avec des types ouvrables.
+    ExamBlueprint::create([
+        'exam_id' => $exam->id, 'level' => null, 'variant' => null,
+        'name' => 'TestDaF', 'total_duration_minutes' => 190, 'scoring_config' => [],
+        'sections_config' => [['slug' => 'lesen', 'name' => 'Lesen', 'skill_type' => 'reading',
+            'parts' => [['part' => 1, 'name' => 'Lesen, Aufgabe 1', 'type' => 'open-cloze', 'source' => 'officiel']]]],
+    ]);
+
+    // Un plan derive qui a garde d'anciennes parties PUREMENT DESCRIPTIVES :
+    // elles portent un nom mais aucun type, donc rien ne s'ouvre.
+    ExamBlueprint::create([
+        'exam_id' => $exam->id, 'level' => 'C1', 'variant' => null,
+        'name' => 'TestDaF — entraînement niveau C1', 'total_duration_minutes' => 190, 'scoring_config' => [],
+        'sections_config' => [['slug' => 'lesen', 'name' => 'Lesen', 'skill_type' => 'reading',
+            'parts' => [['name' => 'Lesetext 1', 'description' => 'Un texte long.']]]],
+    ]);
+
+    $parties = app(StructureOfficielle::class)->parties($exam, 'C1');
+
+    expect($parties)->toHaveCount(1)
+        ->and($parties[0]['name'])->toBe('Lesen, Aufgabe 1')
+        ->and($parties[0]['exercise_type_id'])->not->toBeNull();
+});
