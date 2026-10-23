@@ -59,21 +59,9 @@ return [
             'scoring_weight' => 20,
             'description' => '50 questions QCM. Sections : documents courts, textes informatifs, textes argumentatifs.',
             'parts' => [
-                [
-                    'name' => 'Section A',
-                    'description' => 'Comprendre des documents courts (panneaux, formulaires, annonces)',
-                    'question_count' => 15,
-                ],
-                [
-                    'name' => 'Section B',
-                    'description' => 'Comprendre des textes informatifs de complexité moyenne',
-                    'question_count' => 15,
-                ],
-                [
-                    'name' => 'Section C',
-                    'description' => 'Comprendre des textes argumentatifs complexes',
-                    'question_count' => 20,
-                ],
+                ['part' => 1, 'name' => 'Comprehension ecrite, Teil 1', 'name_fr' => 'Questionnaire a choix multiple',
+                    "task" => "40 questions a choix multiple en 1 heure. Bonne reponse : 1 point.",
+                    'type' => 'mcq', 'items' => 40, 'source' => 'officiel'],
             ],
             'exercise_types' => ['mcq'],
         ],
@@ -89,21 +77,9 @@ return [
             'scoring_weight' => 20,
             'description' => '60 questions QCM. Messages courts, dialogues, documents radiophoniques.',
             'parts' => [
-                [
-                    'name' => 'Section A',
-                    'description' => 'Identifier des messages courts (annonces, instructions, messages téléphoniques)',
-                    'question_count' => 20,
-                ],
-                [
-                    'name' => 'Section B',
-                    'description' => 'Comprendre des dialogues et conversations',
-                    'question_count' => 20,
-                ],
-                [
-                    'name' => 'Section C',
-                    'description' => 'Comprendre des documents radiophoniques, conférences, exposés',
-                    'question_count' => 20,
-                ],
+                ['part' => 1, 'name' => 'Comprehension orale, Teil 1', 'name_fr' => 'Questionnaire a choix multiple',
+                    "task" => "40 questions a choix multiple en 40 minutes. Bonne reponse : 1 point.",
+                    'type' => 'mcq', 'items' => 40, 'source' => 'officiel'],
             ],
             'exercise_types' => ['mcq'],
         ],
@@ -119,16 +95,9 @@ return [
             'scoring_weight' => 20,
             'description' => '40 questions QCM. Vocabulaire et grammaire : choisir la forme correcte, synonymes, antonymes.',
             'parts' => [
-                [
-                    'name' => 'Section A - Lexique',
-                    'description' => 'Maîtrise du vocabulaire : synonymes, antonymes, définitions, contexte',
-                    'question_count' => 20,
-                ],
-                [
-                    'name' => 'Section B - Structure',
-                    'description' => 'Maîtrise de la grammaire : conjugaisons, accords, syntaxe, prépositions',
-                    'question_count' => 20,
-                ],
+                ['part' => 1, 'name' => 'Lexique et structure, Teil 1', 'name_fr' => 'Questionnaire a choix multiple',
+                    "task" => "40 questions a choix multiple en 30 minutes. Bonne reponse : 1 point.",
+                    'type' => 'grammar-mcq', 'items' => 40, 'source' => 'officiel'],
             ],
             'exercise_types' => ['mcq', 'grammar-mcq'],
         ],
@@ -142,6 +111,14 @@ return [
             'question_count' => 2,
             'max_score' => 450,
             'scoring_weight' => 20,
+            'parts' => [
+                ['part' => 1, 'name' => 'Expression ecrite, Teil 1', 'name_fr' => 'Section A',
+                    "task" => "Ecrire la suite d'un article, 80 mots au minimum. 25 minutes.",
+                    'type' => 'text-continuation', 'source' => 'officiel'],
+                ['part' => 2, 'name' => 'Expression ecrite, Teil 2', 'name_fr' => 'Section B',
+                    "task" => "Exprimer son point de vue et le justifier, 200 mots au minimum. 35 minutes.",
+                    'type' => 'essay', 'source' => 'officiel'],
+            ],
             'exercise_types' => ['text-continuation', 'essay'],
             'tasks' => [
                 [
@@ -174,7 +151,17 @@ return [
             // Formats repris des taches decrites ci-dessous : sans eux, ce module
             // ne declarait AUCUN format et ne pouvait rien produire — le sujet
             // sortait ampute de cette epreuve.
-            'exercise_types' => ['role-play', 'negotiation', 'speaking-response'],
+            'parts' => [
+                ['part' => 1, 'name' => 'Expression orale, Teil 1', 'name_fr' => 'Section A',
+                    "task" => "Obtenir des renseignements. 5 minutes.",
+                    'type' => 'speaking-elicitation', 'source' => 'officiel'],
+                ['part' => 2, 'name' => 'Expression orale, Teil 2', 'name_fr' => 'Section B',
+                    "task" => "Argumenter pour convaincre. 10 minutes.",
+                    'type' => 'oral-debate', 'source' => 'officiel'],
+            ],
+            'exercise_types' => ['role-play', 'negotiation', 'speaking-response',
+                'speaking-elicitation', 'oral-debate',
+            ],
             'name' => 'Expression orale',
             'skill_type' => 'speaking',
             'time_limit' => 15,

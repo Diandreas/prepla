@@ -36,26 +36,18 @@ return [
             'question_count' => 40,
             'scoring_weight' => 25,
             'parts' => [
-                [
-                    'part' => 1,
-                    'description' => 'Conversation between two people in an everyday social context',
-                    'question_count' => 10,
-                ],
-                [
-                    'part' => 2,
-                    'description' => 'Monologue in an everyday social context (e.g. speech about local facilities)',
-                    'question_count' => 10,
-                ],
-                [
-                    'part' => 3,
-                    'description' => 'Conversation between up to four people in an educational/training context',
-                    'question_count' => 10,
-                ],
-                [
-                    'part' => 4,
-                    'description' => 'Academic monologue (e.g. university lecture)',
-                    'question_count' => 10,
-                ],
+                ['part' => 1, 'name' => 'Listening, Teil 1', 'name_fr' => 'Conversation du quotidien',
+                    "task" => "Une conversation entre deux personnes dans une situation courante. 10 questions.",
+                    'type' => 'form-completion', 'items' => 10, 'item_range' => '1-10', 'source' => 'officiel'],
+                ['part' => 2, 'name' => 'Listening, Teil 2', 'name_fr' => 'Monologue du quotidien',
+                    "task" => "Une seule personne parle d'un sujet pratique, par exemple des equipements locaux. 10 questions.",
+                    'type' => 'plan-map-diagram-labeling', 'items' => 10, 'item_range' => '11-20', 'source' => 'officiel'],
+                ['part' => 3, 'name' => 'Listening, Teil 3', 'name_fr' => 'Conversation en contexte educatif',
+                    "task" => "Un echange entre deux locuteurs principaux, souvent des etudiants et un enseignant. 10 questions.",
+                    'type' => 'mcq', 'items' => 10, 'item_range' => '21-30', 'source' => 'officiel'],
+                ['part' => 4, 'name' => 'Listening, Teil 4', 'name_fr' => 'Expose universitaire',
+                    "task" => "Une personne expose un sujet universitaire. 10 questions.",
+                    'type' => 'note-completion', 'items' => 10, 'item_range' => '31-40', 'source' => 'officiel'],
             ],
             'exercise_types' => [
                 'mcq',
@@ -90,6 +82,17 @@ return [
                     'passages' => 3,
                 ],
             ],
+            'parts' => [
+                ['part' => 1, 'name' => 'Reading, Teil 1', 'name_fr' => 'Premier texte',
+                    "task" => "Academic : un texte long pour public non specialiste. General Training : deux ou trois textes courts du quotidien (avis, annonces, horaires).",
+                    'type' => 'matching-headings', 'source' => 'officiel'],
+                ['part' => 2, 'name' => 'Reading, Teil 2', 'name_fr' => 'Deuxieme texte',
+                    "task" => "Academic : un deuxieme texte long. General Training : deux textes lies au travail (fiches de poste, contrats, formation).",
+                    'type' => 'true-false-not-given', 'source' => 'officiel'],
+                ['part' => 3, 'name' => 'Reading, Teil 3', 'name_fr' => 'Troisieme texte',
+                    "task" => "Academic : un troisieme texte long, dont un au moins developpe une argumentation suivie. General Training : un texte long d'interet general. 40 questions en tout, 1 point chacune, 60 minutes.",
+                    'type' => 'mcq', 'items' => 40, 'source' => 'officiel'],
+            ],
             'exercise_types' => [
                 'mcq',
                 'true-false-not-given',
@@ -118,6 +121,14 @@ return [
         // Sans formats declares, ce module ne pouvait rien produire. Task 1 de
         // l'Academic decrit une information visuelle (courbe, tableau, schema),
         // Task 2 est un essai argumente — source : ielts.org, format Writing.
+            'parts' => [
+                ['part' => 1, 'name' => 'Writing, Teil 1', 'name_fr' => 'Tache 1',
+                    "task" => "Academic : decrire un graphique, un tableau ou un schema. General Training : repondre a une situation par une lettre, en traitant les trois points donnes. 150 mots au minimum, environ 20 minutes.",
+                    'type' => 'graph-description', 'source' => 'officiel'],
+                ['part' => 2, 'name' => 'Writing, Teil 2', 'name_fr' => 'Tache 2',
+                    "task" => "Discuter un point de vue, un argument ou un probleme. 250 mots au minimum, environ 40 minutes. Compte double de la tache 1.",
+                    'type' => 'essay', 'source' => 'officiel'],
+            ],
         'exercise_types' => ['graph-description', 'essay'],
             'time_limit' => 60,
             'question_count' => 2,
@@ -182,34 +193,22 @@ return [
             'skill_type' => 'speaking',
         // Meme panne. Les trois parties de l'oral : entretien, prise de parole
         // longue sur une fiche, puis discussion — source : ielts.org.
+            'parts' => [
+                ['part' => 1, 'name' => 'Speaking, Teil 1', 'name_fr' => 'Introduction et entretien',
+                    "task" => "L'examinateur pose des questions generales sur des sujets familiers. 4 a 5 minutes.",
+                    'type' => 'speaking-response', 'source' => 'officiel'],
+                ['part' => 2, 'name' => 'Speaking, Teil 2', 'name_fr' => 'Expose',
+                    "task" => "Une fiche-sujet, une minute de preparation, puis environ deux minutes de parole. 3 a 4 minutes en tout.",
+                    'type' => 'speaking-long-turn', 'source' => 'officiel'],
+                ['part' => 3, 'name' => 'Speaking, Teil 3', 'name_fr' => 'Discussion',
+                    "task" => "Discussion plus abstraite autour du theme de la partie 2. 4 a 5 minutes.",
+                    'type' => 'speaking-discussion', 'source' => 'officiel'],
+            ],
         'exercise_types' => ['speaking-response', 'speaking-long-turn', 'speaking-discussion'],
         'task_count' => 3,
             'time_limit' => 14,
             'question_count' => 3, // 3 parts
             'scoring_weight' => 25,
-            'parts' => [
-                [
-                    'part' => 1,
-                    'name' => 'Introduction and Interview',
-                    'duration' => '4-5 min',
-                    'description' => 'Examiner asks general questions about familiar topics (home, family, work, studies, interests).',
-                    'exercise_type' => 'speaking-response',
-                ],
-                [
-                    'part' => 2,
-                    'name' => 'Individual Long Turn',
-                    'duration' => '3-4 min',
-                    'description' => 'Candidate receives a cue card with a topic. 1 min preparation, then speak for 1-2 minutes.',
-                    'exercise_type' => 'speaking-long-turn',
-                ],
-                [
-                    'part' => 3,
-                    'name' => 'Two-way Discussion',
-                    'duration' => '4-5 min',
-                    'description' => 'Discussion of more abstract issues linked to Part 2 topic.',
-                    'exercise_type' => 'speaking-discussion',
-                ],
-            ],
             'rubric' => [
                 'criteria' => [
                     ['name' => 'Fluency and Coherence', 'slug' => 'fluency-coherence', 'max' => 9],

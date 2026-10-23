@@ -100,7 +100,14 @@ class StructureOfficielle
     {
         $officiels = array_filter(array_column($this->parties($exam, $niveau), 'exercise_type_id'));
 
-        $plan = $this->plan($exam, $niveau);
+        // Les MODULES du niveau, qu'il decrive ou non ses parties : un apprenant
+        // A1 ne doit pas se voir proposer les Sprachbausteine, meme quand
+        // l'examen ne detaille pas les parties de son A1. C'est une question
+        // differente de celle du plan qui porte la structure officielle.
+        $plan = $niveau
+            ? ExamBlueprint::where('exam_id', $exam->id)->where('level', $niveau)->first()
+            : null;
+        $plan = $plan ?: $this->plan($exam, $niveau);
         $slugsDuNiveau = collect($plan?->sections_config ?? [])->pluck('slug')->filter()->all();
 
         return ExerciseType::whereHas('section', fn ($q) => $q->where('exam_id', $exam->id)
@@ -116,12 +123,50 @@ class StructureOfficielle
         return $this->parties($exam, $niveau) !== [];
     }
 
+    /**
+     * Le plan qui decrit cet examen pour cet apprenant.
+     *
+     * Tous les examens ne s'inscrivent pas a un palier. Le TCF, le TEF, le
+     * TestDaF et le TOEFL n'ont qu'une epreuve, dont le resultat situe le
+     * candidat ; l'IELTS a deux versions, pas six niveaux. Leur plan porte donc
+     * « level = null », et chercher le plan du niveau de l'apprenant n'en
+     * trouvait aucun : leurs parties n'etaient jamais affichees, alors qu'elles
+     * sont decrites.
+     */
     private function plan(Exam $exam, ?string $niveau): ?ExamBlueprint
     {
-        if (! $niveau) {
+        $plans = ExamBlueprint::where('exam_id', $exam->id);
+
+        if ($niveau) {
+            $duNiveau = (clone $plans)->where('level', $niveau)->first();
+
+            // Un plan DERIVE — compose par nos soins pour un niveau que l'examen
+            // ne decrit pas — ne porte aucune partie. S'en contenter masquait la
+            // structure officielle : au TCF, le plan « entrainement niveau B1 »
+            // passait devant l'epreuve reelle, et le candidat ne voyait rien.
+            if ($duNiveau && collect($duNiveau->sections_config ?? [])->contains(fn ($s) => ! empty($s['parts']))) {
+                return $duNiveau;
+            }
+        }
+
+        // Le repli ne vaut que pour les examens qui ne s'inscrivent a AUCUN
+        // palier. Cambridge en declare, du A2 au C2 : un apprenant A1 ne doit
+        // pas se voir proposer les parties d'une autre qualification, puisque
+        // l'examen ne propose rien a son niveau.
+        //
+        // On ne compte que les plans qui DECRIVENT vraiment un niveau. Les plans
+        // derives — composes par nos soins pour un palier que l'examen ignore —
+        // n'en decrivent aucun : les prendre pour des niveaux declares privait
+        // le TCF de toute structure, alors qu'il n'a qu'une epreuve.
+        $declareDesNiveaux = (clone $plans)->whereNotNull('level')->get()
+            ->contains(fn ($plan) => collect($plan->sections_config ?? [])->contains(fn ($s) => ! empty($s['parts'])));
+
+        if ($niveau && $declareDesNiveaux) {
             return null;
         }
 
-        return ExamBlueprint::where('exam_id', $exam->id)->where('level', $niveau)->first();
+        // Sinon : l'epreuve unique, ou la premiere variante. Les variantes d'un
+        // meme examen partagent leurs sections, le choix est donc sans effet.
+        return (clone $plans)->whereNull('level')->orderBy('id')->first();
     }
 }

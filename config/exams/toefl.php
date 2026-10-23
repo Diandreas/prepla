@@ -36,18 +36,15 @@ return [
             'question_count' => 40,
             'scoring_weight' => 25,
             'parts' => [
-                [
-                    'part' => 1,
-                    'description' => 'Read in Daily Life — textes pratiques courts (e-mails, annonces, posts, 15-150 mots) + questions.',
-                ],
-                [
-                    'part' => 2,
-                    'description' => 'Academic Reading — passages académiques + questions (format adaptatif).',
-                ],
-                [
-                    'part' => 3,
-                    'description' => 'Complete the Words — compléter des mots à lettres manquantes dans un paragraphe.',
-                ],
+                ['part' => 1, 'name' => 'Reading, Teil 1', 'name_fr' => 'Complete the Words',
+                    "task" => "Completer des mots dans un texte, pour montrer qu'on maitrise lexique et syntaxe. 30 items.",
+                    'type' => 'complete-the-words', 'items' => 30, 'source' => 'officiel'],
+                ['part' => 2, 'name' => 'Reading, Teil 2', 'name_fr' => 'Read in Daily Life',
+                    "task" => "Comprendre de courts textes non universitaires du quotidien. 5 a 15 items.",
+                    'type' => 'read-daily-life', 'source' => 'officiel'],
+                ['part' => 3, 'name' => 'Reading, Teil 3', 'name_fr' => 'Read an Academic Passage',
+                    "task" => "Un texte universitaire : idees principales, details, implicite, structure. 5 a 15 items.",
+                    'type' => 'mcq', 'source' => 'officiel'],
             ],
             'exercise_types' => [
                 'mcq',                  // Factual, inference, rhetorical purpose, vocabulary
@@ -69,18 +66,23 @@ return [
             'question_count' => 28,
             'scoring_weight' => 25,
             'parts' => [
-                [
-                    'part' => 1,
-                    'description' => 'Listen and Choose a Response — entendre une phrase/question, choisir la bonne réponse (pragmatique).',
-                ],
-                [
-                    'part' => 2,
-                    'description' => 'Listen to a Conversation / Announcement / Lecture + questions QCM.',
-                ],
+                ['part' => 1, 'name' => 'Listening, Teil 1', 'name_fr' => 'Listen and Choose a Response',
+                    "task" => "Un bref echange entre deux personnes : choisir la reponse qui convient. 15 a 19 items.",
+                    'type' => 'listen-choose-response', 'source' => 'officiel'],
+                ['part' => 2, 'name' => 'Listening, Teil 2', 'name_fr' => 'Listen to a Conversation',
+                    "task" => "Une courte conversation entre deux personnes. 10 items.",
+                    'type' => 'mcq', 'items' => 10, 'source' => 'officiel'],
+                ['part' => 3, 'name' => 'Listening, Teil 3', 'name_fr' => 'Listen to an Announcement',
+                    "task" => "Une annonce en contexte universitaire.",
+                    'type' => 'mcq', 'source' => 'officiel'],
+                ['part' => 4, 'name' => 'Listening, Teil 4', 'name_fr' => 'Listen to an Academic Talk',
+                    "task" => "Un expose universitaire suivi.",
+                    'type' => 'note-completion', 'source' => 'officiel'],
             ],
             'exercise_types' => [
                 'listen-choose-response', // 2026: choisir la réponse à un énoncé
-                'mcq',                    // Conversations, annonces, lectures
+                'mcq',                    // Conversations, annonces, lectures,
+                'note-completion',
             ],
         ],
 
@@ -98,6 +100,14 @@ return [
                     // « integrated-task » est le COMPOSANT ; le format s'appelle integrated-speaking.
                     // Mal nomme, il etait ignore en silence et l'oral n'avait plus que deux formats
                     // pour cinq taches — d'ou la meme tache repetee quatre fois.
+            'parts' => [
+                ['part' => 1, 'name' => 'Speaking, Teil 1', 'name_fr' => 'Listen and Repeat',
+                    "task" => "Ecouter puis repeter, pour evaluer la prononciation et le rythme.",
+                    'type' => 'listen-repeat', 'source' => 'officiel'],
+                ['part' => 2, 'name' => 'Speaking, Teil 2', 'name_fr' => 'Take an Interview',
+                    "task" => "Repondre a une serie de questions, sous forme d'entretien.",
+                    'type' => 'speaking-response', 'source' => 'officiel'],
+            ],
                     'exercise_types' => ['speaking-response', 'integrated-speaking', 'listen-repeat'],
             'tasks' => [
                 [
@@ -161,7 +171,20 @@ return [
             'time_limit' => 23,
             'question_count' => 2,
             'scoring_weight' => 25,
-            'exercise_types' => ['build-a-sentence', 'integrated-writing', 'academic-discussion'],
+            'parts' => [
+                ['part' => 1, 'name' => 'Writing, Teil 1', 'name_fr' => 'Build a Sentence',
+                    "task" => "Reconstruire des phrases avec la grammaire qui convient. 10 items.",
+                    'type' => 'build-a-sentence', 'items' => 10, 'source' => 'officiel'],
+                ['part' => 2, 'name' => 'Writing, Teil 2', 'name_fr' => 'Write an Email',
+                    "task" => "Rediger un courriel adapte a une situation universitaire.",
+                    'type' => 'letter-email-writing', 'items' => 1, 'source' => 'officiel'],
+                ['part' => 3, 'name' => 'Writing, Teil 3', 'name_fr' => 'Write for an Academic Discussion',
+                    "task" => "Contribuer par ecrit a une discussion universitaire en ligne.",
+                    'type' => 'academic-discussion', 'items' => 1, 'source' => 'officiel'],
+            ],
+            'exercise_types' => ['build-a-sentence', 'integrated-writing', 'academic-discussion',
+                'letter-email-writing',
+            ],
             'tasks' => [
                 [
                     'task' => 1,

@@ -211,3 +211,58 @@ test('la page d un module porte le nom et la duree du niveau', function () {
 
     expect($props['section']['name'])->toBe('Leseverstehen');
 });
+
+test('un examen sans palier montre quand meme sa structure', function () {
+    // Le TCF, le TEF, le TestDaF et le TOEFL n'ont qu'une epreuve, dont le
+    // resultat situe le candidat : leur plan ne porte aucun niveau. Chercher le
+    // plan du niveau de l'apprenant n'en trouvait aucun, et leurs parties
+    // n'etaient jamais affichees — alors qu'elles sont decrites.
+    $langue = Language::create(['slug' => 'french', 'name' => 'Français', 'native_name' => 'Français', 'flag' => 'fr', 'is_active' => true]);
+    $exam = Exam::create(['language_id' => $langue->id, 'slug' => 'tcf-test', 'name' => 'TCF']);
+    $section = ExamSection::create(['exam_id' => $exam->id, 'slug' => 'co', 'name' => 'Compréhension orale', 'skill_type' => 'listening', 'time_limit' => 25]);
+    ExerciseType::create(['section_id' => $section->id, 'slug' => 'mcq', 'name' => 'QCM', 'skill_type' => 'listening', 'component_key' => 'mcq']);
+
+    ExamBlueprint::create([
+        'exam_id' => $exam->id, 'level' => null, 'variant' => 'tcf-tout-public',
+        'name' => 'TCF tout public', 'total_duration_minutes' => 85, 'scoring_config' => [],
+        'sections_config' => [[
+            'slug' => 'co', 'name' => 'Compréhension orale', 'skill_type' => 'listening',
+            'parts' => [['part' => 1, 'name' => 'Compréhension orale', 'type' => 'mcq', 'items' => 29, 'source' => 'officiel']],
+        ]],
+    ]);
+
+    expect(app(StructureOfficielle::class)->parties($exam, 'B1'))->toHaveCount(1);
+});
+
+test('un plan derive ne masque pas la structure officielle', function () {
+    $langue = Language::create(['slug' => 'french', 'name' => 'Français', 'native_name' => 'Français', 'flag' => 'fr', 'is_active' => true]);
+    $exam = Exam::create(['language_id' => $langue->id, 'slug' => 'tcf-derive', 'name' => 'TCF']);
+    $section = ExamSection::create(['exam_id' => $exam->id, 'slug' => 'co', 'name' => 'CO', 'skill_type' => 'listening', 'time_limit' => 25]);
+    ExerciseType::create(['section_id' => $section->id, 'slug' => 'mcq', 'name' => 'QCM', 'skill_type' => 'listening', 'component_key' => 'mcq']);
+
+    ExamBlueprint::create([
+        'exam_id' => $exam->id, 'level' => null, 'variant' => 'tcf-tout-public',
+        'name' => 'TCF tout public', 'total_duration_minutes' => 85, 'scoring_config' => [],
+        'sections_config' => [['slug' => 'co', 'name' => 'CO', 'skill_type' => 'listening',
+            'parts' => [['part' => 1, 'name' => 'Compréhension orale', 'type' => 'mcq', 'source' => 'officiel']]]],
+    ]);
+    // Le compositeur fabrique un plan pour le B1, que l'examen ne decrit pas.
+    // Il ne porte aucune partie : s'en contenter privait le candidat de la
+    // structure reelle de son epreuve.
+    ExamBlueprint::create([
+        'exam_id' => $exam->id, 'level' => 'B1', 'variant' => null,
+        'name' => 'TCF — entraînement niveau B1', 'total_duration_minutes' => 85, 'scoring_config' => [],
+        'sections_config' => [['slug' => 'co', 'name' => 'CO', 'skill_type' => 'listening']],
+    ]);
+
+    expect(app(StructureOfficielle::class)->parties($exam, 'B1'))->toHaveCount(1);
+});
+
+test('un examen qui declare des niveaux ne montre rien hors de ces niveaux', function () {
+    $exam = examenStructure();
+
+    // Cambridge ne propose rien au A1 : sa plus basse qualification est le
+    // A2 Key. Montrer a un apprenant A1 les parties d'une autre qualification
+    // lui ferait croire qu'il peut s'y presenter.
+    expect(app(StructureOfficielle::class)->parties($exam, 'A1'))->toBe([]);
+});

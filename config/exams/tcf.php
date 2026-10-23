@@ -50,6 +50,11 @@ return [
             'description' => '29 questions QCM (3 choix). Comprendre des mots familiers, des phrases, des échanges, des extraits de conférences/cours.',
             'difficulty_range' => 'A1-C2',
             'format' => 'QCM à 3 choix, difficulté croissante',
+            'parts' => [
+                ['part' => 1, 'name' => 'Comprehension orale, Teil 1', 'name_fr' => 'Questionnaire a choix multiple',
+                    "task" => "29 questions a choix multiple, quatre propositions, une seule bonne reponse. 25 minutes.",
+                    'type' => 'mcq', 'items' => 29, 'source' => 'officiel'],
+            ],
             'exercise_types' => ['mcq'],
         ],
         [
@@ -62,6 +67,11 @@ return [
             'description' => '18 questions QCM (4 choix). Grammaire et lexique : choisir le mot/la forme correcte.',
             'difficulty_range' => 'A1-C2',
             'format' => 'QCM à 4 choix, difficulté croissante',
+            'parts' => [
+                ['part' => 1, 'name' => 'Maitrise des structures de la langue, Teil 1', 'name_fr' => 'Questionnaire a choix multiple',
+                    "task" => "18 questions a choix multiple, quatre propositions, une seule bonne reponse. 15 minutes.",
+                    'type' => 'grammar-mcq', 'items' => 18, 'source' => 'officiel'],
+            ],
             'exercise_types' => ['mcq', 'grammar-mcq'],
         ],
         [
@@ -74,6 +84,11 @@ return [
             'description' => '29 questions QCM (4 choix). Comprendre des textes variés : panneaux, annonces, articles, textes argumentatifs.',
             'difficulty_range' => 'A1-C2',
             'format' => 'QCM à 4 choix, difficulté croissante',
+            'parts' => [
+                ['part' => 1, 'name' => 'Comprehension ecrite, Teil 1', 'name_fr' => 'Questionnaire a choix multiple',
+                    "task" => "29 questions a choix multiple, quatre propositions, une seule bonne reponse. 45 minutes.",
+                    'type' => 'mcq', 'items' => 29, 'source' => 'officiel'],
+            ],
             'exercise_types' => ['mcq'],
         ],
     ],
@@ -86,6 +101,17 @@ return [
             // un message, un article ou un compte rendu, puis un texte argumente
             // confrontant deux points de vue (source : france-education-international.fr).
             'task_count' => 3,
+            'parts' => [
+                ['part' => 1, 'name' => 'Expression ecrite, Teil 1', 'name_fr' => 'Exercice 1',
+                    "task" => "Epreuve complementaire : 3 exercices en 60 minutes. Premier exercice.",
+                    'type' => 'short-writing', 'source' => 'officiel'],
+                ['part' => 2, 'name' => 'Expression ecrite, Teil 2', 'name_fr' => 'Exercice 2',
+                    "task" => "Deuxieme des trois exercices de l'epreuve d'expression ecrite.",
+                    'type' => 'letter-email-writing', 'source' => 'officiel'],
+                ['part' => 3, 'name' => 'Expression ecrite, Teil 3', 'name_fr' => 'Exercice 3',
+                    "task" => "Troisieme des trois exercices de l'epreuve d'expression ecrite.",
+                    'type' => 'essay', 'source' => 'officiel'],
+            ],
             'exercise_types' => ['short-writing', 'letter-email-writing', 'essay'],
             'name' => 'Expression écrite',
             'skill_type' => 'writing',
@@ -131,6 +157,17 @@ return [
             // Meme panne. Trois taches : entretien dirige, exercice en interaction,
             // puis expression d'un point de vue.
             'task_count' => 3,
+            'parts' => [
+                ['part' => 1, 'name' => 'Expression orale, Teil 1', 'name_fr' => 'Exercice 1',
+                    "task" => "Epreuve complementaire : 3 exercices en 12 minutes, dont 2 de preparation. Premier exercice.",
+                    'type' => 'speaking-response', 'source' => 'officiel'],
+                ['part' => 2, 'name' => 'Expression orale, Teil 2', 'name_fr' => 'Exercice 2',
+                    "task" => "Deuxieme des trois exercices de l'epreuve d'expression orale.",
+                    'type' => 'role-play', 'source' => 'officiel'],
+                ['part' => 3, 'name' => 'Expression orale, Teil 3', 'name_fr' => 'Exercice 3',
+                    "task" => "Troisieme des trois exercices de l'epreuve d'expression orale.",
+                    'type' => 'speaking-long-turn', 'source' => 'officiel'],
+            ],
             'exercise_types' => ['speaking-response', 'role-play', 'speaking-long-turn'],
             'name' => 'Expression orale',
             'skill_type' => 'speaking',
