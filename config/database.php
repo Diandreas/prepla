@@ -37,9 +37,14 @@ return [
             'database' => env('DB_DATABASE', database_path('database.sqlite')),
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
-            'busy_timeout' => null,
-            'journal_mode' => null,
-            'synchronous' => null,
+            // Attendre qu'un verrou se libere plutot que d'echouer tout de suite.
+            'busy_timeout' => 60000,
+            // WAL : un lecteur n'est plus bloque par un ecrivain. En mode
+            // « delete », celui de SQLite par defaut, toute ecriture bloquait
+            // TOUTE lecture — un apprenant a recu « database is locked » en
+            // pleine seance pendant qu'une commande ecrivait des exercices.
+            'journal_mode' => 'wal',
+            'synchronous' => 'normal',
         ],
 
         'mysql' => [
