@@ -239,7 +239,11 @@ export default function SectionDrills({ exam, section, exerciseTypes = [], learn
                                             </h3>
                                             {type.exam_part_name ? (
                                                 <span className="mt-2 inline-flex w-fit items-center gap-1 rounded-full bg-sky-100 px-2 py-1 text-[10px] font-bold text-sky-900 dark:bg-sky-900/50 dark:text-sky-100">
-                                                    {type.exam_part_source === 'officiel' ? "Partie de l'épreuve" : "Partie de l'épreuve · structure déduite"}
+                                                    {type.exam_part_source === 'officiel'
+                                                        ? "Partie de l'épreuve"
+                                                        : type.exam_part_source === 'architecture'
+                                                          ? "Partie de l'épreuve · reconstituée"
+                                                          : "Partie de l'épreuve · tâche reconstituée"}
                                                 </span>
                                             ) : (
                                                 <span className="text-muted-foreground mt-2 inline-flex w-fit items-center rounded-full border px-2 py-1 text-[10px] font-bold">

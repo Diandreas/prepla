@@ -28,13 +28,13 @@ class ExerciseGeneratorService
         return $exercises;
     }
 
-    public function generate(ExerciseType $exerciseType, Exam $exam, string $difficulty = 'B1', ?array $lessonContext = null): Exercise
+    public function generate(ExerciseType $exerciseType, Exam $exam, string $difficulty = 'B1', ?array $lessonContext = null, ?array $partieExamen = null): Exercise
     {
         $exam->loadMissing('language');
         $language = $exam->language?->name ?? 'English';
         $languageNative = $exam->language?->native_name ?? $language;
 
-        $prompt = $this->buildPrompt($exerciseType, $exam, $difficulty, $language, $languageNative, $lessonContext);
+        $prompt = $this->buildPrompt($exerciseType, $exam, $difficulty, $language, $languageNative, $lessonContext, $partieExamen);
 
         // Up to 2 attempts: if the first generation contains structurally broken
         // MCQ-style questions (duplicate options, correct_answer letter out of
@@ -505,7 +505,7 @@ class ExerciseGeneratorService
         };
     }
 
-    private function buildPrompt(ExerciseType $exerciseType, Exam $exam, string $difficulty, string $language, string $languageNative, ?array $lessonContext = null): string
+    private function buildPrompt(ExerciseType $exerciseType, Exam $exam, string $difficulty, string $language, string $languageNative, ?array $lessonContext = null, ?array $partieExamen = null): string
     {
         $componentKey = $exerciseType->component_key;
         $skillType = $exerciseType->section?->skill_type ?? 'reading';
@@ -724,12 +724,20 @@ THIS IS A SPEAKING TASK — the student RECORDS their own voice. It is NOT a com
         // oral ne pouvait entrer dans le vivier. On ne parle d'options qu'a qui en a.
         $consignesDeCorrection = $this->consignesDeCorrection($componentKey);
 
+        // LA PARTIE DE L'EPREUVE, quand l'apprenant s'y entraine nommement.
+        // Plusieurs parties d'un meme module partagent souvent le meme format
+        // de reponse — au telc, les trois parties de Horverstehen sont toutes
+        // en vrai/faux — et different par leur support et leur nombre d'items.
+        // Sans cette directive, « Teil 2 » rendait un exercice indistinguable
+        // de « Teil 1 ».
+        $directiveDeLaPartie = $this->directiveDeLaPartie($partieExamen, $exam);
+
         $levelGuard = "\n\nLEVEL: Keep vocabulary, grammar and topics appropriate for CEFR {$difficulty}. Do not use structures or rare vocabulary clearly above {$difficulty}.";
 
         return <<<PROMPT
 Generate a {$exerciseType->name} exercise for the {$exam->name} exam at CEFR {$difficulty} level.
 The exercise must be entirely in {$language} ({$languageNative}) — this is a {$language} language exam.
-Skill tested: {$skillType}.{$lessonDirective}{$gapFillBan}{$comprehensionGuard}{$levelGuard}{$listeningDirective}{$speakingDirective}{$instructionDirective}
+Skill tested: {$skillType}.{$directiveDeLaPartie}{$lessonDirective}{$gapFillBan}{$comprehensionGuard}{$levelGuard}{$listeningDirective}{$speakingDirective}{$instructionDirective}
 
 Return JSON with exactly this structure:
 {
@@ -797,6 +805,38 @@ PROMPT;
 
             return $question;
         }, $questions);
+    }
+
+    /**
+     * La consigne qui dit a l'IA quelle partie de l'epreuve reproduire.
+     *
+     * Vide quand l'apprenant ne s'entraine pas a une partie nommee : le prompt
+     * reste alors celui d'un exercice de format libre.
+     *
+     * @param  array{name?: string, task?: string, items?: int|null}|null  $partie
+     */
+    private function directiveDeLaPartie(?array $partie, Exam $exam): string
+    {
+        if (! $partie || empty($partie['name'])) {
+            return '';
+        }
+
+        $nom = $partie['name'];
+        $tache = trim((string) ($partie['task'] ?? ''));
+        $lignes = ["\n\nEXAM PART — reproduce «{$nom}» of the {$exam->name}, exactly as it falls in the real exam."];
+
+        if ($tache !== '') {
+            $lignes[] = "What the candidate must do: {$tache}";
+        }
+
+        if (! empty($partie['items']) && (int) $partie['items'] > 1) {
+            $lignes[] = 'Produce exactly '.(int) $partie['items'].' items, as the real part does.';
+        }
+
+        $lignes[] = 'Other parts of the same section use the same answer format but a DIFFERENT '
+            .'kind of input text; keep this one faithful to the part described above.';
+
+        return implode("\n- ", $lignes);
     }
 
     /**

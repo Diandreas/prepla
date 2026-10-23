@@ -196,6 +196,25 @@ class PracticeController extends Controller
     }
 
     /**
+     * La partie de l'epreuve que ce lien designe, s'il en designe une.
+     *
+     * Le numero vient de la page « Pratiquer », qui liste les parties dans
+     * l'ordre de l'examen. On verifie qu'elle correspond bien au type demande :
+     * un numero invente ne doit pas faire passer une partie pour une autre.
+     */
+    private function partieDemandee(Exam $exam, \App\Models\ExerciseType $exerciseType, string $niveau): ?array
+    {
+        $numero = request()->integer('partie');
+        if ($numero < 1) {
+            return null;
+        }
+
+        return collect(app(\App\Services\Content\StructureOfficielle::class)->parties($exam, $niveau))
+            ->first(fn ($partie) => $partie['exercise_type_id'] === $exerciseType->id
+                && (int) ($partie['part'] ?? 0) === $numero);
+    }
+
+    /**
      * "Pratiquer par type" : ouvre un exercice de ce type au niveau de l'apprenant.
      * Bouton "Autre exercice" rappelle cette route pour en obtenir un différent.
      *
@@ -252,7 +271,12 @@ class PracticeController extends Controller
         if (!$exercise) {
             try {
                 $exam->loadMissing('language');
-                $exercise = $generator->generate($exerciseType, $exam, $difficulty);
+                // LA PARTIE DE L'EPREUVE, quand le lien la nomme. Plusieurs
+                // parties d'un module partagent souvent le meme format de
+                // reponse — au telc, les trois Horverstehen sont en vrai/faux —
+                // et l'apprenant recevait pour « Teil 2 » un exercice
+                // indistinguable du « Teil 1 ».
+                $exercise = $generator->generate($exerciseType, $exam, $difficulty, null, $this->partieDemandee($exam, $exerciseType, $difficulty));
             } catch (\Throwable $e) {
                 \Illuminate\Support\Facades\Log::warning('drillByType generation failed, falling back', ['error' => $e->getMessage()]);
             }

@@ -48,7 +48,7 @@ function generateurCompteur(): object
 
         public function __construct() {}
 
-        public function generate(ExerciseType $exerciseType, Exam $exam, string $difficulty = 'B1', ?array $lessonContext = null): Exercise
+        public function generate(ExerciseType $exerciseType, Exam $exam, string $difficulty = 'B1', ?array $lessonContext = null, ?array $partieExamen = null): Exercise
         {
             $this->demandes[] = $difficulty.':'.$exerciseType->slug;
 

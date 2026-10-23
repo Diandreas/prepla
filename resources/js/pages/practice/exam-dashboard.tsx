@@ -164,7 +164,7 @@ export default function ExamDashboard({
                             <p className="text-muted-foreground mt-1 text-sm">
                                 {allPartsOfficial
                                     ? "Chaque partie telle qu'elle tombe à l'examen, dans l'ordre, avec son nombre de questions et ses points."
-                                    : "Chaque partie telle qu'elle tombe à l'examen, dans l'ordre. Les parties marquées \u00ab structure déduite \u00bb suivent l'architecture officielle de l'examen, sans que nous ayons pu vérifier leur barème."}
+                                    : "Chaque partie telle qu'elle tombe à l'examen, dans l'ordre. Le nombre de parties et les durées viennent des documents officiels de l'examen ; là où il ne publie pas le détail de chaque tâche, nous l'avons reconstitué, et nous n'annonçons alors ni nombre de questions ni points."}
                             </p>
                         </div>
                         <div className="space-y-4">
@@ -200,9 +200,11 @@ export default function ExamDashboard({
                                                         )}
                                                         {part.points != null && <span>{part.points} points</span>}
                                                         {part.source === 'officiel' ? (
-                                                            <span className="text-emerald-700 dark:text-emerald-300">structure officielle</span>
+                                                            <span className="text-emerald-700 dark:text-emerald-300">détail officiel</span>
+                                                        ) : part.source === 'architecture' ? (
+                                                            <span className="text-amber-700 dark:text-amber-300">partie reconstituée</span>
                                                         ) : (
-                                                            <span className="text-amber-700 dark:text-amber-300">structure déduite</span>
+                                                            <span className="text-sky-700 dark:text-sky-300">tâche reconstituée</span>
                                                         )}
                                                         {!part.exercise_type_id && <span>entraînement pas encore disponible</span>}
                                                     </div>
@@ -213,7 +215,7 @@ export default function ExamDashboard({
                                                 <li key={part.section_slug + '-' + (part.part ?? index)}>
                                                     {part.exercise_type_id ? (
                                                         <Link
-                                                            href={route('practice.drill.type', [exam.id, part.exercise_type_id])}
+                                                            href={route('practice.drill.type', [exam.id, part.exercise_type_id]) + (part.part ? '?partie=' + part.part : '')}
                                                             className="group hover:bg-muted/40 focus-visible:ring-ring flex items-start gap-3 px-4 py-3 transition-colors focus-visible:ring-2 focus-visible:outline-none"
                                                         >
                                                             <div className="min-w-0 flex-1">{corps}</div>
