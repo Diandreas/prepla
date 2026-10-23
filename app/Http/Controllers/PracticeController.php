@@ -165,9 +165,24 @@ class PracticeController extends Controller
             $sectionProgress[$section->id] = $totalAttempts;
         }
 
+        // LA STRUCTURE OFFICIELLE, partie par partie. L'apprenant revise sous les
+        // noms de son examen — « Leseverstehen, Teil 1 » — et non sous nos noms
+        // de formats internes. Les configurations la decrivaient deja, le plan du
+        // niveau la portait, et personne ne la lisait.
+        $structure = app(\App\Services\Content\StructureOfficielle::class);
+        $parties = $structure->parties($exam, $niveau);
+        $pedagogiques = $structure->typesPedagogiques($exam, $niveau);
+
         return Inertia::render('practice/exam-dashboard', [
             'exam' => $exam,
             'sectionProgress' => $sectionProgress,
+            // Les parties de l'epreuve, dans l'ordre, avec ce qu'il faut pour
+            // ouvrir l'entrainement de chacune.
+            'examParts' => $parties,
+            // Les types qui ne reproduisent AUCUNE partie de l'epreuve : utiles
+            // pour progresser, mais il faut le dire plutot que de les melanger
+            // aux parties officielles.
+            'pedagogicalTypeIds' => $pedagogiques,
             // La duree officielle du niveau, quand l'examen en decrit une : la
             // somme des modules affiches ne la donne pas toujours, l'examen
             // pouvant annoncer un temps commun a deux modules.

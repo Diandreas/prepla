@@ -241,8 +241,14 @@ class ExamSeeder extends Seeder
                 ]
             );
 
-            // Create exercise types from config
-            $exerciseTypes = $sectionConfig['exercise_types'] ?? [];
+            // Create exercise types from config.
+            // Un type cite par une PARTIE officielle doit exister, sinon la page
+            // afficherait « Leseverstehen, Teil 1 » sans pouvoir l'ouvrir : la
+            // structure serait fidele et l'entrainement impossible.
+            $exerciseTypes = array_values(array_unique(array_merge(
+                $sectionConfig['exercise_types'] ?? [],
+                array_filter(array_column($sectionConfig['parts'] ?? [], 'type'))
+            )));
             foreach ($exerciseTypes as $typeSlug) {
                 $registry = self::EXERCISE_TYPE_REGISTRY[$typeSlug] ?? null;
                 if (! $registry) {

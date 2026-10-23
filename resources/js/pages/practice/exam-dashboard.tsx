@@ -21,6 +21,29 @@ interface Props {
     levelIsOfficial?: boolean;
     exam: ExamRecord & { sections: ExamSection[] };
     sectionProgress: Record<number, number>;
+    /** Les parties de l'épreuve, dans l'ordre, telles que l'examen les nomme. */
+    examParts?: ExamPart[];
+    /** Les types qui ne reproduisent aucune partie de l'épreuve. */
+    pedagogicalTypeIds?: number[];
+}
+
+/**
+ * Une partie de l'épreuve — « Leseverstehen, Teil 1 » — telle que le candidat la
+ * rencontre : son nom officiel, sa tâche, son nombre d'items et ses points.
+ */
+interface ExamPart {
+    section_slug: string;
+    section_name: string;
+    skill_type: string | null;
+    part: number | null;
+    name: string | null;
+    name_fr: string | null;
+    task: string | null;
+    items: number | null;
+    item_range: string | null;
+    points: number | null;
+    source: string | null;
+    exercise_type_id: number | null;
 }
 
 const skills: Record<string, { icon: string; tone: 'blue' | 'mint' | 'amber' | 'rose'; description: string }> = {
@@ -30,7 +53,16 @@ const skills: Record<string, { icon: string; tone: 'blue' | 'mint' | 'amber' | '
     speaking: { icon: 'speaking', tone: 'amber', description: 'Prends la parole et gagne en aisance.' },
 };
 
-export default function ExamDashboard({ exam, sectionProgress, learnerLevel, canSimulate, levelDuration, levelIsOfficial }: Props) {
+export default function ExamDashboard({
+    exam,
+    sectionProgress,
+    learnerLevel,
+    canSimulate,
+    levelDuration,
+    levelIsOfficial,
+    examParts = [],
+    pedagogicalTypeIds = [],
+}: Props) {
     const isBeginner = ['A0', 'A1', 'A2'].includes(learnerLevel);
     const availableSections = exam.sections.filter(section => (section.exercise_types?.length ?? 0) > 0);
     const { t } = useTranslation();
@@ -41,6 +73,19 @@ export default function ExamDashboard({ exam, sectionProgress, learnerLevel, can
     const totalExamMinutes =
         levelDuration ?? (exam.sections.reduce((total, section) => total + (section.time_limit ?? 0), 0) || 180);
     const attempts = Object.values(sectionProgress).reduce((total, count) => total + count, 0);
+    // Les parties de l'épreuve, regroupées par module et dans l'ordre. C'est sous
+    // ces noms que le candidat révise, et non sous nos noms de formats internes.
+    const partsBySection = examParts.reduce<{ slug: string; name: string; skill: string | null; parts: ExamPart[] }[]>((groups, part) => {
+        const last = groups[groups.length - 1];
+        if (last && last.slug === part.section_slug) {
+            last.parts.push(part);
+        } else {
+            groups.push({ slug: part.section_slug, name: part.section_name, skill: part.skill_type, parts: [part] });
+        }
+        return groups;
+    }, []);
+    const allPartsOfficial = examParts.length > 0 && examParts.every((part) => part.source === 'officiel');
+    const pedagogicalCount = pedagogicalTypeIds.length;
 
     return (
         <AppLayout>
@@ -107,12 +152,99 @@ export default function ExamDashboard({ exam, sectionProgress, learnerLevel, can
                     </p>
                 )}
 
+                {partsBySection.length > 0 && (
+                    <section aria-labelledby="practice-exam-parts-title">
+                        <div className="mb-4">
+                            <h2 id="practice-exam-parts-title" className="text-foreground text-lg font-extrabold">
+                                Les epreuves du {exam.name} &middot; {learnerLevel}
+                            </h2>
+                            <p className="text-muted-foreground mt-1 text-sm">
+                                {allPartsOfficial
+                                    ? "Chaque partie telle qu'elle tombe a l'examen, dans l'ordre, avec son nombre de questions et ses points."
+                                    : "Chaque partie telle qu'elle tombe a l'examen, dans l'ordre. Les parties marquees \u00ab structure deduite \u00bb suivent l'architecture officielle de l'examen sans que nous ayons pu verifier leur bareme."}
+                            </p>
+                        </div>
+                        <div className="space-y-4">
+                            {partsBySection.map((group) => (
+                                <div key={group.slug} className="border-border bg-card overflow-hidden rounded-2xl border">
+                                    <div className="border-border bg-muted/40 flex items-center gap-2 border-b px-4 py-2.5">
+                                        <ArtIcon
+                                            name={(skills[group.skill ?? 'reading'] ?? skills.reading).icon}
+                                            size={28}
+                                            tone={(skills[group.skill ?? 'reading'] ?? skills.reading).tone}
+                                        />
+                                        <h3 className="text-foreground text-sm font-extrabold">{group.name}</h3>
+                                        <span className="text-muted-foreground ml-auto text-[11px] font-semibold">
+                                            {group.parts.length === 1 ? '1 partie' : group.parts.length + ' parties'}
+                                        </span>
+                                    </div>
+                                    <ul className="divide-border divide-y">
+                                        {group.parts.map((part, index) => {
+                                            const label = part.name ?? 'Partie ' + (part.part ?? index + 1);
+                                            const corps = (
+                                                <>
+                                                    <div className="flex items-baseline gap-2">
+                                                        <span className="text-foreground text-sm font-bold">{label}</span>
+                                                        {part.name_fr && <span className="text-muted-foreground text-xs">{part.name_fr}</span>}
+                                                    </div>
+                                                    {part.task && <p className="text-muted-foreground mt-1 text-xs leading-relaxed">{part.task}</p>}
+                                                    <div className="text-muted-foreground mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-semibold">
+                                                        {part.items != null && (
+                                                            <span>
+                                                                {part.items === 1 ? '1 tache' : part.items + ' questions'}
+                                                                {part.item_range ? ' \u00b7 ' + part.item_range : ''}
+                                                            </span>
+                                                        )}
+                                                        {part.points != null && <span>{part.points} points</span>}
+                                                        {part.source === 'officiel' ? (
+                                                            <span className="text-emerald-700 dark:text-emerald-300">structure officielle</span>
+                                                        ) : (
+                                                            <span className="text-amber-700 dark:text-amber-300">structure deduite</span>
+                                                        )}
+                                                        {!part.exercise_type_id && <span>entrainement pas encore disponible</span>}
+                                                    </div>
+                                                </>
+                                            );
+
+                                            return (
+                                                <li key={part.section_slug + '-' + (part.part ?? index)}>
+                                                    {part.exercise_type_id ? (
+                                                        <Link
+                                                            href={route('practice.drill.type', [exam.id, part.exercise_type_id])}
+                                                            className="group hover:bg-muted/40 focus-visible:ring-ring flex items-start gap-3 px-4 py-3 transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                                                        >
+                                                            <div className="min-w-0 flex-1">{corps}</div>
+                                                            <ChevronRight
+                                                                className="text-muted-foreground mt-1 h-4 w-4 shrink-0 transition-transform motion-safe:group-hover:translate-x-1"
+                                                                aria-hidden="true"
+                                                            />
+                                                        </Link>
+                                                    ) : (
+                                                        <div className="px-4 py-3 opacity-70">{corps}</div>
+                                                    )}
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
                 <section aria-labelledby="practice-skills-title">
                     <div className="mb-4">
                         <h2 id="practice-skills-title" className="text-foreground text-lg font-extrabold">
-                            {t('practice.by_skill', 'Quelle compétence veux-tu travailler ?')}
+                            {partsBySection.length > 0
+                                ? 'Travailler une competence, hors format d\u2019examen'
+                                : t('practice.by_skill', 'Quelle compétence veux-tu travailler ?')}
                         </h2>
-                        <p className="text-muted-foreground mt-1 text-sm">{t('practice.by_skill_hint', 'Choisis ton objectif du moment.')}</p>
+                        <p className="text-muted-foreground mt-1 text-sm">
+                            {partsBySection.length > 0
+                                ? 'Des exercices pour progresser, qui ne reproduisent pas une partie de l\u2019epreuve'
+                                  + (pedagogicalCount > 0 ? ' (' + pedagogicalCount + ' formats).' : '.')
+                                : t('practice.by_skill_hint', 'Choisis ton objectif du moment.')}
+                        </p>
                     </div>
                     <div className="grid gap-3 sm:grid-cols-2">
                         {availableSections.map((section) => {

@@ -107,7 +107,14 @@ class MockExamComposer
             // deux redactions. En n'en posant qu'une, on servait le bon format au bon
             // niveau, mais pas l'epreuve. On en monte autant que la structure en
             // annonce, et on s'arrete a ce qu'on sait vraiment servir.
-            $voulues = $this->nombreDeTaches($blueprint, $section);
+            // LES PARTIES DECLAREES PAR L'EXAMEN, quand il en decrit. Le module
+            // etait monte en prenant n'importe quel format convenable, dans un
+            // ordre arbitraire : au telc B2, « Leseverstehen » pouvait tomber en
+            // trois QCM alors que l'epreuve enchaine une association de titres,
+            // un QCM et une association d'annonces. Le format etait bon, l'ordre
+            // et la nature des taches, non.
+            $parties = $this->partiesDeclarees($blueprint, $section);
+            $voulues = $parties !== [] ? count($parties) : $this->nombreDeTaches($blueprint, $section);
             $dejaPris = [];
             $typesUtilises = [];
             $pourCeModule = 0;
@@ -121,7 +128,15 @@ class MockExamComposer
                     ? self::PALIERS_PROGRESSIFS[$i % count(self::PALIERS_PROGRESSIFS)]
                     : $niveau;
 
-                $exercice = $this->exercicePour($exam, $section, $difficulte, $avecGeneration, $dejaPris, $typesUtilises);
+                $exercice = isset($parties[$i])
+                    ? $this->exercicePourLaPartie($exam, $section, $parties[$i], $difficulte, $avecGeneration, $dejaPris)
+                    : null;
+
+                // Une partie dont on ne sait rien servir ne doit pas trouer le
+                // sujet : on retombe sur le meilleur format du module.
+                $exercice = $exercice
+                    ?? $this->exercicePour($exam, $section, $difficulte, $avecGeneration, $dejaPris, $typesUtilises);
+
                 if (! $exercice) {
                     break;
                 }
@@ -188,6 +203,46 @@ class MockExamComposer
 
             return $mock->fresh();
         });
+    }
+
+    /**
+     * Les types d'exercices des parties que l'examen declare pour ce module a ce
+     * niveau, dans l'ordre de l'epreuve.
+     *
+     * @return list<string>  slugs de types d'exercices
+     */
+    private function partiesDeclarees(ExamBlueprint $blueprint, ExamSection $section): array
+    {
+        foreach (($blueprint->sections_config ?? []) as $config) {
+            if (($config['slug'] ?? null) !== $section->slug) {
+                continue;
+            }
+
+            return array_values(array_filter(
+                array_map(fn ($partie) => is_array($partie) ? ($partie['type'] ?? null) : null, $config['parts'] ?? [])
+            ));
+        }
+
+        return [];
+    }
+
+    /**
+     * L'exercice d'UNE partie precise de l'epreuve.
+     *
+     * On ne se rabat pas sur un autre format ici : la partie demande celui-la, et
+     * l'appelant decidera quoi faire si rien ne vient.
+     *
+     * @param  list<int>  $dejaPris
+     */
+    private function exercicePourLaPartie(Exam $exam, ExamSection $section, string $slugDuType, string $niveau, bool $avecGeneration, array $dejaPris): ?Exercise
+    {
+        $type = $section->exerciseTypes->firstWhere('slug', $slugDuType);
+
+        if (! $type || ! $this->pertinence->convient($type, $niveau)) {
+            return null;
+        }
+
+        return $this->pourCeFormat($exam, $type, $niveau, $avecGeneration, $dejaPris);
     }
 
     /**
