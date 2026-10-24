@@ -65,6 +65,8 @@ interface ErrorDiag {
 
 interface PageProps {
     nextAction?: JourneyAction;
+    /** Ce que l'apprenant a fait aujourd'hui, mesuré. */
+    aujourdhui?: { exercices: number; minutes: number; reussite: number | null };
     wordReviewCount?: number;
     profile: UserProfile | null;
     chapters: Chapter[];
@@ -216,7 +218,7 @@ function CenterAssignmentsBanner({ assignments }: { assignments: CenterAssignmen
 
 export default function Dashboard() {
     const { t } = useTranslation();
-    const { auth, profile, chapters, stats, curriculum, nextLesson, errorDiagnostic, dueErrorsCount, centerMode, centerAssignments, nextAction, wordReviewCount } = usePage<SharedData & PageProps>().props;
+    const { auth, profile, chapters, stats, curriculum, nextLesson, errorDiagnostic, dueErrorsCount, centerMode, centerAssignments, nextAction, wordReviewCount, aujourdhui } = usePage<SharedData & PageProps>().props;
 
     const [loadingNode, setLoadingNode] = useState<{ id: string | number; title: string } | null>(null);
 
@@ -272,6 +274,22 @@ export default function Dashboard() {
                 <CenterAssignmentsBanner assignments={centerAssignments ?? []} />
             )}
             {nextAction && <DailyMission action={nextAction} reviewCount={wordReviewCount ?? 0} name={auth.user?.name} level={profile?.current_level ?? undefined} />}
+
+            {/* La place de cette ligne ne change jamais, meme a zero : c'est ce
+                qui permet d'y jeter un oeil sans la chercher. */}
+            {aujourdhui && (
+                <p className="text-muted-foreground mb-4 text-center text-xs font-semibold" aria-live="polite">
+                    {aujourdhui.exercices === 0 ? (
+                        'Aujourd’hui : rien encore. Un exercice suffit pour commencer.'
+                    ) : (
+                        <>
+                            Aujourd’hui : <span className="text-foreground">{aujourdhui.exercices} exercice{aujourdhui.exercices > 1 ? 's' : ''}</span>
+                            {aujourdhui.minutes > 0 && <> · {aujourdhui.minutes} min</>}
+                            {aujourdhui.reussite !== null && <> · {aujourdhui.reussite} % de réussite</>}
+                        </>
+                    )}
+                </p>
+            )}
 
             {/* Loading overlay — marked data-page-loader so the global NavigationOverlay
                 stays hidden and we never stack two hourglasses. */}
@@ -350,16 +368,6 @@ export default function Dashboard() {
                                 </div>
                                 <p className="mt-1 text-[10px] font-bold text-muted-foreground">{completedInChapter} / {totalInChapter} étapes</p>
                             </div>
-                            {!nextAction && firstActiveInChapter && (isViewingActive || viewedChapterIdx <= activeChapterIdx) && (
-                                <button
-                                    onClick={() => handleStartNode(firstActiveInChapter)}
-                                    className="duo-press flex-shrink-0 rounded-xl px-4 py-2.5 font-black text-xs text-white flex items-center gap-1.5"
-                                    style={{ background: SKY, boxShadow: '0 4px 0 0 #2563a0' }}
-                                >
-                                    {completedInChapter > 0 ? 'CONTINUER' : 'COMMENCER'}
-                                    <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M8 4l3 3-3 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                                </button>
-                            )}
                         </div>
                     </div>
                 )}
@@ -367,33 +375,6 @@ export default function Dashboard() {
                 {/* ── Quick actions (compact, MOBILE) — right under the chapter card
                     so the learner sees what to do without scrolling. On desktop they
                     move to the right column. ── */}
-                {!nextAction && <div className="mb-5 grid grid-cols-3 gap-2 lg:hidden">
-                    <Link
-                        href="/lessons/next"
-                        className="duo-press flex flex-col items-center gap-1.5 rounded-2xl p-3 text-white text-center"
-                        style={{ background: `linear-gradient(135deg, ${SKY}, #3478c8)`, boxShadow: '0 4px 0 0 #2563a0' }}
-                    >
-                        <ArtIcon name="lightbulb" size={34} />
-                        <span className="text-[10px] font-black leading-tight">Prochaine leçon</span>
-                    </Link>
-                    <Link
-                        href={route('practice.index')}
-                        className="duo-press flex flex-col items-center gap-1.5 rounded-2xl p-3 text-white text-center"
-                        style={{ background: 'linear-gradient(135deg, #48b77b, #3a9d68)', boxShadow: '0 4px 0 0 #1f6e42' }}
-                    >
-                        <ArtIcon name="zap" size={34} tone="mint" />
-                        <span className="text-[10px] font-black leading-tight">Pratique rapide</span>
-                    </Link>
-                    <Link
-                        href="/errors"
-                        className="duo-press relative flex flex-col items-center gap-1.5 rounded-2xl border-2 border-border bg-card p-3 text-center"
-                        style={{ boxShadow: '0 4px 0 0 var(--border)' }}
-                    >
-                        <ArtIcon name="review" size={34} tone="amber" />
-                        <span className="text-[10px] font-black leading-tight text-foreground">Révision{(dueErrorsCount ?? 0) > 0 ? ` (${dueErrorsCount})` : ''}</span>
-                    </Link>
-                </div>}
-
                 {/* ── Steps List ── */}
                 {viewedChapter && (
                     <div>
@@ -555,26 +536,6 @@ export default function Dashboard() {
                 {/* ─── Right column (desktop): actions + progress, sticky ─── */}
                 <aside className="lg:col-span-1 lg:sticky lg:top-20 space-y-4">
                     {/* Desktop quick actions */}
-                    {!nextAction && (
-                    <div className="hidden lg:grid grid-cols-1 gap-2">
-                        <Link href="/dictionary" className="duo-press flex items-center gap-3 rounded-2xl p-3.5 text-white"
-                            style={{ background: `linear-gradient(135deg, ${SKY}, #3478c8)`, boxShadow: '0 4px 0 0 #2563a0' }}>
-                            <ArtIcon name="lightbulb" size={34} />
-                            <span className="text-sm font-black">Mes mots et mes exemples</span>
-                        </Link>
-                        <Link href={route('practice.index')} className="duo-press flex items-center gap-3 rounded-2xl p-3.5 text-white"
-                            style={{ background: 'linear-gradient(135deg, #48b77b, #3a9d68)', boxShadow: '0 4px 0 0 #1f6e42' }}>
-                            <ArtIcon name="zap" size={34} tone="mint" />
-                            <span className="text-sm font-black">Pratique rapide</span>
-                        </Link>
-                        <Link href="/errors" className="duo-press flex items-center gap-3 rounded-2xl border-2 border-border bg-card p-3.5"
-                            style={{ boxShadow: '0 4px 0 0 var(--border)' }}>
-                            <ArtIcon name="review" size={34} tone="amber" />
-                            <span className="text-sm font-black text-foreground">Révision{(dueErrorsCount ?? 0) > 0 ? ` (${dueErrorsCount})` : ''}</span>
-                        </Link>
-                    </div>
-
-                    )}
                     {/* Overall progress */}
                     <div className="mt-4 lg:mt-0 rounded-2xl bg-card border border-border p-4">
                         <div className="flex items-center justify-between mb-2 text-xs font-black uppercase tracking-wider">
@@ -588,7 +549,7 @@ export default function Dashboard() {
                         </div>
                         <p className="mt-1.5 text-[10px] font-bold text-muted-foreground">{stats.completed_nodes} / {stats.total_nodes} étapes complétées</p>
                     </div>
-                    {nextAction && <MissionExtras reviewCount={wordReviewCount ?? 0} />}
+                    {nextAction && <MissionExtras reviewCount={wordReviewCount ?? 0} dueErrorsCount={dueErrorsCount ?? 0} />}
                 </aside>
 
             </div>

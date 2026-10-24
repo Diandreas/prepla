@@ -1,7 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { useState } from 'react';
 import { LearningModePicker } from './learning-mode-picker';
-import { ArrowRight, BookOpen, Headphones, Loader2, Sparkles } from 'lucide-react';
+import { ArrowRight, BookOpen, Headphones, Loader2, Sparkles, RotateCcw } from 'lucide-react';
 
 export interface JourneyAction { kind: string; title: string; description: string; url: string }
 export function DailyMission({ action, name, level }: { action: JourneyAction; reviewCount: number; name?: string; level?: string }) {
@@ -43,11 +43,24 @@ export function DailyMission({ action, name, level }: { action: JourneyAction; r
     </section>;
 }
 
-export function MissionExtras({ reviewCount }: { reviewCount: number }) {
+export function MissionExtras({ reviewCount, dueErrorsCount = 0 }: { reviewCount: number; dueErrorsCount?: number }) {
     return <section aria-label="Entraînements et préférences" className="space-y-4">
         <LearningModePicker />
         <div className="mb-2 mt-4 flex items-center justify-between"><h2 className="text-xs font-bold">À ton rythme</h2><span className="text-xs text-muted-foreground">Facultatif</span></div>
         <div className="grid grid-cols-2 gap-3">
+            {/* Reprendre ses erreurs est le geste qui fait le plus progresser,
+                et celui qu'on saute le plus souvent. Il etait dans un bloc que
+                sa condition n'affichait jamais. */}
+            <Link
+                href="/errors"
+                className="group rounded-2xl border border-border/70 bg-card p-4 transition hover:border-primary/40 focus-visible:outline focus-visible:outline-primary"
+            >
+                <span className="mb-1 inline-flex text-rose-600 dark:text-rose-300"><RotateCcw size={17} aria-hidden="true" /></span>
+                <p className="text-sm font-bold">Reprendre mes erreurs</p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                    {dueErrorsCount > 0 ? `${dueErrorsCount} à revoir` : 'Rien à revoir pour l’instant'}
+                </p>
+            </Link>
             <Link href={reviewCount > 0 ? route('dictionary.review_page') : route('dictionary.index')} className="group rounded-2xl border border-border/70 bg-card p-4 transition hover:border-primary/40 focus-visible:outline focus-visible:outline-primary">
                 <span className="mb-1 inline-flex text-amber-600 dark:text-amber-300"><BookOpen size={17} aria-hidden="true" /></span>
                 <p className="text-sm font-bold">{reviewCount > 0 ? 'Réviser mes mots' : 'Mes mots'}</p><p className="mt-1 text-xs leading-relaxed text-muted-foreground">{reviewCount > 0 ? `${Math.min(reviewCount, 5)} mots à retrouver` : 'Tes mots et exemples'}</p>

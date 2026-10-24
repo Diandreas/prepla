@@ -42,7 +42,7 @@ class ProgressionApprenant
             'examen_vise' => $profil?->targetExam?->name,
             'langue_etudiee' => $profil?->targetExam?->language?->name,
             'jours_avant_examen' => $this->joursAvantExamen($profil?->exam_date),
-            'serie_en_cours' => (int) ($profil?->streak_current ?? 0),
+            'serie_en_cours' => (int) ($profil?->serieEffective() ?? 0),
             'xp_total' => (int) ($profil?->xp_total ?? 0),
             'activite' => $this->activite($user),
             'competences' => $this->competences($user),

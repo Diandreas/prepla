@@ -61,6 +61,8 @@ export interface UserProfile {
     current_level: string | null;
     xp_total: number;
     streak_current: number;
+    /** La série réellement en cours : zéro si le dernier jour travaillé est antérieur à hier. */
+    serie_effective?: number;
     streak_last_date: string | null;
     onboarding_completed_at: string | null;
     trial_ends_at: string | null;

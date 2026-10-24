@@ -173,7 +173,7 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                             </span>
                             <span className="flex items-center gap-1 text-orange-500">
                                 <img src="/animation/Fire.gif" alt="Série" className="h-4 w-4 object-contain" />
-                                {profile?.streak_current ?? 0}
+                                {profile?.serie_effective ?? 0}
                             </span>
                         </div>
                     </div>

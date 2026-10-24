@@ -124,7 +124,10 @@ export function AppSidebarHeader() {
         }
     }, [interfaceLanguage]);
 
-    const streak = (userProfile as any)?.streak_current ?? 0;
+    // La série EFFECTIVE : `streak_current` garde sa dernière valeur tant que
+    // l'apprenant ne revient pas, et affichait « 7 » à quelqu'un parti depuis
+    // trois semaines.
+    const streak = (userProfile as any)?.serie_effective ?? 0;
     const xp = (userProfile as any)?.xp_total ?? 0;
 
     // Bump the XP / streak chips briefly when their value increases.

@@ -267,7 +267,20 @@ class DashboardController extends Controller
         // le badge promettait des revisions qui n'existaient pas.
         $dueErrorsCount = UserError::conceptDue($user->id)->count();
 
+        // CE QU'IL A FAIT AUJOURD'HUI. Rien, nulle part, ne le disait : il
+        // terminait sa seance et retrouvait le meme ecran qu'avant. On lit les
+        // tentatives du jour, qui portent deja la duree et la reussite.
+        $duJour = \App\Models\UserExerciseAttempt::where('user_id', $user->id)
+            ->whereDate('created_at', today())->get();
+
         return Inertia::render('dashboard', [
+            'aujourdhui' => [
+                'exercices' => $duJour->count(),
+                'minutes' => (int) round($duJour->sum('time_spent') / 60),
+                // Sans tentative, pas de moyenne : on ne montre pas « 0 % » a
+                // quelqu'un qui n'a simplement pas encore commence.
+                'reussite' => $duJour->isEmpty() ? null : (int) round($duJour->avg('accuracy_percent')),
+            ],
             'profile' => $profile,
             'chapters' => $chapters,
             'stats' => [

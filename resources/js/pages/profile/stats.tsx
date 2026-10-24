@@ -40,7 +40,7 @@ export default function Stats({ profile, totalAttempts, totalTime, avgAccuracy }
                         <CardContent className="flex items-center gap-4 py-6">
                             <Icon name="flame" size={40} className="text-orange-500" />
                             <div>
-                                <p className="text-3xl font-bold">{profile?.streak_current ?? 0}</p>
+                                <p className="text-3xl font-bold">{profile?.serie_effective ?? 0}</p>
                                 <p className="text-sm text-muted-foreground">Day Streak</p>
                             </div>
                         </CardContent>
