@@ -27,6 +27,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Les durees relatives s'ecrivent en francais, comme le reste de
+        // l'interface. Sans cela, l'apprenant lisait « tu as bute dessus
+        // 13 seconds ago » sur une page entierement en francais.
+        \Carbon\Carbon::setLocale('fr');
+
         Event::listen(Registered::class, SendWelcomeEmail::class);
         Event::listen(WebhookHandled::class, HandleCashierWebhook::class);
 

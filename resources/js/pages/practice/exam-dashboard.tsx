@@ -21,6 +21,8 @@ interface Props {
     levelIsOfficial?: boolean;
     exam: ExamRecord & { sections: ExamSection[] };
     sectionProgress: Record<number, number>;
+    /** Ce qu'on propose de faire maintenant, et pourquoi. */
+    prochain?: { pourquoi: string };
     /** Les parties de l'épreuve, dans l'ordre, telles que l'examen les nomme. */
     examParts?: ExamPart[];
     /** Les types qui ne reproduisent aucune partie de l'épreuve. */
@@ -67,6 +69,7 @@ export default function ExamDashboard({
     levelIsOfficial,
     examParts = [],
     pedagogicalTypeIds = [],
+    prochain,
 }: Props) {
     const isBeginner = ['A0', 'A1', 'A2'].includes(learnerLevel);
     const availableSections = exam.sections.filter(section => (section.exercise_types?.length ?? 0) > 0);
@@ -155,6 +158,25 @@ export default function ExamDashboard({
                     >
                         {flash.success}
                     </p>
+                )}
+
+                {prochain && (
+                    <section aria-labelledby="practice-continuer" className="border-primary/25 bg-primary/5 rounded-3xl border p-5">
+                        <h2 id="practice-continuer" className="text-muted-foreground text-xs font-bold tracking-widest uppercase">
+                            On continue
+                        </h2>
+                        <p className="text-foreground mt-2 text-base leading-relaxed font-bold">{prochain.pourquoi}</p>
+                        <Link
+                            href={route('practice.continuer', exam.id)}
+                            className="bg-primary text-primary-foreground focus-visible:ring-ring mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3.5 text-base font-extrabold transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:outline-none sm:w-auto"
+                        >
+                            Commencer
+                            <ArrowRight className="h-5 w-5" aria-hidden="true" />
+                        </Link>
+                        <p className="text-muted-foreground mt-3 text-xs leading-relaxed">
+                            Tu peux aussi choisir toi-même, plus bas.
+                        </p>
+                    </section>
                 )}
 
                 {partsBySection.length > 0 && (

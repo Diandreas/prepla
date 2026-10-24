@@ -105,6 +105,12 @@ Route::middleware(['auth'])->group(function () {
         // Limité comme les autres appels IA : depuis que la route génère dès que
         // l'apprenant a tout fait, un clic répété pourrait épuiser le quota du
         // fournisseur — la panne exacte qui avait bloqué des comptes.
+        // UNE SEULE ACTION. La pratique libre offrait une grille de formats et
+        // tirait au hasard dedans, sans jamais regarder ce que l'apprenant
+        // venait de rater. « Continuer » choisit pour lui, en visant ce qui
+        // resiste, et lui dit pourquoi.
+        Route::get('practice/{exam}/continuer', [PracticeController::class, 'continuer'])
+            ->middleware('throttle:ai-calls')->name('practice.continuer');
         Route::get('practice/{exam}/drill/{exerciseType}', [PracticeController::class, 'drillByType'])->middleware('throttle:ai-calls')->name('practice.drill.type');
         Route::post('practice/{exam}/section/{section}/generate', [PracticeController::class, 'generateSection'])->middleware('throttle:ai-calls')->name('practice.section.generate');
         Route::get('practice/{exam}/simulate', [PracticeController::class, 'simulate'])->name('practice.simulate');

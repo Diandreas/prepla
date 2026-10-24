@@ -178,6 +178,10 @@ class PracticeController extends Controller
             'sectionProgress' => $sectionProgress,
             // Les parties de l'epreuve, dans l'ordre, avec ce qu'il faut pour
             // ouvrir l'entrainement de chacune.
+            // CE QU'ON FAIT MAINTENANT, et pourquoi. Une grille de formats ne
+            // dit a personne par ou commencer ; une action unique, motivee, si.
+            'prochain' => ['pourquoi' => app(\App\Services\Content\ProchainExercice::class)
+                ->pour($user, $exam, $niveau)['pourquoi']],
             'examParts' => $parties,
             // Les types qui ne reproduisent AUCUNE partie de l'epreuve : utiles
             // pour progresser, mais il faut le dire plutot que de les melanger
@@ -212,6 +216,63 @@ class PracticeController extends Controller
         return collect(app(\App\Services\Content\StructureOfficielle::class)->parties($exam, $niveau))
             ->first(fn ($partie) => $partie['exercise_type_id'] === $exerciseType->id
                 && (int) ($partie['part'] ?? 0) === $numero);
+    }
+
+    /**
+     * « Continuer » : le prochain exercice, choisi pour l'apprenant.
+     *
+     * La pratique libre presentait une grille de formats, et `drillByType`
+     * tirait au hasard dans le vivier du format choisi : on pouvait rater dix
+     * fois le meme accord sans que le onzieme exercice en sache rien. C'est
+     * pourtant le mode de celui qui travaille SEUL, donc de celui qui n'a
+     * personne pour lui dire quoi reprendre.
+     *
+     * Le choix vise desormais ce qui resiste, et la raison suit l'apprenant
+     * jusqu'a l'exercice : « on reprend les accords, tu as bute dessus il y a
+     * trois jours » vaut mieux que « un exercice ».
+     */
+    public function continuer(Exam $exam, \App\Services\Content\ProchainExercice $choix,
+        \App\Services\AI\ExerciseGeneratorService $generator)
+    {
+        abort_unless($exam->language?->is_active, 404);
+
+        $user = auth()->user();
+        $niveau = $user->profile?->current_level ?: 'A1';
+        $propose = $choix->pour($user, $exam, $niveau);
+
+        if (! $propose['type']) {
+            return redirect()->route('practice.exam', $exam->id)->with('error', $propose['pourquoi']);
+        }
+
+        $exercice = $propose['exercice'];
+
+        if (! $exercice) {
+            try {
+                $exam->loadMissing('language');
+                // La faiblesse visee accompagne la demande : un exercice ecrit
+                // pour l'occasion doit porter SUR CE QUI RESISTE, sinon le choix
+                // n'aurait servi a rien.
+                $exercice = $generator->generate($propose['type'], $exam, $niveau, null, null, $propose['categorie']);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Continuer : generation impossible', ['error' => $e->getMessage()]);
+            }
+        }
+
+        // Dernier recours : refaire un exercice connu du bon format plutot que
+        // de renvoyer l'apprenant sur un echec.
+        $exercice = $exercice ?: Exercise::where('exam_id', $exam->id)
+            ->where('exercise_type_id', $propose['type']->id)
+            ->where('difficulty', $niveau)
+            ->whereNull('center_id')->whereNull('lesson_id')
+            ->whereNull('node_id')->whereNull('mock_exam_id')
+            ->inRandomOrder()->first();
+
+        if (! $exercice) {
+            return redirect()->route('practice.exam', $exam->id)
+                ->with('error', "Impossible de preparer un exercice pour le moment. Reessaie dans un instant.");
+        }
+
+        return redirect()->route('exercise.show', $exercice->id)->with('pourquoi', $propose['pourquoi']);
     }
 
     /**

@@ -28,13 +28,13 @@ class ExerciseGeneratorService
         return $exercises;
     }
 
-    public function generate(ExerciseType $exerciseType, Exam $exam, string $difficulty = 'B1', ?array $lessonContext = null, ?array $partieExamen = null): Exercise
+    public function generate(ExerciseType $exerciseType, Exam $exam, string $difficulty = 'B1', ?array $lessonContext = null, ?array $partieExamen = null, ?string $faiblesse = null): Exercise
     {
         $exam->loadMissing('language');
         $language = $exam->language?->name ?? 'English';
         $languageNative = $exam->language?->native_name ?? $language;
 
-        $prompt = $this->buildPrompt($exerciseType, $exam, $difficulty, $language, $languageNative, $lessonContext, $partieExamen);
+        $prompt = $this->buildPrompt($exerciseType, $exam, $difficulty, $language, $languageNative, $lessonContext, $partieExamen, $faiblesse);
 
         // Up to 2 attempts: if the first generation contains structurally broken
         // MCQ-style questions (duplicate options, correct_answer letter out of
@@ -505,7 +505,7 @@ class ExerciseGeneratorService
         };
     }
 
-    private function buildPrompt(ExerciseType $exerciseType, Exam $exam, string $difficulty, string $language, string $languageNative, ?array $lessonContext = null, ?array $partieExamen = null): string
+    private function buildPrompt(ExerciseType $exerciseType, Exam $exam, string $difficulty, string $language, string $languageNative, ?array $lessonContext = null, ?array $partieExamen = null, ?string $faiblesse = null): string
     {
         $componentKey = $exerciseType->component_key;
         $skillType = $exerciseType->section?->skill_type ?? 'reading';
@@ -732,12 +732,24 @@ THIS IS A SPEAKING TASK — the student RECORDS their own voice. It is NOT a com
         // de « Teil 1 ».
         $directiveDeLaPartie = $this->directiveDeLaPartie($partieExamen, $exam);
 
+        // CE QUI RESISTE A CET APPRENANT. Le generateur savait l'examen, le
+        // niveau et la partie — jamais ce que la personne ratait. Un exercice
+        // ecrit pour quelqu'un qui bute sur les accords doit porter sur les
+        // accords, sinon il ne lui sert a rien de plus qu'un exercice au hasard.
+        $directiveFaiblesse = $faiblesse
+            ? "
+
+TARGET THIS WEAKNESS: the learner keeps getting «{$faiblesse}» wrong. "
+                .'Build the exercise so that answering it correctly REQUIRES handling that point. '
+                .'Do not mention the weakness in the wording — just make it the difficulty.'
+            : '';
+
         $levelGuard = "\n\nLEVEL: Keep vocabulary, grammar and topics appropriate for CEFR {$difficulty}. Do not use structures or rare vocabulary clearly above {$difficulty}.";
 
         return <<<PROMPT
 Generate a {$exerciseType->name} exercise for the {$exam->name} exam at CEFR {$difficulty} level.
 The exercise must be entirely in {$language} ({$languageNative}) — this is a {$language} language exam.
-Skill tested: {$skillType}.{$directiveDeLaPartie}{$lessonDirective}{$gapFillBan}{$comprehensionGuard}{$levelGuard}{$listeningDirective}{$speakingDirective}{$instructionDirective}
+Skill tested: {$skillType}.{$directiveDeLaPartie}{$directiveFaiblesse}{$lessonDirective}{$gapFillBan}{$comprehensionGuard}{$levelGuard}{$listeningDirective}{$speakingDirective}{$instructionDirective}
 
 Return JSON with exactly this structure:
 {
