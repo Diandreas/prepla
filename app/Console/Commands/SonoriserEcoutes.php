@@ -68,7 +68,18 @@ class SonoriserEcoutes extends Command
             }
 
             $manquantes = $this->reponsesAbsentes($exercice, $passage);
+            $alignement = null;
+
             if ($manquantes !== []) {
+                // Une date ne se dit pas comme elle s'ecrit : on attend
+                // « 15th March » et une conversation dit « the fifteenth of
+                // March ». Plutot que de relacher la verification, on demande
+                // sous quelle forme chaque reponse est prononcee.
+                [$passage, $alignement] = $this->aligner($mistral, $exercice, $langue, $passage);
+                $manquantes = $passage ? $this->reponsesAbsentes($exercice, $passage, $alignement) : $manquantes;
+            }
+
+            if ($passage === null || $manquantes !== []) {
                 $refusees[] = "$etiquette : " . count($manquantes) . ' reponse(s) absente(s) du passage';
                 $this->line("  <fg=red>✗</> $etiquette — manque : " . implode(', ', array_slice($manquantes, 0, 4)));
 
@@ -81,6 +92,11 @@ class SonoriserEcoutes extends Command
             }
 
             if (! $sec) {
+                if ($alignement) {
+                    $this->appliquerAlignement($exercice, $alignement);
+                    $this->line('      grille alignee sur ce qui est prononce : '
+                        . implode(', ', array_slice($alignement, 0, 3)));
+                }
                 $contenu = is_array($exercice->content) ? $exercice->content : [];
                 $contenu['audio_text'] = $passage;
                 $exercice->content = $contenu;
@@ -177,6 +193,129 @@ class SonoriserEcoutes extends Command
         return trim($passage);
     }
 
+    /**
+     * Seconde tentative : le passage, ET la forme exacte sous laquelle chaque
+     * reponse y est prononcee.
+     *
+     * @return array{0: ?string, 1: ?list<string>}  le passage et les reponses telles qu'entendues
+     */
+    private function aligner(MistralService $mistral, Exercise $exercice, string $langue, string $precedent): array
+    {
+        $attendues = $this->toutesLesReponsesAttendues($exercice);
+        if ($attendues === []) {
+            return [null, null];
+        }
+
+        $liste = implode("\n", array_map(fn ($i, $r) => ($i + 1) . '. ' . $r, array_keys($attendues), $attendues));
+        $niveau = $exercice->difficulty ?: 'B1';
+
+        $consigne = <<<TXT
+            You write the RECORDING for a listening task, in {$langue}, CEFR {$niveau}.
+
+            These answers must each be AUDIBLE in the passage:
+            {$liste}
+
+            Some cannot be said literally the way they are written — a date written
+            "15th March" is spoken "the fifteenth of March". So write the passage
+            naturally, then tell us, for each answer and IN THE SAME ORDER, the exact
+            wording you used in the passage.
+
+            Rules:
+            - 70 to 130 words, natural spoken style, only in {$langue}.
+            - A monologue, or a dialogue with speakers marked "A:" and "B:".
+            - Each string you return in "answers" must appear in "audio_text" character
+              for character.
+            - Never read the questions aloud and never list the answers.
+
+            Answer with JSON only: {"audio_text": "...", "answers": ["...", "..."]}
+            TXT;
+
+        $brut = $mistral->chat([['role' => 'user', 'content' => $consigne]]);
+        $decode = is_string($brut) ? json_decode($brut, true) : null;
+
+        $passage = is_array($decode) ? ($decode['audio_text'] ?? null) : null;
+        $reponses = is_array($decode) ? ($decode['answers'] ?? null) : null;
+
+        if (! is_string($passage) || mb_strlen(trim($passage)) < 60
+            || ! is_array($reponses) || count($reponses) !== count($attendues)) {
+            return [null, null];
+        }
+
+        $passage = trim($passage);
+
+        // Chaque forme annoncee doit VRAIMENT figurer dans le passage : sans
+        // cette verification, l'alignement ne serait qu'une facon de se donner
+        // raison.
+        foreach ($reponses as $reponse) {
+            if (! is_string($reponse) || trim($reponse) === ''
+                || ! str_contains(mb_strtolower($passage), mb_strtolower(trim($reponse)))) {
+                return [null, null];
+            }
+        }
+
+        return [$passage, array_map(fn ($r) => trim($r), array_values($reponses))];
+    }
+
+    /**
+     * Remplace les reponses attendues par la forme sous laquelle elles sont
+     * prononcees, dans l'ordre ou elles ont ete presentees a l'IA.
+     *
+     * @param  list<string>  $alignement
+     */
+    private function appliquerAlignement(Exercise $exercice, array $alignement): void
+    {
+        $questions = is_array($exercice->questions) ? $exercice->questions : [];
+        $rang = 0;
+
+        foreach ($questions as $i => $question) {
+            if (! is_array($question)) {
+                continue;
+            }
+
+            if (isset($question['correct_answers']) && is_array($question['correct_answers'])) {
+                foreach (array_keys($question['correct_answers']) as $cle) {
+                    if (isset($alignement[$rang])) {
+                        $questions[$i]['correct_answers'][$cle] = $alignement[$rang];
+                    }
+                    $rang++;
+                }
+            } elseif (isset($question['correct_answer']) && is_string($question['correct_answer'])) {
+                if (isset($alignement[$rang])) {
+                    $questions[$i]['correct_answer'] = $alignement[$rang];
+                }
+                $rang++;
+            }
+        }
+
+        $exercice->questions = $questions;
+        $exercice->saveQuietly();
+    }
+
+    /**
+     * Toutes les reponses attendues de l'exercice, a plat et dans l'ordre.
+     *
+     * @return list<string>
+     */
+    private function toutesLesReponsesAttendues(Exercise $exercice): array
+    {
+        $sorties = [];
+
+        foreach ((is_array($exercice->questions) ? $exercice->questions : []) as $question) {
+            if (! is_array($question)) {
+                continue;
+            }
+            if (isset($question['correct_answers']) && is_array($question['correct_answers'])) {
+                foreach ($question['correct_answers'] as $valeur) {
+                    $sorties[] = (string) Exercise::optionText($valeur);
+                }
+            } elseif (isset($question['correct_answer']) && is_string($question['correct_answer'])) {
+                $sorties[] = $question['correct_answer'];
+            }
+        }
+
+        return array_values(array_filter($sorties, fn ($r) => trim($r) !== ''));
+    }
+
     /** Le resume des questions et des reponses attendues, donne a l'IA. */
     private function resumeDesQuestions(Exercise $exercice): string
     {
@@ -256,7 +395,7 @@ class SonoriserEcoutes extends Command
      *
      * @return string[]
      */
-    private function reponsesAbsentes(Exercise $exercice, string $passage): array
+    private function reponsesAbsentes(Exercise $exercice, string $passage, ?array $alignement = null): array
     {
         $format = $exercice->exerciseType?->component_key ?? '';
         $aVerifier = in_array($format, self::FAMILLES_VERIFIABLES, true);
@@ -268,16 +407,19 @@ class SonoriserEcoutes extends Command
         $normaliser = fn (string $t) => preg_replace('/[^\p{L}\p{N}]+/u', ' ', mb_strtolower($t));
         $dit = ' ' . $normaliser($passage) . ' ';
 
-        $manquantes = [];
-        foreach ((is_array($exercice->questions) ? $exercice->questions : []) as $question) {
-            if (! is_array($question)) {
-                continue;
-            }
+        // Apres alignement, ce sont les reponses TELLES QU'ELLES SERONT ECRITES
+        // dans l'exercice qu'il faut retrouver, et non celles d'avant.
+        $aTrouver = $alignement !== null
+            ? $alignement
+            : collect(is_array($exercice->questions) ? $exercice->questions : [])
+                ->filter(fn ($q) => is_array($q))
+                ->flatMap(fn ($question) => $this->reponsesAttendues($question))
+                ->all();
 
-            foreach ($this->reponsesAttendues($question) as $reponse) {
-                if (! str_contains($dit, ' ' . trim($normaliser($reponse)) . ' ')) {
-                    $manquantes[] = $reponse;
-                }
+        $manquantes = [];
+        foreach ($aTrouver as $reponse) {
+            if (! str_contains($dit, ' ' . trim($normaliser((string) $reponse)) . ' ')) {
+                $manquantes[] = $reponse;
             }
         }
 

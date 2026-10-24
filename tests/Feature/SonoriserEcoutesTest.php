@@ -127,3 +127,62 @@ test('pour un QCM on demande le libelle, pas la lettre', function () {
 
     expect($exercice->refresh()->content['audio_text'])->toContain('Café');
 });
+
+test('une date qui ne se dit pas comme elle s ecrit aligne la grille', function () {
+    // Le passage doit contenir la reponse MOT POUR MOT. Pour du texte cela
+    // marche ; pour une date, non : on attend « 15th March » et une
+    // conversation naturelle dit « the fifteenth of March ». Quatre exercices
+    // de production restaient muets pour cette seule raison.
+    $exercice = epreuveMuette('note-completion', [[
+        'id' => 'q1', 'type' => 'note-completion', 'text' => 'Complète les notes.',
+        'notes' => [['label' => 'Date', 'value' => '']],
+        'correct_answers' => ['15th March'],
+    ]]);
+
+    Http::fake(['api.mistral.ai/*' => Http::sequence()
+        // Premier essai : le passage dit la date autrement, la verification refuse.
+        ->push(['choices' => [['message' => ['content' => json_encode([
+            'audio_text' => 'A: When is the appointment? B: It is on the fifteenth of March, in the afternoon. A: Good, I will write that down right now.',
+        ])]]]])
+        // Second essai : l'IA dit sous quelle forme la reponse est prononcee.
+        ->push(['choices' => [['message' => ['content' => json_encode([
+            'audio_text' => 'A: When is the appointment? B: It is on the fifteenth of March, in the afternoon. A: Good, I will write that down right now.',
+            'answers' => ['the fifteenth of March'],
+        ])]]]]),
+    ]);
+
+    $this->artisan('prepla:sonoriser-ecoutes', ['--exercice' => $exercice->id])->assertSuccessful();
+
+    $exercice->refresh();
+
+    // La grille suit ce qui est reellement prononce : ce qu'on entend est ce
+    // qu'on doit ecrire.
+    expect($exercice->content['audio_text'])->toContain('fifteenth of March')
+        ->and($exercice->questions[0]['correct_answers'][0])->toBe('the fifteenth of March');
+});
+
+test('un alignement qui ne figure pas dans le passage est refuse', function () {
+    $exercice = epreuveMuette('note-completion', [[
+        'id' => 'q1', 'type' => 'note-completion', 'text' => 'Complète les notes.',
+        'notes' => [['label' => 'Date', 'value' => '']],
+        'correct_answers' => ['15th March'],
+    ]]);
+
+    Http::fake(['api.mistral.ai/*' => Http::sequence()
+        ->push(['choices' => [['message' => ['content' => json_encode([
+            'audio_text' => 'A: When is the appointment? B: It is on the fifteenth of March, in the afternoon. A: Good, I will note it down.',
+        ])]]]])
+        // L'IA annonce une forme qui n'est PAS dans son propre passage :
+        // sans verification, l'alignement ne serait qu'une facon de se donner raison.
+        ->push(['choices' => [['message' => ['content' => json_encode([
+            'audio_text' => 'A: When is the appointment? B: It is on the fifteenth of March, in the afternoon. A: Good, I will note it down.',
+            'answers' => ['the twentieth of April'],
+        ])]]]]),
+    ]);
+
+    $this->artisan('prepla:sonoriser-ecoutes', ['--exercice' => $exercice->id])->assertSuccessful();
+
+    $exercice->refresh();
+    expect($exercice->content['audio_text'] ?? null)->toBeNull()
+        ->and($exercice->questions[0]['correct_answers'][0])->toBe('15th March');
+});
