@@ -9,6 +9,8 @@ interface SpeakingRecorderProps {
         text: string;
         prep_time?: number;
         speak_time?: number;
+        /** Ce que la réponse doit contenir, comme sur la carte de l'examinateur. */
+        expected_points?: string[];
         image_url?: string;
         image_prompt?: string;
     };
@@ -145,6 +147,29 @@ export function SpeakingRecorder({ question, onAnswer, selectedAnswer, disabled,
                     </svg>
                 </button>
             </div>
+
+            {/* LA CARTE DE L'EXAMINATEUR. A la Vorstellung, telc remet au candidat
+                des mots-cles — nom, origine, profession — et coche ce qu'il a dit.
+                Sans eux a l'ecran, l'apprenant parle au hasard et decouvre apres
+                coup ce qu'il a oublie ; or c'est exactement ce qui lui coute des
+                points le jour de l'examen. */}
+            {question.expected_points && question.expected_points.length > 0 && (
+                <div className="border-border rounded-xl border border-dashed p-4">
+                    <p className="text-muted-foreground text-xs font-bold tracking-wide uppercase">
+                        Pense à dire
+                    </p>
+                    <ul className="mt-2 space-y-1.5">
+                        {question.expected_points.map((point, i) => (
+                            <li key={i} className="text-foreground flex items-start gap-2 text-sm leading-snug">
+                                <span className="bg-primary/15 text-primary mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-black">
+                                    {i + 1}
+                                </span>
+                                <span>{point}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
 
             {/* La tache de description d'image (Bildbesprechung OSD B2) montre son
                 visuel : une image deja preparee, ou une illustration fabriquee a

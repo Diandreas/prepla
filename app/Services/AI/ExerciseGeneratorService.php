@@ -608,6 +608,18 @@ THIS IS A SPEAKING TASK — the student RECORDS their own voice. It is NOT a com
 - The question must give the student something to SAY."
             : '';
 
+        // POURQUOI DES POINTS ATTENDUS. Une epreuve orale ne se corrige pas « au
+        // feeling » : l'examinateur telc coche. A la Vorstellung, il verifie que
+        // le candidat a dit son nom, d'ou il vient, ce qu'il fait. Sans cette
+        // liste, l'IA jugeait librement et l'apprenant ne savait jamais ce qu'il
+        // avait OUBLIE de dire — ce qui est precisement ce qu'il perd des points.
+        $directiveDesPoints = in_array($componentKey, ['speaking-recorder', 'role-play'], true)
+            ? "\n\nEXPECTED POINTS — mandatory. List 3 to 5 short, checkable things the answer must contain. "
+                ."They are what the examiner ticks off, so each must be verifiable from the recording alone "
+                ."(\"says their name\", \"gives a reason\", \"proposes a time\"), never vague (\"speaks well\"). "
+                ."Keep them within reach of a {$difficulty} learner."
+            : '';
+
         // Same beginner problem as speaking, but for the plain "text" instruction
         // field of types that have a REAL standalone instruction (as opposed to
         // summary-completion/open-cloze, where "text" IS the content to fill in —
@@ -661,8 +673,8 @@ THIS IS A SPEAKING TASK — the student RECORDS their own voice. It is NOT a com
             // scenario/role/prompt use $scenarioLang (native language for A0-A2 beginners,
             // target language otherwise) since they're instructions the student must
             // understand — only the examiner's spoken "text" stays in $language.
-            'speaking-recorder' => 'Array of 1 question with: id (string), type ("speaking-recorder"), text (speaking prompt in '.$scenarioLang.', e.g. describe an experience, give opinion on topic), prep_time (30), speak_time (60), image_url (null), correct_answer (null)',
-            'role-play' => 'Array of 1 question with: id (string), type ("role-play"), scenario (situation description in '.$scenarioLang.'), role (candidate role in '.$scenarioLang.'), dialogue_turns (array of 4-6 objects {speaker: "examiner"|"candidate", text: string for examiner lines in '.$language.', prompt: string for candidate hints in '.$scenarioLang.'}), correct_answer (null)',
+            'speaking-recorder' => 'Array of 1 question with: id (string), type ("speaking-recorder"), text (speaking prompt in '.$scenarioLang.', e.g. describe an experience, give opinion on topic), expected_points (array of 3 to 5 SHORT strings in '.$scenarioLang.' — the things the answer must contain for the examiner to tick them off; for a self-introduction: name, where you are from, what you do, how long you have been learning, one hobby), prep_time (30), speak_time (60), image_url (null), correct_answer (null)',
+            'role-play' => 'Array of 1 question with: id (string), type ("role-play"), expected_points (array of 3 to 5 SHORT strings in '.$scenarioLang.' — what the candidate must manage to say or obtain for the task to count as done), scenario (situation description in '.$scenarioLang.'), role (candidate role in '.$scenarioLang.'), dialogue_turns (array of 4-6 objects {speaker: "examiner"|"candidate", text: string for examiner lines in '.$language.', prompt: string for candidate hints in '.$scenarioLang.'}), correct_answer (null)',
             // (suite du match sur $componentKey)
             // Interactive speaking — all rendered by the role-play component (type "role-play"),
             // alternating examiner (spoken via TTS) ↔ candidate (records, live-scored).
@@ -749,7 +761,7 @@ TARGET THIS WEAKNESS: the learner keeps getting «{$faiblesse}» wrong. "
         return <<<PROMPT
 Generate a {$exerciseType->name} exercise for the {$exam->name} exam at CEFR {$difficulty} level.
 The exercise must be entirely in {$language} ({$languageNative}) — this is a {$language} language exam.
-Skill tested: {$skillType}.{$directiveDeLaPartie}{$directiveFaiblesse}{$lessonDirective}{$gapFillBan}{$comprehensionGuard}{$levelGuard}{$listeningDirective}{$speakingDirective}{$instructionDirective}
+Skill tested: {$skillType}.{$directiveDeLaPartie}{$directiveFaiblesse}{$directiveDesPoints}{$lessonDirective}{$gapFillBan}{$comprehensionGuard}{$levelGuard}{$listeningDirective}{$speakingDirective}{$instructionDirective}
 
 Return JSON with exactly this structure:
 {
