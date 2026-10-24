@@ -280,6 +280,10 @@ class ExerciseScoringService
                             'question_id' => $questionId,
                             'correct' => $isCorrect,
                             'accuracy' => $aiResult['accuracy'],
+                            // A quoi ressemble une bonne reponse a SON niveau. Une
+                            // correction dit ce qui ne va pas ; elle ne montre pas ce
+                            // qu'il fallait ecrire, et l'apprenant repart sans modele.
+                            'model_answer' => $aiResult['model_answer'] ?? null,
                             'explanation' => $aiResult['explanation'],
                             'covered_points' => $aiResult['covered_points'] ?? [],
                             'missing_points' => $aiResult['missing_points'] ?? [],
@@ -295,6 +299,10 @@ class ExerciseScoringService
                             'question_id' => $questionId,
                             'correct' => $isCorrect,
                             'accuracy' => $aiResult['accuracy'],
+                            // A quoi ressemble une bonne reponse a SON niveau. Une
+                            // correction dit ce qui ne va pas ; elle ne montre pas ce
+                            // qu'il fallait ecrire, et l'apprenant repart sans modele.
+                            'model_answer' => $aiResult['model_answer'] ?? null,
                             'explanation' => $aiResult['explanation'],
                             'error_category' => $aiResult['error_category'] ?? null,
                             'error_subcategory' => $aiResult['error_subcategory'] ?? null,

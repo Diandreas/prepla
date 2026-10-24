@@ -30,6 +30,7 @@ Always reply in valid JSON format ONLY:
   \"accuracy\": integer (0-100),
   \"error_category\": \"category.subcategory (e.g. grammar.tense, vocabulary.lexical, spelling, etc.) — only if the answer is wrong, null if correct\",
   \"error_subcategory\": \"specific subcategory (e.g. past_simple_vs_present_perfect, article_usage) — only if wrong, null if correct\",
+  \"model_answer\": \"a SHORT exemplary answer to the prompt, in $language, at the student's level — what a good answer looks like. 1 to 3 sentences. null when the question has one single right answer.\",
   \"explanation\": {
     \"concept\": \"the grammar/vocab rule in ONE short sentence (max ~20 words), written in $language — no preamble, straight to the point\",
     \"evidence\": \"the correct form or sentence — wrap the key corrected part in <evidence>...</evidence> tags\",
@@ -97,6 +98,10 @@ ERROR CATEGORIES TAXONOMY (use these exact categories):
             'accuracy' => (int)($decoded['accuracy'] ?? 0),
             'error_category' => $decoded['error_category'] ?? null,
             'error_subcategory' => $decoded['error_subcategory'] ?? null,
+            // La reponse type : a quoi ressemble une bonne reponse a SON
+            // niveau. Une correction dit ce qui ne va pas ; elle ne montre
+            // pas ce qu'il fallait ecrire.
+            'model_answer' => $decoded['model_answer'] ?? null,
             'explanation' => $decoded['explanation'] ?? [
                 'concept' => "Aucun retour détaillé.",
                 'evidence' => '',
@@ -153,6 +158,7 @@ Reply in valid JSON ONLY:
   \"missing_points\": [\"...\"],      // task points still missing (can be empty)
   \"error_category\": \"speaking.fluency|speaking.accuracy|vocabulary.lexical|null\",
   \"error_subcategory\": \"string|null\",
+  \"model_answer\": \"a SHORT exemplary answer to the prompt, in $language, at the student's level — what a good answer looks like. 1 to 3 sentences. null when the question has one single right answer.\",
   \"explanation\": {
     \"concept\": \"1-2 short sentences MAX in $language: what was good + the main thing to improve — no preamble\",
     \"evidence\": \"a better/example phrase in $language, key part in <evidence>...</evidence>\",
@@ -197,6 +203,10 @@ Reply in valid JSON ONLY:
             'missing_points' => $decoded['missing_points'] ?? [],
             'error_category' => $decoded['error_category'] ?? null,
             'error_subcategory' => $decoded['error_subcategory'] ?? null,
+            // La reponse type : a quoi ressemble une bonne reponse a SON
+            // niveau. Une correction dit ce qui ne va pas ; elle ne montre
+            // pas ce qu'il fallait ecrire.
+            'model_answer' => $decoded['model_answer'] ?? null,
             'explanation' => $decoded['explanation'] ?? $fallback['explanation'],
         ];
     }

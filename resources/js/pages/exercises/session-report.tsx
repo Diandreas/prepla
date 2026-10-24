@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { ConfettiBurst } from '@/components/confetti-burst';
 import { playSound } from '@/hooks/use-sound';
 import { motion } from 'framer-motion';
+import { CeQuilFautRetenir } from '@/components/exercises/ce-quil-faut-retenir';
 
 function Icon({ name, size = 20, className, style }: { name: string; size?: number; className?: string; style?: React.CSSProperties }) {
     return <img src={`/icons/${name}.png`} alt="" width={size} height={size} className={className} style={{ objectFit: 'contain', ...style }} />;
@@ -236,10 +237,8 @@ export default function SessionReport({ node, report, userLevel, lessonId }: Pro
                                                             )}
                                                         </div>
                                                     )}
-                                                    {!f.correct && f.explanation && (
-                                                        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 bg-white/50 dark:bg-slate-950/30 p-3 rounded-lg border border-slate-100 dark:border-slate-800 italic">
-                                                            {asText(f.explanation)}
-                                                        </p>
+                                                    {!f.correct && (f.explanation || f.model_answer) && (
+                                                        <CeQuilFautRetenir explication={f.explanation} reponseType={f.model_answer} />
                                                     )}
                                                 </div>
                                             </div>
