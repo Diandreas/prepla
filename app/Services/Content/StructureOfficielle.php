@@ -29,6 +29,8 @@ use App\Models\ExerciseType;
  */
 class StructureOfficielle
 {
+    public function __construct(private ExerciseTypeSuitability $pertinence) {}
+
     /**
      * Les parties de cet examen a ce niveau, dans l'ordre de l'epreuve.
      *
@@ -65,6 +67,11 @@ class StructureOfficielle
                     ? $typesParSlug->get($section['slug'].'/'.$partie['type'])?->first()
                     : null;
 
+                // Un type peut exister sans convenir ENCORE au niveau : la
+                // discussion academique du TOEFL se prepare a partir du B2. Le
+                // lien renvoyait alors l'apprenant d'ou il venait, sans un mot.
+                $raison = $type ? $this->pertinence->raison($type, $niveau) : null;
+
                 $parties[] = [
                     'section_slug' => $section['slug'],
                     'section_name' => $section['name'] ?? $section['slug'],
@@ -77,7 +84,9 @@ class StructureOfficielle
                     'item_range' => $partie['item_range'] ?? null,
                     'points' => $partie['points'] ?? null,
                     'source' => $partie['source'] ?? null,
-                    'exercise_type_id' => $type?->id,
+                    'exercise_type_id' => $raison ? null : $type?->id,
+                    // Pourquoi cette partie ne s'ouvre pas encore, le cas echeant.
+                    'raison' => $raison,
                 ];
             }
         }

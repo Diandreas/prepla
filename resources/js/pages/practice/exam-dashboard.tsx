@@ -44,6 +44,8 @@ interface ExamPart {
     points: number | null;
     source: string | null;
     exercise_type_id: number | null;
+    /** Pourquoi cette partie ne s'ouvre pas encore, le cas échéant. */
+    raison?: string | null;
 }
 
 const skills: Record<string, { icon: string; tone: 'blue' | 'mint' | 'amber' | 'rose'; description: string }> = {
@@ -206,7 +208,9 @@ export default function ExamDashboard({
                                                         ) : (
                                                             <span className="text-sky-700 dark:text-sky-300">tâche reconstituée</span>
                                                         )}
-                                                        {!part.exercise_type_id && <span>entraînement pas encore disponible</span>}
+                                                        {!part.exercise_type_id && (
+                                                            <span>{part.raison ?? 'entraînement pas encore disponible'}</span>
+                                                        )}
                                                     </div>
                                                 </>
                                             );
