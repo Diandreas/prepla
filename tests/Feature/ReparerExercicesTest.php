@@ -161,3 +161,13 @@ test('le mode sec ne touche a rien', function () {
 
     expect(Exercise::find($exercice->id))->not->toBeNull();
 });
+
+test('le mode sec annonce tout le travail, pas seulement le nettoyage', function () {
+    // Se contenter de « il reste des questions » apres nettoyage annonçait
+    // moins de travail qu'il n'y en a : une ecoute sans son restait invisible.
+    exerciceEcouteSansSon();
+
+    $this->artisan('prepla:reparer-exercices', ['--sec' => true])
+        ->expectsOutputToContain('attendent leur passage parle')
+        ->assertSuccessful();
+});

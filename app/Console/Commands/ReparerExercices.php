@@ -64,7 +64,16 @@ class ReparerExercices extends Command
                             .(count($questions) - count($propres)).' entree(s) parasite(s) retiree(s)');
                     }
 
-                    if ($sec ? $propres !== [] : $exercice->fresh()->answerableQuestions() !== []) {
+                    // A sec, on juge sur les questions NETTOYEES sans rien ecrire :
+                    // se contenter de « il en reste » annoncait moins de travail
+                    // qu'il n'y en a reellement.
+                    if (! $sec) {
+                        $exercice = $exercice->fresh();
+                    } else {
+                        $exercice->questions = $propres;
+                    }
+
+                    if ($exercice->answerableQuestions() !== []) {
                         continue;
                     }
 
