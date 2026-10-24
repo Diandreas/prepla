@@ -168,6 +168,8 @@ class ReparerExercices extends Command
                 ['role' => 'user', 'content' => 'Words: '.implode(' / ', $mots)],
             ]);
 
+            $reponse = $this->phraseSeule($reponse);
+
             if (! $reponse || ! $this->emploieExactementCesMots($reponse, $mots)) {
                 $this->line('  <fg=red>✗</> #'.$exercice->id.' phrase refusee : '
                     .mb_substr(trim((string) $reponse), 0, 60));
@@ -186,6 +188,33 @@ class ReparerExercices extends Command
         }
 
         return $modifie;
+    }
+
+    /**
+     * La phrase seule, debarrassee de l'emballage que l'IA ajoute parfois.
+     *
+     * La consigne demande la phrase et rien d'autre ; Mistral repond malgre
+     * tout {"sentence": "..."}. Refuser pour l'emballage revenait a jeter une
+     * phrase juste — le controle des mots, lui, reste le seul juge.
+     */
+    private function phraseSeule(?string $brut): ?string
+    {
+        $brut = trim((string) $brut);
+        if ($brut === '') {
+            return null;
+        }
+
+        if (str_starts_with($brut, '{') || str_starts_with($brut, '[')) {
+            $decode = json_decode($brut, true);
+            if (is_array($decode)) {
+                $textes = array_filter($decode, fn ($v) => is_string($v) && trim($v) !== '');
+
+                return $textes === [] ? null : trim((string) reset($textes));
+            }
+        }
+
+        return trim($brut, " 	
+ \"'");
     }
 
     /** La phrase emploie-t-elle exactement les mots fournis, chacun une fois ? */

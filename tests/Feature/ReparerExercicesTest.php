@@ -171,3 +171,28 @@ test('le mode sec annonce tout le travail, pas seulement le nettoyage', function
         ->expectsOutputToContain('attendent leur passage parle')
         ->assertSuccessful();
 });
+
+test('une phrase juste emballee dans du JSON est acceptee', function () {
+    // La consigne demande la phrase et rien d'autre ; Mistral repond malgre
+    // tout {"sentence": "..."}. Refuser pour l'emballage revenait a jeter une
+    // phrase juste — le controle des mots reste le seul juge.
+    $exercice = exerciceCasse('build-a-sentence', [['id' => 'q1', 'type' => 'build-a-sentence',
+        'text' => 'Remets les mots.', 'words' => ['I', 'am', 'going', 'home'],
+        'correct_answer' => null]], 'build-a-sentence');
+
+    $emballe = new class extends MistralService
+    {
+        public function __construct() {}
+
+        public function chat(array $messages, string $model = 'mistral-small-latest'): ?string
+        {
+            return '{"sentence": "I am going home"}';
+        }
+    };
+    app()->instance(MistralService::class, $emballe);
+
+    $this->artisan('prepla:reparer-exercices')->assertSuccessful();
+
+    $exercice->refresh();
+    expect($exercice->questions[0]['correct_answer'])->toBe('I am going home');
+});
