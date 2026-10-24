@@ -22,10 +22,14 @@ interface TutorContext {
     level: string | null;
 }
 
+// Les deux premières questions sont celles auxquelles le tuteur ne savait pas
+// répondre : il ignorait où en était l'apprenant. Elles passent devant, parce
+// que c'est l'accompagnement qui manquait, pas les règles de grammaire.
 const STARTERS = [
+    'Où j’en suis ? Dis-moi franchement.',
+    'Je fais quoi maintenant ?',
+    'Fais-moi parler : donne-moi une phrase à dire à voix haute.',
     'Explique-moi une règle de grammaire avec des exemples.',
-    'Comment retenir le vocabulaire plus facilement ?',
-    'Comment structurer une réponse à l’oral ?',
 ];
 
 export default function Explainer({ tutorContext }: { tutorContext: TutorContext }) {
@@ -120,7 +124,7 @@ function Tutor({ tutorContext }: { tutorContext: TutorContext }) {
                             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                         </Link>
                         <div>
-                            <h1 className="text-base font-bold text-foreground sm:text-lg">Ton tuteur, à ton rythme</h1>
+                            <h1 className="text-base font-bold text-foreground sm:text-lg">Ton coach, à ton rythme</h1>
                             <p className="mt-0.5 text-xs text-muted-foreground">{tutorContext.practiceLanguage ?? 'Langue à choisir'}{tutorContext.level ? ` · ${tutorContext.level}` : ''} · Explications : {tutorContext.explanationLanguage}</p>
                         </div>
                     </div>

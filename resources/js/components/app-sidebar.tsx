@@ -53,6 +53,7 @@ export function AppSidebar() {
     } else {
         mainNavItems = [
             { title: t('sidebar.home', 'Accueil'), url: '/dashboard', icon: () => <SidebarIcon name="home" /> },
+            { title: t('sidebar.guide', 'Comment apprendre'), url: '/guide', icon: () => <SidebarIcon name="book" /> },
             { title: t('sidebar.practice', 'Pratiquer'), url: '/practice', icon: () => <SidebarIcon name="puzzle" /> },
             { title: t('sidebar.my_words', 'Mes mots'), url: '/dictionary', icon: () => <SidebarIcon name="book" /> },
             { title: t('sidebar.ai_tools', 'Outils IA'), url: '/ai-tools', icon: () => <SidebarIcon name="sparkles" /> },

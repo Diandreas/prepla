@@ -171,6 +171,10 @@ Route::middleware(['auth'])->group(function () {
         });
 
         // AI Tools — pages d'affichage (pas d'appel IA au chargement)
+        // « Comment apprendre ici » : la page qui manquait. La plateforme
+        // expliquait chaque ecran une fois qu'on y etait, mais personne ne
+        // disait a l'apprenant comment s'y prendre.
+        Route::get('guide', [\App\Http\Controllers\GuideController::class, 'show'])->name('guide');
         Route::get('ai-tools', [AiToolsController::class, 'index'])->name('ai-tools.index');
         Route::get('ai-tools/generator', [AiToolsController::class, 'generator'])->name('ai-tools.generator');
         Route::get('ai-tools/writing-corrector', [AiToolsController::class, 'writingCorrector'])->name('ai-tools.writing-corrector');

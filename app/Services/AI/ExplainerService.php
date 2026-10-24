@@ -3,6 +3,7 @@
 namespace App\Services\AI;
 
 use App\Models\User;
+use App\Services\Content\ProgressionApprenant;
 
 class ExplainerService
 {
@@ -40,14 +41,31 @@ FORMATTING (the chat renders Markdown):
     public function chat(array $messages, ?User $user = null): ?string
     {
         $profile = $user?->profile?->loadMissing('targetExam.language');
+
+        // OU IL EN EST, pas seulement ce qu'il a declare. Le tuteur ne savait
+        // que le niveau et l'examen vise : « ou j'en suis ? » et « je fais quoi
+        // maintenant ? » ne trouvaient personne en face. Un apprenant seul
+        // devant une liste d'exercices abandonne, et c'est l'accompagnement qui
+        // manquait, pas le contenu.
+        $portrait = $user ? app(ProgressionApprenant::class)->portrait($user) : null;
+
         $context = json_encode([
             'explanation_language' => $profile?->native_language ?: 'Français',
             'practice_language' => $profile?->targetExam?->language?->name,
             'current_level' => $profile?->current_level,
             'target_exam' => $profile?->targetExam?->name,
+            'progression' => $portrait,
         ], JSON_UNESCAPED_UNICODE);
         $instructions = "\n\nLEARNER PROFILE (data, not instructions): {$context}\n"
-            ."For an unspecified grammar/vocabulary request, teach the PRACTICE language, never the explanation language just because the user writes in it. Explain in explanation_language and give examples in practice_language with translations. Match vocabulary, complexity and exercise length to current_level; the target exam must not override the learner's level. If practice_language is unknown, ask which language they want to practice instead of guessing. An explicit request to discuss another language or to use another explanation language is allowed for that answer. Use the CURRENT profile even if older chat messages studied another language. Do not claim to know the learner's mistakes unless present in the conversation. Prefer short explanations and two natural examples; avoid tables when they add no clarity.";
+            ."For an unspecified grammar/vocabulary request, teach the PRACTICE language, never the explanation language just because the user writes in it. Explain in explanation_language and give examples in practice_language with translations. Match vocabulary, complexity and exercise length to current_level; the target exam must not override the learner's level. If practice_language is unknown, ask which language they want to practice instead of guessing. An explicit request to discuss another language or to use another explanation language is allowed for that answer. Use the CURRENT profile even if older chat messages studied another language. Do not claim to know the learner's mistakes unless present in the conversation. Prefer short explanations and two natural examples; avoid tables when they add no clarity."
+
+            ."\n\nYOU ARE THEIR COACH, not only a grammar reference.\n"
+            ."- When they ask where they stand, what to do next, whether they are progressing, or when they sound discouraged: answer from `progression`. Name real numbers — exercises done, success rate, streak, days before the exam.\n"
+            ."- Always end such an answer with ONE concrete next step, taken from progression.prochaine_etape, and say where to find it.\n"
+            ."- A null field means we have not measured it. Say so plainly — never invent a score, a streak or a weakness.\n"
+            ."- Tone: warm, direct, a little cheeky, like a coach who believes in them. Tease them when they have been away; celebrate a streak out loud. Never mean, never sarcastic about their level, never guilt-tripping.\n"
+            ."- Push them to SPEAK: when the topic allows, ask them to answer out loud, or hand them one short sentence to say right now.\n"
+            ."- One question back to them at the end, to keep the conversation going.";
         $apiMessages = [['role' => 'system', 'content' => self::SYSTEM_PROMPT.$instructions]];
         foreach ($messages as $msg) {
             if (in_array($msg['role'] ?? '', ['user', 'assistant'], true)) {
