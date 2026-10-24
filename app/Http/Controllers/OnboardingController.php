@@ -92,6 +92,16 @@ class OnboardingController extends Controller
         return Inertia::render('onboarding/goal-setting', [
             'exam' => $exam?->load('language'),
             'profile' => $profile,
+            // LES NIVEAUX QUE CET EXAMEN PROPOSE VRAIMENT. Proposer le C2 a un
+            // candidat TestDaF n'aurait pas de sens, et s'arreter au B1 pour
+            // tous privait de choix ceux qui visent le B2 ou le C1 — c'est-a-dire
+            // la plupart de ceux qui preparent un examen.
+            'niveauxProposes' => $exam
+                ? \App\Models\ExamBlueprint::where('exam_id', $exam->id)
+                    ->whereNotNull('level')->pluck('level')->unique()
+                    ->sortBy(fn ($n) => array_search($n, ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'], true))
+                    ->values()->all()
+                : [],
         ]);
     }
 
@@ -100,7 +110,7 @@ class OnboardingController extends Controller
         $validated = $request->validate([
             'target_score' => 'nullable|integer|min:0',
             'exam_date' => 'nullable|date|after:today',
-            'current_level' => 'nullable|string|in:A0,A1,B1,TEST',
+            'current_level' => 'nullable|string|in:A0,A1,A2,B1,B2,C1,C2,TEST',
         ]);
 
         // Champs facultatifs : une requête qui en omet un ne doit pas casser
@@ -133,6 +143,18 @@ class OnboardingController extends Controller
         }
 
         $language = $exam->language;
+
+        // On ne fait PAS passer un test dans une autre langue que celle visee.
+        // Quand l'appel a l'IA echoue, le test de secours prend le relais ; il
+        // n'existe que pour les langues servies. Pour toute autre, mieux vaut
+        // demander son niveau a l'apprenant que lui en attribuer un faux.
+        if (! $this->placementTest->estServable($language->name)) {
+            return redirect()->route('onboarding.goal')->with(
+                'error',
+                "Le test de niveau n'est pas encore disponible en {$language->name}. Choisis ton niveau toi-même : tu pourras le corriger plus tard."
+            );
+        }
+
         $nativeLanguage = $profile->native_language ?? 'Français';
         $cacheKey = "placement_v2_{$exam->id}_{$profile->user_id}";
 

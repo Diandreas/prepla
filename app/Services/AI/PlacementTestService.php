@@ -390,7 +390,10 @@ PROMPT;
             return $decoded;
         }
 
-        Log::warning('PlacementTestService: generateFullTest AI failed, using fallback');
+        Log::warning('PlacementTestService: generateFullTest AI failed, using fallback', [
+            'langue' => $language,
+        ]);
+
         return $this->getFallbackFullTest($language, $examName);
     }
 
@@ -488,30 +491,115 @@ PROMPT;
         return $startLevel;
     }
 
+    /**
+     * Le test de secours, dans LA LANGUE VISEE.
+     *
+     * Il n'y a pas de question « generique qui marche pour toutes les langues » :
+     * une phrase a trous est forcement ecrite dans une langue. L'ancien repli
+     * servait de l'anglais a tout le monde, et un candidat telc Deutsch
+     * repartait avec un niveau d'allemand mesure sur sa grammaire anglaise.
+     *
+     * Les trois langues servies par la plateforme ont donc chacune le sien. Pour
+     * toute autre, on ne devine pas : voir estServable().
+     */
+    private const REPLIS = [
+        'english' => [
+            ['A1', 'I ___ a student.', ['am', 'is', 'are', 'be'], 'A'],
+            ['A1', 'This is ___ book.', ['I', 'my', 'me', 'mine'], 'B'],
+            ['A2', 'She ___ to school every day.', ['go', 'goes', 'going', 'gone'], 'B'],
+            ['A2', 'I have lived here ___ five years.', ['since', 'for', 'during', 'while'], 'B'],
+            ['B1', 'If I ___ more money, I would travel more.', ['have', 'had', 'has', 'having'], 'B'],
+            ['B1', 'The meeting was ___ because of the storm.', ['cancelled', 'cancelling', 'cancel', 'cancels'], 'A'],
+            ['B2', 'Not only ___ the test, but she also won a prize.', ['she passed', 'did she pass', 'she did pass', 'passed she'], 'B'],
+            ['C1', 'Had I known about the meeting, I ___ attended.', ['would have', 'will have', 'would', 'should'], 'A'],
+        ],
+        'french' => [
+            ['A1', 'Je ___ étudiant.', ['suis', 'es', 'est', 'être'], 'A'],
+            ['A1', "C'est ___ livre.", ['je', 'mon', 'moi', 'le mien'], 'B'],
+            ['A2', 'Elle ___ à l\'école tous les jours.', ['va', 'vas', 'aller', 'allé'], 'A'],
+            ['A2', "J'habite ici ___ cinq ans.", ['depuis', 'pendant', 'pour', 'dans'], 'A'],
+            ['B1', "Si j'___ plus d'argent, je voyagerais davantage.", ['ai', 'avais', 'aurai', 'aurais'], 'B'],
+            ['B1', 'La réunion a été ___ à cause de la tempête.', ['annulée', 'annulant', 'annuler', 'annule'], 'A'],
+            ['B2', "Il faut que tu ___ avant la fin de la semaine.", ['viens', 'viendras', 'viennes', 'venir'], 'C'],
+            ['C1', "___ que je sois fatigué, je terminerai ce travail.", ['Bien', 'Malgré', 'Quoique', 'Pourtant'], 'C'],
+        ],
+        'german' => [
+            ['A1', 'Ich ___ Student.', ['bin', 'bist', 'ist', 'sein'], 'A'],
+            ['A1', 'Das ist ___ Buch.', ['ich', 'mein', 'mir', 'meiner'], 'B'],
+            ['A2', 'Sie ___ jeden Tag zur Schule.', ['geht', 'gehst', 'gehen', 'gegangen'], 'A'],
+            ['A2', 'Ich wohne ___ fünf Jahren hier.', ['seit', 'für', 'während', 'in'], 'A'],
+            ['B1', 'Wenn ich mehr Geld ___, würde ich mehr reisen.', ['habe', 'hätte', 'hatte', 'haben'], 'B'],
+            ['B1', 'Das Treffen wurde wegen des Sturms ___.', ['abgesagt', 'absagen', 'absagend', 'abgesagen'], 'A'],
+            ['B2', 'Nicht nur ___ sie die Prüfung, sondern sie gewann auch einen Preis.', ['sie bestand', 'bestand sie', 'sie hat bestanden', 'bestehen sie'], 'B'],
+            ['C1', 'Hätte ich von dem Treffen gewusst, ___ ich teilgenommen.', ['hätte', 'würde', 'wäre', 'sollte'], 'A'],
+        ],
+    ];
+
+    /** Les textes de la section de lecture, dans la langue visee. */
+    private const PASSAGES = [
+        'english' => ['Technology has changed how people work. Remote tools let colleagues work together from different cities, but they also blur the line between work and private life. Many companies now set rules so that messages sent in the evening do not have to be answered before the next morning.',
+            'What is the text mainly about?', ['Cooking', 'How technology changes work', 'Air travel', 'Professional sport']],
+        'french' => ['La technologie a changé la façon de travailler. Les outils à distance permettent à des collègues de travailler ensemble depuis des villes différentes, mais ils brouillent aussi la frontière entre le travail et la vie privée. Beaucoup d\'entreprises fixent désormais des règles pour qu\'un message envoyé le soir n\'ait pas à recevoir de réponse avant le lendemain.',
+            'Quel est le sujet principal du texte ?', ['La cuisine', 'La technologie et le travail', 'Les voyages en avion', 'Le sport professionnel']],
+        'german' => ['Die Technik hat die Arbeit verändert. Mit digitalen Werkzeugen arbeiten Kolleginnen und Kollegen aus verschiedenen Städten zusammen, doch die Grenze zwischen Beruf und Privatleben verschwimmt dabei. Viele Firmen vereinbaren deshalb Regeln: Eine Nachricht am Abend muss erst am nächsten Morgen beantwortet werden.',
+            'Worum geht es im Text vor allem?', ['Ums Kochen', 'Um Technik und Arbeit', 'Um Flugreisen', 'Um Profisport']],
+    ];
+
+    /** Les consignes de redaction, dans la langue visee. */
+    private const SUJETS = [
+        'english' => 'Write about 150 words on the advantages and drawbacks of social media in everyday life. Give your own opinion and support it with examples.',
+        'french' => "Rédigez environ 150 mots sur les avantages et les inconvénients des réseaux sociaux dans la vie quotidienne. Donnez votre opinion et justifiez-la par des exemples.",
+        'german' => 'Schreiben Sie etwa 150 Wörter über die Vor- und Nachteile sozialer Netzwerke im Alltag. Äußern Sie Ihre eigene Meinung und begründen Sie sie mit Beispielen.',
+    ];
+
+    /**
+     * Sait-on servir un test de secours dans cette langue ?
+     *
+     * Si non, l'appelant doit renvoyer l'apprenant vers la declaration de son
+     * niveau plutot que de lui faire passer un test dans une autre langue.
+     */
+    public function estServable(string $language): bool
+    {
+        return isset(self::REPLIS[$this->cle($language)]);
+    }
+
+    private function cle(string $language): string
+    {
+        return match (mb_strtolower(trim($language))) {
+            'english', 'anglais' => 'english',
+            'french', 'français', 'francais' => 'french',
+            'german', 'allemand', 'deutsch' => 'german',
+            default => '',
+        };
+    }
+
     private function getFallbackFullTest(string $language, string $examName): array
     {
+        $cle = $this->cle($language) ?: 'english';
+        [$passage, $questionTexte, $options] = self::PASSAGES[$cle];
+
+        $sectionA = [];
+        foreach (self::REPLIS[$cle] as $rang => [$niveau, $phrase, $choix, $bonne]) {
+            $sectionA[] = [
+                'id' => 'a'.($rang + 1),
+                'level' => $niveau,
+                'text' => 'Choisissez la bonne réponse :',
+                'sentence' => $phrase,
+                'options' => $choix,
+                'correct_answer' => $bonne,
+            ];
+        }
+
         return [
-            'section_a' => [
-                ['id' => 'a1', 'level' => 'A1', 'text' => 'Choisissez la bonne réponse :', 'sentence' => 'I ___ a student.', 'options' => ['am', 'is', 'are', 'be'], 'correct_answer' => 'A'],
-                ['id' => 'a2', 'level' => 'A1', 'text' => 'Complétez la phrase :', 'sentence' => 'This is ___ book.', 'options' => ['I', 'my', 'me', 'mine'], 'correct_answer' => 'B'],
-                ['id' => 'a3', 'level' => 'A2', 'text' => 'Complétez la phrase :', 'sentence' => 'She ___ to school every day.', 'options' => ['go', 'goes', 'going', 'gone'], 'correct_answer' => 'B'],
-                ['id' => 'a4', 'level' => 'A2', 'text' => 'Choisissez la bonne forme :', 'sentence' => 'They ___ dinner when I called.', 'options' => ['have', 'had', 'were having', 'has'], 'correct_answer' => 'C'],
-                ['id' => 'a5', 'level' => 'B1', 'text' => 'Sélectionnez la réponse correcte :', 'sentence' => 'I have lived here ___ 5 years.', 'options' => ['since', 'for', 'during', 'while'], 'correct_answer' => 'B'],
-                ['id' => 'a6', 'level' => 'B1', 'text' => 'Complétez avec la bonne forme :', 'sentence' => 'If I ___ more money, I would travel more.', 'options' => ['have', 'had', 'has', 'having'], 'correct_answer' => 'B'],
-                ['id' => 'a7', 'level' => 'B2', 'text' => 'Sélectionnez la bonne structure :', 'sentence' => 'Not only ___ the test, but she also won a prize.', 'options' => ['she passed', 'did she pass', 'she did pass', 'passed she'], 'correct_answer' => 'B'],
-                ['id' => 'a8', 'level' => 'C1', 'text' => 'Choisissez la forme correcte :', 'sentence' => 'Had I known about the meeting, I ___ attended.', 'options' => ['would have', 'will have', 'would', 'should'], 'correct_answer' => 'A'],
-            ],
+            'section_a' => $sectionA,
             'section_b' => [
-                'passage' => 'Technology has transformed the way people communicate and work. Social media platforms allow instant sharing of information across the globe, while remote work tools enable employees to collaborate from different locations. However, these advancements come with challenges: privacy concerns, digital addiction, and the risk of misinformation spreading rapidly online.',
+                'passage' => $passage,
                 'questions' => [
-                    ['id' => 'b1', 'level' => 'B1', 'text' => 'Quel est le sujet principal du texte ?', 'options' => ['La cuisine traditionnelle', "L'impact de la technologie", 'Les voyages en avion', 'Le sport professionnel'], 'correct_answer' => 'B'],
-                    ['id' => 'b2', 'level' => 'B2', 'text' => 'Selon le texte, quel est un inconvénient de la technologie ?', 'options' => ['Coût élevé', 'Problèmes de confidentialité', 'Lenteur des connexions', 'Manque de logiciels'], 'correct_answer' => 'B'],
-                    ['id' => 'b3', 'level' => 'C1', 'text' => 'Que sous-entend l\'auteur par "misinformation spreading rapidly" ?', 'options' => ['Les nouvelles sont lentes', "Les fausses informations se propagent vite", 'La technologie est fiable', 'Internet est sécurisé'], 'correct_answer' => 'B'],
+                    ['id' => 'b1', 'level' => 'B1', 'text' => $questionTexte,
+                        'options' => $options, 'correct_answer' => 'B'],
                 ],
             ],
-            'section_c' => [
-                'prompt' => "Rédigez un court paragraphe (environ 150 mots) sur les avantages et inconvénients des réseaux sociaux dans la vie quotidienne. Donnez votre opinion personnelle et justifiez-la avec des exemples.",
-            ],
+            'section_c' => ['prompt' => self::SUJETS[$cle]],
         ];
     }
 }

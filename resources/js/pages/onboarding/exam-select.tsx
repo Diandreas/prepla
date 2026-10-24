@@ -28,6 +28,11 @@ interface Props {
     languages: LanguageWithExams[];
 }
 
+/** « de » ou « d’ » selon l'initiale : « examen d’allemand », pas « de Allemand ». */
+function article(langue: string): string {
+    return /^[aeiouyàâéèêëîïôöûü]/i.test(langue.trim()) ? 'd’' : 'de ';
+}
+
 export default function ExamSelect({ languages }: Props) {
     const [selectedLanguage, setSelectedLanguage] = useState<LanguageWithExams | null>(null);
     const [selectedExamId, setSelectedExamId] = useState<number | null>(null);
@@ -112,7 +117,7 @@ export default function ExamSelect({ languages }: Props) {
                 {selectedLanguage && (
                     <div className="space-y-4">
                         <h2 className="text-xl font-semibold">
-                            Choisis ton examen de {selectedLanguage.name}
+                            Choisis ton examen {article(selectedLanguage.name)}{selectedLanguage.name.toLocaleLowerCase('fr')}
                         </h2>
                         <div className="grid gap-3 sm:grid-cols-2">
                             {selectedLanguage.exams.map((exam, index) => {

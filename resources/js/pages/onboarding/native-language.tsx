@@ -43,7 +43,7 @@ export default function NativeLanguage({ currentNativeLanguage }: Props) {
             <div className="space-y-8">
                 {/* Header */}
                 <div className="text-center">
-                    <h1 className="text-2xl font-black tracking-tight sm:text-3xl" style={{ color: OXFORD }}>
+                    <h1 className="text-foreground text-2xl font-black tracking-tight sm:text-3xl">
                         Quelle est ta langue maternelle ?
                     </h1>
                     <p className="mt-2 text-sm font-medium text-muted-foreground">

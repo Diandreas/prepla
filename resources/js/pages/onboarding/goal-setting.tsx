@@ -29,9 +29,27 @@ function FlagImg({ flag, size = 24 }: { flag: string; size?: number }) {
 interface Props {
     exam: ExamWithLanguage | null;
     profile: UserProfile | null;
+    /** Les niveaux que cet examen propose vraiment. */
+    niveauxProposes?: string[];
 }
 
-export default function GoalSetting({ exam, profile }: Props) {
+/**
+ * Ce que chaque niveau veut dire, sans jargon.
+ *
+ * « A2 » ne dit rien a quelqu'un qui decouvre les examens de langue, et
+ * « je peux communiquer simplement » ne dit rien a quelqu'un qui sait deja
+ * qu'il est B2. Les deux sont donc affiches ensemble.
+ */
+const SENS_DES_NIVEAUX: Record<string, string> = {
+    A1: 'Je comprends et j’utilise des expressions simples du quotidien.',
+    A2: 'Je me débrouille dans les situations courantes : courses, trajets, travail.',
+    B1: 'Je peux tenir une conversation et raconter un événement.',
+    B2: 'Je discute avec aisance et je défends un point de vue.',
+    C1: 'Je m’exprime couramment sur des sujets complexes.',
+    C2: 'Je comprends tout sans effort et je nuance ce que je dis.',
+};
+
+export default function GoalSetting({ exam, profile, niveauxProposes = [] }: Props) {
     const [targetScore, setTargetScore] = useState<string>(
         profile?.target_score?.toString() ?? ''
     );
@@ -134,10 +152,14 @@ export default function GoalSetting({ exam, profile }: Props) {
                             </Label>
                             <div className="grid grid-cols-1 gap-2">
                                 {[
-                                    { id: 'A0', label: "Je n'ai jamais étudié cette langue", icon: 'sparkles' },
-                                    { id: 'A1', label: "J'ai quelques notions de base", icon: 'writing' },
-                                    { id: 'B1', label: "Je peux communiquer simplement", icon: 'message-square' },
-                                    { id: 'TEST', label: "Je ne sais pas, faites-moi passer le test", icon: 'file-edit' }
+                                    { id: 'A0', label: "Je n'ai jamais étudié cette langue", sens: 'On partira vraiment du début.', icon: 'sparkles' },
+                                    ...(niveauxProposes.length > 0 ? niveauxProposes : ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']).map((n) => ({
+                                        id: n,
+                                        label: `Niveau ${n}`,
+                                        sens: SENS_DES_NIVEAUX[n] ?? '',
+                                        icon: 'writing',
+                                    })),
+                                    { id: 'TEST', label: "Je ne sais pas, faites-moi passer le test", sens: 'Une dizaine de minutes, et on situe ton niveau.', icon: 'file-edit' }
                                 ].map((choice) => (
                                     <button
                                         key={choice.id}
@@ -154,8 +176,13 @@ export default function GoalSetting({ exam, profile }: Props) {
                                         }`}>
                                             <Icon name={choice.icon} size={20} style={{ filter: currentLevel === choice.id ? 'brightness(0) invert(1)' : '' }} />
                                         </div>
-                                        <span className={`text-sm font-bold ${currentLevel === choice.id ? 'text-primary' : 'text-foreground'}`}>
-                                            {choice.label}
+                                        <span className="min-w-0 flex-1">
+                                            <span className={`block text-sm font-bold ${currentLevel === choice.id ? 'text-primary' : 'text-foreground'}`}>
+                                                {choice.label}
+                                            </span>
+                                            {choice.sens && (
+                                                <span className="text-muted-foreground mt-0.5 block text-xs leading-snug">{choice.sens}</span>
+                                            )}
                                         </span>
                                     </button>
                                 ))}
@@ -170,6 +197,7 @@ export default function GoalSetting({ exam, profile }: Props) {
                             <Input
                                 id="exam-date"
                                 type="date"
+                                lang="fr-FR"
                                 value={examDate}
                                 onChange={(e) => setExamDate(e.target.value)}
                             />
@@ -195,7 +223,7 @@ export default function GoalSetting({ exam, profile }: Props) {
                     <div className="flex items-start gap-3 rounded-xl border border-amber-200/60 bg-amber-50/50 p-4 dark:border-amber-500/20 dark:bg-amber-950/20">
                         <Icon name="lightbulb" size={20} className="mt-0.5 shrink-0 text-amber-500" />
                         <p className="text-sm text-amber-900 dark:text-amber-200/90">
-                            Fixer un objectif précis augmente tes chances de réussite de 42%
+                            Une date d’examen nous sert à répartir ton travail jusqu’au jour J.
                         </p>
                     </div>
                 </div>

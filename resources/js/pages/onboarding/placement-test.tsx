@@ -188,7 +188,7 @@ function SectionTransition({ label, onDone }: { label: string; onDone: () => voi
                     style={{  objectFit: 'contain' }}
                 />
             </div>
-            <p className="text-lg font-black" style={{ color: OXFORD }}>
+            <p className="text-foreground text-lg font-black">
                 {label} terminée !
             </p>
             <p className="mt-1 text-sm text-muted-foreground">Préparation de la section suivante…</p>
@@ -211,7 +211,7 @@ function MCQBlock({
 }) {
     return (
         <div className="space-y-3 sm:space-y-4">
-            <p className="text-sm sm:text-base font-bold leading-snug" style={{ color: OXFORD }}>{question.text}</p>
+            <p className="text-foreground text-sm sm:text-base font-bold leading-snug">{question.text}</p>
             {question.sentence && (
                 <div className="rounded-xl bg-muted/60 px-4 py-2.5">
                     <p className="text-center italic text-sm text-muted-foreground">{question.sentence}</p>
@@ -293,8 +293,8 @@ function SectionBar({ label, state }: { label: string; state: 'done' | 'active' 
                 />
             </div>
             <span
-                className="text-[10px] font-bold"
-                style={{ color: state === 'active' ? OXFORD : state === 'done' ? '#22c55e' : '#94a3b8' }}
+                className={`text-[10px] font-bold ${state === 'active' ? 'text-foreground' : ''}`}
+                style={state === 'active' ? undefined : { color: state === 'done' ? '#22c55e' : '#94a3b8' }}
             >
                 {label}
             </span>
@@ -397,7 +397,7 @@ export default function PlacementTest({ exam, sectionA, sectionB, sectionC }: Pr
                 <div className="flex flex-col items-center justify-center py-20 text-center">
                     <img src="/icons/loader.png" alt="" width={40} height={40} className="animate-spin mb-4"
                         style={{ }} />
-                    <p className="text-lg font-black" style={{ color: OXFORD }}>Analyse de ton niveau…</p>
+                    <p className="text-foreground text-lg font-black">Analyse de ton niveau…</p>
                     <p className="mt-1 text-sm text-muted-foreground">L'IA analyse tes réponses de grammaire et de lecture</p>
                 </div>
             </OnboardingLayout>
@@ -438,7 +438,7 @@ export default function PlacementTest({ exam, sectionA, sectionB, sectionC }: Pr
                             <p className="text-xs font-black uppercase tracking-widest" style={{ color: SKY }}>
                                 Section C — Expression Écrite
                             </p>
-                            <h2 className="mt-1 text-xl font-black" style={{ color: OXFORD }}>
+                            <h2 className="text-foreground mt-1 text-xl font-black">
                                 Rédige ta réponse
                             </h2>
                             <p className="text-xs text-muted-foreground mt-0.5">Prends ton temps, la longueur de ta réponse confirme ton niveau</p>
@@ -458,7 +458,7 @@ export default function PlacementTest({ exam, sectionA, sectionB, sectionC }: Pr
                         <p className="text-xs font-black uppercase tracking-wider mb-2" style={{ color: GOLD }}>
                             Sujet
                         </p>
-                        <p className="text-sm leading-relaxed font-medium" style={{ color: OXFORD }}>
+                        <p className="text-foreground text-sm leading-relaxed font-medium">
                             {sectionC.prompt}
                         </p>
                     </div>
@@ -475,7 +475,8 @@ export default function PlacementTest({ exam, sectionA, sectionB, sectionC }: Pr
                         />
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
                             <span>
-                                <span className="font-bold" style={{ color: wordCount >= 100 ? '#22c55e' : wordCount >= 50 ? GOLD : OXFORD }}>
+                                <span className={`font-bold ${wordCount >= 50 ? '' : 'text-foreground'}`}
+                                    style={wordCount >= 100 ? { color: '#22c55e' } : wordCount >= 50 ? { color: GOLD } : undefined}>
                                     {wordCount}
                                 </span>{' '}
                                 mot{wordCount !== 1 ? 's' : ''}
@@ -555,7 +556,7 @@ export default function PlacementTest({ exam, sectionA, sectionB, sectionC }: Pr
                 {/* Reading passage for Section B */}
                 {section === 'B' && (
                     <div className="rounded-2xl border bg-muted/30 p-5 text-sm leading-relaxed max-h-48 overflow-y-auto">
-                        <p className="text-[10px] font-black uppercase tracking-wider mb-2" style={{ color: OXFORD, opacity: 0.5 }}>Texte à lire</p>
+                        <p className="text-foreground text-[10px] font-black uppercase tracking-wider mb-2" style={{ opacity: 0.6 }}>Texte à lire</p>
                         <p>{sectionB.passage}</p>
                     </div>
                 )}
