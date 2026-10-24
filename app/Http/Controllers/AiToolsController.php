@@ -83,6 +83,18 @@ class AiToolsController extends Controller
         // highlights on each corrected span.
         $result['submitted_text'] = $validated['text'];
 
+        // CE QUE LA REDACTION APPREND SUR L'APPRENANT. Un enseignant qui voit
+        // un vocabulaire pauvre dans une copie met du vocabulaire au programme ;
+        // l'application affichait la correction puis l'oubliait. Les fautes
+        // deviennent des erreurs memorisees, qui rejoignent la revision espacee
+        // et les reprises que le parcours insere deja a partir des categories.
+        $categories = app(\App\Services\Content\ErreursDeRedaction::class)
+            ->memoriser($request->user(), $result['corrections'] ?? [], $validated['text']);
+
+        if ($categories !== []) {
+            app(\App\Services\Curriculum\CurriculumPlannerService::class)->reassess($request->user());
+        }
+
         return back()->with('correction', $result);
     }
 

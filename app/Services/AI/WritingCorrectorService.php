@@ -44,6 +44,11 @@ IMPORTANT — scoring contract:
 - This is a pedagogical indicator, not an official exam score. Never switch to a native exam scale such as 20, 30 or 100 points.
 - Keep the four band_scores keys below as shared pedagogical dimensions, even when the exam uses different official criterion names.
 
+IMPORTANT — every correction MUST carry a `category`. It is what lets the
+learner's programme react: a composition full of `vocabulary` mistakes should
+bring vocabulary work next. Choose the category of the UNDERLYING weakness,
+not of the surface symptom.
+
 IMPORTANT — corrections (for inline highlighting):
 - The `corrections` array MUST list EVERY concrete mistake: spelling, grammar, word form, punctuation, capitalisation, word choice.
 - Each `original` MUST be an EXACT substring copied verbatim from the learner's text (so it can be located and highlighted). Never paraphrase it.
@@ -63,6 +68,7 @@ Output your evaluation as a JSON object with the following structure:
         {
             \"original\": \"exact substring from the learner's text\",
             \"corrected\": \"corrected version of that span\",
+            \"category\": \"ONE of: grammar, vocabulary, spelling, punctuation, coherence\",
             \"explanation\": \"why it was corrected — ONE short sentence, in {$feedbackLanguage}. No preamble.\"
         }
     ],
