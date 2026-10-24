@@ -152,13 +152,14 @@ class ReparerExercices extends Command
             }
             $mots = $question['words'] ?? null;
             if (! is_array($mots) || count($mots) < 2) {
-                return false;
+                continue;
             }
 
             if ($sec) {
                 $this->line('  <fg=cyan>?</> #'.$exercice->id.' phrase a recomposer : '.implode(' ', $mots));
+                $modifie = true;
 
-                return true;
+                continue;
             }
 
             $reponse = $mistral->chat([
@@ -171,10 +172,13 @@ class ReparerExercices extends Command
             $reponse = $this->phraseSeule($reponse);
 
             if (! $reponse || ! $this->emploieExactementCesMots($reponse, $mots)) {
-                $this->line('  <fg=red>✗</> #'.$exercice->id.' phrase refusee : '
-                    .mb_substr(trim((string) $reponse), 0, 60));
+                // Une question irrecuperable ne condamne pas les autres : un
+                // exercice de dix phrases dont neuf sont reparables vaut mieux
+                // qu'un exercice abandonne. La garde ecartera celle qui reste.
+                $this->line('  <fg=red>✗</> #'.$exercice->id.' '.($question['id'] ?? 'q?')
+                    .' phrase refusee : '.mb_substr(trim((string) $reponse), 0, 50));
 
-                return false;
+                continue;
             }
 
             $questions[$i]['correct_answer'] = trim($reponse);
@@ -214,7 +218,8 @@ class ReparerExercices extends Command
         }
 
         return trim($brut, " 	
- \"'");
+
+ \"'");
     }
 
     /** La phrase emploie-t-elle exactement les mots fournis, chacun une fois ? */

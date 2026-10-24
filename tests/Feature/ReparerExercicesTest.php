@@ -196,3 +196,35 @@ test('une phrase juste emballee dans du JSON est acceptee', function () {
     $exercice->refresh();
     expect($exercice->questions[0]['correct_answer'])->toBe('I am going home');
 });
+
+test('une question irrecuperable ne condamne pas les autres', function () {
+    // Un exercice de plusieurs phrases dont une seule est impossible valait
+    // mieux qu'un exercice abandonne : la methode renoncait a tout des le
+    // premier echec, sans garder ce qui avait reussi.
+    $exercice = exerciceCasse('build-a-sentence', [
+        ['id' => 'q1', 'type' => 'build-a-sentence', 'text' => 'Phrase 1.',
+            'words' => ['I', 'am', 'going', 'home'], 'correct_answer' => null],
+        ['id' => 'q2', 'type' => 'build-a-sentence', 'text' => 'Phrase 2.',
+            'words' => ['impossible', 'impossible'], 'correct_answer' => null],
+    ], 'build-a-sentence');
+
+    $capricieux = new class extends MistralService
+    {
+        public function __construct() {}
+
+        public function chat(array $messages, string $model = 'mistral-small-latest'): ?string
+        {
+            // Juste pour la premiere, a cote pour la seconde.
+            return str_contains(json_encode($messages), 'going') ? 'I am going home' : 'autre chose';
+        }
+    };
+    app()->instance(MistralService::class, $capricieux);
+
+    $this->artisan('prepla:reparer-exercices')->assertSuccessful();
+
+    $exercice->refresh();
+    expect($exercice->questions[0]['correct_answer'])->toBe('I am going home')
+        ->and($exercice->questions[1]['correct_answer'])->toBeNull()
+        // L'exercice redevient jouable grace a la question reparee.
+        ->and($exercice->answerableQuestions())->toHaveCount(1);
+});
