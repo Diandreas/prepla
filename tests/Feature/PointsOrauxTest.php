@@ -48,7 +48,7 @@ function iaQuiRend(array $charge): void
 
 test('les points sont ajoutes sans toucher au reste', function () {
     $ex = oralSansPoints();
-    iaQuiRend(['points' => ['dit son prénom', 'dit d’où il vient', 'dit ce qu’il fait']]);
+    iaQuiRend(['points' => ['Dis ton prénom', 'Dis d’où tu viens', 'Dis ce que tu fais']]);
 
     $this->artisan('prepla:points-oraux')->assertSuccessful();
 
@@ -71,9 +71,10 @@ test('un exercice qui en a deja n est pas retouche', function () {
 });
 
 test('une liste trop courte est refusee', function () {
-    // Deux points ne font pas une grille d'examinateur.
+    // Deux points ne font pas une grille d'examinateur. La liste est par
+    // ailleurs irreprochable : c'est bien le compte qui la fait refuser.
     $ex = oralSansPoints();
-    iaQuiRend(['points' => ['dit son prénom', 'dit son âge']]);
+    iaQuiRend(['points' => ['Dis ton prénom', 'Dis ton âge']]);
 
     $this->artisan('prepla:points-oraux')->assertSuccessful();
 
@@ -83,9 +84,9 @@ test('une liste trop courte est refusee', function () {
 test('une phrase entiere n est pas un point a cocher', function () {
     $ex = oralSansPoints();
     iaQuiRend(['points' => [
-        'dit son prénom',
-        'il devrait idéalement parvenir à expliquer de manière détaillée les raisons pour lesquelles il apprend cette langue',
-        'dit son métier',
+        'Dis ton prénom',
+        'Tu devrais idéalement parvenir à expliquer de manière détaillée les raisons pour lesquelles tu apprends cette langue',
+        'Dis ton métier',
     ]]);
 
     $this->artisan('prepla:points-oraux')->assertSuccessful();
@@ -155,4 +156,49 @@ test('on peut reecrire des points deja poses', function () {
     $this->artisan('prepla:points-oraux', ['--refaire' => true])->assertSuccessful();
 
     expect($ex->fresh()->questions[0]['expected_points'])->toBe(['Dis ton prénom', 'Dis ton âge', 'Dis ton métier']);
+});
+
+test('des points ecrits pour l examinateur sont refuses', function () {
+    // La consigne le dit deja, mais le modele y retombe : 26 exercices en
+    // production en portaient encore. Une consigne n'est pas une garantie.
+    $ex = oralSansPoints();
+    iaQuiRend(['points' => ['dit son prénom', 'indique ce qu’il/elle fait', 'donne sa raison']]);
+
+    $this->artisan('prepla:points-oraux')->assertSuccessful();
+
+    // Mieux vaut pas de carte qu'une carte qui ne parle pas a l'apprenant.
+    expect($ex->fresh()->questions[0]['expected_points'] ?? null)->toBeNull();
+});
+
+test('un possessif ne condamne pas un point qui tutoie', function () {
+    // « sa » designe ici le partenaire, pas l'apprenant. Un garde-fou qui se
+    // contenterait de chercher un possessif refuserait des listes correctes.
+    $ex = oralSansPoints();
+    iaQuiRend(['points' => ['Dis ton prénom', 'Dis ce que tu penses de sa proposition', 'Propose une heure']]);
+
+    $this->artisan('prepla:points-oraux')->assertSuccessful();
+
+    expect($ex->fresh()->questions[0]['expected_points'])->toHaveCount(3);
+});
+
+test('tierce ne reprend que les listes ecrites pour l examinateur', function () {
+    $bon = oralSansPoints();
+    $bon->questions = [['id' => 'q1', 'type' => 'speaking-recorder', 'text' => 'x',
+        'expected_points' => ['Dis ton prénom', 'Donne une raison', 'Propose une heure']]];
+    $bon->saveQuietly();
+
+    $mauvais = oralSansPoints();
+    $mauvais->questions = [['id' => 'q1', 'type' => 'speaking-recorder', 'text' => 'x',
+        'expected_points' => ['dit son prénom', 'donne une raison', 'propose une heure']]];
+    $mauvais->saveQuietly();
+
+    iaQuiRend(['points' => ['Dis ton prénom', 'Donne une raison', 'Propose une heure']]);
+
+    $this->artisan('prepla:points-oraux', ['--tierce' => true])->assertSuccessful();
+
+    // Celui qui allait bien n'a pas coute un appel au modele ; l'autre a ete repris.
+    expect($bon->fresh()->questions[0]['expected_points'])
+        ->toBe(['Dis ton prénom', 'Donne une raison', 'Propose une heure'])
+        ->and($mauvais->fresh()->questions[0]['expected_points'])
+        ->toBe(['Dis ton prénom', 'Donne une raison', 'Propose une heure']);
 });

@@ -23,9 +23,19 @@ class PointsOraux extends Command
     protected $signature = 'prepla:points-oraux
         {--limite=0 : s arreter apres ce nombre d exercices}
         {--refaire : reecrire aussi les points deja poses}
+        {--tierce : ne reprendre que les listes ecrites pour l examinateur}
         {--sec : annoncer ce qui serait fait, sans rien ecrire}';
 
     protected $description = 'Ajoute leurs points a cocher aux exercices oraux qui n en ont pas';
+
+    /**
+     * Ce qui trahit un point ecrit pour l'examinateur plutot que pour
+     * l'apprenant : « dit son prenom » au lieu de « Dis ton prenom ».
+     */
+    private const MARQUEURS_TIERS = ['il/elle', "l'apprenant", 'le candidat', "qu'il ", "qu'elle ", ' son ', ' sa ', ' ses '];
+
+    /** Ce qui prouve au contraire qu'on s'adresse bien a l'apprenant. */
+    private const MARQUEURS_TOI = [' ton ', ' ta ', ' tes ', ' tu ', '-toi', ' toi '];
 
     public function handle(MistralService $mistral): int
     {
@@ -47,7 +57,20 @@ class PointsOraux extends Command
                     $modifie = false;
 
                     foreach ($questions as $i => $question) {
-                        if (! is_array($question) || (! $this->option('refaire') && ! empty($question['expected_points']))) {
+                        if (! is_array($question)) {
+                            continue;
+                        }
+
+                        $poses = $question['expected_points'] ?? null;
+
+                        if ($this->option('tierce')) {
+                            // On ne touche qu'aux listes qui parlent de l'apprenant
+                            // a la troisieme personne : le reste est deja bon, et
+                            // le refaire gaspillerait des appels au modele.
+                            if (! is_array($poses) || ! $this->parleDeLApprenant($poses)) {
+                                continue;
+                            }
+                        } elseif (! $this->option('refaire') && ! empty($poses)) {
                             continue;
                         }
 
@@ -132,9 +155,56 @@ class PointsOraux extends Command
             if ($texte === '' || mb_strlen($texte) > 70) {
                 return null;
             }
+            // Le modele retombe regulierement dans la voix de l'examinateur
+            // malgre la consigne. On le verifie plutot que de l'esperer : mieux
+            // vaut un refus qu'une carte qui ne parle pas a l'apprenant.
+            if ($this->estALExaminateur($texte)) {
+                return null;
+            }
             $propres[] = $texte;
         }
 
         return $propres;
+    }
+
+    /**
+     * Un point qui decrit l'apprenant a la troisieme personne.
+     *
+     * Les possessifs seuls ne suffisent pas a juger : « Dis ce que tu penses de
+     * sa proposition » s'adresse bien a l'apprenant. On ne retient donc un
+     * marqueur de troisieme personne que si rien, dans le meme point, ne
+     * s'adresse a l'apprenant.
+     */
+    private function estALExaminateur(string $point): bool
+    {
+        $texte = ' '.mb_strtolower($point).' ';
+
+        foreach (self::MARQUEURS_TOI as $marqueur) {
+            if (mb_strpos($texte, $marqueur) !== false) {
+                return false;
+            }
+        }
+
+        foreach (self::MARQUEURS_TIERS as $marqueur) {
+            if (mb_strpos($texte, $marqueur) !== false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param  array<int, mixed>  $points
+     */
+    private function parleDeLApprenant(array $points): bool
+    {
+        foreach ($points as $point) {
+            if (is_string($point) && $this->estALExaminateur($point)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
