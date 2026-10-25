@@ -314,6 +314,11 @@ export default function Dashboard() {
 
                 {/* ─── Left column: chapter + steps ─── */}
                 <div className="lg:col-span-2">
+                {/* Tout ce que cette section contient est conditionne au chapitre
+                    courant. Sans parcours — un apprenant qui vient de declarer son
+                    niveau — elle s'affichait quand meme : une carte bordee, haute de
+                    42 pixels, parfaitement vide sous la banniere d'accueil. */}
+                {(viewedChapter || (curriculum as any)?.journey_complete) && (
                 <section aria-label="Mon parcours" className="rounded-2xl border border-border/70 bg-card p-4 sm:p-5">
                     <div>
 
@@ -531,6 +536,7 @@ export default function Dashboard() {
 
                     </div>
                 </section>
+                )}
                 </div>{/* /left column */}
 
                 {/* ─── Right column (desktop): actions + progress, sticky ─── */}
