@@ -80,6 +80,9 @@ ERROR CATEGORIES TAXONOMY (use these exact categories):
             return [
                 'isCorrect' => false,
                 'accuracy' => 0,
+                // PANNE DE NOTRE COTE, pas faute de l'apprenant : l'appelant doit
+                // sortir la question du score au lieu de lui mettre zero.
+                'evaluation_indisponible' => true,
                 'error_category' => null,
                 'error_subcategory' => null,
                 'explanation' => [
@@ -178,6 +181,8 @@ Reply in valid JSON ONLY:
         $fallback = [
             'isCorrect' => false,
             'accuracy' => 0,
+            // PANNE DE NOTRE COTE, pas faute de l'apprenant.
+            'evaluation_indisponible' => true,
             'covered_points' => [],
             'missing_points' => [],
             'error_category' => null,

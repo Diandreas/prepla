@@ -275,7 +275,13 @@ class ExerciseScoringService
                             ? $question['expected_points']
                             : [];
                         $aiResult = $this->mistralEval->evaluateSpeaking($prompt, $textToEvaluate, $langName, $expectedPoints, $cefrLevel);
-                        $isCorrect = (bool) $aiResult['isCorrect'];
+                        // Une panne de l'IA n'est pas une faute : la question sort
+                        // du denominateur et n'inscrit aucune erreur au dossier.
+                        $panne = ! empty($aiResult['evaluation_indisponible']);
+                        if ($panne) {
+                            $technicalFailures++;
+                        }
+                        $isCorrect = ! $panne && (bool) $aiResult['isCorrect'];
                         $feedback[] = [
                             'question_id' => $questionId,
                             'correct' => $isCorrect,
@@ -287,25 +293,33 @@ class ExerciseScoringService
                             'explanation' => $aiResult['explanation'],
                             'covered_points' => $aiResult['covered_points'] ?? [],
                             'missing_points' => $aiResult['missing_points'] ?? [],
-                            'error_category' => $aiResult['error_category'] ?? null,
-                            'error_subcategory' => $aiResult['error_subcategory'] ?? null,
+                            'error_category' => $panne ? null : ($aiResult['error_category'] ?? null),
+                            'error_subcategory' => $panne ? null : ($aiResult['error_subcategory'] ?? null),
                             'transcription' => $textToEvaluate,
+                            'technical_failure' => $panne,
                         ];
                     } else {
                         // Standard evaluation for typed short answers.
                         $aiResult = $this->mistralEval->evaluate($prompt, $textToEvaluate, $langName, $cefrLevel);
-                        $isCorrect = (bool) $aiResult['isCorrect'];
+                        // Meme regle qu'a l'oral : une panne de l'IA sort la
+                        // question du denominateur plutot que de valoir zero.
+                        $panne = ! empty($aiResult['evaluation_indisponible']);
+                        if ($panne) {
+                            $technicalFailures++;
+                        }
+                        $isCorrect = ! $panne && (bool) $aiResult['isCorrect'];
                         $feedback[] = [
                             'question_id' => $questionId,
                             'correct' => $isCorrect,
                             'accuracy' => $aiResult['accuracy'],
+                            'technical_failure' => $panne,
                             // A quoi ressemble une bonne reponse a SON niveau. Une
                             // correction dit ce qui ne va pas ; elle ne montre pas ce
                             // qu'il fallait ecrire, et l'apprenant repart sans modele.
                             'model_answer' => $aiResult['model_answer'] ?? null,
                             'explanation' => $aiResult['explanation'],
-                            'error_category' => $aiResult['error_category'] ?? null,
-                            'error_subcategory' => $aiResult['error_subcategory'] ?? null,
+                            'error_category' => $panne ? null : ($aiResult['error_category'] ?? null),
+                            'error_subcategory' => $panne ? null : ($aiResult['error_subcategory'] ?? null),
                             'transcription' => ($userAnswer instanceof UploadedFile) ? $textToEvaluate : null,
                         ];
                     }
