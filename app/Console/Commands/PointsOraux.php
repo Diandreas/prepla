@@ -132,11 +132,17 @@ class PointsOraux extends Command
         $niveau = $exercice->difficulty ?: 'B1';
 
         $reponse = $mistral->chat([
+            // La consigne commençait par « the examiner's checklist » : elle
+            // amorçait elle-même la voix qu'on lui reprochait ensuite. Le lecteur
+            // de cette carte, c'est l'apprenant.
             ['role' => 'system', 'content' =>
-                "You prepare the examiner's checklist for a spoken exam task in {$langue}, CEFR {$niveau}.\n"
-                ."Return 3 to 5 SHORT items, in French, ADDRESSED TO THE CANDIDATE as things to say. "
-                ."The learner reads them on a card before speaking: write \"Dis ton prénom\", \"Donne une raison\", \"Propose une heure\" — never the third person, never vague (\"parle bien\"). Each must stay verifiable from the recording alone.
-"
+                "You write the card the CANDIDATE reads just before speaking, for a spoken exam task in {$langue}, CEFR {$niveau}.\n"
+                ."It is NOT an examiner's grid: the reader is the learner themselves.\n"
+                ."Return 3 to 5 SHORT items, in French, ADDRESSED TO THE CANDIDATE as things to say.\n"
+                ."Each item MUST start with a verb in the imperative addressed to \"tu\": \"Dis ton prénom\", \"Donne une raison\", \"Propose une heure\", \"Explique pourquoi ce festival compte pour toi\".\n"
+                ."NEVER describe the speaker in the third person. About the speaker, the words \"il\", \"elle\", \"il/elle\", \"son\", \"sa\", \"ses\", \"le candidat\", \"l'apprenant\" must not appear. "
+                ."Rewrite \"dit son prénom\" as \"Dis ton prénom\"; rewrite \"explique une raison personnelle pour laquelle il/elle aime ce festival\" as \"Explique pourquoi ce festival compte pour toi\".\n"
+                ."Never vague (\"parle bien\"). Each must stay verifiable from the recording alone.\n"
                 .'Reply with JSON only: {"points": ["...", "..."]}'],
             ['role' => 'user', 'content' => $consigne],
         ]);
