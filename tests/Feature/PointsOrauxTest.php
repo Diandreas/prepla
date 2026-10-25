@@ -117,3 +117,42 @@ test('le mode sec ne touche a rien', function () {
 
     expect($ex->fresh()->questions[0]['expected_points'] ?? null)->toBeNull();
 });
+
+test('les points s adressent a l apprenant, pas a l examinateur', function () {
+    // Ils sont montres sur une carte AVANT de parler : « dit son prénom » se lit
+    // mal quand c'est a soi qu'on s'adresse.
+    $ex = oralSansPoints();
+    $vu = null;
+    $faux = new class extends MistralService
+    {
+        public static ?string $consigne = null;
+
+        public function __construct() {}
+
+        public function chat(array $messages, string $model = 'mistral-small-latest'): ?string
+        {
+            self::$consigne = json_encode($messages, JSON_UNESCAPED_UNICODE);
+
+            return json_encode(['points' => ['Dis ton prénom', 'Dis d’où tu viens', 'Dis ce que tu fais']]);
+        }
+    };
+    app()->instance(MistralService::class, $faux);
+
+    $this->artisan('prepla:points-oraux')->assertSuccessful();
+
+    expect($faux::$consigne)->toContain('ADDRESSED TO THE CANDIDATE')
+        ->and($ex->fresh()->questions[0]['expected_points'][0])->toBe('Dis ton prénom');
+    unset($vu);
+});
+
+test('on peut reecrire des points deja poses', function () {
+    $ex = oralSansPoints();
+    $ex->questions = [['id' => 'q1', 'type' => 'speaking-recorder', 'text' => 'x',
+        'expected_points' => ['dit son prénom']]];
+    $ex->saveQuietly();
+    iaQuiRend(['points' => ['Dis ton prénom', 'Dis ton âge', 'Dis ton métier']]);
+
+    $this->artisan('prepla:points-oraux', ['--refaire' => true])->assertSuccessful();
+
+    expect($ex->fresh()->questions[0]['expected_points'])->toBe(['Dis ton prénom', 'Dis ton âge', 'Dis ton métier']);
+});

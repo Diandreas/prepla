@@ -615,8 +615,8 @@ THIS IS A SPEAKING TASK — the student RECORDS their own voice. It is NOT a com
         // avait OUBLIE de dire — ce qui est precisement ce qu'il perd des points.
         $directiveDesPoints = in_array($componentKey, ['speaking-recorder', 'role-play'], true)
             ? "\n\nEXPECTED POINTS — mandatory. List 3 to 5 short, checkable things the answer must contain. "
-                ."They are what the examiner ticks off, so each must be verifiable from the recording alone "
-                ."(\"says their name\", \"gives a reason\", \"proposes a time\"), never vague (\"speaks well\"). "
+                ."They are shown to the candidate on a card BEFORE speaking, so address them directly, and each must be verifiable from the recording alone "
+                ."(\"Dis ton prénom\", \"Donne une raison\", \"Propose une heure\"), never in the third person, never vague (\"parle bien\"). "
                 ."Keep them within reach of a {$difficulty} learner."
             : '';
 

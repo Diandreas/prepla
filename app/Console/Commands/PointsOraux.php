@@ -22,6 +22,7 @@ class PointsOraux extends Command
 {
     protected $signature = 'prepla:points-oraux
         {--limite=0 : s arreter apres ce nombre d exercices}
+        {--refaire : reecrire aussi les points deja poses}
         {--sec : annoncer ce qui serait fait, sans rien ecrire}';
 
     protected $description = 'Ajoute leurs points a cocher aux exercices oraux qui n en ont pas';
@@ -46,7 +47,7 @@ class PointsOraux extends Command
                     $modifie = false;
 
                     foreach ($questions as $i => $question) {
-                        if (! is_array($question) || ! empty($question['expected_points'])) {
+                        if (! is_array($question) || (! $this->option('refaire') && ! empty($question['expected_points']))) {
                             continue;
                         }
 
@@ -110,8 +111,9 @@ class PointsOraux extends Command
         $reponse = $mistral->chat([
             ['role' => 'system', 'content' =>
                 "You prepare the examiner's checklist for a spoken exam task in {$langue}, CEFR {$niveau}.\n"
-                ."Return 3 to 5 SHORT items the answer must contain, in French, each verifiable from the recording "
-                ."alone (\"dit son prénom\", \"donne une raison\", \"propose une heure\"), never vague (\"parle bien\").\n"
+                ."Return 3 to 5 SHORT items, in French, ADDRESSED TO THE CANDIDATE as things to say. "
+                ."The learner reads them on a card before speaking: write \"Dis ton prénom\", \"Donne une raison\", \"Propose une heure\" — never the third person, never vague (\"parle bien\"). Each must stay verifiable from the recording alone.
+"
                 .'Reply with JSON only: {"points": ["...", "..."]}'],
             ['role' => 'user', 'content' => $consigne],
         ]);
