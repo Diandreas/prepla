@@ -1,4 +1,6 @@
-import { SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
+import { Button } from '@/components/ui/button';
+import { Menu } from 'lucide-react';
 import { Link, usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import type { SharedData } from '@/types';
@@ -13,6 +15,7 @@ const GOLD = '#F5A623';
 // /ai-tools/writing-corrector before /ai-tools).
 const PAGE_TITLE_KEYS: [string, string][] = [
     ['/dashboard', 'dashboard'],
+    ['/guide', 'guide'],
     ['/practice', 'practice'],
     ['/dictionary', 'dictionary'],
     ['/ai-tools/writing-corrector', 'writing_corrector'],
@@ -97,6 +100,7 @@ function ThemeToggleButton() {
 
 export function AppSidebarHeader() {
     const { t } = useTranslation();
+    const { toggleSidebar } = useSidebar();
     const page = usePage<SharedData & { userProfile?: any }>();
     const { userProfile, isPremium, freeExercisesUsedToday, freeExercisesLimit } = page.props;
     const url = page.url ?? '';
@@ -148,8 +152,20 @@ export function AppSidebarHeader() {
         <header
             className="app-topbar sticky top-0 z-40 flex h-14 shrink-0 items-center justify-between border-b border-border/60 bg-background/80 px-4 backdrop-blur-xl md:static md:h-14"
         >
-            {/* Left: sidebar toggle (desktop only) + page title */}
+            {/* Left: sidebar toggle + page title */}
             <div className="flex items-center gap-3">
+                {/* Sur telephone, c'est le seul chemin vers les destinations que
+                    la barre d'onglets ne tient pas : « Comment apprendre », le
+                    classement, « rejoindre une classe », les parametres. */}
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleSidebar}
+                    aria-label={t('sidebar.open_menu', 'Ouvrir le menu')}
+                    className="-ml-1 h-9 w-9 md:hidden"
+                >
+                    <Menu className="h-5 w-5" />
+                </Button>
                 <div className="hidden md:block">
                     <SidebarTrigger className="-ml-1" />
                 </div>

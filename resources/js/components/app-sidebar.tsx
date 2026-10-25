@@ -5,6 +5,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { SUPPORT_WHATSAPP_URL } from '@/lib/contact';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import AppLogo from './app-logo';
 
@@ -24,9 +25,17 @@ function SidebarIcon({ name }: { name: string }) {
 
 export function AppSidebar() {
     const { t } = useTranslation();
-    const { auth } = usePage().props as any;
+    const page = usePage();
+    const { auth } = page.props as any;
     const role: string | undefined = auth?.role;
     const centerRole: string | undefined = auth?.center?.role;
+
+    // Sur telephone le menu est un tiroir : sans cela il reste ouvert par-dessus
+    // la page d'arrivee quand on touche une entree. On le referme a chaque
+    // changement d'URL, par l'evenement que le fournisseur ecoute deja.
+    useEffect(() => {
+        window.dispatchEvent(new Event('mobile-navigation'));
+    }, [page.url]);
 
     // Super-admin → back-office. Center staff → center management. Otherwise the
     // regular learner navigation. (Students of a center keep the learner nav;

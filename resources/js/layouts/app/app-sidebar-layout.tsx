@@ -6,7 +6,6 @@ import { MobileTabBar } from '@/components/mobile-tab-bar';
 import { NavigationOverlay } from '@/components/navigation-overlay';
 import { PwaInstallPrompt } from '@/components/pwa-install-prompt';
 import { SupportFab } from '@/components/support-fab';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { type BreadcrumbItem } from '@/types';
 import { usePage } from '@inertiajs/react';
 
@@ -20,14 +19,17 @@ export default function AppSidebarLayout({
     // lessons and exercises so nothing distracts from the learning task.
     focusMode?: boolean;
 }) {
-    const isMobile = useIsMobile();
     // Re-key the content by URL so it replays a subtle enter animation on each navigation.
     const { url } = usePage();
 
     return (
         <AppShell variant="sidebar">
-            {/* Sidebar only on desktop, and never in focus mode */}
-            {!isMobile && !focusMode && <AppSidebar />}
+            {/* Le menu existe aux deux largeurs : panneau fixe sur ordinateur,
+                tiroir sur telephone. Il n'etait monte que sur ordinateur, si bien
+                que « Comment apprendre », le classement, « rejoindre une classe »
+                et les parametres n'etaient atteignables par aucun chemin sur
+                telephone — la barre d'onglets ne porte que cinq destinations. */}
+            {!focusMode && <AppSidebar />}
 
             <AppContent variant="sidebar">
                 {!focusMode && <AppSidebarHeader />}

@@ -88,7 +88,8 @@
     "students": "Students",
     "content": "Content",
     "centers": "Centers",
-    "support": "Help & support"
+    "support": "Help & support",
+    "open_menu": "Open menu"
   },
   "support": {
     "title": "Help & support",
@@ -114,7 +115,8 @@
     "content": "Content",
     "assignments": "Assignments",
     "center": "Center space",
-    "join": "Join a center"
+    "join": "Join a center",
+    "guide": "How to learn"
   },
   "dashboard": {
     "preparing_session": "Preparing your session…",

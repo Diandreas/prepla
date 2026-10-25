@@ -88,7 +88,8 @@
     "students": "Élèves",
     "content": "Contenu",
     "centers": "Centres",
-    "support": "Aide & support"
+    "support": "Aide & support",
+    "open_menu": "Ouvrir le menu"
   },
   "support": {
     "title": "Aide & support",
@@ -114,7 +115,8 @@
     "content": "Contenu",
     "assignments": "Devoirs",
     "center": "Espace centre",
-    "join": "Rejoindre un centre"
+    "join": "Rejoindre un centre",
+    "guide": "Comment apprendre"
   },
   "dashboard": {
     "preparing_session": "Préparation de ta session…",
