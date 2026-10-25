@@ -29,11 +29,26 @@ Ne jamais faire pointer le serveur sur une branche de travail.
 
 ## 1. Sauvegarder la base — toujours en premier
 
+La base est en mode **WAL** : les écritures récentes vivent dans
+`database/database.sqlite-wal` tant qu'elles n'ont pas été reversées. Un `cp` du
+seul fichier `.sqlite` peut donc laisser de côté le travail des dernières
+minutes — les tentatives et les erreurs d'un apprenant en pleine séance.
+
+`VACUUM INTO` demande à SQLite d'écrire une copie complète et cohérente, WAL
+compris :
+
 ```bash
 ssh -i ~/.ssh/hostinger_vps root@147.93.87.67 \
   "cd /home/mirlab-prepla/htdocs/prepla.mirlab.cloud && \
-   cp -p database/database.sqlite database/database.sqlite.bak-\$(date +%F-%H%M%S)"
+   php -r '\$d = new PDO(\"sqlite:database/database.sqlite\");
+           \$f = \"database/database.sqlite.bak-\" . date(\"Y-m-d-His\");
+           \$d->exec(\"VACUUM INTO \" . \$d->quote(\$f));
+           echo \$f . PHP_EOL;'"
 ```
+
+La copie sort plus petite que l'original : `VACUUM` compacte au passage, ce
+n'est pas une perte. Elle appartient à `root` — le `chown` de l'étape 5 la rend
+à `mirlab-prepla` avec le reste.
 
 ## 2. Récupérer le code
 
