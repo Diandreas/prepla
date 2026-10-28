@@ -165,11 +165,11 @@ return [
             'questions' => [
                 [
                     'id' => 'q1', 'type' => 'true-false',
-                    'text' => "Am Eingang der Bibliothek steht : « Bitte keine Getränke mitbringen. »\n\n"
+                    'text' => "Am Eingang der Bibliothek steht : « Essen und Trinken verboten. »\n\n"
                         ."Affirmation : In der Bibliothek darf man etwas trinken.",
                     'answer_options' => ['Richtig', 'Falsch'],
                     'correct_answer' => 'Falsch',
-                    'explanation' => "Faux. « keine Getränke mitbringen » interdit d'apporter des boissons. « kein » est la négation devant un nom.",
+                    'explanation' => "Faux. « Essen und Trinken verboten » interdit de manger et de boire dans la bibliothèque. « verboten » veut dire interdit.",
                 ],
                 [
                     'id' => 'q2', 'type' => 'true-false',
