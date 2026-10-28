@@ -23,13 +23,29 @@
  *    besoin d'une durée par module : la répartition ci-dessous est donc un
  *    découpage de notre fait, pas un chiffre de telc. Le total, lui, est exact.
  *
- * 2. Au A1, « Lesen und Schreiben » est un bloc unique de 45 minutes ; au C2,
- *    « Hören und Schreiben » en est un de 60. Ils sont présentés ici comme deux
- *    modules — on ne sait pas s'entraîner à une compétence double — en gardant
- *    le nombre de parties officiel de chacun.
+ * 2. Au A1, « Lesen und Schreiben » est un bloc unique de 45 minutes ; au A2
+ *    un bloc de 50 ; au C2, « Hören und Schreiben » en est un de 60. Ils sont
+ *    présentés ici comme deux modules — on ne sait pas s'entraîner à une
+ *    compétence double — en gardant le nombre de parties officiel de chacun,
+ *    et la somme de nos deux durées vaut toujours celle du bloc.
  *
  * Scoring : 300 points au total (225 à l'écrit, 75 à l'oral), réussite à 60 %,
- * barème publié par telc pour les examens généraux.
+ * barème publié par telc pour les examens généraux du B1 au C1.
+ *
+ * LIMITE CONNUE : le Start Deutsch 1 et le Start Deutsch 2 ne se notent PAS
+ * sur 300. Leur Testformat donne 60 points au total, 15 par module, réussite
+ * à 36/60 — soit les mêmes 60 %, mais pas la même échelle. Le barème est
+ * declaré une seule fois pour tout l'examen, sans possibilité de le surcharger
+ * par niveau : les points affichés au A1 et au A2 sont donc proportionnels mais
+ * pas ceux du diplôme. À corriger quand le barème pourra varier par niveau.
+ *
+ * Les `scoring_weight` des modules du C1 et du C2 sont dans le même cas. Le C1
+ * officiel donne 48 points au Leseverstehen, 22 aux Sprachbausteine et 48 à
+ * chacun des trois autres modules ; le C2 en donne 40 aux quatre, à égalité.
+ * Nos pondérations (25/15/25/15/20) viennent de l'échelle B1–B2 et ne sont donc
+ * justes à aucun des deux niveaux. Elles ne sont pas touchées ici : les changer
+ * déplacerait les notes déjà enregistrées, ce qui demande une migration, pas
+ * une correction de fichier de configuration.
  */
 
 return [
@@ -55,7 +71,7 @@ return [
         // · Sprechen 3 parties, env. 15 min, en groupe de 4, sans préparation.
         'A1' => [
             'name' => 'Start Deutsch 1 / telc Deutsch A1',
-            'total_duration' => 80,
+            'total_duration' => 90,
             'sections' => [
                 [
                     'slug' => 'hoeren',
@@ -68,14 +84,14 @@ return [
                     'description' => '3 parties : annonces courtes, messages sur répondeur, conversations du quotidien.',
                     'parts' => [
                         ['part' => 1, 'name' => 'Hören, Teil 1', 'name_fr' => 'Conversations du quotidien',
-                            'task' => "De courts échanges entendus : juger chaque affirmation vraie ou fausse.",
-                            'type' => 'true-false', 'source' => 'tache'],
+                            "task" => "Six courts échanges du quotidien : cocher a, b ou c.",
+                            'type' => 'mcq', 'items' => 6, 'source' => 'officiel'],
                         ['part' => 2, 'name' => 'Hören, Teil 2', 'name_fr' => 'Annonces publiques',
-                            'task' => "Des annonces courtes : choisir la bonne réponse.",
-                            'type' => 'mcq', 'source' => 'tache'],
+                            "task" => "Quatre annonces publiques : dire pour chacune si l'affirmation est juste (+) ou fausse (–).",
+                            'type' => 'true-false', 'items' => 4, 'source' => 'officiel'],
                         ['part' => 3, 'name' => 'Hören, Teil 3', 'name_fr' => 'Messages sur répondeur',
-                            'task' => "Des messages téléphoniques : associer chaque message à sa situation.",
-                            'type' => 'matching', 'source' => 'tache'],
+                            "task" => "Cinq messages téléphoniques ou annonces : cocher a, b ou c.",
+                            'type' => 'mcq', 'items' => 5, 'source' => 'officiel'],
                     ],
                     'exercise_types' => ['true-false', 'mcq', 'matching'],
                 ],
@@ -91,14 +107,14 @@ return [
                     'description' => '3 parties : courts messages, petites annonces, panneaux et consignes.',
                     'parts' => [
                         ['part' => 1, 'name' => 'Lesen, Teil 1', 'name_fr' => 'Textes courts',
-                            'task' => "De courts messages écrits : juger chaque affirmation vraie ou fausse.",
-                            'type' => 'true-false', 'source' => 'tache'],
+                            "task" => "Deux courts messages écrits : dire pour chacune des cinq affirmations si elle est juste ou fausse.",
+                            'type' => 'true-false', 'items' => 5, 'source' => 'officiel'],
                         ['part' => 2, 'name' => 'Lesen, Teil 2', 'name_fr' => 'Petites annonces',
-                            'task' => "Associer chaque situation à la petite annonce qui y répond.",
-                            'type' => 'matching', 'source' => 'tache'],
+                            "task" => "Cinq situations, deux petites annonces chacune : cocher laquelle convient, a ou b.",
+                            'type' => 'mcq', 'items' => 5, 'source' => 'officiel'],
                         ['part' => 3, 'name' => 'Lesen, Teil 3', 'name_fr' => 'Panneaux et consignes',
-                            'task' => "Des panneaux et consignes du quotidien : choisir la bonne interprétation.",
-                            'type' => 'mcq', 'source' => 'tache'],
+                            "task" => "Cinq panneaux et consignes du quotidien : dire pour chacun si l'affirmation est juste ou fausse.",
+                            'type' => 'true-false', 'items' => 5, 'source' => 'officiel'],
                     ],
                     'exercise_types' => ['true-false', 'matching', 'mcq'],
                 ],
@@ -114,11 +130,11 @@ return [
                     'description' => '2 parties : remplir un formulaire, puis écrire une courte note d\'une trentaine de mots.',
                     'parts' => [
                         ['part' => 1, 'name' => 'Lesen und Schreiben, Teil 1', 'name_fr' => 'Remplir un formulaire',
-                            'task' => "Compléter un formulaire simple avec les informations demandées.",
-                            'type' => 'form-completion', 'source' => 'tache'],
+                            "task" => "Compléter cinq champs d'un formulaire à partir d'un texte de situation.",
+                            'type' => 'form-completion', 'items' => 5, 'source' => 'officiel'],
                         ['part' => 2, 'name' => 'Lesen und Schreiben, Teil 2', 'name_fr' => 'Message court',
-                            'task' => "Rédiger un message très court en traitant les points imposés.",
-                            'type' => 'short-writing', 'source' => 'tache'],
+                            "task" => "Écrire un message d'environ 30 mots en traitant les trois points imposés.",
+                            'type' => 'short-writing', 'source' => 'officiel'],
                     ],
                     'exercise_types' => ['form-completion', 'short-writing'],
                 ],
@@ -153,7 +169,7 @@ return [
         // 2 parties (durée non publiée) · Sprechen 3 parties, env. 15 min, en binôme.
         'A2' => [
             'name' => 'Start Deutsch 2 / telc Deutsch A2',
-            'total_duration' => 115,
+            'total_duration' => 95,
             'sections' => [
                 [
                     'slug' => 'hoeren',
@@ -166,36 +182,36 @@ return [
                     'description' => '3 parties : compréhension globale, compréhension détaillée, compréhension sélective.',
                     'parts' => [
                         ['part' => 1, 'name' => 'Hören, Teil 1', 'name_fr' => 'Conversations du quotidien',
-                            'task' => "De courts échanges entendus : juger chaque affirmation vraie ou fausse.",
-                            'type' => 'true-false', 'source' => 'tache'],
+                            "task" => "Cinq messages laissés au téléphone : compléter les notes téléphoniques.",
+                            'type' => 'note-completion', 'items' => 5, 'source' => 'officiel'],
                         ['part' => 2, 'name' => 'Hören, Teil 2', 'name_fr' => 'Annonces et informations',
-                            'task' => "Des annonces ou informations entendues : choisir la bonne réponse.",
-                            'type' => 'mcq', 'source' => 'tache'],
+                            "task" => "Cinq annonces ou informations entendues : cocher a, b ou c.",
+                            'type' => 'mcq', 'items' => 5, 'source' => 'officiel'],
                         ['part' => 3, 'name' => 'Hören, Teil 3', 'name_fr' => 'Messages',
-                            'task' => "Des messages courts : associer chaque message à sa situation.",
-                            'type' => 'matching', 'source' => 'tache'],
+                            "task" => "Un seul dialogue : associer cinq éléments et noter la lettre correspondante.",
+                            'type' => 'matching', 'items' => 5, 'source' => 'officiel'],
                     ],
-                    'exercise_types' => ['true-false', 'mcq', 'matching'],
+                    'exercise_types' => ['note-completion', 'true-false', 'mcq', 'matching'],
                 ],
                 [
                     'slug' => 'lesen',
                     'name' => 'Lesen (Compréhension écrite)',
                     'skill_type' => 'reading',
                     'task_count' => 3,
-                    'time_limit' => 50,
+                    'time_limit' => 30,
                     'scoring_weight' => 25,
                     'max_score' => 100,
                     'description' => '3 parties : courriels et messages, petites annonces à associer à des situations, textes informatifs courts.',
                     'parts' => [
                         ['part' => 1, 'name' => 'Lesen, Teil 1', 'name_fr' => 'Compréhension globale',
-                            'task' => "Associer à chaque texte le titre qui lui correspond.",
-                            'type' => 'matching-headings', 'source' => 'tache'],
+                            "task" => "Un plan de grand magasin : cinq questions, cocher a, b ou c.",
+                            'type' => 'mcq', 'items' => 5, 'source' => 'officiel'],
                         ['part' => 2, 'name' => 'Lesen, Teil 2', 'name_fr' => 'Compréhension sélective',
-                            'task' => "Associer chaque situation à l'annonce qui y répond.",
-                            'type' => 'matching', 'source' => 'tache'],
+                            "task" => "Un texte suivi : dire pour chacune des cinq affirmations si elle est juste ou fausse.",
+                            'type' => 'true-false', 'items' => 5, 'source' => 'officiel'],
                         ['part' => 3, 'name' => 'Lesen, Teil 3', 'name_fr' => 'Compréhension détaillée',
-                            'task' => "Un texte, puis des questions à choix multiple.",
-                            'type' => 'mcq', 'source' => 'tache'],
+                            "task" => "Cinq situations et huit annonces de a à h : associer, et marquer X la situation qui n'a pas de solution.",
+                            'type' => 'matching', 'items' => 5, 'source' => 'officiel'],
                     ],
                     'exercise_types' => ['matching-headings', 'matching', 'mcq', 'true-false'],
                 ],
@@ -206,17 +222,17 @@ return [
                     'task_count' => 2,
                     // telc ne publie pas de durée pour ce module au A2 ; 30 minutes
                     // est notre estimation, alignée sur le B1.
-                    'time_limit' => 30,
+                    'time_limit' => 20,
                     'scoring_weight' => 25,
                     'max_score' => 100,
                     'description' => '2 parties : un formulaire, puis un message personnel court.',
                     'parts' => [
                         ['part' => 1, 'name' => 'Schreiben, Teil 1', 'name_fr' => 'Remplir un formulaire',
-                            'task' => "Compléter un formulaire avec les informations demandées.",
-                            'type' => 'form-completion', 'source' => 'tache'],
+                            "task" => "Compléter cinq champs d'un formulaire à partir d'un texte de situation.",
+                            'type' => 'form-completion', 'items' => 5, 'source' => 'officiel'],
                         ['part' => 2, 'name' => 'Schreiben, Teil 2', 'name_fr' => 'Message ou courriel court',
-                            'task' => "Rédiger un message court en traitant les points imposés.",
-                            'type' => 'short-writing', 'source' => 'tache'],
+                            "task" => "Écrire une lettre d'environ 40 mots en traitant trois des quatre points proposés, au choix.",
+                            'type' => 'short-writing', 'source' => 'officiel'],
                     ],
                     'exercise_types' => ['form-completion', 'short-writing', 'letter-email-writing'],
                 ],
@@ -489,24 +505,31 @@ return [
                     'slug' => 'lesen',
                     'name' => 'Leseverstehen (Compréhension écrite)',
                     'skill_type' => 'reading',
-                    'task_count' => 3,
+                    'task_count' => 4,
                     // 70 + 20 = les 90 minutes communes avec les Sprachbausteine.
                     'time_limit' => 70,
                     'scoring_weight' => 25,
                     'max_score' => 100,
-                    'description' => '3 parties : textes longs et argumentatifs, QCM et associations.',
+                    'description' => '4 parties : reconstruction de texte, repérage par paragraphe, vrai-faux-non mentionné, question globale.',
                     'parts' => [
                         ['part' => 1, 'name' => 'Leseverstehen, Teil 1', 'name_fr' => 'Compréhension globale',
-                            'task' => "Associer à chacun des textes le titre qui lui correspond.",
-                            'type' => 'matching-headings', 'source' => 'tache'],
+                            "task" => "Textrekonstruktion : replacer dans le texte les six passages qui en ont été retirés.",
+                            'type' => 'gapped-text', 'items' => 6, 'source' => 'officiel'],
                         ['part' => 2, 'name' => 'Leseverstehen, Teil 2', 'name_fr' => 'Compréhension détaillée',
-                            'task' => "Un texte long et exigeant, puis des questions à choix multiple.",
-                            'type' => 'mcq', 'source' => 'tache'],
-                        ['part' => 3, 'name' => 'Leseverstehen, Teil 3', 'name_fr' => 'Texte lacunaire',
-                            'task' => "Replacer dans un texte les paragraphes ou phrases qui en ont été retirés.",
-                            'type' => 'gapped-text', 'source' => 'tache'],
+                            "task" => "Six questions et cinq paragraphes de a à e : dire dans quel paragraphe se trouve la réponse à chacune.",
+                            'type' => 'matching-information', 'items' => 6, 'source' => 'officiel'],
+                        ['part' => 3, 'name' => 'Leseverstehen, Teil 3', 'name_fr' => 'Compréhension détaillée',
+                            "task" => "Onze affirmations sur un texte long : juste, faux, ou non mentionné dans le texte.",
+                            'type' => 'true-false-not-given', 'items' => 11, 'source' => 'officiel'],
+                        // Le tableau officiel porte une quatrieme ligne, « Globalverstehen,
+                        // 1 Makroaufgabe, 2 Punkte » : une seule question sur le sens
+                        // d'ensemble du texte du Teil 3. Elle vaut 2 des 48 points du
+                        // module. Nous ne l'encodions pas.
+                        ['part' => 4, 'name' => 'Leseverstehen, Teil 4', 'name_fr' => 'Compréhension globale',
+                            "task" => "Une seule question sur le sens d'ensemble du texte du Teil 3.",
+                            'type' => 'mcq', 'items' => 1, 'source' => 'officiel'],
                     ],
-                    'exercise_types' => ['matching-headings', 'mcq', 'matching', 'gapped-text'],
+                    'exercise_types' => ['gapped-text', 'matching-information', 'true-false-not-given', 'mcq', 'matching'],
                 ],
                 [
                     'slug' => 'sprachbausteine',
@@ -519,8 +542,8 @@ return [
                     'description' => '1 partie : un texte à trous, QCM ou association, sur la grammaire et la lexique du niveau.',
                     'parts' => [
                         ['part' => 1, 'name' => 'Sprachbausteine', 'name_fr' => 'Structures de la langue',
-                            'task' => "Un texte à trous à compléter sans proposition : un mot par trou.",
-                            'type' => 'open-cloze', 'source' => 'tache'],
+                            "task" => "Vingt-deux trous dans un texte : choisir pour chacun la bonne solution entre quatre propositions, a, b, c ou d.",
+                            'type' => 'mcq-cloze', 'items' => 22, 'source' => 'officiel'],
                     ],
                     'exercise_types' => ['mcq-cloze', 'open-cloze', 'word-formation'],
                 ],
@@ -535,14 +558,14 @@ return [
                     'description' => '3 parties : exposés, entretiens et discussions, en QCM ou en associations.',
                     'parts' => [
                         ['part' => 1, 'name' => 'Hörverstehen, Teil 1', 'name_fr' => 'Compréhension globale',
-                            'task' => "De courts textes entendus : juger chaque affirmation vraie ou fausse.",
-                            'type' => 'true-false', 'source' => 'tache'],
+                            "task" => "Huit courts documents entendus : associer chacun à son contenu. Aucun vrai-faux à ce niveau.",
+                            'type' => 'matching', 'items' => 8, 'source' => 'officiel'],
                         ['part' => 2, 'name' => 'Hörverstehen, Teil 2', 'name_fr' => 'Compréhension détaillée',
-                            'task' => "Un entretien long : questions à choix multiple.",
-                            'type' => 'mcq', 'source' => 'tache'],
+                            "task" => "Un entretien long : dix questions à choix multiple, trois options chacune.",
+                            'type' => 'mcq', 'items' => 10, 'source' => 'officiel'],
                         ['part' => 3, 'name' => 'Hörverstehen, Teil 3', 'name_fr' => 'Prise de notes',
-                            'task' => "Compléter des notes à partir d'un exposé entendu.",
-                            'type' => 'note-completion', 'source' => 'tache'],
+                            "task" => "Compléter dix informations manquantes à partir d'un exposé entendu.",
+                            'type' => 'note-completion', 'items' => 10, 'source' => 'officiel'],
                     ],
                     'exercise_types' => ['mcq', 'matching', 'true-false', 'note-completion'],
                 ],
@@ -573,16 +596,16 @@ return [
                     'description' => '3 parties : présentation, discussion, tâche commune. Généralement à deux candidats, avec 20 minutes de préparation.',
                     'parts' => [
                         ['part' => 1, 'name' => 'Sprechen, Teil 1', 'name_fr' => 'Exposé',
-                            'task' => "Présenter un thème préparé, puis répondre aux questions.",
-                            'type' => 'speaking-long-turn', 'source' => 'tache'],
+                            "task" => "Présenter un thème préparé devant un ou deux autres candidats et les examinateurs.",
+                            'type' => 'speaking-long-turn', 'source' => 'officiel'],
                         ['part' => 2, 'name' => 'Sprechen, Teil 2', 'name_fr' => 'Discussion',
-                            'task' => "Discuter d'un sujet à partir d'un document.",
-                            'type' => 'speaking-discussion', 'source' => 'tache'],
+                            "task" => "Résumer l'exposé qu'on vient d'entendre, puis répondre aux questions de suivi.",
+                            'type' => 'speaking-response', 'source' => 'officiel'],
                         ['part' => 3, 'name' => 'Sprechen, Teil 3', 'name_fr' => 'Planifier ensemble',
-                            'task' => "Aboutir à un accord avec son partenaire.",
-                            'type' => 'negotiation', 'source' => 'tache'],
+                            "task" => "Discuter du thème avec les autres candidats.",
+                            'type' => 'speaking-discussion', 'source' => 'officiel'],
                     ],
-                    'exercise_types' => ['speaking-long-turn', 'speaking-discussion', 'negotiation'],
+                    'exercise_types' => ['speaking-long-turn', 'speaking-response', 'speaking-discussion'],
                 ],
             ],
         ],
@@ -611,16 +634,16 @@ return [
                     'description' => '3 parties : textes exigeants, littéraires ou spécialisés, en QCM et en associations.',
                     'parts' => [
                         ['part' => 1, 'name' => 'Leseverstehen, Teil 1', 'name_fr' => 'Compréhension détaillée',
-                            'task' => "Un texte exigeant, puis des questions à choix multiple.",
-                            'type' => 'mcq', 'source' => 'tache'],
+                            "task" => "Textlogik : cinq paragraphes mélangés à remettre dans l'ordre. Chaque enchaînement correct compte.",
+                            'type' => 'ordering', 'items' => 5, 'source' => 'officiel'],
                         ['part' => 2, 'name' => 'Leseverstehen, Teil 2', 'name_fr' => 'Compréhension sélective',
-                            'task' => "Associer des informations aux textes qui les contiennent.",
-                            'type' => 'matching', 'source' => 'tache'],
+                            "task" => "Un texte exigeant : dix questions à choix multiple, trois options chacune.",
+                            'type' => 'mcq', 'items' => 10, 'source' => 'officiel'],
                         ['part' => 3, 'name' => 'Leseverstehen, Teil 3', 'name_fr' => 'Texte lacunaire',
-                            'task' => "Replacer dans un texte les passages qui en ont été retirés.",
-                            'type' => 'gapped-text', 'source' => 'tache'],
+                            "task" => "Dix informations, parfois implicites, à associer aux textes qui les contiennent.",
+                            'type' => 'matching', 'items' => 10, 'source' => 'officiel'],
                     ],
-                    'exercise_types' => ['mcq', 'matching', 'matching-headings', 'gapped-text'],
+                    'exercise_types' => ['ordering', 'mcq', 'matching', 'gapped-text'],
                 ],
                 [
                     'slug' => 'hoeren-schreiben',
@@ -665,11 +688,11 @@ return [
                     'description' => '2 parties seulement à ce niveau : un exposé construit, puis un échange approfondi. 20 minutes de préparation.',
                     'parts' => [
                         ['part' => 1, 'name' => 'Sprechen, Teil 1', 'name_fr' => 'Exposé',
-                            'task' => "Présenter un thème préparé de manière structurée.",
-                            'type' => 'speaking-long-turn', 'source' => 'tache'],
+                            "task" => "Épreuve individuelle : exposé structuré de six à huit minutes sur un thème préparé.",
+                            'type' => 'speaking-long-turn', 'source' => 'officiel'],
                         ['part' => 2, 'name' => 'Sprechen, Teil 2', 'name_fr' => 'Débat',
-                            'task' => "Défendre un point de vue face à son interlocuteur.",
-                            'type' => 'oral-debate', 'source' => 'tache'],
+                            "task" => "Entretien d'approfondissement : répondre aux questions des examinateurs et prolonger le thème de l'exposé.",
+                            'type' => 'speaking-discussion', 'source' => 'officiel'],
                     ],
                     'exercise_types' => ['speaking-long-turn', 'speaking-discussion', 'oral-debate'],
                 ],
