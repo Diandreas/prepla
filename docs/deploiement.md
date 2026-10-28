@@ -82,6 +82,32 @@ Lire `migrate:status` avant de lancer. **Jamais** `migrate:fresh`, **jamais**
 `db:wipe`, **jamais** de seeder général : la base porte les données réelles des
 apprenants.
 
+## 4 bis. Les contenus écrits à la main, quand le lot en apporte
+
+Deux seeders peuvent tourner en production. Ni l'un ni l'autre ne supprime quoi
+que ce soit : ils écrivent par `updateOrCreate` sur une clé stable, donc les
+relancer met à jour les mêmes lignes.
+
+```bash
+ssh -i ~/.ssh/hostinger_vps root@147.93.87.67   "cd /home/mirlab-prepla/htdocs/prepla.mirlab.cloud &&    php artisan db:seed --class=ExamSeeder --force &&    php artisan db:seed --class=EpreuvesVerifieesSeeder --force"
+```
+
+`ExamSeeder` reporte les structures d'examen de `config/exams/*.php` vers la
+base. `EpreuvesVerifieesSeeder` met en base les épreuves écrites à la main de
+`resources/content/epreuves-verifiees/`.
+
+Les parties de compréhension orale arrivent **sans son** : elles portent le
+texte de l'enregistrement, pas la piste. Il faut la fabriquer une fois, sinon
+l'apprenant devra lire ce qu'il devait entendre.
+
+```bash
+ssh -i ~/.ssh/hostinger_vps root@147.93.87.67   "cd /home/mirlab-prepla/htdocs/prepla.mirlab.cloud &&    php artisan prepla:fabriquer-medias --son --sec"
+```
+
+Lire d'abord avec `--sec`, qui annonce ce qui serait fabriqué sans rien écrire,
+puis relancer sans. Le son est écrit sur le disque et inscrit dans la question :
+plus aucun appel à un tiers pendant une épreuve.
+
 ## 5. Vider les caches et remettre les droits
 
 ```bash

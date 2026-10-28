@@ -306,6 +306,8 @@ class PracticeController extends Controller
                 ->with('error', $raison);
         }
 
+        $partieDemandee = $this->partieDemandee($exam, $exerciseType, $difficulty);
+
         $pool = fn () => Exercise::where('exam_id', $exam->id)
             ->where('exercise_type_id', $exerciseType->id)
             ->where('difficulty', $difficulty)
@@ -314,10 +316,30 @@ class PracticeController extends Controller
             ->whereNull('node_id')
             ->whereNull('mock_exam_id');
 
+        // Le vivier ne distinguait pas les parties. Plusieurs parties d'un meme
+        // module partagent souvent le meme format de reponse — au Goethe B1, le
+        // Lesen Teil 1 et le Teil 4 sont tous deux en vrai-faux — et celui qui
+        // demandait le Teil 4 recevait le Teil 1 sans qu'un mot le signale. Les
+        // exercices ecrits a la main portent desormais leur partie : on la
+        // respecte quand elle est demandee.
+        $deLaPartie = function ($requete) use ($partieDemandee) {
+            $numero = $partieDemandee['part'] ?? null;
+
+            return $numero
+                ? $requete->whereJsonContains('content->exam_part', (int) $numero)
+                : $requete;
+        };
+
         $alreadyDone = \App\Models\UserExerciseAttempt::where('user_id', $user->id)->pluck('exercise_id');
 
-        // 1. Un exercice que cet apprenant n'a pas encore fait.
-        $exercise = $pool()->whereNotIn('id', $alreadyDone)->inRandomOrder()->first();
+        // 1. Un exercice de la bonne partie, que cet apprenant n'a pas encore fait.
+        $exercise = $deLaPartie($pool()->whereNotIn('id', $alreadyDone))->inRandomOrder()->first();
+
+        // 1 bis. Rien pour cette partie precise : le reste du format fait l'affaire,
+        //        plutot que de renvoyer l'apprenant sans rien.
+        if (!$exercise && ($partieDemandee['part'] ?? null)) {
+            $exercise = $pool()->whereNotIn('id', $alreadyDone)->inRandomOrder()->first();
+        }
 
         // 2. La série préparée, tant qu'elle lui est inédite : gratuite et immédiate,
         //    même quand le fournisseur d'IA n'a plus de quota.
@@ -337,7 +359,7 @@ class PracticeController extends Controller
                 // reponse — au telc, les trois Horverstehen sont en vrai/faux —
                 // et l'apprenant recevait pour « Teil 2 » un exercice
                 // indistinguable du « Teil 1 ».
-                $exercise = $generator->generate($exerciseType, $exam, $difficulty, null, $this->partieDemandee($exam, $exerciseType, $difficulty));
+                $exercise = $generator->generate($exerciseType, $exam, $difficulty, null, $partieDemandee);
             } catch (\Throwable $e) {
                 \Illuminate\Support\Facades\Log::warning('drillByType generation failed, falling back', ['error' => $e->getMessage()]);
             }
