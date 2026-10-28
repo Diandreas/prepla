@@ -175,3 +175,50 @@ test('une partie de comprehension orale porte le texte de son enregistrement', f
 
     expect($muets)->toBe([]);
 });
+
+test('reensemencer n efface pas le son deja fabrique', function () {
+    // Le fichier de contenu ne porte que le TEXTE de l'enregistrement ; la piste
+    // est fabriquee ensuite, une fois, et inscrite dans la question. Sans ce
+    // report, corriger une consigne rendait muettes toutes les parties d'ecoute
+    // — sans rien dire, et en obligeant a repayer la synthese.
+    $this->seed(\Database\Seeders\LanguageSeeder::class);
+    $this->seed(\Database\Seeders\ExamSeeder::class);
+
+    $bibliotheque = app(\App\Services\Content\BibliothequeEpreuvesVerifiees::class);
+    $module = collect($bibliotheque->modules())->firstWhere('section', 'hoeren');
+    expect($module)->not->toBeNull('aucun module d ecoute ecrit a la main');
+
+    $bibliotheque->installe($module);
+
+    $exercice = \App\Models\Exercise::where('catalog_key', 'like', 'verifie-v1:%:hoeren:%')->firstOrFail();
+    $questions = $exercice->questions;
+    $questions[0]['audio_url'] = '/storage/tts/deja-fabrique.mp3';
+    $exercice->questions = $questions;
+    $exercice->save();
+
+    $bibliotheque->installe($module);
+
+    expect($exercice->fresh()->questions[0]['audio_url'])->toBe('/storage/tts/deja-fabrique.mp3');
+});
+
+test('un enregistrement dont le texte a change perd son ancienne piste', function () {
+    // Le son dit le texte : si le texte change, le son ment. Mieux vaut aucune
+    // piste — la commande en refera une — qu'une qui raconte autre chose.
+    $this->seed(\Database\Seeders\LanguageSeeder::class);
+    $this->seed(\Database\Seeders\ExamSeeder::class);
+
+    $bibliotheque = app(\App\Services\Content\BibliothequeEpreuvesVerifiees::class);
+    $module = collect($bibliotheque->modules())->firstWhere('section', 'hoeren');
+    $bibliotheque->installe($module);
+
+    $exercice = \App\Models\Exercise::where('catalog_key', 'like', 'verifie-v1:%:hoeren:%')->firstOrFail();
+    $questions = $exercice->questions;
+    $questions[0]['audio_url'] = '/storage/tts/ancienne.mp3';
+    $questions[0]['audio_text'] = 'Un texte qui n est plus celui du fichier.';
+    $exercice->questions = $questions;
+    $exercice->save();
+
+    $bibliotheque->installe($module);
+
+    expect($exercice->fresh()->questions[0]['audio_url'] ?? null)->toBeNull();
+});

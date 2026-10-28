@@ -127,6 +127,9 @@ class BibliothequeEpreuvesVerifiees
                 $questions,
             );
 
+            $existant = Exercise::where('catalog_key', $prefixe)->first();
+            $questions = $this->garderLesMedias($existant, $questions);
+
             Exercise::updateOrCreate(
                 ['catalog_key' => $prefixe],
                 [
@@ -153,5 +156,55 @@ class BibliothequeEpreuvesVerifiees
         }
 
         return ['ecrits' => $ecrits, 'refus' => $refus];
+    }
+
+    /** Ce qu'un reensemencement ne doit jamais effacer. */
+    private const MEDIAS = ['audio_url', 'image_url', 'image_prompts_urls', 'image_options_urls'];
+
+    /**
+     * Reporte le son et les images deja fabriques sur les questions reecrites.
+     *
+     * Le fichier de contenu ne porte que le TEXTE de l'enregistrement : les
+     * pistes sont fabriquees ensuite, une fois, et inscrites dans la question.
+     * Sans ce report, relancer le seeder apres une simple correction de
+     * consigne rendait muettes toutes les parties d'ecoute — sans rien dire,
+     * et en obligeant a repayer la synthese.
+     *
+     * Le son suit la question par son identifiant. Si le texte de
+     * l'enregistrement a change, l'ancienne piste ne vaut plus : on la laisse
+     * tomber, et `prepla:fabriquer-medias` en refera une.
+     *
+     * @param  array<int, array>  $questions
+     * @return array<int, array>
+     */
+    private function garderLesMedias(?Exercise $existant, array $questions): array
+    {
+        if (! $existant) {
+            return $questions;
+        }
+
+        $avant = collect($existant->questions ?? [])->keyBy('id');
+
+        return array_map(function (array $q) use ($avant) {
+            $ancienne = $avant->get($q['id']);
+            if (! $ancienne) {
+                return $q;
+            }
+
+            // Le son dit le texte : si le texte change, le son ment.
+            $memeTexte = ($ancienne['audio_text'] ?? null) === ($q['audio_text'] ?? null);
+
+            foreach (self::MEDIAS as $cle) {
+                if (empty($ancienne[$cle]) || ! empty($q[$cle])) {
+                    continue;
+                }
+                if ($cle === 'audio_url' && ! $memeTexte) {
+                    continue;
+                }
+                $q[$cle] = $ancienne[$cle];
+            }
+
+            return $q;
+        }, $questions);
     }
 }
