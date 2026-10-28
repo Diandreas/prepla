@@ -13,6 +13,8 @@ interface PictureMcqProps {
         // `prepla:fabriquer-medias`. Ce sont elles qu'il faut servir.
         image_options_urls?: string[];
         image_prompts_urls?: string[];
+        /** Le credit a afficher sous chaque image, quand sa licence l'exige. */
+        image_credits?: unknown;
         options?: unknown;            // fallback text labels under each image
         correct_answer?: unknown;
     };
@@ -25,31 +27,41 @@ const liste = (v: unknown): string[] =>
     Array.isArray(v) ? v.filter((u): u is string => typeof u === 'string' && u.trim() !== '') : [];
 
 export function PictureMcq({ question, onAnswer, selectedAnswer, disabled }: PictureMcqProps) {
-    // L'ordre compte. `prepla:fabriquer-medias` range les images sur notre disque
-    // et inscrit leurs adresses dans `*_urls` — mais ce composant ne les lisait
-    // pas : il retombait sur les descriptions et rappelait le service tiers A
-    // CHAQUE AFFICHAGE. Quand sa limite gratuite etait atteinte, l'apprenant
-    // voyait « Free limit reached » a la place de l'image, en pleine epreuve.
-    const fabriquees = [...liste(question.image_prompts_urls), ...liste(question.image_options_urls)];
-    const candidates: string[] = fabriquees.length
-        ? fabriquees
-        : liste(question.image_options).length
-            ? liste(question.image_options)
-            : liste(question.image_prompts).map((p) => illustrationUrl(p, { largeur: 400, hauteur: 300 }));
     const labels = normalizeOptions(question.options);
+
+    // UNE source, pas un melange. `prepla:fabriquer-medias` range les images sur
+    // notre disque et inscrit leurs adresses dans `*_urls` — ce composant ne les
+    // lisait pas du tout : il retombait sur les descriptions et rappelait le
+    // service tiers A CHAQUE AFFICHAGE, qui rendait « Free limit reached » en
+    // pleine epreuve.
+    //
+    // On prend la premiere source qui porte exactement une image par choix. Les
+    // additionner laissait les restes d'une ancienne tentative s'ajouter aux
+    // nouvelles adresses : le compte ne tombait plus juste, et l'exercice
+    // repassait aux mots alors que ses images etaient la.
+    const sources: string[][] = [
+        liste(question.image_options_urls),
+        liste(question.image_prompts_urls),
+        liste(question.image_options),
+        liste(question.image_prompts).map((p) => illustrationUrl(p, { largeur: 400, hauteur: 300 })),
+    ];
+    const candidates: string[] = sources.find((s) => s.length === labels.length && labels.length > 0) ?? [];
+    const credits = Array.isArray(question.image_credits)
+        ? question.image_credits.map((c) => (typeof c === 'string' ? c : ''))
+        : [];
     const correct = String(question.correct_answer ?? '').trim().toUpperCase();
 
     // Une image qui ne se charge pas laisse une carte vide : l'apprenant doit
     // alors choisir entre trois rectangles gris. Des qu'une seule echoue, on
-    // repasse a la liste de mots, qui reste jouable. C'est arrive pour de vrai :
-    // le fournisseur d'illustrations renvoyait « Free limit reached » a la
-    // place de l'image.
-    const [echecImage, setEchecImage] = useState(false);
+    // repasse a la liste de mots, qui reste jouable.
+    //
+    // On retient QUELLE question a echoue, pas un simple oui/non : le lecteur
+    // garde le meme composant d'une question a l'autre, et un echec au premier
+    // item aurait prive de leurs images toutes les suivantes.
+    const [questionEnEchec, setQuestionEnEchec] = useState<string | null>(null);
+    const echecImage = questionEnEchec === question.id;
 
-    // Tout ou rien, meme raison. Avec une image pour trois choix, les images se
-    // decalaient d'un cran par rapport aux libelles : on choisissait la bonne
-    // image sous le mauvais mot.
-    const urls = ! echecImage && candidates.length === labels.length ? candidates : [];
+    const urls = echecImage ? [] : candidates;
 
     if (urls.length === 0) {
         // No images available → degrade gracefully to a text label list.
@@ -95,13 +107,21 @@ export function PictureMcq({ question, onAnswer, selectedAnswer, disabled }: Pic
                                 src={url}
                                 alt={`Option ${letter}`}
                                 loading="lazy"
-                                onError={() => setEchecImage(true)}
+                                onError={() => setQuestionEnEchec(question.id)}
                                 className="aspect-[4/3] w-full object-cover bg-muted"
                             />
                             <span className={`absolute left-2 top-2 flex h-7 w-7 items-center justify-center rounded-full text-xs font-black ${sel || isCorrect ? 'bg-primary text-white' : 'bg-white/90 text-foreground'}`}>
                                 {letter}
                             </span>
                             {labels[i] && <span className="block px-2 py-1 text-center text-[11px] font-medium">{labels[i]}</span>}
+                            {/* Les photographies de Wikimedia Commons sont souvent sous CC BY ou
+                                CC BY-SA : citer l'auteur et la licence n'est pas une politesse,
+                                c'est la condition pour s'en servir. Vide quand rien n'est du. */}
+                            {credits[i] && (
+                                <span className="block px-2 pb-1 text-center text-[9px] leading-tight text-muted-foreground">
+                                    {credits[i]}
+                                </span>
+                            )}
                         </button>
                     );
                 })}

@@ -47,10 +47,12 @@ return [
                     'id' => 'q1', 'type' => 'picture-mcq',
                     'text' => "Was kauft die Frau?",
                     'audio_text' => "Verkäufer: Guten Tag, was möchten Sie? — Frau: Ich nehme bitte ein Kilo Äpfel. — Verkäufer: Möchten Sie auch Bananen? Die sind heute billig. — Frau: Nein, danke. Nur die Äpfel.",
-                    'image_prompts' => [
-                        'A paper bag of red apples on a market stall',
-                        'A bunch of yellow bananas on a market stall',
-                        'A loaf of bread on a bakery counter',
+                    // Les termes cherches dans Wikimedia Commons. Une photographie reelle,
+                    // sans filigrane et sans quota, plutot qu'une image fabriquee.
+                    'image_queries' => [
+                        'apples fruit',
+                        'bananas fruit',
+                        'wheat bread loaf',
                     ],
                     'options' => ['Äpfel', 'Bananen', 'Brot'],
                     'correct_answer' => 'A',
@@ -60,10 +62,12 @@ return [
                     'id' => 'q2', 'type' => 'picture-mcq',
                     'text' => "Wie fährt der Mann zur Arbeit?",
                     'audio_text' => "Frau: Nimmst du heute das Auto? — Mann: Nein, mein Auto ist kaputt. Ich fahre mit dem Fahrrad. — Frau: Und der Bus? — Mann: Der Bus ist zu langsam.",
-                    'image_prompts' => [
-                        'A small red car parked on a street',
-                        'A city bicycle leaning against a wall',
-                        'A blue city bus at a bus stop',
+                    // Les termes cherches dans Wikimedia Commons. Une photographie reelle,
+                    // sans filigrane et sans quota, plutot qu'une image fabriquee.
+                    'image_queries' => [
+                        'red automobile parked',
+                        'bicycle leaning wall',
+                        'blue city bus',
                     ],
                     'options' => ['mit dem Auto', 'mit dem Fahrrad', 'mit dem Bus'],
                     'correct_answer' => 'B',
@@ -73,11 +77,6 @@ return [
                     'id' => 'q3', 'type' => 'picture-mcq',
                     'text' => "Wann kommt der Zug?",
                     'audio_text' => "Mann: Entschuldigung, wann kommt der Zug nach Hamburg? — Frau: Um halb neun. — Mann: Also um acht Uhr? — Frau: Nein, um halb neun, also um acht Uhr dreißig.",
-                    'image_prompts' => [
-                        'A clock showing eight o clock',
-                        'A clock showing half past eight',
-                        'A clock showing nine o clock',
-                    ],
                     'options' => ['um 8.00 Uhr', 'um 8.30 Uhr', 'um 9.00 Uhr'],
                     'correct_answer' => 'B',
                     'explanation' => "b. « halb neun » ne veut pas dire neuf heures et demie : en allemand, c'est la demi-heure AVANT neuf, donc 8 h 30. La femme le répète elle-même : « um acht Uhr dreißig ».",
@@ -86,11 +85,6 @@ return [
                     'id' => 'q4', 'type' => 'picture-mcq',
                     'text' => "Wo ist die Apotheke?",
                     'audio_text' => "Frau: Entschuldigung, wo ist hier eine Apotheke? — Mann: Gehen Sie hier rechts. Die Apotheke ist neben der Post. — Frau: Neben dem Supermarkt? — Mann: Nein, neben der Post.",
-                    'image_prompts' => [
-                        'A pharmacy next to a post office building',
-                        'A pharmacy next to a supermarket entrance',
-                        'A pharmacy next to a railway station',
-                    ],
                     'options' => ['neben der Post', 'neben dem Supermarkt', 'neben dem Bahnhof'],
                     'correct_answer' => 'A',
                     'explanation' => "a. « neben der Post » : à côté de la poste. L'homme corrige la femme avec « Nein, neben der Post », ce qui élimine le supermarché.",
@@ -99,10 +93,12 @@ return [
                     'id' => 'q5', 'type' => 'picture-mcq',
                     'text' => "Was macht das Kind am Samstag?",
                     'audio_text' => "Mutter: Spielst du am Samstag Fußball? — Kind: Nein, am Samstag gehe ich schwimmen. Fußball spiele ich am Sonntag. — Mutter: Gut, dann nimm dein Handtuch mit.",
-                    'image_prompts' => [
-                        'A child playing football on grass',
-                        'A child swimming in an indoor pool',
-                        'A child riding a bicycle in a park',
+                    // Les termes cherches dans Wikimedia Commons. Une photographie reelle,
+                    // sans filigrane et sans quota, plutot qu'une image fabriquee.
+                    'image_queries' => [
+                        'child playing football',
+                        'child swimming pool',
+                        'boy bicycle riding',
                     ],
                     'options' => ['Fußball spielen', 'schwimmen gehen', 'Fahrrad fahren'],
                     'correct_answer' => 'B',
@@ -112,10 +108,12 @@ return [
                     'id' => 'q6', 'type' => 'picture-mcq',
                     'text' => "Wie ist das Wetter morgen?",
                     'audio_text' => "Radio: Und nun das Wetter. Heute ist es noch sonnig und warm. Morgen regnet es den ganzen Tag. Nehmen Sie bitte einen Regenschirm mit. Schnee gibt es erst im Dezember.",
-                    'image_prompts' => [
-                        'A bright sun in a clear blue sky',
-                        'Rain falling with an open umbrella',
-                        'Snow falling on a quiet street',
+                    // Les termes cherches dans Wikimedia Commons. Une photographie reelle,
+                    // sans filigrane et sans quota, plutot qu'une image fabriquee.
+                    'image_queries' => [
+                        'sun clear sky',
+                        'rain umbrella',
+                        'snow covered street',
                     ],
                     'options' => ['sonnig', 'Regen', 'Schnee'],
                     'correct_answer' => 'B',

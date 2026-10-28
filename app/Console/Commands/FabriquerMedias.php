@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Exercise;
+use App\Services\Media\ImagesCommons;
 use App\Services\TTS\DeepgramTtsService;
 use App\Services\TTS\ElevenLabsTtsService;
 use Illuminate\Console\Command;
@@ -184,6 +185,44 @@ class FabriquerMedias extends Command
         $octets = 0;
         $erreur = null;
 
+        // Des photographies reelles, prises dans Wikimedia Commons, quand la
+        // question dit CE QU'ELLE CHERCHE (« apples fruit ») plutot que ce
+        // qu'elle veut faire dessiner. C'est la bonne source pour une epreuve :
+        // le Goethe A1 montre des photos du quotidien, et Commons n'a ni
+        // filigrane, ni quota, ni vignette d'erreur a la place de l'image.
+        if (! empty($question['image_queries']) && is_array($question['image_queries'])) {
+            // « Deja la » veut dire : une adresse par terme, aucune manquante,
+            // ET le fichier toujours sur le disque. La question gardait les
+            // adresses meme apres un menage dans le dossier : les images ne
+            // revenaient plus jamais, et l'exercice montrait des cartes vides.
+            $dejaLa = is_array($question['image_options_urls'] ?? null)
+                && count($question['image_options_urls']) === count($question['image_queries'])
+                && ! in_array(null, $question['image_options_urls'], true)
+                && collect($question['image_options_urls'])->every(
+                    fn ($url) => is_string($url)
+                        && Storage::disk('public')->exists(ltrim(str_replace('/storage/', '', $url), '/')),
+                );
+
+            if (! $dejaLa) {
+                $adresses = [];
+                $credits = [];
+                foreach ($question['image_queries'] as $terme) {
+                    [$url, $credit, $poids, $e] = $this->prendreUnePhoto((string) $terme, $sec);
+                    $adresses[] = $url;
+                    $credits[] = $credit;
+                    $erreur = $erreur ?? $e;
+                    if ($url) {
+                        $faits++;
+                        $octets += $poids;
+                    }
+                }
+                if (array_filter($adresses)) {
+                    $question['image_options_urls'] = $adresses;
+                    $question['image_credits'] = $credits;
+                }
+            }
+        }
+
         // Une seule image : « image_prompt » devient « image_url ».
         if (empty($question['image_url']) && ! empty($question['image_prompt']) && is_string($question['image_prompt'])) {
             [$url, $poids, $erreur] = $this->fabriquerUneImage($question['image_prompt'], $sec);
@@ -235,6 +274,88 @@ class FabriquerMedias extends Command
         }
 
         return [$question, $faits, $erreur, $octets];
+    }
+
+    /**
+     * Prend une photographie dans Wikimedia Commons et la range chez nous.
+     *
+     * On telecharge : plus aucun appel a un tiers pendant une epreuve, et
+     * l'image ne disparait pas le jour ou le fichier est renomme la-bas.
+     *
+     * @return array{0: ?string, 1: string, 2: int, 3: ?string}
+     */
+    private function prendreUnePhoto(string $terme, bool $sec): array
+    {
+        $nom = self::DOSSIER_IMAGES.'/commons-'.md5(mb_strtolower(trim($terme))).'.jpg';
+
+        if (Storage::disk('public')->exists($nom)) {
+            // Le credit est relu sur le disque, pas seulement garde en memoire :
+            // une image deja rangee gardait son fichier mais perdait sa
+            // mention d'auteur au passage suivant, et une photo sous CC BY-SA
+            // sans credit est une photo utilisee hors de sa licence.
+            return [Storage::url($nom), $this->creditsRanges()[$nom] ?? '', 0, null];
+        }
+
+        if ($sec) {
+            return [Storage::url($nom), '', 0, null];
+        }
+
+        $trouvee = app(ImagesCommons::class)->chercher($terme);
+        if (! $trouvee) {
+            return [null, '', 0, "aucune image pour « {$terme} »"];
+        }
+
+        try {
+            $reponse = Http::withHeaders(['User-Agent' => 'PrePla/1.0 (https://prepla.mirlab.cloud)'])
+                ->timeout(60)->get($trouvee['url']);
+
+            if (! $reponse->successful() || strlen($reponse->body()) < 2000) {
+                return [null, '', 0, 'image refusee ('.$reponse->status().')'];
+            }
+
+            Storage::disk('public')->put($nom, $reponse->body());
+            $credit = app(ImagesCommons::class)->credit($trouvee);
+            $this->rangerLeCredit($nom, $credit);
+            $poids = strlen($reponse->body());
+            $this->line('  <fg=green>▣</> '.mb_substr($terme, 0, 34).' — '
+                .($trouvee['licence'] ?: 'licence inconnue').' — '.round($poids / 1024).' Ko');
+
+            return [Storage::url($nom), $credit, $poids, null];
+        } catch (\Throwable $e) {
+            Log::warning('Photo Commons non rangee', ['terme' => $terme, 'erreur' => $e->getMessage()]);
+
+            return [null, '', 0, 'reseau'];
+        }
+    }
+
+    /** Le registre des credits, range a cote des images. */
+    private const REGISTRE_CREDITS = self::DOSSIER_IMAGES.'/credits.json';
+
+    /** @var array<string, string>|null */
+    private ?array $creditsConnus = null;
+
+    /** @return array<string, string> */
+    private function creditsRanges(): array
+    {
+        if ($this->creditsConnus === null) {
+            $brut = Storage::disk('public')->exists(self::REGISTRE_CREDITS)
+                ? json_decode(Storage::disk('public')->get(self::REGISTRE_CREDITS), true)
+                : [];
+            $this->creditsConnus = is_array($brut) ? $brut : [];
+        }
+
+        return $this->creditsConnus;
+    }
+
+    private function rangerLeCredit(string $fichier, string $credit): void
+    {
+        $credits = $this->creditsRanges();
+        $credits[$fichier] = $credit;
+        $this->creditsConnus = $credits;
+        Storage::disk('public')->put(
+            self::REGISTRE_CREDITS,
+            json_encode($credits, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+        );
     }
 
     /**

@@ -159,7 +159,10 @@ class BibliothequeEpreuvesVerifiees
     }
 
     /** Ce qu'un reensemencement ne doit jamais effacer. */
-    private const MEDIAS = ['audio_url', 'image_url', 'image_prompts_urls', 'image_options_urls'];
+    private const MEDIAS = ['audio_url', 'image_url', 'image_prompts_urls', 'image_options_urls',
+        // Le credit suit l'image : sans lui, une photo sous CC BY-SA est utilisee
+        // sans sa condition d'usage.
+        'image_credits'];
 
     /**
      * Reporte le son et les images deja fabriques sur les questions reecrites.
