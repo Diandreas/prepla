@@ -246,9 +246,12 @@ export function ExercisePlayer({ exercise }: ExercisePlayerProps) {
             </div>
 
             {/* Passage / Content — hidden for LISTENING (the passage is the transcript
-                that must be heard, not read; audio is played via AudioPlayer/SpeakButton). */}
+                that must be heard, not read; audio is played via AudioPlayer/SpeakButton).
+                `whitespace-pre-line` : les sauts de ligne du texte comptent. Une partie
+                de lecture qui donne DEUX documents — un message puis un courriel — les
+                voyait recoller en un seul bloc, et on ne savait plus ou l'un finissait. */}
             {skillType !== 'listening' && typeof passage === 'string' && (
-                <div className="rounded-lg border border-border bg-muted/30 p-4 text-sm leading-relaxed">
+                <div className="rounded-lg border border-border bg-muted/30 p-4 text-sm leading-relaxed whitespace-pre-line">
                     {passage}
                 </div>
             )}

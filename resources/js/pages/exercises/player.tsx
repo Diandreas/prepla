@@ -227,14 +227,17 @@ const INSTRUCTIONS: Record<string, string> = {
 };
 
 // Segmented progress dots
+// `whitespace-pre-line` : les sauts de ligne du texte source comptent. Une partie
+// de lecture qui donne DEUX documents — un message puis un courriel — les voyait
+// recoller en un seul bloc, et on ne savait plus ou l'un finissait.
 function HighlightedPassage({ text, highlight }: { text: string; highlight: string }) {
-    if (!highlight) return <p className="leading-relaxed">{text}</p>;
-    
+    if (!highlight) return <p className="leading-relaxed whitespace-pre-line">{text}</p>;
+
     const parts = text.split(new RegExp(`(${highlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
-    
+
     return (
-        <p className="leading-relaxed">
-            {parts.map((part, i) => 
+        <p className="leading-relaxed whitespace-pre-line">
+            {parts.map((part, i) =>
                 part.toLowerCase() === highlight.toLowerCase() ? (
                     <span key={i} className="bg-yellow-200 dark:bg-yellow-900/50 px-0.5 rounded transition-all duration-500 font-medium">
                         {part}
@@ -591,6 +594,18 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
     const activeComponentKey = isReviewMode ? (question?.component_key ?? 'mcq') : componentKey;
     const activeSkillType = isReviewMode ? (question?.skill_type ?? '') : skillType;
     const activeTypeName = isReviewMode ? (question?.type_name ?? '') : (exercise?.exercise_type?.name ?? '');
+
+    // La consigne du vrai-faux annoncait « Vrai, Faux ou Non mentionne » meme
+    // quand la partie n'offre que deux choix — les Ja/Nein du Goethe et de telc.
+    const choixDeclares = Array.isArray((question as { answer_options?: unknown })?.answer_options)
+        ? ((question as { answer_options: unknown[] }).answer_options.filter(
+              (v): v is string => typeof v === 'string' && v.trim() !== '',
+          ) as string[])
+        : [];
+    const consigneDuType =
+        activeComponentKey === 'true-false-ng' && choixDeclares.length === 2
+            ? 'Choisis entre les deux réponses proposées'
+            : INSTRUCTIONS[activeComponentKey];
     // Passage LU : il est rendu HORS de la barriere d'erreur, donc un passage
     // arrive en liste de paragraphes ou en objet vidait la seance entiere, pas
     // seulement la question.
@@ -1367,11 +1382,11 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
                     )}
 
                     {/* Action instruction — tells the learner what to do (select / write / record…) */}
-                    {INSTRUCTIONS[activeComponentKey] && (
+                    {consigneDuType && (
                         <div className="flex items-center gap-1.5 px-1" style={{ color: 'var(--player-accent)' }}>
                             <Icon name="info" size={14} style={{ opacity: 0.7 }} />
                             <span style={{ fontSize: '0.8125rem', fontWeight: 600 }}>
-                                {INSTRUCTIONS[activeComponentKey]}
+                                {consigneDuType}
                             </span>
                         </div>
                     )}
