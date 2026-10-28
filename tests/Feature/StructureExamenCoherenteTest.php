@@ -93,7 +93,8 @@ test('une partie a questions fermees et marquee officielle annonce ses items', f
     $sansItems = ['essay', 'letter-writing', 'letter-email-writing', 'short-writing',
         'integrated-writing', 'report-writing', 'guided-writing', 'graph-description',
         'speaking-response', 'speaking-long-turn', 'speaking-discussion', 'negotiation',
-        'role-play', 'oral-debate', 'speaking-recorder', 'synthesis', 'academic-discussion'];
+        'role-play', 'oral-debate', 'speaking-recorder', 'synthesis', 'academic-discussion',
+        'picture-description', 'integrated-speaking'];
 
     $muettes = [];
 
