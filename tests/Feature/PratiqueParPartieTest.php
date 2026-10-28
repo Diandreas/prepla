@@ -45,6 +45,29 @@ function exercicePourLaPartie(Exam $exam, ExerciseType $type, int $partie, strin
     ]);
 }
 
+/** Un exercice de pratique libre portant N questions. */
+function exerciceAvecQuestions(Exam $exam, ExerciseType $type, int $combien, string $titre): Exercise
+{
+    $questions = [];
+    foreach (range(1, $combien) as $i) {
+        $questions[] = [
+            'id' => "q{$i}", 'type' => 'mcq', 'text' => "Frage {$i}?",
+            'options' => ['Eins', 'Zwei', 'Drei'], 'correct_answer' => 'A',
+        ];
+    }
+
+    return Exercise::create([
+        'exam_id' => $exam->id,
+        'exercise_type_id' => $type->id,
+        'exam_section_id' => $type->section_id,
+        'difficulty' => 'B1',
+        'is_ai_generated' => false,
+        'xp_reward' => 10,
+        'content' => ['title' => $titre],
+        'questions' => $questions,
+    ]);
+}
+
 function apprenantDuNiveau(Exam $exam): User
 {
     $user = User::factory()->create();
@@ -93,4 +116,41 @@ test('sans exercice pour la partie demandee, le format fait l appoint', function
 
     $this->get(route('practice.drill.type', [$exam, $type]).'?partie=4')
         ->assertRedirect(route('exercise.show', $teil1));
+});
+
+test('un exercice au bon nombre d items passe devant un exercice au mauvais', function () {
+    // Des exercices produits avant que le nombre officiel ne soit impose
+    // restent en base : un QCM de trois questions la ou le Goethe B1 Lesen
+    // Teil 2 en compte six. On ne les supprime pas — des apprenants les ont
+    // faits — mais on ne les sert qu'a defaut.
+    $exam = Exam::where('slug', 'goethe')->sole();
+    $type = ExerciseType::whereHas('section', fn ($q) => $q->where('exam_id', $exam->id)
+        ->where('slug', 'lesen'))->where('slug', 'mcq')->sole();
+
+    $tropCourt = exerciceAvecQuestions($exam, $type, 3, 'Ancien, trois questions');
+    $conforme = exerciceAvecQuestions($exam, $type, 6, 'Conforme, six questions');
+
+    $this->actingAs(apprenantDuNiveau($exam));
+    $this->mock(ExerciseGeneratorService::class, fn ($mock) => $mock->shouldNotReceive('generate'));
+
+    foreach (range(1, 10) as $essai) {
+        $this->get(route('practice.drill.type', [$exam, $type]))
+            ->assertRedirect(route('exercise.show', $conforme));
+    }
+
+    expect(Exercise::find($tropCourt->id))->not->toBeNull();
+});
+
+test('a defaut de conforme, un exercice au mauvais format vaut mieux que rien', function () {
+    $exam = Exam::where('slug', 'goethe')->sole();
+    $type = ExerciseType::whereHas('section', fn ($q) => $q->where('exam_id', $exam->id)
+        ->where('slug', 'lesen'))->where('slug', 'mcq')->sole();
+
+    $tropCourt = exerciceAvecQuestions($exam, $type, 3, 'Ancien, trois questions');
+
+    $this->actingAs(apprenantDuNiveau($exam));
+    $this->mock(ExerciseGeneratorService::class, fn ($mock) => $mock->shouldNotReceive('generate'));
+
+    $this->get(route('practice.drill.type', [$exam, $type]))
+        ->assertRedirect(route('exercise.show', $tropCourt));
 });

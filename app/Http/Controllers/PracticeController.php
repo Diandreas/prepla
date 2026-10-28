@@ -206,6 +206,34 @@ class PracticeController extends Controller
      * l'ordre de l'examen. On verifie qu'elle correspond bien au type demande :
      * un numero invente ne doit pas faire passer une partie pour une autre.
      */
+    /**
+     * Le nombre d'items d'un exercice, au sens de l'epreuve.
+     *
+     * Un item n'est pas toujours une question : pour les formats a champs
+     * multiples — notes, formulaire, tableau — ce sont les TROUS, additionnes
+     * sur toutes les questions.
+     */
+    private function itemsDe(Exercise $exercice, \App\Models\ExerciseType $type): int
+    {
+        $questions = is_array($exercice->questions) ? $exercice->questions : [];
+
+        $multi = \App\Services\Content\ExerciseSchemaRegistry::familyFor((string) $type->component_key)
+            === \App\Services\Content\ExerciseSchemaRegistry::FAMILY_MULTI;
+
+        if (! $multi) {
+            return count($questions);
+        }
+
+        $trous = 0;
+        foreach ($questions as $q) {
+            if (is_array($q['correct_answers'] ?? null)) {
+                $trous += count($q['correct_answers']);
+            }
+        }
+
+        return $trous;
+    }
+
     private function partieDemandee(Exam $exam, \App\Models\ExerciseType $exerciseType, string $niveau): ?array
     {
         $numero = request()->integer('partie');
@@ -332,13 +360,35 @@ class PracticeController extends Controller
 
         $alreadyDone = \App\Models\UserExerciseAttempt::where('user_id', $user->id)->pluck('exercise_id');
 
-        // 1. Un exercice de la bonne partie, que cet apprenant n'a pas encore fait.
-        $exercise = $deLaPartie($pool()->whereNotIn('id', $alreadyDone))->inRandomOrder()->first();
+        // LE BON NOMBRE D'ITEMS D'ABORD. Des exercices produits avant que le
+        // nombre officiel ne soit impose restent en base : un QCM de trois
+        // questions la ou l'epreuve en compte six. On ne les supprime pas —
+        // des apprenants les ont faits, et leur historique y renvoie — mais on
+        // ne les sert qu'a defaut. Un exercice deja vu au bon format vaut mieux
+        // qu'un exercice neuf au mauvais.
+        $structure = app(\App\Services\Content\StructureOfficielle::class);
+        $itemsAttendus = $structure->itemsAttendus($exam, $difficulty, $exerciseType);
+
+        $conformes = function ($candidats) use ($itemsAttendus, $exerciseType) {
+            if ($itemsAttendus === []) {
+                return $candidats;
+            }
+            $gardes = $candidats->filter(
+                fn ($e) => in_array($this->itemsDe($e, $exerciseType), $itemsAttendus, true),
+            );
+
+            return $gardes->isNotEmpty() ? $gardes : $candidats;
+        };
+
+        $inedits = $pool()->whereNotIn('id', $alreadyDone);
+
+        // 1. Un exercice de la bonne partie, au bon format, qu'il n'a pas fait.
+        $exercise = $conformes($deLaPartie(clone $inedits)->get())->shuffle()->first();
 
         // 1 bis. Rien pour cette partie precise : le reste du format fait l'affaire,
         //        plutot que de renvoyer l'apprenant sans rien.
-        if (!$exercise && ($partieDemandee['part'] ?? null)) {
-            $exercise = $pool()->whereNotIn('id', $alreadyDone)->inRandomOrder()->first();
+        if (! $exercise && ($partieDemandee['part'] ?? null)) {
+            $exercise = $conformes($inedits->get())->shuffle()->first();
         }
 
         // 2. La série préparée, tant qu'elle lui est inédite : gratuite et immédiate,
