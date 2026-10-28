@@ -5,6 +5,8 @@ namespace App\Services\AI;
 use App\Models\Exam;
 use App\Models\Exercise;
 use App\Models\ExerciseType;
+use App\Services\Content\ExerciseSchemaRegistry;
+use App\Services\Content\StructureOfficielle;
 use App\Services\ImageLibraryService;
 use Illuminate\Support\Facades\Log;
 
@@ -33,6 +35,18 @@ class ExerciseGeneratorService
         $exam->loadMissing('language');
         $language = $exam->language?->name ?? 'English';
         $languageNative = $exam->language?->native_name ?? $language;
+
+        // LA PARTIE D'EPREUVE, TOUJOURS — et plus seulement quand l'apprenant
+        // l'a nommee. Sans elle, le modele suivait un gabarit interne : trois
+        // questions pour un QCM, quatre pour une association, quel que soit
+        // l'examen. Releve en production avant ce changement : 33 exercices
+        // d'entrainement a l'examen sur 121 portaient le nombre d'items reel.
+        // Un QCM de trois questions n'est pas un Lesen Teil 2 du Goethe B1, qui
+        // en compte six : l'apprenant travaille, mais pas son epreuve.
+        $partieExamen ??= app(StructureOfficielle::class)
+            ->partiePour($exam, $difficulty, $exerciseType);
+
+        $itemsRequis = (int) ($partieExamen['items'] ?? 0) ?: null;
 
         $prompt = $this->buildPrompt($exerciseType, $exam, $difficulty, $language, $languageNative, $lessonContext, $partieExamen, $faiblesse);
 
@@ -83,6 +97,24 @@ class ExerciseGeneratorService
                     : gettype($q), $avantFiltre);
                 $raisons[] = 'les '.$produced.' question(s) ecrites ont toutes ete refusees par le schema '
                     .$exerciseType->component_key.' — recu : '.implode(' | ', array_unique($vus));
+
+                continue;
+            }
+
+            // LE COMPTE DE L'EPREUVE, verifie et non pas seulement demande.
+            //
+            // Le modele obeit la plupart du temps, pas toujours. Un exercice qui
+            // porte le mauvais nombre d'items n'est pas la partie qu'il pretend
+            // etre : on le refuse et on recommence, plutot que de l'offrir a un
+            // apprenant qui croit s'entrainer au Teil 2.
+            $obtenus = $this->compterLesItems($candidate['questions'], $exerciseType->component_key);
+            if ($itemsRequis && $obtenus !== $itemsRequis) {
+                $raisons[] = "{$obtenus} item(s) au lieu des {$itemsRequis} de la partie officielle";
+                Log::info('Exercise generation: item count off, retrying', [
+                    'component' => $exerciseType->component_key,
+                    'attendu' => $itemsRequis,
+                    'obtenu' => $obtenus,
+                ]);
 
                 continue;
             }
@@ -230,6 +262,31 @@ class ExerciseGeneratorService
      * language/component) — confirmed on real generated data (Exercise #354).
      */
     private const SENTINEL_TEXTS = ['what is this exercise about', 'language practice'];
+
+    /**
+     * Combien d'items porte reellement cet exercice ?
+     *
+     * Un item n'est pas toujours une question. Pour les formats a champs
+     * multiples — notes, formulaire, tableau, resume a completer — les items
+     * sont les TROUS, additionnes sur toutes les questions. Les compter comme
+     * des questions donnait « 1 au lieu de 5 » sur des exercices parfaitement
+     * conformes, et aurait fait refuser du bon contenu.
+     */
+    private function compterLesItems(array $questions, ?string $componentKey): int
+    {
+        if (ExerciseSchemaRegistry::familyFor((string) $componentKey) === ExerciseSchemaRegistry::FAMILY_MULTI) {
+            $trous = 0;
+            foreach ($questions as $q) {
+                if (is_array($q['correct_answers'] ?? null)) {
+                    $trous += count($q['correct_answers']);
+                }
+            }
+
+            return $trous;
+        }
+
+        return count($questions);
+    }
 
     private function dropInvalidChoiceQuestions(array $questions, ?string $componentKey = null): array
     {
@@ -758,10 +815,43 @@ TARGET THIS WEAKNESS: the learner keeps getting «{$faiblesse}» wrong. "
 
         $levelGuard = "\n\nLEVEL: Keep vocabulary, grammar and topics appropriate for CEFR {$difficulty}. Do not use structures or rare vocabulary clearly above {$difficulty}.";
 
+        // LE NOMBRE D'ITEMS DE L'EPREUVE REMPLACE CELUI DU GABARIT.
+        //
+        // Chaque format portait un compte en dur dans sa description — « Array
+        // of 3 questions » pour un QCM, « Array of 4 » pour une association —
+        // et c'est le gabarit que le modele suivait, pas la consigne de partie
+        // qui, elle, annoncait le bon chiffre un peu plus haut. Entre les deux,
+        // le schema gagne toujours. Resultat : un Lesen Teil 2 du Goethe B1,
+        // six questions a l'examen, en comptait trois chez nous.
+        // Un item n'est pas toujours une question. Pour les formats a champs
+        // multiples — completer des notes, un formulaire, un tableau — les
+        // items sont les TROUS d'une seule question : y ecrire « 5 questions »
+        // fabriquerait cinq exercices miniatures au lieu d'une grille a cinq
+        // trous. On le dit donc dans la langue de chaque famille.
+        $items = (int) ($partieExamen['items'] ?? 0);
+        $famille = ExerciseSchemaRegistry::familyFor($componentKey);
+        $directiveDesItems = '';
+
+        if ($items > 0 && $famille === ExerciseSchemaRegistry::FAMILY_EXACT) {
+            $remplace = preg_replace('/^Array of \d+(\s*-\s*\d+)?/u',
+                'Array of EXACTLY '.$items, $questionFormat, 1, $compte);
+            if ($compte > 0) {
+                $questionFormat = $remplace;
+            }
+            $directiveDesItems = "\n\nITEM COUNT: produce EXACTLY {$items} questions — no more, no fewer. "
+                .'The real exam part has that many, and an exercise with a different count is not that part.';
+        } elseif ($items > 0 && $famille === ExerciseSchemaRegistry::FAMILY_MULTI) {
+            $directiveDesItems = "\n\nITEM COUNT: the blanks the student must fill MUST number EXACTLY {$items} "
+                .'in total across the whole exercise — that is how many the real exam part has. '
+                .'Count them before answering.';
+        } elseif ($items > 0 && $famille === ExerciseSchemaRegistry::FAMILY_ORDER) {
+            $directiveDesItems = "\n\nITEM COUNT: EXACTLY {$items} elements to place or reorder, as the real exam part has.";
+        }
+
         return <<<PROMPT
 Generate a {$exerciseType->name} exercise for the {$exam->name} exam at CEFR {$difficulty} level.
 The exercise must be entirely in {$language} ({$languageNative}) — this is a {$language} language exam.
-Skill tested: {$skillType}.{$directiveDeLaPartie}{$directiveFaiblesse}{$directiveDesPoints}{$lessonDirective}{$gapFillBan}{$comprehensionGuard}{$levelGuard}{$listeningDirective}{$speakingDirective}{$instructionDirective}
+Skill tested: {$skillType}.{$directiveDeLaPartie}{$directiveFaiblesse}{$directiveDesPoints}{$lessonDirective}{$gapFillBan}{$comprehensionGuard}{$levelGuard}{$listeningDirective}{$speakingDirective}{$instructionDirective}{$directiveDesItems}
 
 Return JSON with exactly this structure:
 {

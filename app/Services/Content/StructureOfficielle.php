@@ -193,4 +193,54 @@ class StructureOfficielle
         // meme examen partagent leurs sections, le choix est donc sans effet.
         return (clone $plans)->whereNull('level')->orderBy('id')->first();
     }
+
+    /**
+     * La partie de l'epreuve que ce type d'exercice fait travailler.
+     *
+     * Sans numero, on rend la premiere partie qui emploie ce type. C'est ce
+     * qu'il faut pour la generation : l'IA ne savait COMBIEN d'items produire
+     * que lorsque l'apprenant avait nomme une partie, c'est-a-dire presque
+     * jamais. Le reste du temps elle suivait un gabarit interne — trois
+     * questions pour un QCM, quatre pour une association — et l'exercice ne
+     * ressemblait plus a l'epreuve.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function partiePour(Exam $exam, ?string $niveau, ExerciseType $type, ?int $numero = null): ?array
+    {
+        foreach ($this->parties($exam, $niveau) as $partie) {
+            if ($partie['exercise_type_id'] !== $type->id) {
+                continue;
+            }
+            if ($numero !== null && (int) ($partie['part'] ?? 0) !== $numero) {
+                continue;
+            }
+
+            return $partie;
+        }
+
+        return null;
+    }
+
+    /**
+     * Les nombres d'items officiels pour ce type, a ce niveau.
+     *
+     * Plusieurs parties peuvent partager un type sans avoir la meme longueur :
+     * au Goethe B1, le Lesen Teil 1 compte six affirmations et le Teil 4 en
+     * compte sept, toutes deux en vrai-faux. Un exercice conforme porte l'un
+     * de ces nombres.
+     *
+     * @return list<int>
+     */
+    public function itemsAttendus(Exam $exam, ?string $niveau, ExerciseType $type): array
+    {
+        $comptes = [];
+        foreach ($this->parties($exam, $niveau) as $partie) {
+            if ($partie['exercise_type_id'] === $type->id && ! empty($partie['items'])) {
+                $comptes[] = (int) $partie['items'];
+            }
+        }
+
+        return array_values(array_unique($comptes));
+    }
 }
