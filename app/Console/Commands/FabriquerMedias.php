@@ -200,9 +200,13 @@ class FabriquerMedias extends Command
                 continue;
             }
 
+            // « Deja fabriquees » veut dire TOUTES. Le test comparait les
+            // tailles : une fabrication a moitie ratee laissait des trous dans
+            // la liste, la taille collait quand meme, et plus aucune relance
+            // n'allait rechercher les images manquantes.
             $adresses = $question[$champ.'_urls'] ?? [];
-            if (count($adresses) === count($question[$champ])) {
-                continue; // deja fabriquees
+            if (count($adresses) === count($question[$champ]) && ! in_array(null, $adresses, true)) {
+                continue;
             }
 
             $adresses = [];
@@ -221,7 +225,11 @@ class FabriquerMedias extends Command
                 }
             }
 
-            if (! $sec && array_filter($adresses)) {
+            // On inscrit les adresses dans la question meme a blanc : rien n'est
+            // enregistre tant qu'on est a blanc (la sauvegarde est gardee plus
+            // haut), et c'est ce qui permet d'annoncer combien d'exercices
+            // seraient equipes.
+            if (array_filter($adresses)) {
                 $question[$champ.'_urls'] = $adresses;
             }
         }
@@ -242,7 +250,13 @@ class FabriquerMedias extends Command
         }
 
         if ($sec) {
-            return [null, 0, null];
+            // A blanc on ne telecharge rien, mais il faut ANNONCER le travail :
+            // l'adresse rendue est celle que le fichier aura, et l'appelant ne
+            // l'ecrit pas en base tant qu'on est a blanc. Sans cela, le mode
+            // d'essai disait « 0 fichier a fabriquer » alors que des dizaines
+            // d'images manquaient — or le guide de deploiement demande
+            // justement de le lire avant de lancer pour de vrai.
+            return [Storage::url($nom), 0, null];
         }
 
         // Meme recette que le navigateur jusqu'ici, mais le resultat est garde.
