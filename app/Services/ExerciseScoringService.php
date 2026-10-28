@@ -27,11 +27,18 @@ class ExerciseScoringService
     }
 
     /** trim + mb_strtolower + normalize typographic apostrophes, so accented (é, ü, ß)
-     *  and apostrophe-containing answers aren't wrongly marked incorrect. */
+     *  and apostrophe-containing answers aren't wrongly marked incorrect.
+     *
+     *  Le ß compte comme « ss ». C'est la regle allemande elle-meme : les deux
+     *  graphies sont admises, et la Suisse n'ecrit jamais le ß. Un apprenant sur
+     *  un clavier non allemand n'a d'ailleurs pas d'autre choix que « strasse ».
+     *  Il etait compte faux pour une touche qu'il n'a pas. */
     protected function normalizeForComparison(?string $s): string
     {
         $s = trim(mb_strtolower((string)$s));
-        return str_replace(['’', '`'], "'", $s);
+        $s = str_replace(['’', '`'], "'", $s);
+
+        return str_replace('ß', 'ss', $s);
     }
 
     /**
