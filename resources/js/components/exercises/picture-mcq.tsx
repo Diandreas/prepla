@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { normalizeOptions } from './normalize-options';
 import { illustrationUrl } from '@/lib/illustration';
 
@@ -38,11 +39,17 @@ export function PictureMcq({ question, onAnswer, selectedAnswer, disabled }: Pic
     const labels = normalizeOptions(question.options);
     const correct = String(question.correct_answer ?? '').trim().toUpperCase();
 
-    // Tout ou rien. Avec une image pour trois choix — ce qui arrive quand le
-    // fournisseur refuse une fabrication —, les images se decalaient d'un cran
-    // par rapport aux libelles : on choisissait la bonne image sous le mauvais
-    // mot. Mieux vaut la liste de mots seule, qui reste jouable.
-    const urls = candidates.length === labels.length ? candidates : [];
+    // Une image qui ne se charge pas laisse une carte vide : l'apprenant doit
+    // alors choisir entre trois rectangles gris. Des qu'une seule echoue, on
+    // repasse a la liste de mots, qui reste jouable. C'est arrive pour de vrai :
+    // le fournisseur d'illustrations renvoyait « Free limit reached » a la
+    // place de l'image.
+    const [echecImage, setEchecImage] = useState(false);
+
+    // Tout ou rien, meme raison. Avec une image pour trois choix, les images se
+    // decalaient d'un cran par rapport aux libelles : on choisissait la bonne
+    // image sous le mauvais mot.
+    const urls = ! echecImage && candidates.length === labels.length ? candidates : [];
 
     if (urls.length === 0) {
         // No images available → degrade gracefully to a text label list.
@@ -84,7 +91,13 @@ export function PictureMcq({ question, onAnswer, selectedAnswer, disabled }: Pic
                                 : isWrong ? 'border-red-400'
                                 : sel ? 'border-primary' : 'border-transparent ring-1 ring-border'}`}
                         >
-                            <img src={url} alt={`Option ${letter}`} loading="lazy" className="aspect-[4/3] w-full object-cover bg-muted" />
+                            <img
+                                src={url}
+                                alt={`Option ${letter}`}
+                                loading="lazy"
+                                onError={() => setEchecImage(true)}
+                                className="aspect-[4/3] w-full object-cover bg-muted"
+                            />
                             <span className={`absolute left-2 top-2 flex h-7 w-7 items-center justify-center rounded-full text-xs font-black ${sel || isCorrect ? 'bg-primary text-white' : 'bg-white/90 text-foreground'}`}>
                                 {letter}
                             </span>
