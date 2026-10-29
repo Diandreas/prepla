@@ -41,7 +41,7 @@ return [
      * test refuse la revendication sans la preuve.
      */
     'verifications' => [
-        'B1' => ['document' => 'Goethe-Zertifikat B1, Modellsatz Erwachsene (Vs_11_070115) et Durchfuehrungsbestimmungen, goethe.de/pro/relaunch/prf/materialien/B1', 'date' => '2026-10-29'],
+        'B1' => ['document' => 'Goethe-Zertifikat B1 : Uebungssatz Erwachsene (Vs_11_070115), goethe.de/pro/relaunch/prf/materialien/B1/B1_Uebungssatz_Erwachsene.pdf, et Durchfuehrungsbestimmungen du 01.09.2025', 'date' => '2026-10-29'],
         'A1' => ['document' => 'Goethe-Zertifikat A1 Start Deutsch 1, Modellsatz, 8. Auflage (02/2024), goethe.de/pro/relaunch/prf/materialien/A1_sd1/sd_1_modellsatz.pdf', 'date' => '2026-10-10'],
         'A2' => ['document' => 'Goethe-Zertifikat A2, Modellsatz Erwachsene Vs5.1_050525, goethe.de/pro/relaunch/prf/materialien', 'date' => '2026-10-10'],
         'B2' => ['document' => 'Goethe-Zertifikat B2, Modellsatz Erwachsene (version modulaire), goethe.de/pro/relaunch/prf/materialien/B2/b2_modellsatz_erwachsene.pdf', 'date' => '2026-10-09'],
@@ -250,6 +250,16 @@ return [
         ],
 
         // ━━━━━━━━━━ B1 ━━━━━━━━━━
+        // CE QUE LE DOCUMENT DIT, ET QUE CE TABLEAU NE PEUT PAS PORTER.
+        //  - Les 180 minutes sont une SOMME de notre fait : les
+        //    Durchfuehrungsbestimmungen donnent « circa 165 Minuten » pour les
+        //    trois modules ecrits, plus environ 15 pour l'oral a deux candidats
+        //    (10 en individuel). Le mot « circa » est le leur.
+        //  - Il s'y ajoute 15 minutes de PREPARATION avant le Sprechen, et une
+        //    pause d'au moins 15 minutes entre chaque module : une journee
+        //    complete depasse donc largement 180 minutes.
+        //  - Seuil utile au candidat : 18 items justes sur 30 font exactement
+        //    les 60 points requis, en Lesen comme en Hoeren.
         'B1' => [
             'name' => 'Goethe-Zertifikat B1',
             'total_duration' => 180,
@@ -294,7 +304,7 @@ return [
                     'time_limit' => 40,
                     'question_count' => 30,
                     'scoring_weight' => 25,
-                    'description' => '4 parties : annonces (matching 10 items), MCQ (5 items), vrai/faux (7 items), vrai/faux (8 items).',
+                    'description' => '4 parties : cinq courts textes avec deux tâches chacun (10 items), un exposé en choix multiple (5), une conversation en vrai-faux (7), une discussion où il faut dire qui parle (8).',
                     'parts' => [
                         ['part' => 1, 'name' => 'Hören, Teil 1', 'name_fr' => 'Messages et annonces',
                                 "task" => "Cinq textes courts, DEUX tâches par texte : une affirmation à juger vraie ou fausse, puis une question à choix multiple. Dix items en tout, chaque texte entendu deux fois.",
@@ -323,7 +333,7 @@ return [
                     'skill_type' => 'writing',
                     'time_limit' => 60,
                     'scoring_weight' => 25,
-                    'description' => '3 tâches : email/lettre semi-formelle (~80 mots), prise de position (~80 mots), email personnel.',
+                    'description' => "3 tâches, traitables dans n'importe quel ordre : un courriel personnel (~80 mots), une prise de position dans une discussion (~80 mots), puis un courriel semi-formel court (~40 mots).",
                     'parts' => [
                         ['part' => 1, 'name' => 'Schreiben, Teil 1', 'name_fr' => 'Courriel personnel',
                                 "task" => "Rédiger un courriel à un proche en traitant les points imposés.",
