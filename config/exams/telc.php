@@ -63,6 +63,24 @@ return [
 
     'variants' => null,
 
+    /*
+     * QUI A VERIFIE QUOI, ET QUAND.
+     *
+     * « source => officiel » sur une partie signifie : lu dans le document de
+     * l'organisme, avec ses chiffres. C'etait une affirmation que rien ne
+     * soutenait — n'importe qui pouvait l'ecrire. Un palier qui la revendique
+     * doit desormais nommer ici le document et la date de consultation, et un
+     * test refuse la revendication sans la preuve.
+     */
+    'verifications' => [
+        'B1' => ['document' => 'telc Deutsch B1, Uebungstest 1 et fiche d examen, telc.net', 'date' => '2026-10-29'],
+        'B2' => ['document' => 'telc Deutsch B2, Uebungstest et tableau « Punkte und Gewichtung », telc.net', 'date' => '2026-10-29'],
+        'A1' => ['document' => 'telc Start Deutsch 1 / telc Deutsch A1, Uebungstest 1, shop.telc.net (ref. 5070-B00-010106)', 'date' => '2026-10-10'],
+        'A2' => ['document' => 'telc Start Deutsch 2 / telc Deutsch A2, Uebungstest 1, shop.telc.net (ref. 5090-B00-010106)', 'date' => '2026-10-10'],
+        'C1' => ['document' => 'telc Deutsch C1, Uebungstest 2 (2017) et Uebungstest 3 (2019), shop.telc.net', 'date' => '2026-10-10'],
+        'C2' => ['document' => 'telc Deutsch C2, Uebungstest, shop.telc.net', 'date' => '2026-10-10'],
+    ],
+
     'levels' => [
 
         // ━━━━━━━━━━ A1 : Start Deutsch 1 / telc Deutsch A1 ━━━━━━━━━━
@@ -85,12 +103,15 @@ return [
                     'parts' => [
                         ['part' => 1, 'name' => 'Hören, Teil 1', 'name_fr' => 'Conversations du quotidien',
                             "task" => "Six courts échanges du quotidien : cocher a, b ou c.",
+                            'ecoutes' => 1,
                             'type' => 'mcq', 'items' => 6, 'source' => 'officiel'],
                         ['part' => 2, 'name' => 'Hören, Teil 2', 'name_fr' => 'Annonces publiques',
                             "task" => "Quatre annonces publiques : dire pour chacune si l'affirmation est juste (+) ou fausse (–).",
+                            'ecoutes' => 1,
                             'type' => 'true-false', 'items' => 4, 'source' => 'officiel'],
                         ['part' => 3, 'name' => 'Hören, Teil 3', 'name_fr' => 'Messages sur répondeur',
                             "task" => "Cinq messages téléphoniques ou annonces : cocher a, b ou c.",
+                            'ecoutes' => 2,
                             'type' => 'mcq', 'items' => 5, 'source' => 'officiel'],
                     ],
                     'exercise_types' => ['true-false', 'mcq', 'matching'],
@@ -269,7 +290,7 @@ return [
         // 20 minutes de préparation.
         'B1' => [
             'name' => 'Zertifikat Deutsch / telc Deutsch B1',
-            'total_duration' => 150,
+            'total_duration' => 165,
             'sections' => [
                 [
                     'slug' => 'lesen',
@@ -283,13 +304,13 @@ return [
                     'description' => '3 parties : compréhension globale (associer des titres à des textes), compréhension détaillée (QCM), compréhension sélective (associer des situations à des annonces).',
                     'parts' => [
                         ['part' => 1, 'name' => 'Leseverstehen, Teil 1', 'name_fr' => 'Compréhension globale',
-                            'task' => "Associer à chacun des textes le bon titre, parmi une liste de titres.",
+                            "task" => "Cinq textes et dix titres de a à j : associer le bon titre à chaque texte. Chaque titre ne sert qu'une fois.",
                             'type' => 'matching-headings', 'items' => 5, 'source' => 'officiel'],
                         ['part' => 2, 'name' => 'Leseverstehen, Teil 2', 'name_fr' => 'Compréhension détaillée',
                             'task' => "Un texte long, puis des questions à choix multiple.",
                             'type' => 'mcq', 'items' => 5, 'source' => 'officiel'],
                         ['part' => 3, 'name' => 'Leseverstehen, Teil 3', 'name_fr' => 'Compréhension sélective',
-                            'task' => "Associer chaque situation à l'annonce qui y répond.",
+                            "task" => "Dix situations et douze annonces de a à l : associer. Une situation peut n'avoir aucune annonce qui convienne — on marque alors x.",
                             'type' => 'matching', 'items' => 10, 'source' => 'officiel'],
                     ],
                     'exercise_types' => ['matching-headings', 'mcq', 'matching'],
@@ -305,10 +326,10 @@ return [
                     'description' => '2 parties : un texte à trous avec trois choix par trou (grammaire), puis un texte à compléter à partir d\'une liste de mots (lexique). C\'est le module propre à telc.',
                     'parts' => [
                         ['part' => 1, 'name' => 'Sprachbausteine, Teil 1', 'name_fr' => 'Grammaire',
-                            'task' => "Une lettre ou un courriel à trous : choisir le bon mot parmi trois, pour chaque trou.",
+                            "task" => "Une lettre personnelle à trous : pour chacun des dix trous, choisir le bon mot parmi trois, a, b ou c. C'est la grammaire qui est testée.",
                             'type' => 'mcq-cloze', 'items' => 10, 'source' => 'officiel'],
                         ['part' => 2, 'name' => 'Sprachbausteine, Teil 2', 'name_fr' => 'Lexique',
-                            'task' => "Un texte à trous : replacer les mots en les choisissant dans une liste.",
+                            "task" => "Une lettre formelle à trous : replacer dix mots pris dans une liste de quinze, de a à o. Cinq mots ne servent à rien. C'est le lexique qui est testé.",
                             'type' => 'summary-completion', 'items' => 10, 'source' => 'officiel'],
                     ],
                     'exercise_types' => ['mcq-cloze', 'gap-fill', 'grammar-mcq', 'summary-completion'],
@@ -325,12 +346,15 @@ return [
                     'parts' => [
                         ['part' => 1, 'name' => 'Hörverstehen, Teil 1', 'name_fr' => 'Compréhension globale',
                             'task' => "De courts textes entendus : juger chaque affirmation vraie ou fausse.",
+                            'ecoutes' => 1,
                             'type' => 'true-false', 'items' => 5, 'source' => 'officiel'],
                         ['part' => 2, 'name' => 'Hörverstehen, Teil 2', 'name_fr' => 'Compréhension détaillée',
                             'task' => "Un entretien ou une conversation : juger chaque affirmation vraie ou fausse.",
+                            'ecoutes' => 2,
                             'type' => 'true-false', 'items' => 10, 'source' => 'officiel'],
                         ['part' => 3, 'name' => 'Hörverstehen, Teil 3', 'name_fr' => 'Compréhension sélective',
                             'task' => "Des annonces ou messages courts : juger chaque affirmation vraie ou fausse.",
+                            'ecoutes' => 2,
                             'type' => 'true-false', 'items' => 5, 'source' => 'officiel'],
                     ],
                     'exercise_types' => ['true-false', 'mcq', 'matching'],
@@ -401,10 +425,10 @@ return [
                             'task' => 'Associer à chacun des 5 textes le bon titre, parmi 10 titres proposés.',
                             'type' => 'matching-headings', 'items' => 5, 'item_range' => '1-5', 'points' => 25, 'source' => 'officiel'],
                         ['part' => 2, 'name' => 'Leseverstehen, Teil 2', 'name_fr' => 'Compréhension détaillée',
-                            'task' => 'Un texte long, puis 5 questions à choix multiple avec trois options.',
+                            "task" => "DEUX articles à lire d'abord, puis cinq questions à choix multiple : a, b ou c.",
                             'type' => 'mcq', 'items' => 5, 'item_range' => '6-10', 'points' => 25, 'source' => 'officiel'],
                         ['part' => 3, 'name' => 'Leseverstehen, Teil 3', 'name_fr' => 'Compréhension sélective',
-                            'task' => 'Associer 10 situations aux 12 annonces qui y répondent. Deux annonces ne servent pas.',
+                            "task" => "Dix situations et douze textes d'information de a à l : associer. Une situation peut n'avoir aucune solution — on marque alors x.",
                             'type' => 'matching', 'items' => 10, 'item_range' => '11-20', 'points' => 25, 'source' => 'officiel'],
                     ],
                     'exercise_types' => ['matching-headings', 'mcq', 'matching'],
@@ -440,12 +464,15 @@ return [
                     'parts' => [
                         ['part' => 1, 'name' => 'Hörverstehen, Teil 1', 'name_fr' => 'Compréhension globale',
                             'task' => 'Un journal radio de six nouvelles : juger 5 phrases vraies ou fausses.',
+                            'ecoutes' => 1,
                             'type' => 'true-false', 'items' => 5, 'item_range' => '41-45', 'points' => 25, 'source' => 'officiel'],
                         ['part' => 2, 'name' => 'Hörverstehen, Teil 2', 'name_fr' => 'Compréhension détaillée',
                             'task' => 'Une interview ou un entretien radio : juger 10 affirmations vraies ou fausses.',
+                            'ecoutes' => 1,
                             'type' => 'true-false', 'items' => 10, 'item_range' => '46-55', 'points' => 25, 'source' => 'officiel'],
                         ['part' => 3, 'name' => 'Hörverstehen, Teil 3', 'name_fr' => 'Compréhension sélective',
                             'task' => 'Cinq annonces ou messages vocaux courts : juger 5 affirmations vraies ou fausses.',
+                            'ecoutes' => 1,
                             'type' => 'true-false', 'items' => 5, 'item_range' => '56-60', 'points' => 25, 'source' => 'officiel'],
                     ],
                     'exercise_types' => ['true-false', 'mcq', 'matching'],
@@ -461,7 +488,7 @@ return [
                     'description' => '1 tâche : un courriel semi-formel, à partir d\'une situation et de points imposés.',
                     'parts' => [
                         ['part' => 1, 'name' => 'Schriftlicher Ausdruck', 'name_fr' => 'Courriel semi-formel',
-                            'task' => "Répondre à une annonce par un courriel semi-formel, en traitant les quatre points imposés. 150 mots au minimum. Un sujet à choisir entre deux.",
+                            "task" => "Écrire un courriel semi-formel en traitant AU CHOIX trois des quatre points proposés, ou deux points plus un aspect libre.",
                             'type' => 'letter-email-writing', 'items' => 1, 'points' => 45, 'source' => 'officiel'],
                     ],
                     'exercise_types' => ['letter-email-writing', 'essay', 'short-writing'],
@@ -559,12 +586,15 @@ return [
                     'parts' => [
                         ['part' => 1, 'name' => 'Hörverstehen, Teil 1', 'name_fr' => 'Compréhension globale',
                             "task" => "Huit courts documents entendus : associer chacun à son contenu. Aucun vrai-faux à ce niveau.",
+                            'ecoutes' => 1,
                             'type' => 'matching', 'items' => 8, 'source' => 'officiel'],
                         ['part' => 2, 'name' => 'Hörverstehen, Teil 2', 'name_fr' => 'Compréhension détaillée',
                             "task" => "Un entretien long : dix questions à choix multiple, trois options chacune.",
+                            'ecoutes' => 2,
                             'type' => 'mcq', 'items' => 10, 'source' => 'officiel'],
                         ['part' => 3, 'name' => 'Hörverstehen, Teil 3', 'name_fr' => 'Prise de notes',
                             "task" => "Compléter dix informations manquantes à partir d'un exposé entendu.",
+                            'ecoutes' => 1,
                             'type' => 'note-completion', 'items' => 10, 'source' => 'officiel'],
                     ],
                     'exercise_types' => ['mcq', 'matching', 'true-false', 'note-completion'],

@@ -7,6 +7,21 @@
  * 5 épreuves (pas 4!) incluant Lexique et Structure
  * Scoring: 0-900 total
  * Variantes: TEF, TEF Canada, TEF Québec, TEF IRN
+ *
+ * CE QUI N'EST PAS ATTESTE NE SE DIT PAS OFFICIEL.
+ *
+ * Les parties de ce fichier annoncaient « source => officiel », c'est-a-dire
+ * « lu dans le document de l'organisme, avec ses chiffres ». Rien ici ne dit
+ * QUEL document, ni QUAND il a ete lu : la seule provenance inscrite est un nom
+ * de site. La revendication est donc retiree, et les parties passent en
+ * « architecture » — la structure telle que nous la comprenons, affichee a
+ * l'apprenant comme reconstituee.
+ *
+ * Ce n'est pas un jugement sur l'exactitude de ces chiffres : ils sont
+ * peut-etre justes. C'est qu'on ne peut pas le verifier sur parole, et que
+ * l'application retire du contenu sur la foi de ce champ. Pour le rendre a
+ * « officiel » : lire le document de l'organisme, noter sa reference et sa
+ * date dans la cle `verifications`, et corriger ce qui s'en ecarte.
  */
 
 return [
@@ -61,7 +76,7 @@ return [
             'parts' => [
                 ['part' => 1, 'name' => 'Comprehension ecrite, Teil 1', 'name_fr' => 'Questionnaire a choix multiple',
                     "task" => "40 questions a choix multiple en 1 heure. Bonne reponse : 1 point.",
-                    'type' => 'mcq', 'items' => 40, 'source' => 'officiel'],
+                    'type' => 'mcq', 'items' => 40, 'source' => 'architecture'],
             ],
             'exercise_types' => ['mcq'],
         ],
@@ -79,7 +94,7 @@ return [
             'parts' => [
                 ['part' => 1, 'name' => 'Comprehension orale, Teil 1', 'name_fr' => 'Questionnaire a choix multiple',
                     "task" => "40 questions a choix multiple en 40 minutes. Bonne reponse : 1 point.",
-                    'type' => 'mcq', 'items' => 40, 'source' => 'officiel'],
+                    'type' => 'mcq', 'items' => 40, 'source' => 'architecture'],
             ],
             'exercise_types' => ['mcq'],
         ],
@@ -97,7 +112,7 @@ return [
             'parts' => [
                 ['part' => 1, 'name' => 'Lexique et structure, Teil 1', 'name_fr' => 'Questionnaire a choix multiple',
                     "task" => "40 questions a choix multiple en 30 minutes. Bonne reponse : 1 point.",
-                    'type' => 'grammar-mcq', 'items' => 40, 'source' => 'officiel'],
+                    'type' => 'grammar-mcq', 'items' => 40, 'source' => 'architecture'],
             ],
             'exercise_types' => ['mcq', 'grammar-mcq'],
         ],
@@ -114,10 +129,10 @@ return [
             'parts' => [
                 ['part' => 1, 'name' => 'Expression ecrite, Teil 1', 'name_fr' => 'Section A',
                     "task" => "Ecrire la suite d'un article, 80 mots au minimum. 25 minutes.",
-                    'type' => 'text-continuation', 'source' => 'officiel'],
+                    'type' => 'text-continuation', 'source' => 'architecture'],
                 ['part' => 2, 'name' => 'Expression ecrite, Teil 2', 'name_fr' => 'Section B',
                     "task" => "Exprimer son point de vue et le justifier, 200 mots au minimum. 35 minutes.",
-                    'type' => 'essay', 'source' => 'officiel'],
+                    'type' => 'essay', 'source' => 'architecture'],
             ],
             'exercise_types' => ['text-continuation', 'essay'],
             'tasks' => [
@@ -154,10 +169,10 @@ return [
             'parts' => [
                 ['part' => 1, 'name' => 'Expression orale, Teil 1', 'name_fr' => 'Section A',
                     "task" => "Obtenir des renseignements. 5 minutes.",
-                    'type' => 'speaking-elicitation', 'source' => 'officiel'],
+                    'type' => 'speaking-elicitation', 'source' => 'architecture'],
                 ['part' => 2, 'name' => 'Expression orale, Teil 2', 'name_fr' => 'Section B',
                     "task" => "Argumenter pour convaincre. 10 minutes.",
-                    'type' => 'oral-debate', 'source' => 'officiel'],
+                    'type' => 'oral-debate', 'source' => 'architecture'],
             ],
             'exercise_types' => ['role-play', 'negotiation', 'speaking-response',
                 'speaking-elicitation', 'oral-debate',

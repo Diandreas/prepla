@@ -7,6 +7,21 @@
  * Two variants: Academic and General Training
  * Scoring: Band 0-9 (half-band increments)
  * Overall band = average of 4 section bands, rounded to nearest half/whole
+ *
+ * CE QUI N'EST PAS ATTESTE NE SE DIT PAS OFFICIEL.
+ *
+ * Les parties de ce fichier annoncaient « source => officiel », c'est-a-dire
+ * « lu dans le document de l'organisme, avec ses chiffres ». Rien ici ne dit
+ * QUEL document, ni QUAND il a ete lu : la seule provenance inscrite est un nom
+ * de site. La revendication est donc retiree, et les parties passent en
+ * « architecture » — la structure telle que nous la comprenons, affichee a
+ * l'apprenant comme reconstituee.
+ *
+ * Ce n'est pas un jugement sur l'exactitude de ces chiffres : ils sont
+ * peut-etre justes. C'est qu'on ne peut pas le verifier sur parole, et que
+ * l'application retire du contenu sur la foi de ce champ. Pour le rendre a
+ * « officiel » : lire le document de l'organisme, noter sa reference et sa
+ * date dans la cle `verifications`, et corriger ce qui s'en ecarte.
  */
 
 return [
@@ -38,16 +53,16 @@ return [
             'parts' => [
                 ['part' => 1, 'name' => 'Listening, Teil 1', 'name_fr' => 'Conversation du quotidien',
                     "task" => "Une conversation entre deux personnes dans une situation courante. 10 questions.",
-                    'type' => 'form-completion', 'items' => 10, 'item_range' => '1-10', 'source' => 'officiel'],
+                    'type' => 'form-completion', 'items' => 10, 'item_range' => '1-10', 'source' => 'architecture'],
                 ['part' => 2, 'name' => 'Listening, Teil 2', 'name_fr' => 'Monologue du quotidien',
                     "task" => "Une seule personne parle d'un sujet pratique, par exemple des equipements locaux. 10 questions.",
-                    'type' => 'plan-map-diagram-labeling', 'items' => 10, 'item_range' => '11-20', 'source' => 'officiel'],
+                    'type' => 'plan-map-diagram-labeling', 'items' => 10, 'item_range' => '11-20', 'source' => 'architecture'],
                 ['part' => 3, 'name' => 'Listening, Teil 3', 'name_fr' => 'Conversation en contexte educatif',
                     "task" => "Un echange entre deux locuteurs principaux, souvent des etudiants et un enseignant. 10 questions.",
-                    'type' => 'mcq', 'items' => 10, 'item_range' => '21-30', 'source' => 'officiel'],
+                    'type' => 'mcq', 'items' => 10, 'item_range' => '21-30', 'source' => 'architecture'],
                 ['part' => 4, 'name' => 'Listening, Teil 4', 'name_fr' => 'Expose universitaire',
                     "task" => "Une personne expose un sujet universitaire. 10 questions.",
-                    'type' => 'note-completion', 'items' => 10, 'item_range' => '31-40', 'source' => 'officiel'],
+                    'type' => 'note-completion', 'items' => 10, 'item_range' => '31-40', 'source' => 'architecture'],
             ],
             'exercise_types' => [
                 'mcq',
@@ -85,13 +100,13 @@ return [
             'parts' => [
                 ['part' => 1, 'name' => 'Reading, Teil 1', 'name_fr' => 'Premier texte',
                     "task" => "Academic : un texte long pour public non specialiste. General Training : deux ou trois textes courts du quotidien (avis, annonces, horaires).",
-                    'type' => 'matching-headings', 'source' => 'officiel'],
+                    'type' => 'matching-headings', 'source' => 'architecture'],
                 ['part' => 2, 'name' => 'Reading, Teil 2', 'name_fr' => 'Deuxieme texte',
                     "task" => "Academic : un deuxieme texte long. General Training : deux textes lies au travail (fiches de poste, contrats, formation).",
-                    'type' => 'true-false-not-given', 'source' => 'officiel'],
+                    'type' => 'true-false-not-given', 'source' => 'architecture'],
                 ['part' => 3, 'name' => 'Reading, Teil 3', 'name_fr' => 'Troisieme texte',
                     "task" => "Academic : un troisieme texte long, dont un au moins developpe une argumentation suivie. General Training : un texte long d'interet general. 40 questions en tout, 1 point chacune, 60 minutes.",
-                    'type' => 'mcq', 'items' => 40, 'source' => 'officiel'],
+                    'type' => 'mcq', 'items' => 40, 'source' => 'architecture'],
             ],
             'exercise_types' => [
                 'mcq',
@@ -124,10 +139,10 @@ return [
             'parts' => [
                 ['part' => 1, 'name' => 'Writing, Teil 1', 'name_fr' => 'Tache 1',
                     "task" => "Academic : decrire un graphique, un tableau ou un schema. General Training : repondre a une situation par une lettre, en traitant les trois points donnes. 150 mots au minimum, environ 20 minutes.",
-                    'type' => 'graph-description', 'source' => 'officiel'],
+                    'type' => 'graph-description', 'source' => 'architecture'],
                 ['part' => 2, 'name' => 'Writing, Teil 2', 'name_fr' => 'Tache 2',
                     "task" => "Discuter un point de vue, un argument ou un probleme. 250 mots au minimum, environ 40 minutes. Compte double de la tache 1.",
-                    'type' => 'essay', 'source' => 'officiel'],
+                    'type' => 'essay', 'source' => 'architecture'],
             ],
         'exercise_types' => ['graph-description', 'essay'],
             'time_limit' => 60,
@@ -196,13 +211,13 @@ return [
             'parts' => [
                 ['part' => 1, 'name' => 'Speaking, Teil 1', 'name_fr' => 'Introduction et entretien',
                     "task" => "L'examinateur pose des questions generales sur des sujets familiers. 4 a 5 minutes.",
-                    'type' => 'speaking-response', 'source' => 'officiel'],
+                    'type' => 'speaking-response', 'source' => 'architecture'],
                 ['part' => 2, 'name' => 'Speaking, Teil 2', 'name_fr' => 'Expose',
                     "task" => "Une fiche-sujet, une minute de preparation, puis environ deux minutes de parole. 3 a 4 minutes en tout.",
-                    'type' => 'speaking-long-turn', 'source' => 'officiel'],
+                    'type' => 'speaking-long-turn', 'source' => 'architecture'],
                 ['part' => 3, 'name' => 'Speaking, Teil 3', 'name_fr' => 'Discussion',
                     "task" => "Discussion plus abstraite autour du theme de la partie 2. 4 a 5 minutes.",
-                    'type' => 'speaking-discussion', 'source' => 'officiel'],
+                    'type' => 'speaking-discussion', 'source' => 'architecture'],
             ],
         'exercise_types' => ['speaking-response', 'speaking-long-turn', 'speaking-discussion'],
         'task_count' => 3,

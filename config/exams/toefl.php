@@ -7,6 +7,21 @@
  * Format REFONDU pour la réforme ETS du 21 janvier 2026 : test plus court (<2h),
  * adaptatif, nouvelles tâches (Complete the Words, Build a Sentence, Listen and
  * Choose a Response, Listen and Repeat, Read in Daily Life). Score 0-120 + bande 1-6.
+ *
+ * CE QUI N'EST PAS ATTESTE NE SE DIT PAS OFFICIEL.
+ *
+ * Les parties de ce fichier annoncaient « source => officiel », c'est-a-dire
+ * « lu dans le document de l'organisme, avec ses chiffres ». Rien ici ne dit
+ * QUEL document, ni QUAND il a ete lu : la seule provenance inscrite est un nom
+ * de site. La revendication est donc retiree, et les parties passent en
+ * « architecture » — la structure telle que nous la comprenons, affichee a
+ * l'apprenant comme reconstituee.
+ *
+ * Ce n'est pas un jugement sur l'exactitude de ces chiffres : ils sont
+ * peut-etre justes. C'est qu'on ne peut pas le verifier sur parole, et que
+ * l'application retire du contenu sur la foi de ce champ. Pour le rendre a
+ * « officiel » : lire le document de l'organisme, noter sa reference et sa
+ * date dans la cle `verifications`, et corriger ce qui s'en ecarte.
  */
 
 return [
@@ -38,13 +53,13 @@ return [
             'parts' => [
                 ['part' => 1, 'name' => 'Reading, Teil 1', 'name_fr' => 'Complete the Words',
                     "task" => "Completer des mots dans un texte, pour montrer qu'on maitrise lexique et syntaxe. 30 items.",
-                    'type' => 'complete-the-words', 'items' => 30, 'source' => 'officiel'],
+                    'type' => 'complete-the-words', 'items' => 30, 'source' => 'architecture'],
                 ['part' => 2, 'name' => 'Reading, Teil 2', 'name_fr' => 'Read in Daily Life',
                     "task" => "Comprendre de courts textes non universitaires du quotidien. 5 a 15 items.",
-                    'type' => 'read-daily-life', 'source' => 'officiel'],
+                    'type' => 'read-daily-life', 'source' => 'architecture'],
                 ['part' => 3, 'name' => 'Reading, Teil 3', 'name_fr' => 'Read an Academic Passage',
                     "task" => "Un texte universitaire : idees principales, details, implicite, structure. 5 a 15 items.",
-                    'type' => 'mcq', 'source' => 'officiel'],
+                    'type' => 'mcq', 'source' => 'architecture'],
             ],
             'exercise_types' => [
                 'mcq',                  // Factual, inference, rhetorical purpose, vocabulary
@@ -68,16 +83,16 @@ return [
             'parts' => [
                 ['part' => 1, 'name' => 'Listening, Teil 1', 'name_fr' => 'Listen and Choose a Response',
                     "task" => "Un bref echange entre deux personnes : choisir la reponse qui convient. 15 a 19 items.",
-                    'type' => 'listen-choose-response', 'source' => 'officiel'],
+                    'type' => 'listen-choose-response', 'source' => 'architecture'],
                 ['part' => 2, 'name' => 'Listening, Teil 2', 'name_fr' => 'Listen to a Conversation',
                     "task" => "Une courte conversation entre deux personnes. 10 items.",
-                    'type' => 'mcq', 'items' => 10, 'source' => 'officiel'],
+                    'type' => 'mcq', 'items' => 10, 'source' => 'architecture'],
                 ['part' => 3, 'name' => 'Listening, Teil 3', 'name_fr' => 'Listen to an Announcement',
                     "task" => "Une annonce en contexte universitaire.",
-                    'type' => 'mcq', 'source' => 'officiel'],
+                    'type' => 'mcq', 'source' => 'architecture'],
                 ['part' => 4, 'name' => 'Listening, Teil 4', 'name_fr' => 'Listen to an Academic Talk',
                     "task" => "Un expose universitaire suivi.",
-                    'type' => 'note-completion', 'source' => 'officiel'],
+                    'type' => 'note-completion', 'source' => 'architecture'],
             ],
             'exercise_types' => [
                 'listen-choose-response', // 2026: choisir la réponse à un énoncé
@@ -103,10 +118,10 @@ return [
             'parts' => [
                 ['part' => 1, 'name' => 'Speaking, Teil 1', 'name_fr' => 'Listen and Repeat',
                     "task" => "Ecouter puis repeter, pour evaluer la prononciation et le rythme.",
-                    'type' => 'listen-repeat', 'source' => 'officiel'],
+                    'type' => 'listen-repeat', 'source' => 'architecture'],
                 ['part' => 2, 'name' => 'Speaking, Teil 2', 'name_fr' => 'Take an Interview',
                     "task" => "Repondre a une serie de questions, sous forme d'entretien.",
-                    'type' => 'speaking-response', 'source' => 'officiel'],
+                    'type' => 'speaking-response', 'source' => 'architecture'],
             ],
                     'exercise_types' => ['speaking-response', 'integrated-speaking', 'listen-repeat'],
             'tasks' => [
@@ -174,13 +189,13 @@ return [
             'parts' => [
                 ['part' => 1, 'name' => 'Writing, Teil 1', 'name_fr' => 'Build a Sentence',
                     "task" => "Reconstruire des phrases avec la grammaire qui convient. 10 items.",
-                    'type' => 'build-a-sentence', 'items' => 10, 'source' => 'officiel'],
+                    'type' => 'build-a-sentence', 'items' => 10, 'source' => 'architecture'],
                 ['part' => 2, 'name' => 'Writing, Teil 2', 'name_fr' => 'Write an Email',
                     "task" => "Rediger un courriel adapte a une situation universitaire.",
-                    'type' => 'letter-email-writing', 'items' => 1, 'source' => 'officiel'],
+                    'type' => 'letter-email-writing', 'items' => 1, 'source' => 'architecture'],
                 ['part' => 3, 'name' => 'Writing, Teil 3', 'name_fr' => 'Write for an Academic Discussion',
                     "task" => "Contribuer par ecrit a une discussion universitaire en ligne.",
-                    'type' => 'academic-discussion', 'items' => 1, 'source' => 'officiel'],
+                    'type' => 'academic-discussion', 'items' => 1, 'source' => 'architecture'],
             ],
             'exercise_types' => ['build-a-sentence', 'integrated-writing', 'academic-discussion',
                 'letter-email-writing',

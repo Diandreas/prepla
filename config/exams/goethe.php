@@ -31,6 +31,24 @@ return [
     'variants' => null,
 
     // ─── Structure par niveau ───
+    /*
+     * QUI A VERIFIE QUOI, ET QUAND.
+     *
+     * « source => officiel » sur une partie signifie : lu dans le document de
+     * l'organisme, avec ses chiffres. C'etait une affirmation que rien ne
+     * soutenait — n'importe qui pouvait l'ecrire. Un palier qui la revendique
+     * doit desormais nommer ici le document et la date de consultation, et un
+     * test refuse la revendication sans la preuve.
+     */
+    'verifications' => [
+        'B1' => ['document' => 'Goethe-Zertifikat B1, Modellsatz Erwachsene (Vs_11_070115) et Durchfuehrungsbestimmungen, goethe.de/pro/relaunch/prf/materialien/B1', 'date' => '2026-10-29'],
+        'A1' => ['document' => 'Goethe-Zertifikat A1 Start Deutsch 1, Modellsatz, 8. Auflage (02/2024), goethe.de/pro/relaunch/prf/materialien/A1_sd1/sd_1_modellsatz.pdf', 'date' => '2026-10-10'],
+        'A2' => ['document' => 'Goethe-Zertifikat A2, Modellsatz Erwachsene Vs5.1_050525, goethe.de/pro/relaunch/prf/materialien', 'date' => '2026-10-10'],
+        'B2' => ['document' => 'Goethe-Zertifikat B2, Modellsatz Erwachsene (version modulaire), goethe.de/pro/relaunch/prf/materialien/B2/b2_modellsatz_erwachsene.pdf', 'date' => '2026-10-09'],
+        'C1' => ['document' => 'Goethe-Zertifikat C1, Handbuch Pruefungsziele Testbeschreibung + Durchfuehrungsbestimmungen (Stand 01.09.2025), goethe.de/pro/relaunch/prf', 'date' => '2026-10-10'],
+        'C2' => ['document' => 'Goethe-Zertifikat C2, Handbuch Pruefungsziele Testbeschreibung + Durchfuehrungsbestimmungen, goethe.de/pro/relaunch/prf', 'date' => '2026-10-10'],
+    ],
+
     'levels' => [
         // ━━━━━━━━━━ A1: Start Deutsch 1 ━━━━━━━━━━
         'A1' => [
@@ -71,12 +89,15 @@ return [
                     'parts' => [
                         ['part' => 1, 'name' => 'Hören, Teil 1', 'name_fr' => 'Courts échanges',
                                 "task" => "Six courts enregistrements du quotidien, écoutés une seule fois : choisir pour chacun la bonne réponse parmi trois, aidé par une image.",
+                                'ecoutes' => 1,
                                 'type' => 'picture-mcq', 'items' => 6, 'source' => 'officiel'],
                         ['part' => 2, 'name' => 'Hören, Teil 2', 'name_fr' => 'Annonces publiques',
                                 "task" => "Quatre annonces publiques (gare, aéroport, magasin), écoutées une seule fois : dire si l'affirmation proposée est juste ou fausse.",
+                                'ecoutes' => 1,
                                 'type' => 'true-false', 'items' => 4, 'source' => 'officiel'],
                         ['part' => 3, 'name' => 'Hören, Teil 3', 'name_fr' => 'Messages téléphoniques',
                                 "task" => "Cinq messages téléphoniques ou annonces, écoutés deux fois : choisir la bonne réponse parmi trois.",
+                                'ecoutes' => 2,
                                 'type' => 'mcq', 'items' => 5, 'source' => 'officiel'],
                     ],
                     'exercise_types' => ['mcq', 'true-false-not-given', 'picture-mcq', 'true-false'],
@@ -167,15 +188,19 @@ return [
                     'parts' => [
                         ['part' => 1, 'name' => 'Hören, Teil 1', 'name_fr' => 'Messages courts',
                                 "task" => "Cinq courts enregistrements du quotidien, écoutés deux fois : choisir la bonne réponse parmi trois.",
+                                'ecoutes' => 2,
                                 'type' => 'mcq', 'items' => 5, 'source' => 'officiel'],
                         ['part' => 2, 'name' => 'Hören, Teil 2', 'name_fr' => 'Conversation',
                                 "task" => "Un seul enregistrement, écouté une fois : associer les cinq éléments entendus aux images correspondantes.",
+                                'ecoutes' => 1,
                                 'type' => 'matching', 'items' => 5, 'source' => 'officiel'],
                         ['part' => 3, 'name' => 'Hören, Teil 3', 'name_fr' => 'Échanges brefs',
                                 "task" => "Cinq conversations brèves, écoutées une seule fois : choisir la bonne réponse parmi trois.",
+                                'ecoutes' => 1,
                                 'type' => 'mcq', 'items' => 5, 'source' => 'officiel'],
                         ['part' => 4, 'name' => 'Hören, Teil 4', 'name_fr' => 'Entretien',
                                 "task" => "Un entretien radiophonique, écouté deux fois : répondre par oui ou non à chacune des cinq affirmations.",
+                                'ecoutes' => 2,
                                 'type' => 'true-false', 'items' => 5, 'source' => 'officiel'],
                     ],
                     'exercise_types' => ['mcq', 'true-false-not-given', 'picture-mcq', 'multiple-matching', 'true-false', 'matching', 'true-false'],
@@ -243,10 +268,10 @@ return [
                                 "task" => "Un texte personnel : juger des affirmations vraies ou fausses.",
                                 'type' => 'true-false', 'items' => 6, 'source' => 'officiel'],
                         ['part' => 2, 'name' => 'Lesen, Teil 2', 'name_fr' => 'Article de presse',
-                                "task" => "Un article, puis des questions à choix multiple.",
+                                "task" => "DEUX articles de presse distincts, trois questions chacun : choisir la bonne réponse parmi trois.",
                                 'type' => 'mcq', 'items' => 6, 'source' => 'officiel'],
                         ['part' => 3, 'name' => 'Lesen, Teil 3', 'name_fr' => 'Annonces',
-                                "task" => "Associer chaque situation à l'annonce qui y répond.",
+                                "task" => "Sept situations et dix annonces de A à J : associer. Chaque annonce ne sert qu'une fois, et une situation n'a aucune annonce qui convienne — on répond alors 0.",
                                 'type' => 'matching', 'items' => 7, 'source' => 'officiel'],
                         ['part' => 4, 'name' => 'Lesen, Teil 4', 'name_fr' => 'Opinions de lecteurs',
                                 // Ja/Nein, pas un appariement : le Modellsatz officiel demande,
@@ -272,16 +297,20 @@ return [
                     'description' => '4 parties : annonces (matching 10 items), MCQ (5 items), vrai/faux (7 items), vrai/faux (8 items).',
                     'parts' => [
                         ['part' => 1, 'name' => 'Hören, Teil 1', 'name_fr' => 'Messages et annonces',
-                                "task" => "De courts messages : juger des affirmations et choisir la bonne réponse.",
+                                "task" => "Cinq textes courts, DEUX tâches par texte : une affirmation à juger vraie ou fausse, puis une question à choix multiple. Dix items en tout, chaque texte entendu deux fois.",
+                                'ecoutes' => 2,
                                 'type' => 'true-false', 'items' => 10, 'source' => 'officiel'],
                         ['part' => 2, 'name' => 'Hören, Teil 2', 'name_fr' => 'Exposé',
                                 "task" => "Une présentation suivie, puis des questions à choix multiple.",
+                                'ecoutes' => 1,
                                 'type' => 'mcq', 'items' => 5, 'source' => 'officiel'],
                         ['part' => 3, 'name' => 'Hören, Teil 3', 'name_fr' => 'Conversation',
                                 "task" => "Une conversation du quotidien : juger des affirmations vraies ou fausses.",
+                                'ecoutes' => 1,
                                 'type' => 'true-false', 'items' => 7, 'source' => 'officiel'],
                         ['part' => 4, 'name' => 'Hören, Teil 4', 'name_fr' => 'Débat radio',
                                 "task" => "Une discussion entre plusieurs personnes : dire qui exprime quoi.",
+                                'ecoutes' => 2,
                                 'type' => 'matching', 'items' => 8, 'source' => 'officiel'],
                     ],
                     'exercise_types' => ['mcq', 'true-false-not-given', 'matching', 'note-completion', 'true-false', 'true-false'],
@@ -380,15 +409,19 @@ return [
                     'parts' => [
                         ['part' => 1, 'name' => 'Hören, Teil 1', 'name_fr' => 'Cinq courts dialogues',
                                 "task" => "Cinq extraits entendus une fois : pour chacun, une affirmation vrai/faux puis une question à choix multiple (10 items).",
+                                'ecoutes' => 1,
                                 'type' => 'true-false', 'items' => 10, 'source' => 'officiel'],
                         ['part' => 2, 'name' => 'Hören, Teil 2', 'name_fr' => 'Interview radio',
                                 "task" => "Une interview entendue deux fois, puis 6 questions à choix multiple.",
+                                'ecoutes' => 2,
                                 'type' => 'mcq', 'items' => 6, 'source' => 'officiel'],
                         ['part' => 3, 'name' => 'Hören, Teil 3', 'name_fr' => 'Discussion à plusieurs',
                                 "task" => "Une discussion radio entendue une fois : pour chacune des 6 affirmations, dire qui la dit.",
+                                'ecoutes' => 1,
                                 'type' => 'matching', 'items' => 6, 'source' => 'officiel'],
                         ['part' => 4, 'name' => 'Hören, Teil 4', 'name_fr' => 'Exposé',
                                 "task" => "Un court exposé entendu deux fois, puis 8 questions à choix multiple.",
+                                'ecoutes' => 2,
                                 'type' => 'mcq', 'items' => 8, 'source' => 'officiel'],
                     ],
                     'exercise_types' => ['mcq', 'true-false-not-given', 'matching', 'note-completion', 'true-false'],
@@ -486,15 +519,19 @@ return [
                     'parts' => [
                         ['part' => 1, 'name' => 'Hören, Teil 1', 'name_fr' => 'Conversation',
                                 "task" => "Un podcast monologique entendu une seule fois : six affirmations à rattacher à l'un des trois ouvrages présentés.",
+                                'ecoutes' => 1,
                                 'type' => 'mcq', 'items' => 6, 'source' => 'officiel'],
                         ['part' => 2, 'name' => 'Hören, Teil 2', 'name_fr' => 'Entretien',
                                 "task" => "Un dialogue radiophonique informatif, entendu deux fois : neuf questions à choix multiple, trois options chacune.",
+                                'ecoutes' => 2,
                                 'type' => 'mcq', 'items' => 9, 'source' => 'officiel'],
                         ['part' => 3, 'name' => 'Hören, Teil 3', 'name_fr' => 'Exposé',
                                 "task" => "Une discussion radiophonique à plusieurs voix, entendue une seule fois : huit questions à choix multiple, trois options chacune.",
+                                'ecoutes' => 1,
                                 'type' => 'mcq', 'items' => 8, 'source' => 'officiel'],
                         ['part' => 4, 'name' => 'Hören, Teil 4', 'name_fr' => 'Débat',
                                 "task" => "Un exposé explicatif, entendu deux fois : sept questions à choix multiple, trois options chacune.",
+                                'ecoutes' => 2,
                                 'type' => 'mcq', 'items' => 7, 'source' => 'officiel'],
                     ],
                     'exercise_types' => ['mcq', 'true-false-not-given', 'matching', 'note-completion', 'sentence-completion'],
@@ -590,12 +627,15 @@ return [
                     'parts' => [
                         ['part' => 1, 'name' => 'Hören, Teil 1', 'name_fr' => 'Entretien',
                                 "task" => "Cinq courts monologues d'une à une minute et demie, entendus une seule fois : répondre par oui ou non aux trois affirmations de chacun.",
+                                'ecoutes' => 1,
                                 'type' => 'true-false', 'items' => 15, 'source' => 'officiel'],
                         ['part' => 2, 'name' => 'Hören, Teil 2', 'name_fr' => 'Exposé',
                                 "task" => "Un dialogue d'environ quatre minutes entre deux locuteurs natifs, entendu une seule fois : dire pour chacune des cinq affirmations si elle vient de la première personne, de la seconde, ou des deux.",
+                                'ecoutes' => 1,
                                 'type' => 'matching', 'items' => 5, 'source' => 'officiel'],
                         ['part' => 3, 'name' => 'Hören, Teil 3', 'name_fr' => 'Débat',
                                 "task" => "Un entretien d'expert d'environ sept minutes, entendu deux fois : dix questions à choix multiple, trois options chacune.",
+                                'ecoutes' => 2,
                                 'type' => 'mcq', 'items' => 10, 'source' => 'officiel'],
                     ],
                     'exercise_types' => ['true-false', 'mcq', 'true-false-not-given', 'note-completion', 'short-answer', 'matching'],

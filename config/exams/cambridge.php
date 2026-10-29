@@ -98,6 +98,23 @@ return [
         ],
     ],
 
+    /*
+     * QUI A VERIFIE QUOI, ET QUAND.
+     *
+     * « source => officiel » sur une partie signifie : lu dans le document de
+     * l'organisme, avec ses chiffres. La provenance ci-dessous reprend celle
+     * que l'en-tete de ce fichier declare — pages « exam format » et handbooks
+     * for teachers de chaque qualification — avec sa date de consultation.
+     */
+    'verifications' => [
+        'A2' => ['document' => 'Cambridge English, page « exam format » et Handbook for teachers de la qualification du palier A2, cambridgeenglish.org', 'date' => '2026-10-11'],
+        'B1' => ['document' => 'Cambridge English, page « exam format » et Handbook for teachers de la qualification du palier B1, cambridgeenglish.org', 'date' => '2026-10-11'],
+        'B2' => ['document' => 'Cambridge English, page « exam format » et Handbook for teachers de la qualification du palier B2, cambridgeenglish.org', 'date' => '2026-10-11'],
+        'C1' => ['document' => 'Cambridge English, page « exam format » et Handbook for teachers de la qualification du palier C1, cambridgeenglish.org', 'date' => '2026-10-11'],
+        'C2' => ['document' => 'Cambridge English, page « exam format » et Handbook for teachers de la qualification du palier C2, cambridgeenglish.org', 'date' => '2026-10-11'],
+    ],
+
+
     'levels' => [
 
         // ━━━━━━━━━━ A2 Key (KET) ━━━━━━━━━━

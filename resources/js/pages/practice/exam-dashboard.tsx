@@ -25,6 +25,8 @@ interface Props {
     prochain?: { pourquoi: string };
     /** Les parties de l'épreuve, dans l'ordre, telles que l'examen les nomme. */
     examParts?: ExamPart[];
+    /** Le document qui atteste la structure de ce palier, et sa date de lecture. */
+    attestation?: { document: string; date: string } | null;
     /** Les types qui ne reproduisent aucune partie de l'épreuve. */
     pedagogicalTypeIds?: number[];
 }
@@ -43,6 +45,8 @@ interface ExamPart {
     task: string | null;
     items: number | null;
     item_range: string | null;
+    /** Une ou deux ecoutes : l'organisme le publie partie par partie. */
+    ecoutes?: number | null;
     points: number | null;
     source: string | null;
     exercise_type_id: number | null;
@@ -68,6 +72,7 @@ export default function ExamDashboard({
     levelDuration,
     levelIsOfficial,
     examParts = [],
+    attestation = null,
     pedagogicalTypeIds = [],
     prochain,
 }: Props) {
@@ -190,6 +195,14 @@ export default function ExamDashboard({
                                     ? "Chaque partie telle qu'elle tombe à l'examen, dans l'ordre, avec son nombre de questions et ses points."
                                     : "Chaque partie telle qu'elle tombe à l'examen, dans l'ordre. Le nombre de parties et les durées viennent des documents officiels de l'examen ; là où il ne publie pas le détail de chaque tâche, nous l'avons reconstitué, et nous n'annonçons alors ni nombre de questions ni points."}
                             </p>
+                            {/* D'où vient ce qu'on affirme. « Détail officiel » était une
+                                assurance sans adresse : dire quel document l'atteste, et
+                                quand il a été lu, sépare une référence d'une affirmation. */}
+                            {attestation?.document && (
+                                <p className="text-muted-foreground/80 mt-1 text-xs">
+                                    Vérifié le {attestation.date} sur&nbsp;: {attestation.document}
+                                </p>
+                            )}
                         </div>
                         <div className="space-y-4">
                             {partsBySection.map((group) => (
@@ -223,6 +236,11 @@ export default function ExamDashboard({
                                                             </span>
                                                         )}
                                                         {part.points != null && <span>{part.points} points</span>}
+                                                        {/* Une ou deux écoutes change tout : s'entraîner en réécoutant
+                                                            à volonté, c'est se préparer à un autre examen. */}
+                                                        {part.ecoutes != null && (
+                                                            <span>{part.ecoutes === 1 ? 'une seule écoute' : part.ecoutes + ' écoutes'}</span>
+                                                        )}
                                                         {part.source === 'officiel' ? (
                                                             <span className="text-emerald-700 dark:text-emerald-300">détail officiel</span>
                                                         ) : part.source === 'architecture' ? (

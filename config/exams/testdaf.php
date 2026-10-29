@@ -42,6 +42,19 @@ return [
         'TDN 5' => 'C1',
     ],
 
+    /*
+     * QUI A VERIFIE QUOI, ET QUAND.
+     *
+     * « source => officiel » sur une partie signifie : lu dans le document de
+     * l'organisme, avec ses chiffres. C'etait une affirmation que rien ne
+     * soutenait — n'importe qui pouvait l'ecrire. Un palier qui la revendique
+     * doit desormais nommer ici le document et la date de consultation, et un
+     * test refuse la revendication sans la preuve.
+     */
+    'verifications' => [
+        'TDN' => ['document' => 'TestDaF digital, page officielle « Aufbau des digitalen TestDaF », testdaf.de', 'date' => '2026-10-10'],
+    ],
+
     'sections' => [
         // ─── LESEN (Reading) ───
         [

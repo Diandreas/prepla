@@ -81,6 +81,11 @@ class StructureOfficielle
                     'name_fr' => $partie['name_fr'] ?? ($partie['description'] ?? null),
                     'task' => $partie['task'] ?? ($partie['description'] ?? null),
                     'items' => $partie['items'] ?? null,
+                    // UNE OU DEUX ECOUTES : c'est la difference entre une tache
+                    // facile et une tache tendue, et chaque organisme le publie
+                    // partie par partie. Rien ne le portait : un apprenant qui
+                    // reecoute a volonte se prepare a un autre examen.
+                    'ecoutes' => $partie['ecoutes'] ?? null,
                     'item_range' => $partie['item_range'] ?? null,
                     'points' => $partie['points'] ?? null,
                     'source' => $partie['source'] ?? null,
@@ -242,5 +247,36 @@ class StructureOfficielle
         }
 
         return array_values(array_unique($comptes));
+    }
+
+    /**
+     * Le document qui atteste la structure de ce palier, et sa date de lecture.
+     *
+     * L'ecran annonce « detail officiel » sur chaque partie verifiee. Dire
+     * d'ou vient cette assurance coute une ligne, et c'est ce qui separe une
+     * affirmation d'une reference.
+     *
+     * @return array{document: string, date: string}|null
+     */
+    public function attestation(Exam $exam, ?string $niveau): ?array
+    {
+        $fichier = base_path("config/exams/{$exam->slug}.php");
+        if (! is_file($fichier)) {
+            return null;
+        }
+
+        $config = require $fichier;
+        $attestations = $config['verifications'] ?? [];
+        if ($attestations === []) {
+            return null;
+        }
+
+        // Un examen sans paliers — le TestDaF est une epreuve unique — est
+        // atteste par son unique entree, quel que soit le nom qu'elle porte.
+        $preuve = empty($config['levels']) && count($attestations) === 1
+            ? reset($attestations)
+            : ($attestations[$niveau] ?? null);
+
+        return is_array($preuve) && ! empty($preuve['document']) ? $preuve : null;
     }
 }

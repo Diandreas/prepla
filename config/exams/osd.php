@@ -47,6 +47,24 @@ return [
 
     'variants' => null,
 
+    /*
+     * QUI A VERIFIE QUOI, ET QUAND.
+     *
+     * « source => officiel » sur une partie signifie : lu dans le document de
+     * l'organisme, avec ses chiffres. C'etait une affirmation que rien ne
+     * soutenait — n'importe qui pouvait l'ecrire. Un palier qui la revendique
+     * doit desormais nommer ici le document et la date de consultation, et un
+     * test refuse la revendication sans la preuve.
+     */
+    'verifications' => [
+        'A1' => ['document' => 'OeSD Zertifikat A1, Durchfuehrungsbestimmungen (Stand 10/2023), osd.at', 'date' => '2026-10-10'],
+        'A2' => ['document' => 'OeSD Zertifikat A2, Durchfuehrungsbestimmungen, osd.at', 'date' => '2026-10-10'],
+        'B1' => ['document' => 'OeSD Zertifikat B1, page officielle et Modellsaetze, osd.at', 'date' => '2026-10-10'],
+        'B2' => ['document' => 'OeSD Zertifikat B2, Durchfuehrungsbestimmungen (Stand 10/2023), osd.at', 'date' => '2026-10-09'],
+        'C1' => ['document' => 'OeSD Zertifikat C1, Durchfuehrungsbestimmungen, osd.at', 'date' => '2026-10-10'],
+        'C2' => ['document' => 'OeSD Zertifikat C2, Durchfuehrungsbestimmungen, osd.at', 'date' => '2026-10-10'],
+    ],
+
     'levels' => [
         // ━━━━━━━━━━ A1 : ÖSD Zertifikat A1 ━━━━━━━━━━
         // Source : osd.at, Durchführungsbestimmungen ZA1 (10/2023), vérifiées le
@@ -97,6 +115,7 @@ return [
                             'type' => 'matching', 'items' => 5, 'source' => 'officiel'],
                         ['part' => 2, 'name' => 'Hören, Aufgabe 2', 'name_fr' => 'Prise de notes',
                             'task' => "Compléter cinq informations manquantes dans une prise de notes. Le document est entendu deux fois.",
+                            'ecoutes' => 2,
                             'type' => 'note-completion', 'items' => 5, 'source' => 'officiel'],
                         ['part' => 3, 'name' => 'Hören, Aufgabe 3', 'name_fr' => 'Grille à cocher',
                             'task' => "Cinq personnes interrogées : cocher dans la grille la réponse de chacune, une seule par personne.",
@@ -288,6 +307,7 @@ return [
                     'parts' => [
                         ['part' => 1, 'name' => 'Hören, Aufgabe 1', 'name_fr' => 'Vrai-faux et choix multiple',
                             'task' => "Dix items en alternance : une affirmation vrai-faux, puis une question à choix multiple.",
+                            'ecoutes' => 2,
                             'type' => 'true-false', 'items' => 10, 'source' => 'officiel'],
                         ['part' => 2, 'name' => 'Hören, Aufgabe 2', 'name_fr' => 'Choix multiple',
                             'task' => "Cinq questions à choix multiple, trois options chacune.",
@@ -297,6 +317,7 @@ return [
                             'type' => 'true-false', 'items' => 7, 'source' => 'officiel'],
                         ['part' => 4, 'name' => 'Hören, Aufgabe 4', 'name_fr' => 'Qui dit quoi',
                             'task' => "Huit affirmations : dire pour chacune qui la prononce.",
+                            'ecoutes' => 2,
                             'type' => 'matching', 'items' => 8, 'source' => 'officiel'],
                     ],
                     'exercise_types' => ['true-false', 'mcq', 'matching'],
@@ -400,9 +421,11 @@ return [
                     'parts' => [
                         ['part' => 1, 'name' => 'Hören, Aufgabe 1', 'name_fr' => 'Vrai ou faux',
                             'task' => "Dix affirmations : juste ou faux. Le document est entendu deux fois.",
+                            'ecoutes' => 2,
                             'type' => 'true-false', 'items' => 10, 'source' => 'officiel'],
                         ['part' => 2, 'name' => 'Hören, Aufgabe 2', 'name_fr' => 'Grille d\'informations',
                             'task' => "Compléter ou cocher trente informations dans une grille. Le document n'est entendu qu'une seule fois.",
+                            'ecoutes' => 1,
                             'type' => 'table-completion', 'items' => 30, 'source' => 'officiel'],
                     ],
                     'exercise_types' => ['true-false', 'table-completion'],
@@ -606,9 +629,11 @@ return [
                             'type' => 'short-answer', 'items' => 5, 'source' => 'officiel'],
                         ['part' => 2, 'name' => 'Hören, Aufgabe 2', 'name_fr' => 'Choix multiple',
                             'task' => "Dix questions à choix multiple sur un document en trois parties, entendu une seule fois.",
+                            'ecoutes' => 1,
                             'type' => 'mcq', 'items' => 10, 'source' => 'officiel'],
                         ['part' => 3, 'name' => 'Hören, Aufgabe 3', 'name_fr' => 'Prise de notes',
                             'task' => "Compléter dix informations dans les notes d'un exposé, entendu deux fois.",
+                            'ecoutes' => 2,
                             'type' => 'note-completion', 'items' => 10, 'source' => 'officiel'],
                     ],
                     'exercise_types' => ['short-answer', 'mcq', 'note-completion'],

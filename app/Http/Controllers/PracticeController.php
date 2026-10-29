@@ -183,6 +183,10 @@ class PracticeController extends Controller
             'prochain' => ['pourquoi' => app(\App\Services\Content\ProchainExercice::class)
                 ->pour($user, $exam, $niveau)['pourquoi']],
             'examParts' => $parties,
+            // D'OU VIENT CE QU'ON AFFIRME. L'ecran annonce « detail officiel »
+            // sur chaque partie verifiee ; dire quel document l'atteste, et
+            // quand il a ete lu, separe une reference d'une affirmation.
+            'attestation' => $structure->attestation($exam, $niveau),
             // Les types qui ne reproduisent AUCUNE partie de l'epreuve : utiles
             // pour progresser, mais il faut le dire plutot que de les melanger
             // aux parties officielles.
