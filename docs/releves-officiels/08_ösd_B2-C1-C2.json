@@ -1,0 +1,386 @@
+{
+ "examen": "ÖSD — Österreichisches Sprachdiplom Deutsch (niveaux B2, C1, C2 vérifiés)",
+ "sources": [
+  "https://osd.at/downloads/ (page de téléchargement officielle, consultée le 2026-10-28)",
+  "https://www.osd.at/wp-content/uploads/2023/09/ZB2-Durchfuhrungsbestimmungen_10_2023.pdf (Durchführungsbestimmungen ÖSD Zertifikat B2, Stand: Oktober 2023)",
+  "https://osd.at/wp-content/uploads/2026/08/ZB2-Modellsatz.zip → « ZB2 Modellsatz HP.pdf » (Modellsatz ÖSD Zertifikat B2, édition 2026/08)",
+  "https://www.osd.at/wp-content/uploads/2023/09/ZC1-Durchfuhrungsbestimmungen_10_2023.pdf (Durchführungsbestimmungen ÖSD Zertifikat C1, Stand: Oktober 2023)",
+  "https://osd.at/wp-content/uploads/2026/08/ZC1_Modellsatz.zip → « ZC1 Modellsatz HP.pdf » (Modellsatz ÖSD Zertifikat C1, édition 2026/08)",
+  "https://osd.at/wp-content/uploads/2026/09/ZC2-Durchfuehrungsbestimmungen_08_2026.pdf (Durchführungsbestimmungen ÖSD Zertifikat C2, Stand: August 2026)",
+  "https://osd.at/wp-content/uploads/2026/08/ZC2_Modellsatz.zip → « ZC2 Modellsatz HP.pdf » (Modellsatz ÖSD Zertifikat C2, édition 2026/08)",
+  "https://osd.at/wp-content/uploads/2026/09/ZC2-WD-Durchfuehrungsbestimmungen_10_2026.pdf (Durchführungsbestimmungen ÖSD Zertifikat C2 / Wirtschaftssprache Deutsch)",
+  "https://osd.at/wp-content/uploads/2026/08/ZB2-Modellsatz-Homepage-LV.pdf (Modellsatz B2, cahier LESEN)",
+  "https://osd.at/wp-content/uploads/2026/08/ZC1-Modellsatz-Homepage-LV.pdf (Modellsatz C1, cahier LESEN)",
+  "https://osd.at/wp-content/uploads/2026/08/ZC2-Modellsatz-Homepage-LV.pdf (Modellsatz C2, cahier LESEN)"
+ ],
+ "niveaux": [
+  {
+   "niveau": "B2",
+   "verifie": true,
+   "duree_totale_min": 230,
+   "points_total": 100,
+   "seuil_reussite": "60 % par module : Schriftliche Prüfung 42/70, Mündliche Prüfung 18/30",
+   "modules": [
+    {
+     "nom": "Schriftliche Prüfung – Subtest LESEN",
+     "minutes": 90,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Lesen, Aufgabe 1",
+       "type_tache": "Mehrfachauswahl (A/B/C)",
+       "items": 5,
+       "citation": "Lesen Sie zuerst den Text auf Blatt 1 und lösen Sie dann die 5 Aufgaben, indem Sie die richtige Antwort (A oder B oder C) markieren. / maximale Anzahl richtiger Lösungen: 5 – maximale Punktezahl: 5"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Lesen, Aufgabe 2",
+       "type_tache": "Zuordnung (Überschriften zu Texten)",
+       "items": 5,
+       "citation": "Lesen Sie die 10 Überschriften auf Blatt 1 und die 5 Texte auf Blatt 2. ... Pro Text gibt es nur eine richtige Lösung. / maximale Anzahl richtiger Lösungen: 5"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Lesen, Aufgabe 3",
+       "type_tache": "Textrekonstruktion (abgeschnittener rechter Rand, max. 3 Buchstaben)",
+       "items": 20,
+       "citation": "Rekonstruieren Sie den Text, indem Sie die fehlenden Wörter bzw. Wortteile an den rechten Rand ... schreiben. Es gibt für jede Lücke eine Lösung mit maximal 3 Buchstaben. / maximale Anzahl richtiger Lösungen: 20 – maximale Punktezahl: 5"
+      },
+      {
+       "numero": 4,
+       "nom_officiel": "Lesen, Aufgabe 4",
+       "type_tache": "Lückentext, freie Ergänzung (ein Wort pro Lücke)",
+       "items": 10,
+       "citation": "ergänzen Sie die fehlenden Wörter (1 – 10) ... Es gibt für jede Lücke eine Lösung mit einem Wort. / maximale Anzahl richtiger Lösungen: 10 – maximale Punktezahl: 5"
+      }
+     ]
+    },
+    {
+     "nom": "Schriftliche Prüfung – Subtest HÖREN",
+     "minutes": 30,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Hören, Aufgabe 1",
+       "type_tache": "Richtig/Falsch",
+       "items": 10,
+       "citation": "Lesen Sie die folgenden Aussagen und kreuzen Sie jeweils die richtige Lösung an. Sie hören den Text zwei Mal. (R= richtig / F= falsch) / maximale Anzahl richtiger Lösungen: 10 – maximale Punktezahl: 10"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Hören, Aufgabe 2",
+       "type_tache": "Informationsraster ergänzen bzw. ankreuzen (Text nur ein Mal)",
+       "items": 30,
+       "citation": "« ergänzen Sie entweder die fehlenden Informationen oder kreuzen Sie die entsprechenden Kästchen ... an. Sie hören den Text ein Mal. » — le nombre d'items n'est pas donné par partie ; il se déduit de « Im Subtest HÖREN gibt es 40 Items » (DB B2, 4.2) moins les 10 items de l'Aufgabe 1"
+      }
+     ]
+    },
+    {
+     "nom": "Schriftliche Prüfung – Subtest SCHREIBEN",
+     "minutes": 90,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Schreiben, Aufgabe 1",
+       "type_tache": "Freies Schreiben : Beschwerde-E-Mail (formell)",
+       "items": 0,
+       "citation": "Schreiben Sie nun ein Beschwerde-E-Mail an die Jobbörse, in dem Sie auf alle Ihre Notizen eingehen. (15 Punkte)"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Schreiben, Aufgabe 2",
+       "type_tache": "Freies Schreiben : Stellungnahme/Meinung (zwei Themen zur Wahl)",
+       "items": 0,
+       "citation": "Aufgaben zu SCHREIBEN (Aufgabe 1–2, für Aufgabe 2 jeweils zwei Themen zur Wahl) ; « Schreiben Sie nun Ihre Meinung dazu und gehen Sie dabei auf die folgenden vier Punkte ein » (15 Punkte)"
+      }
+     ]
+    },
+    {
+     "nom": "Mündliche Prüfung – SPRECHEN",
+     "minutes": 20,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Sprechen, Aufgabe 1 | Jemanden kennenlernen und beraten",
+       "type_tache": "Gespräch (Rollensituation), ca. 5 Minuten",
+       "items": 0,
+       "citation": "Aufgabe 1 | Jemanden kennenlernen und beraten – ca. 5 Minuten (Vorbereitungszeit: 15 Minuten, 30 Punkte)"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Sprechen, Aufgabe 2 | Ein Bild/Foto beschreiben und interpretieren",
+       "type_tache": "Bildbesprechung (Wahl aus drei Bildern), ca. 5 Minuten pro TN",
+       "items": 0,
+       "citation": "Aufgabe 2 | Ein Bild/Foto beschreiben und interpretieren – ca. 5 Minuten pro TN ; « Sie bekommen bei der Prüfung drei Bilder vorgelegt. Wählen Sie eines aus »"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Sprechen, Aufgabe 3 | Meinungsaustausch",
+       "type_tache": "Diskussion/Meinungsaustausch (Rolle von Person 1 vertreten), ca. 5 Minuten",
+       "items": 0,
+       "citation": "Aufgabe 3 | Meinungsaustausch – ca. 5 Minuten"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "niveau": "C1",
+   "verifie": true,
+   "duree_totale_min": 240,
+   "points_total": 100,
+   "seuil_reussite": "60 % par module : Schriftliche Prüfung 42/70, Mündliche Prüfung 18/30",
+   "modules": [
+    {
+     "nom": "Schriftliche Prüfung – Subtest LESEN",
+     "minutes": 90,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Lesen, Aufgabe 1",
+       "type_tache": "Mehrfachauswahl (A, B oder C)",
+       "items": 5,
+       "citation": "Lösen Sie die folgenden Aufgaben, indem Sie die richtige Antwort (A, B oder C) ankreuzen / maximale Anzahl richtiger Lösungen: 5 – maximale Punktezahl: 5"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Lesen, Aufgabe 2",
+       "type_tache": "Zuordnung (Überschriften A–K zu 5 Texten)",
+       "items": 5,
+       "citation": "Lesen Sie die 10 Überschriften auf Blatt 1 und die 5 Texte auf Blatt 2. Ordnen Sie dann den Texten (1 – 5) die passende Überschrift (A – K) zu / maximale Anzahl richtiger Lösungen: 5"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Lesen, Aufgabe 3",
+       "type_tache": "Abschnitte einfügen (gapped text, A–G)",
+       "items": 5,
+       "citation": "fügen Sie die Abschnitte A – G (Blatt 2) an der richtigen Stelle (1 – 5) im Text ein / maximale Anzahl richtiger Lösungen: 5"
+      },
+      {
+       "numero": 4,
+       "nom_officiel": "Lesen, Aufgabe 4",
+       "type_tache": "Lückentext, freie Ergänzung (ein Wort pro Lücke)",
+       "items": 15,
+       "citation": "ergänzen Sie die fehlenden Wörter (1 – 15) ... Es gibt für jede Lücke eine Lösung mit einem Wort / maximale Anzahl richtiger Lösungen: 15 – maximale Punktezahl: 5"
+      }
+     ]
+    },
+    {
+     "nom": "Schriftliche Prüfung – Subtest HÖREN",
+     "minutes": 40,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Hören, Aufgabe 1",
+       "type_tache": "Richtig/Falsch (Radiosendung)",
+       "items": 10,
+       "citation": "Sie hören jetzt eine Radiosendung. Lesen Sie die folgenden Aussagen und kreuzen Sie jeweils die richtige Lösung an / maximale Anzahl richtiger Lösungen: 10 – maximale Punktezahl: 10"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Hören, Aufgabe 2",
+       "type_tache": "Notizen ergänzen (Vortrag)",
+       "items": 10,
+       "citation": "Sie hören nun einen Vortrag. Hören Sie gut zu und ergänzen Sie während des Hörens die Notizen / maximale Anzahl richtiger Lösungen: 10 – maximale Punktezahl: 10"
+      }
+     ]
+    },
+    {
+     "nom": "Schriftliche Prüfung – Subtest SCHREIBEN",
+     "minutes": 90,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Schreiben, Aufgabe 1",
+       "type_tache": "Freies Schreiben : E-Mail-Antwort (formell, auf Notizen gestützt)",
+       "items": 0,
+       "citation": "Situation: Sie haben sich telefonisch für ein Seminar angemeldet und erhalten nun ein E-Mail der ... (Aufgabe 1, max. 15 Punkte)"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Schreiben, Aufgabe 2",
+       "type_tache": "Freies Schreiben : Stellungnahme, mind. 250 Wörter (drei Themen zur Wahl)",
+       "items": 0,
+       "citation": "Aufgaben zu SCHREIBEN (Aufgabe 1–2, für Aufgabe 2 jeweils drei Themen zur Wahl) ; « Schreiben Sie nun für ein Seminar eine Stellungnahme. Schreiben Sie mindestens 250 Wörter »"
+      }
+     ]
+    },
+    {
+     "nom": "Mündliche Prüfung – SPRECHEN",
+     "minutes": 20,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Sprechen, Aufgabe 1 | Sich am Telefon entschuldigen und etwas aushandeln",
+       "type_tache": "Telefongespräch simulieren / aushandeln, ca. 5 Minuten",
+       "items": 0,
+       "citation": "Aufgabe 1 | Sich am Telefon entschuldigen und etwas aushandeln – ca. 5 Minuten ; « In Aufgabe 1 simulieren Prüfungsteilnehmende/-r und Interlokutor/-in ein Telefongespräch »"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Sprechen, Aufgabe 2 | Diskutieren, Argumentieren, Überzeugen",
+       "type_tache": "Diskussion/Argumentation, ca. 5 Minuten",
+       "items": 0,
+       "citation": "Aufgabe 2 | Diskutieren, Argumentieren, Überzeugen ; « Aufgabe 1 und 2 dauern je circa 5 Minuten »"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Sprechen, Aufgabe 3 | Kurzreferat zu einem vorgegebenen Thema",
+       "type_tache": "Kurzreferat (Monolog) mit anschließenden Fragen, ca. 10 Minuten",
+       "items": 0,
+       "citation": "Aufgabe 3 | Kurzreferat zu einem vorgegebenen Thema ; « Aufgabe 3 dauert circa 10 Minuten »"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "niveau": "C2",
+   "verifie": true,
+   "duree_totale_min": 225,
+   "points_total": 160,
+   "seuil_reussite": "60 % par module : 24/40 points dans chacun des quatre modules",
+   "modules": [
+    {
+     "nom": "Modul LESEN",
+     "minutes": 90,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Lesen, Aufgabe 1",
+       "type_tache": "Mehrfachauswahl (A, B oder C)",
+       "items": 5,
+       "citation": "Lösen Sie die folgenden Aufgaben, indem Sie die richtige Antwort ... / maximale Anzahl richtiger Lösungen: 5 – maximale Punktezahl: 10"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Lesen, Aufgabe 2",
+       "type_tache": "Abschnitte einfügen (gapped text, A–G)",
+       "items": 5,
+       "citation": "fügen Sie die Abschnitte A – G (Blatt 2) an der richtigen Stelle (1 – 5) im Text ein / maximale Anzahl richtiger Lösungen: 5 – maximale Punktezahl: 10"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Lesen, Aufgabe 3",
+       "type_tache": "Fehlerkorrektur in einer Presseaussendung (max. ein Fehler pro Zeile)",
+       "items": 10,
+       "citation": "Der Text enthält 10 Fehler (zusätzlich zu den zwei Beispielen). Markieren Sie die Fehler im Text und schreiben Sie die richtige Form ... / maximale Anzahl richtiger Lösungen: 10 – maximale Punktezahl: 10"
+      },
+      {
+       "numero": 4,
+       "nom_officiel": "Lesen, Aufgabe 4",
+       "type_tache": "Textrekonstruktion (abgeschnittener rechter Rand)",
+       "items": 20,
+       "citation": "Rekonstruieren Sie den Text, indem Sie die fehlenden Wörter bzw. Wortteile an den rechten Rand schreiben / maximale Anzahl richtiger Lösungen: 20 – maximale Punktezahl: 10"
+      }
+     ]
+    },
+    {
+     "nom": "Modul HÖREN",
+     "minutes": 40,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Hören, Aufgabe 1",
+       "type_tache": "Falsche Informationen korrigieren (Nachricht)",
+       "items": 5,
+       "citation": "Sie hören nun eine Nachricht. Korrigieren Sie während des Hörens die 5 falschen Informationen / maximale Anzahl richtiger Lösungen: 5 – maximale Punktezahl: 15"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Hören, Aufgabe 2",
+       "type_tache": "Mehrfachauswahl (A, B oder C), Text in drei Abschnitten, nur ein Mal gehört",
+       "items": 10,
+       "citation": "Der Text ist in drei Abschnitte gegliedert. Lesen Sie die folgenden Aussagen und kreuzen Sie jeweils die richtige Lösung (A, B oder C) an. Sie hören den Text ein Mal. / maximale Anzahl richtiger Lösungen: 10 – maximale Punktezahl: 13"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Hören, Aufgabe 3",
+       "type_tache": "Notizen ergänzen (Vortrag, zwei Mal gehört)",
+       "items": 10,
+       "citation": "Sie hören nun einen Vortrag ... ergänzen Sie während des Hörens die entsprechenden Notizen. Sie hören den Text zwei Mal. / maximale Anzahl richtiger Lösungen: 10 – maximale Punktezahl: 12"
+      }
+     ]
+    },
+    {
+     "nom": "Modul SCHREIBEN",
+     "minutes": 75,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Schreiben, Aufgabe 1",
+       "type_tache": "Freies Schreiben : formeller Text/E-Mail aus Vorlage (max. 18 Punkte)",
+       "items": 0,
+       "citation": "Im Modul SCHREIBEN können in Aufgabe 1 maximal 18 Punkte und in Aufgabe 2 maximal 22 Punkte bzw. insgesamt maximal 40 Punkte erreicht werden."
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Schreiben, Aufgabe 2",
+       "type_tache": "Freies Schreiben : Textsorte zu einem von zwei Themen (max. 22 Punkte)",
+       "items": 0,
+       "citation": "Aufgaben zu SCHREIBEN (Aufgabe 1–2; für Aufgabe 2 jeweils zwei Themen zur Wahl)"
+      }
+     ]
+    },
+    {
+     "nom": "Modul SPRECHEN",
+     "minutes": 20,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Sprechen, Aufgabe 1",
+       "type_tache": "Beratungsgespräch / Telefongespräch simulieren",
+       "items": 0,
+       "citation": "In Aufgabe 1 simulieren Prüfungsteilnehmende/-r und Interlokutor/-in ein Telefongespräch ; « Situation: Sie unterrichten an der Sprachschule Kommunika in Biel »"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Sprechen, Aufgabe 2",
+       "type_tache": "Präsentation/Kurzvortrag (zwei Themen zur Wahl)",
+       "items": 0,
+       "citation": "Aufgaben zu SPRECHEN (Aufgabe 1–3; für Aufgabe 2 jeweils zwei Themen zur Wahl)"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Sprechen, Aufgabe 3",
+       "type_tache": "Fragen beantworten / die eigene Position verteidigen",
+       "items": 0,
+       "citation": "Situation: Im Anschluss an Ihre Präsentation werden Ihnen Fragen gestellt. Verteidigen Sie Ihre Position ... (Gesprächszeit: 15 – 20 Minuten; 40 Punkte)"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "ecarts": [
+  "Variantes à préciser dans la config : B2 = ÖSD Zertifikat B2 (ZB2, adultes et jeunes, variante générale — ni ZB2/J ni ZB2/PMB) ; C1 = ZC1 général (ni ZC1/J ni ZC1/PMB) ; C2 = ZC2 général. Nos chiffres C2 ne doivent pas être confondus avec ZC2/Wirtschaftssprache Deutsch, qui est un examen distinct à 2 modules et 160 points avec SCHREIBEN en 90 minutes.",
+  "Nombre de modules faux en B2 et C1 : l'ÖSD n'a que DEUX modules à ces niveaux (« besteht aus zwei Modulen » : Schriftliche Prüfung avec les subtests LESEN/HÖREN/SCHREIBEN, et Mündliche Prüfung). Nous encodons 4 modules indépendants. Seul le C2 a bien quatre modules (« Die Prüfung ÖSD Zertifikat C2 besteht aus vier Modulen »).",
+  "Barème faux : nous mettons section_max = 100 et max_score = 100 partout. Réel B2/C1 : LESEN 20, HÖREN 20, SCHREIBEN 30, SPRECHEN 30 (= 100 au total, écrit 70 / oral 30). Réel C2 : 40 points par module, 160 au total — notre 'total' => 100 est faux pour le C2.",
+  "Seuil de réussite mal modélisé : ce n'est pas 60 % par subtest mais 60 % par module : B2/C1 « von 70 Punkten mindestens 42 Punkte » à l'écrit et « von 30 Punkten mindestens 18 Punkte » à l'oral ; C2 « von 40 Punkten mindestens 24 Punkte » par module.",
+  "B2 LESEN : task_count = 4 mais seulement 3 parties déclarées dans 'parts' — l'Aufgabe 4 (Lückentext à un mot, 10 items) manque. Le front n'en affiche donc que 3.",
+  "B2 LESEN Aufgabe 2 : décrite chez nous comme « Opinions croisées / associer des affirmations aux textes ». En réalité c'est une Zuordnung d'Überschriften : 10 titres pour 5 textes.",
+  "B2 LESEN Aufgabe 3 : typée 'gapped-text' (« replacer les passages retirés d'un texte »). En réalité c'est une reconstruction de marge droite coupée, solutions de 3 lettres maximum, 20 items — rien à voir avec un gapped text. Le gapped text (Abschnitte A–G) n'existe qu'en C1 (Aufgabe 3) et C2 (Aufgabe 2).",
+  "B2 HÖREN Aufgabe 1 : typée 'mcq'. En réalité Richtig/Falsch, 10 items, texte entendu deux fois.",
+  "B2 HÖREN Aufgabe 2 : typée 'matching' (« débat, dire qui exprime quoi »). En réalité un Informationsraster à compléter / cocher (tableau de bibliothèques), texte entendu UNE seule fois, 30 items.",
+  "B2 SCHREIBEN : ordre inversé. Aufgabe 1 = Beschwerde-E-Mail (courriel formel), Aufgabe 2 = Stellungnahme/Meinung avec deux thèmes au choix. Nous avons 'essay' en 1 et 'letter-email-writing' en 2.",
+  "B2 SCHREIBEN : la rubrique à 4 critères x 25 points est une invention de notre côté ; l'ÖSD note 15 points maximum par tâche (30 au total) sur le Auswertungsbogen.",
+  "B2 SPRECHEN : les trois tâches sont fausses. Officiel : 1) Jemanden kennenlernen und beraten, 2) Ein Bild/Foto beschreiben und interpretieren (5 min par candidat), 3) Meinungsaustausch. Nous avons exposé / discussion / négociation — la Bildbesprechung, signature du B2, n'apparaît dans aucune partie alors que l'en-tête du fichier la revendique.",
+  "B2 SPRECHEN : 15 min de préparation (Vorbereitungszeit) non encodées ; durée officielle 20 min en binôme, 15 min en individuel (notre commentaire « 20–25 min en binôme » n'est pas dans la source).",
+  "C1 HÖREN : ordre des types inversé. Officiel : Aufgabe 1 = Richtig/Falsch sur une Radiosendung (10 items), Aufgabe 2 = Notizen ergänzen sur un Vortrag (10 items). Nous avons 'note-completion' en 1 et 'mcq' en 2.",
+  "C1 SCHREIBEN Aufgabe 2 : trois thèmes au choix (« für Aufgabe 2 jeweils drei Themen zur Wahl ») et minimum 250 mots — non encodés.",
+  "C1 SPRECHEN : tâches 1 et 3 fausses. Officiel : 1) Sich am Telefon entschuldigen und etwas aushandeln (ca. 5 min), 2) Diskutieren/Argumentieren/Überzeugen (ca. 5 min), 3) Kurzreferat (ca. 10 min). Nous avons exposé / discussion / débat, donc l'exposé est placé en 1 au lieu de 3 et la négociation téléphonique manque. Préparation : 20 minutes.",
+  "C2 SCHREIBEN : durée fausse — 75 minutes officielles (« SCHREIBEN 75 Minuten »), nous mettons 90. D'où un total de 225 minutes et non 240.",
+  "C2 LESEN : types des parties 3 et 4 faux. Aufgabe 3 = Fehlerkorrektur dans une Presseaussendung (10 fautes, une par ligne) ; Aufgabe 4 = reconstruction de marge droite (20 items). Nous avons 'gapped-text' puis 'open-cloze'. Le gapped text est en Aufgabe 2.",
+  "C2 HÖREN : Aufgabe 1 n'est pas une 'note-completion' mais la correction de 5 informations fausses dans une Nachricht (15 points) ; Aufgabe 3 n'est pas du 'matching' mais des Notizen ergänzen sur un Vortrag. Seule l'Aufgabe 2 (Mehrfachauswahl) est juste, et il faut noter qu'elle n'est entendue qu'une fois.",
+  "Aucun nombre d'items n'est renseigné dans la config alors que l'ÖSD les publie pour LESEN et HÖREN : B2 Lesen 5/5/20/10 (40 items, 20 pts) et Hören 10 + 30 (40 items) ; C1 Lesen 5/5/5/15 (30 items) et Hören 10/10 (20 items) ; C2 Lesen 5/5/10/20 (40 items) et Hören 5/10/10 (25 items).",
+  "Les barèmes par tâche ne sont pas linéaires et ne sont pas modélisés : en C2 Lesen, 5 bonnes réponses = 10 points, 4 = 8, 3 = 6… et en C2 Hören les trois tâches valent 15, 13 et 12 points."
+ ],
+ "non_trouve": [
+  "Le nombre d'items de l'Aufgabe 2 de HÖREN en B2 (30) n'est pas publié partie par partie : il est déduit du total officiel de 40 items moins les 10 items de l'Aufgabe 1. À confirmer sur l'Auswertungsbogen.",
+  "Les intitulés officiels des tâches de SCHREIBEN (B2, C1, C2) et de SPRECHEN en C2 ne portent pas de titre normalisé dans le Modellsatz (contrairement au B2 oral) : les libellés rapportés sont les « Situation » du Modellsatz, pas des noms officiels de tâches.",
+  "Aucun nombre d'items n'est publié pour SCHREIBEN ni SPRECHEN à aucun niveau (notation par critères) : items=0 partout, conformément à la consigne.",
+  "Je n'ai pas vérifié les variantes ZB2/J, ZB2/PMB, ZB2/Österreich, ZC1/J, ZC1/PMB ni ZC2/WD en détail : seules les variantes générales ZB2, ZC1, ZC2 ont été lues. Les chiffres C2/WD cités (2 modules, 160 points, Schreiben 90 min) viennent de ses Durchführungsbestimmungen mais sa structure complète n'a pas été relevée.",
+  "Je n'ai pas revérifié les niveaux A1, A2 et B1 déjà encodés : hors périmètre de cette demande, donc je ne me prononce pas sur eux.",
+  "Aucune modification n'a été apportée aux fichiers de configuration : ce travail est un relevé de vérification. Les fichiers config/exams/goethe.php et config/exams/telc.php étaient déjà modifiés avant mon intervention."
+ ]
+}

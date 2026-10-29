@@ -1,0 +1,271 @@
+{
+ "examen": "Goethe-Zertifikat (Goethe-Institut) — niveaux A1 (Start Deutsch 1) et A2 adultes",
+ "sources": [
+  "https://www.goethe.de/pro/relaunch/prf/materialien/A1_sd1/sd_1_modellsatz.pdf — Goethe-Zertifikat A1 Start Deutsch 1, MODELLSATZ, 8. Auflage, © Goethe-Institut Februar 2024",
+  "https://www.goethe.de/pro/relaunch/prf/en/Pruefungsziele_Testbeschreibung_A1_SD1.pdf — Goethe-Zertifikat A1 Start Deutsch 1, Prüfungsziele · Testbeschreibung, 4. aktualisierte Auflage © 2022 (ISBN 978-3-939670-76-6, filigrane VS_08_190422)",
+  "https://www.goethe.de/pro/relaunch/prf/materialien/A2/A2_Modellsatz_Erwachsene.pdf — Goethe-Zertifikat A2, MODELLSATZ ERWACHSENE, édition marquée Vs5.1_050525 (05.05.2025)"
+ ],
+ "niveaux": [
+  {
+   "niveau": "A1",
+   "verifie": true,
+   "duree_totale_min": 80,
+   "points_total": 100,
+   "seuil_reussite": "60 points sur 100 (60 % du total), et tous les modules doivent avoir été passés — ce n'est PAS 60 % par module",
+   "modules": [
+    {
+     "nom": "Hören",
+     "minutes": 20,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Kurze Alltagsgespräche",
+       "type_tache": "dreigliedrige, bildunterstützte Mehrfachwahlaufgabe",
+       "items": 6,
+       "citation": "\"Zu jedem Hörtext gibt es eine dreigliedrige, bildunterstützte Mehrfachwahlaufgabe.\" (Testbeschreibung, Hören Teil 1) ; le Modellsatz 2024 numérote les items 1 à 6 dans le Teil 1"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Öffentliche Lautsprecherdurchsagen",
+       "type_tache": "Richtig/Falsch",
+       "items": 4,
+       "citation": "\"Zu jedem Hörtext ist zu entscheiden: richtig oder falsch?\" (Testbeschreibung, Hören Teil 2) ; Modellsatz 2024 : \"Teil 2  Kreuzen Sie an: Richtig oder Falsch.\" avec les items 7 à 10"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Telefonansagen",
+       "type_tache": "dreigliedrige Mehrfachwahlaufgabe",
+       "items": 5,
+       "citation": "\"Zu jedem Hörtext gibt es eine dreigliedrige Mehrfachwahlaufgabe.\" (Testbeschreibung, Hören Teil 3) ; Modellsatz 2024 : items 11 à 15"
+      }
+     ]
+    },
+    {
+     "nom": "Lesen",
+     "minutes": 25,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Kurznotizen",
+       "type_tache": "Richtig/Falsch",
+       "items": 5,
+       "citation": "\"Teil 1  Lesen Sie die beiden Texte und die Aufgaben 1 bis 5. Kreuzen Sie an: Richtig oder Falsch.\" (Modellsatz 2024)"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Kleinanzeigen",
+       "type_tache": "Mehrfachauswahl zweigliedrig (a oder b), pas une Zuordnung",
+       "items": 5,
+       "citation": "\"Teil 2  Lesen Sie die Texte und die Aufgaben 6 bis 10. Wo finden Sie Informationen? Kreuzen Sie an: a oder b.\" (Modellsatz 2024) ; \"Die Teilnehmenden müssen jeweils entscheiden, welche der beiden vorgegebenen Anzeigen zu der Situation passt.\" (Testbeschreibung)"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Hinweisschilder/Aushänge",
+       "type_tache": "Richtig/Falsch",
+       "items": 5,
+       "citation": "\"Zu fünf sehr kurzen Texten müssen die Teilnehmenden entscheiden, ob die jeweilige Aussage dazu richtig oder falsch ist.\" (Testbeschreibung, Lesen Teil 3)"
+      }
+     ]
+    },
+    {
+     "nom": "Schreiben",
+     "minutes": 20,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Formular ausfüllen",
+       "type_tache": "Formular: fehlende Daten ergänzen (5 Felder, 1 Punkt pro Feld)",
+       "items": 5,
+       "citation": "\"In einem Formular (Anmeldung, Bestellung etc.) sollen an fünf Stellen fehlende Daten ergänzt werden.\" et \"In Teil 1 bekommen die Prüfungsteilnehmenden für jedes richtig ausgefüllte Feld einen Punkt, d. h. insgesamt maximal 5 Punkte.\" (Testbeschreibung)"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Kurzmitteilung",
+       "type_tache": "Freies Schreiben (3 Leitpunkte, ca. 30 Wörter)",
+       "items": 0,
+       "citation": "\"Die Prüfungsteilnehmenden schreiben eine Kurzmitteilung (eine Entschuldigung als Kurznotiz oder E-Mail etc.) anhand von drei Leitpunkten. Der Umfang der geforderten Texte liegt bei etwa 30 Wörtern.\" (Testbeschreibung)"
+      }
+     ]
+    },
+    {
+     "nom": "Sprechen",
+     "minutes": 15,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Sich vorstellen",
+       "type_tache": "Freies Sprechen (Gruppenprüfung, max. 4 Teilnehmende, keine Vorbereitungszeit)",
+       "items": 0,
+       "citation": "\"Teil 1  Sich vorstellen.\" (Modellsatz 2024) ; \"Die mündliche Prüfung wird als Gruppenprüfung mit maximal vier Prüfungsteilnehmenden durchgeführt. Es gibt keine Vorbereitungszeit.\" (Testbeschreibung)"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Um Informationen bitten und Informationen geben",
+       "type_tache": "Freies Sprechen, Karten zu 2 Themen",
+       "items": 0,
+       "citation": "\"Teil 2  Um Information bitten und Informationen geben (zu 2 Themen)\" (Modellsatz 2024, Prüferblätter)"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Bitten formulieren und darauf reagieren",
+       "type_tache": "Freies Sprechen, Bildkarte",
+       "items": 0,
+       "citation": "\"Teil 3  Bitten formulieren und darauf reagieren\" (Modellsatz 2024)"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "niveau": "A2",
+   "verifie": true,
+   "duree_totale_min": 105,
+   "points_total": 100,
+   "seuil_reussite": "60 sur 100 (60 %), mais réparti autrement : au moins 45 des 75 points pour Lesen+Hören+Schreiben pris ensemble, ET au moins 15 des 25 points pour Sprechen",
+   "modules": [
+    {
+     "nom": "Lesen",
+     "minutes": 30,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Informationen und Argumentationen in Medientexten verstehen",
+       "type_tache": "Mehrfachauswahl, 3-gliedrig",
+       "items": 5,
+       "citation": "\"Lesen | 1 | Informationen und Argumentationen in Medientexten verstehen | Mehrfachauswahl, 3-gliedrig | 5 | 30 Minuten\" (Prüfungsteile im Überblick) ; \"Wählen Sie für die Aufgaben 1 bis 5 die richtige Lösung a, b oder c.\""
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Informationstafeln, Veranstaltungsprogramme etc. verstehen",
+       "type_tache": "Mehrfachauswahl, 3-gliedrig",
+       "items": 5,
+       "citation": "\"2 | Informationstafeln, Veranstaltungsprogramme etc. verstehen | Mehrfachauswahl, 3-gliedrig | 5\" (Prüfungsteile im Überblick)"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Korrespondenz verstehen",
+       "type_tache": "Mehrfachauswahl, 3-gliedrig",
+       "items": 5,
+       "citation": "\"3 | Korrespondenz verstehen | Mehrfachauswahl, 3-gliedrig | 5\" ; \"Wählen Sie für die Aufgaben 11 bis 15 die richtige Lösung a, b oder c.\""
+      },
+      {
+       "numero": 4,
+       "nom_officiel": "Anzeigen verstehen",
+       "type_tache": "Zuordnen",
+       "items": 5,
+       "citation": "\"4 | Anzeigen verstehen | Zuordnen | 5\" ; \"Lesen Sie die Aufgaben 16 bis 20 und die Anzeigen a bis f.\""
+      }
+     ]
+    },
+    {
+     "nom": "Hören",
+     "minutes": 30,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Informationen im Radio, auf dem Anrufbeantworter, bei Durchsagen verstehen",
+       "type_tache": "Mehrfachauswahl, 3-gliedrig",
+       "items": 5,
+       "citation": "\"Hören | 1 | Informationen im Radio, auf dem Anrufbeantworter, bei Durchsagen verstehen | Mehrfachauswahl, 3-gliedrig | 5\" ; \"Wählen Sie für die Aufgaben 1 bis 5 die richtige Lösung a, b oder c.\""
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Ein zusammenhängendes Gespräch verstehen",
+       "type_tache": "Zuordnen Bild/Text",
+       "items": 5,
+       "citation": "\"2 | Ein zusammenhängendes Gespräch verstehen | Zuordnen Bild/Text | 5 | 30 Minuten\" ; \"Wählen Sie für die Aufgaben 6 bis 10 ein passendes Bild aus a bis i.\""
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Einzelgespräche verstehen",
+       "type_tache": "Mehrfachauswahl, 3-gliedrig",
+       "items": 5,
+       "citation": "\"3 | Einzelgespräche verstehen | Mehrfachauswahl, 3-gliedrig | 5\" ; \"Wählen Sie für die Aufgaben 11 bis 15 die richtige Lösung a, b oder c.\""
+      },
+      {
+       "numero": 4,
+       "nom_officiel": "Ein Radiointerview verstehen",
+       "type_tache": "Richtig/Falsch (consigne au candidat : Ja/Nein)",
+       "items": 5,
+       "citation": "\"4 | Ein Radiointerview verstehen | Richtig/Falsch | 5\" ; \"Wählen Sie für die Aufgaben 16 bis 20 Ja oder Nein.\""
+      }
+     ]
+    },
+    {
+     "nom": "Schreiben",
+     "minutes": 30,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Interaktion: persönliche Mitteilung zur Kontaktpflege schreiben",
+       "type_tache": "Freies Schreiben",
+       "items": 0,
+       "citation": "\"Schreiben | 1 | Interaktion: persönliche Mitteilung zur Kontaktpflege schreiben | Freies Schreiben\" ; \"Sie sind unterwegs in der Stadt und schreiben eine SMS an Ihre Freundin Ekaterini.\""
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Interaktion: halb offizielle Mitteilung zur Handlungsregulierung schreiben",
+       "type_tache": "Freies Schreiben",
+       "items": 0,
+       "citation": "\"2 | Interaktion: halb offizielle Mitteilung zur Handlungsregulierung schreiben | Freies Schreiben\" ; \"Dieser Prüfungsteil hat zwei Teile: Sie schreiben eine SMS und eine E-Mail.\""
+      }
+     ]
+    },
+    {
+     "nom": "Sprechen",
+     "minutes": 15,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Interaktion: Informationen zur Person mit einem Partner/einer Partnerin austauschen",
+       "type_tache": "Freies Sprechen",
+       "items": 0,
+       "citation": "\"Sprechen | 1 | Interaktion: Informationen zur Person mit einem Partner/einer Partnerin austauschen | Freies Sprechen\" ; \"Sie bekommen vier Karten und stellen mit diesen Karten vier Fragen.\""
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Produktion: dem/der Prüfenden ausführlich nähere Informationen zum eigenen Leben geben",
+       "type_tache": "Freies Sprechen",
+       "items": 0,
+       "citation": "\"2 | Produktion: dem/der Prüfenden ausführlich nähere Informationen zum eigenen Leben geben | Freies Sprechen\""
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Interaktion: mit einem Partner/einer Partnerin eine Unternehmung planen und aushandeln",
+       "type_tache": "Freies Sprechen",
+       "items": 0,
+       "citation": "\"3 | Interaktion: mit einem Partner/einer Partnerin eine Unternehmung planen und aushandeln | Freies Sprechen\" ; durée : \"15 Minuten pro 2 Teilnehmende\""
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "ecarts": [
+  "A1 Lesen Teil 2 : nous encodons type='matching' (« Choisir, pour chaque situation, l'annonce qui convient »). Le document officiel décrit un choix binaire entre DEUX annonces : « Wo finden Sie Informationen? Kreuzen Sie an: a oder b. » — c'est une Mehrfachauswahl à deux options, pas une Zuordnung. Le libellé FR est à peu près juste, le type technique est faux.",
+  "A1, aucun 'items' renseigné sur les 11 parties. Officiel : Hören 6 / 4 / 5 (et non 5 / 5 / 5 comme on pourrait supposer), Lesen 5 / 5 / 5, Schreiben Teil 1 = 5 champs de formulaire, Teil 2 = 0 (production libre), Sprechen = 0.",
+  "A1 : l'ordre réel des modules est Hören, puis Lesen, puis Schreiben (Lesen et Schreiben forment un bloc écrit continu de 45 minutes), puis Sprechen. Notre tableau 'sections' commence par lesen, donc l'ordre affiché est faux.",
+  "A1 : nous séparons Lesen (25 min) et Schreiben (20 min) en deux épreuves indépendantes. Le Modellsatz les présente comme un seul cahier « Lesen Schreiben — circa 45 Minuten », avec les 25 et 20 minutes seulement indicatives à l'intérieur. Les durées par module sont bonnes, la logique de passation ne l'est pas.",
+  "A1 Schreiben Teil 2 : notre barème implicite 25 points par module est juste, mais la répartition interne officielle est 5 points pour le formulaire et 10 points pour la Kurzmitteilung (3 points par Inhaltspunkt + 1 point de Textsortenspezifik), soit 15 points pour Schreiben avant pondération — à vérifier côté notation si on affiche des points.",
+  "A2 Lesen Teil 1 : nous encodons type='true-false' (« juger des affirmations vraies ou fausses »). Officiel : « Mehrfachauswahl, 3-gliedrig », 5 items — « Wählen Sie für die Aufgaben 1 bis 5 die richtige Lösung a, b oder c. » FAUX.",
+  "A2 Lesen Teil 2 : nous encodons type='matching' / « Petites annonces ». Officiel : « Informationstafeln, Veranstaltungsprogramme etc. verstehen », Mehrfachauswahl 3-gliedrig, 5 items. FAUX de type ET d'objectif.",
+  "A2 Lesen Teil 4 : le type 'matching' est bon (Zuordnen), mais l'objectif est faux : nous disons « Associer des opinions courtes aux textes qui les portent », l'officiel dit « Anzeigen verstehen » — on associe 5 situations à des annonces a–f.",
+  "A2 Hören Teil 1 : nous encodons type='true-false' (« messages courts, vrai ou faux »). Officiel : Mehrfachauswahl 3-gliedrig, 5 items, « Informationen im Radio, auf dem Anrufbeantworter, bei Durchsagen verstehen ». FAUX.",
+  "A2 Hören Teil 2 : nous encodons type='mcq' (« Une conversation du quotidien : choisir la bonne réponse »). Officiel : « Zuordnen Bild/Text » — « Wählen Sie für die Aufgaben 6 bis 10 ein passendes Bild aus a bis i. » FAUX : c'est une association à des images.",
+  "A2 Hören Teil 3 : nous encodons type='matching' (« Plusieurs échanges courts : associer chacun à sa situation »). Officiel : « Einzelgespräche verstehen », Mehrfachauswahl 3-gliedrig, 5 items. FAUX.",
+  "A2 Hören Teil 4 : type 'true-false' acceptable (le tableau officiel dit Richtig/Falsch) mais la consigne réelle donnée au candidat est « Ja oder Nein » — c'est le libellé qu'il faut afficher.",
+  "A2, aucun 'items' renseigné sur les 13 parties. Officiel : 5 items pour chacune des 4 parties de Lesen et des 4 parties de Hören (20 + 20), 0 pour Schreiben et Sprechen.",
+  "A2 : 13 parties chez nous contre 13 officielles (4+4+2+3) — le compte est bon, c'est le contenu des parties qui dérive.",
+  "A2 : notre scoring global dit pass_mark 60 avec 'section_max' 25 par module. Le document officiel impose deux seuils distincts : au moins 45 des 75 points pour Lesen+Hören+Schreiben pris ensemble, et au moins 15 des 25 points pour Sprechen. Ce n'est donc pas « 60 % par module » comme le commentaire d'en-tête de config/exams/goethe.php l'affirme (« pass mark 60% per module ») — cette ligne est fausse pour A2 comme pour A1.",
+  "A2 Sprechen : la durée 15 minutes est correcte mais elle vaut « 15 Minuten pro 2 Teilnehmende » (épreuve en binôme). À A1 c'est une épreuve de groupe de 4 maximum sans temps de préparation. Rien de cela n'est encodé.",
+  "A1 et A2 : les durées par module et les durées totales (80 et 105 minutes) sont confirmées exactes. Le nombre de parties (11 et 13) est confirmé exact. Les trois parties de Sprechen A2 encodées chez nous correspondent exactement aux trois objectifs officiels."
+ ],
+ "non_trouve": [
+  "Je n'ai pas trouvé de « Prüfungsziele / Testbeschreibung » publié pour le Goethe-Zertifikat A2 adultes : le tableau A2 vient du Modellsatz Erwachsene (édition Vs5.1_050525), qui affirme lui-même « Der vorliegende Modellsatz entspricht in Aufgabentypen, Zahl der Aufgaben und Zeitvorgaben der Prüfung ». C'est donc une source officielle, mais pas le manuel de description.",
+  "Dans le tableau A2 « Prüfungsteile im Überblick », la colonne « Zeit » est typographiquement décalée (les mentions « 30 Minuten » et « 15 Minuten pro 2 Teilnehmende » glissent entre les lignes). J'ai recoupé chaque durée avec les pages Kandidatenblätter du même PDF (Lesen 30, Hören 30, Schreiben 30, Sprechen circa 15 für zwei) : c'est cohérent, mais la lecture du tableau seul est ambiguë.",
+  "Le A1 Modellsatz (8e édition, février 2024) ne contient pas de tableau « im Überblick ». Les types de tâches A1 viennent de la Testbeschreibung, dont l'édition lue est la 4e, 2022 — plus ancienne que le Modellsatz. Si le Goethe-Institut a révisé A1 depuis 2022, je ne l'ai pas vu.",
+  "Le découpage 6 / 4 / 5 des items de A1 Hören est déduit de la numérotation des questions du Modellsatz 2024 (1-6, 7-10, 11-15). Aucun tableau officiel ne publie ce découpage noir sur blanc ; la Testbeschreibung ne donne que le total de 15.",
+  "Je n'ai vérifié que A1 et A2. Les niveaux B1, B2, C1, C2 présents dans config/exams/goethe.php n'ont pas été contrôlés dans cette passe.",
+  "Je n'ai PAS appliqué de correction aux fichiers. config/exams/goethe.php et config/exams/telc.php étaient déjà modifiés (non commités) avant mon intervention ; l'étape qui m'a été confiée était la vérification documentaire, pas l'écriture."
+ ]
+}

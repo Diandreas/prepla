@@ -1,0 +1,245 @@
+{
+ "examen": "telc Deutsch — niveaux C1 (version générale, ni Hochschule ni Beruf) et C2",
+ "sources": [
+  "https://shop.telc.net/media/catalog/product/file/5029B00030101BiB.pdf — telc Deutsch C1, Übungstest 3, © telc gGmbH 2019, page 5 « Testformat telc Deutsch C1 » (version GÉNÉRALE)",
+  "https://shop.telc.net/media/catalog/product/file/5029B00020101BiB.pdf — telc Deutsch C1, Übungstest 2, © telc gGmbH 2017, page 5 « Testformat » + pages 14-15 (Sprachbausteine, consignes réelles)",
+  "https://shop.telc.net/media/catalog/product/file/5002B00010101bib.pdf — telc Deutsch C2, Übungstest 1 (= Modelltest), page 5 « Testformat telc Deutsch C2 » + page 6 Leseverstehen Teil 1",
+  "https://www.telc.net/fileadmin/user_upload/pdfs/Handbuch_und_Tipps_fuer_Pruefungsvorbereitung/Deutsch_c2_Handbuch.pdf — Handbuch telc Deutsch C2, chap. 5 « Das Prüfungsformat von telc Deutsch C2 » (barème par tâche)",
+  "https://shop.telc.net/media/catalog/product/file/5002T00010101bib.pdf — telc Deutsch C2, Tipps zur Prüfungsvorbereitung (extrait : Leseverstehen 80 min, Hörverstehen und Schreiben 60 min)"
+ ],
+ "niveaux": [
+  {
+   "niveau": "C1",
+   "verifie": true,
+   "duree_totale_min": 216,
+   "points_total": 0,
+   "seuil_reussite": "",
+   "modules": [
+    {
+     "nom": "Leseverstehen",
+     "minutes": 90,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Leseverstehen, Teil 1 — Textrekonstruktion",
+       "type_tache": "Zuordnungsaufgaben",
+       "items": 6,
+       "citation": "« 1 Textrekonstruktion | 6 Zuordnungsaufgaben | 12 » (Testformat telc Deutsch C1, Übungstest 3, p. 5)"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Leseverstehen, Teil 2 — Selektives Verstehen",
+       "type_tache": "Zuordnungsaufgaben",
+       "items": 6,
+       "citation": "« 2 Selektives Verstehen | 6 Zuordnungsaufgaben | 12 » (p. 5) ; consigne réelle p. 8 : « In welchem Textabsatz a–e finden Sie die Antworten auf die Fragen 7–12? »"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Leseverstehen, Teil 3 — Detailverstehen",
+       "type_tache": "Aufgaben richtig/falsch/nicht im Text",
+       "items": 11,
+       "citation": "« 3 Detailverstehen | 11 Aufgaben richtig/falsch/nicht im Text | 22 » (p. 5)"
+      },
+      {
+       "numero": 4,
+       "nom_officiel": "Leseverstehen — Globalverstehen (Makroaufgabe, rattachée au Teil 3)",
+       "type_tache": "Makroaufgabe",
+       "items": 1,
+       "citation": "« Globalverstehen | 1 Makroaufgabe | 2 » (p. 5)"
+      }
+     ]
+    },
+    {
+     "nom": "Sprachbausteine (Grammatik und Lexik)",
+     "minutes": 0,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Sprachbausteine — Grammatik und Lexik",
+       "type_tache": "4er-Mehrfachwahlaufgaben",
+       "items": 22,
+       "citation": "« 2 Sprachbausteine / Grammatik und Lexik | 22 4er-Mehrfachwahlaufgaben | 22 » (p. 5) ; consigne réelle Übungstest 2 p. 14 : « Welche Lösung (a, b, c oder d) ist jeweils richtig? … für die Aufgaben 25–46 »"
+      }
+     ]
+    },
+    {
+     "nom": "Hörverstehen",
+     "minutes": 40,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Hörverstehen, Teil 1 — Globalverstehen",
+       "type_tache": "Zuordnungsaufgaben",
+       "items": 8,
+       "citation": "« 1 Globalverstehen | 8 Zuordnungsaufgaben | 8 » (p. 5)"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Hörverstehen, Teil 2 — Detailverstehen",
+       "type_tache": "3er-Mehrfachwahlaufgaben",
+       "items": 10,
+       "citation": "« 2 Detailverstehen | 10 3er-Mehrfachwahlaufgaben | 20 » (p. 5)"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Hörverstehen, Teil 3 — Informationstransfer",
+       "type_tache": "Informationen ergänzen",
+       "items": 10,
+       "citation": "« 3 Informationstransfer | 10 Informationen ergänzen | 20 » (p. 5)"
+      }
+     ]
+    },
+    {
+     "nom": "Schriftlicher Ausdruck",
+     "minutes": 70,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Schriftlicher Ausdruck — Text schreiben",
+       "type_tache": "Freies Schreiben (Erörterung, Stellungnahme etc.)",
+       "items": 0,
+       "citation": "« 4 Schriftlicher Ausdruck / Text schreiben | Erörterung, Stellungnahme etc. | 48 | 70 » (p. 5)"
+      }
+     ]
+    },
+    {
+     "nom": "Mündlicher Ausdruck",
+     "minutes": 16,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Mündlicher Ausdruck, Teil 1A — Präsentation",
+       "type_tache": "Vortrag (Paarprüfung / Prüfungsgespräch mit zwei oder drei Teilnehmenden)",
+       "items": 0,
+       "citation": "« 1A Präsentation | Prüfungsgespräch mit zwei oder drei Teilnehmenden | 6 » (Übungstest 3 p. 5) ; Übungstest 2 écrit « Paarprüfung »"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Mündlicher Ausdruck, Teil 1B — Zusammenfassung / Anschlussfragen",
+       "type_tache": "Zusammenfassung und Anschlussfragen",
+       "items": 0,
+       "citation": "« 1B Zusammenfassung/Anschlussfragen | 4 … 6 » (p. 5)"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Mündlicher Ausdruck, Teil 2 — Diskussion",
+       "type_tache": "Diskussion",
+       "items": 0,
+       "citation": "« 2 Diskussion … Punkte für sprachliche Angemessenheit | 32 | 48 | 16 » (p. 5)"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "niveau": "C2",
+   "verifie": true,
+   "duree_totale_min": 245,
+   "points_total": 0,
+   "seuil_reussite": "",
+   "modules": [
+    {
+     "nom": "Leseverstehen",
+     "minutes": 80,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Leseverstehen, Teil 1 — Textlogik verstehen",
+       "type_tache": "Textanschlussaufgaben (remettre 5 paragraphes dans l'ordre)",
+       "items": 5,
+       "citation": "« 1 Textlogik verstehen | 5 Textanschlussaufgaben | 10 » (Testformat telc Deutsch C2, Übungstest 1, p. 5) ; consigne p. 6 : « Lesen Sie die Abschnitte z–e und sortieren Sie sie in der richtigen Reihenfolge. »"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Leseverstehen, Teil 2 — Detailverstehen",
+       "type_tache": "3er-Mehrfachwahlaufgaben",
+       "items": 10,
+       "citation": "« 2 Detailverstehen | 10 3er-Mehrfachwahlaufgaben | 10 » (p. 5) ; Handbuch : « 1 Punkt pro Item (10 Punkte) »"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Leseverstehen, Teil 3 — Detailverstehen / Implizites Verstehen",
+       "type_tache": "Zuordnungsaufgaben",
+       "items": 10,
+       "citation": "« 3 Detailverstehen/Implizites Verstehen | 10 Zuordnungsaufgaben | 20 » (p. 5) ; Handbuch : « 2 Punkte pro Item (20 Punkte) »"
+      }
+     ]
+    },
+    {
+     "nom": "Hörverstehen und Schreiben",
+     "minutes": 60,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Hörverstehen und Schreiben — Informationstransfer",
+       "type_tache": "Zusammenfassung schreiben (Freies Schreiben à partir d'un document entendu)",
+       "items": 0,
+       "citation": "« 1 Informationstransfer | Zusammenfassung schreiben | 40 | 60 » (p. 5) ; Tipps : « Sie hören einen längeren Hörtext (ca. 15 Minuten) … Für das Verfassen der Zusammenfassung haben Sie weitere 45 Minuten Zeit. »"
+      }
+     ]
+    },
+    {
+     "nom": "Schriftlicher Ausdruck",
+     "minutes": 90,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Schriftlicher Ausdruck — Text schreiben",
+       "type_tache": "Freies Schreiben (Erörterung, Stellungnahme etc.)",
+       "items": 0,
+       "citation": "« 3 Schriftlicher Ausdruck | 1 Text schreiben | Erörterung, Stellungnahme etc. | 40 | 90 » (p. 5) ; note p. 6 : « Die Lesetexte werden Ihnen auch für den Subtest „Schriftlicher Ausdruck“ als Quellentexte zur Verfügung stehen. »"
+      }
+     ]
+    },
+    {
+     "nom": "Mündlicher Ausdruck",
+     "minutes": 15,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Mündlicher Ausdruck, Teil 1 — Vortrag",
+       "type_tache": "Vortrag (Einzelprüfung)",
+       "items": 0,
+       "citation": "« 1 Vortrag | 8 | 6–8 » et « Einzelprüfung » (p. 5)"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Mündlicher Ausdruck, Teil 2 — Vertiefendes Gespräch",
+       "type_tache": "Dialog (réponses aux questions des examinateurs puis discussion)",
+       "items": 0,
+       "citation": "« 2 Vertiefendes Gespräch | 8 | 7–9 » (p. 5) ; Handbuch : « Der Teilnehmer bzw. die Teilnehmerin antwortet auf Prüferfragen und diskutiert mit den Prüfern bzw. Prüferinnen weiter über das Thema des Vortrags. | Dialog »"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "ecarts": [
+  "C1 — DE QUELLE VERSION JE PARLE : j'ai lu les Übungstests 2 (2017) et 3 (2019) de telc Deutsch C1, la version GÉNÉRALE. Les versions « Hochschule » (réf. 5032) et « Beruf » (réf. 5038/5016) existent et ont leur propre Testformat ; je ne les ai pas vérifiées. Notre fiche doit donc dire « telc Deutsch C1 » tout court.",
+  "C1 Sprachbausteine — ERREUR LA PLUS GRAVE : nous encodons `open-cloze` (texte à trous sans propositions, un mot par trou). Le document officiel dit « 22 4er-Mehrfachwahlaufgaben » et la consigne réelle est « Welche Lösung (a, b, c oder d) ist jeweils richtig? ». C'est un QCM à QUATRE options, 22 items (Aufgaben 25–46), 22 points. Donc : type `mcq-cloze` à 4 options, pas open-cloze.",
+  "C1 Leseverstehen, Teil 1 — nous encodons `matching-headings` (associer des titres). L'officiel dit « Textrekonstruktion | 6 Zuordnungsaufgaben ». C'est une reconstruction de texte (replacer des passages retirés), pas un appariement de titres.",
+  "C1 Leseverstehen, Teil 2 — nous encodons `mcq`. L'officiel dit « Selektives Verstehen | 6 Zuordnungsaufgaben » et la consigne de l'Übungstest 3 est « In welchem Textabsatz a–e finden Sie die Antworten auf die Fragen 7–12? ». C'est un appariement questions/paragraphes, 6 items. Aucun QCM dans le Leseverstehen C1.",
+  "C1 Leseverstehen, Teil 3 — nous encodons `gapped-text`. L'officiel dit « Detailverstehen | 11 Aufgaben richtig/falsch/nicht im Text », 22 points. C'est un vrai/faux/non mentionné à TROIS options, 11 items. Notre `gapped-text` appartient en réalité au Teil 1.",
+  "C1 Leseverstehen — IL MANQUE UNE PARTIE : le tableau officiel ajoute une ligne « Globalverstehen | 1 Makroaufgabe | 2 » (1 item, 2 points, rattachée au texte du Teil 3). Nous ne l'encodons pas du tout : 48 points au total pour le Leseverstehen, dont ces 2 points.",
+  "C1 Hörverstehen, Teil 1 — nous encodons `true-false`. L'officiel dit « Globalverstehen | 8 Zuordnungsaufgaben | 8 » : un appariement, 8 items. Contrairement au B1/B2, le Hörverstehen du C1 ne contient AUCUN vrai/faux.",
+  "C1 Hörverstehen, Teil 2 et 3 — corrects : « 10 3er-Mehrfachwahlaufgaben » (QCM à 3 options, 10 items, 20 pts) et « 10 Informationen ergänzen » (note-completion, 10 items, 20 pts). Nos items ne sont simplement pas renseignés.",
+  "C1 Mündlicher Ausdruck, Teil 3 — nous encodons `negotiation` (« Planifier ensemble », se mettre d'accord). Ça n'existe pas au C1. L'officiel a 1A Präsentation (6 pts), 1B Zusammenfassung/Anschlussfragen (4 + 6 pts) et 2 Diskussion ; 32 points vont à la « sprachliche Angemessenheit », pour 48 points et 16 minutes. Donc la 3e partie est un résumé + questions de suivi, et la discussion est la dernière.",
+  "C1 Mündlicher Ausdruck — contexte : l'Übungstest 3 dit « Prüfungsgespräch mit zwei oder drei Teilnehmenden » (2 OU 3 candidats), l'Übungstest 2 dit « Paarprüfung ». Notre description « généralement à deux candidats » est donc trop étroite.",
+  "C1 durées — correctes : 90 min pour Leseverstehen + Sprachbausteine ensemble (notre découpage 70+20 reste de notre fait, telc ne publie pas de durée séparée pour les Sprachbausteine), ca. 40 min Hörverstehen, 70 min Schriftlicher Ausdruck, 16 min Mündlicher Ausdruck, 20 min de Vorbereitungszeit. Total 216 min : conforme. S'y ajoute une Pause de 20 min non comptée chez nous.",
+  "C2 — nombre de parties : 7 au total (3 + 1 + 1 + 2) et 4 modules. Notre structure est juste sur ce point.",
+  "C2 Lesen — L'ORDRE DES TROIS PARTIES EST FAUX chez nous. Officiel : Teil 1 = Textlogik verstehen (5 Textanschlussaufgaben, 10 pts : remettre 5 paragraphes dans l'ordre), Teil 2 = Detailverstehen (10 3er-Mehrfachwahlaufgaben, 10 pts), Teil 3 = Detailverstehen/Implizites Verstehen (10 Zuordnungsaufgaben, 20 pts). Chez nous : T1 mcq, T2 matching, T3 gapped-text — soit l'ordre inversé, le QCM mis en premier au lieu du deuxième.",
+  "C2 Lesen Teil 1 — notre `gapped-text` (« replacer les passages retirés ») n'est pas la bonne tâche : il s'agit de REMETTRE DANS L'ORDRE cinq paragraphes (« Lesen Sie die Abschnitte z–e und sortieren Sie sie in der richtigen Reihenfolge »), noté 2 points par enchaînement correct. C'est un type à part, pas un texte lacunaire.",
+  "C2 Schriftlicher Ausdruck — information manquante chez nous : les textes du Leseverstehen servent de textes sources pour l'expression écrite (« Die Lesetexte werden Ihnen auch für den Subtest „Schriftlicher Ausdruck“ als Quellentexte zur Verfügung stehen »). Notre `integrated-writing` est donc le bon type, mais la dépendance au module Lesen n'est pas encodée.",
+  "C2 Sprechen, Teil 2 — nous encodons `oral-debate` (« Défendre un point de vue face à son interlocuteur »). L'officiel dit « Vertiefendes Gespräch », un dialogue où le candidat répond aux questions des examinateurs et prolonge la discussion sur le thème de son exposé. Ce n'est pas un débat contradictoire.",
+  "C2 Sprechen — c'est une EINZELPRÜFUNG (un seul candidat, mention « Einzelprüfung » au tableau), avec Teil 1 Vortrag 6–8 min et Teil 2 Vertiefendes Gespräch 7–9 min, 15 min au total. Notre durée de 15 min est bonne, mais nous ne disons pas que l'examen est individuel ni que chaque partie a sa propre fourchette de temps.",
+  "C2 durées — correctes : 80 / 60 / 90 / 15 min, total 245. S'y ajoutent une Pause de 20 min et 20 min de Vorbereitungszeit, non comptées chez nous.",
+  "BARÈME — notre fichier applique un total de 300 points et `section_max` 100 à tous les niveaux. C'est faux pour ces deux niveaux. Officiel C1 : Leseverstehen 48, Sprachbausteine 22, Hörverstehen 48, Schriftlicher Ausdruck 48, Mündlicher Ausdruck 48. Officiel C2 : 40 points par module, pour les quatre. Nos `scoring_weight` (25/15/25/15/20) ne correspondent donc pas aux pondérations réelles du C1 ni du C2."
+ ],
+ "non_trouve": [
+  "Le total général de points et le seuil de réussite ne figurent PAS dans les documents que j'ai pu lire : la page « Punkte und Gewichtung » de l'Übungstest C2 (p. 44) et les pages de barème de l'Übungstest C1 ne sont pas dans les PDF publics (ce sont des extraits). Je laisse donc points_total=0 et seuil_reussite vide plutôt que de reprendre le « 60 % » que notre fichier affiche aujourd'hui. Ce qui est publié, et seulement cela : la somme des points par partie, soit 214 au C1 (48+22+48+48+48) et 160 au C2 (4 × 40).",
+  "Le détail des critères de notation du Mündlicher Ausdruck C1 (répartition des 6/4/6/32 points entre les parties et la « sprachliche Angemessenheit ») est lisible mais la mise en page du tableau est brouillée à l'extraction ; je n'affirme pas l'attribution exacte partie par partie.",
+  "telc Deutsch C1 Hochschule et telc Deutsch C1 Beruf : non vérifiés. Leurs Übungstests existent sur shop.telc.net (réf. 5032 et 5038) et leur Testformat diffère de la version générale. À faire dans une passe séparée si l'application prétend les couvrir.",
+  "Je n'ai vérifié QUE les niveaux C1 et C2 demandés. Les niveaux A1, A2, B1 et B2 du même fichier config/exams/telc.php n'ont pas été recontrôlés dans cette passe — et vu le taux d'erreur trouvé au C1, leurs types de tâches méritent la même vérification document en main.",
+  "Je n'ai modifié aucun fichier : ce travail est une vérification, les corrections de config/exams/telc.php restent à appliquer."
+ ]
+}

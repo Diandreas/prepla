@@ -1,0 +1,149 @@
+{
+ "examen": "Goethe-Zertifikat B2 (modulaire, version en vigueur depuis 2019)",
+ "sources": [
+  "https://www.goethe.de/pro/relaunch/prf/materialien/B2/b2_modellsatz_erwachsene.pdf (Modellsatz Erwachsene, mention de version interne « Vs1.5_160426 », Antwortbogen datés 02/2017, 01/2019 et 06/2018 — version modulaire : feuilles de réponses portant la mention « modular »)"
+ ],
+ "niveaux": [
+  {
+   "niveau": "B2",
+   "verifie": true,
+   "duree_totale_min": 195,
+   "points_total": 100,
+   "seuil_reussite": "60 points sur 100 par module, soit 60 %",
+   "modules": [
+    {
+     "nom": "Lesen",
+     "minutes": 65,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Lesen, Teil 1 — Einstellungen/Haltungen verstehen",
+       "type_tache": "Zuordnung (4 Texte)",
+       "items": 9,
+       "citation": "« 1 Einstellungen/Haltungen verstehen — Zuordnung 4 Texte » ; Antwortbogen Lesen : Teil 1 = items 1 à 9"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Lesen, Teil 2 — Informationen verstehen",
+       "type_tache": "Zuordnung (Sätze in Lücken)",
+       "items": 6,
+       "citation": "« Welche Sätze passen in die Lücken? Zwei Sätze passen nicht. » ; Antwortbogen : Teil 2 = items 10 à 15"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Lesen, Teil 3 — Informationen verstehen",
+       "type_tache": "Mehrfachauswahl (3-gliedrig MC)",
+       "items": 6,
+       "citation": "« 3 Informationen verstehen — Wahl (3-gliedrig MC) » ; Antwortbogen : Teil 3 = items 16 à 21, colonnes a b c"
+      },
+      {
+       "numero": 4,
+       "nom_officiel": "Lesen, Teil 4 — Standpunkte verstehen",
+       "type_tache": "Zuordnung (8 Überschriften)",
+       "items": 6,
+       "citation": "« 4 Standpunkte verstehen — Zuordnung 8 Texte » ; Antwortbogen : Teil 4 = items 22 à 27, colonnes a à h"
+      },
+      {
+       "numero": 5,
+       "nom_officiel": "Lesen, Teil 5 — Regeln/Instruktionen verstehen",
+       "type_tache": "Zuordnung (3 Absätze)",
+       "items": 3,
+       "citation": "« 5 Regeln/Instruktionen verstehen — Zuordnung 3 Absätze » ; Antwortbogen : Teil 5 = items 28 à 30"
+      }
+     ]
+    },
+    {
+     "nom": "Hören",
+     "minutes": 40,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Hören, Teil 1 — Alltagsgespräche verstehen",
+       "type_tache": "Wahl (2-gliedrig Richtig/Falsch) + Wahl (3-gliedrig MC)",
+       "items": 10,
+       "citation": "« Sie hören fünf Gespräche und Ansagen. Sie hören jeden Text einmal. Zu jedem Text lösen Sie zwei Aufgaben. » ; Antwortbogen Hören : Teil 1 = items 1 à 10, alternance Richtig/Falsch et a b c"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Hören, Teil 2 — Informationen verstehen",
+       "type_tache": "Mehrfachauswahl (3-gliedrig MC)",
+       "items": 6,
+       "citation": "« Lesen Sie jetzt die Aufgaben 11 bis 16. » (Interview, « Sie hören den Text zweimal »)"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Hören, Teil 3 — Aussagen verstehen",
+       "type_tache": "Zuordnung (Wer sagt das?)",
+       "items": 6,
+       "citation": "« Wählen Sie bei jeder Aufgabe: Wer sagt das? Lesen Sie jetzt die Aufgaben 17 bis 22. »"
+      },
+      {
+       "numero": 4,
+       "nom_officiel": "Hören, Teil 4 — Vorträge verstehen",
+       "type_tache": "Mehrfachauswahl (3-gliedrig MC)",
+       "items": 8,
+       "citation": "« Lesen Sie jetzt die Aufgaben 23 bis 30. » (Vortrag, « Sie hören den Text zweimal »)"
+      }
+     ]
+    },
+    {
+     "nom": "Schreiben",
+     "minutes": 75,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Schreiben, Teil 1 — Produktion / Meinungsäußerung verfassen",
+       "type_tache": "Freier Text (ca. 150 Wörter)",
+       "items": 0,
+       "citation": "« Teil 1 vorgeschlagene Arbeitszeit: 50 Minuten » / « Freier Text (150 Wörter) » / « Schreiben Sie circa 150 Wörter »"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Schreiben, Teil 2 — Interaktion Korrespondenz / Persönliche Mitteilung verfassen",
+       "type_tache": "Freier Text (ca. 100 Wörter)",
+       "items": 0,
+       "citation": "« Teil 2 vorgeschlagene Arbeitszeit: 25 Minuten » / « Freier Text (100 Wörter) » / « Schreiben Sie circa 100 Wörter »"
+      }
+     ]
+    },
+    {
+     "nom": "Sprechen",
+     "minutes": 15,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Sprechen, Teil 1 — Vortrag halten",
+       "type_tache": "Vorbereiteter Vortrag + Beantwortung von Nachfragen",
+       "items": 0,
+       "citation": "« Teil 1 Vortrag halten — Dauer für beide Teilnehmende: circa 8 Minuten » / « Sprechen Sie circa 4 Minuten »"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Sprechen, Teil 2 — Diskussion führen",
+       "type_tache": "Gespräch zu einer kontroversen Frage (Position argumentativ vertreten)",
+       "items": 0,
+       "citation": "« Teil 2 Diskussion führen — Dauer für beide Teilnehmende: circa 5 Minuten »"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "ecarts": [
+  "Lesen Teil 1 : nous encodions « Blog ou témoignage » en mcq. L'officiel est une Zuordnung sur 4 contributions de forum, 9 items. Corrigé en matching dans config/exams/goethe.php.",
+  "Lesen Teil 2 : nous encodions « Article de presse » en mcq. L'officiel est le texte à phrases à replacer (Sätze in Lücken, 2 distracteurs), 6 items. Corrigé en gapped-text.",
+  "Lesen Teil 3 : nous encodions true-false (« juger des affirmations »). L'officiel est Mehrfachauswahl 3-gliedrig, 6 items. Corrigé en mcq.",
+  "Lesen Teil 5 : nous encodions gapped-text (« replacer des passages »). L'officiel est une Zuordnung d'intitulés de sommaire à 3 paragraphes d'un règlement d'études, 3 items. Corrigé en matching.",
+  "Au total l'ordre de Lesen était faux de bout en bout : l'officiel est Zuordnung / phrases à replacer / MC / Zuordnung / Zuordnung, nous avions MC / MC / vrai-faux / Zuordnung / phrases à replacer.",
+  "Hören Teil 1 : nous ne décrivions qu'un vrai/faux. L'officiel combine, pour chacun des cinq extraits, une affirmation Richtig/Falsch ET une question MC à trois options, soit 10 items. Description corrigée (le type reste true-false, faute de type mixte dans notre nomenclature).",
+  "Barème Schreiben : nous avions l'ancien barème pré-2019 (Inhalt / Kommunikative Gestaltung / Formale Richtigkeit, 3 critères à 25 = 75 points). Le Modellsatz modulaire donne 4 critères : Aufgabenerfüllung, Kohärenz, Wortschatz, Strukturen. Corrigé, 4 x 25 = 100.",
+  "Aucun nombre d'items n'était renseigné : Lesen et Hören font 30 items chacun (9/6/6/6/3 et 10/6/6/8). Je n'ai pas ajouté de champ item_count car aucun niveau ni aucun code de l'application n'utilise une telle clé aujourd'hui : les comptes figurent désormais dans les descriptions et les libellés de tâche.",
+  "Ce qui était déjà juste : 4 modules, 13 parties (5+4+2+2), durées 65/40/75/15 min et total 195 min, 2 parties en Schreiben et en Sprechen."
+ ],
+ "non_trouve": [
+  "La page HTML goethe.de « Prüfungsteile im Überblick » renvoie un 403 depuis cet environnement : tout est vérifié sur le PDF Modellsatz Erwachsene hébergé par goethe.de, pas sur la page web.",
+  "Les Durchführungsbestimmungen B2 (règles d'organisation, durée exacte de la Einzelprüfung Sprechen, pondération des modules) n'ont pas été ouverts ici : les 10 minutes de l'épreuve individuelle de Sprechen ne sont donc PAS vérifiées, seul le « circa 15 Minuten » de la Paarprüfung l'est.",
+  "Le nombre d'items n'est pas publié pour Schreiben et Sprechen (notation par critères) : items=0 à dessein.",
+  "Je n'ai pas vérifié le Modellsatz Jugendliche B2, qui peut différer sur les thèmes."
+ ]
+}

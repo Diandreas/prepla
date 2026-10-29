@@ -1,0 +1,278 @@
+{
+ "examen": "Goethe-Zertifikat (Goethe-Institut) — niveaux C1 et C2 (Großes Deutsches Sprachdiplom)",
+ "sources": [
+  "https://www.goethe.de/pro/relaunch/prf/de/Handbuch_Pruefungsziele_Testbeschreibung_C1.pdf — Handbuch « Prüfungsziele · Testbeschreibung » Goethe-Zertifikat C1, © 2024 Goethe-Institut (format en vigueur depuis le 01.01.2024), 61 pages — lu intégralement (tableaux Abbildung 2, 10, 15, 23)",
+  "https://www.goethe.de/pro/relaunch/prf/es/Durchfuehrungsbestimmungen_C1.pdf — Durchführungsbestimmungen GOETHE-ZERTIFIKAT C1, Stand: 1. September 2025 — lu (§1.4 durées, §4.1/4.2 items, §6.2 seuil)",
+  "https://www.goethe.de/pro/relaunch/prf/de/Pruefungsziele_Testbeschreibung_C2.pdf — Prüfungsziele · Testbeschreibung Goethe-Zertifikat C2: GDS, version interne « Vers_09_170314 » — lu (ch. 2.1 durées, ch. 5.1–5.4 parties)",
+  "https://www.goethe.de/pro/relaunch/prf/materialien/C2/c2_modellsatz.pdf — Goethe-Zertifikat C2: GDS, MODELLSATZ (Kandidatenblätter + Antwortbögen, version Vs14_260326) — lu ; les Antwortbögen Lesen et Hören donnent les items et pondérations exactes",
+  "https://www.goethe.de/pro/relaunch/prf/materialien/C1/c1_modellsatz.pdf — Modellsatz C1 ANCIEN format, page de titre : « Diese Prüfung wird bis zum 31.12.2023 weltweit angeboten » — lu et ÉCARTÉ comme périmé",
+  "https://www.goethe.de/pro/relaunch/prf/materialien/C1/c1_uebungssatz.pdf — Übungssatz 03 C1, ANCIEN format (« bis zum 31.12.2023 ») — lu et écarté",
+  "https://www.goethe.de/pro/relaunch/prf/materialien/C1_modular/c1-modular_modellsatz.pdf — Modellsatz C1 modulaire (format actuel), téléchargé (28 Mo) ; structure recoupée via le Handbuch C1 2024"
+ ],
+ "niveaux": [
+  {
+   "niveau": "C1",
+   "verifie": true,
+   "duree_totale_min": 200,
+   "points_total": 100,
+   "seuil_reussite": "60 points / 60 % par module (100 points max par module) ; pour Lesen et Hören : 18 items corrects sur 30",
+   "modules": [
+    {
+     "nom": "Lesen",
+     "minutes": 65,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Lesen, Teil 1 — Text mit Wörtern rekonstruieren",
+       "type_tache": "Lückentext mit Multiple-Choice (4-gliedrig)",
+       "items": 8,
+       "citation": "« 1 Text mit Wörtern rekonstruieren | populärwissenschaftlicher, informativer Artikel | global, detailliert | Lückentext mit Multiple-Choice (4-gliedrig) | 8 » (Abbildung 10) ; corps du texte : « Der Text hat circa 320 Wörter und davon acht Lücken plus eine Lücke als Beispiel. Die Teilnehmer*innen lesen den Text und wählen aus vier Optionen die passendste für die Lücke. »"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Lesen, Teil 2 — Hauptaussagen und Einzelinformationen verstehen",
+       "type_tache": "Multiple-Choice (3-gliedrig)",
+       "items": 7,
+       "citation": "« 2 Hauptaussagen und Einzelinformationen verstehen | Artikel mit hohem Informationsgehalt | suchend, detailliert | Multiple-Choice (3-gliedrig) | 7 » (Abbildung 10)"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Lesen, Teil 3 — Text mit Sätzen rekonstruieren",
+       "type_tache": "Wahl (3-gliedrig) — réinsertion de phrases retirées (Kommentar oder Reportage)",
+       "items": 8,
+       "citation": "« 3 Text mit Sätzen rekonstruieren | Kommentar oder Reportage | rekonstruierend, global, detailliert | Wahl (3-gliedrig) | 8 » (Abbildung 10) ; corps : « Der Text ist circa 530 Wörter lang, mit herausgeschnittenen Sätzen », « empfohlene Arbeitszeit liegt bei 20 Minuten »"
+      },
+      {
+       "numero": 4,
+       "nom_officiel": "Lesen, Teil 4 — Meinung oder Aussage suchen, erkennen und verorten",
+       "type_tache": "Zuordnung",
+       "items": 7,
+       "citation": "« 4 Meinung oder Aussage suchen, erkennen und verorten | (populär-)wissenschaftliche Beiträge | suchend, detailliert | Zuordnung | 7 » (Abbildung 10) ; corps : « Sieben Aussagen sollen den drei Expertenbeiträgen ... zugeordnet werden. Zwei Aussagen passen nicht. »"
+      }
+     ]
+    },
+    {
+     "nom": "Hören",
+     "minutes": 40,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Hören, Teil 1 — Einzelinformationen in einer Sendung (Podcast) verstehen",
+       "type_tache": "Wahl (3-gliedrig) — attribution de 6 affirmations à 3 ouvrages (Buch 1 / 2 / 3), écouté une seule fois",
+       "items": 6,
+       "citation": "« 1 Einzelinformationen in einer Sendung (Podcast) verstehen | monologisch live, medial informativ | detailliert und selektiv | Wahl (3-gliedrig) | 6 » (Abbildung 15) ; corps : « Die Teilnehmer*innen hören den Podcast einmal ... ordnen sechs Aussagen jeweils den drei besprochenen Büchern ... zu »"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Hören, Teil 2 — Aussagen und Einzelinformationen verstehen",
+       "type_tache": "Wahl (3-gliedrig)",
+       "items": 9,
+       "citation": "« 2 Aussagen und Einzelinformationen verstehen | dialogisch Radio informativ | global und detailliert | Wahl (3-gliedrig) | 9 » (Abbildung 15)"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Hören, Teil 3 — Subjektive Aussagen und Meinungen verstehen",
+       "type_tache": "Wahl (3-gliedrig)",
+       "items": 8,
+       "citation": "« 3 Subjektive Aussagen und Meinungen verstehen | multilogisch Radio diskursiv | global und detailliert | Wahl (3-gliedrig) | 8 » (Abbildung 15)"
+      },
+      {
+       "numero": 4,
+       "nom_officiel": "Hören, Teil 4 — einen Vortrag verstehen",
+       "type_tache": "Wahl (3-gliedrig)",
+       "items": 7,
+       "citation": "« 4 einen Vortrag verstehen | monologisch live erklärend | selektiv und detailliert | Wahl (3-gliedrig) | 7 » (Abbildung 15) ; « Das Modul Hören besteht aus vier Teilen und umfasst circa 2300 Wörter sowie 30 Items. »"
+      }
+     ]
+    },
+    {
+     "nom": "Schreiben",
+     "minutes": 75,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Schreiben, Teil 1 — Produktion: einen Diskussionsbeitrag in einem Online-Forum verfassen",
+       "type_tache": "Freies Schreiben (production écrite libre, env. 230 mots)",
+       "items": 0,
+       "citation": "« Teil 1 vorgeschlagene Arbeitszeit: 50 Minuten » ; « Für das Internetforum Karriere & Beruf verfassen Sie einen Diskussionsbeitrag zu diesem Thema » ; « von circa 230 Wörtern bei einer empfohlenen Arbeitszeit von 50 Minuten »"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Schreiben, Teil 2 — Interaktion: Handlungsregulierung in (halb-)formellem Kontext",
+       "type_tache": "Freies Schreiben — E-Mail (halb-)formelle d'env. 120 mots, 4 Inhaltspunkte imposés",
+       "items": 0,
+       "citation": "« In Teil 2 geht es um Handlungsregulierung in einem (halb-)formellen Kontext ... Die Aufgabenstellung enthält als Schreibanlass eine Situation, eine*n Ansprechpartner*in sowie vier Inhaltspunkte ... Erwartet wird ein zusammenhängender Text in Form einer E-Mail von circa 120 Wörtern ... empfohlene Arbeitszeit für diesen Teil 25 Minuten. »"
+      }
+     ]
+    },
+    {
+     "nom": "Sprechen",
+     "minutes": 20,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Sprechen, Teil 1 — Vortrag halten (Produktion + brève interaction)",
+       "type_tache": "Mündlicher Vortrag + Fragen und Antworten",
+       "items": 0,
+       "citation": "« Teil 1 Vortrag halten — Dauer: circa 7 Minuten » ; « Sprechen Sie circa 5 Minuten und beantworten Sie danach Fragen. » ; Durchführungsbestimmungen : « Teil 1 dauert circa 7 Minuten pro PTN, Teil 2 circa 5 Minuten für beide Teilnehmende zusammen. »"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Sprechen, Teil 2 — Diskussion führen (Interaktion: Standpunkte vertreten, argumentieren)",
+       "type_tache": "Diskussion à partir d'un court Inputtext et de quatre Stichpunkte",
+       "items": 0,
+       "citation": "« Teil 2 Diskussion führen — Dauer für beide Teilnehmende: circa 5 Minuten » ; « Teilnehmer*innen diskutieren eine kontroverse Frage mit einem kurzen Inputtext und vier Stichpunkten » (Abbildung 23)"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "niveau": "C2",
+   "verifie": true,
+   "duree_totale_min": 210,
+   "points_total": 100,
+   "seuil_reussite": "60 points sur 100 par module, soit 60 % (« Um ein Modul zu bestehen, müssen mindestens 60 von maximal 100 Punkten erreicht werden; die Bestehensgrenze liegt bei 60 %. »)",
+   "modules": [
+    {
+     "nom": "Lesen",
+     "minutes": 80,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Lesen, Teil 1 — Verstehen von Meinungen und Einstellungen, Hauptaussagen, Einzelinformationen und impliziten Bedeutungen",
+       "type_tache": "Multiple-Choice (viergliedrig)",
+       "items": 10,
+       "citation": "« Zu dem Text werden elf Items (inkl. Beispiel) angeboten, bei denen die Teilnehmenden aus vier vorgegebenen Auswahlantworten diejenige auswählen müssen » ; Antwortbogen du Modellsatz : « Punkte Teil 1 (max. 10): x4 = 40 » ; « 25 Minuten Arbeitszeit »"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Lesen, Teil 2 — Verstehen der Hauptaussagen",
+       "type_tache": "Zuordnung",
+       "items": 6,
+       "citation": "« Die Teilnehmenden lesen neun Aussagen (inkl. Beispiel) zum Text und ordnen die Aussagen den jeweiligen Textabschnitten zu; zwei Aussagen passen nicht. » ; Antwortbogen : « Punkte Teil 2 (max. 6): x3 = 18 » ; « 20 Minuten Arbeitszeit »"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Lesen, Teil 3 — Erkennen der Textstruktur",
+       "type_tache": "Lückentext (réinsertion de passages de texte)",
+       "items": 6,
+       "citation": "« Der Text enthält sechs Lücken ... Die Teilnehmenden füllen die Lücken durch die Wahl des richtigen Textabschnitts aus ... Acht Textabschnitte (inkl. Beispiel) stehen zur Auswahl » ; Antwortbogen : « Punkte Teil 3 (max. 6): x3 = 18 » ; « 25 Minuten Arbeitszeit »"
+      },
+      {
+       "numero": 4,
+       "nom_officiel": "Lesen, Teil 4 — Schnelle, selektive Informationsentnahme",
+       "type_tache": "Zuordnung",
+       "items": 8,
+       "citation": "« Als Textvorlage dienen vier Lesetexte zu einem Thema ... die Teilnehmenden lesen zuerst die neun Aussagen (inkl. Beispiel) ... und die Aussagen den Texten zuzuordnen. » ; Antwortbogen : « Punkte Teil 4 (max. 8): x3 = 24 » ; « 10 Minuten Arbeitszeit »"
+      }
+     ]
+    },
+    {
+     "nom": "Hören",
+     "minutes": 35,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Hören, Teil 1 — Verstehen von Hauptaussagen und Einzelinformationen",
+       "type_tache": "Ja/Nein",
+       "items": 15,
+       "citation": "« Die Teilnehmenden hören fünf Texte von je 1 Minute bis 1,5 Minuten Dauer ... Zu jedem Text gibt es drei Aussagen ... kreuzen während des Hörens an, ob die Aussagen dem Textinhalt entsprechen oder nicht. Die Texte werden nur einmal gehört. » ; Antwortbogen : « ja / nein », items 1–15, « Punkte Teil 1 (max. 15): x2 = 30 »"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Hören, Teil 2 — Verstehen von Standpunkten und Meinungen",
+       "type_tache": "Zuordnung (Person 1 / Person 2 / beide)",
+       "items": 5,
+       "citation": "« Vor dem Hören lesen die Teilnehmenden sechs Aussagen (inkl. Beispiel) ... entscheiden die Teilnehmenden, ob die Meinungsäußerung nur von einem Sprecher stammt oder ob beide Sprecher in ihrer Meinung übereinstimmen. » ; Antwortbogen : « Person 1 | Person 2 | beide », items 16–20, « Punkte Teil 2 (max. 5): x4 = 20 »"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Hören, Teil 3 — Verstehen von Hauptaussagen, Einzelinformationen, Meinungen",
+       "type_tache": "Multiple-Choice (dreigliedrig)",
+       "items": 10,
+       "citation": "« Die Teilnehmenden hören ein Interview mit einem Experten von circa sieben Minuten Dauer ... Der Text wird zweimal gehört. Vor dem Hören lesen die Teilnehmenden elf Multiple-Choice-Items (inkl. Beispiel) ... aus drei vorgegebenen Auswahlantworten » ; Antwortbogen : items 21–30, « Punkte Teil 3 (max. 10): x5 = 50 »"
+      }
+     ]
+    },
+    {
+     "nom": "Schreiben",
+     "minutes": 80,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Schreiben, Teil 1 — Formulieren sprachlicher Varianten",
+       "type_tache": "Umformulierung / Textpassagen umschreiben (reformulation imposée avec mot-clé donné)",
+       "items": 10,
+       "citation": "« Als Textvorlage dient ein Ausschnitt aus einem schriftlichen Kurzreferat. Der Text hat eine Länge von circa 200 Wörtern. Die Teilnehmenden schreiben Textpassagen anhand von vorgegebenen Wörtern um; das vorgegebene Wort darf nicht verändert werden. » ; « 20 Minuten Arbeitszeit » ; « Jede richtige Lösung wird mit 2 Punkten bewertet » ; Modellsatz : passages (1) à (10)"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Schreiben, Teil 2 — Freies Schreiben",
+       "type_tache": "Freies Schreiben (env. 350 mots ; Leserbrief/Artikel OU Buchbesprechung ; 1 sujet au choix sur 4)",
+       "items": 0,
+       "citation": "« Die Teilnehmenden schreiben einen Text von circa 350 Wörtern Länge. Das Thema wählen sie aus vier Angeboten aus. Es gibt zwei freie Themen und zwei an die Lektüre literarischer Werke gebundene Themen. » ; « 60 Minuten Arbeitszeit »"
+      }
+     ]
+    },
+    {
+     "nom": "Sprechen",
+     "minutes": 15,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Sprechen, Teil 1 — Produktion",
+       "type_tache": "Mündlicher Vortrag (env. 5 min) + questions de l'examinateur",
+       "items": 0,
+       "citation": "« Die Teilnehmenden sollen zeigen, dass sie in der Lage sind, über ein komplexes Thema circa fünf Minuten zusammenhängend zu sprechen ... Dem Vortrag schließen sich Fragen der/des Prüfenden an » ; Modellsatz : « Teil 1 Dauer: circa 10 Minuten »"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Sprechen, Teil 2 — Interaktion (Diskussion)",
+       "type_tache": "Diskussion (dialogue spontané simulé avec l'examinateur, examen individuel)",
+       "items": 0,
+       "citation": "« Während die erste Aufgabe monologisch angelegt ist, simuliert die zweite Aufgabe eine Diskussion, die auf spontanes, partnerorientiertes dialogisches Sprechen ausgerichtet ist. » ; « Die mündliche Prüfung wird als Einzelprüfung durchgeführt. Dieses Modul dauert etwa 15 Minuten. » ; Modellsatz : « Teil 2 Dauer: circa 5 Minuten »"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "ecarts": [
+  "BON — C1 : nombre de modules (4), nombre de parties (4+4+2+2 = 12) et durées (65 / 40 / 75 / 20, total 200 min) sont exacts. Confirmé par Abbildung 2 du Handbuch 2024 et §1.4 des Durchführungsbestimmungen du 01.09.2025.",
+  "BON — C2 : nombre de modules (4), nombre de parties (4+3+2+2 = 11) et durées (80 / 35 / 80 / 15, total 210 min) sont exacts. Confirmé par ch. 2.1 : « Die schriftliche Prüfung dauert insgesamt drei Stunden und fünfzehn Minuten, die mündliche Prüfung circa 15 Minuten. »",
+  "MANQUE GÉNÉRAL — aucun nombre d'items n'est renseigné dans config/exams/goethe.php, alors que le Goethe les publie précisément. À saisir : C1 Lesen 8/7/8/7 (=30), C1 Hören 6/9/8/7 (=30), C2 Lesen 10/6/6/8 (=30), C2 Hören 15/5/10 (=30), C2 Schreiben Teil 1 = 10 items.",
+  "FAUX — C1 Lesen Teil 1 : nous encodons type 'gapped-text' / « Replacer dans un texte les passages qui en ont été retirés ». L'officiel est un 'Lückentext mit Multiple-Choice (4-gliedrig)' : 8 trous au niveau du MOT, quatre options chacun, texte de ~320 mots, 10 min. C'est notre Teil 3 qui correspond à la réinsertion de passages — les deux parties sont inversées.",
+  "FAUX — C1 Lesen Teil 3 : nous encodons 'matching' / « Opinions croisées : associer des affirmations aux textes ». L'officiel est « Text mit Sätzen rekonstruieren » : texte de ~530 mots dont des phrases ont été retirées, choix d'options, 8 items, 20 min. L'« association d'affirmations » est le Teil 4, pas le Teil 3.",
+  "FAUX — C1 Lesen Teil 4 : nous encodons 'open-cloze' / « Compléter un texte sans proposition : un mot par trou ». Cet exercice N'EXISTE PAS au C1 actuel. L'officiel est une 'Zuordnung' : 7 affirmations à attribuer à trois contributions d'experts (~430 mots), deux affirmations ne correspondent à rien, 15 min.",
+  "FAUX — C1 Hören, les 4 parties : le format officiel est 'Wahl (3-gliedrig)' (choix parmi trois) pour les quatre parties, sans exception. Nous encodons 'note-completion' en Teil 1 et Teil 3, et 'matching' en Teil 4. Le format « compléter des notes » n'existe nulle part au Goethe C1 — c'est un format telc/ÖSD/TestDaF.",
+  "FAUX — C1 Hören, nature des documents : notre ordre est conversation / entretien / exposé universitaire / débat. L'officiel est Teil 1 podcast monologique (médiatique, informatif), Teil 2 dialogue radio informatif, Teil 3 discussion radio multilogique, Teil 4 Vortrag (exposé monologique explicatif). Notre Teil 4 « débat » et notre Teil 3 « exposé » sont donc échangés.",
+  "FAUX — C1 Hören, nombre d'écoutes : non encodé chez nous, et c'est discriminant. Officiel : « Eine Hälfte der Aufnahmen wird nur einmal gehört (Teil 1 und 3), die andere zweimal (Teil 2 und 4). »",
+  "FAUX — C1 Schreiben Teil 1 : nous encodons 'integrated-writing' / « à partir d'un document et de données chiffrées ». L'officiel est un 'Diskussionsbeitrag' pour un forum Internet, ~230 mots, 50 min, sans aucune donnée chiffrée en entrée.",
+  "FAUX — C1 Schreiben Teil 2 : nous encodons 'guided-rewrite' / « Réécrire un texte dans un registre formel ». L'officiel n'est pas une réécriture : c'est une E-MAIL (halb-)formelle d'environ 120 mots, avec une situation, un destinataire et quatre Inhaltspunkte imposés, 25 min.",
+  "ÉCART MINEUR — C1 Sprechen Teil 2 : nous écrivons « aboutir à une position commune ». L'officiel demande de défendre un point de vue et d'argumenter sur une question controversée (« Standpunkte vertreten, argumentieren »), pas de dégager un consensus.",
+  "MANQUE — C1 : le temps de préparation de 20 minutes pour le module Sprechen n'est pas encodé (« Zur Vorbereitung ... erhalten die Teilnehmenden ... 20 Minuten Zeit »), ni le fait que c'est une Paarprüfung (Einzelprüfung ~15 min en cas exceptionnel).",
+  "FAUX — C2 Lesen Teil 1 : nous encodons 'matching' / « Opinions croisées ». L'officiel est un Multiple-Choice à QUATRE options, 10 items, texte de ~1000 mots, 25 min, et il est pondéré ×4 (40 points sur 100).",
+  "FAUX — C2 Lesen Teil 2 : nous encodons 'mcq' / « texte littéraire ou essai + QCM ». L'officiel est une 'Zuordnung' : 9 affirmations (dont l'exemple) à attribuer aux paragraphes d'un Sachtext de ~700 mots, deux ne correspondent pas, 6 items, 20 min.",
+  "BON — C2 Lesen Teil 3 : notre 'gapped-text' est correct (Lückentext, réinsertion de passages, 6 trous, 8 propositions dont l'exemple, 25 min).",
+  "FAUX — C2 Lesen Teil 4 : nous encodons 'open-cloze' / « un mot par trou ». L'officiel est une 'Zuordnung' sur quatre textes courts (~800 mots au total : annonces, brochures), 8 items, 10 min. Il n'y a aucun exercice de type open-cloze au C2.",
+  "FAUX — C2 Hören Teil 1 : nous encodons 'note-completion' / « entretien : compléter des notes ». L'officiel est du 'Ja/Nein' : cinq textes courts monologiques de 1 à 1,5 min, trois affirmations par texte, soit 15 items, écoutés UNE SEULE FOIS, pondérés ×2 (30 points).",
+  "FAUX — C2 Hören Teil 2 : nous encodons 'mcq' / « exposé long puis QCM ». L'officiel est une 'Zuordnung' à trois cases (Person 1 / Person 2 / beide) sur un dialogue de ~4 min entre deux locuteurs natifs, 5 items, une seule écoute, pondérés ×4 (20 points).",
+  "FAUX — C2 Hören Teil 3 : nous encodons 'matching' / « discussion à plusieurs voix : dire qui exprime quoi ». L'officiel est un Multiple-Choice à TROIS options sur une interview d'expert de ~7 min, 10 items, écoutée DEUX FOIS, pondérés ×5 (50 points). Le « qui dit quoi » que nous plaçons en Teil 3 est en réalité le Teil 2.",
+  "GRAVE — C2 Schreiben Teil 1 : nous encodons 'integrated-writing' / « rédiger un texte long, structuré et nuancé, à partir d'un document source ». L'officiel est tout autre chose : « Formulieren sprachlicher Varianten » — réécrire 10 passages marqués d'un Kurzreferat de ~200 mots en réemployant obligatoirement un mot imposé, 20 min, 2 points par item. C'est un exercice de grammaire/stylistique noté par items, pas une production libre.",
+  "GRAVE — C2 Schreiben Teil 2 : nous encodons 'guided-rewrite' / « réécrire un texte en adaptant registre et destinataire ». L'officiel est le 'Freies Schreiben' : texte d'environ 350 mots, un sujet au choix parmi quatre, 60 min. Nos deux parties de C2 Schreiben sont donc à la fois inversées dans l'ordre et mal caractérisées toutes les deux.",
+  "MANQUE MAJEUR — C2 Schreiben Teil 2 : deux des quatre sujets sont liés à une LISTE DE LECTURE littéraire officielle, publiée chaque année par le Goethe-Institut, et donnent lieu à une Buchbesprechung. Notre application ne mentionne nulle part cette Lektüreliste. Un candidat C2 préparé par nous arriverait sans avoir lu les œuvres.",
+  "FAUX — C2 Sprechen : l'examen est une Einzelprüfung (« Die mündliche Prüfung wird als Einzelprüfung durchgeführt »), avec 15 minutes de préparation juste avant. Notre config ne l'indique pas, et notre Teil 2 parle de « son interlocuteur » comme s'il s'agissait d'un binôme comme au C1.",
+  "FAUX — pondération des parties : nous mettons 'scoring_weight' => 25 uniformément sur les quatre modules. En réalité chaque module vaut 100 points indépendamment (modules passables séparément), et à l'intérieur d'un module les parties sont pondérées INÉGALEMENT au C2 : Lesen ×4/×3/×3/×3 et Hören ×2/×4/×5. Notre modèle ne peut pas restituer une note Goethe correcte au C2.",
+  "MANQUE — seuil de réussite absent de la config : 60 points sur 100, soit 60 %, par module, aux deux niveaux ; au C1, cela correspond à 18 items corrects sur 30 pour Lesen et Hören."
+ ],
+ "non_trouve": [
+  "Le libellé exact du type de tâche du C1 Lesen Teil 3 reste ambigu dans le document officiel : le tableau Abbildung 10 porte « Wahl (3-gliedrig) », mais le corps du texte décrit un texte de ~530 mots « mit herausgeschnittenen Sätzen » avec une liste d'options (segments a, f, j... visibles dans l'extrait du Modellsatz), ce qui ressemble à une réinsertion de phrases avec plus de trois options. L'extraction PDF de ce passage est partiellement illisible (colonnes superposées). Le nombre d'items (8) est en revanche certain.",
+  "Nombre d'items pour C1 Schreiben (Teil 1 et 2) et C1/C2 Sprechen : non publié — ces parties sont notées sur critères, pas par items. Mis à 0, conformément à la consigne.",
+  "Les critères de notation détaillés du module Schreiben du C1 (notre config encode 4 critères à 25 points : Inhalt, Textaufbau, Ausdruck, Korrektheit) n'ont PAS été vérifiés : le chapitre « Bewertung Schreiben » du Handbuch C1 n'a pas été lu dans cette passe. Je ne confirme ni n'infirme ces 4 critères. Pour le C2, le document indique seulement « anhand von fünf Kriterien bewertet » — soit CINQ critères, pas quatre, ce qui contredit probablement notre config, mais je n'ai pas lu la liste nommée des cinq critères.",
+  "Les Durchführungsbestimmungen du C2 n'ont pas pu être lues : l'URL https://www.goethe.de/pro/relaunch/prf/de/Durchfuehrungsbestimmungen_C2.pdf renvoie une page HTML d'erreur, pas un PDF. Les durées, parties et items du C2 reposent donc sur le Handbuch Prüfungsziele/Testbeschreibung C2 et sur les Antwortbögen du Modellsatz C2 — deux documents officiels concordants, mais pas sur le règlement d'application.",
+  "Le Handbuch C2 consulté porte la référence interne « Vers_09_170314 » (donc 2017) et cite un Modellsatz de 2011. Le Modellsatz C2 téléchargé porte « Vs14_260326 » et ses Antwortbögen sont datés 07/2021. Les deux concordent sur toute la structure, mais je n'ai pas trouvé de document C2 daté 2024-2026 qui confirmerait qu'aucune révision n'est intervenue depuis. À revérifier avant de figer le C2 dans l'application.",
+  "Les pages web goethe.de de présentation des examens (type /ins/de/en/sta/ber/prf/...) renvoient HTTP 403 à la récupération automatique. Toute la vérification repose donc sur les PDF officiels, ce qui est préférable, mais le tableau « im Überblick » des pages web n'a pas pu être recoupé.",
+  "Je n'ai PAS modifié config/exams/goethe.php. Cette étape du workflow était la vérification documentaire ; la correction des 20 écarts ci-dessus reste à appliquer."
+ ]
+}

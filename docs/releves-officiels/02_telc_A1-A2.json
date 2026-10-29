@@ -1,0 +1,275 @@
+{
+ "examen": "telc Deutsch — échelle générale, niveaux A1 (Start Deutsch 1) et A2 (Start Deutsch 2)",
+ "sources": [
+  "https://shop.telc.net/media/catalog/product/file//2/0/20210103_5070-b00-010106_web_1.pdf — telc Start Deutsch 1 / telc Deutsch A1, Übungstest 1, réf. 5070-B00-010106, © telc gGmbH Frankfurt a.M. (édition 2021)",
+  "https://shop.telc.net/media/catalog/product/file//2/0/20201226_5090-b00-010106_web_1.pdf — telc Start Deutsch 2 / telc Deutsch A2, Übungstest 1, réf. 5090-B00-010106, © telc gGmbH Frankfurt a.M., « Übungstest 1, telc Deutsch A2, 2021 »"
+ ],
+ "niveaux": [
+  {
+   "niveau": "A1",
+   "verifie": true,
+   "duree_totale_min": 90,
+   "points_total": 60,
+   "seuil_reussite": "36/60 points (« ausreichend »), soit 60 % du total",
+   "modules": [
+    {
+     "nom": "Formalitäten",
+     "minutes": 10,
+     "parties": [
+      {
+       "numero": 0,
+       "nom_officiel": "Formalitäten",
+       "type_tache": "administratif (remplissage de l'Antwortbogen)",
+       "items": 0,
+       "citation": "Formalitäten 10 Minuten"
+      }
+     ]
+    },
+    {
+     "nom": "Hören",
+     "minutes": 20,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Hören, Teil 1",
+       "type_tache": "Mehrfachauswahl (a, b oder c)",
+       "items": 6,
+       "citation": "Hören, Teil 1 — Kreuzen Sie an: a, b oder c. Sie hören jeden Text zweimal. (Aufgaben 1–6)"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Hören, Teil 2",
+       "type_tache": "Richtig/Falsch",
+       "items": 4,
+       "citation": "Hören, Teil 2 — Kreuzen Sie an: Richtig (+) oder falsch (–)? (Aufgaben 7–10)"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Hören, Teil 3",
+       "type_tache": "Mehrfachauswahl (a, b oder c)",
+       "items": 5,
+       "citation": "Hören, Teil 3 — Kreuzen Sie an: a, b oder c. Sie hören jeden Text zweimal. (Aufgaben 11–15)"
+      }
+     ]
+    },
+    {
+     "nom": "Lesen und Schreiben (bloc unique, 45 min)",
+     "minutes": 45,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Lesen, Teil 1",
+       "type_tache": "Richtig/Falsch",
+       "items": 5,
+       "citation": "Lesen, Teil 1 — Sind die Aussagen 1–5 richtig (+) oder falsch (–)? Kreuzen Sie an."
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Lesen, Teil 2",
+       "type_tache": "Zuordnung (Anzeigen, a oder b)",
+       "items": 5,
+       "citation": "Lesen, Teil 2 — Lesen Sie die Texte und die Aufgaben 6–10. Welche Anzeige ist interessant für Sie? Kreuzen Sie an: a oder b?"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Lesen, Teil 3",
+       "type_tache": "Richtig/Falsch",
+       "items": 5,
+       "citation": "Lesen, Teil 3 — Lesen Sie die Texte und die Aufgaben 11–15. Kreuzen Sie an: Richtig (+) oder falsch (–)?"
+      },
+      {
+       "numero": 4,
+       "nom_officiel": "Schreiben, Teil 1",
+       "type_tache": "Formular ausfüllen (Ergänzung)",
+       "items": 5,
+       "citation": "Schreiben, Teil 1 — Schreiben Sie die fünf fehlenden Informationen in das Formular."
+      },
+      {
+       "numero": 5,
+       "nom_officiel": "Schreiben, Teil 2",
+       "type_tache": "Freies Schreiben (circa 30 Wörter)",
+       "items": 0,
+       "citation": "Schreiben, Teil 2 — Schreiben Sie zu jedem Punkt ein bis zwei Sätze (circa 30 Wörter) auf den Antwortbogen."
+      }
+     ]
+    },
+    {
+     "nom": "Sprechen",
+     "minutes": 15,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Sprechen, Teil 1: Sich vorstellen",
+       "type_tache": "mündlicher Vortrag (Blatt mit Stichworten)",
+       "items": 0,
+       "citation": "Teil 1 Sich vorstelllen ca. 3 Minuten"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Sprechen, Teil 2: Um Informationen bitten und Informationen geben",
+       "type_tache": "Gespräch über Karten (je 2 Karten pro Teilnehmende/n)",
+       "items": 0,
+       "citation": "Teil 2 Um Informationen bitten und Informationen geben ca. 4 Minuten"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Sprechen, Teil 3: Bitten formulieren und darauf reagieren",
+       "type_tache": "Gespräch über Karten (je 2 Karten pro Teilnehmende/n)",
+       "items": 0,
+       "citation": "Teil 3 Bitten formulieren und darauf reagieren ca. 4 Minuten"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "niveau": "A2",
+   "verifie": true,
+   "duree_totale_min": 95,
+   "points_total": 60,
+   "seuil_reussite": "36/60 points (« ausreichend »), soit 60 % du total",
+   "modules": [
+    {
+     "nom": "Formalitäten",
+     "minutes": 10,
+     "parties": [
+      {
+       "numero": 0,
+       "nom_officiel": "Formalitäten",
+       "type_tache": "administratif (remplissage de l'Antwortbogen)",
+       "items": 0,
+       "citation": "Formalitäten 10 Minuten"
+      }
+     ]
+    },
+    {
+     "nom": "Hören",
+     "minutes": 20,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Hören, Teil 1",
+       "type_tache": "Ergänzung (Telefonnotizen ausfüllen)",
+       "items": 5,
+       "citation": "Sie hören fünf Ansagen am Telefon. Zu jedem Text gibt es eine Aufgabe. Ergänzen Sie die Telefonnotizen."
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Hören, Teil 2",
+       "type_tache": "Mehrfachauswahl (a, b oder c)",
+       "items": 5,
+       "citation": "Hören, Teil 2 — Sie hören fünf Informationen aus dem Radio. Kreuzen Sie an: a, b oder c. (Aufgaben 6–10)"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Hören, Teil 3",
+       "type_tache": "Zuordnung",
+       "items": 5,
+       "citation": "Hören, Teil 3 — Sie hören ein Gespräch. Zu diesem Gespräch gibt es fünf Aufgaben. Ordnen Sie zu und notieren Sie den Buchstaben. (11–15)"
+      }
+     ]
+    },
+    {
+     "nom": "Lesen und Schreiben (bloc unique, 50 min)",
+     "minutes": 50,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Lesen, Teil 1",
+       "type_tache": "Mehrfachauswahl (a, b oder c)",
+       "items": 5,
+       "citation": "Lesen, Teil 1 — Lesen Sie die Aufgaben 1–5 und die Information. Kreuzen Sie an: a, b oder c."
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Lesen, Teil 2",
+       "type_tache": "Richtig/Falsch",
+       "items": 5,
+       "citation": "Lesen, Teil 2 — Lesen Sie den Text und die Aufgaben 6–10. Sind die Aussagen richtig (+) oder falsch (–)? Kreuzen Sie an."
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Lesen, Teil 3",
+       "type_tache": "Zuordnung (Anzeigen a–h, eine Aufgabe ohne Lösung = X)",
+       "items": 5,
+       "citation": "Lesen, Teil 3 — Lesen Sie die Anzeigen a–h und die Aufgaben 11–15. Welche Anzeige passt zu welcher Situation? Für eine Aufgabe gibt es keine Lösung. Schreiben Sie hier den Buchstaben X."
+      },
+      {
+       "numero": 4,
+       "nom_officiel": "Schreiben, Teil 1",
+       "type_tache": "Formular ausfüllen (Ergänzung)",
+       "items": 5,
+       "citation": "Schreiben, Teil 1 — Schreiben Sie die fünf fehlenden Informationen in das Formular."
+      },
+      {
+       "numero": 5,
+       "nom_officiel": "Schreiben, Teil 2",
+       "type_tache": "Freies Schreiben (Brief, circa 40 Wörter, 3 Punkte aus 4)",
+       "items": 0,
+       "citation": "Schreiben, Teil 2 — Hier finden Sie vier Punkte. Wählen Sie drei aus. ... Schreiben Sie circa 40 Wörter."
+      }
+     ]
+    },
+    {
+     "nom": "Sprechen",
+     "minutes": 15,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Sprechen, Teil 1: Sich vorstellen",
+       "type_tache": "mündlicher Vortrag",
+       "items": 0,
+       "citation": "Teil 1 Sich vorstelllen ca. 3 Minuten"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Sprechen, Teil 2: Ein Alltagsgespräch führen",
+       "type_tache": "Gespräch (Alltagsgespräch)",
+       "items": 0,
+       "citation": "Teil 2 Ein Alltagsgespräch führen ... ca. 4 Minuten"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Sprechen, Teil 3: Etwas aushandeln",
+       "type_tache": "Aushandeln (Verhandlungsgespräch)",
+       "items": 0,
+       "citation": "Teil 3 Etwas aushandeln ca. 4 Minuten"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "ecarts": [
+  "A1 Hören Teil 1 : nous encodons 'true-false'. Le document officiel dit Mehrfachauswahl : « Kreuzen Sie an: a, b oder c. » (6 items, 1–6). FAUX.",
+  "A1 Hören Teil 2 : nous encodons 'mcq'. Officiel : Richtig/Falsch — « Kreuzen Sie an: Richtig (+) oder falsch (–)? » (4 items, 7–10). FAUX — nos Teil 1 et Teil 2 sont inversés.",
+  "A1 Hören Teil 3 : nous encodons 'matching' (messages sur répondeur). Officiel : Mehrfachauswahl a/b/c (5 items, 11–15). Il n'y a AUCUNE tâche d'association dans le Hören du A1. FAUX.",
+  "A1 Lesen Teil 3 : nous encodons 'mcq' (panneaux, choisir la bonne interprétation). Officiel : Richtig/Falsch sur des panneaux/consignes (5 items, 11–15). FAUX.",
+  "A1 Lesen Teil 2 : notre 'matching' est acceptable sur le fond, mais la tâche officielle est un choix entre DEUX annonces (« Kreuzen Sie an: a oder b? »), pas une association multiple. À préciser.",
+  "A1 : nous découpons Lesen 25 min + Schreiben 20 min. Le Testformat officiel ne publie qu'un bloc « 2 und 3 Lesen und Schreiben » de 45 minutes ; le découpage 25/20 n'apparaît nulle part dans le tableau (il figure seulement comme repère dans les consignes de passation). Notre commentaire de code le dit, mais la valeur est présentée comme officielle côté app.",
+  "A1 : total_duration = 80. Officiel : écrit 75 minutes (Formalitäten 10 + Hören ca. 20 + Lesen und Schreiben 45) + oral 15 minutes. Nous oublions les 10 minutes de Formalitäten et le total réel (90 min, ou 75 pour l'écrit seul). FAUX.",
+  "A1/A2 : scoring 'total' => 300 avec section_max 100. Les deux Testformat officiels disent « Gesamt ... 60 » points, soit 15 par subtest (Hören 15, Lesen 15, Schreiben 15, Sprechen 15). Les 300 points valent pour les examens généraux B1–C1, PAS pour A1/A2. FAUX pour ces deux niveaux.",
+  "A1/A2 : le seuil de 60 % est confirmé, mais sur 60 points : « 36–41,5 ausreichend », « 0–35,5 teilgenommen ». Donc 36/60.",
+  "A2 Hören Teil 1 : nous encodons 'true-false' (échanges vrai/faux). Officiel : « Sie hören fünf Ansagen am Telefon ... Ergänzen Sie die Telefonnotizen. » — une tâche de complétion de notes (5 items), pas de vrai/faux. FAUX.",
+  "A2 Hören Teil 2 : notre 'mcq' est correct (« Kreuzen Sie an: a, b oder c », 5 items, radio).",
+  "A2 Hören Teil 3 : notre 'matching' est correct — « Ordnen Sie zu und notieren Sie den Buchstaben » (5 items), mais il s'agit d'UN SEUL dialogue avec cinq associations, pas de 'messages courts' séparés. Description à corriger.",
+  "A2 Lesen Teil 1 : nous encodons 'matching-headings' (associer un titre à chaque texte). Officiel : Mehrfachauswahl a/b/c sur un plan de grand magasin (5 items). FAUX.",
+  "A2 Lesen Teil 2 : nous encodons 'matching' (annonces). Officiel : Richtig/Falsch sur un texte suivi (5 items, 6–10). FAUX.",
+  "A2 Lesen Teil 3 : nous encodons 'mcq' (texte + QCM). Officiel : Zuordnung de 8 annonces a–h à 5 situations, avec une situation sans solution à marquer X (5 items). FAUX. Nos trois parties de Lesen A2 sont donc dans le mauvais ordre ET deux types sur trois sont faux.",
+  "A2 Schreiben Teil 2 : nous disons 'short-writing' sans précision. Officiel : lettre de circa 40 Wörter, et le candidat CHOISIT trois points sur quatre. Le choix 3-sur-4 n'est pas encodé (au A1, les trois points sont tous imposés, circa 30 Wörter).",
+  "A2 Sprechen Teil 2 : nous encodons 'speaking-discussion' ; l'intitulé officiel est « Ein Alltagsgespräch führen ». Teil 3 « Etwas aushandeln » correspond bien à notre 'negotiation'.",
+  "A2 : nous découpons Lesen 50 min + Schreiben 30 min. Officiel : « 2 und 3 Lesen und Schreiben 50 Minuten » — un seul bloc de 50 minutes pour les DEUX. Nos 30 minutes d'écriture sont inventées, et notre 50 minutes de Lesen couvre en réalité Lesen + Schreiben. FAUX.",
+  "A2 : total_duration = 115. Officiel : écrit « Gesamt 80 Minuten » (Formalitäten 10 + Hören 20 + Lesen und Schreiben 50) + oral 15 = 95. FAUX de 20 minutes.",
+  "Durées de l'oral : les deux niveaux publient 3 + 4 + 4 minutes par Teil plus « Beschlussfassung der Prüfenden ca. 4 Minuten ». Nous n'encodons aucune durée par partie.",
+  "Commentaire d'en-tête de config/exams/telc.php : il annonce des Sprachbausteine comme « signature de l'examen » et dit que le A1 für Zuwanderer en a, contrairement au Start Deutsch 1. C'est exact pour le A1/A2 général : NI le Start Deutsch 1 NI le Start Deutsch 2 n'ont de module Sprachbausteine. Aucun Sprachbaustein n'est encodé en A1/A2, donc pas d'erreur ici — mais le commentaire « 80 minutes » / « 115 minutes » reste faux.",
+  "Chiffres rapportés ici : tous issus de « Start Deutsch 1 / telc Deutsch A1, Übungstest 1 » et « Start Deutsch 2 / telc Deutsch A2, Übungstest 1 » — c'est-à-dire l'échelle GÉNÉRALE, pas telc Deutsch A1 für Zuwanderer (qui a bien des Sprachbausteine et un autre barème), pas telc Deutsch A2 Schule, pas telc Deutsch A2+ Beruf, pas telc Deutsch A2·B1."
+ ],
+ "non_trouve": [
+  "La répartition interne du bloc « Lesen und Schreiben » (45 min au A1, 50 min au A2) n'est pas publiée dans le Testformat : telc laisse le candidat répartir. Nos valeurs 25/20 et 50/30 ne peuvent donc pas être « corrigées » avec une source officielle — il faut les marquer explicitement comme un découpage de notre fait, ou les présenter comme un bloc.",
+  "Le nombre d'items des parties d'expression écrite libre (Schreiben Teil 2) et de toutes les parties de Sprechen n'est pas publié : items=0.",
+  "Je n'ai PAS ouvert de document officiel pour les niveaux B1, B2, C1, C2 de ce fichier : rien de ce qui est dit ci-dessus ne les valide, et le total de 300 points / section_max 100 reste à vérifier niveau par niveau (il est en tout cas faux pour A1 et A2).",
+  "Je n'ai PAS vérifié les variantes spécialisées (A1 für Zuwanderer, A2 Schule, A2+ Beruf, A2·B1, Junior) — elles ne sont pas encore encodées, et leurs structures diffèrent.",
+  "Je n'ai pas trouvé sur telc.net de page HTML « Prüfungsteile » récapitulative pour ces deux examens ; le tableau de référence utilisé est la page « Testformat » des Übungstests PDF, édition 2021. Une édition plus récente pourrait exister sans que je l'aie vue.",
+  "Aucune correction n'a été appliquée aux fichiers : config/exams/telc.php et config/exams/goethe.php étaient déjà modifiés dans l'arbre de travail avant mon intervention, et mon étape était la vérification."
+ ]
+}

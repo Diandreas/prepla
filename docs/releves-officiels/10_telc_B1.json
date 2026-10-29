@@ -1,0 +1,146 @@
+{
+ "examen": "telc",
+ "niveau": "B1",
+ "verifie": true,
+ "duree_totale_min": 165,
+ "seuil_reussite": "60 % dans CHACUNE des deux parties : 135/225 à l'écrit et 45/75 à l'oral. Total 300 points. Pondérations officielles : Leseverstehen 75 pts = 25 %, Sprachbausteine 30 pts = 10 %, Hörverstehen 75 pts = 25 %, Schriftlicher Ausdruck 45 pts = 15 %, Mündlicher Ausdruck 75 pts = 25 %. Notes : 270–300 sehr gut, 240–269,5 gut, 210–239,5 / 180–209,5 befriedigend-ausreichend, 0–179,5 nicht bestanden. Citation : « müssen die Teilnehmerinnen und Teilnehmer sowohl in der Schriftlichen als auch in der Mündlichen Prüfung jeweils 60 % der möglichen Höchstpunktzahl erreichen. Dies entspricht 135 Punkten in der Schriftlichen und 45 Punkten in der Mündlichen Prüfung. »",
+ "sources": [
+  "https://www.telc.net/sprachpruefungen/deutsch/zertifikat-deutsch-telc-deutsch-b1/ — page officielle « Zertifikat Deutsch / telc Deutsch B1 », tableau « Subtest / Anzahl der Teile / Dauer in Minuten » (consultée le 2026-10-29)",
+  "https://www.telc.net/fileadmin/user_upload/mock_exams/Deutsch/telc_deutsch_b1.zip — Übungstest 1 officiel gratuit, PDF telc_deutsch_b1_zd_uebungstest_1.pdf (© telc gGmbH, Frankfurt a. M., telc Deutsch B1, 2020) + audio ; lu en entier, pages des consignes et pages « Punkte und Gewichtung » / « Wer erhält ein Zertifikat? »",
+  "Fichier local comparé : E:/project/prepla/config/exams/telc.php, bloc 'B1' (lignes 270 à 383)"
+ ],
+ "modules": [
+  {
+   "nom": "Leseverstehen",
+   "minutes": 90,
+   "parties": [
+    {
+     "numero": 1,
+     "nom_officiel": "Leseverstehen Teil 1 — Globalverstehen",
+     "type_tache": "Association titre-texte : 5 textes, 10 titres proposés a–j, chaque titre une seule fois",
+     "items": 5,
+     "citation": "« Lesen Sie die Überschriften a–j und die Texte 1–5. Finden Sie für jeden Text die passende Überschrift. Sie können jede Überschrift nur einmal benutzen. Markieren Sie Ihre Lösungen für die Aufgaben 1–5 auf dem Antwortbogen. » + tableau Punkte : Teil 1 = Aufgabe 1–5, 25 points"
+    },
+    {
+     "numero": 2,
+     "nom_officiel": "Leseverstehen Teil 2 — Detailverstehen",
+     "type_tache": "Choix multiple à 3 options (a, b ou c) sur un texte long",
+     "items": 5,
+     "citation": "« Lesen Sie den Text und die Aufgaben 6–10. Welche Lösung (a, b oder c) ist jeweils richtig? » + tableau Punkte : Teil 2 = Aufgabe 6–10, 25 points"
+    },
+    {
+     "numero": 3,
+     "nom_officiel": "Leseverstehen Teil 3 — Selektives Verstehen",
+     "type_tache": "Association situation-annonce : 10 situations, 12 annonces a–l, chaque annonce une seule fois, plus la possibilité de marquer « x » si aucune annonce ne convient",
+     "items": 10,
+     "citation": "« Lesen Sie die Situationen 11–20 und die Anzeigen a–l. Finden Sie für jede Situation die passende Anzeige. Sie können jede Anzeige nur einmal benutzen. [...] Wenn Sie zu einer Situation keine Anzeige finden, markieren Sie ein x. » + tableau Punkte : Teil 3 = Aufgabe 11–20, 25 points"
+    }
+   ]
+  },
+  {
+   "nom": "Sprachbausteine",
+   "minutes": 0,
+   "parties": [
+    {
+     "numero": 1,
+     "nom_officiel": "Sprachbausteine Teil 1 — Grammatik",
+     "type_tache": "Texte à trous (lettre personnelle) : 10 trous, choix multiple à 3 options par trou (a, b ou c)",
+     "items": 10,
+     "citation": "« Lesen Sie den Text und schließen Sie die Lücken 21–30. Welche Lösung (a, b oder c) ist jeweils richtig? Markieren Sie Ihre Lösungen für die Aufgaben 21–30 auf dem Antwortbogen. » + tableau Punkte : Teil 1 = Aufgabe 21–30, 15 points"
+    },
+    {
+     "numero": 2,
+     "nom_officiel": "Sprachbausteine Teil 2 — Lexik",
+     "type_tache": "Texte à trous (lettre formelle) : 10 trous à remplir à partir d'une banque de 15 mots a–o, chaque mot une seule fois (donc 5 distracteurs)",
+     "items": 10,
+     "citation": "« Lesen Sie den Text und schließen Sie die Lücken 31–40. Benutzen Sie die Wörter a–o. Jedes Wort passt nur einmal. Markieren Sie Ihre Lösungen für die Aufgaben 31–40 auf dem Antwortbogen. » + tableau Punkte : Teil 2 = Aufgabe 31–40, 15 points (total Sprachbausteine 30 pts = 10 %)"
+    }
+   ]
+  },
+  {
+   "nom": "Hörverstehen",
+   "minutes": 30,
+   "parties": [
+    {
+     "numero": 1,
+     "nom_officiel": "Hörverstehen Teil 1 — Globalverstehen",
+     "type_tache": "Vrai-faux (richtig/falsch, marqué PLUS/MINUS) sur 5 textes courts — UNE SEULE écoute ; 30 secondes pour lire les items avant",
+     "items": 5,
+     "citation": "« Sie hören nun fünf kurze Texte. Dazu sollen Sie fünf Aufgaben lösen. Sie hören diese Texte nur einmal. Entscheiden Sie beim Hören, ob die Aussagen 41-45 richtig oder falsch sind. [...] Lesen Sie jetzt die Aufgaben 41-45. Sie haben dazu 30 Sekunden Zeit. » + tableau Punkte : Teil 1 = Aufgabe 41–45, 25 points"
+    },
+    {
+     "numero": 2,
+     "nom_officiel": "Hörverstehen Teil 2 — Detailverstehen",
+     "type_tache": "Vrai-faux sur UN entretien/dialogue — DEUX écoutes ; une minute pour lire les items avant",
+     "items": 10,
+     "citation": "« Sie hören nun ein Gespräch. Dazu sollen Sie zehn Aufgaben lösen. Sie hören das Gespräch zweimal. Entscheiden Sie beim Hören, ob die Aussagen 46-55 richtig oder falsch sind. [...] Sie haben dazu eine Minute Zeit. » + tableau Punkte : Teil 2 = Aufgabe 46–55, 25 points"
+    },
+    {
+     "numero": 3,
+     "nom_officiel": "Hörverstehen Teil 3 — Selektives Verstehen",
+     "type_tache": "Vrai-faux sur 5 textes courts (annonces, météo, messages) — CHAQUE texte entendu DEUX fois",
+     "items": 5,
+     "citation": "« Sie hören nun fünf kurze Texte. Dazu sollen Sie fünf Aufgaben lösen. Sie hören jeden Text zweimal. Entscheiden Sie beim Hören, ob die Aussagen 56-60 richtig oder falsch sind. » + tableau Punkte : Teil 3 = Aufgabe 56–60, 25 points"
+    }
+   ]
+  },
+  {
+   "nom": "Schriftlicher Ausdruck",
+   "minutes": 30,
+   "parties": [
+    {
+     "numero": 1,
+     "nom_officiel": "Schriftlicher Ausdruck — E-Mail",
+     "type_tache": "Répondre à un courriel en traitant les quatre points imposés (Leitpunkte) ; noté sur 3 critères, 45 points max",
+     "items": 1,
+     "citation": "« Antworten Sie auf die E-Mail. Schreiben Sie etwas zu allen vier Punkten » ; « ein Teilnehmer kann in diesem Subtest maximal 45 Punkte erreichen. Dies entspricht 15 % der maximal erreichbaren Gesamtpunktzahl von 300 Punkten. » ; tableau Punkte : « 4 Schriftlicher Ausdruck — E-Mail — 45 — 15 % »"
+    }
+   ]
+  },
+  {
+   "nom": "Mündlicher Ausdruck",
+   "minutes": 15,
+   "parties": [
+    {
+     "numero": 1,
+     "nom_officiel": "Mündlicher Ausdruck Teil 1 — Einander kennenlernen",
+     "type_tache": "Prise de contact entre les deux candidats (env. 3 minutes) ; 15 points",
+     "items": 1,
+     "citation": "« Teil 1 Einander kennenlernen (ca. 3 Minuten) » ; « Die Teilnehmenden können im ersten Teil – Einander kennenlernen – maximal 15 Punkte [...] erreichen » ; tableau Punkte : Teil 1 = 15"
+    },
+    {
+     "numero": 2,
+     "nom_officiel": "Mündlicher Ausdruck Teil 2 — Über ein Thema sprechen",
+     "type_tache": "Parler d'un thème à partir d'un document, chaque candidat ayant son propre support (Teilnehmer/in A, puis B) ; 30 points",
+     "items": 1,
+     "citation": "« Teilnehmer/in A — Teil 2 Über ein Thema sprechen » et « Teilnehmer/in B — Teil 2 Über ein Thema sprechen » ; tableau Punkte : Teil 2 = 30"
+    },
+    {
+     "numero": 3,
+     "nom_officiel": "Mündlicher Ausdruck Teil 3 — Gemeinsam etwas planen",
+     "type_tache": "Planifier quelque chose ensemble et se mettre d'accord, à deux ; 30 points",
+     "items": 1,
+     "citation": "« Teilnehmer/in A und B — Teil 3 Gemeinsam etwas planen » ; tableau Punkte : Teil 3 = 30 (total Mündliche Prüfung 75 = 25 %)"
+    }
+   ]
+  }
+ ],
+ "ecarts": [
+  "scoring_weight du Sprachbausteine : nous mettons 15, le document officiel donne 30 points sur 300, soit 10 %. Trop lourd de 5 points.",
+  "scoring_weight du Mündlicher Ausdruck : nous mettons 20, le document officiel donne 75 points sur 300, soit 25 %. Trop léger de 5 points. (Le commentaire en tête du fichier, lignes 40-48, reconnaît déjà que ces pondérations 25/15/25/15/20 sont celles de l'échelle B1-B2 et ne collent pas partout ; ici elles sont fausses au B1 même.)",
+  "total_duration = 150 : c'est exactement la durée de la seule Schriftliche Prüfung (« Die Schriftliche Prüfung dauert 150 Minuten »). L'oral de ca. 15 minutes n'est pas compté, alors que les cinq modules du fichier l'incluent. Le total cohérent est 165 (sans les 20 minutes de préparation de l'oral, qui ne sont pas du temps d'épreuve).",
+  "Sprachbausteine Teil 1 : nous ne disons pas que chaque trou offre trois options (a, b ou c). Le type 'mcq-cloze' le laisse implicite ; la consigne officielle est explicite. Rien de faux, mais à écrire, puisque le palier demande le nombre d'options par trou.",
+  "Sprachbausteine Teil 2 : notre type est 'summary-completion'. La tâche réelle est un texte à trous avec banque de 15 mots a–o pour 10 trous (5 distracteurs) : c'est une association mot-trou, pas un résumé à compléter. Le libellé 'task' est juste, le 'type' est approximatif et la banque de 15 mots n'est nulle part.",
+  "Leseverstehen Teil 1 : nous ne disons pas combien de titres sont proposés. Ce sont 10 titres (a–j) pour 5 textes.",
+  "Leseverstehen Teil 3 : nous ne disons pas qu'il y a 12 annonces (a–l) pour 10 situations, ni qu'une situation peut n'avoir aucune annonce (réponse « x »). Ce dernier point change la correction d'un exercice généré.",
+  "Nombre d'écoutes : absent du fichier, pour les trois parties. Officiellement Teil 1 une seule écoute, Teil 2 deux écoutes du dialogue, Teil 3 chaque texte deux fois. Il n'existe aucun champ pour le porter dans la configuration.",
+  "Temps de lecture des items en Hörverstehen (30 secondes avant Teil 1, une minute avant Teil 2) : absent, et aucun champ ne le prévoit.",
+  "Barème détaillé non encodé par niveau : scoring.total = 300 est juste et scoring.pass_mark = 60 est juste, mais la règle réelle est 60 % DANS CHACUNE des deux parties (135/225 à l'écrit ET 45/75 à l'oral) — pas 60 % du total. Un apprenant à 190/300 mal réparti serait déclaré reçu chez nous et refusé par telc.",
+  "Nom du module écrit : nous appelons la partie 'Lettre ou courriel' ; l'Übungstest 1 de 2020 donne une tâche de courriel (« E-Mail » dans le tableau des points). Pas un écart, une précision.",
+  "DEJA JUSTE : les 5 modules et leur ordre (Lesen, Sprachbausteine, Hören, Schreiben, Sprechen), le nombre de parties de chacun (3/2/3/1/3), les durées 90 (60+30) / 30 / 30 / 15, les nombres d'items des huit parties objectives (5-5-10, 10-10, 5-10-5), le type vrai-faux des trois parties du Hörverstehen, le QCM à 3 options du Leseverstehen Teil 2, l'intitulé officiel 'Zertifikat Deutsch / telc Deutsch B1', les quatre Leitpunkten de l'écrit, le binôme et les 20 minutes de préparation à l'oral, le total de 300 points et le seuil de 60 %."
+ ],
+ "non_trouve": [
+  "Durée propre au Sprachbausteine : telc ne la publie pas. La page officielle donne « 90 » pour Lesen et Sprachbausteine ensemble, avec « keine Pause », et l'Übungstest répète en tête de chaque page « 90 Minuten Leseverstehen und Sprachbausteine ». Notre découpage 60 + 30 est donc une convention de l'application, pas un chiffre officiel : j'ai laissé minutes = 0 pour ce module afin de ne rien inventer.",
+  "Durée des parties individuelles du Hörverstehen et du Mündlicher Ausdruck Teil 2 et Teil 3 : non publiée. Seul Teil 1 de l'oral porte une durée (« ca. 3 Minuten ») ; les deux autres n'en ont pas dans le document."
+ ]
+}

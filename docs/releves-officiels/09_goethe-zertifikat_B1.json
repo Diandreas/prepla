@@ -1,0 +1,162 @@
+{
+ "examen": "goethe",
+ "niveau": "B1",
+ "verifie": true,
+ "duree_totale_min": 180,
+ "seuil_reussite": "60 points sur 100 par module (60 %), chaque module se passant et se repassant separement. Citation : « In der Pruefung lassen sich maximal 100 Punkte pro Modul erreichen. Die Bestehensgrenze liegt bei 60 Punkten, also 60 %. » (Modellsatz Erwachsene, Vorwort). Modularite : « Gepruefet werden die vier Fertigkeiten Lesen, Hoeren, Schreiben und Sprechen. Diese koennen einzeln abgelegt werden, also modular, oder wie gewohnt als Ganzes zusammen. »",
+ "sources": [
+  "https://www.goethe.de/pro/relaunch/prf/materialien/B1/b1_modellsatz_erwachsene.pdf (Modellsatz Erwachsene, Vs_11_070115 — source principale, lue integralement : tableau « Das Zertifikat B1 im Ueberblick », Kandidatenblaetter des quatre modules, numerotation des items)",
+  "https://www.goethe.de/pro/relaunch/prf/ka/Durchfuehrungsbestimmungen_B1.pdf (telecharge)",
+  "Fichier compare : E:/project/prepla/config/exams/goethe.php, bloc 'B1' (lignes 227-333)"
+ ],
+ "modules": [
+  {
+   "nom": "Lesen",
+   "minutes": 65,
+   "parties": [
+    {
+     "numero": 1,
+     "nom_officiel": "Lesen, Teil 1 — Korrespondenz lesen (blog personnel)",
+     "type_tache": "Richtig/Falsch (vrai-faux)",
+     "items": 6,
+     "citation": "« Teil 1 / Arbeitszeit: 10 Minuten / Lesen Sie den Text und die Aufgaben 1 bis 6 dazu. Waehlen Sie: Sind die Aussagen Richtig oder Falsch ? » — tableau Ueberblick : Teil 1 = Richtig/Falsch, 6 items. Duree publiee : 10 minutes."
+    },
+    {
+     "numero": 2,
+     "nom_officiel": "Lesen, Teil 2 — Information und Argumentation verstehen (deux textes de presse)",
+     "type_tache": "Mehrfachauswahl (3-gliedrig) — choix multiple a 3 options",
+     "items": 6,
+     "citation": "« Lesen Sie den Text aus der Presse und die Aufgaben 7 bis 9 dazu. Waehlen Sie bei jeder Aufgabe die richtige Loesung a , b oder c . » puis « noch Teil 2 / Lesen Sie den Text aus der Presse und die Aufgaben 10 bis 12 dazu. » — donc items 7 a 12 = 6 items, repartis sur DEUX articles (3 + 3). Duree publiee : 20 minutes."
+    },
+    {
+     "numero": 3,
+     "nom_officiel": "Lesen, Teil 3 — Zur Orientierung lesen (petites annonces)",
+     "type_tache": "Zuordnung (association situation -> annonce), 7 situations pour 10 annonces A-J, une situation sans annonce (reponse 0)",
+     "items": 7,
+     "citation": "« Lesen Sie die Situationen 13 bis 19 und die Anzeigen A bis J aus verschiedenen deutschsprachigen Medien. Waehlen Sie: Welche Anzeige passt zu welcher Situation? [...] Fuer eine Situation gibt es keine passende Anzeige. In diesem Fall schreiben Sie 0. » — items 13 a 19 = 7. Duree publiee : 10 minutes."
+    },
+    {
+     "numero": 4,
+     "nom_officiel": "Lesen, Teil 4 — Information und Argumentation verstehen (commentaires de lecteurs)",
+     "type_tache": "Ja/Nein (la personne est-elle pour ou contre)",
+     "items": 7,
+     "citation": "Tableau Ueberblick : « 4 Information und Argumentation verstehen — Ja/Nein — 7 ». Kandidatenblaetter : « Teil 4 / Arbeitszeit: 15 Minuten / Lesen Sie die Texte 20 bis 26. Waehlen Sie: Ist die Person fuer ein Verbot? » avec cases « Ja / Nein » par auteur (20 Stefan ... 24 Jonny ...). Items 20 a 26 = 7."
+    },
+    {
+     "numero": 5,
+     "nom_officiel": "Lesen, Teil 5 — Schriftliche Anweisung verstehen (Hausordnung)",
+     "type_tache": "Mehrfachauswahl (3-gliedrig) — choix multiple a 3 options",
+     "items": 4,
+     "citation": "« Lesen Sie die Aufgaben 27 bis 30 und den Text dazu. Waehlen Sie bei jeder Aufgabe die richtige Loesung a , b oder c . » — items 27 a 30 = 4. Duree publiee : 10 minutes."
+    }
+   ]
+  },
+  {
+   "nom": "Hoeren",
+   "minutes": 40,
+   "parties": [
+    {
+     "numero": 1,
+     "nom_officiel": "Hoeren, Teil 1 — Ankuendigungen, Durchsagen und Anweisungen verstehen",
+     "type_tache": "TYPE MIXTE : « Richtig/Falsch und Mehrfachauswahl (3-gliedrig) ». Cinq textes courts, DEUX taches par texte (un vrai-faux + un choix multiple a 3 options). Deux ecoutes.",
+     "items": 10,
+     "citation": "Tableau Ueberblick : « 1 Ankuendigungen, Durchsagen und Anweisungen verstehen — Richtig/Falsch und Mehrfachauswahl (3-gliedrig) — 10 ». Consigne : « Sie hoeren nun fuenf kurze Texte. Sie hoeren jeden Text zweimal. Zu jedem Text loesen Sie zwei Aufgaben. » Items 1 a 10 (Text 1 : items 1-2, ... Text 5 : items 9-10)."
+    },
+    {
+     "numero": 2,
+     "nom_officiel": "Hoeren, Teil 2 — Als Zuschauer/Zuhoerer im Publikum verstehen (visite guidee du Muenchner Stadtmuseum)",
+     "type_tache": "Mehrfachauswahl (3-gliedrig) — choix multiple a 3 options. UNE seule ecoute.",
+     "items": 5,
+     "citation": "« Sie hoeren nun einen Text. Sie hoeren den Text einmal. Dazu loesen Sie fuenf Aufgaben. Waehlen Sie bei jeder Aufgabe die richtige Loesung a , b oder c . Lesen Sie jetzt die Aufgaben 11 bis 15. » — items 11 a 15 = 5."
+    },
+    {
+     "numero": 3,
+     "nom_officiel": "Hoeren, Teil 3 — Gespraeche zwischen Muttersprachlern verstehen (conversation a un arret de bus)",
+     "type_tache": "Richtig/Falsch (vrai-faux). UNE seule ecoute.",
+     "items": 7,
+     "citation": "« Sie hoeren nun ein Gespraech. Sie hoeren das Gespraech einmal. Dazu loesen Sie sieben Aufgaben. Waehlen Sie: Sind die Aussagen Richtig oder Falsch ? Lesen Sie jetzt die Aufgaben 16 bis 22. » — items 16 a 22 = 7."
+    },
+    {
+     "numero": 4,
+     "nom_officiel": "Hoeren, Teil 4 — Radiosendungen und Tonaufnahmen verstehen (discussion a plusieurs)",
+     "type_tache": "Zuordnung « Wer sagt was? » (qui dit quoi). DEUX ecoutes.",
+     "items": 8,
+     "citation": "« Sie hoeren nun eine Diskussion. Sie hoeren die Diskussion zweimal. Dazu loesen Sie acht Aufgaben. Ordnen Sie die Aussagen zu: Wer sagt was? Lesen Sie jetzt die Aussagen 23 bis 30. » — items 23 a 30 = 8. Les 40 minutes du module incluent 5 minutes de report sur l'Antwortbogen : « Dazu haben Sie nach dem Hoerverstehen fuenf Minuten Zeit. »"
+    }
+   ]
+  },
+  {
+   "nom": "Schreiben",
+   "minutes": 60,
+   "parties": [
+    {
+     "numero": 1,
+     "nom_officiel": "Schreiben, Aufgabe 1 — Interaktion : persoenliche Mitteilung zur Kontaktpflege (courriel personnel)",
+     "type_tache": "Freies Schreiben, courriel d'environ 80 mots, trois points imposes",
+     "items": 0,
+     "citation": "« Aufgabe 1 Arbeitszeit: 20 Minuten [...] Schreiben Sie eine E-Mail (circa 80 Woerter). Schreiben Sie etwas zu allen drei Punkten. Achten Sie auf den Textaufbau (Anrede, Einleitung, Reihenfolge der Inhaltspunkte, Schluss). » Pas d'items a compter : production libre."
+    },
+    {
+     "numero": 2,
+     "nom_officiel": "Schreiben, Aufgabe 2 — Produktion : persoenliche Meinung zu einem Thema aeussern (Diskussionsbeitrag)",
+     "type_tache": "Freies Schreiben, contribution a une discussion en ligne, environ 80 mots",
+     "items": 0,
+     "citation": "« Aufgabe 2 Arbeitszeit: 25 Minuten [...] Schreiben Sie nun Ihre Meinung zum Thema (circa 80 Woerter). » et « In Aufgabe 2 schreiben Sie einen Diskussionsbeitrag. » Pas d'items a compter."
+    },
+    {
+     "numero": 3,
+     "nom_officiel": "Schreiben, Aufgabe 3 — Interaktion : persoenliche Mitteilung zur Handlungsregulierung (courriel formel)",
+     "type_tache": "Freies Schreiben, courriel d'environ 40 mots (s'excuser, demander quelque chose)",
+     "items": 0,
+     "citation": "« Aufgabe 3 Arbeitszeit: 15 Minuten [...] Schreiben Sie eine E-Mail (circa 40 Woerter). Vergessen Sie nicht die Anrede und den Gruss am Schluss. » Tableau Ueberblick : « Freies Schreiben (sich entschuldigen, um etwas bitten, o. ae.) ». Pas d'items a compter."
+    }
+   ]
+  },
+  {
+   "nom": "Sprechen",
+   "minutes": 15,
+   "parties": [
+    {
+     "numero": 1,
+     "nom_officiel": "Sprechen, Teil 1 — Interaktion : Gemeinsam etwas planen und aushandeln",
+     "type_tache": "Planification en binome a partir de 4 Leitpunkte, environ 3 minutes",
+     "items": 0,
+     "citation": "Tableau Ueberblick : « Teilnehmende planen etwas, wobei sie sich an 4 Leitpunkte halten ». Consigne : « In Teil 1 planen Sie etwas gemeinsam mit Ihrem Partner/Ihrer Partnerin (circa 3 Minuten). »"
+    },
+    {
+     "numero": 2,
+     "nom_officiel": "Sprechen, Teil 2 — Produktion : In einem Monolog ein Thema praesentieren",
+     "type_tache": "Monologue a partir de 5 diapositives imposees, choix entre deux themes, environ 3 minutes",
+     "items": 0,
+     "citation": "Tableau Ueberblick : « Teilnehmende tragen eine Praesentation zu 5 vorgegebenen Folien vor ». Consigne : « In Teil 2 praesentieren Sie ein Thema (circa 3 Minuten). Waehlen Sie ein Thema (Thema 1 oder Thema 2) aus. »"
+    },
+    {
+     "numero": 3,
+     "nom_officiel": "Sprechen, Teil 3 — Interaktion : Situationsadaequat reagieren",
+     "type_tache": "Retour sur l'expose du partenaire et une question chacun, environ 2 minutes",
+     "items": 0,
+     "citation": "Tableau Ueberblick : « Teilnehmende geben einander Feedback zur Praesentation bzw. reagieren darauf und stellen einander je eine Frage bzw. reagieren darauf ». Consigne : « In Teil 3 sprechen Sie ueber Ihr Thema und das Ihres Partners/Ihrer Partnerin (circa 2 Minuten). Ihre Vorbereitungszeit betraegt 15 Minuten. » Les 15 minutes du module sont « Insgesamt 15 Minuten pro zwei Teilnehmende », la preparation de 15 minutes s'y ajoute."
+    }
+   ]
+  }
+ ],
+ "ecarts": [
+  "Hoeren Teil 1 — TYPE INCOMPLET (ecart reel, le plus important). Nous encodons 'type' => 'true-false' pour les 10 items. Le document donne un type MIXTE : « Richtig/Falsch und Mehrfachauswahl (3-gliedrig) », cinq textes avec deux taches chacun — un vrai-faux ET un choix multiple a trois options. La moitie des items (2, 4, 6, 8, 10) sont des QCM a 3 options, pas des vrai-faux. Un exercice genere pour cette partie ne sera donc juste qu'a moitie.",
+  "Nombre d'ecoutes — ABSENT de toute la configuration B1. Le document le publie partie par partie : Hoeren Teil 1 deux fois (« Sie hoeren jeden Text zweimal »), Teil 2 une fois (« Sie hoeren den Text einmal »), Teil 3 une fois, Teil 4 deux fois (« Sie hoeren die Diskussion zweimal »). Aucun champ de nos 'parts' ne porte cette information, alors que c'est ce qui distingue Teil 2/3 de Teil 1/4.",
+  "Lesen Teil 2 — description sous-specifiee. Nous ecrivons « Un article, puis des questions a choix multiple ». Le document a DEUX textes de presse distincts, 3 items chacun (Aufgaben 7 a 9, puis « noch Teil 2 » Aufgaben 10 a 12). Le nombre d'items (6) est juste, la disposition est fausse : un exercice genere avec un seul texte de six questions ne reproduit pas le format.",
+  "Lesen Teil 3 — regle manquante. Nous ecrivons « Associer chaque situation a l'annonce qui y repond ». Le document precise 10 annonces (A a J) pour 7 situations, chaque annonce utilisable une seule fois, et surtout « Fuer eine Situation gibt es keine passende Anzeige. In diesem Fall schreiben Sie 0. » — une situation n'a aucune annonce. C'est le piege central de la partie, et il n'est pas encode.",
+  "Schreiben — champ 'description' faux sur deux points, alors que le tableau 'parts' est juste. Nous ecrivons « email/lettre semi-formelle (~80 mots), prise de position (~80 mots), email personnel ». Officiellement : Teil 1 est le courriel PERSONNEL (Kontaktpflege, ~80 mots), Teil 2 la prise de position (~80 mots), Teil 3 le courriel formel d'environ 40 MOTS seulement. La description inverse le registre de Teil 1 et omet les 40 mots de Teil 3.",
+  "Schreiben — durees par tache non encodees. Le document les publie : 20, 25 et 15 minutes (total 60). Nos 'parts' n'ont pas de duree ; seul le total du module est present.",
+  "Lesen — durees par tache non encodees. Publiees dans les Kandidatenblaetter : 10, 20, 10, 15, 10 minutes (total 65). Absentes de nos 'parts'.",
+  "Sprechen Teil 2 — detail manquant : le document impose « 5 vorgegebene Folien » (cinq diapositives) et le choix entre deux themes. Nous ecrivons seulement « Presenter un theme prepare, de maniere structuree ».",
+  "Sprechen Teil 1 — detail manquant : « 4 Leitpunkte » (quatre points directeurs imposes). Non encode.",
+  "Sprechen — temps de preparation absent. Officiel : 15 minutes de preparation individuelle EN PLUS des 15 minutes d'examen (« Insgesamt 15 Minuten pro zwei Teilnehmende » + « Ihre Vorbereitungszeit betraegt 15 Minuten »). Notre 'time_limit' => 15 ne distingue pas les deux.",
+  "Bloc 'scoring' global — faux pour B1. Nous avons 'total' => 100 avec 'section_max' => 25. Le document dit « maximal 100 Punkte pro Modul » et « Die Bestehensgrenze liegt bei 60 Punkten » : a B1 chaque module vaut 100 points a lui seul et se juge separement a 60/100. Le commentaire en tete du fichier (lignes 10-16) reconnait deja que pass_mark est une approximation, mais la structure ne porte pas la regle par module.",
+  "DEJA JUSTE, et c'est l'essentiel : les quatre modules et leur ordre (Lesen, Hoeren, Schreiben, Sprechen), le nombre de parties de chacun (5, 4, 3, 3), l'ordre des parties, les durees de module (65, 40, 60, 15 = 180), et TOUS les nombres d'items sans exception — Lesen 6/6/7/7/4 et Hoeren 10/5/7/8, 30 items par module ; les types de Lesen Teil 1 a 5 sont corrects, y compris le Ja/Nein de Teil 4 sur sept courriers de lecteurs, que le document confirme mot pour mot."
+ ],
+ "non_trouve": [
+  "Durees par partie du module Hoeren : le document ne publie pas de duree par Teil, seulement le total de 40 minutes dont 5 minutes de report sur l'Antwortbogen. Il n'y a donc rien a encoder, ce n'est pas un trou de notre cote.",
+  "Bareme detaille (points par item, ponderation des criteres de Schreiben et Sprechen) : le Modellsatz donne les Bewertungskriterien et le Bewertungsbogen en pages 42-47 et 46-47, que je n'ai pas depouilles item par item. Seul le seuil de 60/100 par module est verifie ici.",
+  "Le PDF lu est la version Vs_11_070115 (2e edition revisee, janvier 2015). Un Uebungssatz Erwachsene de 2016 et des Durchfuehrungsbestimmungen de septembre 2025 existent aussi sur goethe.de ; je n'ai pas verifie si une revision posterieure a change un type ou un nombre d'items. Les chiffres ci-dessus sont ceux du Modellsatz Erwachsene officiel, qui est la source demandee, mais une relecture du Uebungssatz 2016 confirmerait qu'aucun format n'a bouge."
+ ]
+}

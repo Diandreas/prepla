@@ -1,0 +1,220 @@
+{
+ "examen": "TestDaF (Test Deutsch als Fremdsprache) — g.a.s.t. / TestDaF-Institut",
+ "sources": [
+  "https://www.testdaf.de/de/teilnehmende/der-digitale-testdaf/aufbau-des-digitalen-testdaf/ (page officielle « Testaufbau digitaler TestDaF », consultée le 2026-10-28)",
+  "https://www.testdaf.de/de/teilnehmende/der-papierbasierte-testdaf/aufbau-des-papierbasierten-testdaf/ (page officielle « Testaufbau papierbasierter TestDaF », consultée le 2026-10-28)",
+  "https://www.testdaf.de/de/teilnehmende/warum-testdaf/testdaf-niveaus-tdn/ (page officielle « TestDaF-Niveaustufen (TDN) », consultée le 2026-10-28 — descripteurs TDN 3/4/5 ; le tableau de correspondance CECR y est une image non lisible)"
+ ],
+ "niveaux": [
+  {
+   "niveau": "TDN",
+   "verifie": true,
+   "duree_totale_min": 190,
+   "points_total": 0,
+   "seuil_reussite": "Pas de seuil en points publié. Chaque partie reçoit sa propre note TDN 3, TDN 4 ou TDN 5 ; en dessous, le certificat porte « unter TDN 3 ». L'admission dans une université allemande demande en règle générale TDN 4 dans les quatre parties.",
+   "modules": [
+    {
+     "nom": "Lesen",
+     "minutes": 55,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Lesen Aufgabe 1 — Lückentext ergänzen",
+       "type_tache": "Lückentext ergänzen",
+       "items": 5,
+       "citation": "Lesen : 7 Aufgaben, 34 Items, ca. 55 Minuten ; Aufgabe « Lückentext ergänzen », 5 Items"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Lesen Aufgabe 2 — Textabschnitte ordnen",
+       "type_tache": "Textabschnitte ordnen (Zuordnung)",
+       "items": 4,
+       "citation": "Aufgabe « Textabschnitte ordnen », 4 Items"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Lesen Aufgabe 3 — Multiple-Choice",
+       "type_tache": "Mehrfachauswahl (Multiple-Choice)",
+       "items": 7,
+       "citation": "Aufgabe « Multiple-Choice », 7 Items"
+      },
+      {
+       "numero": 4,
+       "nom_officiel": "Lesen Aufgabe 4 — Sprachhandlungen zuordnen",
+       "type_tache": "Zuordnung",
+       "items": 4,
+       "citation": "Aufgabe « Sprachhandlungen zuordnen », 4 Items"
+      },
+      {
+       "numero": 5,
+       "nom_officiel": "Lesen Aufgabe 5 — Aussagen Kategorien zuordnen",
+       "type_tache": "Zuordnung",
+       "items": 7,
+       "citation": "Aufgabe « Aussagen Kategorien zuordnen », 7 Items"
+      },
+      {
+       "numero": 6,
+       "nom_officiel": "Lesen Aufgabe 6 — Aussagen einem Begriffspaar zuordnen",
+       "type_tache": "Zuordnung",
+       "items": 4,
+       "citation": "Aufgabe « Aussagen einem Begriffspaar zuordnen », 4 Items"
+      },
+      {
+       "numero": 7,
+       "nom_officiel": "Lesen Aufgabe 7 — Fehler in Zusammenfassung erkennen",
+       "type_tache": "Fehler erkennen",
+       "items": 3,
+       "citation": "Aufgabe « Fehler in Zusammenfassung erkennen », 3 Items"
+      }
+     ]
+    },
+    {
+     "nom": "Hören",
+     "minutes": 40,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Hören Aufgabe 1 — Kurzantwort: Übersicht ergänzen (Audio)",
+       "type_tache": "Kurzantwort",
+       "items": 5,
+       "citation": "Hören : 7 Aufgaben, 30 Items, ca. 40 Minuten ; Aufgabe « Kurzantwort: Übersicht ergänzen », 5 Items"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Hören Aufgabe 2 — Kurzantwort: Textstellen zu Begriffspaar notieren (Audio)",
+       "type_tache": "Kurzantwort",
+       "items": 4,
+       "citation": "Aufgabe « Kurzantwort: Textstellen zu Begriffspaar notieren », 4 Items"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Hören Aufgabe 3 — Fehler in Zusammenfassung erkennen (Audio)",
+       "type_tache": "Fehler erkennen",
+       "items": 2,
+       "citation": "Aufgabe « Fehler in Zusammenfassung erkennen », 2 Items"
+      },
+      {
+       "numero": 4,
+       "nom_officiel": "Hören Aufgabe 4 — Aussagen Personen zuordnen (Video)",
+       "type_tache": "Zuordnung",
+       "items": 6,
+       "citation": "Aufgabe « Aussagen Personen zuordnen » (Video), 6 Items"
+      },
+      {
+       "numero": 5,
+       "nom_officiel": "Hören Aufgabe 5 — Kurzantwort: Gliederungspunkte zu Vortrag ergänzen (Video)",
+       "type_tache": "Kurzantwort",
+       "items": 4,
+       "citation": "Aufgabe « Kurzantwort: Gliederungspunkte zu Vortrag ergänzen » (Video), 4 Items"
+      },
+      {
+       "numero": 6,
+       "nom_officiel": "Hören Aufgabe 6 — Multiple-Choice (Audio)",
+       "type_tache": "Mehrfachauswahl (Multiple-Choice)",
+       "items": 5,
+       "citation": "Aufgabe « Multiple-Choice », 5 Items"
+      },
+      {
+       "numero": 7,
+       "nom_officiel": "Hören Aufgabe 7 — Laut- und Schriftbild abgleichen (Audio)",
+       "type_tache": "Abgleich / Zuordnung",
+       "items": 4,
+       "citation": "Aufgabe « Laut- und Schriftbild abgleichen », 4 Items"
+      }
+     ]
+    },
+    {
+     "nom": "Schreiben",
+     "minutes": 60,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Schreiben Aufgabe 1 — Argumentativen Text schreiben",
+       "type_tache": "Freies Schreiben",
+       "items": 0,
+       "citation": "Schreiben : 2 Aufgaben, ca. 60 Minuten ; « Argumentativen Text schreiben » (mind. 200 Wörter) — nombre d'items non publié"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Schreiben Aufgabe 2 — Informationen aus Lesetext und Grafik zusammenfassen",
+       "type_tache": "Freies Schreiben (Zusammenfassung)",
+       "items": 0,
+       "citation": "« Informationen aus Lesetext und Grafik zusammenfassen » (ca. 100-150 Wörter) — nombre d'items non publié"
+      }
+     ]
+    },
+    {
+     "nom": "Sprechen",
+     "minutes": 35,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Sprechen Aufgabe 1 — Rat geben",
+       "type_tache": "Freies Sprechen (am Computer, aufgezeichnet)",
+       "items": 0,
+       "citation": "Sprechen : 7 Aufgaben, ca. 35 Minuten ; « Rat geben », Sprechzeit 0:45"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Sprechen Aufgabe 2 — Optionen abwägen",
+       "type_tache": "Freies Sprechen",
+       "items": 0,
+       "citation": "« Optionen abwägen », Sprechzeit 1:30"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Sprechen Aufgabe 3 — Text zusammenfassen",
+       "type_tache": "Freies Sprechen",
+       "items": 0,
+       "citation": "« Text zusammenfassen », Sprechzeit 2:00"
+      },
+      {
+       "numero": 4,
+       "nom_officiel": "Sprechen Aufgabe 4 — Informationen abgleichen, Stellung nehmen",
+       "type_tache": "Freies Sprechen",
+       "items": 0,
+       "citation": "« Informationen abgleichen, Stellung nehmen », Sprechzeit 1:30"
+      },
+      {
+       "numero": 5,
+       "nom_officiel": "Sprechen Aufgabe 5 — Thema präsentieren",
+       "type_tache": "Freies Sprechen (Präsentation)",
+       "items": 0,
+       "citation": "« Thema präsentieren », Sprechzeit 2:30"
+      },
+      {
+       "numero": 6,
+       "nom_officiel": "Sprechen Aufgabe 6 — Argumente wiedergeben, Stellung nehmen",
+       "type_tache": "Freies Sprechen",
+       "items": 0,
+       "citation": "« Argumente wiedergeben, Stellung nehmen », Sprechzeit 2:00"
+      },
+      {
+       "numero": 7,
+       "nom_officiel": "Sprechen Aufgabe 7 — Maßnahmen kritisieren",
+       "type_tache": "Freies Sprechen",
+       "items": 0,
+       "citation": "« Maßnahmen kritisieren », Sprechzeit 1:30"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "ecarts": [
+  "Notre config/exams/testdaf.php n'a AUCUNE structure : tout est à créer. Il n'y a donc pas d'erreur de détail à corriger, mais un fichier vide à remplir avec la structure ci-dessus.",
+  "Erreur de modèle à éviter : le TestDaF ne doit PAS être encodé comme une échelle de niveaux CECR (A1..C2) comme Goethe ou telc. C'est UN seul examen, de niveau B2–C1, noté séparément par partie en TDN 3 / TDN 4 / TDN 5. Si le schéma de l'application impose un champ « niveau », il faut une seule entrée (« TDN »), pas six.",
+  "Deux formats coexistent officiellement sur testdaf.de : le « digitale TestDaF » et le « papierbasierte TestDaF ». Le format de référence actuel est le digital (c'est celui dont la page de structure est la plus détaillée et à jour) ; le papier a une structure DIFFÉRENTE et plus courte en nombre de parties : Leseverstehen 30 items / 60 min en 3 textes, Hörverstehen 25 items / 40 min en 3 textes, Schriftlicher Ausdruck 1 seule tâche / 60 min, Mündlicher Ausdruck 7 tâches / 35 min. Si l'application n'encode qu'un format, encoder le digital et le dire explicitement au candidat.",
+  "Piège sur la durée : le digital a 4 x ~ (55+40+60+35) = 190 min de temps d'épreuve pur, mais la page précise « Die Bearbeitungszeit und die Anzahl der Aufgaben können in jedem Prüfungsteil variieren » (des tâches d'essai non notées sont mélangées). Ne pas présenter 190 min comme un chiffre ferme, et ne pas compter les pauses entre les parties.",
+  "Ordre des parties à respecter : Lesen, Hören, Schreiben, Sprechen. Attention, le format papier utilise d'AUTRES noms de modules (Leseverstehen, Hörverstehen, Schriftlicher Ausdruck, Mündlicher Ausdruck) : ne pas mélanger les deux nomenclatures.",
+  "Le Sprechen se passe entièrement à l'ordinateur, avec réponses enregistrées et sans examinateur en face : si notre application simule un oral en face à face pour le TestDaF, c'est faux.",
+  "Types de tâches propres au TestDaF, absents des autres examens que nous encodons, et à ne pas remplacer par du QCM générique : « Fehler in Zusammenfassung erkennen » (Lesen et Hören) et « Laut- und Schriftbild abgleichen » (Hören)."
+ ],
+ "non_trouve": [
+  "Le barème en points du TestDaF (points par partie, points totaux, seuils de passage d'un TDN à l'autre) n'est pas publié sur les pages officielles consultées. Points laissés à 0 — ne pas inventer de total.",
+  "Le nombre d'items pour Schreiben et Sprechen n'est pas publié (seulement le nombre de tâches, le nombre de mots attendus et le temps de parole). Items laissés à 0.",
+  "La correspondance officielle TDN <-> niveaux CECR figure sur la page « TestDaF-Niveaustufen » sous forme d'IMAGE (niveaustufen_2020.png) que je n'ai pas pu lire. Je n'ai donc pas de ligne de texte officielle attribuant TDN 3 / 4 / 5 à B2.1 ... C1.2 ; l'encadrement global B2–C1 est en revanche cohérent avec les descripteurs lus.",
+  "Je n'ai pas ouvert les PDF de Modellsatz / Übungsmaterialien (ni « Beispielaufgaben Demo-Version digitaler TestDaF », ni les Modelltests papier). La structure ci-dessus vient des pages officielles « Testaufbau », pas des cahiers d'entraînement : une vérification sur le Modellsatz serait utile avant de figer le nombre d'items.",
+  "Je n'ai pas vérifié si le format papier est encore proposé à de nouvelles sessions en 2026 ou seulement maintenu sur certains centres — la page le présente toujours comme un format courant, sans date de fin."
+ ]
+}

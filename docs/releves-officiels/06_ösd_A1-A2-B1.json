@@ -1,0 +1,389 @@
+{
+ "examen": "ÖSD — Österreichisches Sprachdiplom Deutsch, variante « ÖSD Zertifikat » (adultes/à partir de 14 ans), niveaux A1, A2, B1. Pas l'ÖSD KID (enfants), pas l'Integrationsprüfung, pas le ZDÖ B1 (Zertifikat Deutsch Österreich B1, qui est une autre épreuve avec ses propres Durchführungsbestimmungen). L'ÖSD Zertifikat B1 est le produit développé en commun par le Goethe-Institut, l'ÖSD et l'université de Fribourg : sa structure est bien celle du Goethe-Zertifikat B1. Documents lus : Durchführungsbestimmungen 10/2023 et Modellsätze (ZIP) des trois niveaux.",
+ "sources": [
+  "https://osd.at/downloads/ (page de téléchargement officielle, consultée le 2026-10-28)",
+  "https://www.osd.at/wp-content/uploads/2023/09/ZA1-Durchfuhrungsbestimmungen_10_2023.pdf (Stand: Oktober 2023, gültig ab 1. Oktober 2023, 15 p.)",
+  "https://www.osd.at/wp-content/uploads/2023/09/ZA2-Durchfuhrungsbestimmungen_10_2023.pdf (Stand: Oktober 2023)",
+  "https://www.osd.at/wp-content/uploads/2023/09/ZB1-Durchfuhrungsbestimmungen_10_2023.pdf (Stand: Oktober 2023)",
+  "https://osd.at/wp-content/uploads/2026/08/ZA1_Modellsatz.zip (Modellsatz ZA1, PDF + 3 MP3)",
+  "https://osd.at/wp-content/uploads/2026/08/ZA2_Modellsatz.zip (Modellsatz ZA2, PDF + 3 MP3)",
+  "https://osd.at/wp-content/uploads/2026/09/ZB1_Modellsatz-1.zip (Modellsatz ZB1, PDF + 4 MP3)",
+  "https://osd.at/en/portfolio-item/oesd-zertifikat-a1-za1/ (page ZA1)"
+ ],
+ "niveaux": [
+  {
+   "niveau": "A1",
+   "verifie": true,
+   "duree_totale_min": 65,
+   "points_total": 100,
+   "seuil_reussite": "Schriftliche Prüfung : 38/75 points, ET les seuils par subtest (Lesen min. 6/30, Hören min. 6/30). Mündliche Prüfung : 12/25 points. Les deux modules se passent et se valident séparément.",
+   "modules": [
+    {
+     "nom": "Schriftliche Prüfung — Subtest LESEN",
+     "minutes": 25,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Lesen, Aufgabe 1",
+       "type_tache": "Zuordnung",
+       "items": 5,
+       "citation": "Finden Sie zu jeder Situation auf Blatt 1 (Situation A – E) die passende Anzeige auf Blatt 2 (Anzeige Nr. 1 – 6). Achtung: Eine Anzeige ist zu viel. / maximale Anzahl richtiger Lösungen: 5 – maximale Punktezahl: 10"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Lesen, Aufgabe 2",
+       "type_tache": "Ja/Nein",
+       "items": 6,
+       "citation": "Sie lesen drei Anzeigen. Dazu gibt es je 2 Fragen. Antworten Sie mit JA oder NEIN. / maximale Anzahl richtiger Lösungen: 6 – maximale Punktezahl: 10"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Lesen, Aufgabe 3",
+       "type_tache": "Zuordnung",
+       "items": 5,
+       "citation": "Sie lesen hier (Blatt 1) 5 kurze Texte (Text A – E). Auf Blatt 2 gibt es zu jedem Text je ein Bild (Bild 1 – 6). Welches Bild passt zu welchem Text? / maximale Anzahl richtiger Lösungen: 5"
+      }
+     ]
+    },
+    {
+     "nom": "Schriftliche Prüfung — Subtest HÖREN",
+     "minutes": 10,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Hören, Aufgabe 1",
+       "type_tache": "Zuordnung",
+       "items": 5,
+       "citation": "Sie hören jetzt fünf verschiedene Texte zu den Fotos. Welcher Text passt zu welchem Foto? Schreiben Sie die Nummer des Textes unter das Foto. / maximale Anzahl richtiger Lösungen: 5"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Hören, Aufgabe 2",
+       "type_tache": "Notizen / Lückentext (Fill-in)",
+       "items": 5,
+       "citation": "Sie hören folgende Nachricht. Hören Sie gut zu und schreiben Sie die wichtigsten Informationen auf das Notizblatt. Sie hören den Text zwei Mal. / maximale Anzahl richtiger Lösungen: 5"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Hören, Aufgabe 3",
+       "type_tache": "Zuordnung / Mehrfachauswahl im Raster",
+       "items": 5,
+       "citation": "Sie hören jetzt 5 Personen, die befragt werden. Hören Sie gut zu und kreuzen Sie die richtigen Antworten an. Pro Person gibt es nur eine Antwort. / maximale Anzahl richtiger Lösungen: 5"
+      }
+     ]
+    },
+    {
+     "nom": "Schriftliche Prüfung — Subtest SCHREIBEN",
+     "minutes": 20,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Schreiben, Aufgabe 1",
+       "type_tache": "Formular ausfüllen (Fill-in)",
+       "items": 10,
+       "citation": "Helfen Sie Ihrem Freund und füllen Sie das Formular aus. / Auswertung: maximale Anzahl richtiger Lösungen: 10 – maximale Punktezahl: 5"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Schreiben, Aufgabe 2",
+       "type_tache": "Freies Schreiben",
+       "items": 0,
+       "citation": "Antworten Sie Rafaela. Schreiben Sie circa 30 Wörter. / in Aufgabe 2 maximal 10 Punkte"
+      }
+     ]
+    },
+    {
+     "nom": "Mündliche Prüfung — SPRECHEN (Einzelprüfung)",
+     "minutes": 10,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Sprechen, Aufgabe 1 | Über etwas sprechen (sich vorstellen)",
+       "type_tache": "Freies Sprechen (monologisch)",
+       "items": 0,
+       "citation": "Wählen Sie 4 Themen aus und sprechen Sie zu jedem Thema ein paar Sätze."
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Sprechen, Aufgabe 2 | Über etwas sprechen (Situationen beschreiben)",
+       "type_tache": "Bildbeschreibung (monologisch, geführt)",
+       "items": 0,
+       "citation": "Sie bekommen drei Bilder. Wählen Sie ein Bild aus. Sprechen Sie über das Bild: Was sehen Sie? …"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Sprechen, Aufgabe 3 | Miteinander sprechen (in Alltagssituationen sprechen)",
+       "type_tache": "Rollenspiel / dialogisches Sprechen",
+       "items": 0,
+       "citation": "Sie sind nun in der Situation des gewählten Bildes. Spielen Sie diese Situation mit Ihrer Gesprächspartnerin/Ihrem Gesprächspartner."
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "niveau": "A2",
+   "verifie": true,
+   "duree_totale_min": 85,
+   "points_total": 90,
+   "seuil_reussite": "Schriftliche Prüfung : 35/70 points soit 50 %, ET les seuils par subtest (Lesen min. 5/25, Hören min. 6/30). Mündliche Prüfung : 10/20 points soit 50 %.",
+   "modules": [
+    {
+     "nom": "Schriftliche Prüfung — Subtest LESEN",
+     "minutes": 30,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Lesen, Aufgabe 1",
+       "type_tache": "Zuordnung",
+       "items": 5,
+       "citation": "Lesen Sie die 10 Überschriften auf Blatt 1 und die 5 Texte auf Blatt 2. Suchen Sie dann zu jedem Text (1 – 5) die passende … / maximale Anzahl richtiger Lösungen: 5 – maximale Punktezahl: 15"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Lesen, Aufgabe 2",
+       "type_tache": "Mehrfachauswahl",
+       "items": 5,
+       "citation": "Lesen Sie zuerst den Text auf Blatt 1 und lösen Sie dann die 5 Aufgaben, indem Sie die richtige Antwort … / maximale Anzahl richtiger Lösungen: 5 – maximale Punktezahl: 10"
+      }
+     ]
+    },
+    {
+     "nom": "Schriftliche Prüfung — Subtest HÖREN",
+     "minutes": 15,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Hören, Aufgabe 1",
+       "type_tache": "Mehrfachauswahl (Raster, mehrere richtige Antworten)",
+       "items": 4,
+       "citation": "Sie hören zwei verschiedene Texte mit dem gleichen Inhalt. Hören Sie gut zu und markieren Sie die Antworten. Es gibt vier richtige Antworten. / maximale Anzahl richtiger Lösungen: 4"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Hören, Aufgabe 2",
+       "type_tache": "Notizen / Lückentext (Fill-in)",
+       "items": 5,
+       "citation": "Sie hören folgende Nachricht. Hören Sie gut zu und schreiben Sie die wichtigsten Informationen auf das Notizblatt. / maximale Anzahl richtiger Lösungen: 5"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Hören, Aufgabe 3",
+       "type_tache": "Zuordnung / Mehrfachauswahl im Raster",
+       "items": 5,
+       "citation": "Sie hören ein Interview, bei dem fünf Personen befragt werden. … Pro Person sind mehrere Antworten möglich. / Auswertung: maximal 2 Punkte pro Sprecher/-in (= Zeile) – maximale Punktezahl: 10"
+      }
+     ]
+    },
+    {
+     "nom": "Schriftliche Prüfung — Subtest SCHREIBEN",
+     "minutes": 30,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Schreiben, Aufgabe 1",
+       "type_tache": "Freies Schreiben (E-Mail)",
+       "items": 0,
+       "citation": "Schreiben Sie ein E-Mail an Michael (Blatt 2). / Im Subtest SCHREIBEN können maximal 15 Punkte erreicht werden."
+      }
+     ]
+    },
+    {
+     "nom": "Mündliche Prüfung — SPRECHEN (Paar- oder Einzelprüfung)",
+     "minutes": 10,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Sprechen, Aufgabe 1 | Sich vorstellen",
+       "type_tache": "Freies Sprechen (monologisch) + Fragen",
+       "items": 0,
+       "citation": "Wählen Sie 5 Themen … Ihre Gesprächspartnerin/Ihr Gesprächspartner möchte Sie gerne kennenlernen."
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Sprechen, Aufgabe 2 | Gemeinsam eine Aufgabe lösen",
+       "type_tache": "Dialogisches Sprechen / gemeinsam planen",
+       "items": 0,
+       "citation": "Sie und Ihre Gesprächspartnerin/Ihr Gesprächspartner planen für die Teilnehmerinnen und Teilnehmer …"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "niveau": "B1",
+   "verifie": true,
+   "duree_totale_min": 180,
+   "points_total": 100,
+   "seuil_reussite": "60 % par module : « Ein Modul ist bestanden, wenn von 100 Punkten mindestens 60 Punkte bzw. 60 % erreicht sind. » Les quatre modules se passent isolément ou dans n'importe quelle combinaison.",
+   "modules": [
+    {
+     "nom": "Modul LESEN",
+     "minutes": 65,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Lesen, Teil 1",
+       "type_tache": "Richtig/Falsch",
+       "items": 6,
+       "citation": "Teil 1 Arbeitszeit: 10 Minuten — Lesen Sie den Text und die Aufgaben 1 bis 6 dazu. (Antwortbogen Teil 1 : Richtig / Falsch, 1–6)"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Lesen, Teil 2",
+       "type_tache": "Mehrfachauswahl (a/b/c)",
+       "items": 6,
+       "citation": "Teil 2 Arbeitszeit: 20 Minuten — Lesen Sie den Text aus der Presse und die Aufgaben 7 bis 9 dazu. Wählen Sie bei jeder Aufgabe die richtige Lösung a, b oder c. … (noch Teil 2) die Aufgaben 10 bis 12"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Lesen, Teil 3",
+       "type_tache": "Zuordnung",
+       "items": 7,
+       "citation": "Teil 3 Arbeitszeit: 10 Minuten — Lesen Sie die Situationen 13 bis 19 und die Anzeigen a bis j aus verschiedenen deutschsprachigen Medien."
+      },
+      {
+       "numero": 4,
+       "nom_officiel": "Lesen, Teil 4",
+       "type_tache": "Ja/Nein",
+       "items": 7,
+       "citation": "Teil 4 Arbeitszeit: 15 Minuten — Lesen Sie die Texte 20 bis 26. Wählen Sie: Ist die Person für ein Verbot? (Antwortbogen Teil 4 : Ja / Nein, 20–26)"
+      },
+      {
+       "numero": 5,
+       "nom_officiel": "Lesen, Teil 5",
+       "type_tache": "Mehrfachauswahl (a/b/c)",
+       "items": 4,
+       "citation": "Teil 5 Arbeitszeit: 10 Minuten — Lesen Sie die Aufgaben 27 bis 30 und den Text dazu. Wählen Sie bei jeder Aufgabe die richtige Lösung a, b oder c."
+      }
+     ]
+    },
+    {
+     "nom": "Modul HÖREN",
+     "minutes": 40,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Hören, Teil 1",
+       "type_tache": "Richtig/Falsch et Mehrfachauswahl en alternance",
+       "items": 10,
+       "citation": "Sie hören nun fünf kurze Texte. Sie hören jeden Text zweimal. Zu jedem Text lösen Sie zwei Aufgaben. (Antwortbogen Teil 1 : 1 Richtig/Falsch, 2 a/b/c, … jusqu'à 10)"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Hören, Teil 2",
+       "type_tache": "Mehrfachauswahl (a/b/c)",
+       "items": 5,
+       "citation": "Wählen Sie bei jeder Aufgabe die richtige Lösung a, b oder c. Lesen Sie jetzt die Aufgaben 11 bis 15."
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Hören, Teil 3",
+       "type_tache": "Richtig/Falsch",
+       "items": 7,
+       "citation": "Sie hören nun ein Gespräch. … Dazu lösen Sie sieben Aufgaben. Wählen Sie: Sind die Aussagen Richtig oder Falsch? Lesen Sie jetzt die Aufgaben 16 bis 22."
+      },
+      {
+       "numero": 4,
+       "nom_officiel": "Hören, Teil 4",
+       "type_tache": "Zuordnung (Wer sagt was?)",
+       "items": 8,
+       "citation": "Sie hören nun eine Diskussion. Sie hören die Diskussion zweimal. Dazu lösen Sie acht Aufgaben. Ordnen Sie die Aussagen zu: Wer sagt was? Lesen Sie jetzt die Aussagen 23 bis 30."
+      }
+     ]
+    },
+    {
+     "nom": "Modul SCHREIBEN",
+     "minutes": 60,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Schreiben, Aufgabe 1 (Teil 1)",
+       "type_tache": "Freies Schreiben (persönliche Nachricht/E-Mail)",
+       "items": 0,
+       "citation": "Aufgabe 1 Arbeitszeit: 20 Minuten — Schreiben Sie etwas zu allen drei Punkten. / davon 40 Punkte in Teil 1"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Schreiben, Aufgabe 2 (Teil 2)",
+       "type_tache": "Freies Schreiben (Meinungsäußerung, ca. 80 Wörter)",
+       "items": 0,
+       "citation": "Aufgabe 2 Arbeitszeit: 25 Minuten — Schreiben Sie nun Ihre Meinung (circa 80 Wörter). / 40 Punkte in Teil 2"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Schreiben, Aufgabe 3 (Teil 3)",
+       "type_tache": "Freies Schreiben (formelle Entschuldigung)",
+       "items": 0,
+       "citation": "Aufgabe 3 Arbeitszeit: 15 Minuten — Schreiben Sie an Frau Müller. Entschuldigen Sie sich höflich und berichten Sie, warum Sie nicht … / 20 Punkte in Teil 3"
+      }
+     ]
+    },
+    {
+     "nom": "Modul SPRECHEN (Paarprüfung ca. 15 Min., Einzelprüfung ca. 10 Min.)",
+     "minutes": 15,
+     "parties": [
+      {
+       "numero": 1,
+       "nom_officiel": "Sprechen, Teil 1 — Gemeinsam etwas planen",
+       "type_tache": "Dialogisches Sprechen / gemeinsam planen",
+       "items": 0,
+       "citation": "Teil 1 Gemeinsam etwas planen Dauer: circa drei Minuten — Sprechen Sie über die Punkte unten, machen Sie Vorschläge und reagieren Sie auf die Vorschläge … / davon 28 Punkte in Teil 1"
+      },
+      {
+       "numero": 2,
+       "nom_officiel": "Sprechen, Teil 2 — Ein Thema präsentieren",
+       "type_tache": "Freies Sprechen (monologische Präsentation)",
+       "items": 0,
+       "citation": "Teil 2 Ein Thema präsentieren Dauer: circa drei Minuten — Wählen Sie ein Thema … / 40 Punkte in Teil 2"
+      },
+      {
+       "numero": 3,
+       "nom_officiel": "Sprechen, Teil 3 — Über ein Thema sprechen",
+       "type_tache": "Dialogisches Sprechen (Rückmeldung/Fragen zur Präsentation)",
+       "items": 0,
+       "citation": "Teil 3 Über ein Thema sprechen Dauer: circa zwei Minuten / 16 Punkte in Teil 3 und 16 Punkte für die Aussprache"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "ecarts": [
+  "A1 Lesen, Aufgabe 1 : nous encodons 'true-false' (juger des affirmations). Le document dit Zuordnung — associer 5 situations (A–E) à 6 annonces. Type de tâche FAUX.",
+  "A1 Lesen, Aufgabe 2 : nous encodons 'matching' (associer situation/annonce). Le document dit Ja/Nein — trois annonces, 2 questions chacune, 6 items. Type de tâche FAUX. En fait nos parties 1 et 2 sont inversées, et même inversées elles ne collent pas (le vrai type est Ja/Nein, pas Richtig/Falsch).",
+  "A1 Lesen, Aufgabe 3 : nous encodons 'mcq' sur des panneaux. Le document dit Zuordnung — 5 textes courts (A–E) à associer à 6 images. Type de tâche FAUX (c'est bien des panneaux, mais la tâche est une association d'images, pas un QCM).",
+  "A1 Hören, Aufgabe 1 : nous encodons 'mcq' (courts dialogues, choisir la bonne réponse). Le document dit Zuordnung — associer 5 textes entendus à 6 photos. Type de tâche FAUX.",
+  "A1 Hören, Aufgabe 2 : nous encodons 'true-false' (annonces, juger des affirmations). Le document dit Notizblatt — remplir 5 informations manquantes dans une prise de notes, texte entendu deux fois. Type de tâche FAUX ; il faudrait 'note-completion'.",
+  "A1 Hören, Aufgabe 3 : nous encodons 'mcq' sur des 'messages téléphoniques'. Le document dit : 5 personnes interrogées, une grille à cocher (une seule réponse par personne). Le support est faux (ce ne sont pas des messages téléphoniques) ; le type est acceptable mais c'est une Zuordnung en grille.",
+  "A1 Schreiben, Aufgabe 1 : 'form-completion' est juste, mais aucun item n'est renseigné alors que le document publie un chiffre : 10 Lösungen pour 5 points.",
+  "A1 scoring : nous appliquons le barème global du fichier (total 100, section_max 100, max_score 100 pour chaque section, pass_mark 60 %). Le document dit : LESEN 30 points, HÖREN 30 points, SCHREIBEN 15 points, écrit = 75 points au total, oral = 25 points, et le seuil est 38/75 à l'écrit (+ minimum 6/30 en Lesen et 6/30 en Hören, sous peine d'échec de tout le module) et 12/25 à l'oral. Nos max_score et notre seuil 60 % sont donc faux à ce niveau.",
+  "A2 Lesen, Aufgabe 1 : nous encodons 'mcq' ('des textes courts : choisir la bonne réponse'). Le document dit Zuordnung — 10 titres pour 5 textes, 15 points. Type de tâche FAUX.",
+  "A2 Lesen, Aufgabe 2 : nous encodons 'matching' (associer situation/annonce). Le document dit Mehrfachauswahl — un texte, puis 5 questions à choix, 10 points. Type de tâche FAUX. Là encore nos deux parties sont inversées.",
+  "A2 Hören, Aufgabe 1 : nous encodons 'true-false' (échanges du quotidien). Le document dit : deux textes de même contenu, une grille de 8 cases dont il faut cocher les 4 bonnes réponses (Mehrfachauswahl à réponses multiples), 4 items. Type de tâche FAUX.",
+  "A2 Hören, Aufgabe 2 : nous encodons 'mcq' (annonces). Le document dit Notizblatt — 5 informations à écrire, 5 items. Type de tâche FAUX.",
+  "A2 Hören, Aufgabe 3 : nous encodons 'matching' ('messages courts : associer chacun à sa situation'). Le document dit : un interview de 5 personnes, grille à cocher, PLUSIEURS réponses possibles par personne, 2 points par locuteur. Le support et la consigne sont faux.",
+  "A2 Sprechen, Aufgabe 1 : notre description dit '5 thèmes choisis parmi 6'. Le Modellsatz ne donne pas ce décompte de 6 ; il dit seulement 'Wählen Sie 5 Themen' sur une feuille (Folienblatt) remise au candidat. Le '6' n'est pas sourcé.",
+  "A2 scoring : même problème qu'en A1. Le document dit LESEN 25 points, HÖREN 30 points, SCHREIBEN 15 points, écrit = 70 points, oral = 20 points, total 90 ; seuil 50 % (35/70 à l'écrit, 10/20 à l'oral), avec minimum 5/25 en Lesen et 6/30 en Hören. Nos 100/100/60 % sont faux, et le seuil est 50 %, pas 60 %.",
+  "B1 — ÉCART LE PLUS GRAVE : il manque 5 parties sur 15. Le document dit : LESEN Teil 1–5, HÖREN Teil 1–4, SCHREIBEN Teil 1–3, SPRECHEN Teil 1–3 = 15 parties. Nous n'en encodons que 10 (Lesen 3 au lieu de 5, Hören 2 au lieu de 4, Schreiben 2 au lieu de 3, Sprechen 3 — correct en nombre). Les 'task_count' du fichier (5, 4, 3, 3) sont justes, mais les tableaux 'parts' ne les suivent pas : un apprenant ne verra jamais Lesen Teil 4 et 5, ni Hören Teil 3 et 4, ni Schreiben Teil 3.",
+  "B1 Lesen, Teil 1 : nous encodons 'mcq' ('un texte du quotidien, puis des questions à choix multiple'). Le document dit Richtig/Falsch, Aufgaben 1–6. Type de tâche FAUX. Le vrai QCM est en Teil 2 (7–12) et en Teil 5 (27–30).",
+  "B1 Lesen, Teil 2 : nous encodons 'matching' (annonces). Le document dit Mehrfachauswahl a/b/c sur deux textes de presse, Aufgaben 7–12. Type de tâche FAUX. La Zuordnung d'annonces, c'est Teil 3 (situations 13–19 vs annonces a–j).",
+  "B1 Lesen, Teil 3 : nous encodons 'matching' sur des 'opinions'. Le document dit : Teil 3 = Zuordnung situations/annonces ; le Teil 4 est celui des opinions, et il se fait en Ja/Nein ('Ist die Person für ein Verbot?'), pas en association. Le libellé est décalé d'une place.",
+  "B1 Hören, Teil 1 : nous encodons 'true-false' ('une conversation : juger des affirmations'). Le document dit : 5 textes courts, 2 tâches par texte, en alternance Richtig/Falsch et Mehrfachauswahl, 10 items. Ce n'est pas une conversation unique, et le type est mixte.",
+  "B1 Hören, Teil 2 : nous encodons 'mcq' sur un 'exposé suivi'. Le type (Mehrfachauswahl, 11–15) est juste, mais le support n'est pas un exposé suivi ; et il manque Teil 3 (Gespräch, Richtig/Falsch, 7 items) et Teil 4 (Diskussion, Zuordnung 'Wer sagt was?', 8 items).",
+  "B1 Schreiben : il manque Teil 3 (15 min, excuse formelle à Frau Müller, 20 points). Nos durées par tâche ne sont pas encodées alors que le document les publie : 20 / 25 / 15 minutes, et 40 / 40 / 20 points.",
+  "B1 Sprechen : ORDRE FAUX. Nous mettons part 1 = 'Entretien, parler de soi' (speaking-response), part 2 = exposé, part 3 = planifier ensemble. Le document dit Teil 1 = Gemeinsam etwas planen (3 min, 28 points), Teil 2 = Ein Thema präsentieren (3 min, 40 points), Teil 3 = Über ein Thema sprechen (2 min, 16 points + 16 points pour la prononciation). Il n'y a AUCUNE partie 'parler de soi / entretien' en B1 : notre partie 1 est inventée, et 'planifier ensemble' est au début, pas à la fin.",
+  "Aucun nombre d'items n'est renseigné dans notre config, alors que l'ÖSD les publie pour les trois niveaux : A1 Lesen 16 / Hören 15, A2 Lesen 10 / Hören 14, B1 Lesen 30 / Hören 30 (un Messpunkt par item, converti en 100 Ergebnispunkte à raison de 3,33 points par item).",
+  "Le commentaire en tête de osd.php dit que seuls B1 et B2 ont été vérifiés et que les autres niveaux 'seront ajoutés quand il aura été vérifié de la même façon' — or A1, A2, C1 et C2 sont bel et bien présents dans le fichier. Le commentaire ne décrit plus le fichier.",
+  "Le commentaire du bloc B1 affirme que la structure 'est donc celle du Goethe-Zertifikat B1, vérifiée des deux côtés'. L'origine commune est exacte (Goethe-Institut + ÖSD + université de Fribourg, cité dans les Durchführungsbestimmungen), mais la structure encodée ne correspond ni à l'un ni à l'autre : la vérification annoncée n'a pas eu lieu.",
+  "Durées globales : A1 65 min, A2 85 min, B1 180 min sont correctes (A1 55+10, A2 75+10, B1 165+15). Les time_limit par section sont corrects aussi. C'est le seul bloc de chiffres qui tient."
+ ],
+ "non_trouve": [
+  "Nombre d'items pour les subtests SCHREIBEN et SPRECHEN : l'ÖSD ne publie pas de décompte d'items pour ces productions (sauf A1 Schreiben Aufgabe 1, le formulaire, qui vaut 10 Lösungen). Mis à 0 comme demandé.",
+  "Répartition des points par partie en A1 LESEN et HÖREN : le Modellsatz donne 10 points par Aufgabe, soit 30 par subtest, mais la table de conversion items→points figure sur l'Auswertungsbogen, qui n'est pas en libre accès (il est dans l'ÖSD-Verwaltungssystem).",
+  "Variante « ÖSD Zertifikat B1 / ÖIF » : je n'ai trouvé aucun document ÖSD l'attestant sous ce nom. Ce que l'ÖSD publie à côté du ZB1, c'est le ÖSD Zertifikat Deutsch Österreich B1 (ZDÖ B1), avec ses propres Durchführungsbestimmungen (https://www.osd.at/wp-content/uploads/2023/09/ZDO-B1-Durchfuhrungsbestimmungen_10_2023.pdf) — épreuve différente, que je n'ai PAS ouverte et dont je ne rapporte donc pas la structure. Je ne peux pas confirmer l'existence d'une variante ÖIF sans l'avoir lue.",
+  "Variante « ÖSD Zertifikat A1 / Österreich » et « A2 / Österreich » : les Durchführungsbestimmungen précisent que la structure et les formats sont identiques à la version générale, mais je n'ai pas ouvert les Modellsätze Österreich pour vérifier les items un par un.",
+  "ÖSD KID A1 / KID A2 (enfants) et Integrationsprüfung : non vérifiés, non rapportés. Leur structure diffère et notre config ne les distingue pas explicitement.",
+  "Durées par partie en A1 et A2 : l'ÖSD ne publie un temps que par subtest, pas par Aufgabe (contrairement au B1, où chaque Teil a son Arbeitszeit)."
+ ]
+}
