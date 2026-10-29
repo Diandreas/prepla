@@ -35,6 +35,7 @@ class RetirerExercicesNonConformes extends Command
     protected $signature = 'prepla:retirer-non-conformes
         {--examen= : se limiter a un examen}
         {--vraiment : supprimer pour de bon ; sans cette option, rien n est ecrit}
+        {--meme-tentes : retirer AUSSI ceux qu un apprenant a ouverts, et leurs tentatives}
         {--limite=0 : s arreter apres ce nombre d exercices}';
 
     protected $description = 'Retire les exercices d entrainement qui n ont pas le nombre d items de leur partie';
@@ -42,6 +43,7 @@ class RetirerExercicesNonConformes extends Command
     public function handle(StructureOfficielle $structure): int
     {
         $pourDeBon = (bool) $this->option('vraiment');
+        $memeTentes = (bool) $this->option('meme-tentes');
         $limite = (int) $this->option('limite');
 
         $aRetirer = [];
@@ -93,7 +95,7 @@ class RetirerExercicesNonConformes extends Command
                         if (in_array($items, $structure->itemsAttendus($exam, $niveau, $type), true)) {
                             continue;
                         }
-                        if (UserExerciseAttempt::where('exercise_id', $exo->id)->exists()) {
+                        if (! $memeTentes && UserExerciseAttempt::where('exercise_id', $exo->id)->exists()) {
                             $proteges++;
 
                             continue;
@@ -124,14 +126,27 @@ class RetirerExercicesNonConformes extends Command
             $this->line("<fg=yellow>{$proteges} exercice(s) non conforme(s) gardes : un apprenant les a ouverts.</>");
         }
 
+        // CE QUI PART AVEC. La cle etrangere des tentatives est en cascade :
+        // supprimer un exercice efface le travail que des apprenants y ont fait.
+        // On le compte et on l'annonce, toujours, avant d'ecrire.
+        $ids = array_keys($aRetirer);
+        $tentatives = UserExerciseAttempt::whereIn('exercise_id', $ids)->count();
+        $apprenants = UserExerciseAttempt::whereIn('exercise_id', $ids)
+            ->distinct('user_id')->count('user_id');
+
+        if ($tentatives > 0) {
+            $this->line("<fg=red>{$tentatives} tentative(s) de {$apprenants} apprenant(s) seront effacees avec ces exercices.</>");
+        }
+
         if (! $pourDeBon) {
             $this->info(count($aRetirer).' exercice(s) seraient retires. Relancer avec --vraiment pour le faire.');
 
             return self::SUCCESS;
         }
 
-        Exercise::whereIn('id', array_keys($aRetirer))->delete();
-        $this->info(count($aRetirer).' exercice(s) retires.');
+        Exercise::whereIn('id', $ids)->delete();
+        $this->info(count($aRetirer).' exercice(s) retires'
+            .($tentatives > 0 ? ", et {$tentatives} tentative(s) avec eux." : '.'));
 
         return self::SUCCESS;
     }

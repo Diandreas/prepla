@@ -79,3 +79,37 @@ test('a blanc, rien n est supprime', function () {
 
     expect(Exercise::find($trompeur->id))->not->toBeNull();
 });
+
+test('avec --meme-tentes, un exercice ouvert est retire et sa tentative avec lui', function () {
+    // La cle etrangere des tentatives est en cascade : effacer l exercice efface
+    // le travail fait dessus. C est voulu ici — on ne veut plus aucun exercice au
+    // mauvais format — mais la commande doit l annoncer, pas le faire en silence.
+    $trompeur = exerciceDe('goethe', 'lesen', 'mcq', 3);
+    UserExerciseAttempt::create([
+        'user_id' => User::factory()->create()->id,
+        'exercise_id' => $trompeur->id,
+        'score' => 2,
+        'answers' => ['q1' => 'A'],
+    ]);
+
+    $this->artisan('prepla:retirer-non-conformes', [
+        '--examen' => 'goethe', '--vraiment' => true, '--meme-tentes' => true,
+    ])->expectsOutputToContain('1 tentative(s) de 1 apprenant(s)')->assertSuccessful();
+
+    expect(Exercise::find($trompeur->id))->toBeNull()
+        ->and(UserExerciseAttempt::count())->toBe(0);
+});
+
+test('sans --meme-tentes, la tentative reste intacte', function () {
+    $trompeur = exerciceDe('goethe', 'lesen', 'mcq', 3);
+    UserExerciseAttempt::create([
+        'user_id' => User::factory()->create()->id,
+        'exercise_id' => $trompeur->id,
+        'score' => 2,
+        'answers' => ['q1' => 'A'],
+    ]);
+
+    $this->artisan('prepla:retirer-non-conformes', ['--examen' => 'goethe', '--vraiment' => true]);
+
+    expect(UserExerciseAttempt::count())->toBe(1);
+});
