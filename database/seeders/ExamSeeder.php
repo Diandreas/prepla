@@ -67,8 +67,10 @@ class ExamSeeder extends Seeder
         'summary-writing'         => ['name' => 'Summary Writing',              'component' => 'essay-editor'],
         'article-writing'         => ['name' => 'Article Writing',              'component' => 'essay-editor'],
         'letter-email-writing'    => ['name' => 'Letter/Email Writing',         'component' => 'essay-editor'],
+        'proposal-writing'        => ['name' => 'Proposal Writing',             'component' => 'essay-editor'],
         'report-writing'          => ['name' => 'Report Writing',               'component' => 'essay-editor'],
         'review-writing'          => ['name' => 'Review Writing',               'component' => 'essay-editor'],
+        'story-writing'           => ['name' => 'Story Writing',                'component' => 'essay-editor'],
 
         // ── DELF/DALF specific ──
         'synthesis'               => ['name' => 'Synthèse de documents',        'component' => 'synthesis'],
