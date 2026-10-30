@@ -274,11 +274,13 @@ return [
                         ['part' => 1, 'name' => 'Writing, Part 1', 'name_fr' => 'Courriel',
                             "task" => "Repondre a un courriel et a des notes, environ 100 mots. 20 points.",
                             'type' => 'letter-email-writing', 'items' => 1, 'source' => 'officiel'],
+                        // Deux formats au choix, declares pour CE palier : le B1
+                        // propose l'article ou l'histoire, et rien d'autre.
                         ['part' => 2, 'name' => 'Writing, Part 2', 'name_fr' => 'Article ou recit',
                             "task" => "Au choix : un article ou une histoire, environ 100 mots. 20 points.",
-                            'type' => 'article-writing', 'items' => 1, 'source' => 'officiel'],
+                            'types' => ['article-writing', 'story-writing'], 'items' => 1, 'source' => 'officiel'],
                     ],
-                    'exercise_types' => ['letter-email-writing', 'article-writing', 'short-writing'],
+                    'exercise_types' => ['letter-email-writing', 'article-writing', 'story-writing', 'short-writing'],
                 ],
                 [
                     'slug' => 'listening',
@@ -387,9 +389,13 @@ return [
                         ['part' => 1, 'name' => 'Writing, Part 1', 'name_fr' => 'Essai obligatoire',
                             "task" => "Donner son opinion sur un sujet impose, en utilisant deux idees fournies et une personnelle. 140 a 190 mots.",
                             'type' => 'essay', 'items' => 1, 'source' => 'officiel'],
+                        // Quatre formats au choix. L'histoire est reservee au
+                        // « for Schools » : elle n'a pas sa place dans la version
+                        // adulte, et n'est donc pas declaree ici.
                         ['part' => 2, 'name' => 'Writing, Part 2', 'name_fr' => 'Au choix',
                             "task" => "Au choix : article, courriel ou lettre, critique, rapport. 140 a 190 mots.",
-                            'type' => 'article-writing', 'items' => 1, 'source' => 'officiel'],
+                            'types' => ['article-writing', 'letter-email-writing', 'review-writing', 'report-writing'],
+                            'items' => 1, 'source' => 'officiel'],
                     ],
                     'exercise_types' => ['essay', 'article-writing', 'letter-email-writing', 'review-writing', 'report-writing'],
                 ],
@@ -504,11 +510,15 @@ return [
                         ['part' => 1, 'name' => 'Writing, Part 1', 'name_fr' => 'Essai obligatoire',
                             "task" => "Lire un texte, puis ecrire un essai sur deux points en disant lequel compte le plus. 220 a 260 mots.",
                             'type' => 'essay', 'items' => 1, 'source' => 'officiel'],
+                        // La proposition est propre au C1 : aucun autre palier ne la
+                        // demande. Elle etait annoncee par la tache mais n'existait
+                        // dans aucun format, et seul le rapport etait servi.
                         ['part' => 2, 'name' => 'Writing, Part 2', 'name_fr' => 'Au choix',
                             "task" => "Au choix parmi trois : lettre ou courriel, proposition, rapport, critique. 220 a 260 mots.",
-                            'type' => 'report-writing', 'items' => 1, 'source' => 'officiel'],
+                            'types' => ['letter-email-writing', 'proposal-writing', 'report-writing', 'review-writing'],
+                            'items' => 1, 'source' => 'officiel'],
                     ],
-                    'exercise_types' => ['essay', 'letter-email-writing', 'report-writing', 'review-writing'],
+                    'exercise_types' => ['essay', 'letter-email-writing', 'proposal-writing', 'report-writing', 'review-writing'],
                 ],
                 [
                     'slug' => 'listening',
@@ -617,9 +627,13 @@ return [
                         ['part' => 1, 'name' => 'Writing, Part 1', 'name_fr' => 'Essai obligatoire',
                             "task" => "Resumer et evaluer deux textes d'environ 100 mots, puis ecrire un essai. 240 a 280 mots.",
                             'type' => 'essay', 'items' => 1, 'source' => 'officiel'],
+                        // Au C2 l'officiel dit « a letter », pas un courriel : le
+                        // format du palier est donc `letter-writing`, et non le
+                        // `letter-email-writing` du B2 et du C1.
                         ['part' => 2, 'name' => 'Writing, Part 2', 'name_fr' => 'Au choix',
                             "task" => "Au choix parmi trois : article, lettre, rapport, critique. 280 a 320 mots.",
-                            'type' => 'article-writing', 'items' => 1, 'source' => 'officiel'],
+                            'types' => ['article-writing', 'letter-writing', 'report-writing', 'review-writing'],
+                            'items' => 1, 'source' => 'officiel'],
                     ],
                     'exercise_types' => ['essay', 'synthesis-essay', 'article-writing', 'letter-writing', 'report-writing', 'review-writing'],
                 ],
