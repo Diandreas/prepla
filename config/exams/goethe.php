@@ -559,7 +559,9 @@ return [
                         ['part' => 1, 'name' => 'Schreiben, Teil 1', 'name_fr' => 'Texte argumenté',
                                 "task" => "Écrire une contribution à une discussion sur un forum Internet, environ 230 mots. Cinquante minutes. Aucune donnée chiffrée n'est fournie.",
                                 'type' => 'essay', 'source' => 'officiel'],
-                        ['part' => 2, 'name' => 'Schreiben, Teil 2', 'name_fr' => 'Réécriture formelle',
+                        // « Réécriture formelle » contredisait sa propre tache : on
+                        // n'y reecrit rien, on redige un courriel.
+                        ['part' => 2, 'name' => 'Schreiben, Teil 2', 'name_fr' => 'Courriel semi-formel',
                                 "task" => "Écrire un courriel semi-formel d'environ 120 mots à un destinataire donné, en traitant les quatre points imposés. Vingt-cinq minutes.",
                                 'type' => 'letter-email-writing', 'source' => 'officiel'],
                     ],
@@ -658,12 +660,16 @@ return [
                     'skill_type' => 'writing',
                     'time_limit' => 80,
                     'scoring_weight' => 25,
-                    'description' => '2 tâches : texte argumentatif complexe + réécriture/correction de texte.',
+                    'description' => '2 tâches : réécriture guidée de dix passages, puis texte argumenté au choix.',
+                    // Les deux etiquettes etaient inversees : c'est le Teil 1 qui
+                    // reformule, et le Teil 2 qui redige. Le document officiel est
+                    // formel : « In Teil 1 werden bei 10 Loesungen 2, 1 oder 0
+                    // Punkte vergeben », et le Teil 2 est note sur cinq criteres.
                     'parts' => [
-                        ['part' => 1, 'name' => 'Schreiben, Teil 1', 'name_fr' => 'Texte argumenté',
+                        ['part' => 1, 'name' => 'Schreiben, Teil 1', 'name_fr' => 'Réécriture guidée',
                                 "task" => "Un exposé court d'environ 200 mots : reformuler dix passages marqués en réemployant obligatoirement le mot imposé. Vingt minutes, deux points par passage.",
                                 'type' => 'key-word-transformation', 'items' => 10, 'source' => 'officiel'],
-                        ['part' => 2, 'name' => 'Schreiben, Teil 2', 'name_fr' => 'Réécriture',
+                        ['part' => 2, 'name' => 'Schreiben, Teil 2', 'name_fr' => 'Texte argumenté',
                                 "task" => "Écrire un texte d'environ 350 mots sur l'un des quatre sujets proposés : lettre de lecteur, article, ou compte rendu de lecture. Soixante minutes. Deux des quatre sujets portent sur la liste de lecture publiée chaque année par le Goethe-Institut.",
                                 'type' => 'essay', 'source' => 'officiel'],
                     ],
