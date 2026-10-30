@@ -62,6 +62,13 @@ Route::get('/sitemap.xml', function () {
         ['loc' => url('/register'), 'priority' => '0.8'],
         ['loc' => url('/login'), 'priority' => '0.5'],
         ['loc' => url('/blog'), 'priority' => '0.6'],
+        // Les structures d'examen sont ce qu'on cherche vraiment : « Goethe B1
+        // epreuves », « duree du DELF B2 ». Une entree par langue, parce que
+        // chacune porte son propre titre et ses propres examens.
+        ['loc' => url('/structures'), 'priority' => '0.8'],
+        ['loc' => url('/structures?langue=english'), 'priority' => '0.7'],
+        ['loc' => url('/structures?langue=french'), 'priority' => '0.7'],
+        ['loc' => url('/structures?langue=german'), 'priority' => '0.7'],
         ['loc' => url('/privacy'), 'priority' => '0.3'],
         ['loc' => url('/terms'), 'priority' => '0.3'],
         ['loc' => url('/account-deletion'), 'priority' => '0.2'],

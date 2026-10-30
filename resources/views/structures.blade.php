@@ -3,9 +3,13 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Structures des examens — PrePla</title>
-    <meta name="description" content="Les structures officielles des examens de langue utilisées par PrePla, épreuve par épreuve et partie par partie, ouvertes à la relecture.">
-    <meta name="robots" content="noindex">
+    <title>{{ $titre }} — PrePla</title>
+    @include('partials.meta', [
+        'titre' => $titre,
+        'description' => $description,
+        'image' => url('/og/structures.png'),
+        'canonique' => route('structures', $choisie ? ['langue' => $choisie] : []),
+    ])
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=cormorant-garamond:700i|plus-jakarta-sans:400,500,600,700" rel="stylesheet" />
     <style>

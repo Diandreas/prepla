@@ -77,3 +77,42 @@ test('une partie d ecoute montre le texte de son enregistrement', function () {
         ->assertOk()
         ->assertSee('Enregistrement — texte lu', false);
 });
+
+/**
+ * L'apercu qui s'affiche quand on colle le lien, et ce que lisent les moteurs.
+ *
+ * Toutes les pages du site partageaient le meme titre et la meme image : une
+ * icone carree de 512 px, que les reseaux recadraient en vignette. Chaque page
+ * doit porter son propre titre, et la banniere doit etre au format attendu.
+ */
+test('la page porte sa propre banniere de partage', function () {
+    $this->get(route('structures'))
+        ->assertOk()
+        ->assertSee('og/structures.png', false)
+        ->assertSee('<meta property="og:image:width" content="1200">', false)
+        ->assertSee('<meta name="twitter:card" content="summary_large_image">', false)
+        // Elle n'est plus tenue hors des moteurs.
+        ->assertDontSee('name="robots" content="noindex', false);
+});
+
+test('chaque langue porte son titre et son canonique', function () {
+    $allemand = $this->get(route('structures', ['langue' => 'german']))->assertOk();
+
+    // Sans le second argument, l'attendu est echappe comme le fait Blade :
+    // l'apostrophe sort en &#039; dans la page.
+    $allemand->assertSee("Structures des examens d'allemand")
+        // Le canonique doit GARDER la langue : sans elle, les trois pages se
+        // declaraient copies de /structures et aucune n'etait indexee.
+        ->assertSee('rel="canonical" href="'.route('structures', ['langue' => 'german']).'"', false);
+
+    $this->get(route('structures', ['langue' => 'french']))
+        ->assertOk()
+        ->assertSee('Structures des examens de français');
+});
+
+test('le sitemap annonce la page et ses langues', function () {
+    $this->get('/sitemap.xml')
+        ->assertOk()
+        ->assertSee(url('/structures'), false)
+        ->assertSee('langue=german', false);
+});

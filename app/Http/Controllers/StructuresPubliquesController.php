@@ -49,11 +49,58 @@ class StructuresPubliquesController extends Controller
             ? $langues->where('slug', $choisie)->values()
             : $langues;
 
+        $choisie = $langues->firstWhere('slug', $choisie) ? $choisie : null;
+
         return view('structures', [
             'langues' => $langues,
             'retenues' => $retenues,
-            'choisie' => $langues->firstWhere('slug', $choisie) ? $choisie : null,
-        ]);
+            'choisie' => $choisie,
+        ] + $this->referencement($langues, $retenues, $choisie));
+    }
+
+    /**
+     * Le titre et la description de la page, pour les moteurs et pour l'apercu
+     * qui s'affiche quand on colle le lien quelque part.
+     *
+     * Ils nomment les examens, parce que c'est ce qu'on cherche : personne ne
+     * tape « structures des examens », on tape « Goethe B1 épreuves ». Un titre
+     * unique par langue evite aussi que les trois pages se fassent concurrence
+     * dans l'index.
+     *
+     * @return array{titre: string, description: string}
+     */
+    private function referencement(mixed $langues, mixed $retenues, ?string $choisie): array
+    {
+        $nomme = fn ($langue) => collect($langue['exams'])->pluck('name')->join(', ', ' et ');
+
+        if ($choisie !== null) {
+            $langue = $langues->firstWhere('slug', $choisie);
+            // Le nom de la config sert l'interface et reste dans la langue
+            // elle-meme (« English »). Ces phrases-ci sont en francais : il leur
+            // faut le nom francais, et la bonne elision — « d'anglais » mais
+            // « de francais ».
+            $de = match ($choisie) {
+                'english' => "d'anglais",
+                'french' => 'de français',
+                'german' => "d'allemand",
+                default => 'de '.mb_strtolower($langue['name']),
+            };
+
+            return [
+                'titre' => 'Structures des examens '.$de.' : '.$nomme($langue),
+                'description' => 'Le détail officiel des examens '.$de.' — '.$nomme($langue)
+                    .". Chaque épreuve, sa durée, et chacune de ses parties avec son nombre de questions, relevées sur les sites des organismes.",
+            ];
+        }
+
+        $total = $retenues->sum(fn ($langue) => count($langue['exams']));
+
+        return [
+            'titre' => 'Structures des examens de langue',
+            'description' => "Le détail officiel de {$total} examens d'anglais, de français et d'allemand : "
+                .'chaque épreuve, sa durée, et chacune de ses parties avec son nombre de questions, '
+                .'relevées sur les sites des organismes.',
+        ];
     }
 
     /**
