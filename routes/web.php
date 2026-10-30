@@ -26,6 +26,7 @@ use App\Http\Controllers\PracticeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\ResultsController;
+use App\Http\Controllers\StructuresPubliquesController;
 use App\Http\Controllers\SuperAdmin\CenterController;
 use App\Http\Controllers\TtsController;
 use App\Http\Controllers\VocabularyController;
@@ -46,6 +47,10 @@ Route::get('/telechargements', fn () => view('offline-app'))->name('offline.app'
 Route::get('/privacy', fn () => view('legal.privacy'))->name('privacy');
 Route::get('/terms', fn () => view('legal.terms'))->name('terms');
 Route::get('/account-deletion', fn () => view('legal.account-deletion'))->name('account-deletion');
+
+// Ouverte sans compte : un enseignant doit pouvoir relire nos structures en face
+// des documents de l'organisme sans avoir a s'inscrire.
+Route::get('/structures', StructuresPubliquesController::class)->name('structures');
 
 Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
 Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
