@@ -4,6 +4,23 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title') — PrePla</title>
+
+    {{-- Ces pages n'avaient aucune balise : partagees, elles sortaient sans
+         titre ni apercu, et les moteurs en inventaient la description. --}}
+    <meta name="description" content="@yield('description', 'Les conditions, la politique de confidentialité et la suppression de compte de PrePla, plateforme de préparation aux examens de langue.')">
+    <link rel="canonical" href="{{ url()->current() }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="PrePla">
+    <meta property="og:title" content="@yield('title') — PrePla">
+    <meta property="og:description" content="@yield('description', 'Les conditions, la politique de confidentialité et la suppression de compte de PrePla.')">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:image" content="{{ url('/og/prepla.png') }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="@yield('title') — PrePla">
+    <meta name="twitter:image" content="{{ url('/og/prepla.png') }}">
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=cormorant-garamond:700i|plus-jakarta-sans:400,500,600,700" rel="stylesheet" />
     <style>

@@ -114,12 +114,16 @@ plus aucun appel à un tiers pendant une épreuve.
 ssh -i ~/.ssh/hostinger_vps root@147.93.87.67 \
   "cd /home/mirlab-prepla/htdocs/prepla.mirlab.cloud && \
    php artisan config:clear && php artisan route:clear && php artisan view:clear && \
-   chown -R mirlab-prepla:mirlab-prepla storage bootstrap/cache public/build database .git"
+   chown -R mirlab-prepla:mirlab-prepla storage bootstrap/cache public/build public/og database .git"
 ```
 
 Le `chown` est indispensable : tout ce que `root` vient d'écrire lui appartient, et
 nginx tourne avec `disable_symlinks if_not_owner` — un fichier mal possédé donne des
 403 ou des 404 silencieux sur les assets et les audios.
+
+`public/og` en fait partie : ce sont les bannières servies à WhatsApp, LinkedIn et
+Facebook quand on colle un lien. Un 403 là-dessus ne casse aucune page — l'aperçu
+sort simplement sans image, et personne ne le remarque avant d'avoir partagé le lien.
 
 ## 6. Vérifier — un code 200 ne suffit pas
 

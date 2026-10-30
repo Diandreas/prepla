@@ -15,25 +15,7 @@
 
         <title inertia>{{ config('app.name', 'PrePla') }} — Préparation aux examens de langue avec l'IA</title>
 
-        {{-- SEO : ces balises vivent dans le Blade (pas dans React) car sans SSR
-             les crawlers sociaux (WhatsApp, Facebook, LinkedIn) n'exécutent pas
-             le JS et ne verraient rien. Google exécute le JS, mais le HTML
-             initial reste la source la plus fiable. --}}
-        <meta name="description" content="Prépare ton examen d'anglais, de français ou d'allemand (IELTS, TOEFL, DELF, Goethe…) avec des exercices personnalisés générés par IA, un test de niveau et un parcours adapté. Essai gratuit 7 jours.">
-        <link rel="canonical" href="{{ url()->current() }}">
-
-        {{-- Open Graph / Twitter --}}
-        <meta property="og:type" content="website">
-        <meta property="og:site_name" content="PrePla">
-        <meta property="og:title" content="PrePla — Préparation aux examens de langue avec l'IA">
-        <meta property="og:description" content="Exercices personnalisés générés par IA, test de niveau et parcours adapté pour réussir ton examen de langue. Essai gratuit 7 jours.">
-        <meta property="og:url" content="{{ url()->current() }}">
-        <meta property="og:image" content="{{ url('/icons/pwa-512-v4.png') }}">
-        <meta property="og:locale" content="fr_FR">
-        <meta name="twitter:card" content="summary">
-        <meta name="twitter:title" content="PrePla — Préparation aux examens de langue avec l'IA">
-        <meta name="twitter:description" content="Exercices personnalisés générés par IA, test de niveau et parcours adapté pour réussir ton examen de langue.">
-        <meta name="twitter:image" content="{{ url('/icons/pwa-512-v4.png') }}">
+        @include('partials.meta')
 
         @if (request()->routeIs('home'))
         {{-- Données structurées : uniquement sur la landing publique --}}

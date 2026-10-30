@@ -13,9 +13,19 @@
     <meta property="og:description" content="@yield('description')">
     <meta property="og:url" content="@yield('canonical')">
     <meta property="og:locale" content="fr_FR">
-    <meta name="twitter:card" content="summary">
+
+    {{-- Le blog ne donnait AUCUNE image : les liens partages sortaient en texte
+         nu. La banniere est au format attendu par les reseaux, 1200x630. --}}
+    <meta property="og:image" content="@yield('og_image', url('/og/prepla.png'))">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="@yield('title') — PrePla">
+
+    {{-- « summary » reduisait l'apercu a une vignette carree. --}}
+    <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="@yield('title')">
     <meta name="twitter:description" content="@yield('description')">
+    <meta name="twitter:image" content="@yield('og_image', url('/og/prepla.png'))">
 
     @yield('structured_data')
 
