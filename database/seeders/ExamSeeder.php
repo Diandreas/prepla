@@ -152,6 +152,13 @@ class ExamSeeder extends Seeder
                     ['exam_id' => $exam->id, 'level' => $level, 'variant' => null],
                     [
                         'name'                   => $levelConfig['name'],
+                        // `total_duration` est la duree TOTALE annoncee par
+                        // l'organisme, pas la somme des modules, et les deux ne
+                        // coincident presque jamais : Cambridge publie « about
+                        // 2 hours » pour l'A2 Key dont les epreuves font 100
+                        // minutes, et le DELF B2 annonce 2 h 30 quand ses quatre
+                        // epreuves en totalisent 170 — l'oral se passe un autre
+                        // jour. Ne pas « reparer » un ecart : il est officiel.
                         'total_duration_minutes'  => $levelConfig['total_duration'],
                         'scoring_config'          => $config['scoring'],
                         'sections_config'         => $levelConfig['sections'],
