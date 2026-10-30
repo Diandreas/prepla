@@ -586,8 +586,8 @@ return [
         // sont encodées au plus proche et signalées dans leur consigne.
         'C2' => [
             'name' => 'ÖSD Zertifikat C2',
-            // 90 + 40 + 75 + 20 = 225 minutes
-            'total_duration' => 225,
+            // 90 + 40 + 90 + 20 = 240 minutes
+            'total_duration' => 240,
             'sections' => [
                 [
                     'slug' => 'lesen',
@@ -643,7 +643,9 @@ return [
                     'name' => 'Schreiben (Expression écrite)',
                     'skill_type' => 'writing',
                     'task_count' => 2,
-                    'time_limit' => 75,
+                    // 90 minutes, et non 75 : « Schreiben — Dauer: 90 Minuten »
+                    // sur la fiche officielle du ÖSD Zertifikat C2.
+                    'time_limit' => 90,
                     'scoring_weight' => 100,
                     'max_score' => 40,
                     'description' => '2 tâches : un texte formel à partir d\'un modèle (18 points), puis un texte au choix entre deux sujets (22 points).',
