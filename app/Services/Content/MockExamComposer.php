@@ -209,7 +209,12 @@ class MockExamComposer
      * Les types d'exercices des parties que l'examen declare pour ce module a ce
      * niveau, dans l'ordre de l'epreuve.
      *
-     * @return list<string>  slugs de types d'exercices
+     * Chaque partie rend la LISTE de ses formats possibles : une seule entree
+     * quand l'epreuve impose la tache, plusieurs quand elle laisse le choix au
+     * candidat. Rien n'est deduit ici — c'est chaque examen qui declare ses
+     * propres formats, a chacun de ses niveaux, d'apres sa page officielle.
+     *
+     * @return list<list<string>>  slugs de types d'exercices, par partie
      */
     private function partiesDeclarees(ExamBlueprint $blueprint, ExamSection $section): array
     {
@@ -218,9 +223,27 @@ class MockExamComposer
                 continue;
             }
 
-            return array_values(array_filter(
-                array_map(fn ($partie) => is_array($partie) ? ($partie['type'] ?? null) : null, $config['parts'] ?? [])
-            ));
+            $parties = [];
+            foreach ($config['parts'] ?? [] as $partie) {
+                if (! is_array($partie)) {
+                    continue;
+                }
+
+                $declares = is_array($partie['types'] ?? null)
+                    ? $partie['types']
+                    : [$partie['type'] ?? null];
+
+                $formats = array_values(array_filter(
+                    $declares,
+                    fn ($format) => is_string($format) && $format !== ''
+                ));
+
+                if ($formats !== []) {
+                    $parties[] = $formats;
+                }
+            }
+
+            return $parties;
         }
 
         return [];
@@ -229,20 +252,39 @@ class MockExamComposer
     /**
      * L'exercice d'UNE partie precise de l'epreuve.
      *
-     * On ne se rabat pas sur un autre format ici : la partie demande celui-la, et
-     * l'appelant decidera quoi faire si rien ne vient.
+     * On ne se rabat pas sur un format etranger a la partie : elle demande ceux-la,
+     * et l'appelant decidera quoi faire si rien ne vient.
      *
+     * Quand l'epreuve laisse le CHOIX, on tire parmi les formats qu'elle propose,
+     * au lieu de servir toujours le premier. La partie 2 du Writing de Cambridge
+     * offre selon le palier un article, une lettre, une proposition, un rapport,
+     * une critique ou une histoire : un seul format etait epingle, et l'apprenant
+     * ne s'entrainait jamais aux autres.
+     *
+     * @param  list<string>  $formats  les formats de la partie, dans l'ordre declare
      * @param  list<int>  $dejaPris
      */
-    private function exercicePourLaPartie(Exam $exam, ExamSection $section, string $slugDuType, string $niveau, bool $avecGeneration, array $dejaPris): ?Exercise
+    private function exercicePourLaPartie(Exam $exam, ExamSection $section, array $formats, string $niveau, bool $avecGeneration, array $dejaPris): ?Exercise
     {
-        $type = $section->exerciseTypes->firstWhere('slug', $slugDuType);
-
-        if (! $type || ! $this->pertinence->convient($type, $niveau)) {
-            return null;
+        if (count($formats) > 1) {
+            shuffle($formats);
         }
 
-        return $this->pourCeFormat($exam, $type, $niveau, $avecGeneration, $dejaPris);
+        foreach ($formats as $slugDuType) {
+            $type = $section->exerciseTypes->firstWhere('slug', $slugDuType);
+
+            if (! $type || ! $this->pertinence->convient($type, $niveau)) {
+                continue;
+            }
+
+            $exercice = $this->pourCeFormat($exam, $type, $niveau, $avecGeneration, $dejaPris);
+
+            if ($exercice) {
+                return $exercice;
+            }
+        }
+
+        return null;
     }
 
     /**

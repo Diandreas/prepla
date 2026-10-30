@@ -28,12 +28,26 @@ function partiesDeLaConfig(string $slug): array
     foreach ($config['levels'] ?? [] as $niveau => $L) {
         foreach ($L['sections'] ?? [] as $section) {
             foreach ($section['parts'] ?? [] as $partie) {
+                // Une partie annonce UN format (`type`), ou PLUSIEURS quand
+                // l'epreuve laisse le choix au candidat (`types`) : la partie 2 du
+                // Writing de Cambridge offre selon le palier un article, une
+                // lettre, une proposition, un rapport, une critique ou une
+                // histoire. Chaque examen declare les siens, a chacun de ses
+                // niveaux ; on les ramene ici a une liste pour les controler de la
+                // meme facon.
+                $declares = is_array($partie['types'] ?? null)
+                    ? $partie['types']
+                    : [$partie['type'] ?? null];
+
                 $out[] = [
                     'examen' => $slug,
                     'niveau' => $niveau,
                     'section' => $section['slug'],
                     'nom' => $partie['name'] ?? '?',
-                    'type' => $partie['type'] ?? null,
+                    'types' => array_values(array_filter(
+                        $declares,
+                        fn ($format) => is_string($format) && $format !== ''
+                    )),
                     'items' => $partie['items'] ?? null,
                     'source' => $partie['source'] ?? null,
                     'formats' => $section['exercise_types'] ?? [],
@@ -55,12 +69,12 @@ function examensStructures(): array
         ->all();
 }
 
-test('une partie officielle annonce toujours son type', function () {
+test('une partie officielle annonce toujours son format', function () {
     $manquants = [];
 
     foreach (examensStructures() as $slug) {
         foreach (partiesDeLaConfig($slug) as $p) {
-            if ($p['source'] === 'officiel' && ! $p['type']) {
+            if ($p['source'] === 'officiel' && $p['types'] === []) {
                 $manquants[] = "{$p['examen']} {$p['niveau']} {$p['nom']}";
             }
         }
@@ -71,16 +85,20 @@ test('une partie officielle annonce toujours son type', function () {
 
 test('le type d une partie existe dans les formats de sa section', function () {
     // Un type absent de `exercise_types` ne recoit aucun ExerciseType au seeding :
-    // la partie s'affiche puis ne s'ouvre pas, sans message.
+    // la partie s'affiche puis ne s'ouvre pas, sans message. Pour une partie au
+    // choix, CHACUN des formats proposes doit donc etre servable : il suffit d'en
+    // oublier un pour que ce choix-la tombe dans le vide une fois sur quatre.
     $orphelins = [];
 
     foreach (examensStructures() as $slug) {
         foreach (partiesDeLaConfig($slug) as $p) {
-            if (! $p['type'] || $p['formats'] === []) {
+            if ($p['types'] === [] || $p['formats'] === []) {
                 continue;
             }
-            if (! in_array($p['type'], $p['formats'], true)) {
-                $orphelins[] = "{$p['examen']} {$p['niveau']} {$p['nom']} : type « {$p['type']} » absent de sa section";
+            foreach ($p['types'] as $format) {
+                if (! in_array($format, $p['formats'], true)) {
+                    $orphelins[] = "{$p['examen']} {$p['niveau']} {$p['nom']} : type « {$format} » absent de sa section";
+                }
             }
         }
     }
@@ -100,7 +118,11 @@ test('une partie a questions fermees et marquee officielle annonce ses items', f
 
     foreach (examensStructures() as $slug) {
         foreach (partiesDeLaConfig($slug) as $p) {
-            if ($p['source'] !== 'officiel' || in_array($p['type'], $sansItems, true)) {
+            // Une partie au choix n'a d'items a annoncer que si l'un au moins de
+            // ses formats en compte : quatre redactions au choix n'en ont aucun.
+            $compteDesItems = array_diff($p['types'], $sansItems) !== [];
+
+            if ($p['source'] !== 'officiel' || ! $compteDesItems) {
                 continue;
             }
             if ($p['items'] === null) {

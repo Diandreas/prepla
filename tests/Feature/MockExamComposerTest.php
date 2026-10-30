@@ -311,3 +311,97 @@ test('un niveau nomme par son epreuve reste un niveau officiel', function () {
     expect(app(MockExamComposer::class)->pour($exam->fresh(), 'A1')->title)
         ->toContain('entraînement au format');
 });
+
+/**
+ * Une partie peut laisser le CHOIX du type de texte. Au C1 Advanced, la partie 2
+ * du Writing offre une lettre, une proposition, un rapport ou une critique — et
+ * un seul format y etait epingle : l'apprenant recevait toujours un rapport, et
+ * ne s'entrainait jamais aux trois autres. La proposition, elle, n'existait meme
+ * pas comme format.
+ *
+ * Les formats restent declares par CHAQUE examen, a CHACUN de ses niveaux : le
+ * compositeur ne fait que lire ceux que la partie annonce.
+ */
+test('une partie au choix tire parmi les formats que l epreuve propose', function () {
+    $language = Language::create(['slug' => 'english', 'name' => 'English', 'native_name' => 'English', 'flag' => 'gb']);
+    $exam = Exam::create(['language_id' => $language->id, 'slug' => 'cambridge', 'name' => 'Cambridge']);
+
+    $ecriture = ExamSection::create([
+        'exam_id' => $exam->id, 'slug' => 'writing', 'name' => 'Writing', 'skill_type' => 'writing',
+    ]);
+    $lecture = ExamSection::create([
+        'exam_id' => $exam->id, 'slug' => 'reading-use-of-english', 'name' => 'Reading and Use of English', 'skill_type' => 'reading',
+    ]);
+
+    $auChoix = ['letter-email-writing', 'proposal-writing', 'report-writing', 'review-writing'];
+
+    foreach (array_merge(['essay'], $auChoix) as $slug) {
+        $type = ExerciseType::create([
+            'section_id' => $ecriture->id, 'slug' => $slug, 'name' => $slug,
+            'skill_type' => 'writing', 'component_key' => 'essay-editor',
+        ]);
+        Exercise::create([
+            'exam_id' => $exam->id, 'exercise_type_id' => $type->id, 'exam_section_id' => $ecriture->id,
+            'difficulty' => 'C1', 'content' => [],
+            'questions' => [[
+                'id' => 'q1', 'type' => 'short-writing', 'text' => "Redige un texte : {$slug}.",
+                'options' => null, 'correct_answer' => null, 'explanation' => 'Parce que.',
+            ]],
+        ]);
+    }
+
+    // Un second module, pour atteindre le minimum de deux.
+    $typeLecture = ExerciseType::create([
+        'section_id' => $lecture->id, 'slug' => 'mcq', 'name' => 'QCM',
+        'skill_type' => 'reading', 'component_key' => 'mcq',
+    ]);
+    Exercise::create([
+        'exam_id' => $exam->id, 'exercise_type_id' => $typeLecture->id, 'exam_section_id' => $lecture->id,
+        'difficulty' => 'C1', 'content' => [],
+        'questions' => [[
+            'id' => 'q1', 'type' => 'mcq', 'text' => 'Which one?',
+            'options' => ['A', 'B'], 'correct_answer' => 'A', 'explanation' => 'Parce que.',
+        ]],
+    ]);
+
+    $exam->update(['levels' => ['C1']]);
+    ExamBlueprint::create([
+        'exam_id' => $exam->id, 'level' => 'C1', 'variant' => null,
+        'name' => 'C1 Advanced (CAE)', 'total_duration_minutes' => 235, 'scoring_config' => [],
+        'sections_config' => [
+            ['slug' => 'reading-use-of-english', 'parts' => [
+                ['part' => 1, 'type' => 'mcq'],
+            ]],
+            ['slug' => 'writing', 'parts' => [
+                ['part' => 1, 'type' => 'essay'],
+                ['part' => 2, 'types' => $auChoix],
+            ]],
+        ],
+    ]);
+
+    $servis = [];
+
+    foreach (range(1, 24) as $i) {
+        $mock = app(MockExamComposer::class)->pour($exam->fresh(), 'C1', forcer: true);
+
+        $formats = $mock->exercises()
+            ->where('exam_section_id', $ecriture->id)
+            ->orderBy('id')
+            ->with('exerciseType')
+            ->get()
+            ->map(fn ($exercice) => $exercice->exerciseType->slug)
+            ->all();
+
+        // La partie 1 reste l'essai impose ; seule la partie 2 varie.
+        expect($formats)->toHaveCount(2)
+            ->and($formats[0])->toBe('essay')
+            ->and($formats[1])->toBeIn($auChoix);
+
+        $servis[] = $formats[1];
+    }
+
+    // Avant, les 24 compositions rendaient 24 fois le meme format. On n'exige pas
+    // les quatre : le tirage est aleatoire, et en demander la totalite ferait
+    // echouer le test une fois sur deux cents sans qu'il y ait de regression.
+    expect(count(array_unique($servis)))->toBeGreaterThan(1);
+});
