@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\Content\BibliothequeEpreuvesVerifiees;
 use Illuminate\Http\Request;
 
 /**
@@ -16,8 +17,20 @@ use Illuminate\Http\Request;
  */
 class StructuresPubliquesController extends Controller
 {
+    /**
+     * Les epreuves ecrites a la main, rangees par examen / niveau / module, puis
+     * par numero de partie.
+     *
+     * @var array<string, array<int, array<string, mixed>>>
+     */
+    private array $exemples = [];
+
+    public function __construct(private readonly BibliothequeEpreuvesVerifiees $bibliotheque) {}
+
     public function __invoke(Request $request)
     {
+        $this->exemples = $this->indexerLesExemples();
+
         $langues = collect(config('languages.languages'))
             ->map(fn (array $langue) => [
                 'slug' => $langue['slug'],
@@ -62,11 +75,14 @@ class StructuresPubliquesController extends Controller
         $paliers = [];
 
         foreach ($config['levels'] ?? [] as $code => $palier) {
+            $sections = $this->sections($palier['sections'] ?? [], $slug, (string) $code);
+
             $paliers[] = [
                 'code' => $code,
                 'name' => $palier['name'] ?? $code,
                 'duree' => $palier['total_duration'] ?? null,
-                'sections' => $this->sections($palier['sections'] ?? []),
+                'sections' => $sections,
+                'exemples' => $this->compterLesExemples($sections),
             ];
         }
 
@@ -78,11 +94,14 @@ class StructuresPubliquesController extends Controller
                 );
 
             if ($sections !== []) {
+                $decrites = $this->sections($sections, $slug, '');
+
                 $paliers[] = [
                     'code' => null,
                     'name' => 'Structure unique',
                     'duree' => null,
-                    'sections' => $this->sections($sections),
+                    'sections' => $decrites,
+                    'exemples' => $this->compterLesExemples($decrites),
                 ];
             }
         }
@@ -96,11 +115,18 @@ class StructuresPubliquesController extends Controller
     }
 
     /** @return list<array<string, mixed>> */
-    private function sections(array $sections): array
+    private function sections(array $sections, string $examen, string $niveau): array
     {
-        return collect($sections)->map(function (array $section) {
+        return collect($sections)->map(function (array $section) use ($examen, $niveau) {
+            $cle = $examen.'/'.$niveau.'/'.($section['slug'] ?? '');
+
             $parties = collect($section['parts'] ?? $section['tasks'] ?? [])
-                ->map(fn ($partie, $rang) => $this->partie($partie, $rang))
+                ->map(function ($partie, $rang) use ($cle) {
+                    $decrite = $this->partie($partie, $rang);
+                    $decrite['exemple'] = $this->exemple($cle, $decrite['numero']);
+
+                    return $decrite;
+                })
                 ->all();
 
             return [
@@ -140,6 +166,96 @@ class StructuresPubliquesController extends Controller
             'points' => $partie['points'] ?? null,
             'formats' => array_values($formats),
             'source' => $partie['source'] ?? null,
+        ];
+    }
+
+    /**
+     * Combien de parties de ce palier portent un exercice reel.
+     *
+     * Affiche tel quel : un enseignant doit voir d'un coup d'oeil ou il y a
+     * quelque chose a lire, sans deplier les niveaux un par un.
+     *
+     * @param  list<array<string, mixed>>  $sections
+     */
+    private function compterLesExemples(array $sections): int
+    {
+        $total = 0;
+        foreach ($sections as $section) {
+            foreach ($section['parties'] as $partie) {
+                if (! empty($partie['exemple'])) {
+                    $total++;
+                }
+            }
+        }
+
+        return $total;
+    }
+
+    /**
+     * Les epreuves ecrites a la main, rangees par « examen/niveau/module » puis
+     * par numero de partie. La bibliotheque sait deja les trouver : on ne refait
+     * pas sa lecture, on la range pour l'affichage.
+     *
+     * @return array<string, array<int, array<string, mixed>>>
+     */
+    private function indexerLesExemples(): array
+    {
+        $index = [];
+
+        foreach ($this->bibliotheque->modules() as $cle => $module) {
+            foreach ($module['parts'] ?? [] as $partie) {
+                if (is_array($partie) && isset($partie['part'])) {
+                    $index[$cle][(int) $partie['part']] = $partie;
+                }
+            }
+        }
+
+        return $index;
+    }
+
+    /**
+     * L'exercice reel d'une partie, quand nous en avons ecrit un.
+     *
+     * Une structure se verifie sur le papier ; un exercice, non. Montrer le texte,
+     * les questions, la bonne reponse et son explication est le seul moyen pour un
+     * enseignant de dire si ce que nous servons ressemble vraiment a l'epreuve.
+     *
+     * Les parties ne portent pas toutes les memes cles — `options` ici,
+     * `answer_options` la, `correct_answers` au pluriel pour un formulaire : on
+     * les accepte toutes plutot que d'imposer une forme aux contenus existants.
+     */
+    private function exemple(string $cle, int $numero): ?array
+    {
+        $partie = $this->exemples[$cle][$numero] ?? null;
+
+        if (! is_array($partie)) {
+            return null;
+        }
+
+        $questions = collect($partie['questions'] ?? [])
+            ->map(function (array $question) {
+                $reponse = $question['correct_answer']
+                    ?? $question['correct_answers']
+                    ?? null;
+
+                return [
+                    'texte' => $question['text'] ?? null,
+                    'audio' => $question['audio_text'] ?? null,
+                    'champs' => array_values((array) ($question['fields'] ?? [])),
+                    'options' => array_values((array) ($question['options'] ?? $question['answer_options'] ?? [])),
+                    'reponse' => is_array($reponse) ? implode(' · ', $reponse) : $reponse,
+                    'explication' => $question['explanation'] ?? null,
+                ];
+            })
+            ->all();
+
+        return [
+            'titre' => $partie['title'] ?? null,
+            'resume' => $partie['description'] ?? null,
+            'consigne' => $partie['content']['instructions'] ?? null,
+            'texte' => $partie['content']['passage'] ?? null,
+            'audio' => $partie['content']['audio_text'] ?? null,
+            'questions' => $questions,
         ];
     }
 

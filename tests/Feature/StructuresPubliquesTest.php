@@ -47,3 +47,33 @@ test('une partie au choix est signalee comme telle', function () {
         ->assertOk()
         ->assertSee('format au choix du candidat');
 });
+
+/**
+ * La page doit ANCRER : montrer l'exercice reel, pas seulement le tableau.
+ *
+ * Un enseignant peut verifier une structure sur le papier ; il ne peut pas dire
+ * si nos exercices ressemblent a l'epreuve sans les voir. Les epreuves ecrites a
+ * la main sont donc depliees sous leur partie, avec leur texte, leurs questions,
+ * la bonne reponse et son explication.
+ */
+test('un exercice ecrit a la main est montre en entier sous sa partie', function () {
+    $page = $this->get(route('structures', ['langue' => 'german']))->assertOk();
+
+    $page->assertSee("Voir l'exercice tel qu'il est servi", false)
+        // Le texte allemand lui-meme, pas seulement son resume.
+        ->assertSee('Mein Jahr in Leipzig', false)
+        // Une affirmation du Teil 1, sa reponse et son explication.
+        ->assertSee('Marisol wollte von Anfang an nach Leipzig.', false)
+        ->assertSee('Réponse :', false)
+        ->assertSee('Richtig', false);
+});
+
+/**
+ * Une partie de comprehension orale porte le texte de l'enregistrement : sans
+ * lui, l'enseignant ne peut juger ni le niveau de langue ni la longueur.
+ */
+test('une partie d ecoute montre le texte de son enregistrement', function () {
+    $this->get(route('structures', ['langue' => 'german']))
+        ->assertOk()
+        ->assertSee('Enregistrement — texte lu', false);
+});

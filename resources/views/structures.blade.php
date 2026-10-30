@@ -89,7 +89,30 @@
         .pastille { display: inline-block; font-size: .72rem; font-weight: 600; padding: .1rem .45rem; border-radius: 999px; white-space: nowrap; }
         .pastille.officiel { color: var(--officiel); background: var(--officiel-fond); }
         .pastille.reconstitue { color: var(--reconstitue); background: var(--reconstitue-fond); }
+        .pastille.exercices { color: var(--lien); background: rgba(59, 130, 224, .12); }
         .choix { font-size: .8rem; color: var(--doux); display: block; }
+        /* L'exercice reel, deplie sous sa partie. */
+        .ligne-exemple td { padding: 0 0 .5rem; border-bottom: 1px solid var(--trait); }
+        details.exemple { border: 0; }
+        details.exemple > summary { padding: .35rem 0; font-size: .85rem; font-weight: 600; color: var(--lien); }
+        .corps-exemple { padding: .35rem 0 .75rem; font-size: .88rem; }
+        .titre-exemple { font-weight: 600; margin: .2rem 0; }
+        .consigne { font-style: italic; color: var(--doux); margin: .2rem 0 .6rem; }
+        .passage {
+            white-space: pre-wrap; background: var(--fond); border: 1px solid var(--trait);
+            border-radius: 8px; padding: .75rem .9rem; margin: 0 0 .8rem; line-height: 1.6;
+        }
+        .passage.audio { border-style: dashed; }
+        .etiquette { display: block; font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--doux); margin-bottom: .35rem; }
+        .questions { margin: 0; padding-left: 1.2rem; }
+        .questions > li { margin-bottom: 1rem; }
+        .enonce { margin: 0 0 .35rem; font-weight: 500; }
+        .options { list-style: none; margin: .3rem 0; padding: 0; display: flex; flex-wrap: wrap; gap: .35rem; }
+        .options li { border: 1px solid var(--trait); border-radius: 6px; padding: .15rem .55rem; font-size: .85rem; }
+        .options li.juste { border-color: var(--officiel); background: var(--officiel-fond); color: var(--officiel); font-weight: 600; }
+        .reponse { margin: .3rem 0 .2rem; }
+        .explication { margin: .2rem 0 0; color: var(--doux); }
+        .champs { margin: .3rem 0; color: var(--doux); }
         .pied { margin-top: 3rem; padding-top: 1.25rem; border-top: 1px solid var(--trait); font-size: .88rem; color: var(--doux); }
         @media (max-width: 640px) {
             .tableau thead { display: none; }
@@ -126,6 +149,12 @@
         <p><span class="pastille reconstitue">reconstituée</span>
             la partie est reconstituée d'après des sujets ou des manuels : c'est là qu'une erreur
             est la plus probable, et là que votre relecture nous est la plus utile.</p>
+        <p style="margin-top:.6rem">
+            Là où nous avons écrit l'épreuve nous-mêmes, la partie porte un lien
+            <strong>« Voir l'exercice tel qu'il est servi »</strong> : il déplie le texte entier,
+            chaque question, la bonne réponse et son explication — exactement ce que reçoit
+            l'apprenant. Une structure se vérifie sur le papier ; un exercice, non.
+        </p>
         <p style="color:var(--doux);margin-top:.6rem">
             La durée totale d'un examen est celle que l'organisme annonce. Elle ne correspond
             presque jamais à la somme de ses épreuves, parce que l'oral se passe souvent un autre
@@ -169,6 +198,9 @@
                                     {{ count($palier['sections']) }} épreuve{{ count($palier['sections']) > 1 ? 's' : '' }}
                                     @if ($palier['duree']) · durée annoncée {{ $palier['duree'] }} min @endif
                                 </span>
+                                @if (! empty($palier['exemples']))
+                                    <span class="pastille exercices">{{ $palier['exemples'] }} exercice{{ $palier['exemples'] > 1 ? 's' : '' }} à lire</span>
+                                @endif
                             </summary>
 
                             <div class="module">
@@ -226,6 +258,10 @@
                                                         @endif
                                                     </td>
                                                 </tr>
+
+                                                @if (! empty($partie['exemple']))
+                                                    @include('partials.structure-exemple', ['exemple' => $partie['exemple'], 'partie' => $partie])
+                                                @endif
                                             @endforeach
                                             </tbody>
                                         </table>
@@ -249,6 +285,10 @@
         <br>
         Les structures sont relevées sur les sites des organismes. Les versions « junior »,
         « for Schools » et « Jugendliche » ne sont pas décrites ici : ce sont d'autres examens.
+        <br>
+        Les exercices écrits à la main existent pour l'instant en <strong>allemand</strong>
+        (Goethe A1, A2, B1 et telc B1). Une partie sans exercice n'a pas de lien à déplier :
+        sa structure est décrite, son contenu reste à écrire.
     </p>
 </div>
 </body>
