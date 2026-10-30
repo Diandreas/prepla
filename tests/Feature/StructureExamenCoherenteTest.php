@@ -150,3 +150,94 @@ test('un nombre d items reste plausible', function () {
 
     expect($absurdes)->toBe([]);
 });
+
+/**
+ * Les totaux de questions publies par Cambridge, recomposes par la somme des
+ * items de chaque partie.
+ *
+ * Ces totaux ne vivaient que dans les descriptions en prose, ou rien ne pouvait
+ * les verifier : le fichier a longtemps annonce « les sept formats du B2 » pour
+ * un module qui en compte huit. La somme des parties, elle, se controle.
+ *
+ * Au A2 Key, « Reading and Writing » est UN seul papier de 32 questions, que la
+ * configuration presente en deux modules : on verifie donc leur somme.
+ */
+test('les totaux de questions de Cambridge sont ceux de l organisme', function () {
+    $officiels = [
+        // [niveau, modules a additionner, total publie]
+        ['A2', ['reading', 'writing'], 32],
+        ['A2', ['listening'], 25],
+        ['B1', ['reading'], 32],
+        ['B1', ['listening'], 25],
+        ['B2', ['reading-use-of-english'], 52],
+        ['B2', ['listening'], 30],
+        ['C1', ['reading-use-of-english'], 56],
+        ['C1', ['listening'], 30],
+        ['C2', ['reading-use-of-english'], 53],
+        ['C2', ['listening'], 30],
+    ];
+
+    $parties = collect(partiesDeLaConfig('cambridge'));
+    $ecarts = [];
+
+    foreach ($officiels as [$niveau, $modules, $attendu]) {
+        $somme = $parties
+            ->where('niveau', $niveau)
+            ->whereIn('section', $modules)
+            ->sum(fn ($p) => is_int($p['items']) ? $p['items'] : 0);
+
+        if ($somme !== $attendu) {
+            $ecarts[] = sprintf(
+                '%s %s : %d items declares, %d publies',
+                $niveau, implode(' + ', $modules), $somme, $attendu
+            );
+        }
+    }
+
+    expect($ecarts)->toBe([]);
+});
+
+/**
+ * Une epreuve de production n'a pas d'items a compter. Le seeder ne doit pas lui
+ * inventer un zero, qui se lirait « module sans question ».
+ */
+test('une epreuve orale ne declare aucun item', function () {
+    $comptees = [];
+
+    foreach (examensStructures() as $slug) {
+        foreach (partiesDeLaConfig($slug) as $p) {
+            if (str_contains($p['section'], 'speaking') || str_contains($p['section'], 'orale')) {
+                if ($p['items'] !== null) {
+                    $comptees[] = "{$p['examen']} {$p['niveau']} {$p['nom']} : items = {$p['items']}";
+                }
+            }
+        }
+    }
+
+    expect($comptees)->toBe([]);
+});
+
+/**
+ * Le total de questions doit arriver JUSQU'A la base.
+ *
+ * La colonne `question_count` lisait une cle qu'aucune configuration ne
+ * renseignait : elle est restee vide pour les dix examens depuis sa creation.
+ */
+test('le seeder inscrit le nombre de questions de chaque module', function () {
+    $this->seed(\Database\Seeders\LanguageSeeder::class);
+    $this->seed(\Database\Seeders\ExamSeeder::class);
+
+    $cambridge = Exam::where('slug', 'cambridge')->sole();
+
+    $compte = fn (string $section) => ExamSection::where('exam_id', $cambridge->id)
+        ->where('slug', $section)->sole()->question_count;
+
+    // Les modules sont partages entre les niveaux : la section porte le total du
+    // dernier plan qui l'a decrite. On verifie qu'un total officiel y est inscrit,
+    // et non plus rien du tout.
+    expect($compte('reading-use-of-english'))->toBeIn([52, 56, 53])
+        ->and($compte('listening'))->toBe(30)
+        // Une epreuve orale n'a pas d'items a compter : la colonne reste vide,
+        // au lieu d'annoncer zero question.
+        ->and($compte('speaking'))->toBeNull();
+});

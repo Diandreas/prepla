@@ -234,7 +234,7 @@ class ExamSeeder extends Seeder
                     'skill_type'     => $sectionConfig['skill_type'],
                     'time_limit'     => $sectionConfig['time_limit'] ?? null,
                     'sort_order'     => $sortOrder + 1,
-                    'question_count' => $sectionConfig['question_count'] ?? null,
+                    'question_count' => $this->nombreDeQuestions($sectionConfig),
                     'scoring_weight' => $sectionConfig['scoring_weight'] ?? null,
                     'max_score'      => $sectionConfig['max_score'] ?? null,
                     'parts_config'   => $sectionConfig['parts'] ?? $sectionConfig['tasks'] ?? null,
@@ -276,6 +276,34 @@ class ExamSeeder extends Seeder
                 );
             }
         }
+    }
+
+    /**
+     * Le nombre de questions d'un module.
+     *
+     * La colonne lisait un `question_count` qu'AUCUNE configuration ne renseigne :
+     * elle restait vide pour les dix examens. Depuis que les parties sont decrites
+     * une a une, chacune porte son nombre d'items, et la somme redonne le total
+     * officiel du module — 52 questions au Reading du B2 First, 56 au C1, 53 au C2.
+     *
+     * Une configuration qui donnerait le total directement garde la main.
+     */
+    private function nombreDeQuestions(array $sectionConfig): ?int
+    {
+        if (is_int($sectionConfig['question_count'] ?? null)) {
+            return $sectionConfig['question_count'];
+        }
+
+        $somme = 0;
+        foreach ($sectionConfig['parts'] ?? [] as $partie) {
+            if (is_array($partie) && is_int($partie['items'] ?? null)) {
+                $somme += $partie['items'];
+            }
+        }
+
+        // Les productions ecrites et orales n'ont pas d'items : on ne leur invente
+        // pas un zero, qui se lirait comme « module sans question ».
+        return $somme > 0 ? $somme : null;
     }
 
     /**
