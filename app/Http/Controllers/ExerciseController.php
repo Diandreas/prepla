@@ -194,115 +194,9 @@ class ExerciseController extends Controller
                     'feedback' => $result['feedback'],
                 ]);
 
-                // Track errors for long-term review
-                foreach ($result['feedback'] as $qFeedback) {
-                    if ($qFeedback['technical_failure'] ?? false) {
-                        continue;
-                    }
-
-                    // Une redaction ou une prise de parole porte ses fautes une a
-                    // une : on les retient toutes, avec leur sous-categorie, MEME
-                    // quand la production est validee. L'erreur unique et vague que
-                    // la boucle ci-dessous inscrirait sinon n'apprendrait rien de plus.
-                    $deLaProduction = $this->memoriserLaProduction($user, $exercise, $qFeedback, $exerciseAnswers[$qFeedback['question_id'] ?? ''] ?? null);
-                    if ($deLaProduction !== []) {
-                        array_push($sessionCategories, ...$deLaProduction);
-
-                        continue;
-                    }
-
-                    if (! ($qFeedback['correct'] ?? false)) {
-                        $questionData = collect($exercise->questions)->firstWhere('id', $qFeedback['question_id']);
-
-                        $skillType = $exercise->exerciseType->section->skill_type ?? 'reading';
-                        $slug = $exercise->exerciseType->slug;
-
-                        // Pedagogical family drives the Review Center: 'concept' errors
-                        // (grammar/vocab/writing…) can be re-practised; 'comprehension'
-                        // errors (reading/listening on a passage) feed the diagnostic only.
-                        $family = UserError::classifyFamily($slug, $skillType);
-
-                        $tag = $questionData['error_category'] ?? null;
-                        if ($isLevelExam && is_string($tag)
-                            && preg_match('/^(grammar|vocabulary|spelling|punctuation|coherence|writing|listening|reading|speaking)(\.[a-z0-9_-]+)*$/', $tag)) {
-                            // Prepared assessment questions carry the actual concept tested.
-                            $errorCategory = $tag;
-                            $errorSubcategory = $questionData['error_subcategory'] ?? null;
-                        } elseif ($family === 'comprehension') {
-                            // A reading/listening mistake is about understanding a specific
-                            // passage, NOT a grammar concept. Force the category to the actual
-                            // comprehension skill so it never gets mislabelled "grammar" (the AI
-                            // and the deriveCategory fallback both lean toward 'grammar').
-                            $errorCategory = in_array($skillType, ['reading', 'listening'], true) ? $skillType : 'reading';
-                            $errorSubcategory = $qFeedback['error_subcategory'] ?? null;
-                        } elseif (! empty($qFeedback['error_category']) && $qFeedback['error_category'] !== 'session_mistake') {
-                            // Concept error: prefer the AI-provided category, else derive it.
-                            $errorCategory = $qFeedback['error_category'];
-                            $errorSubcategory = $qFeedback['error_subcategory'] ?? null;
-                        } else {
-                            $lessonConcept = Lesson::where('node_id', $exercise->node_id)->value('concept');
-                            [$errorCategory, $errorSubcategory] = UserError::deriveCategory($lessonConcept, $skillType, $slug);
-                        }
-
-                        // Concepts rates pendant cette seance : ils serviront a ecrire la
-                        // remediation si la seance est un examen de palier manque.
-                        if ($errorCategory) {
-                            $sessionCategories[] = $errorCategory;
-                        }
-
-                        // Store the explanation text so the Review Center can show *why*.
-                        $explanationText = $qFeedback['explanation'] ?? null;
-                        if (is_array($explanationText)) {
-                            $explanationText = $explanationText['concept'] ?? json_encode($explanationText);
-                        }
-
-                        $error = UserError::updateOrCreate(
-                            [
-                                'user_id' => $user->id,
-                                'exercise_id' => $exercise->id,
-                                'question_id' => $qFeedback['question_id'],
-                            ],
-                            [
-                                'question_text' => $questionData['text'] ?? $questionData['prompt'] ?? 'Exercice practice',
-                                'user_answer' => is_array($exerciseAnswers[$qFeedback['question_id']] ?? '') ? json_encode($exerciseAnswers[$qFeedback['question_id']]) : (string) ($exerciseAnswers[$qFeedback['question_id']] ?? ''),
-                                // Reponse attendue EN CLAIR. On enregistrait la valeur brute :
-                                // « A » pour un QCM, du JSON pour un exercice a plusieurs trous.
-                                // Le centre de revision affichait donc « Bonne reponse : A » et
-                                // n'acceptait que « A » : l'apprenant qui ecrivait la vraie
-                                // reponse etait compte faux, a chaque revision, pour toujours.
-                                'correct_answer' => $this->lisibleAttendu($questionData ?? [], $qFeedback['correct_answer'] ?? ''),
-                                'explanation' => $explanationText,
-                                'skill_type' => $skillType,
-                                'exercise_type_slug' => $slug,
-                                'error_category' => $errorCategory,
-                                'subcategory' => $errorSubcategory,
-                                'mastered' => false,
-                            ]
-                        );
-
-                        // Pilier 3: Initialize SM-2 scheduling for new error
-                        if ($error->wasRecentlyCreated) {
-                            $this->errorSm2->initializeForNewError($error);
-                        } else {
-                            // Existing error encountered again — reset SM-2
-                            $this->errorSm2->schedule($error, false);
-                        }
-                    } else {
-                        // If it was corrected now, update SM-2 and mark as mastered if threshold met
-                        // Les identifiants de question valent 'q1', 'q2', 'q3' dans TOUS
-                        // les exercices : chercher sur ce seul champ marquait comme
-                        // révisée l'erreur d'un autre exercice, gonflant le compteur et
-                        // l'intervalle à chaque bonne réponse.
-                        $existingError = UserError::where('user_id', $user->id)
-                            ->where('exercise_id', $exercise->id)
-                            ->where('question_id', $qFeedback['question_id'])
-                            ->first();
-
-                        if ($existingError) {
-                            $this->errorSm2->schedule($existingError, true);
-                        }
-                    }
-                }
+                // Ce que la correction apprend sur l'apprenant : ses fautes retenues,
+                // ses reussites qui font avancer la revision espacee.
+                array_push($sessionCategories, ...$this->retenirLesErreurs($user, $exercise, $result['feedback'], $exerciseAnswers, $isLevelExam));
 
                 $totalXp += $result['xp'];
                 $totalCorrect += $result['score'];
@@ -747,6 +641,138 @@ class ExerciseController extends Controller
     }
 
     /**
+     * Ce qu'une correction apprend sur l'apprenant.
+     *
+     * Chaque question ratee devient une erreur retenue — categorie, sous-categorie,
+     * reponse attendue en clair, explication — qui alimente la revision espacee,
+     * les reprises du parcours et le suivi du centre. Une question reussie fait
+     * avancer la revision d'une erreur deja retenue. Une redaction ou une prise de
+     * parole laisse chacune de ses fautes.
+     *
+     * Ce travail n'etait fait QUE pour les seances du parcours : un exercice
+     * d'entrainement ou d'epreuve etait corrige, affiche, puis oublie.
+     *
+     * @param  array<int, array<string, mixed>>  $feedback
+     * @param  array<string, mixed>  $answers
+     * @return list<string>  les categories ratees, pour la remediation
+     */
+    private function retenirLesErreurs(User $user, Exercise $exercise, array $feedback, array $answers, bool $isLevelExam = false): array
+    {
+        $categories = [];
+
+        foreach ($feedback as $qFeedback) {
+            if ($qFeedback['technical_failure'] ?? false) {
+                continue;
+            }
+
+            // Une redaction ou une prise de parole porte ses fautes une a
+            // une : on les retient toutes, avec leur sous-categorie, MEME
+            // quand la production est validee. L'erreur unique et vague que
+            // la boucle ci-dessous inscrirait sinon n'apprendrait rien de plus.
+            $deLaProduction = $this->memoriserLaProduction($user, $exercise, $qFeedback, $answers[$qFeedback['question_id'] ?? ''] ?? null);
+            if ($deLaProduction !== []) {
+                array_push($categories, ...$deLaProduction);
+
+                continue;
+            }
+
+            if (! ($qFeedback['correct'] ?? false)) {
+                $questionData = collect($exercise->questions)->firstWhere('id', $qFeedback['question_id']);
+
+                $skillType = $exercise->exerciseType->section->skill_type ?? 'reading';
+                $slug = $exercise->exerciseType->slug;
+
+                // Pedagogical family drives the Review Center: 'concept' errors
+                // (grammar/vocab/writing…) can be re-practised; 'comprehension'
+                // errors (reading/listening on a passage) feed the diagnostic only.
+                $family = UserError::classifyFamily($slug, $skillType);
+
+                $tag = $questionData['error_category'] ?? null;
+                if ($isLevelExam && is_string($tag)
+                    && preg_match('/^(grammar|vocabulary|spelling|punctuation|coherence|writing|listening|reading|speaking)(\.[a-z0-9_-]+)*$/', $tag)) {
+                    // Prepared assessment questions carry the actual concept tested.
+                    $errorCategory = $tag;
+                    $errorSubcategory = $questionData['error_subcategory'] ?? null;
+                } elseif ($family === 'comprehension') {
+                    // A reading/listening mistake is about understanding a specific
+                    // passage, NOT a grammar concept. Force the category to the actual
+                    // comprehension skill so it never gets mislabelled "grammar" (the AI
+                    // and the deriveCategory fallback both lean toward 'grammar').
+                    $errorCategory = in_array($skillType, ['reading', 'listening'], true) ? $skillType : 'reading';
+                    $errorSubcategory = $qFeedback['error_subcategory'] ?? null;
+                } elseif (! empty($qFeedback['error_category']) && $qFeedback['error_category'] !== 'session_mistake') {
+                    // Concept error: prefer the AI-provided category, else derive it.
+                    $errorCategory = $qFeedback['error_category'];
+                    $errorSubcategory = $qFeedback['error_subcategory'] ?? null;
+                } else {
+                    $lessonConcept = Lesson::where('node_id', $exercise->node_id)->value('concept');
+                    [$errorCategory, $errorSubcategory] = UserError::deriveCategory($lessonConcept, $skillType, $slug);
+                }
+
+                // Concepts rates pendant cette seance : ils serviront a ecrire la
+                // remediation si la seance est un examen de palier manque.
+                if ($errorCategory) {
+                    $categories[] = $errorCategory;
+                }
+
+                // Store the explanation text so the Review Center can show *why*.
+                $explanationText = $qFeedback['explanation'] ?? null;
+                if (is_array($explanationText)) {
+                    $explanationText = $explanationText['concept'] ?? json_encode($explanationText);
+                }
+
+                $error = UserError::updateOrCreate(
+                    [
+                        'user_id' => $user->id,
+                        'exercise_id' => $exercise->id,
+                        'question_id' => $qFeedback['question_id'],
+                    ],
+                    [
+                        'question_text' => $questionData['text'] ?? $questionData['prompt'] ?? 'Exercice practice',
+                        'user_answer' => is_array($answers[$qFeedback['question_id']] ?? '') ? json_encode($answers[$qFeedback['question_id']]) : (string) ($answers[$qFeedback['question_id']] ?? ''),
+                        // Reponse attendue EN CLAIR. On enregistrait la valeur brute :
+                        // « A » pour un QCM, du JSON pour un exercice a plusieurs trous.
+                        // Le centre de revision affichait donc « Bonne reponse : A » et
+                        // n'acceptait que « A » : l'apprenant qui ecrivait la vraie
+                        // reponse etait compte faux, a chaque revision, pour toujours.
+                        'correct_answer' => $this->lisibleAttendu($questionData ?? [], $qFeedback['correct_answer'] ?? ''),
+                        'explanation' => $explanationText,
+                        'skill_type' => $skillType,
+                        'exercise_type_slug' => $slug,
+                        'error_category' => $errorCategory,
+                        'subcategory' => $errorSubcategory,
+                        'mastered' => false,
+                    ]
+                );
+
+                // Pilier 3: Initialize SM-2 scheduling for new error
+                if ($error->wasRecentlyCreated) {
+                    $this->errorSm2->initializeForNewError($error);
+                } else {
+                    // Existing error encountered again — reset SM-2
+                    $this->errorSm2->schedule($error, false);
+                }
+            } else {
+                // If it was corrected now, update SM-2 and mark as mastered if threshold met
+                // Les identifiants de question valent 'q1', 'q2', 'q3' dans TOUS
+                // les exercices : chercher sur ce seul champ marquait comme
+                // révisée l'erreur d'un autre exercice, gonflant le compteur et
+                // l'intervalle à chaque bonne réponse.
+                $existingError = UserError::where('user_id', $user->id)
+                    ->where('exercise_id', $exercise->id)
+                    ->where('question_id', $qFeedback['question_id'])
+                    ->first();
+
+                if ($existingError) {
+                    $this->errorSm2->schedule($existingError, true);
+                }
+            }
+        }
+
+        return $categories;
+    }
+
+    /**
      * Les fautes d'une production corrigee — redaction ou prise de parole —
      * deviennent des faiblesses retenues, une par faute, avec sa sous-categorie.
      *
@@ -790,14 +816,10 @@ class ExerciseController extends Controller
         ]);
 
         // Ce chemin — entrainement, epreuves — n'enregistrait aucune faiblesse :
-        // une redaction corrigee ici etait affichee puis oubliee. Ses fautes sont
-        // desormais retenues comme celles d'une seance de parcours.
+        // un exercice corrige ici etait affiche puis oublie. Ses erreurs sont
+        // desormais retenues exactement comme celles d'une seance de parcours.
         if ($user instanceof User) {
-            foreach ($result['feedback'] as $qFeedback) {
-                if (! ($qFeedback['technical_failure'] ?? false)) {
-                    $this->memoriserLaProduction($user, $exercise, $qFeedback, $validated['answers'][$qFeedback['question_id'] ?? ''] ?? null);
-                }
-            }
+            $this->retenirLesErreurs($user, $exercise, $result['feedback'], $validated['answers']);
         }
 
         // Update user XP
