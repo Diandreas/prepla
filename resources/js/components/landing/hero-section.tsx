@@ -223,11 +223,18 @@ export function HeroSection({ nombreDExamens }: { nombreDExamens: number }) {
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/>
                                 </svg>
                             </Link>
+                            {/* Essayer AVANT de s'inscrire : on ne force pas quelqu'un a
+                                creer un compte pour decouvrir ce qu'il achete. */}
+                            <Link href="/essayer"
+                                className="inline-flex items-center gap-2 rounded-full border px-7 py-3.5 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5"
+                                style={{ borderColor: `${T.sky}66`, color: T.text }}
+                                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = T.sky; }}
+                                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${T.sky}66`; }}>
+                                {t('landing.hero_cta_try')}
+                            </Link>
                             <a href="#pricing"
-                                className="inline-flex items-center gap-2 rounded-full border px-7 py-3.5 text-sm font-medium transition-all duration-200 hover:-translate-y-0.5"
-                                style={{ borderColor: T.border, color: T.textMid }}
-                                onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${T.sky}55`; (e.currentTarget as HTMLElement).style.color = T.text; }}
-                                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = T.border; (e.currentTarget as HTMLElement).style.color = T.textMid; }}>
+                                className="inline-flex items-center gap-2 px-2 py-3.5 text-sm font-medium underline-offset-4 transition-colors duration-200 hover:underline"
+                                style={{ color: T.textMid }}>
                                 {t('landing.hero_cta_secondary')}
                             </a>
                         </div>

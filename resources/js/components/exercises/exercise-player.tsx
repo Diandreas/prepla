@@ -50,6 +50,12 @@ import { ExerciseErrorBoundary } from './exercise-error-boundary';
 
 interface ExercisePlayerProps {
     exercise: ExerciseRecord;
+    /**
+     * Ou envoyer les reponses. Par defaut, la correction d'un apprenant, qui
+     * enregistre sa tentative. L'essai sans compte passe la sienne, qui corrige
+     * sans rien enregistrer.
+     */
+    submitUrl?: string;
 }
 
 function AudioPlayer({ src }: { src: string }) {
@@ -142,7 +148,7 @@ const componentMap: Record<string, React.ComponentType<any>> = {
     'guided-writing': GuidedWriting,
 };
 
-export function ExercisePlayer({ exercise }: ExercisePlayerProps) {
+export function ExercisePlayer({ exercise, submitUrl }: ExercisePlayerProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [answers, setAnswers] = useState<Record<string, FormDataConvertible>>({});
     const timeRef = useRef(0);
@@ -209,7 +215,7 @@ export function ExercisePlayer({ exercise }: ExercisePlayerProps) {
         // Force FormData if there are any Blobs/Files
         const hasFiles = Object.values(answers).some(a => a instanceof Blob || a instanceof File);
         
-        router.post(route('exercise.submit', exercise.id), {
+        router.post(submitUrl ?? route('exercise.submit', exercise.id), {
             answers,
             time_spent: timeRef.current,
         }, {

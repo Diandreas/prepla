@@ -60,6 +60,20 @@ return [
             'indexable' => false,
         ],
 
+        'essai.index' => [
+            'titre' => 'Essayer un exercice sans compte',
+            'description' => "Essaie un vrai exercice d'examen — IELTS, TOEFL, Cambridge, DELF, TCF, TEF, Goethe, ÖSD, telc, TestDaF — et vois la correction avec ses explications. Sans inscription.",
+            'image' => 'og/inscription.png',
+        ],
+
+        // Un exercice joue n'apporte rien a un moteur, et on ne veut pas voir
+        // l'index se remplir de dizaines de pages minces : seule la liste compte.
+        'essai.show' => [
+            'titre' => 'Essayer un exercice',
+            'description' => "Un vrai exercice, corrigé avec ses explications, sans compte.",
+            'indexable' => false,
+        ],
+
         // « offline » et « offline.app » ne figurent pas ici, a dessein : ce sont
         // des coquilles hors ligne servies depuis le cache du telephone, deja en
         // noindex, et qui ne doivent rien porter de plus que le strict necessaire.

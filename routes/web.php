@@ -12,6 +12,7 @@ use App\Http\Controllers\ChapterSynthesisController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DictionaryController;
 use App\Http\Controllers\ErrorReviewController;
+use App\Http\Controllers\EssaiController;
 use App\Http\Controllers\ExerciseController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\JoinCenterController;
@@ -52,6 +53,14 @@ Route::get('/account-deletion', fn () => view('legal.account-deletion'))->name('
 // des documents de l'organisme sans avoir a s'inscrire.
 Route::get('/structures', StructuresPubliquesController::class)->name('structures');
 
+// Essayer avant de s'inscrire : on ne force pas quelqu'un a creer un compte pour
+// decouvrir ce qu'il achete. Rien n'y est enregistre, et la correction est
+// freinee — elle reste publique, donc a portee d'un robot.
+Route::get('/essayer', [EssaiController::class, 'index'])->name('essai.index');
+Route::get('/essayer/{exercise}', [EssaiController::class, 'show'])->whereNumber('exercise')->name('essai.show');
+Route::post('/essayer/{exercise}', [EssaiController::class, 'corriger'])->whereNumber('exercise')
+    ->middleware('throttle:30,1')->name('essai.corriger');
+
 Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
 Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
 
@@ -60,6 +69,7 @@ Route::get('/sitemap.xml', function () {
     $urls = [
         ['loc' => url('/'), 'priority' => '1.0'],
         ['loc' => url('/register'), 'priority' => '0.8'],
+        ['loc' => url('/essayer'), 'priority' => '0.9'],
         // /login n'y figure plus : la page est en noindex (config/seo.php), et un
         // sitemap qui annonce une page que la page elle-meme refuse envoie aux
         // moteurs deux consignes contraires.
