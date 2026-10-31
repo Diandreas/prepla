@@ -10,9 +10,10 @@ interface ExamOption { id: number; name: string; language?: string | null }
  * des élèves existaient déjà, mais seul un super-administrateur pouvait créer
  * l'espace qui les porte : un professeur devait écrire et attendre.
  */
-export default function OpenTeacherSpace({ existing, role, exams, suggestedName }: {
+export default function OpenTeacherSpace({ existing, role, peutOuvrirUnAutre, exams, suggestedName }: {
     existing?: { id: number; name: string } | null;
     role?: string | null;
+    peutOuvrirUnAutre?: boolean;
     exams: ExamOption[];
     suggestedName: string;
 }) {
@@ -39,7 +40,7 @@ export default function OpenTeacherSpace({ existing, role, exams, suggestedName 
                     </p>
                 </div>
 
-                {existing ? (
+                {existing && (
                     <Card>
                         <CardContent className="space-y-3 p-4 text-sm">
                             <p>
@@ -53,8 +54,17 @@ export default function OpenTeacherSpace({ existing, role, exams, suggestedName 
                             )}
                         </CardContent>
                     </Card>
-                ) : (
+                )}
+
+                {/* Un responsable peut ouvrir un AUTRE espace — un second etablissement,
+                    une autre ville. Un eleve non : il suit ses cours dans le sien. */}
+                {(!existing || peutOuvrirUnAutre) && (
                     <>
+                        {existing && (
+                            <p className="text-sm text-muted-foreground">
+                                Tu gères un autre établissement ? Ouvre-lui son propre espace : tu passeras de l'un à l'autre depuis le menu.
+                            </p>
+                        )}
                         <Card>
                             <CardHeader>
                                 <CardTitle className="text-base">Mon espace</CardTitle>

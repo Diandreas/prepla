@@ -309,6 +309,11 @@ Route::middleware(['auth', EnsureSuperAdmin::class])
     });
 
 // Staff du centre (center_admin + teacher). Le middleware injecte le centre courant.
+// Passer d'un centre a l'autre. Hors du groupe du personnel, a dessein : si le
+// centre courant vient d'etre ferme, on doit pouvoir en rejoindre un autre.
+Route::post('center/changer', App\Http\Controllers\Center\ChangerDeCentreController::class)
+    ->middleware('auth')->name('center.switch');
+
 Route::middleware(['auth', EnsureCenterStaff::class])
     ->prefix('center')->name('center.')->group(function () {
         Route::get('/', App\Http\Controllers\Center\DashboardController::class)->name('dashboard');

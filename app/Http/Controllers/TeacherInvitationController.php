@@ -98,6 +98,17 @@ class TeacherInvitationController extends Controller
     {
         $invitation = TeacherInvitation::findUsable($token);
 
+        // Un enseignant deja inscrit — qui rejoint un second centre — n'a ni compte
+        // a creer ni mot de passe a choisir. Le lien ne marchait pourtant que pour
+        // un compte neuf : il butait sur « un compte existe deja ».
+        $compteExistant = $invitation && User::where('email', $invitation->email)->exists();
+        $connecteCommeInvite = $invitation && $this->estLInvite(auth()->user(), $invitation);
+
+        // Apres la connexion, on revient ici pour rejoindre l'espace.
+        if ($compteExistant && ! $connecteCommeInvite) {
+            session()->put('url.intended', route('teach.invitation.show', $token));
+        }
+
         return Inertia::render('teach/invitation', [
             'token' => $token,
             'invitation' => $invitation ? [
@@ -106,8 +117,66 @@ class TeacherInvitationController extends Controller
                 'space' => $invitation->center?->name ?? $invitation->space_name,
                 'classroom' => $invitation->classroom_name,
                 'joins_existing' => $invitation->joinsExistingSpace(),
+                'compte_existant' => $compteExistant,
+                'connecte_comme_invite' => $connecteCommeInvite,
             ] : null,
         ]);
+    }
+
+    private function estLInvite(?User $user, TeacherInvitation $invitation): bool
+    {
+        return $user !== null && strcasecmp(trim($user->email), trim($invitation->email)) === 0;
+    }
+
+    /**
+     * Rejoindre l'espace avec le compte qu'on a deja : un enseignant qui encadre
+     * un centre et en rejoint un second.
+     */
+    private function rejoindreAvecSonCompte(User $user, TeacherInvitation $invitation)
+    {
+        // Un eleve suit ses cours dans son etablissement : il ne passe pas de
+        // l'autre cote dans un autre, par une invitation qui ne lui etait pas
+        // destinee comme eleve.
+        if ($user->centers()->wherePivot('role', 'student')->exists()) {
+            return redirect()->route('dashboard')
+                ->with('error', "Ce compte est inscrit comme élève : il ne peut pas encadrer un espace. Écris-nous si c'est une erreur.");
+        }
+
+        $center = DB::transaction(function () use ($user, $invitation) {
+            $center = $invitation->center ?? LanguageCenter::create([
+                'name' => $invitation->space_name ?: ($invitation->name . ' — cours de langue'),
+                'slug' => $this->uniqueSlug($invitation->space_name ?: $invitation->name),
+                'owner_email' => $invitation->email,
+                'default_exam_id' => $invitation->exam_id,
+                'is_active' => true,
+            ]);
+
+            // Deja membre de ce centre : on n'ajoute pas une seconde appartenance.
+            \App\Models\CenterUser::firstOrCreate(
+                ['center_id' => $center->id, 'user_id' => $user->id],
+                ['role' => $invitation->role, 'joined_at' => now()],
+            );
+
+            if (trim((string) $invitation->classroom_name) !== '') {
+                $classroom = $center->classrooms()->create([
+                    'name' => $invitation->classroom_name,
+                    'level' => $invitation->level,
+                    'exam_id' => $invitation->exam_id,
+                    'invite_code' => Classroom::generateInviteCode(),
+                ]);
+                $classroom->members()->syncWithoutDetaching([$user->id => ['role_in_class' => 'teacher']]);
+            }
+
+            $invitation->update(['accepted_at' => now()]);
+
+            return $center;
+        });
+
+        // On entre dans l'espace qu'on vient de rejoindre, pas dans l'ancien.
+        $user->choisirCentre($center->id);
+
+        return redirect()->route('center.dashboard')
+            ->with('success', "Tu as rejoint « {$center->name} ». Tu passes d'un espace à l'autre depuis le menu.");
     }
 
     public function accept(Request $request, string $token)
@@ -119,15 +188,23 @@ class TeacherInvitationController extends Controller
                 ->with('error', "Ce lien d'invitation n'est plus valable. Demande-en un nouveau.");
         }
 
+        // Deja inscrit et connecte sous la bonne adresse : on rejoint, sans rien creer.
+        if ($this->estLInvite($request->user(), $invitation)) {
+            return $this->rejoindreAvecSonCompte($request->user(), $invitation);
+        }
+
         $validated = $request->validate([
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'phone' => 'required|string|min:6|max:32',
         ]);
 
-        // Un compte a pu être créé entre l'envoi du lien et son ouverture.
+        // Un compte existe avec cette adresse : on se connecte, et la connexion
+        // ramene sur l'invitation pour la rejoindre.
         if (User::where('email', $invitation->email)->exists()) {
+            session()->put('url.intended', route('teach.invitation.show', $token));
+
             return redirect()->route('login')
-                ->with('error', 'Un compte existe déjà avec cette adresse. Connecte-toi.');
+                ->with('error', "Un compte existe déjà avec cette adresse. Connecte-toi : tu reviendras sur l'invitation pour rejoindre l'espace.");
         }
 
         $user = DB::transaction(function () use ($invitation, $validated) {

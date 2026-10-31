@@ -26,8 +26,10 @@ class TeacherSpaceController extends Controller
         $user = $request->user();
 
         return Inertia::render('teach/open', [
-            // Un espace déjà ouvert : la page le dit au lieu d'en proposer un second.
+            // Un espace déjà ouvert : la page le dit. Un responsable peut en ouvrir
+            // un autre — un second établissement, une autre ville —, un élève non.
             'existing' => $user->center()?->only(['id', 'name']),
+            'peutOuvrirUnAutre' => $user->centerRole() === null || $user->isCenterStaff(),
             'role' => $user->centerRole(),
             'exams' => Exam::proposables()->with('language:id,name')
                 ->get(['id', 'name', 'language_id'])
@@ -44,10 +46,12 @@ class TeacherSpaceController extends Controller
     {
         $user = $request->user();
 
-        // Déjà membre d'un espace : on n'en crée pas un second, on y renvoie.
-        if ($existing = $user->center()) {
-            return redirect()->route($user->isCenterStaff() ? 'center.dashboard' : 'dashboard')
-                ->with('error', "Tu fais déjà partie de l'espace « {$existing->name} ».");
+        // Un responsable ou un enseignant peut ouvrir un AUTRE espace — un second
+        // établissement, une autre ville. Un élève non : il suit ses cours dans
+        // son établissement, et en ouvrir un le ferait passer de l'autre côté.
+        if (($existing = $user->center()) && ! $user->isCenterStaff()) {
+            return redirect()->route('dashboard')
+                ->with('error', "Tu suis déjà tes cours dans l'espace « {$existing->name} ».");
         }
 
         $validated = $request->validate([
@@ -83,6 +87,9 @@ class TeacherSpaceController extends Controller
 
             return $center;
         });
+
+        // On entre dans l'espace qu'on vient d'ouvrir, pas dans l'ancien.
+        $user->choisirCentre($center->id);
 
         return redirect()->route('center.dashboard')
             ->with('success', "Espace « {$center->name} » ouvert. Ta première classe a son code d'invitation.");

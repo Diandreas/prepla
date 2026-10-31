@@ -39,18 +39,31 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
-        $user = $request->user()?->load('profile', 'centerMembership.center');
+        $user = $request->user()?->load('profile');
 
-        // Compact B2B context for conditional navigation / dashboard priority.
+        // Le centre dans lequel la personne agit EN CE MOMENT, et son role la. Une
+        // personne peut en gerer plusieurs : c'etait une appartenance prise au
+        // hasard, qui pouvait ne pas etre celle des droits appliques.
         $center = null;
-        if ($user?->centerMembership?->center) {
-            $c = $user->centerMembership->center;
+        $centres = [];
+        if ($appartenance = $user?->appartenanceCourante()) {
+            $c = $appartenance->center;
             $center = [
                 'id' => $c->id,
                 'name' => $c->name,
                 'slug' => $c->slug,
-                'role' => $user->centerMembership->role, // center_admin | teacher | student
+                'role' => $appartenance->role, // center_admin | teacher | student
             ];
+
+            // Les centres entre lesquels passer, seulement quand il y en a plusieurs.
+            $encadres = $user->centresEncadres();
+            if ($encadres->count() > 1) {
+                $centres = $encadres->map(fn ($a) => [
+                    'id' => $a->center_id,
+                    'name' => $a->center->name,
+                    'role' => $a->role,
+                ])->all();
+            }
         }
 
         $isPremium = $user?->hasPremiumAccess() ?? false;
@@ -69,6 +82,7 @@ class HandleInertiaRequests extends Middleware
                 'user' => $user,
                 'role' => $user?->role,        // global role (super_admin | student)
                 'center' => $center,           // null if the user has no center
+                'centres' => $centres,         // vide sauf pour qui gere plusieurs centres
             ],
             'userProfile' => $request->user()?->profile,
             // Entrer par Google ne demande qu'un clic : personne n'a saisi de numero.

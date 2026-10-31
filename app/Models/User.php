@@ -153,21 +153,107 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
-    /** The single center membership (or null). Eager-loadable via 'centerMembership'. */
+    /**
+     * UNE appartenance a un centre, sans garantie laquelle quand il y en a
+     * plusieurs. Ne sert qu'aux requetes qui la bornent elles-memes par centre
+     * (« ->where('center_id', ...) ») ou qui cherchent n'importe laquelle. Pour
+     * savoir OU l'utilisateur agit et avec quel role : appartenanceCourante().
+     */
     public function centerMembership(): HasOne
     {
         return $this->hasOne(CenterUser::class);
     }
 
-    public function center(): ?LanguageCenter
+    /** La cle de session du centre choisi par une personne qui en gere plusieurs. */
+    public const CENTRE_COURANT = 'centre_courant';
+
+    /** Quand rien n'est choisi : le centre qu'on dirige, puis celui ou l'on enseigne. */
+    private const PRIORITE_DES_ROLES = ['center_admin' => 0, 'teacher' => 1, 'student' => 2];
+
+    /**
+     * L'appartenance dans laquelle l'utilisateur agit en ce moment.
+     *
+     * Une personne peut gerer plusieurs centres. Tout le reste de l'application
+     * — les acces, les listes, les droits du responsable — passe par center() et
+     * centerRole() : ils doivent donc parler du MEME centre, celui qu'elle a
+     * choisi. Avant, center() prenait le premier centre venu et centerRole() une
+     * appartenance quelconque : avec deux centres, on pouvait agir dans l'un avec
+     * le role tenu dans l'autre.
+     *
+     * Recalculee a chaque appel, a dessein : une adhesion se fait par attach(),
+     * qui ne declenche aucun evenement, et une memoire garderait l'ancien etat
+     * dans la requete meme ou l'on vient de rejoindre un centre. Deux petites
+     * requetes valent mieux qu'un droit calcule sur un etat perime.
+     */
+    public function appartenanceCourante(): ?CenterUser
     {
-        return $this->centers()->first();
+        $requete = app('request');
+
+        $toutes = CenterUser::with('center')->where('user_id', $this->id)->get()
+            ->filter(fn (CenterUser $a) => $a->center !== null)
+            ->values();
+
+        $choisie = null;
+
+        if ($toutes->count() === 1) {
+            $choisie = $toutes->first();
+        } elseif ($toutes->count() > 1) {
+            // Le choix de la personne, s'il designe encore un centre actif ou
+            // elle est inscrite. Sinon on ne la laisse pas devant un centre ferme.
+            $voulu = $requete->hasSession() ? $requete->session()->get(self::CENTRE_COURANT) : null;
+            $choisie = $toutes->first(fn (CenterUser $a) => (int) $a->center_id === (int) $voulu && $a->center->is_active)
+                ?? $toutes->sortBy(fn (CenterUser $a) => [
+                    $a->center->is_active ? 0 : 1,
+                    self::PRIORITE_DES_ROLES[$a->role] ?? 9,
+                    $a->id,
+                ])->first();
+        }
+
+        return $choisie;
     }
 
-    /** Center-scoped role: center_admin | teacher | student | null. */
+    /** Le centre dans lequel l'utilisateur agit en ce moment. */
+    public function center(): ?LanguageCenter
+    {
+        return $this->appartenanceCourante()?->center;
+    }
+
+    /** Son role DANS CE CENTRE : center_admin | teacher | student | null. */
     public function centerRole(): ?string
     {
-        return $this->centerMembership?->role;
+        return $this->appartenanceCourante()?->role;
+    }
+
+    /**
+     * Les centres que l'utilisateur encadre — responsable ou enseignant —, actifs.
+     * C'est entre eux qu'il peut passer de l'un a l'autre.
+     *
+     * @return \Illuminate\Support\Collection<int, CenterUser>
+     */
+    public function centresEncadres(): \Illuminate\Support\Collection
+    {
+        return CenterUser::with('center:id,name,slug,is_active')
+            ->where('user_id', $this->id)
+            ->whereIn('role', ['center_admin', 'teacher'])
+            ->orderBy('id')
+            ->get()
+            ->filter(fn (CenterUser $a) => (bool) $a->center?->is_active)
+            ->values();
+    }
+
+    /**
+     * Agir desormais dans ce centre. Refuse un centre que l'utilisateur
+     * n'encadre pas : on ne choisit pas d'entrer chez les autres.
+     */
+    public function choisirCentre(int $centerId): bool
+    {
+        if (! $this->centresEncadres()->contains('center_id', $centerId)) {
+            return false;
+        }
+
+        app('request')->session()->put(self::CENTRE_COURANT, $centerId);
+
+        return true;
     }
 
     public function isSuperAdmin(): bool

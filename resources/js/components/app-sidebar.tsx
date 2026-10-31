@@ -8,6 +8,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import AppLogo from './app-logo';
+import { CentreCourant } from './centre-courant';
 
 // Custom icon component using icons from /public/icons
 // Uses CSS filter to colorize PNGs based on active state and dark/light mode
@@ -85,6 +86,15 @@ export function AppSidebar() {
                 icon: () => <SidebarIcon name="profile" />,
             }]
             : []),
+        // Un responsable peut ouvrir un AUTRE espace — un second etablissement :
+        // sans ce lien, il devait se creer un second compte.
+        ...(centerRole === 'center_admin'
+            ? [{
+                title: 'Ouvrir un autre espace',
+                url: '/enseigner',
+                icon: () => <SidebarIcon name="layout-grid" />,
+            }]
+            : []),
         {
             title: t('sidebar.support', 'Aide & support'),
             url: SUPPORT_WHATSAPP_URL,
@@ -113,6 +123,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
+                <CentreCourant />
                 <NavMain items={mainNavItems} />
             </SidebarContent>
 
