@@ -18,11 +18,14 @@ interface WelcomeProps {
 
 function WelcomeInner({ languages, pricing }: WelcomeProps) {
     const T = useTokens();
+    // Le nombre d'examens vient de la configuration : ecrit en dur, il annoncait
+    // encore « 8 » apres l'arrivee de l'OeSD et du telc.
+    const nombreDExamens = languages.reduce((total, langue) => total + (langue.exams?.length ?? 0), 0);
 
     return (
         <div className="overflow-x-hidden" style={{ minHeight: '100vh', background: T.bg, color: T.text, transition: 'background 0.3s ease, color 0.3s ease' }}>
             <LandingNavbar />
-            <HeroSection />
+            <HeroSection nombreDExamens={nombreDExamens} />
             <LanguagesGrid languages={languages} />
             <FeaturesSection />
             <HowItWorks />

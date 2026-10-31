@@ -121,7 +121,7 @@ function MockExerciseCard({ card, visible }: { card: typeof EXAM_CARDS[0]; visib
     );
 }
 
-export function HeroSection() {
+export function HeroSection({ nombreDExamens }: { nombreDExamens: number }) {
     const T = useTokens();
     const { t, i18n } = useTranslation();
     const [mounted, setMounted] = useState(false);
@@ -246,7 +246,7 @@ export function HeroSection() {
                         <div className="mt-10 flex gap-8 border-t pt-7" style={{ borderColor: T.border }}>
                             {[
                                 { value: '3', label: t('landing.hero_stat_languages') },
-                                { value: '8', label: t('landing.hero_stat_exams') },
+                                { value: String(nombreDExamens), label: t('landing.hero_stat_exams') },
                                 { value: '∞', label: t('landing.hero_stat_exercises') },
                             ].map((s) => (
                                 <div key={s.label}>

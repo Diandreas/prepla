@@ -153,8 +153,10 @@ export function LanguagesGrid({ languages }: { languages: Language[] }) {
                     paddingTop: '2.5rem', borderTop: `1px solid ${T.border}`,
                 }}>
                     {[
-                        { value: '3', labelKey: 'landing.languages_stat_languages' },
-                        { value: '8', labelKey: 'landing.languages_stat_exams' },
+                        { value: String(languages.length), labelKey: 'landing.languages_stat_languages' },
+                        // Compte depuis la configuration : ecrit en dur, il disait « 8 »
+                        // apres l'arrivee de l'OeSD et du telc.
+                        { value: String(languages.reduce((total, langue) => total + (langue.exams?.length ?? 0), 0)), labelKey: 'landing.languages_stat_exams' },
                         { value: 'A1–C2', labelKey: 'landing.languages_stat_levels' },
                     ].map((s) => (
                         <div key={s.labelKey} style={{ textAlign: 'center' }}>
