@@ -78,8 +78,10 @@ class StudentController extends Controller
             ],
             'resume' => $suivi->resume($user, $suivi->fuseau($center)),
             'historique' => $suivi->historique($user),
-            // Le diagnostic des faiblesses existant, reutilise tel quel.
-            'weaknesses' => UserError::categoryStats($user->id),
+            // Les faiblesses avec leurs preuves, et le profil tire des redactions
+            // et des prises de parole : c'est la qu'un centre voit quoi travailler.
+            'faiblesses' => $suivi->faiblesses($user),
+            'profil' => $suivi->profil($user),
         ]);
     }
 

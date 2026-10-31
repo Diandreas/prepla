@@ -7,8 +7,25 @@ import { Download } from 'lucide-react';
 import { competence, dateHeure, duree, ilYA } from '@/lib/suivi';
 
 interface Student { id: number; name: string; email: string; level: string | null; classes: string[] }
-interface Weakness { error_category: string; subcategory: string | null; count: number }
 interface Jour { date: string; exercices: number; minutes: number }
+
+interface Exemple { contexte: string | null; reponse: string | null; correction: string | null; explication: string | null; competence: string | null }
+interface Faiblesse { libelle: string; nombre: number; competences: string[]; derniere: string | null; exemples: Exemple[] }
+interface Observation {
+    dimension: string;
+    observation: string;
+    gravite: 'strength' | 'minor' | 'major' | string;
+    competence: string | null;
+    exercice: string | null;
+    tentative: number;
+    date: string | null;
+}
+
+const GRAVITE: Record<string, { libelle: string; classe: string }> = {
+    strength: { libelle: 'Point fort', classe: 'border-emerald-300/70 bg-emerald-50/60 dark:border-emerald-900 dark:bg-emerald-950/20' },
+    minor: { libelle: 'À travailler', classe: 'border-amber-300/70 bg-amber-50/60 dark:border-amber-900 dark:bg-amber-950/20' },
+    major: { libelle: 'Priorité', classe: 'border-rose-300/70 bg-rose-50/60 dark:border-rose-900 dark:bg-rose-950/20' },
+};
 
 interface Resume {
     derniere_activite: string | null;
@@ -61,12 +78,14 @@ export default function StudentShow({
     student,
     resume,
     historique,
-    weaknesses,
+    faiblesses,
+    profil,
 }: {
     student: Student;
     resume: Resume;
     historique: Page<Ligne>;
-    weaknesses: Weakness[];
+    faiblesses: Faiblesse[];
+    profil: Observation[];
 }) {
     const plusActif = Math.max(1, ...resume.activite_30_jours.map((j) => j.exercices));
 
@@ -192,19 +211,73 @@ export default function StudentShow({
                 </Card>
 
                 <Card>
-                    <CardHeader>
-                        <CardTitle className="text-base">Faiblesses identifiées par l'IA</CardTitle>
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-base">Profil à l'écrit et à l'oral</CardTitle>
+                        <p className="text-xs text-muted-foreground">
+                            Les tendances de fond relevées par l'IA dans ses rédactions et ses prises de parole, preuve à l'appui.
+                        </p>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                        {weaknesses.length === 0 && <p className="text-sm text-muted-foreground">Aucune faiblesse récurrente détectée.</p>}
-                        {weaknesses.map((w, i) => (
-                            <div key={i} className="flex items-center justify-between rounded-lg border border-border p-2.5 text-sm">
-                                <span>
-                                    <span className="font-medium capitalize">{w.error_category.replace(/[._]/g, ' ')}</span>
-                                    {w.subcategory && <span className="text-muted-foreground"> · {w.subcategory}</span>}
-                                </span>
-                                <Badge variant="secondary">{w.count} erreur{w.count > 1 ? 's' : ''}</Badge>
-                            </div>
+                        {profil.length === 0 && (
+                            <p className="text-sm text-muted-foreground">
+                                Pas encore de rédaction ni de prise de parole analysée. C'est là que les faiblesses profondes se révèlent.
+                            </p>
+                        )}
+                        {profil.map((o, i) => {
+                            const g = GRAVITE[o.gravite] ?? GRAVITE.minor;
+                            return (
+                                <div key={i} className={`rounded-lg border p-3 text-sm ${g.classe}`}>
+                                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                                        <span className="font-medium">{o.dimension}</span>
+                                        <span className="text-xs text-muted-foreground">
+                                            {g.libelle} · {competence(o.competence)} ·{' '}
+                                            <Link href={route('center.students.attempt', { user: student.id, attempt: o.tentative })} className="underline-offset-2 hover:underline">
+                                                {dateHeure(o.date)}
+                                            </Link>
+                                        </span>
+                                    </div>
+                                    <p className="mt-1">{o.observation}</p>
+                                </div>
+                            );
+                        })}
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-base">Faiblesses à travailler</CardTitle>
+                        <p className="text-xs text-muted-foreground">Chaque faiblesse avec les dernières fautes où elle est apparue.</p>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        {faiblesses.length === 0 && <p className="text-sm text-muted-foreground">Aucune faiblesse récurrente détectée.</p>}
+                        {faiblesses.map((f, i) => (
+                            <details key={i} className="group rounded-lg border border-border text-sm">
+                                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-2.5">
+                                    <span>
+                                        <span className="font-medium">{f.libelle}</span>
+                                        {f.competences.length > 0 && (
+                                            <span className="text-muted-foreground"> · {f.competences.map((c) => competence(c)).join(', ')}</span>
+                                        )}
+                                    </span>
+                                    <Badge variant="secondary">{f.nombre} faute{f.nombre > 1 ? 's' : ''}</Badge>
+                                </summary>
+                                <ul className="space-y-2 border-t px-3 py-2.5">
+                                    {f.exemples.map((e, j) => (
+                                        <li key={j} className="space-y-0.5">
+                                            {e.reponse && e.correction ? (
+                                                <p>
+                                                    <span className="text-rose-600 line-through decoration-rose-300 dark:text-rose-400">{e.reponse}</span>
+                                                    {' → '}
+                                                    <span className="font-medium text-emerald-700 dark:text-emerald-400">{e.correction}</span>
+                                                </p>
+                                            ) : (
+                                                e.contexte && <p>{e.contexte}</p>
+                                            )}
+                                            {e.explication && <p className="text-xs text-muted-foreground">{e.explication}</p>}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </details>
                         ))}
                     </CardContent>
                 </Card>

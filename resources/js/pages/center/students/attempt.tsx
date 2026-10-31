@@ -4,6 +4,16 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Check, Minus, X } from 'lucide-react';
 import { competence, dateHeure, duree } from '@/lib/suivi';
 
+interface Production {
+    transcription: string | null;
+    note: number | null;
+    criteres: { critere: string; note: number }[];
+    diagnostic: { dimension: string; observation: string; gravite: string }[];
+    corrections: { avant: string; apres: string; categorie: string; explication: string }[];
+    points_couverts: string[];
+    points_manquants: string[];
+}
+
 interface Question {
     id: string;
     texte: string | null;
@@ -13,6 +23,93 @@ interface Question {
     juste: boolean | null;
     precision: number | null;
     explication: string | null;
+    production: Production | null;
+}
+
+const GRAVITE: Record<string, string> = {
+    strength: 'border-emerald-300/70 bg-emerald-50/60 dark:border-emerald-900 dark:bg-emerald-950/20',
+    minor: 'border-amber-300/70 bg-amber-50/60 dark:border-amber-900 dark:bg-amber-950/20',
+    major: 'border-rose-300/70 bg-rose-50/60 dark:border-rose-900 dark:bg-rose-950/20',
+};
+
+/**
+ * La correction complete d'une redaction ou d'une prise de parole : ce que
+ * l'apprenant a dit ou ecrit, les criteres, les tendances de fond, puis chaque
+ * faute. C'est ce qu'un enseignant lit pour savoir quoi travailler.
+ */
+function CorrectionDeProduction({ p }: { p: Production }) {
+    return (
+        <div className="mt-3 space-y-3 border-t pt-3">
+            {p.transcription && (
+                <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Ce qu'il a dit (transcription)</p>
+                    <p className="mt-1 whitespace-pre-wrap rounded-md bg-muted/50 p-2.5 italic">{p.transcription}</p>
+                </div>
+            )}
+
+            {(p.note !== null || p.criteres.length > 0) && (
+                <div className="flex flex-wrap gap-2">
+                    {p.note !== null && <span className="rounded-md border px-2 py-1 text-xs font-medium">Note globale {p.note.toFixed(1)} / 9</span>}
+                    {p.criteres.map((c) => (
+                        <span key={c.critere} className="rounded-md border px-2 py-1 text-xs text-muted-foreground">
+                            {c.critere} {c.note.toFixed(1)}
+                        </span>
+                    ))}
+                </div>
+            )}
+
+            {p.diagnostic.length > 0 && (
+                <div className="space-y-1.5">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Tendances de fond</p>
+                    {p.diagnostic.map((d, i) => (
+                        <div key={i} className={`rounded-md border p-2.5 ${GRAVITE[d.gravite] ?? GRAVITE.minor}`}>
+                            <span className="font-medium">{d.dimension}</span> — {d.observation}
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {(p.points_couverts.length > 0 || p.points_manquants.length > 0) && (
+                <div className="grid gap-2 sm:grid-cols-2">
+                    {p.points_couverts.length > 0 && (
+                        <div>
+                            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Points traités</p>
+                            <ul className="mt-1 list-inside list-disc text-emerald-700 dark:text-emerald-400">
+                                {p.points_couverts.map((x, i) => <li key={i}>{x}</li>)}
+                            </ul>
+                        </div>
+                    )}
+                    {p.points_manquants.length > 0 && (
+                        <div>
+                            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Points manquants</p>
+                            <ul className="mt-1 list-inside list-disc text-rose-700 dark:text-rose-400">
+                                {p.points_manquants.map((x, i) => <li key={i}>{x}</li>)}
+                            </ul>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {p.corrections.length > 0 && (
+                <div className="space-y-1.5">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        Fautes relevées ({p.corrections.length})
+                    </p>
+                    {p.corrections.map((c, i) => (
+                        <div key={i} className="rounded-md border p-2.5">
+                            <p>
+                                <span className="text-rose-600 line-through decoration-rose-300 dark:text-rose-400">{c.avant}</span>
+                                {' → '}
+                                <span className="font-medium text-emerald-700 dark:text-emerald-400">{c.apres}</span>
+                                <span className="ml-2 text-xs text-muted-foreground">{c.categorie}</span>
+                            </p>
+                            {c.explication && <p className="mt-0.5 text-xs text-muted-foreground">{c.explication}</p>}
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
 }
 
 interface Tentative {
@@ -129,10 +226,14 @@ export default function TentativeShow({ student, tentative }: { student: { id: n
                                     <div className="min-w-0 flex-1 text-sm">
                                         {q.texte && <p className="font-medium">{q.texte}</p>}
                                         <dl className="mt-2 grid gap-1">
-                                            <div className="flex flex-wrap gap-x-2">
-                                                <dt className="text-muted-foreground">Sa réponse :</dt>
-                                                <dd className="whitespace-pre-wrap">{lisible(q.reponse, q.options)}</dd>
-                                            </div>
+                                            {/* A l'oral, la reponse enregistree est le fichier audio :
+                                                la transcription, plus bas, la remplace. */}
+                                            {!q.production?.transcription && (
+                                                <div className="flex flex-wrap gap-x-2">
+                                                    <dt className="text-muted-foreground">Sa réponse :</dt>
+                                                    <dd className="whitespace-pre-wrap">{lisible(q.reponse, q.options)}</dd>
+                                                </div>
+                                            )}
                                             {etat === 'faux' && q.bonne_reponse !== null && (
                                                 <div className="flex flex-wrap gap-x-2">
                                                     <dt className="text-muted-foreground">Bonne réponse :</dt>
@@ -141,6 +242,7 @@ export default function TentativeShow({ student, tentative }: { student: { id: n
                                             )}
                                         </dl>
                                         {q.explication && <p className="mt-2 text-muted-foreground">{q.explication}</p>}
+                                        {q.production && <CorrectionDeProduction p={q.production} />}
                                     </div>
                                 </div>
                             </li>

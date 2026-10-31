@@ -4,6 +4,7 @@ namespace App\Services\Center;
 
 use App\Models\LanguageCenter;
 use App\Models\User;
+use App\Models\UserError;
 use App\Models\UserExerciseAttempt;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
@@ -91,6 +92,98 @@ class SuiviApprenant
         ];
     }
 
+    /**
+     * Les faiblesses de l'apprenant, AVEC LEURS PREUVES.
+     *
+     * Le centre ne voyait que des comptes — « Grammar · Tense : 2 erreurs » —,
+     * en anglais, sans rien pour juger. Un enseignant a besoin de voir la faute :
+     * pour chaque faiblesse, les derniers extraits fautifs, leur correction et
+     * l'explication donnee, avec la competence ou ils sont apparus.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function faiblesses(User $eleve): array
+    {
+        $erreurs = UserError::where('user_id', $eleve->id)
+            ->where('mastered', false)
+            ->whereNotNull('error_category')
+            ->where('error_category', '!=', 'session_mistake')
+            ->orderByDesc('updated_at')
+            ->get(['error_category', 'subcategory', 'skill_type', 'question_text', 'user_answer', 'correct_answer', 'explanation', 'updated_at']);
+
+        return $erreurs
+            ->groupBy(fn (UserError $e) => $e->error_category.'|'.($e->subcategory ?? ''))
+            ->map(fn ($groupe) => [
+                'libelle' => self::libelleCategorie($groupe->first()->error_category, $groupe->first()->subcategory),
+                'nombre' => $groupe->count(),
+                'competences' => $groupe->pluck('skill_type')->filter()->unique()->values()->all(),
+                'derniere' => $groupe->first()->updated_at?->toIso8601String(),
+                'exemples' => $groupe->take(3)->map(fn (UserError $e) => [
+                    'contexte' => $e->question_text,
+                    'reponse' => $this->court($e->user_answer),
+                    'correction' => $this->court($e->correct_answer),
+                    'explication' => $e->explanation,
+                    'competence' => $e->skill_type,
+                ])->values()->all(),
+            ])
+            ->sortByDesc('nombre')
+            ->take(12)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Le profil tire des productions recentes — redactions et prises de parole :
+     * les tendances de fond, preuve a l'appui, qu'aucune faute isolee ne montre.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function profil(User $eleve): array
+    {
+        $observations = [];
+
+        $tentatives = UserExerciseAttempt::where('user_id', $eleve->id)
+            ->with(['exercise.exerciseType:id,name,skill_type'])
+            ->latest()
+            ->latest('id')
+            ->take(40)
+            ->get();
+
+        foreach ($tentatives as $tentative) {
+            foreach ((array) ($tentative->feedback ?? []) as $retour) {
+                foreach ((array) ($retour['diagnostic'] ?? []) as $d) {
+                    if (! is_array($d) || empty($d['observation'])) {
+                        continue;
+                    }
+                    $observations[] = [
+                        'dimension' => self::DIMENSIONS[$d['dimension'] ?? ''] ?? ($d['dimension'] ?? ''),
+                        'observation' => (string) $d['observation'],
+                        'gravite' => $d['severity'] ?? 'minor',
+                        'competence' => $tentative->exercise?->exerciseType?->skill_type,
+                        'exercice' => $tentative->exercise?->content['title'] ?? $tentative->exercise?->exerciseType?->name,
+                        'tentative' => $tentative->id,
+                        'date' => $tentative->created_at?->toIso8601String(),
+                    ];
+                }
+            }
+
+            if (count($observations) >= 12) {
+                break;
+            }
+        }
+
+        return array_slice($observations, 0, 12);
+    }
+
+    private function court(?string $texte): ?string
+    {
+        if ($texte === null) {
+            return null;
+        }
+
+        return mb_strlen($texte) > 160 ? mb_substr($texte, 0, 157).'…' : $texte;
+    }
+
     /** L'historique complet, le plus recent d'abord. */
     public function historique(User $eleve): LengthAwarePaginator
     {
@@ -153,8 +246,9 @@ class SuiviApprenant
                     'bonne_reponse' => $retour['correct_answer'] ?? $question['correct_answer'] ?? $question['correct_answers'] ?? null,
                     'juste' => isset($retour['correct']) ? (bool) $retour['correct'] : null,
                     'precision' => $retour['accuracy'] ?? null,
-                    'explication' => $retour['explanation'] ?? $question['explanation'] ?? null,
+                    'explication' => $this->texteDExplication($retour['explanation'] ?? $question['explanation'] ?? null),
                     'repondue' => array_key_exists($id, $reponses),
+                    'production' => $this->production($retour),
                 ];
             })
             // Une question retiree depuis, ou jamais presentee, n'a rien a montrer.
@@ -204,6 +298,156 @@ class SuiviApprenant
                 round($l['temps_secondes'] / 60, 1),
             ];
         }
+    }
+
+    /**
+     * La correction complete d'une production — redaction ou prise de parole :
+     * ce qu'un enseignant lit pour comprendre OU l'apprenant bute, pas seulement
+     * s'il a reussi.
+     *
+     * @param  array<string, mixed>  $retour
+     * @return array<string, mixed>|null  null pour une question a reponse fermee
+     */
+    private function production(array $retour): ?array
+    {
+        $corrections = is_array($retour['corrections'] ?? null) ? $retour['corrections'] : [];
+        $diagnostic = is_array($retour['diagnostic'] ?? null) ? $retour['diagnostic'] : [];
+        $criteres = is_array($retour['sub_scores'] ?? null) ? $retour['sub_scores'] : [];
+        $transcription = is_string($retour['transcription'] ?? null) ? $retour['transcription'] : null;
+
+        if ($corrections === [] && $diagnostic === [] && $criteres === [] && $transcription === null
+            && empty($retour['covered_points']) && empty($retour['missing_points'])) {
+            return null;
+        }
+
+        return [
+            'transcription' => $transcription,
+            'note' => isset($retour['band_score']) && is_numeric($retour['band_score']) ? (float) $retour['band_score'] : null,
+            'criteres' => collect($criteres)
+                ->filter(fn ($v) => is_numeric($v))
+                ->map(fn ($v, $cle) => ['critere' => self::CRITERES[$cle] ?? $cle, 'note' => (float) $v])
+                ->values()
+                ->all(),
+            'diagnostic' => collect($diagnostic)
+                ->filter(fn ($d) => is_array($d) && ! empty($d['observation']))
+                ->map(fn (array $d) => [
+                    'dimension' => self::DIMENSIONS[$d['dimension'] ?? ''] ?? ($d['dimension'] ?? ''),
+                    'observation' => (string) $d['observation'],
+                    'gravite' => $d['severity'] ?? 'minor',
+                ])
+                ->values()
+                ->all(),
+            'corrections' => collect($corrections)
+                ->filter(fn ($c) => is_array($c) && ! empty($c['original']))
+                ->map(fn (array $c) => [
+                    'avant' => (string) $c['original'],
+                    'apres' => (string) ($c['corrected'] ?? ''),
+                    'categorie' => self::libelleCategorie((string) ($c['category'] ?? '')),
+                    'explication' => (string) ($c['explanation'] ?? ''),
+                ])
+                ->values()
+                ->all(),
+            'points_couverts' => array_values(array_filter((array) ($retour['covered_points'] ?? []), 'is_string')),
+            'points_manquants' => array_values(array_filter((array) ($retour['missing_points'] ?? []), 'is_string')),
+        ];
+    }
+
+    /**
+     * L'explication en texte. A l'oral, l'IA rend un objet — concept, exemple,
+     * conseil et leur traduction : on le lit en francais, sans quoi la page
+     * affichait l'objet brut.
+     */
+    private function texteDExplication(mixed $explication): ?string
+    {
+        if (is_string($explication)) {
+            return trim($explication) ?: null;
+        }
+
+        if (is_array($explication)) {
+            $fr = is_array($explication['french_translation'] ?? null) ? $explication['french_translation'] : [];
+            $parties = array_filter([
+                $fr['concept'] ?? $explication['concept'] ?? null,
+                $fr['hint'] ?? $explication['hint'] ?? null,
+            ], fn ($p) => is_string($p) && trim($p) !== '');
+
+            return $parties ? implode(' ', $parties) : null;
+        }
+
+        return null;
+    }
+
+    /** Les quatre dimensions de la note d'une redaction, en francais. */
+    private const CRITERES = [
+        'task_achievement' => 'Réalisation de la tâche',
+        'coherence_cohesion' => 'Cohérence et cohésion',
+        'lexical_resource' => 'Vocabulaire',
+        'grammar_accuracy' => 'Correction grammaticale',
+    ];
+
+    /** Les dimensions du profil d'une production, en francais. */
+    public const DIMENSIONS = [
+        'lexical_range' => 'Étendue du vocabulaire',
+        'lexical_precision' => 'Précision du vocabulaire',
+        'syntactic_complexity' => 'Complexité des phrases',
+        'grammatical_control' => 'Maîtrise grammaticale',
+        'coherence' => 'Cohérence',
+        'register' => 'Registre',
+        'fluency' => 'Aisance',
+        'task_fulfilment' => 'Réponse à la consigne',
+    ];
+
+    /** Les familles et sous-categories de faiblesse, en francais : « Grammar · Tense » ne parle a personne ici. */
+    public const CATEGORIES = [
+        'grammar' => 'Grammaire',
+        'vocabulary' => 'Vocabulaire',
+        'spelling' => 'Orthographe',
+        'punctuation' => 'Ponctuation',
+        'coherence' => 'Cohérence',
+        'writing' => 'Écrit',
+        'speaking' => 'Oral',
+        'reading' => 'Compréhension écrite',
+        'listening' => 'Compréhension orale',
+    ];
+
+    public const SOUS_CATEGORIES = [
+        'tense' => 'temps',
+        'agreement' => 'accords',
+        'word-order' => 'ordre des mots',
+        'article' => 'articles',
+        'preposition' => 'prépositions',
+        'modal' => 'verbes de modalité',
+        'pronoun' => 'pronoms',
+        'case' => 'déclinaison (cas)',
+        'verb-form' => 'forme du verbe',
+        'conjugation' => 'conjugaison',
+        'negation' => 'négation',
+        'subordination' => 'subordonnées',
+        'lexical' => 'choix des mots',
+        'register' => 'registre',
+        'collocation' => 'collocations',
+        'range' => 'étendue (répétitions)',
+        'word-formation' => 'formation des mots',
+        'false-friend' => 'faux amis',
+        'accent' => 'accents',
+        'capitalisation' => 'majuscules',
+        'typo' => 'fautes de frappe',
+        'connectors' => 'connecteurs',
+        'structure' => 'structure',
+        'reference' => 'reprises',
+        'relevance' => 'pertinence',
+        'fluency' => 'aisance',
+        'completeness' => 'réponses incomplètes',
+        'interaction' => 'interaction',
+    ];
+
+    public static function libelleCategorie(string $categorie, ?string $sous = null): string
+    {
+        [$famille, $depuisLaCle] = array_pad(explode('.', mb_strtolower(trim($categorie)), 2), 2, null);
+        $sous = $sous ?? $depuisLaCle;
+
+        $nom = self::CATEGORIES[$famille] ?? ($famille ? ucfirst($famille) : 'Autre');
+
+        return $sous ? $nom.' · '.(self::SOUS_CATEGORIES[$sous] ?? str_replace('-', ' ', $sous)) : $nom;
     }
 
     /**
