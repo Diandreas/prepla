@@ -13,7 +13,10 @@
             })();
         </script>
 
-        <title inertia>{{ config('app.name', 'PrePla') }} — Préparation aux examens de langue avec l'IA</title>
+        {{-- Chaque page publique de l'application a son titre, par nom de route
+             (config/seo.php). Avant, l'accueil, l'inscription et la connexion
+             annoncaient tous le meme. Inertia le remplace ensuite cote client. --}}
+        <title inertia>{{ \App\Support\Referencement::pour()['titre'] }} — PrePla</title>
 
         @include('partials.meta')
 

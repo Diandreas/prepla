@@ -41,6 +41,11 @@ class FabriquerImagesPartage extends Command
             'titre' => "Les structures officielles des examens",
             'sous_titre' => "Chaque épreuve, chaque partie, chaque question — relevées sur les sites des organismes",
         ],
+        [
+            'fichier' => 'inscription.png',
+            'titre' => "Essai gratuit pendant 7 jours",
+            'sous_titre' => "Un test de niveau, un parcours construit pour ton examen, des exercices générés à ta mesure",
+        ],
     ];
 
     public function handle(): int

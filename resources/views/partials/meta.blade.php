@@ -17,11 +17,15 @@
     @param  bool    $indexable     false pour tenir la page hors des moteurs.
 --}}
 @php
-    $titre = $titre ?? "Préparation aux examens de langue avec l'IA";
-    $description = $description ?? "Prépare ton examen d'anglais, de français ou d'allemand (IELTS, TOEFL, DELF, Goethe…) avec des exercices personnalisés générés par IA, un test de niveau et un parcours adapté. Essai gratuit 7 jours.";
-    $image = $image ?? url('/og/prepla.png');
+    // Ce que la page ne passe pas vient de config/seo.php, par nom de route :
+    // c'est ainsi que chaque page de l'application, toutes rendues par le meme
+    // gabarit, recoit pourtant son propre titre.
+    $route = \App\Support\Referencement::pour();
+    $titre = $titre ?? $route['titre'];
+    $description = $description ?? $route['description'];
+    $image = $image ?? $route['image'];
     $type = $type ?? 'website';
-    $indexable = $indexable ?? true;
+    $indexable = $indexable ?? $route['indexable'];
     // `url()->current()` laisse tomber la query : les trois pages par langue se
     // seraient toutes declarees copies de /structures, et aucune n'aurait ete
     // indexee pour ses propres examens. Une page qui compte sur sa query passe

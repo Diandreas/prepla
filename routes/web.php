@@ -60,7 +60,9 @@ Route::get('/sitemap.xml', function () {
     $urls = [
         ['loc' => url('/'), 'priority' => '1.0'],
         ['loc' => url('/register'), 'priority' => '0.8'],
-        ['loc' => url('/login'), 'priority' => '0.5'],
+        // /login n'y figure plus : la page est en noindex (config/seo.php), et un
+        // sitemap qui annonce une page que la page elle-meme refuse envoie aux
+        // moteurs deux consignes contraires.
         ['loc' => url('/blog'), 'priority' => '0.6'],
         // Les structures d'examen sont ce qu'on cherche vraiment : « Goethe B1
         // epreuves », « duree du DELF B2 ». Une entree par langue, parce que
