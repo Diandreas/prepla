@@ -68,7 +68,14 @@ class ClassStatsService
         $topWeaknesses = [];
         foreach (array_slice($commonWeaknesses, 0, 8, true) as $key => $count) {
             [$cat, $sub] = array_pad(explode('|', $key), 2, null);
-            $topWeaknesses[] = ['category' => $cat, 'subcategory' => $sub, 'count' => $count];
+            $topWeaknesses[] = [
+                'category' => $cat,
+                'subcategory' => $sub,
+                // En francais, comme sur la fiche de l'apprenant : « Grammar · Tense »
+                // ne parlait a personne dans un centre francophone.
+                'libelle' => SuiviApprenant::libelleCategorie((string) $cat, $sub ?: null),
+                'count' => $count,
+            ];
         }
 
         return [

@@ -16,7 +16,7 @@ interface Classroom {
 }
 interface ExamOption { id: number; name: string; language?: string | null }
 interface Student { id: number; name: string; email: string }
-interface Weakness { category: string; subcategory: string | null; count: number }
+interface Weakness { category: string; subcategory: string | null; libelle: string; count: number }
 interface SuiviEleve {
     user_id: number;
     attempts: number;
@@ -184,7 +184,7 @@ export default function ClassShow({ classroom, students, stats, exams }: { class
                         <CardContent className="space-y-2">
                             {stats.common_weaknesses.map((w, i) => (
                                 <div key={i} className="flex items-center justify-between rounded-lg border border-border p-2.5 text-sm">
-                                    <span className="capitalize">{w.category.replace(/[._]/g, ' ')}{w.subcategory && <span className="text-muted-foreground"> · {w.subcategory}</span>}</span>
+                                    <span>{w.libelle}</span>
                                     <Badge variant="secondary">{w.count}</Badge>
                                 </div>
                             ))}

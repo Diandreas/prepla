@@ -47,9 +47,9 @@ class ProgressController extends Controller
 
             $ligne([]);
             $ligne(['Faiblesses communes de la classe']);
-            $ligne(['Catégorie', 'Sous-catégorie', 'Occurrences']);
+            $ligne(['Faiblesse', 'Occurrences']);
             foreach ($data['common_weaknesses'] as $w) {
-                $ligne([$w['category'], $w['subcategory'] ?? '', $w['count']]);
+                $ligne([$w['libelle'], $w['count']]);
             }
 
             fclose($out);
