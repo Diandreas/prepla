@@ -4,6 +4,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { dateHeure, duree, ilYA } from '@/lib/suivi';
 
 interface Classroom {
     id: number;
@@ -16,11 +17,19 @@ interface Classroom {
 interface ExamOption { id: number; name: string; language?: string | null }
 interface Student { id: number; name: string; email: string }
 interface Weakness { category: string; subcategory: string | null; count: number }
+interface SuiviEleve {
+    user_id: number;
+    attempts: number;
+    avg_accuracy: number | null;
+    last_active: string | null;
+    temps_total_secondes: number;
+}
 interface Stats {
     student_count: number;
     class_avg_accuracy: number | null;
     dropouts: { user_id: number; name: string; attempts: number }[];
     common_weaknesses: Weakness[];
+    per_student: SuiviEleve[];
 }
 
 export default function ClassShow({ classroom, students, stats, exams }: { classroom: Classroom; students: Student[]; stats: Stats; exams: ExamOption[] }) {
@@ -209,17 +218,30 @@ export default function ClassShow({ classroom, students, stats, exams }: { class
                     </CardHeader>
                     <CardContent className="space-y-2">
                         {students.length === 0 && <p className="text-sm text-muted-foreground">Aucun élève n'a encore rejoint cette classe.</p>}
-                        {students.map((s) => (
-                            <div key={s.id} className="flex items-center justify-between rounded-lg border border-border p-2.5 text-sm">
-                                <Link href={route('center.students.show', s.id)} className="min-w-0 hover:underline">
-                                    <p className="truncate font-medium">{s.name}</p>
-                                    <p className="truncate text-xs text-muted-foreground">{s.email}</p>
-                                </Link>
-                                <button onClick={() => removeStudent(s.id)} className="shrink-0 text-xs text-rose-500 hover:underline">
-                                    Retirer
-                                </button>
-                            </div>
-                        ))}
+                        {students.map((s) => {
+                            // Le suivi de chaque eleve etait deja calcule et envoye ;
+                            // la liste n'en montrait que le nom.
+                            const suivi = stats.per_student?.find((p) => p.user_id === s.id);
+                            return (
+                                <div key={s.id} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-lg border border-border p-2.5 text-sm">
+                                    <Link href={route('center.students.show', s.id)} className="min-w-0 flex-1 hover:underline">
+                                        <p className="truncate font-medium">{s.name}</p>
+                                        <p className="truncate text-xs text-muted-foreground">{s.email}</p>
+                                    </Link>
+                                    {suivi && (
+                                        <div className="flex items-center gap-4 text-xs text-muted-foreground tabular-nums">
+                                            <span title={dateHeure(suivi.last_active)}>{suivi.last_active ? `Actif ${ilYA(suivi.last_active)}` : 'Jamais actif'}</span>
+                                            <span title="Exercices réalisés">{suivi.attempts} ex.</span>
+                                            <span title="Temps de travail total">{duree(suivi.temps_total_secondes)}</span>
+                                            {suivi.avg_accuracy !== null && <span title="Réussite moyenne">{Math.round(suivi.avg_accuracy)}%</span>}
+                                        </div>
+                                    )}
+                                    <button onClick={() => removeStudent(s.id)} className="shrink-0 text-xs text-rose-500 hover:underline">
+                                        Retirer
+                                    </button>
+                                </div>
+                            );
+                        })}
                     </CardContent>
                 </Card>
             </div>

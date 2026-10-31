@@ -8,9 +8,12 @@ use App\Models\LanguageCenter;
 use App\Models\User;
 use App\Models\UserError;
 use App\Models\UserExerciseAttempt;
+use App\Services\Center\SuiviApprenant;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class StudentController extends Controller
 {
@@ -53,20 +56,85 @@ class StudentController extends Controller
         ]);
     }
 
-    public function show(Request $request, User $user): Response
+    /**
+     * La fiche d'un apprenant : ce qu'il a fait, quand, a quelle heure, combien
+     * de temps, et avec quel resultat.
+     *
+     * Elle ne montrait que les vingt dernieres tentatives, par type d'exercice et
+     * pourcentage — la date partait vers la page sans y etre affichee. Tout le
+     * reste etait pourtant enregistre.
+     */
+    public function show(Request $request, User $user, SuiviApprenant $suivi): Response
+    {
+        $center = $this->verifierAcces($request, $user);
+
+        return Inertia::render('center/students/show', [
+            'student' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'level' => $user->profile?->current_level,
+                'classes' => $user->classrooms()->where('center_id', $center->id)->pluck('name'),
+            ],
+            'resume' => $suivi->resume($user, $suivi->fuseau($center)),
+            'historique' => $suivi->historique($user),
+            // Le diagnostic des faiblesses existant, reutilise tel quel.
+            'weaknesses' => UserError::categoryStats($user->id),
+        ]);
+    }
+
+    /** Une tentative en detail : chaque question, la reponse donnee, la correction. */
+    public function tentative(Request $request, User $user, UserExerciseAttempt $attempt, SuiviApprenant $suivi): Response
+    {
+        $this->verifierAcces($request, $user);
+
+        // La tentative doit appartenir a CET apprenant : sinon l'identifiant d'un
+        // eleve qu'on suit ouvrirait la copie de n'importe qui d'autre.
+        abort_unless($attempt->user_id === $user->id, 404);
+
+        return Inertia::render('center/students/attempt', [
+            'student' => ['id' => $user->id, 'name' => $user->name],
+            'tentative' => $suivi->detail($attempt),
+        ]);
+    }
+
+    /** L'historique complet en CSV, a l'heure du centre. */
+    public function exportCsv(Request $request, User $user, SuiviApprenant $suivi): StreamedResponse
+    {
+        $center = $this->verifierAcces($request, $user);
+        $fuseau = $suivi->fuseau($center);
+        $nom = 'suivi-'.Str::slug($user->name ?: 'apprenant').'-'.now($fuseau)->format('Y-m-d').'.csv';
+
+        return response()->streamDownload(function () use ($suivi, $user, $fuseau) {
+            $sortie = fopen('php://output', 'w');
+            // Le BOM fait ouvrir le fichier en UTF-8 par Excel : sans lui, les
+            // accents des intitules sortent en caracteres casses.
+            fwrite($sortie, "\xEF\xBB\xBF");
+            foreach ($suivi->lignesCsv($user, $fuseau) as $ligne) {
+                fputcsv($sortie, $ligne, ';');
+            }
+            fclose($sortie);
+        }, $nom, ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    /**
+     * Le centre a-t-il le droit de suivre cet apprenant ?
+     *
+     * Un apprenant d'un AUTRE centre est hors d'atteinte. Dans le centre, le
+     * responsable voit tout le monde ; un enseignant ne voit que les eleves de
+     * ses propres classes.
+     */
+    private function verifierAcces(Request $request, User $user): LanguageCenter
     {
         /** @var LanguageCenter $center */
         $center = $request->attributes->get('center');
         $actor = $request->user();
 
-        // Isolation: the target must be a student of THIS center.
         abort_unless(
             $user->centers()->where('language_centers.id', $center->id)->exists(),
             403
         );
 
-        // A teacher may only look up a student they actually teach; a
-        // center_admin can look up any student of the center.
         if (! $actor->centerRoleIs('center_admin')) {
             $sharesClassroom = $user->classrooms()
                 ->where('center_id', $center->id)
@@ -76,37 +144,7 @@ class StudentController extends Controller
             abort_unless($sharesClassroom, 403);
         }
 
-        $attempts = UserExerciseAttempt::where('user_id', $user->id)
-            ->with('exercise.exerciseType:id,name,skill_type')
-            ->latest()
-            ->take(20)
-            ->get()
-            ->map(fn (UserExerciseAttempt $a) => [
-                'id' => $a->id,
-                'type' => $a->exercise?->exerciseType?->name,
-                'skill' => $a->exercise?->exerciseType?->skill_type,
-                'accuracy' => $a->accuracy_percent,
-                'date' => $a->created_at,
-            ]);
-
-        $totalAttempts = UserExerciseAttempt::where('user_id', $user->id)->count();
-        $avgAccuracy = (float) UserExerciseAttempt::where('user_id', $user->id)->avg('accuracy_percent');
-
-        return Inertia::render('center/students/show', [
-            'student' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'level' => $user->profile?->current_level,
-            ],
-            'stats' => [
-                'total_attempts' => $totalAttempts,
-                'avg_accuracy' => round($avgAccuracy, 1),
-            ],
-            // Reuse the existing weakness diagnostic.
-            'weaknesses' => UserError::categoryStats($user->id),
-            'recent_attempts' => $attempts,
-        ]);
+        return $center;
     }
 
     public function remove(Request $request, Classroom $classroom, User $user)

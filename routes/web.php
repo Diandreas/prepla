@@ -326,6 +326,9 @@ Route::middleware(['auth', EnsureCenterStaff::class])
         // Élèves
         Route::get('students', [StudentController::class, 'index'])->name('students.index');
         Route::get('students/{user}', [StudentController::class, 'show'])->name('students.show');
+        Route::get('students/{user}/export.csv', [StudentController::class, 'exportCsv'])->name('students.export');
+        Route::get('students/{user}/tentatives/{attempt}', [StudentController::class, 'tentative'])
+            ->whereNumber('attempt')->name('students.attempt');
 
         // Médiathèque (upload images / audio en local)
         Route::get('media', [MediaController::class, 'index'])->name('media.index');

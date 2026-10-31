@@ -23,9 +23,14 @@ class ClassStatsService
         foreach ($students as $student) {
             $attempts = UserExerciseAttempt::where('user_id', $student->id);
             $count = (clone $attempts)->count();
-            $avg = $count > 0 ? round((float) (clone $attempts)->avg('accuracy_percent'), 1) : null;
+            // Sans tentative notee, pas de moyenne : « 0 % » ferait croire a un
+            // eleve qui rate tout.
+            $moyenne = (clone $attempts)->avg('accuracy_percent');
+            $avg = $moyenne !== null ? round((float) $moyenne, 1) : null;
 
-            // recent activity = last attempt date
+            // La derniere activite, en ISO avec son fuseau. `value('created_at')`
+            // rendait la chaine brute de la base, sans fuseau : un navigateur la
+            // prenait pour de l'heure locale, et l'affichait decalee.
             $last = (clone $attempts)->latest()->value('created_at');
 
             $perStudent[] = [
@@ -33,7 +38,8 @@ class ClassStatsService
                 'name' => $student->name,
                 'attempts' => $count,
                 'avg_accuracy' => $avg,
-                'last_active' => $last,
+                'last_active' => $last ? \Illuminate\Support\Carbon::parse($last, 'UTC')->toIso8601String() : null,
+                'temps_total_secondes' => (int) (clone $attempts)->sum('time_spent'),
             ];
 
             foreach (UserError::categoryStats($student->id) as $w) {
