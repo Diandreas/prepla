@@ -188,3 +188,19 @@ test('la page d accueil mene a l essai', function () {
     expect(file_get_contents(resource_path('js/components/landing/hero-section.tsx')))
         ->toContain('href="/essayer"');
 });
+
+/**
+ * Un meme exercice de depart est cree une fois par module qui le sert. Sous
+ * Cambridge, la meme lecture s'affichait deux fois : un visiteur y voit un
+ * doublon, pas deux modules.
+ */
+test('un meme exercice ne s affiche qu une fois par examen', function () {
+    $premier = exerciceDEssai(['content' => ['source' => 'starter-library', 'title' => 'Anglais A2 · Un changement de programme']]);
+    exerciceDEssai(['content' => ['source' => 'starter-library', 'title' => 'Anglais A2 · Un changement de programme']], 'gap-fill');
+
+    $this->get(route('essai.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('langues.0.examens.0.exercices', 1)
+            ->where('langues.0.examens.0.exercices.0.titre', 'Anglais A2 · Un changement de programme'));
+});

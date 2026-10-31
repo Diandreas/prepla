@@ -180,6 +180,12 @@ class ExercicesDEssai
      */
     private function choisir(Collection $exercices): Collection
     {
+        // Un meme exercice de depart est cree une fois par module qui le sert :
+        // sous Cambridge, « Un changement de programme » existait pour la lecture
+        // ET pour Reading and Use of English, et la carte s'affichait deux fois.
+        // Un visiteur voit un doublon, pas deux modules : on n'en garde qu'un.
+        $exercices = $exercices->unique(fn (Exercise $e) => mb_strtolower(trim((string) ($e->content['title'] ?? $e->id))));
+
         $ordonnes = $exercices->sortBy([
             fn (Exercise $a, Exercise $b) => (int) $this->officiel($b) <=> (int) $this->officiel($a),
             fn (Exercise $a, Exercise $b) => strcmp((string) $a->difficulty, (string) $b->difficulty),
