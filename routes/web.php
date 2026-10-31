@@ -328,6 +328,9 @@ Route::middleware(['auth', EnsureCenterStaff::class])
         Route::delete('classes/{classroom}', [ClassroomController::class, 'archive'])->name('classes.archive');
         Route::delete('classes/{classroom}/students/{user}', [StudentController::class, 'remove'])->name('classes.students.remove');
 
+        // L'equipe du centre, pour son responsable : qui enseigne quoi.
+        Route::get('equipe', App\Http\Controllers\Center\EquipeController::class)->name('equipe');
+
         // Élèves
         Route::get('students', [StudentController::class, 'index'])->name('students.index');
         Route::get('students/{user}', [StudentController::class, 'show'])->name('students.show');

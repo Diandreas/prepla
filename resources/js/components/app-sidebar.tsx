@@ -52,13 +52,13 @@ export function AppSidebar() {
             { title: 'Tableau de bord', url: '/center', icon: () => <SidebarIcon name="home" /> },
             { title: 'Classes', url: '/center/classes', icon: () => <SidebarIcon name="layout-grid" /> },
             { title: 'Élèves', url: '/center/students', icon: () => <SidebarIcon name="profile" /> },
+            // L'equipe du centre — qui enseigne quelles classes, et l'invitation
+            // d'un collegue — pour son responsable, comme l'autorisation.
+            ...(centerRole === 'center_admin'
+                ? [{ title: 'Équipe', url: '/center/equipe', icon: () => <SidebarIcon name="profile" /> }]
+                : []),
             { title: 'Contenu', url: '/center/exercises', icon: () => <SidebarIcon name="puzzle" /> },
             { title: 'Devoirs', url: '/center/assignments', icon: () => <SidebarIcon name="tasks" /> },
-            // Inviter un collegue etait possible cote serveur sans qu'aucun lien n'y
-            // mene. Reserve au responsable de l'espace, comme l'autorisation.
-            ...(centerRole === 'center_admin'
-                ? [{ title: 'Inviter un prof', url: '/invitations', icon: () => <SidebarIcon name="profile" /> }]
-                : []),
         ];
     } else {
         mainNavItems = [
