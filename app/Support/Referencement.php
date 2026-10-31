@@ -20,7 +20,12 @@ final class Referencement
     {
         $route ??= Route::currentRouteName();
 
-        $page = $route !== null ? config("seo.pages.{$route}", []) : [];
+        // On lit la table entiere puis la cle telle quelle. `config("seo.pages.$route")`
+        // prenait le point d'un nom de route pour un niveau d'imbrication :
+        // « essai.index » devenait pages → essai → index, introuvable, et la page
+        // retombait sans bruit sur le titre par defaut.
+        $pages = config('seo.pages', []);
+        $page = $route !== null && is_array($pages) ? ($pages[$route] ?? []) : [];
         $valeurs = array_merge(config('seo.defaut', []), is_array($page) ? $page : []);
 
         return [

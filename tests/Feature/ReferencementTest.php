@@ -64,3 +64,31 @@ test('chaque banniere annoncee existe vraiment', function () {
         expect(file_exists(public_path($image)))->toBeTrue("Banniere annoncee mais absente : {$image}");
     }
 });
+
+/**
+ * La plupart des noms de route portent un point : « essai.index »,
+ * « password.request ». Lus par la notation pointee de config(), ils devenaient
+ * des niveaux d'imbrication introuvables, et la page retombait sans bruit sur
+ * le titre par defaut. Les tests ne couvraient que des routes sans point.
+ */
+test('une route dont le nom porte un point recoit bien son titre', function () {
+    $this->withoutVite();
+
+    expect(\App\Support\Referencement::pour('essai.index')['titre'])->toBe('Essayer un exercice sans compte')
+        ->and(\App\Support\Referencement::pour('password.request')['indexable'])->toBeFalse()
+        ->and(\App\Support\Referencement::pour('essai.show')['indexable'])->toBeFalse();
+
+    $this->get(route('essai.index'))
+        ->assertOk()
+        ->assertSee('<title inertia>Essayer un exercice sans compte — PrePla</title>', false);
+});
+
+/**
+ * Chaque cle de config/seo.php doit nommer une route qui existe : une faute de
+ * frappe laisserait la page sur le titre par defaut, sans que rien ne le dise.
+ */
+test('chaque entree du referencement nomme une route existante', function () {
+    foreach (array_keys(config('seo.pages')) as $nom) {
+        expect(\Illuminate\Support\Facades\Route::has($nom))->toBeTrue("Route inconnue dans config/seo.php : {$nom}");
+    }
+});
