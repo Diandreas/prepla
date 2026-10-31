@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Exercise;
 use App\Models\UserExerciseAttempt;
+use App\Services\AI\DiagnosticDeProduction;
 use App\Services\AI\MistralEvaluationService;
 use App\Services\AI\WritingCorrectorService;
 use App\Services\AI\DeepgramSttService;
@@ -254,6 +255,10 @@ class ExerciseScoringService
                         'band_score' => $aiResult['score'] ?? 0,
                         'sub_scores' => $aiResult['band_scores'] ?? [],
                         'corrections' => $aiResult['corrections'] ?? [],
+                        // Les tendances de fond — vocabulaire repetitif, phrases sans
+                        // subordonnees, registre inadapte — qu'aucune correction isolee
+                        // ne montre. C'est ce qu'un centre lit pour adapter son suivi.
+                        'diagnostic' => DiagnosticDeProduction::nettoyer($aiResult['diagnostic'] ?? []),
                         'explanation' => $aiResult['feedback'] ?? "Analyse effectuée.",
                         'transcription' => ($userAnswer instanceof UploadedFile) ? $textToEvaluate : null,
                     ];
@@ -302,6 +307,11 @@ class ExerciseScoringService
                             'missing_points' => $aiResult['missing_points'] ?? [],
                             'error_category' => $panne ? null : ($aiResult['error_category'] ?? null),
                             'error_subcategory' => $panne ? null : ($aiResult['error_subcategory'] ?? null),
+                            // Pour l'enseignant, sans effet sur la note : les fautes qui
+                            // comptent et les tendances de fond. Une prise de parole
+                            // longue en dit plus qu'aucun QCM sur ce qui manque vraiment.
+                            'corrections' => $panne ? [] : ($aiResult['corrections'] ?? []),
+                            'diagnostic' => $panne ? [] : DiagnosticDeProduction::nettoyer($aiResult['diagnostic'] ?? []),
                             'transcription' => $textToEvaluate,
                             'technical_failure' => $panne,
                         ];

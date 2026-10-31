@@ -44,10 +44,28 @@ IMPORTANT — scoring contract:
 - This is a pedagogical indicator, not an official exam score. Never switch to a native exam scale such as 20, 30 or 100 points.
 - Keep the four band_scores keys below as shared pedagogical dimensions, even when the exam uses different official criterion names.
 
-IMPORTANT — every correction MUST carry a `category`. It is what lets the
-learner's programme react: a composition full of `vocabulary` mistakes should
-bring vocabulary work next. Choose the category of the UNDERLYING weakness,
-not of the surface symptom.
+IMPORTANT — every correction MUST carry a `category` written as `family.subcategory`.
+It is what lets the learner's programme — and the learner's teacher — react: a
+composition full of `vocabulary.range` mistakes should bring vocabulary work next.
+Choose the UNDERLYING weakness, not the surface symptom. Allowed values:
+- grammar.tense, grammar.agreement, grammar.word-order, grammar.article, grammar.preposition,
+  grammar.modal, grammar.pronoun, grammar.case, grammar.verb-form, grammar.conjugation,
+  grammar.negation, grammar.subordination
+- vocabulary.lexical (wrong word), vocabulary.register (wrong formality), vocabulary.collocation,
+  vocabulary.range (repetitive or too basic for the level), vocabulary.word-formation, vocabulary.false-friend
+- spelling.accent, spelling.capitalisation, spelling.typo
+- punctuation
+- coherence.connectors, coherence.structure, coherence.reference, coherence.relevance
+
+IMPORTANT — `diagnostic`: beyond individual mistakes, describe the DEEP PATTERNS a
+teacher would note in the margin — the ones no single correction shows. Give 2 to 4
+observations, each on ONE dimension, each backed by EVIDENCE from the text (quote
+the words, count the repetitions, name the missing structure). Examples of the
+precision expected: \"« gut » appears 5 times, never a synonym\"; \"only main
+clauses: no subordinate clause with weil/dass/obwohl\"; \"informal greeting in a
+formal letter\". Do NOT restate individual corrections; do NOT give generic praise.
+Dimensions: lexical_range, lexical_precision, syntactic_complexity, grammatical_control,
+coherence, register, task_fulfilment.
 
 IMPORTANT — corrections (for inline highlighting):
 - The `corrections` array MUST list EVERY concrete mistake: spelling, grammar, word form, punctuation, capitalisation, word choice.
@@ -68,8 +86,15 @@ Output your evaluation as a JSON object with the following structure:
         {
             \"original\": \"exact substring from the learner's text\",
             \"corrected\": \"corrected version of that span\",
-            \"category\": \"ONE of: grammar, vocabulary, spelling, punctuation, coherence\",
+            \"category\": \"family.subcategory, from the allowed list above (e.g. grammar.word-order)\",
             \"explanation\": \"why it was corrected — ONE short sentence, in {$feedbackLanguage}. No preamble.\"
+        }
+    ],
+    \"diagnostic\": [
+        {
+            \"dimension\": \"ONE of: lexical_range, lexical_precision, syntactic_complexity, grammatical_control, coherence, register, task_fulfilment\",
+            \"observation\": \"the pattern, with its evidence from the text — ONE or TWO sentences in {$feedbackLanguage}\",
+            \"severity\": \"strength | minor | major\"
         }
     ],
     \"feedback\": \"Concise overall feedback in {$feedbackLanguage}: 3-4 short sentences max — the main strength, the main weakness, and one concrete tip to improve. No restating the task, no filler intro/outro.\"

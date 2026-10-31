@@ -12,6 +12,7 @@ use App\Models\UserError;
 use App\Models\UserExerciseAttempt;
 use App\Models\UserLearningProgress;
 use App\Services\AI\DeepgramSttService;
+use App\Services\Content\ErreursDeRedaction;
 use App\Services\AI\MistralEvaluationService;
 use App\Services\AI\MistralService;
 use App\Services\Curriculum\CurriculumPlannerService;
@@ -198,6 +199,18 @@ class ExerciseController extends Controller
                     if ($qFeedback['technical_failure'] ?? false) {
                         continue;
                     }
+
+                    // Une redaction ou une prise de parole porte ses fautes une a
+                    // une : on les retient toutes, avec leur sous-categorie, MEME
+                    // quand la production est validee. L'erreur unique et vague que
+                    // la boucle ci-dessous inscrirait sinon n'apprendrait rien de plus.
+                    $deLaProduction = $this->memoriserLaProduction($user, $exercise, $qFeedback, $exerciseAnswers[$qFeedback['question_id'] ?? ''] ?? null);
+                    if ($deLaProduction !== []) {
+                        array_push($sessionCategories, ...$deLaProduction);
+
+                        continue;
+                    }
+
                     if (! ($qFeedback['correct'] ?? false)) {
                         $questionData = collect($exercise->questions)->firstWhere('id', $qFeedback['question_id']);
 
@@ -733,6 +746,33 @@ class ExerciseController extends Controller
             ->first(fn (UserExerciseAttempt $attempt) => $attempt->answers == $answers);
     }
 
+    /**
+     * Les fautes d'une production corrigee — redaction ou prise de parole —
+     * deviennent des faiblesses retenues, une par faute, avec sa sous-categorie.
+     *
+     * C'est a l'ecrit et a l'oral longs que les faiblesses profondes se
+     * revelent : un QCM dit qu'une reponse est fausse, une redaction dit
+     * pourquoi. Ces corrections etaient pourtant affichees puis oubliees.
+     *
+     * @param  array<string, mixed>  $qFeedback
+     * @return list<string>  les categories retenues ; vide si ce n'etait pas une production corrigee
+     */
+    private function memoriserLaProduction(User $user, Exercise $exercise, array $qFeedback, mixed $reponse): array
+    {
+        $corrections = $qFeedback['corrections'] ?? null;
+        if (! is_array($corrections) || $corrections === []) {
+            return [];
+        }
+
+        $competence = ($exercise->exerciseType?->section?->skill_type ?? $exercise->exerciseType?->skill_type) === 'speaking'
+            ? 'speaking'
+            : 'writing';
+
+        $texte = $qFeedback['transcription'] ?? (is_string($reponse) ? $reponse : null);
+
+        return app(ErreursDeRedaction::class)->memoriser($user, $corrections, $texte, $competence);
+    }
+
     private function recordAttempt(User $user, Exercise $exercise, array $validated)
     {
         // Score the exercise
@@ -748,6 +788,17 @@ class ExerciseController extends Controller
             'xp_earned' => $result['xp'],
             'feedback' => $result['feedback'],
         ]);
+
+        // Ce chemin — entrainement, epreuves — n'enregistrait aucune faiblesse :
+        // une redaction corrigee ici etait affichee puis oubliee. Ses fautes sont
+        // desormais retenues comme celles d'une seance de parcours.
+        if ($user instanceof User) {
+            foreach ($result['feedback'] as $qFeedback) {
+                if (! ($qFeedback['technical_failure'] ?? false)) {
+                    $this->memoriserLaProduction($user, $exercise, $qFeedback, $validated['answers'][$qFeedback['question_id'] ?? ''] ?? null);
+                }
+            }
+        }
 
         // Update user XP
         if ($user instanceof User && $user->profile) {
