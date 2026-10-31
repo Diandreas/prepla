@@ -351,7 +351,11 @@ class B2BDemoSeeder extends Seeder
                     'is_ai_generated' => false,
                 ]);
 
-                $exercises->push($exercise);
+                // Le vrai contenu : un texte a lire, une ecoute, un sujet de
+                // redaction — et non un QCM a une question pour toute competence.
+                $this->remplisseur()->exercice($exercise->load('exerciseType'));
+
+                $exercises->push($exercise->fresh('exerciseType'));
             }
         }
 
@@ -415,6 +419,14 @@ class B2BDemoSeeder extends Seeder
      * l'insertion même si on les passe dans create(), donc on repasse par une
      * requête directe juste après.
      */
+    private ?\App\Support\Demo\RemplisseurDeDemo $remplisseur = null;
+
+    /** Le meme contenu que la commande de reparation : les deux ne divergent jamais. */
+    private function remplisseur(): \App\Support\Demo\RemplisseurDeDemo
+    {
+        return $this->remplisseur ??= app(\App\Support\Demo\RemplisseurDeDemo::class);
+    }
+
     private function backdate(string $table, int $id, Carbon $date): void
     {
         DB::table($table)->where('id', $id)->update(['created_at' => $date, 'updated_at' => $date]);
@@ -438,11 +450,9 @@ class B2BDemoSeeder extends Seeder
      */
     private function createAttemptsAndErrors(\Illuminate\Support\Collection $students, \Illuminate\Support\Collection $exercises, array $assignmentsByClassroom): void
     {
-        $errorCategories = [
-            ['grammar', 'tense'], ['grammar', 'agreement'], ['vocabulary', 'word-formation'],
-            ['vocabulary', 'lexical'], ['writing', 'coherence'], ['reading', null], ['listening', null],
-        ];
-
+        // Les erreurs ne sont plus tirees au hasard (une categorie aleatoire, une
+        // reponse « B ») : chaque tentative laisse celles de sa copie, comme pour un
+        // vrai apprenant. Voir RemplisseurDeDemo.
         $studentsByClassroom = $students->groupBy(fn (User $s) => $s->demo_classroom->id);
 
         foreach ($studentsByClassroom as $classroomId => $classroomStudents) {
@@ -491,28 +501,10 @@ class B2BDemoSeeder extends Seeder
                     ]);
                     $this->backdate('user_exercise_attempts', $attempt->id, $attemptDate);
 
-                    if ($accuracy < 60) {
-                        [$category, $subcategory] = $errorCategories[array_rand($errorCategories)];
-                        $error = UserError::create([
-                            'user_id' => $student->id,
-                            'exercise_id' => $exercise->id,
-                            'question_id' => 'q1',
-                            'question_text' => $exercise->questions[0]['text'] ?? 'Exercice de pratique',
-                            'user_answer' => 'B',
-                            'correct_answer' => $exercise->questions[0]['correct_answer'] ?? 'A',
-                            'explanation' => 'Révisez la règle correspondante et réessayez.',
-                            'skill_type' => $exercise->exerciseType->skill_type ?? 'grammar',
-                            'exercise_type_slug' => $exercise->exerciseType->slug ?? 'mcq',
-                            'error_category' => $category,
-                            'subcategory' => $subcategory,
-                            'reviewed_count' => random_int(0, 3),
-                            'mastered' => (bool) random_int(0, 1),
-                            'ease_factor' => 2.5,
-                            'interval_days' => random_int(1, 10),
-                            'next_review_at' => now()->addDays(random_int(-2, 10)),
-                        ]);
-                        $this->backdate('user_errors', $error->id, $attemptDate);
-                    }
+                    // Des reponses coherentes avec le score, la correction que
+                    // l'application aurait enregistree, et les erreurs qu'elle
+                    // laisse — comme pour un vrai apprenant.
+                    $this->remplisseur()->tentative($attempt->fresh(), $exercise);
                 }
 
                 // Corrélation avec les devoirs : pour les devoirs déjà publiés,
@@ -555,6 +547,11 @@ class B2BDemoSeeder extends Seeder
                             'feedback' => [],
                         ]);
                         $this->backdate('user_exercise_attempts', $attempt->id, $doneAt);
+
+                        $fait = $exercises->firstWhere('id', $item->itemable_id);
+                        if ($fait) {
+                            $this->remplisseur()->tentative($attempt->fresh(), $fait);
+                        }
                     }
                 }
             }
