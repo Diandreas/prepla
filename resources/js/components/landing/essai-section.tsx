@@ -82,7 +82,7 @@ export function EssaiSection({ langues, essai }: { langues: Language[]; essai: E
     const langueChoisie = langues.find((l) => l.exams.some((e) => e.slug === choisi));
     const examenChoisi = langueChoisie?.exams.find((e) => e.slug === choisi);
     const exercices = parExamen.get(choisi) ?? [];
-    const pasEnFrancais = !(i18n.language ?? 'fr').startsWith('fr');
+    const pasEnFrancais = !(i18n.resolvedLanguage ?? i18n.language ?? 'fr').startsWith('fr');
 
     const choisir = (slug: string) => {
         setChoisi(slug);

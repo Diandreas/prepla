@@ -15,7 +15,10 @@ function LangSwitcher({ id }: { id: string }) {
     const { i18n, t } = useTranslation();
     const T = useTokens();
     const [open, setOpen] = useState(false);
-    const current = LANG_OPTIONS.find((l) => l.code === i18n.language?.slice(0, 2)) ?? LANG_OPTIONS[0];
+    // La langue reellement affichee : un navigateur en espagnol voit l'anglais, et
+    // le choix doit dire « EN », pas « FR ».
+    const affichee = (i18n.resolvedLanguage ?? i18n.language ?? 'en').slice(0, 2);
+    const current = LANG_OPTIONS.find((l) => l.code === affichee) ?? LANG_OPTIONS[1];
 
     return (
         <div style={{ position: 'relative' }}>

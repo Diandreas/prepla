@@ -33,7 +33,7 @@ function Puce({ children }: { children: React.ReactNode }) {
 function Tarifs() {
     const { t, i18n } = useTranslation();
     const { tarifs, auth } = usePage<SharedData & { tarifs: { mensuel: Tarif; annuel: Tarif } }>().props;
-    const langue = (i18n.language ?? 'fr').slice(0, 2);
+    const langue = (i18n.resolvedLanguage ?? i18n.language ?? 'en').slice(0, 2);
     const versLAbonnement = auth?.user ? '/settings/subscription' : '/register';
 
     return (

@@ -70,10 +70,15 @@ function telephoneDroit(): boolean {
     return window.matchMedia('(max-width: 767px)').matches;
 }
 
+/**
+ * La langue dans laquelle la page s'affiche VRAIMENT : un navigateur en espagnol
+ * recoit les textes anglais (langue de repli), et doit donc etre prevenu, comme
+ * un visiteur anglais, que la video est en francais.
+ */
 function langueDe(code: string | undefined): Langue {
-    const l = (code ?? 'fr').slice(0, 2);
+    const l = (code ?? 'en').slice(0, 2);
 
-    return l === 'en' || l === 'de' ? l : 'fr';
+    return l === 'fr' || l === 'de' ? l : 'en';
 }
 
 function enMegaOctets(octets: number, langue: Langue): string {
@@ -84,7 +89,7 @@ function enMegaOctets(octets: number, langue: Langue): string {
 
 export function LecteurAccueil({ video }: { video: VideoAccueil }) {
     const { t, i18n } = useTranslation();
-    const langue = langueDe(i18n.language);
+    const langue = langueDe(i18n.resolvedLanguage ?? i18n.language);
     const { enregistrer } = useVideoAccueil();
 
     const cadre = useRef<HTMLDivElement>(null);
