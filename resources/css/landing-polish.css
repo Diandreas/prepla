@@ -1,123 +1,518 @@
-.landing-hero {
-    min-height: 46rem;
-}
+/*
+ * Page d'accueil. Les couleurs viennent du theme (landing-theme.tsx), posees en
+ * variables sur la racine de la page : --fond, --texte, --texte-moyen,
+ * --texte-doux, --bordure, --carte, --ciel, --essai, --sur-essai, --accent, --lien.
+ */
 
 .landing-navbar-inner {
     width: 100%;
     padding-inline: 1.5rem;
 }
 
-.landing-hero-copy {
-    position: relative;
-    z-index: 2;
+.accueil :focus-visible {
+    outline: 3px solid #f5a623;
+    outline-offset: 2px;
 }
 
-.landing-hero-copy::before {
+.accueil-aller-au-contenu {
     position: absolute;
-    z-index: -1;
-    top: -3rem;
-    left: -4rem;
-    width: 16rem;
-    height: 16rem;
-    border: 1px solid rgba(59, 130, 224, 0.08);
-    border-radius: 999px;
-    content: '';
+    left: 1rem;
+    top: -4rem;
+    z-index: 60;
+    padding: 0.6rem 1rem;
+    border-radius: 0.6rem;
+    background: var(--essai);
+    color: var(--sur-essai);
+    font-weight: 700;
 }
 
-.landing-proof-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.65rem;
-    margin-top: 1.2rem;
+.accueil-aller-au-contenu:focus {
+    top: 0.75rem;
 }
 
-.landing-proof-chip {
+/* ── Boutons ─────────────────────────────────────────────────────────────── */
+
+.bouton-essai {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.38rem 0.7rem;
-    border: 1px solid rgba(59, 130, 224, 0.16);
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 52px;
+    padding: 0 1.6rem;
     border-radius: 999px;
-    background: rgba(59, 130, 224, 0.07);
-    color: inherit;
-    font-size: 0.68rem;
-    font-weight: 600;
-    letter-spacing: 0.01em;
+    background: var(--essai);
+    color: var(--sur-essai);
+    font-weight: 800;
+    font-size: 1rem;
+    box-shadow: 0 8px 28px rgba(245, 166, 35, 0.32);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.landing-proof-chip::before {
-    display: grid;
-    width: 1rem;
-    height: 1rem;
-    place-items: center;
-    border-radius: 999px;
-    background: #22c55e;
-    color: white;
-    content: '✓';
-    font-size: 0.62rem;
-    font-weight: 900;
+.bouton-essai:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 34px rgba(245, 166, 35, 0.42);
 }
 
-.landing-visual-stage {
+.bouton-compte {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 0 1.4rem;
+    border: 1.5px solid color-mix(in srgb, var(--ciel) 55%, transparent);
+    border-radius: 999px;
+    color: var(--texte);
+    font-weight: 700;
+    font-size: 0.95rem;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.bouton-compte:hover {
+    border-color: var(--ciel);
+    background: color-mix(in srgb, var(--ciel) 10%, transparent);
+}
+
+/* ── Haut de page ───────────────────────────────────────────────────────── */
+
+.accueil-haut {
     position: relative;
-    isolation: isolate;
-}
-
-.landing-visual-stage::before {
-    position: absolute;
-    z-index: -1;
-    width: min(31rem, 112%);
-    aspect-ratio: 1;
-    border: 1px solid rgba(59, 130, 224, 0.12);
-    border-radius: 50%;
+    overflow: hidden;
     background:
-        radial-gradient(circle, rgba(59, 130, 224, 0.1), transparent 58%),
-        repeating-radial-gradient(circle, transparent 0 3rem, rgba(245, 166, 35, 0.055) 3.05rem 3.1rem);
-    content: '';
-    animation: landing-stage-breathe 7s ease-in-out infinite;
+        radial-gradient(ellipse 60% 55% at 85% 10%, color-mix(in srgb, var(--ciel) 16%, transparent), transparent 70%),
+        radial-gradient(ellipse 45% 40% at 10% 95%, rgba(245, 166, 35, 0.07), transparent 70%),
+        var(--fond);
 }
 
-.landing-exercise-card {
-    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.36) !important;
+.accueil-haut-grille {
+    display: grid;
+    /* Sur telephone : le titre, les examens, puis la video. */
+    grid-template-areas: 'texte' 'choix' 'video' 'actions';
+    gap: 1.25rem;
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 1.25rem 1rem 3rem;
 }
 
-.landing-exercise-card::before {
+.accueil-haut-texte { grid-area: texte; min-width: 0; }
+.accueil-haut-choix { grid-area: choix; min-width: 0; }
+.accueil-haut-video { grid-area: video; min-width: 0; }
+.accueil-haut-actions { grid-area: actions; min-width: 0; }
+
+/* Les dix examens, en boutons : un toucher ouvre un vrai exercice. */
+.accueil-choix {
+    padding: 1rem 1.1rem 1.05rem;
+    border: 1px solid color-mix(in srgb, var(--essai) 35%, var(--bordure));
+    border-radius: 1rem;
+    background: var(--carte);
+}
+
+.accueil-choix-titre {
+    color: var(--texte);
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.accueil-choix-aide {
+    margin-top: 0.15rem;
+    color: var(--texte-moyen);
+    font-size: 0.82rem;
+}
+
+.accueil-choix-langues {
+    display: grid;
+    gap: 0.7rem;
+    margin-top: 0.85rem;
+}
+
+.accueil-choix-nom {
+    display: block;
+    margin-bottom: 0.35rem;
+    color: var(--texte-doux);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.accueil-choix-puces {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.puce-examen {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 0.95rem;
+    border-radius: 0.8rem;
+    background: var(--essai);
+    color: var(--sur-essai);
+    font-size: 0.9rem;
+    font-weight: 800;
+    box-shadow: 0 4px 14px rgba(245, 166, 35, 0.22);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.puce-examen:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(245, 166, 35, 0.34);
+}
+
+.accueil-choix-pied {
+    margin-top: 0.85rem;
+    color: var(--texte-doux);
+    font-size: 0.78rem;
+    line-height: 1.5;
+}
+
+@media (min-width: 640px) {
+    .accueil-choix-langue {
+        display: grid;
+        grid-template-columns: 6.5rem minmax(0, 1fr);
+        align-items: center;
+    }
+
+    .accueil-choix-nom {
+        margin-bottom: 0;
+    }
+}
+
+.accueil-haut h1 {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: clamp(1.75rem, 3.9vw, 3.25rem);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    color: var(--texte);
+    text-wrap: balance;
+}
+
+.accueil-haut-par-ici {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-weight: 700;
+    font-size: 1.12em;
+    letter-spacing: 0;
+    color: var(--accent);
+}
+
+.accueil-haut-sous-titre {
+    margin-top: 0.9rem;
+    max-width: 34rem;
+    color: var(--texte-moyen);
+    font-size: clamp(0.95rem, 1.3vw, 1.08rem);
+    line-height: 1.6;
+}
+
+.accueil-haut-boutons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.accueil-haut-reassurance {
+    margin-top: 0.85rem;
+    color: var(--texte-doux);
+    font-size: 0.8rem;
+    line-height: 1.5;
+    text-align: center;
+}
+
+@media (min-width: 640px) {
+    .accueil-haut-boutons {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .accueil-haut-reassurance {
+        text-align: left;
+    }
+}
+
+@media (min-width: 768px) {
+    .accueil-haut-grille {
+        padding: 2.5rem 1.5rem 3.5rem;
+        gap: 1.5rem;
+    }
+
+    .accueil-haut-video {
+        max-width: 45rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .accueil-haut-grille {
+        grid-template-columns: 11fr 13fr;
+        grid-template-areas: 'texte video' 'choix video' 'actions video';
+        grid-template-rows: auto auto 1fr;
+        column-gap: 3.5rem;
+        row-gap: 1.75rem;
+        padding: 3.5rem 3rem 4rem;
+        align-items: start;
+    }
+
+    .accueil-haut-video {
+        align-self: center;
+        max-width: none;
+    }
+}
+
+/* ── Lecteur ─────────────────────────────────────────────────────────────── */
+
+.lecteur {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    border: 1px solid var(--bordure);
+    border-radius: 1.25rem;
+    background: #0b1322;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(59, 130, 224, 0.08);
+}
+
+.lecteur > img,
+.lecteur > picture img,
+.lecteur-boucle,
+.lecteur-film {
     position: absolute;
-    top: 0;
-    right: 12%;
-    left: 12%;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.38), transparent);
-    content: '';
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
-.landing-level-card {
-    box-shadow: 0 14px 38px rgba(0, 0, 0, 0.17);
-    backdrop-filter: blur(18px);
+.lecteur-boucle {
+    opacity: 0;
+    transition: opacity 0.25s ease;
 }
 
-.landing-feature-icon {
-    width: 2.25rem;
-    height: 2.25rem;
+.lecteur-boucle[data-visible='true'] {
+    opacity: 1;
+}
+
+.lecteur-film {
+    opacity: 0;
+    background: #000;
+}
+
+.lecteur-film[data-visible='true'] {
+    opacity: 1;
+}
+
+.lecteur-declencheur {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    width: 100%;
+    cursor: pointer;
+    border-radius: inherit;
+}
+
+.lecteur-jouer {
+    position: absolute;
+    top: 50%;
+    right: 7%;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    width: 76px;
+    height: 76px;
+    transform: translateY(-50%);
+    border-radius: 999px;
+    background: #fff;
+    box-shadow: 0 0 0 6px rgba(245, 166, 35, 0.55), 0 12px 30px rgba(0, 0, 0, 0.35);
+    pointer-events: none;
+    transition: transform 0.2s ease;
+}
+
+.lecteur-declencheur:hover + .lecteur-jouer,
+.lecteur-declencheur:focus-visible + .lecteur-jouer {
+    transform: translateY(-50%) scale(1.07);
+}
+
+.lecteur-pause {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    z-index: 4;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 0.6rem;
+    background: rgba(11, 19, 34, 0.72);
+    color: #fff;
+}
+
+.lecteur-fin {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.85rem;
+    padding: 1rem;
+    background: rgba(11, 19, 34, 0.86);
+    backdrop-filter: blur(3px);
+    text-align: center;
+    color: #eef3fb;
+}
+
+.lecteur-fin h3 {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    font-size: clamp(1.25rem, 2.4vw, 1.75rem);
+    font-weight: 800;
+}
+
+.lecteur-fin p {
+    max-width: 30rem;
+    color: rgba(238, 243, 251, 0.82);
+    font-size: 0.92rem;
+}
+
+.lecteur-fin-boutons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.6rem;
+}
+
+.lecteur-fin .bouton-compte {
+    color: #eef3fb;
+}
+
+.lecteur-revoir {
+    color: rgba(238, 243, 251, 0.85);
+    font-size: 0.85rem;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.lecteur-legende {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.35rem 1rem;
+    margin-top: 0.6rem;
+    color: var(--texte-moyen);
+    font-size: 0.82rem;
+}
+
+.lecteur-legende button {
+    color: inherit;
+    text-align: left;
+}
+
+.lecteur-legende strong {
+    color: var(--texte);
+}
+
+.lecteur-legende .lecteur-lire {
+    color: var(--lien);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    white-space: nowrap;
+}
+
+.lecteur-bande {
+    min-height: 2.6rem;
+    margin-top: 0.5rem;
+    color: var(--texte);
+    font-size: 0.92rem;
+    line-height: 1.45;
+}
+
+.lecteur-transcription {
+    margin-top: 0.75rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--bordure);
+    border-radius: 0.9rem;
+    background: var(--carte);
+    color: var(--texte-moyen);
+    font-size: 0.88rem;
+    line-height: 1.6;
+}
+
+.lecteur-transcription p + p {
+    margin-top: 0.45rem;
+}
+
+.lecteur-transcription summary {
+    margin-top: 0.6rem;
+    color: var(--lien);
+    cursor: pointer;
+}
+
+/* Plein ecran du telephone : la version verticale, entiere. */
+.lecteur-dialogue {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: #000;
+    color: #fff;
+}
+
+.lecteur-dialogue::backdrop {
+    background: #000;
+}
+
+.lecteur-dialogue[open] {
+    display: flex;
+    flex-direction: column;
+}
+
+.lecteur-dialogue-haut {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    min-height: 56px;
+    padding: 0.4rem 0.6rem 0.4rem 1rem;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.lecteur-dialogue-haut button {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+}
+
+.lecteur-dialogue-scene {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+}
+
+.lecteur-dialogue-scene video {
+    width: 100%;
+    height: 100%;
     object-fit: contain;
-    filter: drop-shadow(0 6px 10px rgba(26, 43, 72, 0.16));
-    transition: transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.landing-feature-card:hover .landing-feature-icon {
-    transform: rotate(-5deg) scale(1.12);
+.lecteur-dialogue .lecteur-fin {
+    inset: auto 0 0 0;
+    padding: 2.5rem 1rem 1.5rem;
+    background: linear-gradient(to top, rgba(11, 19, 34, 0.98) 55%, rgba(11, 19, 34, 0));
+    backdrop-filter: none;
 }
 
-@keyframes landing-stage-breathe {
-    0%,
-    100% {
-        transform: scale(0.98) rotate(0deg);
-        opacity: 0.72;
-    }
-    50% {
-        transform: scale(1.04) rotate(2deg);
-        opacity: 1;
-    }
+.lecteur-dialogue .lecteur-bande {
+    min-height: 0;
+    padding: 0 1rem 0.5rem;
+    color: #fff;
 }
 
 @media (max-width: 767px) {
@@ -125,30 +520,115 @@
         padding-inline: 1rem;
     }
 
-    .landing-hero {
-        min-height: auto;
+    .lecteur {
+        border-radius: 1rem;
     }
 
-    .landing-hero-copy::before {
-        top: -1rem;
-        left: -8rem;
-    }
-
-    .landing-visual-stage {
-        margin-top: 0.5rem;
-        width: 100%;
-        max-width: calc(100vw - 3rem);
-    }
-
-    .landing-exercise-card {
-        width: calc(100% - 0.75rem) !important;
+    .lecteur-jouer {
+        width: 56px;
+        height: 56px;
+        box-shadow: 0 0 0 5px rgba(245, 166, 35, 0.55), 0 10px 24px rgba(0, 0, 0, 0.35);
     }
 }
 
+/* ── Sections ───────────────────────────────────────────────────────────── */
+
+.accueil-section {
+    padding: clamp(3.5rem, 8vw, 6rem) 1rem;
+}
+
+.accueil-section-interieur {
+    max-width: 72rem;
+    margin: 0 auto;
+}
+
+.accueil-section h2 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: clamp(1.9rem, 3.8vw, 3rem);
+    font-weight: 700;
+    line-height: 1.12;
+    color: var(--texte);
+    text-align: center;
+    text-wrap: balance;
+}
+
+.accueil-section h2 em {
+    color: var(--accent);
+}
+
+.accueil-section-chapo {
+    max-width: 38rem;
+    margin: 0.8rem auto 0;
+    color: var(--texte-moyen);
+    text-align: center;
+    line-height: 1.65;
+}
+
+.accueil-carte {
+    border: 1px solid var(--bordure);
+    border-radius: 1.1rem;
+    background: var(--carte);
+}
+
+.accueil-grille {
+    display: grid;
+    gap: 1rem;
+    margin-top: clamp(2rem, 5vw, 3rem);
+}
+
+@media (min-width: 640px) {
+    .accueil-grille.deux { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .accueil-grille.quatre { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 900px) {
+    .accueil-grille.trois { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1024px) {
+    .accueil-grille.quatre { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+.accueil-puces {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.accueil-puce {
+    min-height: 40px;
+    padding: 0 1rem;
+    border: 1px solid var(--bordure);
+    border-radius: 999px;
+    color: var(--texte-moyen);
+    font-size: 0.88rem;
+    font-weight: 600;
+    transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.accueil-puce[aria-pressed='true'] {
+    border-color: var(--essai);
+    background: color-mix(in srgb, var(--essai) 14%, transparent);
+    color: var(--texte);
+}
+
+.accueil-lien {
+    color: var(--lien);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
 @media (prefers-reduced-motion: reduce) {
-    .landing-visual-stage::before,
-    .landing-feature-icon {
-        animation: none;
+    .bouton-essai,
+    .bouton-compte,
+    .lecteur-boucle,
+    .lecteur-jouer,
+    .accueil-puce,
+    .puce-examen {
         transition: none;
+    }
+
+    .bouton-essai:hover {
+        transform: none;
     }
 }

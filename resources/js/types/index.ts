@@ -1,8 +1,8 @@
 import type { LucideProps } from 'lucide-react';
 import type { ComponentType } from 'react';
-import type { Language, Exam, PricingPlan } from '@/data/languages';
+import type { Language, Exam } from '@/data/languages';
 
-export type { Language, Exam, PricingPlan };
+export type { Language, Exam };
 
 export interface Auth {
     user: User;

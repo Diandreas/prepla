@@ -26,10 +26,20 @@ class EssaiController extends Controller
 {
     public function __construct(private readonly ExercicesDEssai $essais) {}
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $langues = collect($this->essais->catalogue());
+
+        // Depuis la page d'accueil, « Essayer » sur un examen ouvre la page sur
+        // cet examen. Une valeur inconnue est ignoree.
+        $examen = (string) $request->query('examen', '');
+        $langueDeLExamen = $langues->first(fn (array $l) => collect($l['examens'])->contains('slug', $examen));
+        $langue = (string) $request->query('langue', '');
+
         return Inertia::render('essai/index', [
-            'langues' => $this->essais->catalogue(),
+            'langues' => $langues->all(),
+            'langueChoisie' => $langueDeLExamen['slug'] ?? ($langues->contains('slug', $langue) ? $langue : null),
+            'examenChoisi' => $langueDeLExamen ? $examen : null,
         ]);
     }
 

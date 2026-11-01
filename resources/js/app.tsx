@@ -24,6 +24,10 @@ type InitialPageProps = {
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
+// Un visiteur sans compte ne verra ni les sons ni les animations de l'application :
+// les precharger lui coutait environ 2,4 Mo, sur des donnees souvent cheres.
+let visiteurConnecte = false;
+
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
     resolve: (name) => resolvePageComponent(`./pages/${name}.tsx`, import.meta.glob('./pages/**/*.tsx')),
@@ -32,6 +36,7 @@ createInertiaApp({
 
         // Une ecriture ne part que dans le centre que la page affiche.
         suivreLeCentreAffiche(props.initialPage);
+        visiteurConnecte = !!(props.initialPage.props as InitialPageProps).auth?.user;
 
         // Initialize i18n language from user profile if authenticated
         const userLanguage = (props.initialPage.props as InitialPageProps).auth?.user?.profile?.interface_language;
@@ -72,8 +77,12 @@ if ('serviceWorker' in navigator) {
     });
 
     window.addEventListener('load', () => {
-        // Warm the cache with sounds/animations/icons so they're ready when needed.
-        preloadAssets();
+        // Warm the cache with sounds/animations/icons so they're ready when needed —
+        // for an account only, and never when the visitor asked to save data.
+        const economie = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
+        if (visiteurConnecte && !economie) {
+            preloadAssets();
+        }
         navigator.serviceWorker.register('/sw.js', { scope: '/' }).then((reg) => {
             const announceUpdate = () => {
                 window.dispatchEvent(new CustomEvent('prepla:pwa-update-ready', { detail: reg }));

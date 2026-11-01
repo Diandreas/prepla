@@ -4,39 +4,39 @@ import { Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { useTokens } from './landing-theme';
 
+// Les liens « # » (Discord, X) ne menaient nulle part : seuls restent les vrais.
 const socialLinks = [
-    { icon: '', href: SUPPORT_EMAIL_URL, label: 'Email' },
-    { icon: '◈', href: '#', label: 'Discord' },
-    { icon: '✕', href: '#', label: 'Twitter / X' },
+    { icon: '✉', href: SUPPORT_EMAIL_URL, label: 'E-mail' },
 ];
 
-export function LandingFooter() {
+export function LandingFooter({ nombreDExamens }: { nombreDExamens: number }) {
     const T = useTokens();
     const { t } = useTranslation();
 
     const footerLinks = {
         [t('landing.footer_col_product')]: [
-            { label: t('landing.footer_link_features'), href: '#features' },
-            { label: t('landing.footer_link_pricing'), href: '#pricing' },
-            { label: t('landing.footer_link_languages'), href: '#languages' },
-            { label: t('landing.footer_link_hiw'), href: '#hiw' },
+            { label: t('landing.footer_link_essayer'), href: '/essayer' },
+            { label: t('landing.nav_etapes'), href: '#etapes' },
+            { label: t('landing.nav_examens'), href: '#essayer' },
+            { label: t('landing.nav_tarifs'), href: '#tarifs' },
         ],
-        [t('landing.footer_col_company')]: [
-            { label: t('landing.footer_link_about'), href: '#' },
+        [t('landing.footer_col_ressources')]: [
+            { label: t('landing.footer_link_structures'), href: '/structures' },
+            { label: t('landing.nav_centres'), href: '#centres' },
             { label: t('landing.footer_link_blog'), href: '/blog' },
-            { label: t('landing.footer_link_contact'), href: 'mailto:prepla.mirlab@gmail.com' },
+            { label: t('landing.footer_link_contact'), href: SUPPORT_EMAIL_URL },
         ],
         [t('landing.footer_col_legal')]: [
             { label: t('landing.footer_link_privacy'), href: '/privacy' },
             { label: t('landing.footer_link_terms'), href: '/terms' },
-            { label: t('landing.footer_link_cookies'), href: '/privacy' },
+            { label: t('landing.footer_link_suppression'), href: '/account-deletion' },
         ],
     };
 
     return (
         <footer style={{
             position: 'relative',
-            background: T.theme === 'dark' ? '#070b14' : '#e8e4dc',
+            background: T.theme === 'dark' ? '#070b14' : T.bgAlt,
             borderTop: `1px solid ${T.border}`,
             overflow: 'hidden',
         }}>
@@ -59,7 +59,7 @@ export function LandingFooter() {
                         </Link>
 
                         <p style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '0.8rem', color: T.textMid, lineHeight: 1.7, maxWidth: '18rem', margin: '0 0 1.25rem' }}>
-                            {t('landing.footer_tagline')}
+                            {t('landing.footer_tagline', { nombre: nombreDExamens })}
                         </p>
 
                         {/* Support joignable directement : même numéro pour WhatsApp et les appels */}
@@ -141,12 +141,9 @@ export function LandingFooter() {
                     <p style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '0.75rem', color: T.textDim }}>
                         {t('landing.footer_copyright', { year: new Date().getFullYear() })}
                     </p>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <span style={{ fontSize: '0.8rem', color: '#22c55e', opacity: 0.6 }}></span>
-                        <span style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '0.7rem', color: T.textDim }}>
-                            {t('landing.footer_gdpr')}
-                        </span>
-                    </div>
+                    <p style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '0.7rem', color: T.textDim, maxWidth: '36rem' }}>
+                        {t('landing.footer_independance')}
+                    </p>
                 </div>
             </div>
         </footer>

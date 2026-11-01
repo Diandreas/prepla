@@ -1,3 +1,9 @@
+/**
+ * Les donnees de la page d'accueil. Elles viennent du serveur (LandingController) :
+ * config/languages.php pour les examens, le catalogue d'essai, la video et les
+ * tarifs lus chez Stripe. Ecrites ici en dur, elles annoncaient encore 8 examens
+ * et un prix en euros.
+ */
 export interface Exam {
     slug: string;
     name: string;
@@ -12,47 +18,40 @@ export interface Language {
     exams: Exam[];
 }
 
-export interface PricingPlan {
-    name: string;
-    slug: string;
-    price: number;
-    period: string | null;
-    features: string[];
-    cta: string;
-    highlighted: boolean;
+/** Un exercice ouvert a l'essai sans compte (ExercicesDEssai::carte). */
+export interface ExerciceDEssai {
+    id: number;
+    titre: string;
+    partie: string | null;
+    niveau: string | null;
+    competence: string | null;
+    questions: number;
+    officiel: boolean;
 }
 
-export const languages: Language[] = [
-    {
-        slug: 'english',
-        name: 'English',
-        native_name: 'English',
-        flag: '🇬🇧',
-        exams: [
-            { slug: 'ielts', name: 'IELTS' },
-            { slug: 'toefl', name: 'TOEFL' },
-            { slug: 'cambridge', name: 'Cambridge', levels: ['A2 Key', 'B1 Preliminary', 'B2 First', 'C1 Advanced', 'C2 Proficiency'] },
-        ],
-    },
-    {
-        slug: 'french',
-        name: 'Français',
-        native_name: 'Français',
-        flag: '🇫🇷',
-        exams: [
-            { slug: 'tcf', name: 'TCF' },
-            { slug: 'tef', name: 'TEF' },
-            { slug: 'delf-dalf', name: 'DELF/DALF', levels: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'] },
-        ],
-    },
-    {
-        slug: 'german',
-        name: 'Allemand',
-        native_name: 'Deutsch',
-        flag: '🇩🇪',
-        exams: [
-            { slug: 'goethe', name: 'Goethe-Zertifikat', levels: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'] },
-            { slug: 'testdaf', name: 'TestDaF' },
-        ],
-    },
-];
+export interface EssaiLangue {
+    slug: string;
+    nom: string;
+    examens: { slug: string; nom: string; exercices: ExerciceDEssai[] }[];
+}
+
+/** La video du haut de page (App\Support\VideoAccueil). */
+export interface VideoAccueil {
+    sources: Record<
+        | 'boucle_640' | 'boucle_960' | 'paysage' | 'paysage_leger' | 'portrait' | 'portrait_leger'
+        | 'affiche_640' | 'affiche_1280' | 'affiche_640_jpg' | 'affiche_1280_jpg' | 'affiche_portrait'
+        | 'etape_1' | 'etape_2' | 'etape_3',
+        string
+    >;
+    poids: Record<string, number>;
+    duree: number;
+    fin: number;
+}
+
+/** Un tarif tel que Stripe le debite (App\Services\Billing\TarifsAffiches). */
+export interface Tarif {
+    id: string;
+    amount: number;
+    currency: string;
+    interval: string;
+}

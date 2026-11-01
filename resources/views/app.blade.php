@@ -21,7 +21,9 @@
         @include('partials.meta')
 
         @if (request()->routeIs('home'))
-        {{-- Données structurées : uniquement sur la landing publique --}}
+        @php($videoAccueil = \App\Support\VideoAccueil::donnees())
+        {{-- Données structurées : uniquement sur la landing publique. L'abonnement
+             est facturé en dollars : la monnaie annoncée était l'euro. --}}
         <script type="application/ld+json">
         {
             "@@context": "https://schema.org",
@@ -30,20 +32,42 @@
             "url": "{{ url('/') }}",
             "applicationCategory": "EducationalApplication",
             "operatingSystem": "Web",
-            "description": "Plateforme de préparation aux examens de langue (anglais, français, allemand) avec exercices générés par IA, test de niveau et parcours personnalisé.",
+            "description": "Plateforme de préparation aux examens de langue (anglais, français, allemand) : test de niveau, plan de révision et exercices corrigés.",
             "inLanguage": ["fr", "en", "de"],
             "offers": {
                 "@@type": "Offer",
                 "price": "0",
-                "priceCurrency": "EUR",
-                "description": "Essai gratuit de 7 jours"
+                "priceCurrency": "USD",
+                "description": "Gratuit : 3 exercices par jour ; 7 jours d'exercices illimités à l'inscription."
             }
         }
         </script>
+        @if ($videoAccueil)
+        <script type="application/ld+json">
+        {
+            "@@context": "https://schema.org",
+            "@@type": "VideoObject",
+            "name": "PrePla, par où commencer ?",
+            "description": "En 34 secondes : choisir son examen, évaluer son niveau et savoir quoi travailler.",
+            "inLanguage": "fr",
+            "duration": "PT34S",
+            "uploadDate": "2026-11-01",
+            "thumbnailUrl": "{{ url($videoAccueil['sources']['affiche_1280_jpg']) }}",
+            "contentUrl": "{{ url($videoAccueil['sources']['paysage']) }}"
+        }
+        </script>
+        {{-- L'affiche est le plus grand élément du haut de page : chargée tout de
+             suite. En économie de données, seulement la petite. --}}
+        @if (request()->header('Save-Data') === 'on')
+        <link rel="preload" as="image" type="image/webp" href="{{ $videoAccueil['sources']['affiche_640'] }}" fetchpriority="high">
+        @else
+        <link rel="preload" as="image" type="image/webp" href="{{ $videoAccueil['sources']['affiche_640'] }}" imagesrcset="{{ $videoAccueil['sources']['affiche_640'] }} 640w, {{ $videoAccueil['sources']['affiche_1280'] }} 1280w" imagesizes="(min-width: 1024px) 640px, 100vw" fetchpriority="high">
+        @endif
+        @endif
         @endif
 
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600|cormorant-garamond:400,500,600,700i,700|plus-jakarta-sans:400,500,600" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600|cormorant-garamond:400,500,600,700i,700|plus-jakarta-sans:400,500,600,700,800" rel="stylesheet" />
 
         @routes
         @viteReactRefresh

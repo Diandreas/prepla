@@ -12,15 +12,22 @@ export function useLandingTheme() {
 }
 
 export function LandingThemeProvider({ children }: { children: React.ReactNode }) {
+    // Le stockage peut etre bloque (navigation privee, donnees du site refusees) :
+    // la page doit s'afficher quand meme.
     const [theme, setTheme] = useState<Theme>(() => {
-        if (typeof window !== 'undefined') {
-            return (localStorage.getItem('prepla-landing-theme') as Theme) ?? 'dark';
+        try {
+            return localStorage.getItem('prepla-landing-theme') === 'light' ? 'light' : 'dark';
+        } catch {
+            return 'dark';
         }
-        return 'dark';
     });
 
     useEffect(() => {
-        localStorage.setItem('prepla-landing-theme', theme);
+        try {
+            localStorage.setItem('prepla-landing-theme', theme);
+        } catch {
+            // Le theme ne sera simplement pas retenu.
+        }
     }, [theme]);
 
     const toggle = () => setTheme(t => t === 'dark' ? 'light' : 'dark');
@@ -47,8 +54,10 @@ export function useTokens() {
         bgCardHov: dark ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,1)',
         // Text — navy ink on light, soft white on dark
         text:      dark ? '#eef3fb' : '#13233f',
-        textMid:   dark ? 'rgba(238,243,251,0.66)' : 'rgba(19,35,63,0.62)',
-        textDim:   dark ? 'rgba(238,243,251,0.36)' : 'rgba(19,35,63,0.36)',
+        textMid:   dark ? 'rgba(238,243,251,0.72)' : 'rgba(19,35,63,0.72)',
+        // Assez contraste pour du texte de 12 a 13 px (4,5:1) : a 0,36, il restait
+        // vers 3:1 en sombre et 2:1 en clair.
+        textDim:   dark ? 'rgba(238,243,251,0.58)' : 'rgba(19,35,63,0.66)',
         // Borders
         border:    dark ? 'rgba(255,255,255,0.08)' : 'rgba(19,35,63,0.1)',
         borderHov: dark ? 'rgba(255,255,255,0.16)' : 'rgba(19,35,63,0.2)',
@@ -56,6 +65,13 @@ export function useTokens() {
         ink:  '#1A2B48',
         sky:  '#3B82E0',
         gold: '#F5A623',
+        // L'essai sans compte a sa couleur : l'orange, avec un texte marine (9:1).
+        // Le bleu reste celui du compte.
+        essai:    '#F5A623',
+        surEssai: '#0b1322',
+        // L'orange en texte sur fond clair : assez sombre pour se lire (4,7:1).
+        accent:   dark ? '#F5A623' : '#A35F00',
+        lien:     dark ? '#7DB3F5' : '#1F5FB8',
         // Glows
         glowSky:  dark ? 'rgba(59,130,224,0.16)' : 'rgba(59,130,224,0.10)',
         glowGold: dark ? 'rgba(245,166,35,0.10)' : 'rgba(245,166,35,0.07)',

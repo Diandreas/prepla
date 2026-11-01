@@ -68,7 +68,7 @@
         }
         .onglet[aria-current="true"] { background: var(--encre); color: var(--fond); border-color: var(--encre); }
         .langue > h2 { font-size: 1.3rem; margin: 2.5rem 0 1rem; }
-        .examen { background: var(--carte); border: 1px solid var(--trait); border-radius: 14px; padding: 1.25rem 1.35rem; margin-bottom: 1.5rem; }
+        .examen { background: var(--carte); border: 1px solid var(--trait); border-radius: 14px; padding: 1.25rem 1.35rem; margin-bottom: 1.5rem; scroll-margin-top: 1rem; }
         .examen > h3 { margin: 0 0 .15rem; font-size: 1.15rem; }
         .sources { font-size: .82rem; color: var(--doux); margin: 0 0 .75rem; overflow-wrap: anywhere; }
         /* Une source par ligne : les titres de documents sont longs, et sur un
@@ -182,7 +182,7 @@
             <h2 id="{{ $langue['slug'] }}">{{ $langue['name'] }}</h2>
 
             @foreach ($langue['exams'] as $examen)
-                <article class="examen">
+                <article class="examen" id="{{ $examen['slug'] }}">
                     <h3>{{ $examen['name'] }}</h3>
 
                     @if ($examen['verifications'])

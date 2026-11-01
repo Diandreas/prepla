@@ -1,5 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Headphones, PenLine, Puzzle, Sparkles } from 'lucide-react';
@@ -29,6 +29,9 @@ interface Langue {
 
 interface Props {
     langues: Langue[];
+    /** Venu de la page d'accueil : la langue et l'examen sur lesquels ouvrir la page. */
+    langueChoisie?: string | null;
+    examenChoisi?: string | null;
 }
 
 const NOMS: Record<string, string> = { english: 'Anglais', french: 'Français', german: 'Allemand' };
@@ -48,9 +51,17 @@ const COMPETENCES: Record<string, { nom: string; icone: typeof BookOpen }> = {
  * l'entrainement : promettre l'officiel partout serait mentir sur ce qu'il va
  * voir.
  */
-export default function EssaiIndex({ langues }: Props) {
-    const [choisie, setChoisie] = useState(langues[0]?.slug ?? '');
+export default function EssaiIndex({ langues, langueChoisie = null, examenChoisi = null }: Props) {
+    const [choisie, setChoisie] = useState(langueChoisie ?? langues[0]?.slug ?? '');
     const langue = langues.find((l) => l.slug === choisie);
+
+    // Ouverte sur un examen depuis la page d'accueil : on y descend.
+    useEffect(() => {
+        if (!examenChoisi) return;
+        const cible = document.getElementById(`examen-${examenChoisi}`);
+        const reduit = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        cible?.scrollIntoView({ behavior: reduit ? 'auto' : 'smooth', block: 'start' });
+    }, [examenChoisi]);
 
     return (
         <>
@@ -96,7 +107,11 @@ export default function EssaiIndex({ langues }: Props) {
 
                             <div className="mt-8 grid gap-6">
                                 {langue?.examens.map((examen) => (
-                                    <section key={examen.slug} className="rounded-2xl border bg-card p-5 sm:p-6">
+                                    <section
+                                        key={examen.slug}
+                                        id={`examen-${examen.slug}`}
+                                        className={`scroll-mt-6 rounded-2xl border bg-card p-5 sm:p-6 ${examen.slug === examenChoisi ? 'border-primary ring-2 ring-primary/30' : ''}`}
+                                    >
                                         <h2 className="text-lg font-semibold">{examen.nom}</h2>
                                         <ul className="mt-4 grid gap-3 sm:grid-cols-2">
                                             {examen.exercices.map((ex) => {
