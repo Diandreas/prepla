@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AddSecurityHeaders;
+use App\Http\Middleware\EnsureDisplayedCenter;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -18,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
             AddSecurityHeaders::class,
+            EnsureDisplayedCenter::class,
         ]);
         // stripe/webhook is verified by Stripe's own signature instead of a
         // CSRF token. api/ai/* used to be exempted too, but those are

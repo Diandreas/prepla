@@ -6,6 +6,7 @@ import { createRoot } from 'react-dom/client';
 import { route as routeFn } from 'ziggy-js';
 import { PwaUpdatePrompt } from './components/pwa-update-prompt';
 import { initializeTheme } from './hooks/use-appearance';
+import { suivreLeCentreAffiche } from './lib/centre-affiche';
 import i18n from './lib/i18n/i18n';
 import { preloadAssets } from './lib/preload-assets';
 
@@ -28,7 +29,10 @@ createInertiaApp({
     resolve: (name) => resolvePageComponent(`./pages/${name}.tsx`, import.meta.glob('./pages/**/*.tsx')),
     setup({ el, App, props }) {
         const root = createRoot(el);
-        
+
+        // Une ecriture ne part que dans le centre que la page affiche.
+        suivreLeCentreAffiche(props.initialPage);
+
         // Initialize i18n language from user profile if authenticated
         const userLanguage = (props.initialPage.props as InitialPageProps).auth?.user?.profile?.interface_language;
         if (userLanguage) {
