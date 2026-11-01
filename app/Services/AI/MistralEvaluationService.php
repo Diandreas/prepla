@@ -247,27 +247,13 @@ Reply in valid JSON ONLY:
 
     /**
      * Les fautes de l'oral, ramenees a la forme des corrections d'une redaction
-     * — pour qu'une seule machinerie les memorise toutes.
+     * — pour qu'une seule machinerie les memorise toutes. Cinq au plus.
      *
-     * @return list<array{original: string, corrected: string, category: string, explanation: string}>
+     * @return list<array{original: string, corrected: string, category: string, explanation: string, subcategory?: string}>
      */
     private function fautesOrales(mixed $fautes): array
     {
-        if (! is_array($fautes)) {
-            return [];
-        }
-
-        return collect($fautes)
-            ->filter(fn ($f) => is_array($f) && trim((string) ($f['original'] ?? '')) !== '' && trim((string) ($f['corrected'] ?? '')) !== '')
-            ->take(5)
-            ->map(fn (array $f) => [
-                'original' => trim((string) $f['original']),
-                'corrected' => trim((string) $f['corrected']),
-                'category' => trim((string) ($f['category'] ?? '')),
-                'explanation' => trim((string) ($f['explanation'] ?? '')),
-            ])
-            ->values()
-            ->all();
+        return array_slice(CorrectionsDeProduction::nettoyer($fautes), 0, 5);
     }
 
 

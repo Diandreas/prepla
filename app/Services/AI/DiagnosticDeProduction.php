@@ -33,15 +33,16 @@ final class DiagnosticDeProduction
 
         $propre = [];
         foreach ($diagnostic as $d) {
-            if (! is_array($d)
-                || ! in_array($d['dimension'] ?? null, self::DIMENSIONS, true)
-                || trim((string) ($d['observation'] ?? '')) === '') {
+            // Une observation rendue en liste ou en objet ne se lit pas : on
+            // l'ignore, au lieu de faire tomber toute la correction.
+            $observation = is_array($d) && is_string($d['observation'] ?? null) ? trim($d['observation']) : '';
+            if ($observation === '' || ! in_array($d['dimension'] ?? null, self::DIMENSIONS, true)) {
                 continue;
             }
 
             $propre[] = [
                 'dimension' => $d['dimension'],
-                'observation' => trim((string) $d['observation']),
+                'observation' => $observation,
                 'severity' => in_array($d['severity'] ?? null, ['strength', 'minor', 'major'], true) ? $d['severity'] : 'minor',
             ];
 

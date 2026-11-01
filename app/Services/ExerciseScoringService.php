@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Exercise;
 use App\Models\UserExerciseAttempt;
+use App\Services\AI\CorrectionsDeProduction;
 use App\Services\AI\DiagnosticDeProduction;
 use App\Services\AI\MistralEvaluationService;
 use App\Services\AI\WritingCorrectorService;
@@ -240,12 +241,20 @@ class ExerciseScoringService
 
                     $aiResult = $this->writingCorrector->correct($textToEvaluate, $question['prompt'] ?? $question['text'] ?? "Write an essay", $exercise->exam?->name ?? 'IELTS', 'Français', $cefrLevel, $criteres);
                     
+                    // Une panne de l'IA n'est pas une copie ratee : la redaction
+                    // valait zero et laissait une faiblesse que personne n'avait
+                    // constatee. Elle sort du denominateur, comme a l'oral.
+                    $panne = ! empty($aiResult['evaluation_indisponible']);
+                    if ($panne) {
+                        $technicalFailures++;
+                    }
+
                     // Normalize IELTS 1-9 to 0-1. La note est verifiee : rendue en
                     // texte ou en objet, la division levait une erreur et la seance
                     // entiere partait en 500.
                     $noteBrute = $aiResult['score'] ?? 0;
                     $points = (is_numeric($noteBrute) ? (float) $noteBrute : 0.0) / 9;
-                    $isCorrect = $points >= 0.6;
+                    $isCorrect = ! $panne && $points >= 0.6;
                     $accuracy = ($points * 100);
 
                     $feedback[] = [
@@ -254,13 +263,16 @@ class ExerciseScoringService
                         'accuracy' => $accuracy,
                         'band_score' => $aiResult['score'] ?? 0,
                         'sub_scores' => $aiResult['band_scores'] ?? [],
-                        'corrections' => $aiResult['corrections'] ?? [],
+                        'corrections' => CorrectionsDeProduction::nettoyer($aiResult['corrections'] ?? []),
                         // Les tendances de fond — vocabulaire repetitif, phrases sans
                         // subordonnees, registre inadapte — qu'aucune correction isolee
                         // ne montre. C'est ce qu'un centre lit pour adapter son suivi.
                         'diagnostic' => DiagnosticDeProduction::nettoyer($aiResult['diagnostic'] ?? []),
-                        'explanation' => $aiResult['feedback'] ?? "Analyse effectuée.",
+                        'explanation' => $panne
+                            ? "Un problème technique nous a empêché de corriger ta rédaction. Elle ne compte pas dans ton score — réessaie."
+                            : ($aiResult['feedback'] ?? "Analyse effectuée."),
                         'transcription' => ($userAnswer instanceof UploadedFile) ? $textToEvaluate : null,
+                        'technical_failure' => $panne,
                     ];
                 } else {
                     $technicalFailure = false;

@@ -109,14 +109,21 @@ Output your evaluation as a JSON object with the following structure:
 
         if ($response) {
             $data = json_decode($response, true);
-            if ($data) {
+            if (is_array($data) && $data !== []) {
                 $data['word_count'] = $wordCount;
+                // Une faute rendue en objet faisait tomber toute la correction :
+                // la note, la tentative, et la page du correcteur.
+                $data['corrections'] = CorrectionsDeProduction::nettoyer($data['corrections'] ?? []);
+
                 return $data;
             }
         }
 
         return [
             'score' => 0,
+            // PANNE DE NOTRE COTE, pas faute de l'apprenant : l'appelant sort la
+            // copie du score au lieu de lui mettre zero.
+            'evaluation_indisponible' => true,
             'band_scores' => [
                 'task_achievement' => 0,
                 'coherence_cohesion' => 0,

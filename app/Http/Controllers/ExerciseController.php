@@ -698,12 +698,16 @@ class ExerciseController extends Controller
                     // passage, NOT a grammar concept. Force the category to the actual
                     // comprehension skill so it never gets mislabelled "grammar" (the AI
                     // and the deriveCategory fallback both lean toward 'grammar').
-                    $errorCategory = in_array($skillType, ['reading', 'listening'], true) ? $skillType : 'reading';
-                    $errorSubcategory = $qFeedback['error_subcategory'] ?? null;
-                } elseif (! empty($qFeedback['error_category']) && $qFeedback['error_category'] !== 'session_mistake') {
+                    // Un oral rate sans faute relevee reste un oral : il etait range
+                    // en compréhension écrite.
+                    $errorCategory = in_array($skillType, ['reading', 'listening', 'speaking'], true) ? $skillType : 'reading';
+                    $errorSubcategory = is_string($qFeedback['error_subcategory'] ?? null) ? $qFeedback['error_subcategory'] : null;
+                } elseif (is_string($qFeedback['error_category'] ?? null) && $qFeedback['error_category'] !== ''
+                    && $qFeedback['error_category'] !== 'session_mistake') {
                     // Concept error: prefer the AI-provided category, else derive it.
+                    // Une categorie rendue en objet par l'IA ne s'enregistre pas.
                     $errorCategory = $qFeedback['error_category'];
-                    $errorSubcategory = $qFeedback['error_subcategory'] ?? null;
+                    $errorSubcategory = is_string($qFeedback['error_subcategory'] ?? null) ? $qFeedback['error_subcategory'] : null;
                 } else {
                     $lessonConcept = Lesson::where('node_id', $exercise->node_id)->value('concept');
                     [$errorCategory, $errorSubcategory] = UserError::deriveCategory($lessonConcept, $skillType, $slug);
@@ -729,7 +733,7 @@ class ExerciseController extends Controller
                     ],
                     [
                         'question_text' => $questionData['text'] ?? $questionData['prompt'] ?? 'Exercice practice',
-                        'user_answer' => is_array($answers[$qFeedback['question_id']] ?? '') ? json_encode($answers[$qFeedback['question_id']]) : (string) ($answers[$qFeedback['question_id']] ?? ''),
+                        'user_answer' => $this->reponseRetenue($answers[$qFeedback['question_id']] ?? '', $qFeedback),
                         // Reponse attendue EN CLAIR. On enregistrait la valeur brute :
                         // « A » pour un QCM, du JSON pour un exercice a plusieurs trous.
                         // Le centre de revision affichait donc « Bonne reponse : A » et
@@ -783,6 +787,22 @@ class ExerciseController extends Controller
      * @param  array<string, mixed>  $qFeedback
      * @return list<string>  les categories retenues ; vide si ce n'etait pas une production corrigee
      */
+    /**
+     * La reponse retenue avec l'erreur. Une reponse orale est un fichier : on
+     * retenait le chemin du fichier temporaire. Ce que l'apprenant a dit, c'est
+     * sa transcription.
+     */
+    private function reponseRetenue(mixed $reponse, array $qFeedback): string
+    {
+        if ($reponse instanceof UploadedFile) {
+            $transcription = $qFeedback['transcription'] ?? null;
+
+            return is_string($transcription) && trim($transcription) !== '' ? $transcription : $this->readableAnswer($reponse);
+        }
+
+        return is_array($reponse) ? json_encode($reponse) : (string) $reponse;
+    }
+
     private function memoriserLaProduction(User $user, Exercise $exercise, array $qFeedback, mixed $reponse): array
     {
         $corrections = $qFeedback['corrections'] ?? null;

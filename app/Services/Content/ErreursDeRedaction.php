@@ -4,6 +4,7 @@ namespace App\Services\Content;
 
 use App\Models\User;
 use App\Models\UserError;
+use App\Services\AI\CorrectionsDeProduction;
 use App\Services\ErrorSpacedRepetitionService;
 
 /**
@@ -61,16 +62,14 @@ class ErreursDeRedaction
         $oral = $competence === 'speaking';
         $categories = [];
 
-        foreach (array_slice($corrections, 0, self::MAXIMUM) as $correction) {
-            if (! is_array($correction)) {
-                continue;
-            }
+        // Les corrections viennent de l'IA : un champ rendu en objet faisait
+        // tomber l'enregistrement de toute la copie.
+        foreach (array_slice(CorrectionsDeProduction::nettoyer($corrections), 0, self::MAXIMUM) as $correction) {
+            $faute = $correction['original'];
+            $juste = $correction['corrected'];
 
-            $faute = trim((string) ($correction['original'] ?? ''));
-            $juste = trim((string) ($correction['corrected'] ?? ''));
-
-            // Une correction sans avant ni après n'apprend rien à personne.
-            if ($faute === '' || $juste === '' || $faute === $juste) {
+            // Une correction qui ne change rien n'apprend rien à personne.
+            if ($faute === $juste) {
                 continue;
             }
 
@@ -92,7 +91,7 @@ class ErreursDeRedaction
                     'question_text' => $this->enonce($faute, $texteSoumis, $oral),
                     'user_answer' => $faute,
                     'correct_answer' => $juste,
-                    'explanation' => trim((string) ($correction['explanation'] ?? '')) ?: null,
+                    'explanation' => $correction['explanation'] ?: null,
                     'skill_type' => $oral ? 'speaking' : 'writing',
                     'exercise_type_slug' => $oral ? 'speaking-evaluation' : 'writing-corrector',
                     'error_category' => $categorie,

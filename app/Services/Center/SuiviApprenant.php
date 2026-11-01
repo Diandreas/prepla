@@ -6,6 +6,8 @@ use App\Models\LanguageCenter;
 use App\Models\User;
 use App\Models\UserError;
 use App\Models\UserExerciseAttempt;
+use App\Services\AI\CorrectionsDeProduction;
+use App\Services\AI\DiagnosticDeProduction;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 
@@ -310,8 +312,11 @@ class SuiviApprenant
      */
     private function production(array $retour): ?array
     {
-        $corrections = is_array($retour['corrections'] ?? null) ? $retour['corrections'] : [];
-        $diagnostic = is_array($retour['diagnostic'] ?? null) ? $retour['diagnostic'] : [];
+        // Les copies corrigees avant que l'IA ne soit filtree a l'entree gardent
+        // ce qu'elle avait rendu tel quel : une explication en objet rendait la
+        // copie illisible pour le centre, a chaque ouverture.
+        $corrections = CorrectionsDeProduction::nettoyer($retour['corrections'] ?? []);
+        $diagnostic = DiagnosticDeProduction::nettoyer($retour['diagnostic'] ?? []);
         $criteres = is_array($retour['sub_scores'] ?? null) ? $retour['sub_scores'] : [];
         $transcription = is_string($retour['transcription'] ?? null) ? $retour['transcription'] : null;
 
@@ -328,25 +333,17 @@ class SuiviApprenant
                 ->map(fn ($v, $cle) => ['critere' => self::CRITERES[$cle] ?? $cle, 'note' => (float) $v])
                 ->values()
                 ->all(),
-            'diagnostic' => collect($diagnostic)
-                ->filter(fn ($d) => is_array($d) && ! empty($d['observation']))
-                ->map(fn (array $d) => [
-                    'dimension' => self::DIMENSIONS[$d['dimension'] ?? ''] ?? ($d['dimension'] ?? ''),
-                    'observation' => (string) $d['observation'],
-                    'gravite' => $d['severity'] ?? 'minor',
-                ])
-                ->values()
-                ->all(),
-            'corrections' => collect($corrections)
-                ->filter(fn ($c) => is_array($c) && ! empty($c['original']))
-                ->map(fn (array $c) => [
-                    'avant' => (string) $c['original'],
-                    'apres' => (string) ($c['corrected'] ?? ''),
-                    'categorie' => self::libelleCategorie((string) ($c['category'] ?? '')),
-                    'explication' => (string) ($c['explanation'] ?? ''),
-                ])
-                ->values()
-                ->all(),
+            'diagnostic' => array_map(fn (array $d) => [
+                'dimension' => self::DIMENSIONS[$d['dimension']] ?? $d['dimension'],
+                'observation' => $d['observation'],
+                'gravite' => $d['severity'],
+            ], $diagnostic),
+            'corrections' => array_map(fn (array $c) => [
+                'avant' => $c['original'],
+                'apres' => $c['corrected'],
+                'categorie' => self::libelleCategorie($c['category']),
+                'explication' => $c['explanation'],
+            ], $corrections),
             'points_couverts' => array_values(array_filter((array) ($retour['covered_points'] ?? []), 'is_string')),
             'points_manquants' => array_values(array_filter((array) ($retour['missing_points'] ?? []), 'is_string')),
         ];
