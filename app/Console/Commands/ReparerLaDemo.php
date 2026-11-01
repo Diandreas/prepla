@@ -22,9 +22,10 @@ use Illuminate\Support\Facades\DB;
  *
  * Le generateur de la demo, lui, commence par SUPPRIMER le centre existant : on
  * ne le relance pas. Cette commande ne supprime RIEN. Elle remplace le contenu
- * des exercices du centre de demo, les reponses et la correction de leurs
- * tentatives, et reecrit les erreurs factices — et seulement pour les comptes
- * dont l'adresse finit par @demo.prepla.local.
+ * des exercices que l'ancien generateur a fabriques dans le centre de demo, les
+ * reponses et la correction de leurs tentatives, et reecrit les erreurs
+ * factices — et seulement pour les comptes dont l'adresse finit par
+ * @demo.prepla.local.
  */
 class ReparerLaDemo extends Command
 {
@@ -38,6 +39,13 @@ class ReparerLaDemo extends Command
 
     /** L'explication passe-partout des erreurs fabriquees par l'ancienne demo. */
     private const EXPLICATION_FACTICE = 'Révisez la règle correspondante et réessayez.';
+
+    /**
+     * Le titre que l'ancien generateur donnait a ses exercices : « Reading — B1 ».
+     * Un exercice cree a la main dans le centre de demo, pendant une
+     * presentation, ne le porte pas : il n'est pas touche.
+     */
+    private const TITRE_FACTICE = '/^(Reading|Listening|Writing) — (A1|B1|B2)$/u';
 
     public function handle(RemplisseurDeDemo $remplisseur): int
     {
@@ -53,7 +61,18 @@ class ReparerLaDemo extends Command
             ->where('email', 'like', '%'.self::DOMAINE)
             ->pluck('id');
 
-        $exercices = Exercise::where('center_id', $centre->id)->with('exerciseType')->get();
+        $fabriques = Exercise::where('center_id', $centre->id)->with('exerciseType')->get()
+            ->filter(fn (Exercise $e) => preg_match(self::TITRE_FACTICE, (string) ($e->content['title'] ?? '')) === 1);
+
+        // Un exercice qu'un autre compte a deja fait garde son contenu : le
+        // remplacer laisserait sa copie repondre a des questions qui n'existent
+        // plus.
+        $faitsAilleurs = UserExerciseAttempt::whereIn('exercise_id', $fabriques->pluck('id'))
+            ->whereNotIn('user_id', $comptes)
+            ->distinct()
+            ->pluck('exercise_id');
+        $exercices = $fabriques->reject(fn (Exercise $e) => $faitsAilleurs->contains($e->id))->values();
+
         $tentatives = UserExerciseAttempt::whereIn('exercise_id', $exercices->pluck('id'))
             ->whereIn('user_id', $comptes)
             ->orderBy('id')
@@ -65,6 +84,10 @@ class ReparerLaDemo extends Command
 
         $this->line(sprintf('Centre « %s » (#%d) : %d comptes de démo, %d exercices, %d tentatives, %d erreurs factices.',
             $centre->name, $centre->id, $comptes->count(), $exercices->count(), $tentatives->count(), $factices->count()));
+        if ($faitsAilleurs->isNotEmpty()) {
+            $this->warn(sprintf('%d exercice(s) laissé(s) tel(s) quel(s) : un autre compte les a faits (#%s).',
+                $faitsAilleurs->count(), $faitsAilleurs->implode(', #')));
+        }
 
         if ($this->option('sec')) {
             $this->warn('À sec : rien n’a été écrit.');

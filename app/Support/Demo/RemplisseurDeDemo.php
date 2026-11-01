@@ -3,6 +3,7 @@
 namespace App\Support\Demo;
 
 use App\Models\Exercise;
+use App\Models\ExerciseType;
 use App\Models\User;
 use App\Models\UserError;
 use App\Models\UserExerciseAttempt;
@@ -28,12 +29,34 @@ final class RemplisseurDeDemo
     /** Donne a l'exercice son vrai contenu, selon sa competence et son niveau. */
     public function exercice(Exercise $exercice): void
     {
-        $modele = ContenuDeDemo::exercice($this->competence($exercice), (string) $exercice->difficulty);
+        $competence = $this->competence($exercice);
+        $modele = ContenuDeDemo::exercice($competence, (string) $exercice->difficulty);
 
         $exercice->update([
             'content' => array_merge($modele['content'], ['title' => $modele['title']]),
             'questions' => $modele['questions'],
+            'exercise_type_id' => $this->typeQcm($exercice, $competence) ?? $exercice->exercise_type_id,
         ]);
+        $exercice->unsetRelation('exerciseType');
+    }
+
+    /**
+     * Une lecture ou une ecoute de demo est un QCM sur un texte. Rangee sous le
+     * type « appariement », elle s'affichait « Associez ce terme » et le centre
+     * lisait « Matching » sur la copie : elle prend le QCM de sa competence,
+     * dans le meme examen, quand il existe.
+     */
+    private function typeQcm(Exercise $exercice, string $competence): ?int
+    {
+        if ($competence === 'writing' || $exercice->exerciseType?->component_key === 'mcq') {
+            return null;
+        }
+
+        return ExerciseType::where('component_key', 'mcq')
+            ->where('skill_type', $competence)
+            ->whereHas('section', fn ($q) => $q->where('exam_id', $exercice->exam_id))
+            ->orderBy('id')
+            ->value('id');
     }
 
     /**
