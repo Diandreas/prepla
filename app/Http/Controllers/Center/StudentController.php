@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\UserError;
 use App\Models\UserExerciseAttempt;
 use App\Services\Center\SuiviApprenant;
+use App\Support\ExportTableur;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -67,6 +68,9 @@ class StudentController extends Controller
     public function show(Request $request, User $user, SuiviApprenant $suivi): Response
     {
         $center = $this->verifierAcces($request, $user);
+        // Le suivi lit au nom de CE centre : le contenu prive d'un autre centre,
+        // ou l'eleve est passe avant, ne lui est pas montre.
+        $suivi = $suivi->pourLeCentre($center);
 
         return Inertia::render('center/students/show', [
             'student' => [
@@ -88,7 +92,7 @@ class StudentController extends Controller
     /** Une tentative en detail : chaque question, la reponse donnee, la correction. */
     public function tentative(Request $request, User $user, UserExerciseAttempt $attempt, SuiviApprenant $suivi): Response
     {
-        $this->verifierAcces($request, $user);
+        $suivi = $suivi->pourLeCentre($this->verifierAcces($request, $user));
 
         // La tentative doit appartenir a CET apprenant : sinon l'identifiant d'un
         // eleve qu'on suit ouvrirait la copie de n'importe qui d'autre.
@@ -104,6 +108,7 @@ class StudentController extends Controller
     public function exportCsv(Request $request, User $user, SuiviApprenant $suivi): StreamedResponse
     {
         $center = $this->verifierAcces($request, $user);
+        $suivi = $suivi->pourLeCentre($center);
         $fuseau = $suivi->fuseau($center);
         $nom = 'suivi-'.Str::slug($user->name ?: 'apprenant').'-'.now($fuseau)->format('Y-m-d').'.csv';
 
@@ -113,7 +118,7 @@ class StudentController extends Controller
             // accents des intitules sortent en caracteres casses.
             fwrite($sortie, "\xEF\xBB\xBF");
             foreach ($suivi->lignesCsv($user, $fuseau) as $ligne) {
-                fputcsv($sortie, $ligne, ';');
+                fputcsv($sortie, ExportTableur::neutraliser($ligne), ';');
             }
             fclose($sortie);
         }, $nom, ['Content-Type' => 'text/csv; charset=UTF-8']);
@@ -132,13 +137,17 @@ class StudentController extends Controller
         $center = $request->attributes->get('center');
         $actor = $request->user();
 
+        // Un ELEVE du centre : depuis qu'on peut appartenir a plusieurs centres,
+        // la fiche s'ouvrait aussi sur un enseignant, avec ce qu'il avait fait
+        // ailleurs.
         abort_unless(
-            $user->centers()->where('language_centers.id', $center->id)->exists(),
+            $user->centers()->where('language_centers.id', $center->id)->wherePivot('role', 'student')->exists(),
             403
         );
 
         if (! $actor->centerRoleIs('center_admin')) {
             $sharesClassroom = $user->classrooms()
+                ->wherePivot('role_in_class', 'student')
                 ->where('center_id', $center->id)
                 ->whereHas('teachers', fn ($q) => $q->whereKey($actor->id))
                 ->exists();

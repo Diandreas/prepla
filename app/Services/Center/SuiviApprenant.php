@@ -2,6 +2,7 @@
 
 namespace App\Services\Center;
 
+use App\Models\Exercise;
 use App\Models\LanguageCenter;
 use App\Models\User;
 use App\Models\UserError;
@@ -42,6 +43,33 @@ class SuiviApprenant
         'grammar' => 'Grammaire',
         'vocabulary' => 'Vocabulaire',
     ];
+
+    /** Ce que montre un exercice prive d'un autre centre, a la place de son titre. */
+    private const TITRE_PRIVE = 'Exercice privé d’un autre centre';
+
+    /** Le centre au nom duquel on lit. */
+    private ?int $centreLecteur = null;
+
+    /**
+     * Le suivi tel qu'un centre le lit. Un eleve passe d'un centre a un autre
+     * garde ses tentatives, et leur exercice peut etre un exercice PRIVE de
+     * l'ancien centre : sa consigne, ses questions et ses bonnes reponses ne
+     * regardent pas le nouveau.
+     */
+    public function pourLeCentre(LanguageCenter $centre): static
+    {
+        $copie = clone $this;
+        $copie->centreLecteur = $centre->id;
+
+        return $copie;
+    }
+
+    private function prive(?Exercise $exercice): bool
+    {
+        return $this->centreLecteur !== null
+            && $exercice?->center_id !== null
+            && (int) $exercice->center_id !== $this->centreLecteur;
+    }
 
     public function fuseau(LanguageCenter $center): string
     {
@@ -111,7 +139,8 @@ class SuiviApprenant
             ->whereNotNull('error_category')
             ->where('error_category', '!=', 'session_mistake')
             ->orderByDesc('updated_at')
-            ->get(['error_category', 'subcategory', 'skill_type', 'question_text', 'user_answer', 'correct_answer', 'explanation', 'updated_at']);
+            ->with('exercise:id,center_id')
+            ->get(['exercise_id', 'error_category', 'subcategory', 'skill_type', 'question_text', 'user_answer', 'correct_answer', 'explanation', 'updated_at']);
 
         return $erreurs
             ->groupBy(fn (UserError $e) => $e->error_category.'|'.($e->subcategory ?? ''))
@@ -120,7 +149,10 @@ class SuiviApprenant
                 'nombre' => $groupe->count(),
                 'competences' => $groupe->pluck('skill_type')->filter()->unique()->values()->all(),
                 'derniere' => $groupe->first()->updated_at?->toIso8601String(),
-                'exemples' => $groupe->take(3)->map(fn (UserError $e) => [
+                // La faiblesse compte, mais un extrait tire d'un exercice prive
+                // d'un autre centre n'est pas cite : c'est sa question et sa
+                // bonne reponse.
+                'exemples' => $groupe->reject(fn (UserError $e) => $this->prive($e->exercise))->take(3)->map(fn (UserError $e) => [
                     'contexte' => $e->question_text,
                     'reponse' => $this->court($e->user_answer),
                     'correction' => $this->court($e->correct_answer),
@@ -153,16 +185,17 @@ class SuiviApprenant
 
         foreach ($tentatives as $tentative) {
             foreach ((array) ($tentative->feedback ?? []) as $retour) {
-                foreach ((array) ($retour['diagnostic'] ?? []) as $d) {
-                    if (! is_array($d) || empty($d['observation'])) {
-                        continue;
-                    }
+                // Relu comme a l'enregistrement : une observation qui ne serait
+                // pas un texte ferait tomber toute la fiche.
+                foreach (DiagnosticDeProduction::nettoyer(is_array($retour) ? ($retour['diagnostic'] ?? []) : []) as $d) {
                     $observations[] = [
-                        'dimension' => self::DIMENSIONS[$d['dimension'] ?? ''] ?? ($d['dimension'] ?? ''),
-                        'observation' => (string) $d['observation'],
-                        'gravite' => $d['severity'] ?? 'minor',
+                        'dimension' => self::DIMENSIONS[$d['dimension']] ?? $d['dimension'],
+                        'observation' => $d['observation'],
+                        'gravite' => $d['severity'],
                         'competence' => $tentative->exercise?->exerciseType?->skill_type,
-                        'exercice' => $tentative->exercise?->content['title'] ?? $tentative->exercise?->exerciseType?->name,
+                        'exercice' => $this->prive($tentative->exercise)
+                            ? self::TITRE_PRIVE
+                            : ($tentative->exercise?->content['title'] ?? $tentative->exercise?->exerciseType?->name),
                         'tentative' => $tentative->id,
                         'date' => $tentative->created_at?->toIso8601String(),
                     ];
@@ -201,18 +234,21 @@ class SuiviApprenant
     public function ligne(UserExerciseAttempt $tentative): array
     {
         $exercice = $tentative->exercise;
+        $prive = $this->prive($exercice);
         [$justes, $total] = $this->compte($tentative);
 
         return [
             'id' => $tentative->id,
             // ISO avec le decalage : le navigateur l'affiche a l'heure locale.
             'date' => $tentative->created_at?->toIso8601String(),
-            'exercice' => $exercice
-                ? ($exercice->content['title'] ?? $exercice->exerciseType?->name ?? 'Exercice')
-                : 'Exercice retiré',
+            'exercice' => match (true) {
+                $exercice === null => 'Exercice retiré',
+                $prive => self::TITRE_PRIVE,
+                default => $exercice->content['title'] ?? $exercice->exerciseType?->name ?? 'Exercice',
+            },
             'examen' => $exercice?->exam?->name,
             'niveau' => $exercice?->difficulty,
-            'partie' => $exercice?->content['exam_part_name'] ?? null,
+            'partie' => $prive ? null : ($exercice?->content['exam_part_name'] ?? null),
             'competence' => $exercice?->exerciseType?->skill_type,
             'format' => $exercice?->exerciseType?->name,
             'justes' => $justes,
@@ -232,6 +268,19 @@ class SuiviApprenant
     {
         $tentative->loadMissing(['exercise.exerciseType', 'exercise.exam']);
         $exercice = $tentative->exercise;
+
+        if ($this->prive($exercice)) {
+            // La date, le resultat et le temps passe sont ceux de l'eleve ; la
+            // consigne, le texte et les questions appartiennent a l'autre centre.
+            return $this->ligne($tentative) + [
+                'exercice_disponible' => true,
+                'contenu_prive' => true,
+                'consigne' => null,
+                'texte' => null,
+                'questions' => [],
+            ];
+        }
+
         $reponses = (array) ($tentative->answers ?? []);
         $retours = collect((array) ($tentative->feedback ?? []))->keyBy('question_id');
 
@@ -243,10 +292,15 @@ class SuiviApprenant
                 return [
                     'id' => $id,
                     'texte' => $question['text'] ?? $question['prompt'] ?? null,
-                    'options' => array_values((array) ($question['options'] ?? $question['answer_options'] ?? [])),
+                    // Mises a plat comme le lecteur les a montrees : une carte
+                    // lettree repetee a chaque rang affichait, pour la lettre
+                    // choisie, le texte d'une autre option.
+                    'options' => Exercise::optionList($question['options'] ?? $question['answer_options'] ?? []),
                     'reponse' => $reponses[$id] ?? null,
                     'bonne_reponse' => $retour['correct_answer'] ?? $question['correct_answer'] ?? $question['correct_answers'] ?? null,
-                    'juste' => isset($retour['correct']) ? (bool) $retour['correct'] : null,
+                    // Une question que la panne de l'IA a laissee sans correction
+                    // n'est pas fausse : elle n'est pas corrigee.
+                    'juste' => ! empty($retour['technical_failure']) ? null : (isset($retour['correct']) ? (bool) $retour['correct'] : null),
                     'precision' => $retour['accuracy'] ?? null,
                     'explication' => $this->texteDExplication($retour['explanation'] ?? $question['explanation'] ?? null),
                     'repondue' => array_key_exists($id, $reponses),
@@ -262,6 +316,7 @@ class SuiviApprenant
             // Deux cas a ne pas confondre a l'ecran : l'exercice a ete retire, ou
             // il existe mais la tentative n'a enregistre aucune reponse.
             'exercice_disponible' => $exercice !== null,
+            'contenu_prive' => false,
             'consigne' => $exercice?->content['instructions'] ?? null,
             'texte' => $exercice?->content['passage'] ?? null,
             'questions' => $questions,

@@ -67,7 +67,21 @@ class TeacherInvitationController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:users,email',
+            // Une adresse deja inscrite n'est plus refusee d'office : une
+            // enseignante d'un autre centre rejoint le sien par ce lien, d'un
+            // clic. Seuls restent interdits un compte d'eleve, et quelqu'un qui
+            // fait deja partie du centre.
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', function (string $attribut, mixed $valeur, \Closure $echec) use ($user) {
+                $existant = User::where('email', $valeur)->first();
+                if (! $existant) {
+                    return;
+                }
+                if ($existant->centers()->wherePivot('role', 'student')->exists()) {
+                    $echec("Ce compte est celui d'un élève : il ne peut pas être invité comme enseignant.");
+                } elseif (($centre = $user->center()) && $existant->centers()->where('language_centers.id', $centre->id)->exists()) {
+                    $echec('Cette personne fait déjà partie de votre centre.');
+                }
+            }],
             'exam_id' => 'nullable|exists:exams,id',
             'space_name' => 'nullable|string|max:120',
             'classroom_name' => 'required|string|max:120',

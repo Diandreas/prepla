@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Classroom;
 use App\Services\Center\ClassStatsService;
 use App\Services\Center\SuiviApprenant;
+use App\Support\ExportTableur;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -29,7 +30,7 @@ class ProgressController extends Controller
             fwrite($out, "\xEF\xBB\xBF");
             // Point-virgule : l'Excel francais attend ce separateur, et ouvrait un
             // fichier a virgules en une seule colonne.
-            $ligne = fn (array $valeurs) => fputcsv($out, $valeurs, ';');
+            $ligne = fn (array $valeurs) => fputcsv($out, ExportTableur::neutraliser($valeurs), ';');
 
             $ligne(['Élève', 'Exercices faits', 'Précision moyenne (%)', 'Temps total (min)', 'Dernière activité', "Heure ({$fuseau})"]);
 

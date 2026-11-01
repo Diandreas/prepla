@@ -125,6 +125,8 @@ interface Tentative {
     precision: number | null;
     temps_secondes: number;
     exercice_disponible: boolean;
+    /** Exercice prive d'un autre centre, ou l'eleve etait avant : son contenu n'est pas montre. */
+    contenu_prive: boolean;
     consigne: string | null;
     texte: string | null;
     questions: Question[];
@@ -204,9 +206,11 @@ export default function TentativeShow({ student, tentative }: { student: { id: n
                 <ol className="space-y-3">
                     {tentative.questions.length === 0 && (
                         <p className="text-sm text-muted-foreground">
-                            {tentative.exercice_disponible
-                                ? 'Aucune réponse n’a été enregistrée pour cette tentative.'
-                                : 'Cet exercice a été retiré depuis : le détail des questions n’est plus disponible.'}
+                            {tentative.contenu_prive
+                                ? 'Exercice privé d’un autre centre, fait avant que l’apprenant ne rejoigne le vôtre : seuls la date, le résultat et le temps passé sont visibles.'
+                                : tentative.exercice_disponible
+                                  ? 'Aucune réponse n’a été enregistrée pour cette tentative.'
+                                  : 'Cet exercice a été retiré depuis : le détail des questions n’est plus disponible.'}
                         </p>
                     )}
                     {tentative.questions.map((q, i) => {
