@@ -189,6 +189,28 @@ test('la bonne reponse ne tombe pas presque toujours sur la meme lettre', functi
     expect($deseq)->toBe([]);
 });
 
+test('la serie d un examen sans paliers est proposee a chaque niveau', function () {
+    // Le TCF est la meme epreuve de A1 a C2 ; l'application sert pourtant les
+    // exercices au niveau de l'apprenant. Rangee au seul B1, la serie officielle
+    // n'arrivait qu'aux apprenants B1 — un candidat A2 ou C1 ne la voyait jamais.
+    $this->seed(\Database\Seeders\LanguageSeeder::class);
+    $this->seed(\Database\Seeders\ExamSeeder::class);
+
+    $bibliotheque = app(BibliothequeEpreuvesVerifiees::class);
+    $tcf = collect($bibliotheque->modules())->firstWhere('exam', 'tcf');
+    $goethe = collect($bibliotheque->modules())->firstWhere('exam', 'goethe');
+
+    $bibliotheque->installe($tcf);
+    $bibliotheque->installe($goethe);
+
+    $niveaux = fn (string $examen) => \App\Models\Exercise::where('catalog_key', 'like', "verifie-v1:{$examen}:%")
+        ->distinct()->orderBy('difficulty')->pluck('difficulty')->all();
+
+    expect($niveaux('tcf'))->toBe(['A1', 'A2', 'B1', 'B2', 'C1', 'C2'])
+        // Un examen a paliers garde le sien : un Goethe A1 n'est pas un B2.
+        ->and($niveaux('goethe'))->toBe([$goethe['level']]);
+});
+
 test('chaque question ecrite a la main explique sa reponse', function () {
     // Un « faux » sans raison n'apprend rien. L'explication cite le mot allemand
     // qui tranche : c'est la difference entre corriger et enseigner.

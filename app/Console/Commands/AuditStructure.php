@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Exam;
+use App\Models\ExamBlueprint;
 use App\Models\Exercise;
 use App\Models\ExerciseType;
 use App\Services\Content\ExerciseSchemaRegistry;
@@ -57,7 +58,10 @@ class AuditStructure extends Command
                     $exos = Exercise::with('exerciseType')
                         ->where('exam_id', $exam->id)
                         ->where('exercise_type_id', $typeId)
-                        ->where('difficulty', $niveau)
+                        // Un examen sans paliers (TCF, TEF) n'a qu'une structure :
+                        // ses exercices portent le niveau de l'apprenant, pas celui
+                        // de l'epreuve, et se jugent tous contre elle.
+                        ->when($niveau !== null, fn ($q) => $q->where('difficulty', $niveau))
                         // On ne juge que la pratique libre : une lecon ou une
                         // epreuve blanche compose ses propres exercices.
                         ->whereNull('lesson_id')->whereNull('node_id')->whereNull('mock_exam_id')
@@ -135,7 +139,14 @@ class AuditStructure extends Command
     /** Les niveaux que cet examen declare, ou l'epreuve unique. */
     private function niveauxDe(Exam $exam): array
     {
-        $niveaux = \App\Models\ExamBlueprint::where('exam_id', $exam->id)
+        // Sans paliers, une seule structure, quel que soit le plan d'entrainement
+        // qu'un apprenant a derive a « son » niveau : sinon le TCF n'etait audite
+        // qu'au B1 et le TEF jamais.
+        if (empty($exam->levels)) {
+            return [null];
+        }
+
+        $niveaux = ExamBlueprint::where('exam_id', $exam->id)
             ->whereNotNull('level')->pluck('level')->unique()->values()->all();
 
         return $niveaux ?: [null];

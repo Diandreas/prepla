@@ -5,6 +5,7 @@ namespace App\Services\Content;
 use App\Models\Exam;
 use App\Models\Exercise;
 use App\Models\ExerciseType;
+use Database\Seeders\EpreuvesVerifieesSeeder;
 
 /**
  * Les epreuves ecrites a la main, partie par partie, d'apres les documents
@@ -31,7 +32,7 @@ use App\Models\ExerciseType;
  * suffit donc que ces exercices SOIENT en base : le seeder les y met, et ils
  * passent avant toute generation.
  *
- * @see \Database\Seeders\EpreuvesVerifieesSeeder
+ * @see EpreuvesVerifieesSeeder
  * @see StarterPracticeLibrary pour l'entrainement general, sans lien a un examen
  */
 class BibliothequeEpreuvesVerifiees
@@ -40,6 +41,9 @@ class BibliothequeEpreuvesVerifiees
     public const VERSION = 'verifie-v1';
 
     private const RACINE = 'content/epreuves-verifiees';
+
+    /** Les niveaux ou s'installe la serie d'un examen sans paliers. */
+    private const NIVEAUX = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
     /** @var array<string, array>|null */
     private ?array $modules = null;
@@ -97,62 +101,72 @@ class BibliothequeEpreuvesVerifiees
         $ecrits = 0;
         $refus = [];
 
-        foreach ($module['parts'] as $partie) {
-            $ou = "{$module['exam']} {$module['level']} ".($partie['name'] ?? '?');
+        // Le TCF et le TEF n'ont pas de paliers : c'est la MEME epreuve, de A1 a
+        // C2, et le score place le candidat. Mais l'application sert les
+        // exercices au niveau de l'apprenant : rangee au seul B1, une serie
+        // officielle n'etait proposee qu'aux apprenants B1. On l'installe donc
+        // a chaque niveau. Le son ne coute pas six fois : la synthese est mise
+        // en cache sur le texte.
+        $niveaux = empty($exam->levels) ? self::NIVEAUX : [$module['level']];
 
-            $type = $this->typePour($exam, $module['section'], $partie['type']);
-            if (! $type) {
-                // Un type absent de `exercise_types` dans la config d'examen ne
-                // recoit aucune ligne au seeding : la partie ne s'ouvrirait pas.
-                $refus[] = "{$ou} : le type « {$partie['type']} » n'existe pas dans le module {$module['section']}";
+        foreach ($niveaux as $niveau) {
+            foreach ($module['parts'] as $partie) {
+                $ou = "{$module['exam']} {$niveau} ".($partie['name'] ?? '?');
 
-                continue;
+                $type = $this->typePour($exam, $module['section'], $partie['type']);
+                if (! $type) {
+                    // Un type absent de `exercise_types` dans la config d'examen ne
+                    // recoit aucune ligne au seeding : la partie ne s'ouvrirait pas.
+                    $refus[] = "{$ou} : le type « {$partie['type']} » n'existe pas dans le module {$module['section']}";
+
+                    continue;
+                }
+
+                [$valide, $erreur, $questions] = ExerciseSchemaRegistry::validateQuestions(
+                    $type->component_key,
+                    $partie['questions'],
+                );
+                if (! $valide) {
+                    $refus[] = "{$ou} : {$erreur}";
+
+                    continue;
+                }
+
+                // Les identifiants restent uniques quand plusieurs exercices sont
+                // reunis dans une meme session.
+                $prefixe = self::VERSION.":{$module['exam']}:{$niveau}:{$module['section']}:{$partie['part']}";
+                $questions = array_map(
+                    fn (array $q) => array_merge($q, ['id' => "{$prefixe}:{$q['id']}"]),
+                    $questions,
+                );
+
+                $existant = Exercise::where('catalog_key', $prefixe)->first();
+                $questions = $this->garderLesMedias($existant, $questions);
+
+                Exercise::updateOrCreate(
+                    ['catalog_key' => $prefixe],
+                    [
+                        'exam_id' => $exam->id,
+                        'exercise_type_id' => $type->id,
+                        'exam_section_id' => $type->section_id,
+                        'difficulty' => $niveau,
+                        'is_ai_generated' => false,
+                        'xp_reward' => 15,
+                        'content' => array_merge($partie['content'] ?? [], [
+                            'title' => $partie['title'],
+                            'description' => $partie['description'] ?? '',
+                            // La partie, pour que l'apprenant sache ou il est : trois
+                            // Hoerverstehen partagent souvent le meme format de reponse.
+                            'exam_part' => $partie['part'],
+                            'exam_part_name' => $partie['name'],
+                            'source' => 'epreuve-verifiee',
+                            'source_label' => 'Écrit à la main d\'après le document officiel',
+                        ]),
+                        'questions' => $questions,
+                    ],
+                );
+                $ecrits++;
             }
-
-            [$valide, $erreur, $questions] = ExerciseSchemaRegistry::validateQuestions(
-                $type->component_key,
-                $partie['questions'],
-            );
-            if (! $valide) {
-                $refus[] = "{$ou} : {$erreur}";
-
-                continue;
-            }
-
-            // Les identifiants restent uniques quand plusieurs exercices sont
-            // reunis dans une meme session.
-            $prefixe = self::VERSION.":{$module['exam']}:{$module['level']}:{$module['section']}:{$partie['part']}";
-            $questions = array_map(
-                fn (array $q) => array_merge($q, ['id' => "{$prefixe}:{$q['id']}"]),
-                $questions,
-            );
-
-            $existant = Exercise::where('catalog_key', $prefixe)->first();
-            $questions = $this->garderLesMedias($existant, $questions);
-
-            Exercise::updateOrCreate(
-                ['catalog_key' => $prefixe],
-                [
-                    'exam_id' => $exam->id,
-                    'exercise_type_id' => $type->id,
-                    'exam_section_id' => $type->section_id,
-                    'difficulty' => $module['level'],
-                    'is_ai_generated' => false,
-                    'xp_reward' => 15,
-                    'content' => array_merge($partie['content'] ?? [], [
-                        'title' => $partie['title'],
-                        'description' => $partie['description'] ?? '',
-                        // La partie, pour que l'apprenant sache ou il est : trois
-                        // Hoerverstehen partagent souvent le meme format de reponse.
-                        'exam_part' => $partie['part'],
-                        'exam_part_name' => $partie['name'],
-                        'source' => 'epreuve-verifiee',
-                        'source_label' => 'Écrit à la main d\'après le document officiel',
-                    ]),
-                    'questions' => $questions,
-                ],
-            );
-            $ecrits++;
         }
 
         return ['ecrits' => $ecrits, 'refus' => $refus];
