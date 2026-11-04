@@ -171,6 +171,10 @@ class ProchainExercice
     /**
      * L'exercice lui-même, pris dans le vivier libre que l'apprenant n'a pas
      * encore fait. Null quand il n'y en a pas : l'appelant generera.
+     *
+     * Le meilleur contenu d'abord (epreuves verifiees, serie preparee...) :
+     * le tirage au hasard donnait aux exercices generes les memes chances
+     * qu'aux epreuves relues. Voir Exercise::scopeMeilleurDAbord.
      */
     private function avec(ExerciseType $type, User $user, Exam $exam, string $niveau, ?string $categorie, string $pourquoi): array
     {
@@ -182,7 +186,8 @@ class ProchainExercice
             ->whereNull('center_id')->whereNull('lesson_id')
             ->whereNull('node_id')->whereNull('mock_exam_id')
             ->whereNotIn('id', $dejaFaits)
-            ->inRandomOrder()
+            ->expliqueDansLaLangueDe(Exercise::langueDExplicationDe($user))
+            ->meilleurDAbord($niveau)
             ->first();
 
         return ['type' => $type, 'pourquoi' => $pourquoi, 'categorie' => $categorie, 'exercice' => $exercice];

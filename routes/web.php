@@ -134,9 +134,12 @@ Route::middleware(['auth'])->group(function () {
         // venait de rater. « Continuer » choisit pour lui, en visant ce qui
         // resiste, et lui dit pourquoi.
         Route::get('practice/{exam}/continuer', [PracticeController::class, 'continuer'])
-            ->middleware('throttle:ai-calls')->name('practice.continuer');
-        Route::get('practice/{exam}/drill/{exerciseType}', [PracticeController::class, 'drillByType'])->middleware('throttle:ai-calls')->name('practice.drill.type');
-        Route::post('practice/{exam}/section/{section}/generate', [PracticeController::class, 'generateSection'])->middleware('throttle:ai-calls')->name('practice.section.generate');
+            ->middleware(['throttle:ai-calls', EnsureExerciseQuota::class])->name('practice.continuer');
+        // Le quota AVANT la generation : sans lui, un compte gratuit a court de
+        // quota faisait ecrire un exercice par l'IA, a nos frais, puis butait
+        // sur exercise.show. (La route « generate » d'une section, appelee par
+        // aucun ecran et hors quota, a ete retiree.)
+        Route::get('practice/{exam}/drill/{exerciseType}', [PracticeController::class, 'drillByType'])->middleware(['throttle:ai-calls', EnsureExerciseQuota::class])->name('practice.drill.type');
         Route::get('practice/{exam}/simulate', [PracticeController::class, 'simulate'])->name('practice.simulate');
         Route::post('practice/{exam}/simulate', [PracticeController::class, 'submitSimulation'])->name('practice.simulate.store');
 

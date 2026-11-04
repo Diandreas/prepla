@@ -26,6 +26,10 @@
         <env name="DB_DATABASE" value=":memory:"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>
+        <!-- La verification a l'aveugle d'un exercice genere ajoute un appel a
+             l'IA : coupee par defaut en test, rallumee la ou on la verifie
+             (tests/Feature/QualiteDesExercicesGeneresTest.php). -->
+        <env name="PREPLA_VERIFICATION_AVEUGLE" value="false"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <!-- Aucune cle Stripe pendant les tests : la suite ne doit jamais appeler

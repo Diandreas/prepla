@@ -332,13 +332,134 @@ class Exercise extends Model
         return true;
     }
 
+    /**
+     * Les formats d'ecoute dont la piste est, par construction, une phrase
+     * courte propre a chaque question : une dictee, une phrase a repeter, une
+     * replique a laquelle repondre. Leur son n'a pas a reprendre le passage.
+     */
+    private const ECOUTES_A_PHRASE_COURTE = ['dictation', 'listen-repeat', 'listen-choose-response'];
+
+    /**
+     * Le son de cette question ne dit-il que la question, au lieu du passage ?
+     *
+     * Releve en production (audit du 2026-11-04) : une vingtaine d'ecoutes du
+     * vivier libre portaient un « audio_text » qui reprenait la question, ou
+     * qui ne faisait qu'une phrase, alors que le passage a comprendre etait
+     * dans le contenu. Le lecteur jouait ce son-la et masquait le passage :
+     * le texte a comprendre n'etait jamais entendu (#464, Goethe A1 : le son
+     * disait « Was macht Anna im Park? »).
+     *
+     * Vrai quand l'exercice est une ecoute avec un passage, et que le texte
+     * parle de la question est vide, egal a la question, ou fait moins du
+     * tiers du passage.
+     */
+    public function sonDeLaQuestionTropPauvre(array $question): bool
+    {
+        if (! $this->estUneEcoute()
+            || in_array($this->exerciseType?->component_key, self::ECOUTES_A_PHRASE_COURTE, true)) {
+            return false;
+        }
+
+        $passage = is_array($this->content) ? ($this->content['passage'] ?? null) : null;
+        if (! is_string($passage) || trim($passage) === '') {
+            return false;
+        }
+
+        $son = $question['audio_text'] ?? null;
+        $son = is_string($son) ? trim($son) : '';
+        if ($son === '') {
+            return true;
+        }
+
+        $aPlat = fn (string $texte) => trim(preg_replace('/[^\p{L}\p{N}]+/u', ' ', mb_strtolower($texte)));
+        $enonce = is_string($question['text'] ?? null) ? $question['text'] : '';
+        if ($enonce !== '' && $aPlat($son) === $aPlat($enonce)) {
+            return true;
+        }
+
+        return self::nombreDeMots($son) * 3 < self::nombreDeMots($passage);
+    }
+
+    /** Le nombre de mots d'un texte, lettres et chiffres compris, toutes langues. */
+    public static function nombreDeMots(string $texte): int
+    {
+        return preg_match_all('/[\p{L}\p{N}]+(?:[\'’-][\p{L}\p{N}]+)*/u', $texte);
+    }
+
+    /**
+     * Le vivier, son meilleur contenu d'abord, au hasard a l'interieur de
+     * chaque groupe.
+     *
+     * Le tirage etait purement aleatoire : les epreuves verifiees et la serie
+     * preparee — expliquees, relues — avaient les memes chances que les
+     * exercices generes, alors que le commentaire de BibliothequeEpreuvesVerifiees
+     * promettait qu'elles « passent avant toute generation ». Les comptes
+     * gratuits n'en avaient fait que 3 en 90 jours.
+     *
+     * L'ordre : epreuve verifiee, puis serie preparee, puis ancien exercice
+     * ecrit a la main, puis exercice genere. Sauf a partir du B1 : les textes
+     * de la serie preparee y sont PLUS COURTS que ceux de l'IA (98 mots en
+     * moyenne au B1 contre 106, 131 au B2 ; une epreuve verifiee B1 en compte
+     * environ 200). Elle passe donc apres l'IA a partir du B1, et reste avant
+     * elle jusqu'au A2, ou elle est relue et suffisamment longue pour le niveau.
+     */
+    public function scopeMeilleurDAbord(\Illuminate\Database\Eloquent\Builder $query, ?string $niveau = null): \Illuminate\Database\Eloquent\Builder
+    {
+        $grammaire = $query->getQuery()->getGrammar();
+        $source = $grammaire->wrap($this->qualifyColumn('content').'->source');
+        $parIa = $grammaire->wrap($this->qualifyColumn('is_ai_generated'));
+
+        $debutant = $niveau === null || in_array($niveau, ['A0', 'A1', 'A2'], true);
+        [$serie, $manuel, $ia] = $debutant ? [1, 2, 3] : [3, 1, 2];
+
+        return $query
+            ->orderByRaw(
+                "CASE WHEN {$source} = ? THEN 0 WHEN {$source} = ? THEN {$serie}"
+                ." WHEN COALESCE({$parIa}, 0) = 0 THEN {$manuel} ELSE {$ia} END",
+                ['epreuve-verifiee', 'starter-library']
+            )
+            ->inRandomOrder();
+    }
+
+    /**
+     * Le vivier libre, sans les exercices expliques dans la langue d'un AUTRE
+     * apprenant.
+     *
+     * De A0 a A2, le generateur explique dans la langue maternelle de celui
+     * qui a declenche la generation, et l'exercice entre dans le vivier
+     * partage avec `content.explanation_language`. Rien ne le lisait : un
+     * francophone pouvait recevoir un exercice explique en espagnol. On garde
+     * ce qui n'en dit rien (series preparees, epreuves verifiees, anciens
+     * exercices), ce qui est explique dans la langue de cet apprenant, et
+     * tout ce qui est au-dela du A2, ou l'on explique dans la langue de
+     * l'examen pour tout le monde.
+     */
+    public function scopeExpliqueDansLaLangueDe(\Illuminate\Database\Eloquent\Builder $query, ?string $langue): \Illuminate\Database\Eloquent\Builder
+    {
+        $langue = is_string($langue) && trim($langue) !== '' ? trim($langue) : 'Français';
+        $colonne = $this->qualifyColumn('content').'->explanation_language';
+
+        return $query->where(fn ($q) => $q
+            ->whereNull($colonne)
+            ->orWhere($colonne, $langue)
+            ->orWhereNotIn($this->qualifyColumn('difficulty'), ['A0', 'A1', 'A2']));
+    }
+
+    /** La langue dans laquelle expliquer a cet apprenant, comme le generateur la choisit. */
+    public static function langueDExplicationDe(?User $user): string
+    {
+        $langue = $user?->profile?->native_language;
+
+        return is_string($langue) && trim($langue) !== '' ? trim($langue) : 'Français';
+    }
+
     /** Les questions de cet exercice auxquelles on peut repondre, renumerotees. */
     public function answerableQuestions(): array
     {
         $fallback = $this->exerciseType?->component_key;
         $ecoute = $this->estUneEcoute();
 
-        return array_values(array_filter(
+        $jouables = array_values(array_filter(
             $this->questions ?? [],
             function ($question) use ($fallback, $ecoute) {
                 if (! is_array($question) || ! self::questionIsAnswerable($question, $fallback)) {
@@ -356,5 +477,105 @@ class Exercise extends Model
                 return true;
             }
         ));
+
+        if (! $ecoute) {
+            return $jouables;
+        }
+
+        // LE PASSAGE A ENTENDRE, pas la question. Quand le son d'une question ne
+        // dit que la question, on lui donne le passage a dire, et on retire sa
+        // piste : elle a ete fabriquee a partir de ce texte trop pauvre. Le
+        // lecteur retombe alors sur la piste du passage, ou sur la synthese
+        // vocale du passage, en attendant que la piste soit refaite.
+        //
+        // Sauf quand la question n'avait AUCUN texte parle : sa piste, si elle
+        // en a une, a ete fabriquee a partir du passage (prepla:fabriquer-medias
+        // et prepla:sonoriser-ecoutes lisent texteParle(), qui retombe sur le
+        // contenu). La retirer rendait muettes des ecoutes verifiees, et l'essai
+        // sans compte, qui n'a pas de synthese vocale, les fermait.
+        $passage = is_array($this->content) ? trim((string) ($this->content['passage'] ?? '')) : '';
+
+        return array_map(function (array $question) use ($passage) {
+            if ($this->sonDeLaQuestionTropPauvre($question)) {
+                $ecrit = is_string($question['audio_text'] ?? null) ? trim($question['audio_text']) : '';
+                $question['audio_text'] = $passage;
+                if ($ecrit !== '') {
+                    unset($question['audio_url']);
+                }
+            }
+
+            return $question;
+        }, $jouables);
+    }
+
+    /**
+     * Cle posee dans content par prepla:nettoyer-vivier pour RETIRER un exercice
+     * du service sans le supprimer : les tentatives des apprenants gardent leur
+     * exercice, et la sauvegarde de la commande permet de revenir en arriere.
+     */
+    public const CLE_RETRAIT = 'retire';
+
+    /** Nom du scope global qui ecarte les exercices retires. */
+    public const SCOPE_EN_SERVICE = 'en-service';
+
+    /**
+     * Un exercice retire n'est plus TIRE, mais on le retrouve quand on le designe.
+     *
+     * Le vivier est interroge a une dizaine d'endroits (entrainement, parcours,
+     * prochain exercice, essai sans compte, disponibilites, composition des
+     * epreuves blanches) : un scope a appeler a la main en oublierait toujours
+     * un, et le retrait ne retirerait rien. Le filtre est donc global.
+     *
+     * Il ne s'applique PAS quand la requete designe l'exercice par son numero
+     * (find, adresse /exercise/{id}, seance en cours par whereIn('id'), tentative
+     * ->exercise) ni quand elle part d'une tentative (whereHas('exercise')) :
+     * l'historique, la revision des erreurs et le calcul du niveau gardent ainsi
+     * tout le travail deja fait sur un exercice retire.
+     */
+    protected static function booted(): void
+    {
+        static::addGlobalScope(self::SCOPE_EN_SERVICE, function (\Illuminate\Database\Eloquent\Builder $query) {
+            if (! self::designeParSonNumero($query)) {
+                $query->whereNull($query->getModel()->qualifyColumn('content').'->'.self::CLE_RETRAIT);
+            }
+        });
+    }
+
+    /** La requete vise-t-elle des exercices precis, par leur numero ? */
+    private static function designeParSonNumero(\Illuminate\Database\Eloquent\Builder $query): bool
+    {
+        $modele = $query->getModel();
+        $cles = [$modele->getKeyName(), $modele->getQualifiedKeyName()];
+
+        foreach ($query->getQuery()->wheres as $where) {
+            $type = $where['type'] ?? null;
+            $parNumero = match ($type) {
+                'Basic' => in_array($where['column'] ?? null, $cles, true) && ($where['operator'] ?? null) === '=',
+                'In', 'InRaw' => in_array($where['column'] ?? null, $cles, true),
+                // whereHas depuis une tentative : exercises.id = tentative.exercise_id.
+                'Column' => in_array($where['first'] ?? null, $cles, true) || in_array($where['second'] ?? null, $cles, true),
+                default => false,
+            };
+            if ($parNumero) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Les exercices encore en service. Le scope global le fait deja ; ce scope
+     * le dit explicitement la ou on le lit.
+     */
+    public function scopeEnService($query)
+    {
+        return $query->whereNull($this->qualifyColumn('content').'->'.self::CLE_RETRAIT);
+    }
+
+    /** Tous les exercices, retires compris : pour prepla:nettoyer-vivier et ses tests. */
+    public function scopeAvecLesRetires($query)
+    {
+        return $query->withoutGlobalScope(self::SCOPE_EN_SERVICE);
     }
 }

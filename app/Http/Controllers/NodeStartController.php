@@ -378,7 +378,14 @@ class NodeStartController extends Controller
         return null;
     }
 
-    /** Shared practice pool: same exam, never center, personal-lesson or mock-exam content. */
+    /**
+     * Le vivier libre : meme examen, jamais un exercice de centre, de lecon,
+     * d'epreuve blanche ou d'un AUTRE noeud.
+     *
+     * Le noeud n'etait pas filtre : un exercice ecrit pour le concept d'un autre
+     * noeud (« Begrussungen ») arrivait dans une seance qui n'en parlait pas.
+     * Le meilleur contenu passe d'abord (voir Exercise::scopeMeilleurDAbord).
+     */
     private function genericExercises(LearningPathNode $node, ?string $level, int $limit = 3, array $excludeIds = [])
     {
         return Exercise::where('exam_id', $node->exam_id)
@@ -386,9 +393,12 @@ class NodeStartController extends Controller
             ->whereNull('center_id')
             ->whereNull('lesson_id')
             ->whereNull('mock_exam_id')
+            ->whereNull('node_id')
+            // Pas d'exercice explique dans la langue d'un autre apprenant.
+            ->expliqueDansLaLangueDe(Exercise::langueDExplicationDe(auth()->user()))
             ->whereNotIn('id', $excludeIds)
             ->with(['exerciseType', 'exam.language'])
-            ->inRandomOrder()
+            ->meilleurDAbord($level ?? $node->level)
             ->limit($limit)
             ->get();
     }
@@ -435,6 +445,12 @@ class NodeStartController extends Controller
             foreach ($questions as $idx => $question) {
                 if ($this->audioAvailable($question['audio_url'] ?? null)) {
                     continue; // generated and still on disk
+                }
+                // Un son qui ne dit que la question ne merite pas de piste : au
+                // service, la question recoit le passage (Exercise::answerableQuestions)
+                // et le lecteur joue la piste du passage, preparee ci-dessus.
+                if (is_array($question) && $exercise->sonDeLaQuestionTropPauvre($question)) {
+                    continue;
                 }
                 try {
                     $url = $ttsAudio->generateForQuestion($question, $language);

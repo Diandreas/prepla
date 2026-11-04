@@ -587,10 +587,26 @@ class ExerciseController extends Controller
         ]);
     }
 
-    public function show(Exercise $exercise): Response
+    public function show(Exercise $exercise): Response|\Illuminate\Http\RedirectResponse
     {
         $this->authorize('view', $exercise);
         $exercise->load(['exerciseType.section', 'exam.language']);
+
+        // Le meme garde-fou qu'en seance : pas de question impossible a l'ecran,
+        // et une ecoute dont le son ne disait que la question recoit le passage.
+        // Cette page servait les questions brutes, alors que les seances, l'essai
+        // et la correction passaient deja par answerableQuestions().
+        $questions = is_array($exercise->questions) ? $exercise->questions : [];
+        $jouables = $exercise->answerableQuestions();
+        if ($questions !== [] && $jouables === []) {
+            return redirect()->route('practice.index')
+                ->with('error', "Cet exercice est inutilisable pour le moment. Choisis-en un autre.");
+        }
+        if ($jouables !== $questions) {
+            // On ne modifie que ce qui part a l'ecran : rien n'est enregistre.
+            $exercise->questions = $jouables;
+            $exercise->syncOriginalAttribute('questions');
+        }
 
         return Inertia::render('exercise/show', [
             'exercise' => $exercise,

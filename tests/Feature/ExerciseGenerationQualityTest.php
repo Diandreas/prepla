@@ -33,7 +33,7 @@ function generationFixture(): array
 test('notes without editable blanks are rejected and regenerated', function () {
     [$exam, $type] = generationFixture();
     $type->update(['component_key' => 'note-completion']);
-    $bad = ['id' => 'q1', 'type' => 'note-completion', 'notes' => [['label' => 'Routine', 'value' => 'Sarah wakes up']], 'correct_answers' => ['0' => 'wakes up']];
+    $bad = ['id' => 'q1', 'type' => 'note-completion', 'notes' => [['label' => 'Routine', 'value' => 'Sarah wakes up']], 'correct_answers' => ['0' => 'wakes up'], 'explanations' => ['0' => 'Le texte le dit.']];
     $good = $bad;
     $good['notes'][0]['value'] = '';
     $this->mock(MistralService::class, function ($mock) use ($bad, $good) {
@@ -46,7 +46,7 @@ test('notes without editable blanks are rejected and regenerated', function () {
 test('sentence tiles must match the answer including duplicate counts', function () {
     [$exam, $type] = generationFixture();
     $type->update(['component_key' => 'build-a-sentence']);
-    $bad = ['id' => 'q1', 'type' => 'build-a-sentence', 'words' => ['I', 'finish', 'finish', 'early'], 'correct_answer' => 'I finish early.'];
+    $bad = ['id' => 'q1', 'type' => 'build-a-sentence', 'words' => ['I', 'finish', 'finish', 'early'], 'correct_answer' => 'I finish early.', 'explanation' => 'Sujet, verbe, puis adverbe.'];
     $good = $bad;
     $good['words'] = ['I', 'finish', 'early'];
     $this->mock(MistralService::class, function ($mock) use ($bad, $good) {
@@ -59,7 +59,9 @@ test('sentence tiles must match the answer including duplicate counts', function
 function mcqPayload(array $questions): string
 {
     return json_encode([
-        'content' => ['passage' => 'Ein kurzer Text.', 'instructions' => 'Lies und antworte.'],
+        // Un texte a la longueur d'un A2 (120 a 180 mots) : le generateur
+        // refuse desormais un texte trop court pour le niveau.
+        'content' => ['passage' => trim(str_repeat('Anna wohnt in Bonn und arbeitet jeden Tag im Büro. ', 14)), 'instructions' => 'Lies und antworte.'],
         'questions' => $questions,
     ]);
 }
