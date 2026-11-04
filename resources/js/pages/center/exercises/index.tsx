@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { BookOpen, ClipboardList, Headphones, Mic, PenLine, Plus, Puzzle, Search, Sparkles, Trash2 } from 'lucide-react';
+import { BookOpen, ClipboardList, Headphones, Mic, PenLine, Play, Plus, Puzzle, Search, Sparkles, Target, Trash2, Trophy } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
@@ -15,6 +15,35 @@ import { cn } from '@/lib/utils';
 
 interface ExerciseRow extends LigneExercice {
     updated_at?: string | null;
+    /** Tentatives des eleves du centre (ou de ses classes, pour un enseignant). */
+    joue?: number;
+    eleves?: number;
+    reussite?: number | null;
+}
+
+type Tri = 'recents' | 'joues' | 'difficiles';
+
+/** Il faut quelques passages avant de dire qu'un exercice est difficile. */
+const MIN_POUR_DIFFICULTE = 3;
+
+function couleurReussite(p: number | null | undefined): string {
+    if (p === null || p === undefined) return 'text-muted-foreground';
+    if (p >= 75) return 'text-emerald-600 dark:text-emerald-400';
+    if (p >= 50) return 'text-amber-600 dark:text-amber-400';
+    return 'text-rose-600 dark:text-rose-400';
+}
+
+function Chiffre({ icone: Icone, libelle, valeur, detail }: { icone: typeof BookOpen; libelle: string; valeur: React.ReactNode; detail?: React.ReactNode }) {
+    return (
+        <div className="min-w-0 rounded-xl border border-border bg-card p-3.5">
+            <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                <Icone className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                <span className="truncate">{libelle}</span>
+            </div>
+            <div className="mt-1.5 min-w-0 text-2xl font-bold tracking-tight tabular-nums">{valeur}</div>
+            {detail && <div className="mt-1 truncate text-xs text-muted-foreground">{detail}</div>}
+        </div>
+    );
 }
 
 const ICONES: Record<string, typeof BookOpen> = {
@@ -36,10 +65,27 @@ export default function ExercisesIndex({ exercises, exams }: { exercises: Exerci
 
     const { niveaux, competences } = useMemo(() => optionsDeFiltre(exercises), [exercises]);
     const examensPresents = useMemo(() => exams.filter((e) => exercises.some((x) => x.exam_id === e.id)), [exams, exercises]);
-    const visibles = useMemo(
-        () => filtrerExercices(exercises, { recherche, examen, niveau, competence }),
-        [exercises, recherche, examen, niveau, competence],
-    );
+    const [tri, setTri] = useState<Tri>('recents');
+    const visibles = useMemo(() => {
+        const liste = filtrerExercices(exercises, { recherche, examen, niveau, competence });
+        if (tri === 'joues') return [...liste].sort((a, b) => (b.joue ?? 0) - (a.joue ?? 0));
+        if (tri === 'difficiles') {
+            const cle = (e: ExerciseRow) => ((e.joue ?? 0) >= MIN_POUR_DIFFICULTE && e.reussite != null ? e.reussite : 1000 - (e.joue ?? 0));
+            return [...liste].sort((a, b) => cle(a) - cle(b));
+        }
+        return liste;
+    }, [exercises, recherche, examen, niveau, competence, tri]);
+
+    // Les chiffres du haut, sur tout le contenu du centre (pas les filtres).
+    const chiffres = useMemo(() => {
+        const ia = exercises.filter((e) => e.is_ai_generated).length;
+        const parties = exercises.reduce((t, e) => t + (e.joue ?? 0), 0);
+        const joues = exercises.filter((e) => (e.joue ?? 0) > 0).sort((a, b) => (b.joue ?? 0) - (a.joue ?? 0));
+        const difficile = exercises
+            .filter((e) => (e.joue ?? 0) >= MIN_POUR_DIFFICULTE && e.reussite != null)
+            .sort((a, b) => (a.reussite ?? 0) - (b.reussite ?? 0))[0];
+        return { ia, parties, plusJoues: joues.slice(0, 3), jamais: exercises.length - joues.length, difficile };
+    }, [exercises]);
     const filtresActifs = recherche !== '' || examen !== '' || niveau !== '' || competence !== '';
 
     // Creer et modifier etaient possibles, retirer ne l'etait pas : un brouillon
@@ -80,7 +126,58 @@ export default function ExercisesIndex({ exercises, exams }: { exercises: Exerci
                     </div>
                 ) : (
                     <>
-                        <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto_auto]" role="search">
+                        <section aria-label="Chiffres du contenu" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                            <Chiffre
+                                icone={ClipboardList}
+                                libelle="Exercices créés"
+                                valeur={exercises.length}
+                                detail={`dont ${chiffres.ia} avec l’IA · ${exercises.length - chiffres.ia} à la main`}
+                            />
+                            <Chiffre
+                                icone={Play}
+                                libelle="Fois joués"
+                                valeur={chiffres.parties}
+                                detail={chiffres.jamais > 0 ? `${chiffres.jamais} jamais joué${chiffres.jamais > 1 ? 's' : ''}` : 'tous déjà joués'}
+                            />
+                            <div className="col-span-2 min-w-0 rounded-xl border border-border bg-card p-3.5 lg:col-span-1">
+                                <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                                    <Trophy className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> Les plus joués
+                                </div>
+                                {chiffres.plusJoues.length === 0 ? (
+                                    <p className="mt-1.5 text-sm text-muted-foreground">Pas encore joués par vos élèves.</p>
+                                ) : (
+                                    <ol className="mt-1.5 space-y-1">
+                                        {chiffres.plusJoues.map((e, i) => (
+                                            <li key={e.id} className="flex items-center justify-between gap-2 text-sm">
+                                                <Link href={route('center.exercises.edit', e.id)} className="min-w-0 truncate hover:underline">
+                                                    <span className="text-muted-foreground">{i + 1}.</span> {libelleExercice(e)}
+                                                </Link>
+                                                <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{e.joue}×</span>
+                                            </li>
+                                        ))}
+                                    </ol>
+                                )}
+                            </div>
+                            <div className="col-span-2 min-w-0 rounded-xl border border-border bg-card p-3.5 lg:col-span-1">
+                                <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                                    <Target className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> Le plus difficile
+                                </div>
+                                {chiffres.difficile ? (
+                                    <>
+                                        <Link href={route('center.exercises.edit', chiffres.difficile.id)} className="mt-1.5 line-clamp-2 text-sm font-semibold hover:underline">
+                                            {libelleExercice(chiffres.difficile)}
+                                        </Link>
+                                        <p className="mt-0.5 text-xs text-muted-foreground">
+                                            <span className={cn('font-semibold', couleurReussite(chiffres.difficile.reussite))}>{Math.round(chiffres.difficile.reussite ?? 0)} %</span> de réussite sur {chiffres.difficile.joue} passages
+                                        </p>
+                                    </>
+                                ) : (
+                                    <p className="mt-1.5 text-sm text-muted-foreground">Il faut {MIN_POUR_DIFFICULTE} passages sur un exercice pour le dire.</p>
+                                )}
+                            </div>
+                        </section>
+
+                        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_auto_auto_auto_auto]" role="search">
                             <label className="relative block">
                                 <span className="sr-only">Rechercher un exercice</span>
                                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
@@ -97,6 +194,11 @@ export default function ExercisesIndex({ exercises, exams }: { exercises: Exerci
                             <select aria-label="Filtrer par compétence" className={filtre} value={competence} onChange={(e) => setCompetence(e.target.value)}>
                                 <option value="">Toutes les compétences</option>
                                 {competences.map((c) => <option key={c.cle} value={c.cle}>{c.nom}</option>)}
+                            </select>
+                            <select aria-label="Trier les exercices" className={filtre} value={tri} onChange={(e) => setTri(e.target.value as Tri)}>
+                                <option value="recents">Plus récents</option>
+                                <option value="joues">Plus joués</option>
+                                <option value="difficiles">Plus difficiles</option>
                             </select>
                         </div>
 
@@ -134,6 +236,18 @@ export default function ExercisesIndex({ exercises, exams }: { exercises: Exerci
                                                 {libelleExercice(e)}
                                             </Link>
                                             <p className="mt-0.5 text-sm text-muted-foreground">{type}</p>
+                                            <p className="mt-2 flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
+                                                {(e.joue ?? 0) > 0 ? (
+                                                    <>
+                                                        <span>Joué <span className="font-semibold text-foreground tabular-nums">{e.joue}</span> fois{e.eleves ? ` · ${e.eleves} élève${e.eleves > 1 ? 's' : ''}` : ''}</span>
+                                                        {e.reussite != null && (
+                                                            <span className={cn('font-semibold tabular-nums', couleurReussite(e.reussite))}>{Math.round(e.reussite)} % de réussite</span>
+                                                        )}
+                                                    </>
+                                                ) : (
+                                                    <span>Pas encore joué</span>
+                                                )}
+                                            </p>
                                             <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-3 text-xs">
                                                 {e.exam && <span className="rounded-md bg-muted px-1.5 py-0.5 font-medium">{e.exam}</span>}
                                                 {e.difficulty && <span className="rounded-md bg-muted px-1.5 py-0.5 font-bold">{e.difficulty}</span>}

@@ -6,6 +6,42 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Download } from 'lucide-react';
 import { competence, dateHeure, duree, ilYA } from '@/lib/suivi';
+import { ecartPoints } from '@/lib/tableau-de-classe';
+import {
+    BarresCompetences,
+    BarresMinutes,
+    CalendrierRegularite,
+    CourbeSemaines,
+    precisionPonderee,
+    Tendance,
+    type CompetenceStat,
+    type JourCalendrier,
+    type SemaineStat,
+} from '@/components/center/statistiques';
+
+type StatutDevoir = 'a_temps' | 'rendus_en_retard' | 'en_retard' | 'a_faire';
+interface StatistiquesEleve {
+    semaines: SemaineStat[];
+    semaines_classe: SemaineStat[] | null;
+    competences: CompetenceStat[];
+    calendrier: JourCalendrier[];
+    devoirs: {
+        a_temps: number;
+        rendus_en_retard: number;
+        en_retard: number;
+        a_faire: number;
+        derniers: { id: number; titre: string; echeance: string | null; statut: StatutDevoir }[];
+    };
+}
+
+const STATUTS: Record<StatutDevoir, { libelle: string; classe: string }> = {
+    a_temps: { libelle: 'Rendu à temps', classe: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' },
+    rendus_en_retard: { libelle: 'Rendu en retard', classe: 'bg-amber-500/10 text-amber-700 dark:text-amber-400' },
+    en_retard: { libelle: 'En retard', classe: 'bg-rose-500/10 text-rose-700 dark:text-rose-400' },
+    a_faire: { libelle: 'À faire', classe: 'bg-muted text-muted-foreground' },
+};
+
+const FORMAT_ECHEANCE = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' });
 
 interface Student { id: number; name: string; email: string; level: string | null; classes: string[] }
 interface Jour { date: string; exercices: number; minutes: number }
@@ -81,14 +117,22 @@ export default function StudentShow({
     historique,
     faiblesses,
     profil,
+    statistiques = null,
 }: {
     student: Student;
     resume: Resume;
     historique: Page<Ligne>;
     faiblesses: Faiblesse[];
     profil: Observation[];
+    statistiques?: StatistiquesEleve | null;
 }) {
     const plusActif = Math.max(1, ...resume.activite_30_jours.map((j) => j.exercices));
+    const st = statistiques;
+    const saPrecision = precisionPonderee(st?.semaines);
+    const precisionClasse = precisionPonderee(st?.semaines_classe);
+    const sesExercices = st ? st.semaines.reduce((t, s) => t + s.exercices, 0) : 0;
+    const devoirs = st?.devoirs;
+    const devoirsTotal = devoirs ? devoirs.a_temps + devoirs.rendus_en_retard + devoirs.en_retard + devoirs.a_faire : 0;
 
     return (
         <AppLayout>
@@ -174,6 +218,98 @@ export default function StudentShow({
                         </div>
                     </CardContent>
                 </Card>
+
+                {st && (
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-base">Progression sur 8 semaines</CardTitle>
+                            <p className="text-xs text-muted-foreground">
+                                Sa précision chaque semaine{st.semaines_classe ? ', comparée à la moyenne de sa classe' : ''}.
+                            </p>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            {saPrecision !== null && (
+                                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+                                    <span>
+                                        <span className="text-2xl font-bold tabular-nums">{Math.round(saPrecision)} %</span>
+                                        <span className="text-muted-foreground"> de réussite sur {sesExercices} exercice{sesExercices > 1 ? 's' : ''}</span>
+                                    </span>
+                                    {precisionClasse !== null && (
+                                        <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                                            classe : {Math.round(precisionClasse)} %
+                                            <Tendance v={ecartPoints(saPrecision - precisionClasse)} titre="Écart avec la moyenne de la classe" />
+                                        </span>
+                                    )}
+                                </div>
+                            )}
+                            <CourbeSemaines semaines={st.semaines} comparaison={st.semaines_classe} />
+                        </CardContent>
+                    </Card>
+                )}
+
+                {st && (
+                    <div className="grid gap-5 md:grid-cols-2">
+                        <Card>
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-base">Réussite par compétence</CardTitle>
+                                <p className="text-xs text-muted-foreground">Depuis le début.</p>
+                            </CardHeader>
+                            <CardContent>
+                                <BarresCompetences competences={st.competences} />
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-base">Régularité</CardTitle>
+                                <p className="text-xs text-muted-foreground">Un carré par jour sur 8 semaines, à l’heure du centre.</p>
+                            </CardHeader>
+                            <CardContent>
+                                <CalendrierRegularite jours={st.calendrier} />
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-base">Temps de travail par semaine</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <BarresMinutes semaines={st.semaines} />
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-base">Devoirs</CardTitle>
+                                <p className="text-xs text-muted-foreground">Ceux de ses classes, publiés.</p>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                                {!devoirs || devoirsTotal === 0 ? (
+                                    <p className="text-sm text-muted-foreground">Aucun devoir donné pour le moment.</p>
+                                ) : (
+                                    <>
+                                        <div className="grid grid-cols-2 gap-2 text-center">
+                                            {(Object.keys(STATUTS) as StatutDevoir[]).map((cle) => (
+                                                <div key={cle} className={`rounded-lg px-2 py-2 ${STATUTS[cle].classe}`}>
+                                                    <p className="text-xl font-bold tabular-nums">{devoirs[cle]}</p>
+                                                    <p className="text-xs">{STATUTS[cle].libelle}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <ul className="space-y-1.5">
+                                            {devoirs.derniers.map((d) => (
+                                                <li key={d.id} className="flex items-center justify-between gap-2 text-sm">
+                                                    <span className="min-w-0 truncate">{d.titre}</span>
+                                                    <span className="flex shrink-0 items-center gap-2 text-xs">
+                                                        {d.echeance && <span className="text-muted-foreground">{FORMAT_ECHEANCE.format(new Date(d.echeance))}</span>}
+                                                        <span className={`rounded-full px-1.5 py-0.5 font-medium ${STATUTS[d.statut].classe}`}>{STATUTS[d.statut].libelle}</span>
+                                                    </span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+                )}
 
                 <Card>
                     <CardHeader className="flex-row items-baseline justify-between space-y-0 pb-2">

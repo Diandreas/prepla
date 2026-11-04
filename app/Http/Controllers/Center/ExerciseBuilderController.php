@@ -14,6 +14,8 @@ use App\Models\LanguageCenter;
 use App\Rules\ExamenDuCentre;
 use App\Services\AI\ExerciseGeneratorService;
 use App\Services\Center\FicheExercice;
+use App\Services\Center\StatistiquesCentre;
+use Illuminate\Support\Facades\DB;
 use App\Services\Content\ExerciseSchemaRegistry;
 use App\Services\Content\StructureOfficielle;
 use Illuminate\Http\JsonResponse;
@@ -45,6 +47,29 @@ class ExerciseBuilderController extends Controller
             ->latest()
             ->get()
             ->map(fn (Exercise $e) => FicheExercice::ligne($e));
+
+        // Combien de fois chaque exercice a ete joue, et avec quelle reussite :
+        // par les eleves du centre pour le responsable, par ceux de ses classes
+        // pour un enseignant. Deux requetes de plus, quel que soit le nombre
+        // d'exercices.
+        $actor = $request->user();
+        $eleves = $actor->centerRoleIs('center_admin')
+            ? DB::table('center_user')->where('center_id', $center->id)->where('role', 'student')->pluck('user_id')
+            : DB::table('classroom_user as cu')
+                ->join('classrooms as k', 'k.id', '=', 'cu.classroom_id')
+                ->where('k.center_id', $center->id)
+                ->where('cu.role_in_class', 'student')
+                ->whereExists(fn ($q) => $q->from('classroom_user as p')
+                    ->whereColumn('p.classroom_id', 'cu.classroom_id')
+                    ->where('p.role_in_class', 'teacher')
+                    ->where('p.user_id', $actor->id))
+                ->distinct()
+                ->pluck('cu.user_id');
+        $usage = app(StatistiquesCentre::class)->parExercice(
+            $exercises->pluck('id')->all(),
+            $eleves->map(fn ($id) => (int) $id)->unique()->values()->all(),
+        );
+        $exercises = $exercises->map(fn (array $l) => $l + ($usage[$l['id']] ?? ['joue' => 0, 'eleves' => 0, 'reussite' => null]));
 
         return Inertia::render('center/exercises/index', [
             'exercises' => $exercises,

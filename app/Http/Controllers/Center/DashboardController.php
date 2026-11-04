@@ -9,6 +9,8 @@ use App\Models\User;
 use App\Models\UserExerciseAttempt;
 use App\Services\Center\ClassementCentre;
 use App\Services\Center\ElevesActifs;
+use App\Services\Center\StatistiquesCentre;
+use App\Services\Center\SuiviApprenant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
@@ -32,7 +34,7 @@ class DashboardController extends Controller
      */
     public const JOURS_AVANT_RELANCE = 7;
 
-    public function __invoke(Request $request, ClassementCentre $classement): Response
+    public function __invoke(Request $request, ClassementCentre $classement, StatistiquesCentre $stats, SuiviApprenant $suivi): Response
     {
         /** @var LanguageCenter $center */
         $center = $request->attributes->get('center');
@@ -75,7 +77,9 @@ class DashboardController extends Controller
                 ? (function () use ($center) {
                     $n = app(ElevesActifs::class)->compter($center->id, ElevesActifs::moisCourant());
 
-                    return ['eleves' => $n, 'palier' => ElevesActifs::palier($n)];
+                    $palier = ElevesActifs::palier($n);
+
+                    return ['eleves' => $n, 'palier' => $palier, 'plafond' => ElevesActifs::PALIERS[$palier] ?? null];
                 })()
                 : null,
             'semaine' => [
@@ -100,6 +104,10 @@ class DashboardController extends Controller
                 $center->loadMissing('defaultExam.language')->defaultExam,
             ),
             'joursAvantRelance' => self::JOURS_AVANT_RELANCE,
+            // Huit semaines d'activite, les competences, les classes qui montent
+            // ou decrochent, les jours et heures de travail : sur ces memes
+            // eleves et ces memes classes, en un nombre fixe de requetes.
+            'statistiques' => $this->statistiques($stats, $classes, $ids->all(), $suivi->fuseau($center)),
             // Qui relancer : jamais venu, ou absent depuis plus d'une semaine — le
             // plus ancien d'abord.
             'a_relancer' => $eleves
@@ -110,5 +118,35 @@ class DashboardController extends Controller
                 ->take(8)
                 ->values(),
         ]);
+    }
+
+    /** @return array<string, mixed> */
+    private function statistiques(StatistiquesCentre $stats, $classes, array $ids, string $fuseau): array
+    {
+        $classIds = $classes->pluck('id')->all();
+        $activite = $stats->activiteDesClasses($classIds);
+
+        $parClasse = $classes->map(fn (Classroom $k) => [
+            'id' => $k->id,
+            'name' => $k->name,
+            'eleves' => $k->students->count(),
+        ] + ($activite[$k->id] ?? ['exercices' => 0, 'avant' => 0, 'actifs' => 0, 'precision' => null]))
+            ->filter(fn ($k) => $k['eleves'] > 0);
+
+        return [
+            'semaines' => $stats->semaines($ids),
+            'competences' => $stats->competences($ids, now()->subDays(7 * StatistiquesCentre::SEMAINES)),
+            'devoirs' => $stats->devoirsATemps($classIds),
+            'rythme' => $stats->rythme($ids, $fuseau),
+            // Les plus actives : le plus d'exercices par eleve cette semaine.
+            'classes_actives' => $parClasse->filter(fn ($k) => $k['exercices'] > 0)
+                ->sortByDesc(fn ($k) => $k['exercices'] / $k['eleves'])
+                ->take(3)->values()->all(),
+            // Qui decroche : au moins un tiers d'exercices en moins que la
+            // semaine d'avant, ou plus rien alors qu'on travaillait.
+            'classes_decrochent' => $parClasse->filter(fn ($k) => $k['avant'] > 0 && $k['exercices'] <= $k['avant'] * 2 / 3)
+                ->sortBy(fn ($k) => $k['exercices'] / $k['avant'])
+                ->take(3)->values()->all(),
+        ];
     }
 }

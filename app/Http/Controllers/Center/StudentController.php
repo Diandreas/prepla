@@ -9,9 +9,11 @@ use App\Models\User;
 use App\Models\UserError;
 use App\Models\UserExerciseAttempt;
 use App\Services\Center\ClassementCentre;
+use App\Services\Center\StatistiquesCentre;
 use App\Services\Center\SuiviApprenant;
 use App\Support\ExportTableur;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -63,7 +65,44 @@ class StudentController extends Controller
             // et des prises de parole : c'est la qu'un centre voit quoi travailler.
             'faiblesses' => $suivi->faiblesses($user),
             'profil' => $suivi->profil($user),
+            'statistiques' => $this->statistiques($request, $user, $center, $suivi->fuseau($center)),
         ]);
+    }
+
+    /**
+     * Les courbes de la fiche : huit semaines de l'eleve et de sa classe, ses
+     * competences, son calendrier, ses devoirs. Sa classe : celles du centre ou
+     * il est eleve — pour un enseignant, seulement celles qu'il anime.
+     *
+     * @return array<string, mixed>
+     */
+    private function statistiques(Request $request, User $user, LanguageCenter $center, string $fuseau): array
+    {
+        $stats = app(StatistiquesCentre::class);
+        $actor = $request->user();
+
+        $classIds = $user->classrooms()
+            ->wherePivot('role_in_class', 'student')
+            ->where('center_id', $center->id)
+            ->when(! $actor->centerRoleIs('center_admin'), fn ($q) => $q->whereHas('teachers', fn ($t) => $t->whereKey($actor->id)))
+            ->pluck('classrooms.id')
+            ->all();
+
+        $camarades = $classIds === [] ? [] : DB::table('classroom_user')
+            ->whereIn('classroom_id', $classIds)
+            ->where('role_in_class', 'student')
+            ->distinct()
+            ->pluck('user_id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        return [
+            'semaines' => $stats->semaines([$user->id]),
+            'semaines_classe' => count($camarades) > 1 ? $stats->semaines($camarades) : null,
+            'competences' => $stats->competences([$user->id]),
+            'calendrier' => $stats->calendrier($user, $fuseau),
+            'devoirs' => $stats->devoirsDeLEleve($user, $classIds),
+        ];
     }
 
     /** Une tentative en detail : chaque question, la reponse donnee, la correction. */
