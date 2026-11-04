@@ -1,5 +1,5 @@
 import type { FormDataConvertible } from '@inertiajs/core';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { ExerciseTimer } from './exercise-timer';
 import { ExerciseProgress } from './exercise-progress';
@@ -35,6 +35,7 @@ import { Ordering } from './ordering';
 import { ShortWriting } from './short-writing';
 import { IntegratedTask } from './integrated-task';
 import { isBlankAnswer } from '@/lib/scoring';
+import { cleDeReprise, ecrireReprise, effacerReprise, FORMATS_SANS_REPRISE, lireReprise, stockageDuNavigateur } from '@/lib/reprise-exercice';
 import { AcademicDiscussion } from './academic-discussion';
 import { RolePlay } from './role-play';
 import { Synthesis } from './synthesis';
@@ -155,6 +156,17 @@ export function ExercisePlayer({ exercise, submitUrl }: ExercisePlayerProps) {
     const [submitting, setSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
     const submitPending = useRef(false);
+    // Reprise apres une coupure : voir lib/reprise-exercice.js.
+    const page = usePage();
+    const compte = (page.props as { auth?: { user?: { id?: number } | null } }).auth?.user?.id ?? null;
+    const cleReprise = cleDeReprise(exercise.id, compte);
+    const [repris, setRepris] = useState(false);
+    // Change a chaque reprise ou « Recommencer » : les formats gardent leur saisie
+    // dans leur propre etat, lu une seule fois au montage ; on les remonte donc.
+    const [generation, setGeneration] = useState(0);
+    const tempsDejaPasse = useRef(0);
+    const repriseLue = useRef(false);
+    const envoiTermine = useRef(false);
 
     const questions = exercise.questions ?? [];
     const question = questions[currentIndex];
@@ -164,6 +176,8 @@ export function ExercisePlayer({ exercise, submitUrl }: ExercisePlayerProps) {
     const lang = exercise.exam?.language?.slug ?? 'en';
     const skillType = exercise.exercise_type?.skill_type;
     const isStarter = exercise.content?.source === 'starter-library';
+    const repriseImpossible = FORMATS_SANS_REPRISE.includes(componentKey);
+    const idsDesQuestions = useMemo(() => (exercise.questions ?? []).map((q) => String(q.id)), [exercise.questions]);
     const passage = exercise.content?.passage ?? exercise.content?.text;
     // Le passage parle n'est pas toujours range dans la question : le generateur
     // l'ecrit souvent dans l'exercice, sous « audio_text », parfois sous « passage »
@@ -191,6 +205,45 @@ export function ExercisePlayer({ exercise, submitUrl }: ExercisePlayerProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Relue apres le montage, pas pendant le rendu : le rendu serveur n'a pas de
+    // localStorage, et lire avant l'hydratation ferait diverger les deux rendus.
+    useEffect(() => {
+        repriseLue.current = true;
+        if (repriseImpossible) return;
+        const reprise = lireReprise(stockageDuNavigateur(), cleReprise, idsDesQuestions);
+        if (!reprise) return;
+        setAnswers(reprise.answers);
+        setCurrentIndex(reprise.index);
+        tempsDejaPasse.current = reprise.tempsPasse;
+        setRepris(true);
+        setGeneration((g) => g + 1);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // A chaque reponse ou changement de question. Rien n'est ecrit tant qu'aucune
+    // reponse n'est donnee : la sauvegarde existante n'est donc jamais ecrasee par
+    // l'etat vide du premier rendu.
+    useEffect(() => {
+        if (!repriseLue.current || repriseImpossible || envoiTermine.current) return;
+        ecrireReprise(stockageDuNavigateur(), cleReprise, {
+            index: currentIndex,
+            answers,
+            questionIds: idsDesQuestions,
+            tempsPasse: tempsDejaPasse.current + timeRef.current,
+        });
+    }, [answers, currentIndex, cleReprise, idsDesQuestions, repriseImpossible]);
+
+    function recommencer() {
+        effacerReprise(stockageDuNavigateur(), cleReprise);
+        setAnswers({});
+        setCurrentIndex(0);
+        setSubmitError(null);
+        tempsDejaPasse.current = 0;
+        timeRef.current = 0;
+        setRepris(false);
+        setGeneration((g) => g + 1);
+    }
+
     const handleAnswer = useCallback((questionId: string, answer: FormDataConvertible) => {
         setAnswers((prev) => ({ ...prev, [questionId]: answer }));
     }, []);
@@ -217,9 +270,17 @@ export function ExercisePlayer({ exercise, submitUrl }: ExercisePlayerProps) {
         
         router.post(submitUrl ?? route('exercise.submit', exercise.id), {
             answers,
-            time_spent: timeRef.current,
+            time_spent: tempsDejaPasse.current + timeRef.current,
         }, {
             forceFormData: hasFiles,
+            // Correction affichee : l'exercice est fini, la reprise n'a plus lieu
+            // d'etre. Un renvoi sur ce meme lecteur (envoi encore en cours cote
+            // serveur) n'en est pas un : on garde alors la sauvegarde.
+            onSuccess: (suite) => {
+                if (suite.component === page.component) return;
+                envoiTermine.current = true;
+                effacerReprise(stockageDuNavigateur(), cleReprise);
+            },
             onError: () => setSubmitError('L’envoi n’a pas abouti. Tes réponses sont conservées sur cette page ; tu peux réessayer.'),
             onFinish: () => {
                 submitPending.current = false;
@@ -246,9 +307,17 @@ export function ExercisePlayer({ exercise, submitUrl }: ExercisePlayerProps) {
                     <p className="mt-1 text-sm leading-relaxed">{String(exercise.content?.description ?? 'Entraînement général, indépendant des sujets officiels d’examen.')}</p>
                 </div>
             )}
+            {repris && (
+                <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-dashed px-4 py-2 text-sm text-muted-foreground">
+                    <span>Tu reprends là où tu t’étais arrêté.</span>
+                    <Button variant="link" size="sm" className="h-auto p-0" disabled={submitting} onClick={recommencer}>
+                        Recommencer
+                    </Button>
+                </div>
+            )}
             <div className="flex items-center justify-between">
                 <ExerciseProgress current={currentIndex + 1} total={questions.length} />
-                <ExerciseTimer onTimeUpdate={handleTimeUpdate} />
+                <ExerciseTimer key={generation} onTimeUpdate={handleTimeUpdate} decalage={tempsDejaPasse.current} />
             </div>
 
             {/* Passage / Content — hidden for LISTENING (the passage is the transcript
@@ -280,7 +349,7 @@ export function ExercisePlayer({ exercise, submitUrl }: ExercisePlayerProps) {
 
             <ExerciseErrorBoundary resetKey={question.id} onSkip={() => handleAnswer(question.id, '__skipped__')}>
                 <Component
-                    key={question.id}
+                    key={`${question.id}-${generation}`}
                     question={question}
                     onAnswer={handleAnswer}
                     selectedAnswer={answers[question.id]}

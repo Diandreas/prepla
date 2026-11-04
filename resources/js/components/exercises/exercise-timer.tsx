@@ -4,9 +4,13 @@ interface ExerciseTimerProps {
     onTimeUpdate: (seconds: number) => void;
     onExpire?: () => void;
     timeLimit?: number; // in seconds — if provided, counts DOWN
+    // Secondes deja passees avant une reprise : ajoutees a l'AFFICHAGE seulement.
+    // onTimeUpdate ne rapporte que le temps de cette ouverture, que le lecteur
+    // additionne lui-meme au temps sauvegarde.
+    decalage?: number;
 }
 
-export function ExerciseTimer({ onTimeUpdate, onExpire, timeLimit }: ExerciseTimerProps) {
+export function ExerciseTimer({ onTimeUpdate, onExpire, timeLimit, decalage = 0 }: ExerciseTimerProps) {
     const isCountdown = !!timeLimit;
     const [seconds, setSeconds] = useState(isCountdown ? timeLimit! : 0);
     const expiredRef = useRef(false);
@@ -58,7 +62,7 @@ export function ExerciseTimer({ onTimeUpdate, onExpire, timeLimit }: ExerciseTim
         }
     }, [seconds, isCountdown, timeLimit, onTimeUpdate, onExpire]);
 
-    const display = isCountdown ? seconds : seconds;
+    const display = isCountdown ? seconds : seconds + decalage;
     const mins = Math.floor(display / 60);
     const secs = display % 60;
 
