@@ -15,6 +15,7 @@ interface Center {
 interface Semaine { eleves: number; actifs: number; exercices: number; minutes: number }
 interface Classe { id: number; name: string; level: string | null; enseignants: string[]; eleves: number; derniere_activite: string | null }
 interface ARelancer { id: number; name: string; derniere_activite: string | null }
+interface ActifsMois { eleves: number; palier: string }
 
 function Stat({ label, value, detail, href }: { label: string; value: React.ReactNode; detail?: string; href?: string }) {
     const inner = (
@@ -47,11 +48,13 @@ export default function CenterDashboard({
     semaine,
     classes,
     a_relancer,
+    actifs_mois = null,
 }: {
     center: Center;
     semaine: Semaine;
     classes: Classe[];
     a_relancer: ARelancer[];
+    actifs_mois?: ActifsMois | null;
 }) {
     const { auth } = usePage().props as unknown as { auth?: { center?: { role?: string } } };
     const responsable = auth?.center?.role === 'center_admin';
@@ -98,6 +101,13 @@ export default function CenterDashboard({
                         detail={`${Math.max(0, center.seats_limit - center.seats_used)} restantes`}
                     />
                 </div>
+
+                {responsable && actifs_mois && (
+                    <p className="text-xs text-muted-foreground">
+                        Élèves actifs ce mois-ci : <span className="font-medium tabular-nums text-foreground">{actifs_mois.eleves}</span> (palier{' '}
+                        {actifs_mois.palier === 'reseau' ? 'réseau' : actifs_mois.palier})
+                    </p>
+                )}
 
                 {a_relancer.length > 0 && (
                     <Card className="border-amber-300/70 dark:border-amber-900">

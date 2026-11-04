@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { CHAMP_SAISIE } from './choice-option';
 
 interface Note {
     label: string;
@@ -52,7 +53,7 @@ export function NoteCompletion({ question, onAnswer, selectedAnswer, disabled }:
 
     return (
         <div className="space-y-4">
-            {(question.title || question.text) && <p className="text-lg font-bold">{question.title ?? question.text}</p>}
+            {(question.title || question.text) && <p data-enonce className="lecteur-enonce">{question.title ?? question.text}</p>}
 
             {blankAbsIndices.length === 0 ? (
                 <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
@@ -65,19 +66,19 @@ export function NoteCompletion({ question, onAnswer, selectedAnswer, disabled }:
                         if (!isBlankNote(note)) {
                             return (
                                 <div key={i} className="flex items-center gap-2">
-                                    <span className="text-sm font-medium">{note.label}{note.value ? `: ${note.value}` : ''}</span>
+                                    <span className="text-[0.9375rem] font-medium">{note.label}{note.value ? `: ${note.value}` : ''}</span>
                                 </div>
                             );
                         }
                         return (
                             <div key={i} className="flex flex-col gap-2 py-2">
-                                <label htmlFor={`note-${question.id}-${i}`} className="text-sm font-medium">{note.label}</label>
+                                <label htmlFor={`note-${question.id}-${i}`} className="text-[0.9375rem] font-medium">{note.label}</label>
                                 <input
                                     id={`note-${question.id}-${i}`}
                                     type="text"
                                     value={values[String(i)] ?? ''}
                                     onChange={(e) => setValue(String(i), e.target.value)}
-                                    className="w-full min-w-0 rounded border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none disabled:opacity-50"
+                                    className={CHAMP_SAISIE}
                                     disabled={disabled}
                                     placeholder="À compléter…"
                                 />

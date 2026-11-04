@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Menu } from 'lucide-react';
 import { Link, usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
-import type { SharedData } from '@/types';
+import type { Marque, SharedData } from '@/types';
 import { useAppearance } from '@/hooks/use-appearance';
 import { useState, useEffect, useRef } from 'react';
 import i18n from '@/lib/i18n/i18n';
@@ -103,6 +103,9 @@ export function AppSidebarHeader() {
     const { toggleSidebar } = useSidebar();
     const page = usePage<SharedData & { userProfile?: any }>();
     const { userProfile, isPremium, freeExercisesUsedToday, freeExercisesLimit } = page.props;
+    // Le compteur suit le middleware : un responsable d'espace libre-service est
+    // limite, il doit le voir avant d'etre bloque.
+    const quotaExempt = (page.props as { quotaExempt?: boolean }).quotaExempt ?? false;
     const url = page.url ?? '';
 
     // Le staff d'un centre (admin/prof) n'a pas de pratique d'élève — quota
@@ -113,7 +116,9 @@ export function AppSidebarHeader() {
 
     // Find current page title (resolve its i18n key; fall back to the brand name)
     const titleKey = PAGE_TITLE_KEYS.find(([path]) => url === path || url.startsWith(path + '/'))?.[1];
-    const pageTitle = titleKey ? t(`page_titles.${titleKey}`) : 'PrePla';
+    // Un centre en marque blanche remplace PrePla jusque dans ce titre par defaut.
+    const marque = (page.props as { marque?: Marque }).marque;
+    const pageTitle = titleKey ? t(`page_titles.${titleKey}`) : (marque?.masquer_prepla ? marque.nom : 'PrePla');
 
     // i18n est initialisé une seule fois au tout premier chargement de page
     // (createInertiaApp.setup, voir app.tsx) — la connexion se fait en
@@ -176,7 +181,15 @@ export function AppSidebarHeader() {
 
             {/* Right: a single discreet stat group + theme toggle */}
             <div className="flex items-center gap-2">
-                {!isPremium && !isCenterStaff && (
+                {!isPremium && !quotaExempt && (marque?.masquer_prepla ? (
+                    // Marque blanche : le compteur reste, sans mener a l'offre PrePla Plus.
+                    <span
+                        className="hidden items-center gap-1 rounded-full border border-amber-300/60 bg-amber-50 px-3 py-1 text-xs font-black tabular-nums text-amber-700 dark:bg-amber-950/30 dark:text-amber-300 sm:flex"
+                        title="Exercices gratuits aujourd'hui"
+                    >
+                        {freeExercisesUsedToday}/{freeExercisesLimit}
+                    </span>
+                ) : (
                     <Link
                         href={route('subscription.index')}
                         className="hidden items-center gap-1 rounded-full border border-amber-300/60 bg-amber-50 px-3 py-1 text-xs font-black tabular-nums text-amber-700 dark:bg-amber-950/30 dark:text-amber-300 sm:flex"
@@ -184,7 +197,7 @@ export function AppSidebarHeader() {
                     >
                         {freeExercisesUsedToday}/{freeExercisesLimit}
                     </Link>
-                )}
+                ))}
                 {!isCenterStaff && (
                     <div className="flex items-center gap-3 rounded-full border border-border/60 bg-card/60 px-3 py-1">
                         <span className={`flex items-center gap-1 text-xs font-black tabular-nums ${streakBump ? 'value-bump' : ''}`} style={{ color: '#F97316' }}>

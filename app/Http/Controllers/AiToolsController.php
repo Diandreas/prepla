@@ -21,7 +21,8 @@ class AiToolsController extends Controller
 
     public function generator(): Response
     {
-        $exams = Exam::proposables()->with(['language', 'sections.exerciseTypes'])->get();
+        // Les examens du centre de la personne, s'il en a retenu.
+        $exams = Exam::proposables(auth()->user()->center())->with(['language', 'sections.exerciseTypes'])->get();
         $profile = auth()->user()->profile;
 
         return Inertia::render('ai-tools/generator', [

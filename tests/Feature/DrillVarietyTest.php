@@ -71,8 +71,10 @@ function drillDone(User $user, Exercise $exercise): void
 beforeEach(fn () => Http::preventStrayRequests());
 
 test('un exercice jamais fait est prefere, sans appeler l IA', function () {
-    [$exam, $type, $user] = drillWorld();
-    $unseen = drillExercise($exam, $type);
+    // Au B1 : jusqu'au A2, la serie preparee passe avant le vivier ecrit a la
+    // main (voir QualiteDuVivierTest).
+    [$exam, $type, $user] = drillWorld('B1');
+    $unseen = drillExercise($exam, $type, 'B1');
 
     $this->mock(ExerciseGeneratorService::class, fn ($mock) => $mock->shouldNotReceive('generate'));
 

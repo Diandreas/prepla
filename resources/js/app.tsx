@@ -7,6 +7,7 @@ import { route as routeFn } from 'ziggy-js';
 import { PwaUpdatePrompt } from './components/pwa-update-prompt';
 import { initializeTheme } from './hooks/use-appearance';
 import { suivreLeCentreAffiche } from './lib/centre-affiche';
+import { nomDuSiteCourant, suivreLaMarque } from './lib/marque-courante';
 import i18n from './lib/i18n/i18n';
 import { preloadAssets } from './lib/preload-assets';
 
@@ -29,13 +30,16 @@ const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 let visiteurConnecte = false;
 
 createInertiaApp({
-    title: (title) => `${title} - ${appName}`,
+    // Le nom du site suit la marque : un centre en marque blanche remplace PrePla.
+    title: (title) => `${title} - ${nomDuSiteCourant()}`,
     resolve: (name) => resolvePageComponent(`./pages/${name}.tsx`, import.meta.glob('./pages/**/*.tsx')),
     setup({ el, App, props }) {
         const root = createRoot(el);
 
         // Une ecriture ne part que dans le centre que la page affiche.
         suivreLeCentreAffiche(props.initialPage);
+        // Couleurs et nom du centre, avant le premier rendu (le titre en depend).
+        suivreLaMarque(props.initialPage, appName);
         visiteurConnecte = !!(props.initialPage.props as InitialPageProps).auth?.user;
 
         // Initialize i18n language from user profile if authenticated

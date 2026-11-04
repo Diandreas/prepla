@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { CHAMP_DANS_LA_PHRASE } from './choice-option';
 
 interface OpenClozeProps {
     question: {
@@ -41,7 +42,7 @@ export function OpenCloze({ question, onAnswer, selectedAnswer, disabled }: Open
 
     return (
         <div className="space-y-4">
-            <div className="rounded-xl border bg-muted/30 p-6 leading-relaxed text-sm">
+            <div data-enonce className="rounded-2xl border-[1.5px] bg-muted/30 p-4 text-base leading-[3.25rem] sm:p-6">
                 {parts.map((part, i) => (
                     <span key={i}>
                         {part}
@@ -50,7 +51,11 @@ export function OpenCloze({ question, onAnswer, selectedAnswer, disabled }: Open
                                 type="text"
                                 value={values[String(i + 1)] ?? ''}
                                 onChange={(e) => handleChange(i, e.target.value)}
-                                className="mx-1 inline-block w-24 rounded border-b-2 border-primary bg-background px-2 py-0.5 text-center text-sm focus:outline-none disabled:opacity-50"
+                                aria-label={`Blanc ${i + 1} sur ${gapCount}`}
+                                autoComplete="off"
+                                autoCapitalize="off"
+                                spellCheck={false}
+                                className={`${CHAMP_DANS_LA_PHRASE} w-32`}
                                 disabled={disabled}
                                 placeholder={`(${i + 1})`}
                             />

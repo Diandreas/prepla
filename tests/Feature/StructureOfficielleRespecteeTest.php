@@ -47,7 +47,10 @@ function reponseIAStructure(int $questions): string
     }
 
     return json_encode([
-        'content' => ['title' => 'Test', 'instructions' => 'Lis.', 'passage' => 'Ein Text.'],
+        // Un texte a la longueur d'un B1 (200 a 300 mots) : le generateur
+        // refuse desormais un texte trop court pour le niveau.
+        'content' => ['title' => 'Test', 'instructions' => 'Lis.',
+            'passage' => trim(str_repeat('Der Zug nach Berlin fährt heute später ab, weil es stark schneit. ', 20))],
         'questions' => $liste,
     ]);
 }

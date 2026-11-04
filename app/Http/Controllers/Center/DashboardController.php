@@ -7,6 +7,7 @@ use App\Models\Classroom;
 use App\Models\LanguageCenter;
 use App\Models\User;
 use App\Models\UserExerciseAttempt;
+use App\Services\Center\ElevesActifs;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
@@ -64,6 +65,15 @@ class DashboardController extends Controller
                 'seats_used' => $center->seatsUsed(),
                 'classrooms_count' => $center->classrooms_count,
             ],
+            // Eleves actifs du mois civil en cours (Douala) et palier : au
+            // responsable seul, c'est ce qui fonde la facture du centre.
+            'actifs_mois' => $actor->centerRoleIs('center_admin')
+                ? (function () use ($center) {
+                    $n = app(ElevesActifs::class)->compter($center->id, ElevesActifs::moisCourant());
+
+                    return ['eleves' => $n, 'palier' => ElevesActifs::palier($n)];
+                })()
+                : null,
             'semaine' => [
                 'eleves' => $eleves->count(),
                 'actifs' => (int) ($semaine->actifs ?? 0),

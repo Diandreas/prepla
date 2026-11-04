@@ -76,7 +76,7 @@ class ExerciseBuilderController extends Controller
 
         $validated = $request->validate([
             'exercise_type_id' => 'required|exists:exercise_types,id',
-            'exam_id' => 'required|exists:exams,id',
+            'exam_id' => ['required', 'exists:exams,id', new \App\Rules\ExamenDuCentre($center)],
             'difficulty' => 'required|in:A1,A2,B1,B2,C1,C2',
         ]);
 
@@ -166,7 +166,8 @@ class ExerciseBuilderController extends Controller
                     'skill_type' => $t->skill_type,
                     'exam_id' => $t->section?->exam_id,
                 ]),
-            'exams' => Exam::proposables()->get(['id', 'name']),
+            // Seulement les examens que le centre propose (personnalisation).
+            'exams' => Exam::proposables($center)->get(['id', 'name']),
             'defaultExamId' => $center->default_exam_id,
         ];
     }

@@ -1,4 +1,6 @@
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { LogoDeCentre } from '@/components/app-logo';
+import type { Marque } from '@/types';
 import AuthLayout from '@/layouts/auth-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +28,13 @@ interface InvitationDetails {
  */
 export default function AcceptInvitation({ token, invitation }: { token: string; invitation: InvitationDetails | null }) {
     const form = useForm({ password: '', password_confirmation: '', phone: '' });
+    // La marque du centre qui invite (passee par TeacherInvitationController::show).
+    const marque = (usePage().props as { marque?: Marque }).marque;
+    const bandeau = marque && marque.centre_id != null ? (
+        <div className="flex items-center rounded-xl border border-border p-2.5">
+            <LogoDeCentre nom={marque.nom} logoUrl={marque.logo_url} masquerPrepla={marque.masquer_prepla} />
+        </div>
+    ) : null;
 
     function submit(event: React.FormEvent) {
         event.preventDefault();
@@ -64,6 +73,7 @@ export default function AcceptInvitation({ token, invitation }: { token: string;
             <AuthLayout title={`Rejoindre ${invitation.space ?? 'cet espace'}`} description="Tu as déjà ton compte : il suffit de rejoindre l'espace.">
                 <Head title="Rejoindre l'espace" />
                 <div className="flex flex-col gap-5">
+                    {bandeau}
                     {resume}
                     <Button onClick={() => router.post(route('teach.invitation.accept', token))} className="w-full">
                         Rejoindre l'espace
@@ -82,6 +92,7 @@ export default function AcceptInvitation({ token, invitation }: { token: string;
             <AuthLayout title={`Bienvenue, ${invitation.name.split(' ')[0]}`} description="Tu as déjà un compte avec cette adresse.">
                 <Head title="Rejoindre l'espace" />
                 <div className="flex flex-col gap-5">
+                    {bandeau}
                     {resume}
                     <Button asChild className="w-full">
                         <Link href={route('login')}>Me connecter pour rejoindre</Link>
@@ -101,9 +112,10 @@ export default function AcceptInvitation({ token, invitation }: { token: string;
                 ? `Tu rejoins l'espace ${invitation.space} comme professeur.`
                 : 'Choisis ton mot de passe, ton espace est déjà prêt.'}
         >
-            <Head title="Rejoindre PrePla" />
+            <Head title={`Rejoindre ${marque?.masquer_prepla ? marque.nom : 'PrePla'}`} />
 
             <form onSubmit={submit} className="flex flex-col gap-5">
+                {bandeau}
                 <div className="rounded-xl border border-border bg-muted/40 p-3 text-sm">
                     <p className="font-semibold">{invitation.name}</p>
                     <p className="text-muted-foreground">{invitation.email}</p>

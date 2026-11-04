@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Headphones, PenLine, Puzzle, Sparkles } from 'lucide-react';
 import { EssaiEntete } from '@/components/essai/essai-entete';
+import { useApparenceEnregistree } from '@/hooks/use-appearance';
 
 interface ExerciceCarte {
     id: number;
@@ -52,6 +53,7 @@ const COMPETENCES: Record<string, { nom: string; icone: typeof BookOpen }> = {
  * voir.
  */
 export default function EssaiIndex({ langues, langueChoisie = null, examenChoisi = null }: Props) {
+    useApparenceEnregistree();
     const [choisie, setChoisie] = useState(langueChoisie ?? langues[0]?.slug ?? '');
     const langue = langues.find((l) => l.slug === choisie);
 
@@ -66,7 +68,7 @@ export default function EssaiIndex({ langues, langueChoisie = null, examenChoisi
     return (
         <>
             <Head title="Essayer sans compte" />
-            <div className="min-h-screen bg-background">
+            <div className="palette-lecteur min-h-screen bg-background">
                 <EssaiEntete />
 
                 <main className="mx-auto max-w-5xl px-4 pb-20 pt-10">

@@ -61,9 +61,18 @@ class OnboardingController extends Controller
 
     public function examSelect(): Response
     {
+        // L'eleve d'un centre ne choisit que parmi les examens que son centre
+        // propose ; une langue sans examen retenu disparait de la liste.
+        $centre = auth()->user()?->center();
+        $retenus = $centre?->examensRetenus();
+
         $languages = Language::where('is_active', true)
-            ->with('exams')
+            ->with(['exams' => fn ($q) => $retenus === null ? $q : $q->whereIn('exams.id', $retenus)])
             ->get();
+
+        if ($retenus !== null) {
+            $languages = $languages->filter(fn (Language $l) => $l->exams->isNotEmpty())->values();
+        }
 
         return Inertia::render('onboarding/exam-select', [
             'languages' => $languages,
@@ -73,7 +82,7 @@ class OnboardingController extends Controller
     public function storeExam(Request $request)
     {
         $validated = $request->validate([
-            'exam_id' => 'required|exists:exams,id',
+            'exam_id' => ['required', 'exists:exams,id', new \App\Rules\ExamenDuCentre($request->user()->center())],
         ]);
 
         UserProfile::updateOrCreate(

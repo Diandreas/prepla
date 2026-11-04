@@ -3,7 +3,7 @@ import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { SUPPORT_WHATSAPP_URL } from '@/lib/contact';
-import { type NavItem } from '@/types';
+import { type Marque, type MenusDisponibles, type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -30,6 +30,11 @@ export function AppSidebar() {
     const { auth } = page.props as any;
     const role: string | undefined = auth?.role;
     const centerRole: string | undefined = auth?.center?.role;
+    // Une page livree par lot n'entre au menu que si sa route existe cote serveur.
+    const menus = (page.props as { menus?: MenusDisponibles }).menus;
+    // En marque blanche, le lien du logo porte le nom du centre, pas PrePla.
+    const marque = (page.props as { marque?: Marque }).marque;
+    const nomDuSite = marque?.masquer_prepla ? marque.nom : 'PrePla';
 
     // Sur telephone le menu est un tiroir : sans cela il reste ouvert par-dessus
     // la page d'arrivee quand on touche une entree. On le referme a chaque
@@ -46,6 +51,9 @@ export function AppSidebar() {
     if (role === 'super_admin') {
         mainNavItems = [
             { title: 'Centres', url: '/admin/centers', icon: () => <SidebarIcon name="layout-grid" /> },
+            ...(menus?.releves
+                ? [{ title: 'Relevés', url: '/admin/releves', icon: () => <SidebarIcon name="statistics" /> }]
+                : []),
         ];
     } else if (centerRole === 'center_admin' || centerRole === 'teacher') {
         mainNavItems = [
@@ -59,6 +67,16 @@ export function AppSidebar() {
                 : []),
             { title: 'Contenu', url: '/center/exercises', icon: () => <SidebarIcon name="puzzle" /> },
             { title: 'Devoirs', url: '/center/assignments', icon: () => <SidebarIcon name="tasks" /> },
+            // Configuration du centre : au responsable seul, comme l'Equipe.
+            ...(centerRole === 'center_admin' && menus?.personnalisation
+                ? [{ title: 'Personnalisation', url: '/center/personnalisation', icon: () => <SidebarIcon name="settings" /> }]
+                : []),
+            ...(centerRole === 'center_admin' && menus?.acces
+                ? [{ title: 'Accès vendus', url: '/center/acces', icon: () => <SidebarIcon name="tasks" /> }]
+                : []),
+            ...(centerRole === 'center_admin' && menus?.parrainage
+                ? [{ title: 'Parrainage', url: '/center/parrainage', icon: () => <SidebarIcon name="users" /> }]
+                : []),
         ];
     } else {
         mainNavItems = [
@@ -114,7 +132,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href="/dashboard" aria-label="PrePla — Accueil" prefetch>
+                            <Link href="/dashboard" aria-label={`${nomDuSite} — Accueil`} prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>

@@ -1,4 +1,6 @@
+import { Check, X } from 'lucide-react';
 import { useState } from 'react';
+import { ChoiceOption, lettreDuChoix, verdictDuChoix } from './choice-option';
 import { normalizeOptions } from './normalize-options';
 import { illustrationUrl } from '@/lib/illustration';
 
@@ -21,12 +23,14 @@ interface PictureMcqProps {
     onAnswer: (questionId: string, answer: string) => void;
     selectedAnswer?: string;
     disabled?: boolean;
+    /** Correction montree ; par defaut `disabled`, comme avant (voir mcq.tsx). */
+    revealed?: boolean;
 }
 
 const liste = (v: unknown): string[] =>
     Array.isArray(v) ? v.filter((u): u is string => typeof u === 'string' && u.trim() !== '') : [];
 
-export function PictureMcq({ question, onAnswer, selectedAnswer, disabled }: PictureMcqProps) {
+export function PictureMcq({ question, onAnswer, selectedAnswer, disabled, revealed = disabled }: PictureMcqProps) {
     const labels = normalizeOptions(question.options);
 
     // UNE source, pas un melange. `prepla:fabriquer-medias` range les images sur
@@ -64,19 +68,28 @@ export function PictureMcq({ question, onAnswer, selectedAnswer, disabled }: Pic
     const urls = echecImage ? [] : candidates;
 
     if (urls.length === 0) {
-        // No images available → degrade gracefully to a text label list.
+        // Pas d'images : la liste de mots, avec le MEME choix que le QCM. Avant, ces
+        // questions changeaient de style en cours d'exercice (« A. » en gras, sans
+        // pastille, sans etat annonce ni correction).
         return (
-            <div className="space-y-3">
-                {question.text && <p className="text-lg font-medium">{question.text}</p>}
-                <div className="grid gap-2">
+            <div className="space-y-4">
+                {question.text && <p data-enonce className="lecteur-enonce whitespace-pre-line">{question.text}</p>}
+                <div className="grid gap-2.5">
                     {labels.map((opt, i) => {
-                        const letter = String.fromCharCode(65 + i);
+                        const letter = lettreDuChoix(i);
                         const sel = (selectedAnswer ?? '').toUpperCase() === letter;
                         return (
-                            <button key={i} onClick={() => !disabled && onAnswer(question.id, letter)} disabled={disabled}
-                                className={`rounded-xl border-2 p-3 text-left text-sm ${sel ? 'border-primary bg-primary/5' : 'border-border'}`}>
-                                <span className="mr-2 font-bold">{letter}.</span>{opt}
-                            </button>
+                            <ChoiceOption
+                                key={i}
+                                index={i}
+                                letter={letter}
+                                selected={sel}
+                                verdict={verdictDuChoix(!!revealed, correct, letter, sel)}
+                                disabled={disabled}
+                                onSelect={() => onAnswer(question.id, letter)}
+                            >
+                                {opt}
+                            </ChoiceOption>
                         );
                     })}
                 </div>
@@ -85,40 +98,66 @@ export function PictureMcq({ question, onAnswer, selectedAnswer, disabled }: Pic
     }
 
     return (
-        <div className="space-y-3">
-            {question.text && <p className="text-lg font-medium">{question.text}</p>}
-            <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-4">
+            {question.text && <p data-enonce className="lecteur-enonce whitespace-pre-line">{question.text}</p>}
+            {/* Trois colonnes des le petit ecran et une hauteur bornee : en deux
+                colonnes, chaque image faisait 418 px de large sur ordinateur, la
+                troisieme passait seule a la ligne et « Suivant » tombait tres bas. */}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {urls.map((url, i) => {
-                    const letter = String.fromCharCode(65 + i);
+                    const letter = lettreDuChoix(i);
                     const sel = (selectedAnswer ?? '').toUpperCase() === letter;
-                    const isCorrect = disabled && correct === letter;
-                    const isWrong = disabled && sel && correct !== letter;
+                    const verdict = verdictDuChoix(!!revealed, correct, letter, sel);
+                    const isCorrect = verdict === 'juste';
+                    const isWrong = verdict === 'faux';
                     return (
                         <button
                             key={i}
+                            type="button"
+                            data-choix={i}
+                            aria-pressed={sel}
                             onClick={() => !disabled && onAnswer(question.id, letter)}
                             disabled={disabled}
-                            className={`relative overflow-hidden rounded-2xl border-4 transition-all ${
-                                isCorrect ? 'border-emerald-400'
-                                : isWrong ? 'border-red-400'
-                                : sel ? 'border-primary' : 'border-transparent ring-1 ring-border'}`}
+                            className={`relative overflow-hidden rounded-2xl border-[3px] bg-card text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+                                isCorrect ? 'border-emerald-600 dark:border-emerald-400'
+                                : isWrong ? 'border-red-600 dark:border-red-400'
+                                : sel ? 'border-primary' : 'border-border enabled:hover:border-primary/60'}`}
                         >
                             <img
                                 src={url}
-                                alt={`Option ${letter}`}
+                                alt={labels[i] ? `Option ${letter} : ${labels[i]}` : `Option ${letter}`}
                                 loading="lazy"
                                 onError={() => setQuestionEnEchec(question.id)}
-                                className="aspect-[4/3] w-full object-cover bg-muted"
+                                className="aspect-[4/3] max-h-48 w-full bg-muted object-cover"
                             />
-                            <span className={`absolute left-2 top-2 flex h-7 w-7 items-center justify-center rounded-full text-xs font-black ${sel || isCorrect ? 'bg-primary text-white' : 'bg-white/90 text-foreground'}`}>
+                            {/* Pastille lisible dans les deux themes : fond et texte fixes.
+                                « bg-white/90 text-foreground » donnait blanc sur blanc en sombre. */}
+                            <span
+                                aria-hidden="true"
+                                className={`absolute left-2 top-2 flex h-7 w-7 items-center justify-center rounded-full text-sm font-black shadow ${
+                                    isCorrect ? 'bg-emerald-700 text-white' : isWrong ? 'bg-red-700 text-white' : sel ? 'bg-primary text-primary-foreground' : 'bg-white text-slate-900'
+                                }`}
+                            >
                                 {letter}
                             </span>
-                            {labels[i] && <span className="block px-2 py-1 text-center text-[11px] font-medium">{labels[i]}</span>}
+                            {isCorrect && (
+                                <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-emerald-700 text-white shadow">
+                                    <Check aria-hidden="true" className="h-4 w-4" />
+                                    <span className="sr-only">Bonne réponse</span>
+                                </span>
+                            )}
+                            {isWrong && (
+                                <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-red-700 text-white shadow">
+                                    <X aria-hidden="true" className="h-4 w-4" />
+                                    <span className="sr-only">Réponse incorrecte</span>
+                                </span>
+                            )}
+                            {labels[i] && <span className="block px-2 py-1.5 text-center text-[0.8125rem] font-medium">{labels[i]}</span>}
                             {/* Les photographies de Wikimedia Commons sont souvent sous CC BY ou
                                 CC BY-SA : citer l'auteur et la licence n'est pas une politesse,
                                 c'est la condition pour s'en servir. Vide quand rien n'est du. */}
                             {credits[i] && (
-                                <span className="block px-2 pb-1 text-center text-[9px] leading-tight text-muted-foreground">
+                                <span className="block px-2 pb-1.5 text-center text-xs leading-tight text-muted-foreground">
                                     {credits[i]}
                                 </span>
                             )}

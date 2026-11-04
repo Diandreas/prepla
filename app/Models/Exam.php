@@ -43,10 +43,20 @@ class Exam extends Model
      *
      * Les ecrans de super-administration, eux, ne filtrent pas : il faut pouvoir
      * voir ce qu'on a masque.
+     *
+     * Avec un centre : seulement les examens qu'il a retenus (table center_exam),
+     * ou tous s'il n'en a retenu aucun. On filtre la liste ; chaque examen garde
+     * sa propre structure, rien n'est fusionne.
      */
-    public function scopeProposables($query)
+    public function scopeProposables($query, ?LanguageCenter $centre = null)
     {
-        return $query->whereHas('language', fn ($q) => $q->where('is_active', true));
+        $query->whereHas('language', fn ($q) => $q->where('is_active', true));
+
+        if ($centre !== null && ($retenus = $centre->examensRetenus()) !== null) {
+            $query->whereIn($this->qualifyColumn('id'), $retenus);
+        }
+
+        return $query;
     }
 
     public function sections(): HasMany

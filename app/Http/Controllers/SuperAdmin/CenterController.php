@@ -134,6 +134,10 @@ class CenterController extends Controller
                 'default_exam_id' => $center->default_exam_id,
                 'default_exam' => $center->defaultExam?->name,
                 'owner_email' => $center->owner_email,
+                // Formule commerciale (lot C) : paliers, revente ou libre_service.
+                'formule' => $center->formule(),
+                'prix_acces' => $center->prix_acces,
+                'duree_acces_jours' => $center->duree_acces_jours,
             ],
             'staff' => $staff,
             'classrooms' => $center->classrooms->map(fn ($c) => [
@@ -142,6 +146,9 @@ class CenterController extends Controller
                 'invite_code' => $c->invite_code,
             ]),
             'exams' => Exam::get(['id', 'name']),
+            // Sous-domaines et domaines propres (lot B).
+            'domaines' => DomaineController::pourLaPage($center),
+            'domainesReglages' => DomaineController::reglages(),
         ]);
     }
 
@@ -157,6 +164,43 @@ class CenterController extends Controller
         $center->update($validated);
 
         return back()->with('success', 'Centre mis à jour.');
+    }
+
+    /**
+     * La formule du centre et le prix d'un acces vendu. Seul le super
+     * administrateur la choisit : la revente fait retomber les eleves du centre
+     * dans le quota gratuit, sauf ceux a qui le centre ouvre un acces.
+     *
+     * La colonne et le marqueur settings.libre_service restent d'accord : c'est
+     * le marqueur qui decide de l'exemption du personnel (exempteSonPersonnelDuQuota).
+     */
+    public function formule(Request $request, LanguageCenter $center)
+    {
+        $validated = $request->validate([
+            'formule' => ['required', \Illuminate\Validation\Rule::in(LanguageCenter::FORMULES)],
+            'prix_acces' => ['nullable', 'integer', 'min:0', 'max:10000000'],
+            'duree_acces_jours' => ['nullable', 'integer', 'min:1', 'max:366'],
+        ]);
+
+        $settings = $center->settings ?? [];
+        if ($validated['formule'] === LanguageCenter::FORMULE_LIBRE_SERVICE) {
+            $settings[LanguageCenter::LIBRE_SERVICE] = true;
+        } else {
+            unset($settings[LanguageCenter::LIBRE_SERVICE]);
+        }
+
+        $center->update([
+            'formule' => $validated['formule'],
+            'prix_acces' => $validated['prix_acces'] ?? null,
+            'duree_acces_jours' => $validated['duree_acces_jours'] ?? null,
+            'settings' => $settings ?: null,
+        ]);
+
+        \Illuminate\Support\Facades\Log::info('acces-vendus: formule du centre changee', [
+            'center_id' => $center->id, 'formule' => $validated['formule'], 'par' => $request->user()->id,
+        ]);
+
+        return back()->with('success', 'Formule du centre mise à jour.');
     }
 
     public function destroy(LanguageCenter $center)

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
+use App\Services\Center\Marque;
+use Illuminate\Http\RedirectResponse;
 use App\Services\Billing\TarifsAffiches;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -21,10 +23,19 @@ class SubscriptionController extends Controller
         ];
     }
 
-    public function index(): Response
+    public function index(): Response|RedirectResponse
     {
         $user = auth()->user();
         $profile = $user->profile;
+
+        // Centre en marque blanche : pas d'offre PrePla Plus (Marque::offrePrePlaMasquee).
+        // Le message qui a conduit ici (limite atteinte...) suit jusqu'au tableau
+        // de bord : sans cela, cette redirection intermediaire le consommait.
+        if (app(Marque::class)->offrePrePlaMasquee($user)) {
+            session()->reflash();
+
+            return redirect()->route('dashboard');
+        }
 
         $isSubscribed = $user->subscribed('default');
         $subscription = $user->subscription('default');
@@ -70,10 +81,15 @@ class SubscriptionController extends Controller
 
     public function checkout(Request $request)
     {
+        $user = auth()->user();
+
+        // Centre en marque blanche : pas d'offre PrePla Plus (Marque::offrePrePlaMasquee).
+        if (app(Marque::class)->offrePrePlaMasquee($user)) {
+            return redirect()->route('dashboard');
+        }
+
         $known = array_values(array_filter($this->prices()));
         $request->validate(['price_id' => ['required', 'string', Rule::in($known)]]);
-
-        $user = auth()->user();
 
         // Without this guard, a double-click or two concurrent requests each
         // create a separate Stripe Checkout Session; if both get completed

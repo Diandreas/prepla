@@ -16,7 +16,13 @@
         {{-- Chaque page publique de l'application a son titre, par nom de route
              (config/seo.php). Avant, l'accueil, l'inscription et la connexion
              annoncaient tous le meme. Inertia le remplace ensuite cote client. --}}
-        <title inertia>{{ \App\Support\Referencement::pour()['titre'] }} — PrePla</title>
+        {{-- La marque de la page (app/Services/Center/Marque.php) : un centre en
+             marque blanche remplace PrePla dans le titre, et ses couleurs sont
+             posees des le premier affichage (resources/js/lib/marque-centre.js
+             les tient ensuite a jour d'une page a l'autre). --}}
+        @php($marquePage = $page['props']['marque'] ?? null)
+        <title inertia>{{ \App\Support\Referencement::pour()['titre'] }} — {{ ($marquePage['masquer_prepla'] ?? false) ? $marquePage['nom'] : 'PrePla' }}</title>
+        @include('partials.marque-centre', ['marque' => $marquePage])
 
         @include('partials.meta')
 

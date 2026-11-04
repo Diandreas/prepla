@@ -35,6 +35,22 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(Registered::class, SendWelcomeEmail::class);
         Event::listen(WebhookHandled::class, HandleCashierWebhook::class);
 
+        // Commission de parrainage (lot D) : sans modifier HandleCashierWebhook,
+        // un listener sur WebhookReceived (et non WebhookHandled, que Cashier
+        // n'emet pas pour charge.refunded). Son unicite vient de la base
+        // (stripe_invoice_id unique), pas du cache.
+        // App\Listeners\EnregistrerCommission n'est PAS enregistre ici : la
+        // decouverte automatique de Laravel (app/Listeners, methode handle typee)
+        // le branche deja. L'ajouter ici le ferait tourner deux fois par
+        // evenement (php artisan event:list le montre).
+
+        // Periodes d'appartenance aux centres (lot E) : l'observer ecrit l'entree
+        // et la sortie de chaque membre, pour compter un eleve parti en cours de mois.
+        // members()->attach()/detach() et les suppressions par requete n'y passent
+        // pas : les controleurs utilisent CenterUser::create() et $lien->delete(),
+        // et centres:actifs rattrape le reste (PeriodesAppartenance::reconcilier).
+        \App\Models\CenterUser::observe(\App\Observers\CenterUserObserver::class);
+
         // Some local PHP builds ship without a CA store: point outbound HTTPS at a bundle
         // rather than disabling certificate verification.
         if ($caBundle = config('services.http.ca_bundle')) {

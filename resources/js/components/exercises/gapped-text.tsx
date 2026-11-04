@@ -94,7 +94,7 @@ export function GappedText({ question, onAnswer, selectedAnswer, disabled }: Gap
 
     return (
         <div className="space-y-5">
-            {question.text && <p className="text-sm font-medium">{question.text}</p>}
+            {question.text && <p data-enonce className="lecteur-enonce">{question.text}</p>}
 
             {/* Passage with gaps */}
             <div className="space-y-3">
@@ -102,7 +102,7 @@ export function GappedText({ question, onAnswer, selectedAnswer, disabled }: Gap
                     if (node.type === 'text') {
                         if (!node.value) return null;
                         return (
-                            <p key={i} className="rounded-lg bg-muted/30 p-3 text-sm leading-relaxed">{node.value}</p>
+                            <p key={i} className="lecteur-passage rounded-xl bg-muted/30 p-3">{node.value}</p>
                         );
                     }
                     const gapKey = String(node.gapIndex);
@@ -110,27 +110,28 @@ export function GappedText({ question, onAnswer, selectedAnswer, disabled }: Gap
                     return (
                         <button
                             key={i}
+                            type="button"
                             onClick={() => handleGapClick(gapKey)}
                             disabled={disabled}
-                            className={`w-full rounded-xl border-2 border-dashed p-4 text-left text-sm transition-all ${
+                            className={`min-h-14 w-full rounded-2xl border-[1.5px] border-dashed p-4 text-left text-base transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                                 placed
                                     ? 'border-primary/50 bg-primary/5'
                                     : selectedItem
-                                        ? 'border-primary bg-primary/10 animate-pulse cursor-pointer'
+                                        ? 'border-primary bg-primary/10 cursor-pointer motion-safe:animate-pulse'
                                         : 'border-muted-foreground/30 bg-muted/10'
                             } disabled:opacity-50`}
                         >
                             {placed ? (
                                 <div className="flex items-start gap-2">
-                                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded bg-primary text-[10px] font-bold text-primary-foreground">
+                                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-[0.8125rem] font-bold text-primary-foreground">
                                         {(node.gapIndex ?? 0) + 1}
                                     </span>
                                     <span className="italic">{labelOf(placed)}</span>
-                                    {!disabled && <span className="ml-auto shrink-0 text-xs text-red-500">✕</span>}
+                                    {!disabled && <span className="ml-auto shrink-0 text-[0.8125rem] text-muted-foreground" aria-label="Retirer">✕</span>}
                                 </div>
                             ) : (
                                 <span className="text-muted-foreground">
-                                    Espace {(node.gapIndex ?? 0) + 1} — {selectedItem ? 'Cliquez pour placer' : 'Sélectionnez un paragraphe ci-dessous'}
+                                    Espace {(node.gapIndex ?? 0) + 1} — {selectedItem ? 'Touche ici pour placer le paragraphe' : 'Choisis d’abord un paragraphe ci-dessous'}
                                 </span>
                             )}
                         </button>
@@ -140,7 +141,7 @@ export function GappedText({ question, onAnswer, selectedAnswer, disabled }: Gap
 
             {/* Movable items */}
             <div>
-                <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Paragraphes à placer</p>
+                <p className="mb-2 text-[0.8125rem] font-semibold text-muted-foreground">Paragraphes à placer</p>
                 <div className="space-y-2">
                     {items.map((it) => {
                         const isPlaced = placedKeys.has(it.key);
@@ -148,9 +149,11 @@ export function GappedText({ question, onAnswer, selectedAnswer, disabled }: Gap
                         return (
                             <button
                                 key={it.key}
+                                type="button"
+                                aria-pressed={isSelected}
                                 onClick={() => !isPlaced && handleItemClick(it.key)}
                                 disabled={disabled || isPlaced}
-                                className={`w-full rounded-xl border-2 p-3 text-left text-sm transition-all ${
+                                className={`min-h-14 w-full rounded-2xl border-[1.5px] p-3 text-left text-base transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                                     isPlaced
                                         ? 'border-muted bg-muted/30 text-muted-foreground line-through opacity-50'
                                         : isSelected

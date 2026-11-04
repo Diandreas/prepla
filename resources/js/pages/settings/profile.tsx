@@ -76,9 +76,11 @@ interface ProfileProps {
     status?: string;
     profile: any;
     exams: Exam[];
+    /** Centre en marque blanche : pas d'offre PrePla Plus (Marque::offrePrePlaMasquee). */
+    offrePrePlaMasquee?: boolean;
 }
 
-export default function Profile({ mustVerifyEmail, status, profile, exams }: ProfileProps) {
+export default function Profile({ mustVerifyEmail, status, profile, exams, offrePrePlaMasquee = false }: ProfileProps) {
     // isPremium comes from the shared Inertia prop (User::hasPremiumAccess(), the
     // real Cashier-backed source of truth) — NOT profile.plan, which is a
     // separate DB column nobody ever writes to and stays 'free' forever, even
@@ -180,6 +182,7 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                 </div>
 
                 {/* 2. Subscription — compact row */}
+                {!offrePrePlaMasquee && (
                 <Link
                     href={route('subscription.index')}
                     className="flex items-center justify-between gap-3 rounded-2xl p-3.5 text-white"
@@ -194,6 +197,7 @@ export default function Profile({ mustVerifyEmail, status, profile, exams }: Pro
                     </div>
                     <span className="shrink-0 rounded-lg bg-white/15 px-3 py-1.5 text-[11px] font-black">{t('profile.manage', 'Gérer')}</span>
                 </Link>
+                )}
 
                 {/* 3. Learning Settings */}
                 <div>

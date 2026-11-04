@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { CHAMP_SAISIE } from './choice-option';
 import { coerceOption } from './normalize-options';
 import { optionList } from '@/lib/scoring';
 
@@ -41,7 +42,7 @@ export function FormCompletion({ question, onAnswer, selectedAnswer, disabled }:
     return (
         <div className="space-y-4">
             {(question.title || question.text) && (
-                <p className="text-base font-bold">{question.title ?? question.text}</p>
+                <p data-enonce className="lecteur-enonce">{question.title ?? question.text}</p>
             )}
 
             {blankCount === 0 ? (
@@ -49,7 +50,7 @@ export function FormCompletion({ question, onAnswer, selectedAnswer, disabled }:
                     Ce formulaire n'a aucun champ à compléter.
                 </div>
             ) : (
-                <div className="overflow-hidden rounded-xl border">
+                <div className="overflow-hidden rounded-2xl border-[1.5px]">
                     {fields.map((field, i) => {
                         const blank = isBlankField(field);
                         // Clés = index absolu 0-based uniquement. L'ancien double-envoi
@@ -80,18 +81,19 @@ export function FormCompletion({ question, onAnswer, selectedAnswer, disabled }:
                         return (
                             <div
                                 key={i}
-                                className={`flex items-center gap-3 border-b last:border-b-0 px-4 py-3 ${blank ? 'bg-primary/5' : 'bg-muted/30'}`}
+                                className={`flex flex-col gap-1.5 border-b last:border-b-0 px-4 py-3 sm:flex-row sm:items-center sm:gap-3 ${blank ? 'bg-primary/5' : 'bg-muted/30'}`}
                             >
-                                <span className="min-w-[120px] text-sm font-semibold text-foreground">
+                                <label htmlFor={blank ? `champ-${question.id}-${i}` : undefined} className="text-[0.9375rem] font-semibold text-foreground sm:w-40 sm:shrink-0">
                                     {field.label}
-                                </span>
+                                </label>
                                 {blank ? (
                                     field.type === 'select' && field.options ? (
                                         <select
                                             value={values[absKey] ?? ''}
                                             onChange={(e) => setValue(e.target.value)}
                                             disabled={disabled}
-                                            className="flex-1 rounded border border-border bg-background px-3 py-1.5 text-sm focus:border-primary focus:outline-none disabled:opacity-50"
+                                            id={`champ-${question.id}-${i}`}
+                                            className={`${CHAMP_SAISIE} sm:flex-1`}
                                         >
                                             <option value="">—</option>
                                             {optionList(field.options).map((opt, j) => (
@@ -108,12 +110,13 @@ export function FormCompletion({ question, onAnswer, selectedAnswer, disabled }:
                                             value={values[absKey] ?? ''}
                                             onChange={(e) => setValue(e.target.value)}
                                             disabled={disabled}
-                                            className="flex-1 rounded border border-border bg-background px-3 py-1.5 text-sm focus:border-primary focus:outline-none disabled:opacity-50"
+                                            id={`champ-${question.id}-${i}`}
+                                            className={`${CHAMP_SAISIE} sm:flex-1`}
                                             placeholder={field.type === 'date' ? 'JJ/MM/AAAA…' : 'À compléter…'}
                                         />
                                     )
                                 ) : (
-                                    <span className="flex-1 text-sm text-muted-foreground">{display}</span>
+                                    <span className="flex-1 text-[0.9375rem] text-muted-foreground">{display}</span>
                                 )}
                             </div>
                         );

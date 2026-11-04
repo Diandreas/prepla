@@ -26,6 +26,11 @@
     $image = $image ?? $route['image'];
     $type = $type ?? 'website';
     $indexable = $indexable ?? $route['indexable'];
+    // L'adresse d'un centre (lot B) n'est jamais indexee : c'est une copie de
+    // l'application, pas une vitrine (voir aussi l'en-tete X-Robots-Tag).
+    if (\App\Http\Middleware\ResolveCenterFromHost::centre(request()) !== null) {
+        $indexable = false;
+    }
     // `url()->current()` laisse tomber la query : les trois pages par langue se
     // seraient toutes declarees copies de /structures, et aucune n'aurait ete
     // indexee pour ses propres examens. Une page qui compte sur sa query passe

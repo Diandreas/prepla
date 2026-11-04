@@ -1,20 +1,18 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
 import { useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { ConfettiBurst } from '@/components/confetti-burst';
 import { playSound } from '@/hooks/use-sound';
 import { motion } from 'framer-motion';
+import { Check, CheckCircle2, Clock, Sparkles, TrendingUp, TriangleAlert, X } from 'lucide-react';
 import { CeQuilFautRetenir } from '@/components/exercises/ce-quil-faut-retenir';
-
-function Icon({ name, size = 20, className, style }: { name: string; size?: number; className?: string; style?: React.CSSProperties }) {
-    return <img src={`/icons/${name}.png`} alt="" width={size} height={size} className={className} style={{ objectFit: 'contain', ...style }} />;
-}
+import { cn } from '@/lib/utils';
 
 // AI-evaluated question types (essay/speaking/short-answer) return `explanation`
 // as an object ({concept,evidence,hint,french_translation}), not a string.
 // Rendering it directly as a React child crashes the whole page (error #31) —
 // same class of bug already fixed on exercise/result.tsx via asText().
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function asText(v: any): string {
     if (v == null) return '';
     if (typeof v === 'string') return v;
@@ -29,7 +27,9 @@ interface ReportDetail {
     type?: string;
     title?: string;
     accuracy?: number;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     feedback?: any[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     questions?: any[];
 }
 
@@ -59,9 +59,67 @@ interface Props {
     lessonId?: number | null;
 }
 
-export default function SessionReport({ node, report, userLevel, lessonId }: Props) {
-    const { t } = useTranslation();
+const POLICE_TITRES = "font-['Plus_Jakarta_Sans',system-ui,sans-serif]";
 
+/**
+ * L'anneau de score, comme sur la page de resultat de l'essai : vert si le
+ * seuil est atteint, ambre sinon, et toujours le pourcentage ecrit au centre —
+ * jamais la couleur seule.
+ */
+function AnneauDeScore({ pourcentage, reussi, seuil }: { pourcentage: number; reussi: boolean; seuil: number }) {
+    const rayon = 52;
+    const tour = 2 * Math.PI * rayon;
+    const part = Math.max(0, Math.min(1, pourcentage / 100));
+
+    return (
+        <div className="relative h-36 w-36 shrink-0" role="img" aria-label={`Précision : ${pourcentage} %, seuil de validation ${seuil} %`}>
+            <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90" aria-hidden="true">
+                <circle cx="60" cy="60" r={rayon} fill="none" strokeWidth="10" className="stroke-muted" />
+                <circle
+                    cx="60"
+                    cy="60"
+                    r={rayon}
+                    fill="none"
+                    strokeWidth="10"
+                    strokeLinecap="round"
+                    strokeDasharray={tour}
+                    strokeDashoffset={tour * (1 - part)}
+                    className={reussi ? 'stroke-emerald-600 dark:stroke-emerald-400' : 'stroke-amber-600 dark:stroke-amber-400'}
+                />
+            </svg>
+            <div aria-hidden="true" className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className={cn(POLICE_TITRES, 'text-4xl font-extrabold tabular-nums leading-none')}>{pourcentage}<span className="text-2xl">%</span></span>
+                <span className="mt-1 text-[0.8125rem] font-semibold text-muted-foreground">seuil {seuil} %</span>
+            </div>
+        </div>
+    );
+}
+
+/** Une case de chiffre : icone, libelle lisible (13 px au moins), valeur. */
+function Chiffre({ icone: Icone, libelle, valeur, ton }: { icone: typeof Clock; libelle: string; valeur: string; ton: string }) {
+    return (
+        <div className="flex items-center gap-3 rounded-2xl border-[1.5px] border-border bg-card p-4">
+            <span aria-hidden="true" className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-xl', ton)}>
+                <Icone className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+                <p className="text-[0.8125rem] font-medium text-muted-foreground">{libelle}</p>
+                <p className="truncate text-base font-bold text-foreground">{valeur}</p>
+            </div>
+        </div>
+    );
+}
+
+/**
+ * Le rapport de fin de seance, l'ecran de fin d'un apprenant dans son parcours.
+ *
+ * Meme direction que le lecteur et la page de resultat de l'essai : cartes aux
+ * couleurs du theme (le blanc et les gris « slate » ecrits en dur ignoraient le
+ * theme), titres en Plus Jakarta Sans, juste/faux toujours avec une icone, et
+ * des boutons dont le texte se lit — blanc sur ambre ou sur vert clair, ils
+ * passaient sous 4,5:1.
+ */
+export default function SessionReport({ node, report, userLevel, lessonId }: Props) {
     // Defensive fallbacks: a stale/partial report (old session shape left over
     // from before a deploy) must never crash this page to a blank screen.
     const accuracy = report?.accuracy ?? 0;
@@ -74,6 +132,7 @@ export default function SessionReport({ node, report, userLevel, lessonId }: Pro
     const xpEarned = report?.xp_earned ?? 0;
     const timeSpent = report?.time_spent ?? 0;
     const nodeTitle = report?.node_title ?? node?.title ?? '';
+    const reussis = details.filter(d => (d.accuracy ?? 0) >= 60).length;
 
     // Victory sound + haptics on arrival (xp gained when the concept is mastered).
     useEffect(() => {
@@ -93,44 +152,79 @@ export default function SessionReport({ node, report, userLevel, lessonId }: Pro
         show: { opacity: 1, y: 0 }
     };
 
+    const statut = unavailable ? 'Correction incomplète' : isExam ? (passed ? 'Palier validé' : 'Reprises personnalisées') : (passed ? 'Concept validé' : 'À consolider');
+    const bouton = 'inline-flex min-h-12 w-full items-center justify-center rounded-full px-7 text-base font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:w-auto';
+    const boutonSecondaire = cn(bouton, 'border-[1.5px] border-border bg-card text-foreground hover:bg-muted');
+
+    // Actions — adapt CTA to whether user mastered the concept. Affichees avant
+    // le detail (sur telephone, la suite du parcours ne doit pas attendre la fin
+    // d'une longue correction), et de nouveau apres.
+    const actions = (
+        <motion.div variants={item} className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+            {passed ? (
+                <>
+                    <Link href="/lessons/next" className={cn(bouton, 'bg-emerald-700 text-white hover:bg-emerald-800')}>
+                        {isExam ? 'Continuer mon parcours →' : 'Concept suivant →'}
+                    </Link>
+                    <Link href="/dashboard" className={boutonSecondaire}>
+                        Retour au parcours
+                    </Link>
+                </>
+            ) : (
+                <>
+                    <Link
+                        href={!unavailable && (isExam || hasRemediation) ? '/lessons/next' : route('node.start', node.id)}
+                        className={cn(bouton, 'bg-[var(--essai)] text-[var(--sur-essai)] hover:brightness-105')}
+                    >
+                        {unavailable ? 'Réessayer la séance →' : isExam || hasRemediation ? 'Comprendre mes erreurs →' : `↻ Refaire pour valider (≥${threshold} %)`}
+                    </Link>
+                    <Link href={isExam ? '/dashboard' : lessonId ? `/lessons/${lessonId}` : '/lessons/next'} className={boutonSecondaire}>
+                        {isExam ? 'Voir mes reprises' : 'Revoir la leçon'}
+                    </Link>
+                </>
+            )}
+        </motion.div>
+    );
+
     return (
         <AppLayout>
             <Head title={`Résultats : ${nodeTitle}`} />
             {passed && accuracy >= 80 && <ConfettiBurst />}
 
-            <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+            <div className="palette-lecteur mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
                 <motion.div
                     variants={container}
                     initial="hidden"
                     animate="show"
                     className="space-y-8"
                 >
-                    {/* Header Card */}
-                    <motion.div variants={item} className="relative overflow-hidden bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-xl border border-slate-200 dark:border-slate-800">
-                        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl" />
-                        <div className="relative flex flex-col md:flex-row items-center gap-8">
+                    {/* En-tete : statut, titre, message, anneau de score */}
+                    <motion.section variants={item} className="relative overflow-hidden rounded-3xl border-[1.5px] border-border bg-card p-6 sm:p-8">
+                        <div className="flex flex-col items-center gap-6 md:flex-row md:items-center md:gap-8">
                             {/* Animated trophy / encouragement based on accuracy */}
-                            <div className="flex-shrink-0">
-                                <img
-                                    src={accuracy >= 80 ? '/animation/winner.gif' : passed ? '/animation/big-trophy.gif' : '/animation/Fire.gif'}
-                                    alt=""
-                                    width={150}
-                                    height={150}
-                                    className="drop-shadow-xl"
-                                />
-                            </div>
-                            <div className="flex-1 text-center md:text-left">
-                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2 ${
-                                    passed
-                                        ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
-                                        : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
-                                }`}>
-                                    {unavailable ? 'Correction incomplète' : isExam ? (passed ? 'Palier validé' : 'Reprises personnalisées') : (passed ? 'Concept validé' : 'À consolider')}
+                            <img
+                                src={accuracy >= 80 ? '/animation/winner.gif' : passed ? '/animation/big-trophy.gif' : '/animation/Fire.gif'}
+                                alt=""
+                                width={120}
+                                height={120}
+                                className="shrink-0"
+                            />
+                            <div className="min-w-0 flex-1 text-center md:text-left">
+                                <span
+                                    className={cn(
+                                        'mb-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[0.8125rem] font-bold',
+                                        passed
+                                            ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-100'
+                                            : 'bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-100',
+                                    )}
+                                >
+                                    {passed ? <Check aria-hidden="true" className="h-4 w-4" /> : <TriangleAlert aria-hidden="true" className="h-4 w-4" />}
+                                    {statut}
                                 </span>
-                                <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
+                                <h1 className={cn(POLICE_TITRES, 'text-2xl font-extrabold leading-tight tracking-tight text-foreground sm:text-3xl')}>
                                     {nodeTitle}
                                 </h1>
-                                <p className="text-slate-500 dark:text-slate-400">
+                                <p className="mt-2 text-[0.9375rem] leading-relaxed text-muted-foreground sm:text-base">
                                     {unavailable ? 'Une partie de la correction est indisponible. Ce problème technique ne compte pas comme une lacune : réessaie pour terminer la validation.' : hasRemediation ? 'Une reprise ciblée t’attend : revois la notion, entraîne-toi, puis valide à nouveau cet objectif.' : isExam
                                         ? passed
                                             ? `Examen validé (≥${threshold} %). Continue ton parcours au niveau ${userLevel}.`
@@ -139,150 +233,130 @@ export default function SessionReport({ node, report, userLevel, lessonId }: Pro
                                             : `Il te faut ${threshold} % pour valider ce concept. Tu es à ${Math.round(accuracy)} % — refais une session ou revois la leçon.`}
                                 </p>
                             </div>
-
-                            <div className="flex gap-4">
-                                <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 text-center min-w-[120px]">
-                                    <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{Math.round(accuracy)}%</div>
-                                    <div className="text-xs font-medium text-slate-400 uppercase mt-1">Précision</div>
-                                </div>
-                                <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 text-center min-w-[120px]">
-                                    <div className="text-2xl font-bold text-yellow-500">+{xpEarned}</div>
-                                    <div className="text-xs font-medium text-slate-400 uppercase mt-1">XP Gagnés</div>
-                                </div>
-                            </div>
+                            <AnneauDeScore pourcentage={Math.round(accuracy)} reussi={passed} seuil={threshold} />
                         </div>
+                    </motion.section>
+
+                    {/* Chiffres de la seance */}
+                    <motion.div variants={item} className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                        <Chiffre
+                            icone={Clock}
+                            libelle="Temps total"
+                            valeur={`${Math.floor(timeSpent / 60)} min ${timeSpent % 60} s`}
+                            ton="bg-orange-100 text-orange-800 dark:bg-orange-950/60 dark:text-orange-200"
+                        />
+                        <Chiffre
+                            icone={CheckCircle2}
+                            libelle="Réussite"
+                            valeur={`${reussis} / ${details.length} exercice${details.length > 1 ? 's' : ''}`}
+                            ton="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-200"
+                        />
+                        <Chiffre
+                            icone={Sparkles}
+                            libelle="XP gagnés"
+                            valeur={`+${xpEarned}`}
+                            ton="bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-200"
+                        />
+                        <Chiffre
+                            icone={TrendingUp}
+                            libelle="Niveau"
+                            valeur={`${node?.exam?.language?.name ?? ''} · ${userLevel}`}
+                            ton="bg-primary/10 text-primary"
+                        />
                     </motion.div>
 
-                    {/* Stats Grid */}
-                    <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                         <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center gap-4">
-                             <div className="w-12 h-12 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600">
-                                 <Icon name="clock" size={24} />
-                             </div>
-                             <div>
-                                 <div className="text-sm text-slate-400 font-medium">Temps total</div>
-                                 <div className="text-lg font-bold text-slate-900 dark:text-white">
-                                     {Math.floor(timeSpent / 60)}m {timeSpent % 60}s
-                                 </div>
-                             </div>
-                         </div>
-                         <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center gap-4">
-                             <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600">
-                                 <Icon name="check-circle" size={24} />
-                             </div>
-                             <div>
-                                 <div className="text-sm text-slate-400 font-medium">Réussite</div>
-                                 <div className="text-lg font-bold text-slate-900 dark:text-white">
-                                     {details.filter(d => (d.accuracy ?? 0) >= 60).length} / {details.length} Exercices
-                                 </div>
-                             </div>
-                         </div>
-                         <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center gap-4">
-                             <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600">
-                                 <Icon name="trending-up" size={24} />
-                             </div>
-                             <div>
-                                 <div className="text-sm text-slate-400 font-medium">Niveau</div>
-                                 <div className="text-lg font-bold text-slate-900 dark:text-white">
-                                     {node?.exam?.language?.name ?? ''} · {userLevel}
-                                 </div>
-                             </div>
-                         </div>
-                    </motion.div>
+                    {actions}
 
                     {/* Detailed Analysis */}
-                    <motion.div variants={item} className="space-y-4">
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-white px-2">Analyse par exercice</h2>
-                        {details.map((detail, idx) => (
-                            <div key={idx} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
-                                <div className="p-4 flex items-center justify-between border-b border-slate-100 dark:border-slate-800">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600">
-                                            {idx + 1}
-                                        </div>
-                                        <div>
-                                            <div className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-tight">{detail.type ?? detail.title ?? ''}</div>
-                                        </div>
-                                    </div>
-                                    <div className={`text-sm font-bold px-3 py-1 rounded-full ${(detail.accuracy ?? 0) >= 60 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                        {Math.round(detail.accuracy ?? 0)}%
-                                    </div>
-                                </div>
-                                <div className="p-6 space-y-4">
-                                    {(Array.isArray(detail.feedback) ? detail.feedback : []).map((f, fIdx) => (
-                                        <div key={fIdx} className={`p-4 rounded-xl border ${f.correct ? 'bg-green-50/30 border-green-100' : 'bg-red-50/30 border-red-100'}`}>
-                                            <div className="flex items-start gap-3">
-                                                <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${f.correct ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
-                                                    <Icon name={f.correct ? "check" : "x"} size={12} style={{ filter: 'brightness(0) invert(1)' }} />
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
-                                                        {f.question_text || `Question ${fIdx + 1}`}
-                                                    </p>
-                                                    {!f.correct && (
-                                                        <div className="mt-2 space-y-1 text-sm">
-                                                            {f.given_answer ? (
-                                                                <p className="text-rose-700 dark:text-rose-300">
-                                                                    <span className="opacity-70">Ta réponse : </span>
-                                                                    <span className="font-semibold line-through">{asText(f.given_answer)}</span>
-                                                                </p>
-                                                            ) : (
-                                                                <p className="text-slate-500 dark:text-slate-400 italic">Aucune réponse donnée</p>
+                    {details.length > 0 && (
+                        <motion.section variants={item} className="space-y-4">
+                            <h2 className={cn(POLICE_TITRES, 'text-xl font-extrabold text-foreground')}>
+                                Ta <em className="font-['Cormorant_Garamond',Georgia,serif] text-2xl font-bold italic">correction</em>, exercice par exercice
+                            </h2>
+                            {details.map((detail, idx) => {
+                                const exerciceReussi = (detail.accuracy ?? 0) >= 60;
+                                return (
+                                    <article key={idx} className="overflow-hidden rounded-2xl border-[1.5px] border-border bg-card">
+                                        <header className="flex items-center justify-between gap-3 border-b border-border p-4">
+                                            <div className="flex min-w-0 items-center gap-3">
+                                                <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-[0.875rem] font-bold text-primary">
+                                                    {idx + 1}
+                                                </span>
+                                                <h3 className="truncate text-[0.9375rem] font-bold text-foreground">
+                                                    <span className="sr-only">Exercice {idx + 1} : </span>
+                                                    {detail.type ?? detail.title ?? ''}
+                                                </h3>
+                                            </div>
+                                            <span
+                                                className={cn(
+                                                    'inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1 text-[0.875rem] font-bold',
+                                                    exerciceReussi
+                                                        ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-100'
+                                                        : 'bg-red-100 text-red-900 dark:bg-red-950/60 dark:text-red-100',
+                                                )}
+                                            >
+                                                {exerciceReussi ? <Check aria-hidden="true" className="h-4 w-4" /> : <X aria-hidden="true" className="h-4 w-4" />}
+                                                {Math.round(detail.accuracy ?? 0)}%
+                                            </span>
+                                        </header>
+                                        <ol className="space-y-3 p-4 sm:p-5">
+                                            {(Array.isArray(detail.feedback) ? detail.feedback : []).map((f, fIdx) => (
+                                                <li
+                                                    key={fIdx}
+                                                    className={cn(
+                                                        'rounded-xl border-[1.5px] p-4',
+                                                        f.correct
+                                                            ? 'border-emerald-200 bg-emerald-50/50 dark:border-emerald-900 dark:bg-emerald-950/20'
+                                                            : 'border-red-200 bg-red-50/50 dark:border-red-900 dark:bg-red-950/20',
+                                                    )}
+                                                >
+                                                    <div className="flex items-start gap-3">
+                                                        <span
+                                                            className={cn(
+                                                                'mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white',
+                                                                f.correct ? 'bg-emerald-700' : 'bg-red-700',
                                                             )}
-                                                            {f.expected_answer && (
-                                                                <p className="text-emerald-700 dark:text-emerald-300">
-                                                                    <span className="opacity-70">Réponse attendue : </span>
-                                                                    <span className="font-semibold">{asText(f.expected_answer)}</span>
-                                                                </p>
+                                                        >
+                                                            {f.correct ? <Check aria-hidden="true" className="h-4 w-4" /> : <X aria-hidden="true" className="h-4 w-4" />}
+                                                            <span className="sr-only">{f.correct ? 'Bonne réponse' : 'Réponse incorrecte'}</span>
+                                                        </span>
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className="text-[0.9375rem] font-semibold text-foreground">
+                                                                {f.question_text || `Question ${fIdx + 1}`}
+                                                            </p>
+                                                            {!f.correct && (
+                                                                <div className="mt-2 space-y-1 text-[0.9375rem]">
+                                                                    {f.given_answer ? (
+                                                                        <p className="text-red-800 dark:text-red-200">
+                                                                            <span className="text-muted-foreground">Ta réponse : </span>
+                                                                            <span className="font-semibold line-through">{asText(f.given_answer)}</span>
+                                                                        </p>
+                                                                    ) : (
+                                                                        <p className="italic text-muted-foreground">Aucune réponse donnée</p>
+                                                                    )}
+                                                                    {f.expected_answer && (
+                                                                        <p className="text-emerald-800 dark:text-emerald-200">
+                                                                            <span className="text-muted-foreground">Réponse attendue : </span>
+                                                                            <span className="font-semibold">{asText(f.expected_answer)}</span>
+                                                                        </p>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                            {!f.correct && (f.explanation || f.model_answer) && (
+                                                                <CeQuilFautRetenir explication={f.explanation} reponseType={f.model_answer} />
                                                             )}
                                                         </div>
-                                                    )}
-                                                    {!f.correct && (f.explanation || f.model_answer) && (
-                                                        <CeQuilFautRetenir explication={f.explanation} reponseType={f.model_answer} />
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
-                    </motion.div>
-
-                    {/* Actions — adapt CTA to whether user mastered the concept */}
-                    <motion.div variants={item} className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
-                        {passed ? (
-                            <>
-                                <Link
-                                    href="/lessons/next"
-                                    className="w-full sm:w-auto px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold shadow-lg transition-all transform hover:-translate-y-1 text-center"
-                                >
-                                    {isExam ? 'Continuer mon parcours →' : 'Concept suivant →'}
-                                </Link>
-                                <Link
-                                    href="/dashboard"
-                                    className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white rounded-2xl font-bold border border-slate-200 dark:border-slate-700 transition-all text-center"
-                                >
-                                    Retour au parcours
-                                </Link>
-                            </>
-                        ) : (
-                            <>
-                                <Link
-                                    href={!unavailable && (isExam || hasRemediation) ? '/lessons/next' : route('node.start', node.id)}
-                                    className="w-full sm:w-auto px-8 py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-bold shadow-lg transition-all transform hover:-translate-y-1 text-center"
-                                >
-                                    {unavailable ? 'Réessayer la séance →' : isExam || hasRemediation ? 'Comprendre mes erreurs →' : `↻ Refaire pour valider (≥${threshold} %)`}
-                                </Link>
-                                <Link
-                                    href={isExam ? '/dashboard' : lessonId ? `/lessons/${lessonId}` : '/lessons/next'}
-                                    className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white rounded-2xl font-bold border border-slate-200 dark:border-slate-700 transition-all text-center"
-                                >
-                                    {isExam ? 'Voir mes reprises' : 'Revoir la leçon'}
-                                </Link>
-                            </>
-                        )}
-                    </motion.div>
+                                                    </div>
+                                                </li>
+                                            ))}
+                                        </ol>
+                                    </article>
+                                );
+                            })}
+                        </motion.section>
+                    )}
+                    {/* Les memes actions apres une longue correction : pas besoin de remonter. */}
+                    {details.length > 0 && actions}
                 </motion.div>
             </div>
         </AppLayout>

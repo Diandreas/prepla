@@ -43,7 +43,8 @@ class ClassroomController extends Controller
 
         return Inertia::render('center/classes/index', [
             'classrooms' => $classrooms,
-            'exams' => Exam::proposables()->get(['id', 'name']),
+            // Seulement les examens que le centre propose (personnalisation).
+            'exams' => Exam::proposables($center)->get(['id', 'name']),
             'seatsAvailable' => $center->seatsAvailable(),
         ]);
     }
@@ -56,7 +57,7 @@ class ClassroomController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'level' => 'nullable|string|max:10',
-            'exam_id' => 'nullable|exists:exams,id',
+            'exam_id' => ['nullable', 'exists:exams,id', new \App\Rules\ExamenDuCentre($center)],
         ]);
 
         $classroom = $center->classrooms()->create([
@@ -98,7 +99,7 @@ class ClassroomController extends Controller
             ],
             'students' => $students,
             'stats' => $stats->forClassroom($classroom),
-            'exams' => \App\Models\Exam::proposables()->with('language:id,name')->get(['id', 'name', 'language_id'])
+            'exams' => \App\Models\Exam::proposables($classroom->center)->with('language:id,name')->get(['id', 'name', 'language_id'])
                 ->map(fn ($exam) => ['id' => $exam->id, 'name' => $exam->name, 'language' => $exam->language?->name]),
         ]);
     }
@@ -110,7 +111,7 @@ class ClassroomController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'level' => 'nullable|string|max:10',
-            'exam_id' => 'nullable|exists:exams,id',
+            'exam_id' => ['nullable', 'exists:exams,id', new \App\Rules\ExamenDuCentre($classroom->center)],
         ]);
 
         $classroom->update($validated);

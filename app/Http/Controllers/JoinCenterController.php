@@ -20,10 +20,30 @@ class JoinCenterController extends Controller
         // Seul le PERSONNEL est bloque ici. Un eleve deja inscrit pouvait changer de
         // classe au sein de son etablissement, mais le formulaire disparaissait et le
         // message lui parlait d'un centre, pas de sa classe.
-        return Inertia::render('join', [
+        $props = [
             'alreadyInCenter' => $user->center() !== null && ! $user->centerRoleIs('student'),
             'currentCenter' => $user->center()?->name,
-        ]);
+            'code' => null,
+            'centreInvitant' => null,
+        ];
+
+        // Un lien « /join?code=XXXX » partage par le centre : la page porte deja
+        // sa marque et son nom, avant meme que l'eleve ait rejoint la classe.
+        $code = strtoupper(trim((string) $request->query('code', '')));
+        if ($code !== '' && ! $props['alreadyInCenter']) {
+            $classe = Classroom::with('center')
+                ->whereNull('archived_at')
+                ->where('invite_code', $code)
+                ->first();
+
+            if ($classe?->center?->is_active) {
+                $props['code'] = $code;
+                $props['centreInvitant'] = ['nom' => $classe->center->nomAffiche(), 'classe' => $classe->name];
+                $props['marque'] = app(\App\Services\Center\Marque::class)->pourCentre($classe->center);
+            }
+        }
+
+        return Inertia::render('join', $props);
     }
 
     public function store(Request $request)
@@ -54,6 +74,16 @@ class JoinCenterController extends Controller
         }
 
         $center = $classroom->center;
+
+        // Sur l'adresse d'un centre (lot B), seulement ses propres classes : on
+        // n'entre pas chez un autre etablissement depuis celle-ci.
+        $centreDeLHote = \App\Http\Middleware\ResolveCenterFromHost::centre($request);
+        if ($centreDeLHote !== null && $centreDeLHote->id !== $center->id) {
+            throw ValidationException::withMessages([
+                'code' => "Ce code ne correspond à aucune classe de cet établissement.",
+            ]);
+        }
+
         $centreActuel = $user->center();
 
         // Un eleve change de classe DANS son etablissement ; passer d'un

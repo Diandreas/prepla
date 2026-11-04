@@ -7,9 +7,7 @@ use App\Models\ExamBlueprint;
 use App\Models\ExamSection;
 use App\Models\Exercise;
 use App\Models\ExerciseType;
-use App\Models\LearningPathNode;
 use App\Models\MockExam;
-use App\Models\UserLearningProgress;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -27,65 +25,10 @@ class PracticeController extends Controller
         $this->streakService = $streakService;
     }
 
-    /**
-     * Lance une session d'apprentissage pour un nœud spécifique (Le "Set de 3").
-     */
-    public function startNodeSession(LearningPathNode $node): Response
-    {
-        $user = auth()->user();
-        
-        // Vérifier si l'utilisateur a accès à ce nœud
-        $progress = UserLearningProgress::where('user_id', $user->id)
-            ->where('node_id', $node->id)
-            ->firstOrFail();
+    // (startNodeSession supprime : aucune route ne l'appelait depuis que
+    //  NodeStartController sert les seances de noeud. Sa requete de secours ne
+    //  filtrait ni les centres, ni les lecons, ni les epreuves blanches.)
 
-        // Récupérer 3 exercices liés à ce nœud
-        // 1. Théorie/Acquisition (order_in_node = 1)
-        // 2. Pratique (order_in_node = 2)
-        // 3. Test/Production (order_in_node = 3)
-        $exercises = Exercise::where('node_id', $node->id)
-            ->with('exerciseType')
-            ->orderBy('order_in_node')
-            ->limit(3)
-            ->get();
-
-        // Si pas d'exercices liés au nœud, on en pioche des génériques par difficulté et type.
-        // On exclut les types retirés de la rotation (diagram-labeling : pas de vraie image).
-        if ($exercises->count() < 3) {
-            $exercises = Exercise::where('exam_id', $node->exam_id)
-                ->where('difficulty', $node->level)
-                ->whereDoesntHave('exerciseType', fn ($q) => $q->whereIn('component_key', ['diagram-labeling']))
-                ->with('exerciseType')
-                ->inRandomOrder()
-                ->limit(3)
-                ->get();
-        }
-
-        // Meme garde-fou qu'en seance : pas de question impossible a l'ecran.
-        $exercises = collect($exercises)->map(function ($exercise) {
-            $jouables = $exercise->answerableQuestions();
-            if (count($jouables) !== count($exercise->questions ?? [])) {
-                $exercise->questions = $jouables;
-                $exercise->syncOriginalAttribute('questions');
-            }
-
-            return $exercise;
-        })->filter(fn ($exercise) => count($exercise->questions ?? []) > 0)->values();
-
-        if ($exercises->isEmpty()) {
-            return redirect()->route('practice.index')
-                ->with('error', "Ces exercices etaient inutilisables. Choisis-en d'autres, ou reessaie plus tard.");
-        }
-
-        return Inertia::render('exercises/player', [
-            'node' => $node,
-            'exercises' => $exercises,
-            'progress' => $progress,
-            // Sans jeton, renvoyer la meme seance de pratique libre recreditait XP
-            // et tentatives : la protection ne couvrait que le parcours.
-            'sessionToken' => $this->jetonDeSeance(auth()->id()),
-        ]);
-    }
     public function skill(string $skill)
     {
         abort_unless(in_array($skill, ['speaking', 'listening'], true), 404);
@@ -112,7 +55,9 @@ class PracticeController extends Controller
         }
 
         // Sinon, on liste tous les examens (cas rare après onboarding)
-        $exams = Exam::with('language')->whereHas('language', fn ($q) => $q->where('is_active', true))->get();
+        // Meme regle que partout ailleurs : langues travaillees, et examens retenus
+        // par le centre de l'eleve s'il en a choisi.
+        $exams = Exam::proposables($user->center())->with('language')->get();
         return Inertia::render('practice/index', [
             'exams' => $exams,
             'targetExamId' => null,
@@ -297,7 +242,8 @@ class PracticeController extends Controller
             ->where('difficulty', $niveau)
             ->whereNull('center_id')->whereNull('lesson_id')
             ->whereNull('node_id')->whereNull('mock_exam_id')
-            ->inRandomOrder()->first();
+            ->expliqueDansLaLangueDe(Exercise::langueDExplicationDe(auth()->user()))
+            ->meilleurDAbord($niveau)->first();
 
         if (! $exercice) {
             return redirect()->route('practice.exam', $exam->id)
@@ -346,7 +292,9 @@ class PracticeController extends Controller
             ->whereNull('center_id')
             ->whereNull('lesson_id')
             ->whereNull('node_id')
-            ->whereNull('mock_exam_id');
+            ->whereNull('mock_exam_id')
+            // Pas d'exercice explique dans la langue d'un autre apprenant.
+            ->expliqueDansLaLangueDe(Exercise::langueDExplicationDe($user));
 
         // Le vivier ne distinguait pas les parties. Plusieurs parties d'un meme
         // module partagent souvent le meme format de reponse — au Goethe B1, le
@@ -384,15 +332,29 @@ class PracticeController extends Controller
             return $gardes->isNotEmpty() ? $gardes : $candidats;
         };
 
-        $inedits = $pool()->whereNotIn('id', $alreadyDone);
+        // LA SERIE PREPAREE DANS LE VIVIER, pour un debutant. Jusqu'au A2, elle
+        // passe avant les exercices generes (voir Exercise::scopeMeilleurDAbord) ;
+        // encore faut-il qu'elle existe en base. Elle n'y entrait qu'une fois
+        // tout le vivier fait, donc jamais a temps pour etre servie d'abord.
+        if (in_array($difficulty, ['A0', 'A1', 'A2'], true)) {
+            try {
+                $library->ensure($exam, $exerciseType, $difficulty);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('drillByType: serie preparee inutilisable', ['error' => $e->getMessage()]);
+            }
+        }
+
+        // Le meilleur contenu d'abord, au hasard dans chaque groupe : l'ordre
+        // de la requete est garde par le filtre des exercices conformes.
+        $inedits = $pool()->whereNotIn('id', $alreadyDone)->meilleurDAbord($difficulty);
 
         // 1. Un exercice de la bonne partie, au bon format, qu'il n'a pas fait.
-        $exercise = $conformes($deLaPartie(clone $inedits)->get())->shuffle()->first();
+        $exercise = $conformes($deLaPartie(clone $inedits)->get())->first();
 
         // 1 bis. Rien pour cette partie precise : le reste du format fait l'affaire,
         //        plutot que de renvoyer l'apprenant sans rien.
         if (! $exercise && ($partieDemandee['part'] ?? null)) {
-            $exercise = $conformes($inedits->get())->shuffle()->first();
+            $exercise = $conformes($inedits->get())->first();
         }
 
         // 2. La série préparée, tant qu'elle lui est inédite : gratuite et immédiate,
@@ -421,7 +383,7 @@ class PracticeController extends Controller
 
         // 4. Rien de neuf nulle part : mieux vaut refaire un exercice connu que
         //    renvoyer l'apprenant sur un message d'échec.
-        $exercise ??= $pool()->inRandomOrder()->first();
+        $exercise ??= $pool()->meilleurDAbord($difficulty)->first();
 
         if (!$exercise) {
             return redirect()->route('practice.exam', $exam->id)
@@ -497,27 +459,8 @@ class PracticeController extends Controller
         ]);
     }
 
-    /**
-     * Generate a few exercises for this section on the spot (the generator is no
-     * longer a separate tool — it's embedded where it's needed).
-     */
-    public function generateSection(Exam $exam, ExamSection $section, \App\Services\AI\ExerciseGeneratorService $generator)
-    {
-        $section->load('exerciseTypes');
-        $level = auth()->user()->profile?->current_level ?? 'B1';
-
-        // Pick up to 3 varied types from this section and generate one each.
-        $types = $section->exerciseTypes->shuffle()->take(3);
-        foreach ($types as $type) {
-            try {
-                $generator->generate($type, $exam, $level);
-            } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::error('Section generate failed', ['error' => $e->getMessage()]);
-            }
-        }
-
-        return back()->with('success', 'Exercices générés !');
-    }
+    // (generateSection supprime : aucun ecran ne l'appelait, et la route
+    //  generait trois exercices par l'IA a chaque appel, hors quota gratuit.)
 
     public function simulate(Exam $exam, Request $request): Response|\Illuminate\Http\RedirectResponse
     {

@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Concerns\Utilisateur\AAccesVendus;
+use App\Models\Concerns\Utilisateur\AParrainage;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -16,6 +18,10 @@ class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, Billable, HasPushSubscriptions;
+
+    // Pendants cote compte des acces vendus (lot C) et du parrainage (lot D) :
+    // un trait par lot, pour que chacun ajoute ses methodes sans toucher ce fichier.
+    use AAccesVendus, AParrainage;
 
     /**
      * The attributes that are mass assignable.
@@ -77,7 +83,13 @@ class User extends Authenticatable
 
         $trialEndsAt = $this->profile?->trial_ends_at;
 
-        return $trialEndsAt && now()->lt($trialEndsAt);
+        if ($trialEndsAt && now()->lt($trialEndsAt)) {
+            return true;
+        }
+
+        // Un acces ouvert par son centre en formule revente, en cours, tant qu'il
+        // en est encore eleve (Concerns\Utilisateur\AAccesVendus).
+        return $this->aUnAccesCentreEnCours();
     }
 
     public function isOnTrial(): bool
@@ -192,6 +204,16 @@ class User extends Authenticatable
         $toutes = CenterUser::with('center')->where('user_id', $this->id)->get()
             ->filter(fn (CenterUser $a) => $a->center !== null)
             ->values();
+
+        // Sur l'adresse d'un centre (lot B), ce centre d'abord, si la personne en
+        // est membre : c'est la qu'elle a choisi d'entrer, quel que soit le
+        // centre retenu en session. Non membre, elle n'y voit rien
+        // (EnsureMembreDuCentreDeLHote) et l'on garde la regle ordinaire.
+        $hote = $requete->attributes->get(\App\Http\Middleware\ResolveCenterFromHost::ATTRIBUT);
+        if ($hote instanceof LanguageCenter
+            && ($ici = $toutes->first(fn (CenterUser $a) => (int) $a->center_id === (int) $hote->id))) {
+            return $ici;
+        }
 
         $choisie = null;
 

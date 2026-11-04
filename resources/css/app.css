@@ -729,20 +729,83 @@
     /* Duo Press – makes any clickable element feel like a Duolingo 3D button.
        Set --duo-shadow to the color of the bottom edge. Used on /lessons CTA
        and list rows so clickable things visibly depress on click. */
+    /* --duo-shadow suit le theme : ecrit en gris clair en dur, il tracait un
+       trait clair sous chaque choix en sombre. Le soulevement au survol n'existe
+       qu'avec une vraie souris (sur un ecran tactile, il restait colle apres le
+       toucher), et rien ne bouge sur un element desactive. L'ombre elle-meme
+       reste posee par l'element (voir components/exercises/choice-option.tsx). */
     .duo-press {
-        --duo-shadow: #d1d5db;
+        --duo-shadow: var(--border);
         cursor: pointer;
         transition: transform 0.12s cubic-bezier(.2,.8,.4,1),
                     box-shadow 0.12s cubic-bezier(.2,.8,.4,1),
                     filter 0.12s ease;
     }
-    .duo-press:hover {
-        transform: translateY(-2px);
-        filter: brightness(1.03);
+    /* Pas de regle « .dark .duo-press » : --border a deja sa valeur sombre. */
+    @media (hover: hover) and (pointer: fine) {
+        .duo-press:hover:not(:disabled):not([aria-disabled='true']) {
+            transform: translateY(-2px);
+            filter: brightness(1.03);
+        }
     }
-    .duo-press:active {
+    .duo-press:active:not(:disabled):not([aria-disabled='true']) {
         transform: translateY(4px);
         filter: brightness(0.98);
+    }
+    .duo-press:disabled,
+    .duo-press[aria-disabled='true'] {
+        cursor: not-allowed;
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .duo-press,
+        .duo-press:hover,
+        .duo-press:active {
+            transform: none;
+        }
+    }
+
+    /* Le lecteur d'exercices et ses pages d'essai.
+       Le bleu primaire portait un texte blanc a 3,2:1 en clair et 2,7:1 en
+       sombre, sous le minimum de 4,5:1. Corrige ICI seulement, pour ne pas
+       repeindre toute l'application d'un coup : en clair un bleu plus fonce
+       (celui des liens de l'accueil, 6,2:1 avec le blanc), en sombre un texte
+       marine sur le bleu (6,9:1). */
+    /* Les --color-* sont resolus sur <html> : on les redefinit aussi, sinon les
+       classes bg-primary / text-primary-foreground garderaient l'ancien bleu. */
+    .palette-lecteur {
+        --primary: #1f5fb8;
+        --primary-foreground: #ffffff;
+        --ring: #1f5fb8;
+        --color-primary: var(--primary);
+        --color-primary-foreground: var(--primary-foreground);
+        --color-ring: var(--ring);
+        --essai: #f5a623;
+        --sur-essai: #0b1322;
+    }
+    .dark .palette-lecteur {
+        --primary: hsl(212, 72%, 65%);
+        --primary-foreground: #0b1322;
+        --ring: hsl(212, 72%, 65%);
+    }
+    /* L'enonce : la police des titres de l'accueil, 19 px gras. */
+    .lecteur-enonce {
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+        font-size: 1.1875rem;
+        font-weight: 700;
+        line-height: 1.45;
+        letter-spacing: -0.01em;
+    }
+    @media (min-width: 640px) {
+        .lecteur-enonce {
+            font-size: 1.25rem;
+        }
+    }
+    /* Le texte a lire : 16 px, interligne 28 px, une largeur de lecture. */
+    .lecteur-passage {
+        max-width: 65ch;
+        font-size: 1rem;
+        line-height: 1.75rem;
+        white-space: pre-line;
     }
 
     /* Duo Row – a list row that reads as a pressable button (block shadow edge). */
@@ -779,6 +842,12 @@
         border-radius: 0.75rem;
         box-shadow: 0 3px 0 0 #d1d5db;
         transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+    /* Pas de soulevement colle apres un toucher sur telephone. */
+    @media (hover: none) {
+        .duo-row:hover {
+            transform: none;
+        }
     }
     .dark .duo-badge {
         background: hsl(218, 40%, 16%);

@@ -59,7 +59,7 @@
     align-items: center;
     gap: 0.45rem;
     color: var(--scene-accent);
-    font-size: 0.625rem;
+    font-size: 0.75rem; /* 12 px : un sur-titre, pas du texte courant ; il etait a 10 px */
     font-weight: 900;
     line-height: 1;
     letter-spacing: 0.13em;
@@ -87,7 +87,7 @@
     max-width: 31rem;
     margin-top: 0.45rem;
     color: color-mix(in srgb, #1a2b48 68%, transparent);
-    font-size: 0.76rem;
+    font-size: 0.875rem;
     font-weight: 600;
     line-height: 1.55;
 }
@@ -217,7 +217,7 @@
 }
 .learning-scene--compact p {
     margin-top: 0.3rem;
-    font-size: 0.69rem;
+    font-size: 0.8125rem; /* 13 px au minimum pour du texte courant (il etait a 11 px) */
     line-height: 1.42;
 }
 
@@ -299,7 +299,7 @@
         height: 4.1rem;
     }
     .learning-scene p {
-        font-size: 0.7rem;
+        font-size: 0.8125rem;
     }
 }
 

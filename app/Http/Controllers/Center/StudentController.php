@@ -176,8 +176,22 @@ class StudentController extends Controller
         $classroom->members()->detach($user->id);
 
         $stillInCenter = $user->classrooms()->where('center_id', $center->id)->exists();
-        if (! $stillInCenter && $user->centerRoleIs('student')) {
-            $user->centerMembership()->where('center_id', $center->id)->delete();
+        // Eleve DE CE CENTRE, lu directement : centerRoleIs() donnait son role dans
+        // SON centre courant, qui peut etre un autre ou il enseigne.
+        if (! $stillInCenter && $center->aPourEleve($user->id)) {
+            // Supprime PAR LE MODELE : CenterUserObserver ferme sa periode
+            // d'appartenance, et l'eleve reste compte actif pour le mois s'il a
+            // travaille avant son depart. Une suppression par requete l'evitait.
+            $user->centerMembership()->where('center_id', $center->id)->get()->each->delete();
+
+            // Il quitte le centre : l'acces que le centre lui avait vendu s'arrete
+            // (hasPremiumAccess l'ignore deja, la coupure le dit et le date).
+            if ($coupes = $center->couperLesAccesDe($user->id, $request->user()->id, 'Retiré du centre')) {
+                \Illuminate\Support\Facades\Log::info('acces-vendus: acces coupe au retrait du centre', [
+                    'center_id' => $center->id, 'user_id' => $user->id,
+                    'par' => $request->user()->id, 'acces' => $coupes,
+                ]);
+            }
         }
 
         return back()->with('success', "{$user->name} a été retiré de la classe.");

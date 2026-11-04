@@ -1,3 +1,5 @@
+import { ChoiceOption, verdictDuChoix } from './choice-option';
+
 interface TrueFalseNgProps {
     question: {
         id: string;
@@ -9,6 +11,8 @@ interface TrueFalseNgProps {
     onAnswer: (questionId: string, answer: string) => void;
     selectedAnswer?: string;
     disabled?: boolean;
+    /** Correction montree ; par defaut `disabled`, comme avant (voir mcq.tsx). */
+    revealed?: boolean;
 }
 
 const LIBELLES: Record<string, string> = {
@@ -44,7 +48,7 @@ const PAR_DEFAUT = [
  * lisait « Incorrect » sans savoir quoi retenir, alors que le QCM, lui,
  * l'affiche.
  */
-export function TrueFalseNg({ question, onAnswer, selectedAnswer, disabled }: TrueFalseNgProps) {
+export function TrueFalseNg({ question, onAnswer, selectedAnswer, disabled, revealed = disabled }: TrueFalseNgProps) {
     const expected = String(question.correct_answer ?? '').trim().toLowerCase();
 
     const declares = Array.isArray(question.answer_options)
@@ -58,36 +62,23 @@ export function TrueFalseNg({ question, onAnswer, selectedAnswer, disabled }: Tr
         <div className="space-y-4">
             {/* Les sauts de ligne comptent : un enonce porte souvent le panneau
                 puis, en dessous, l'affirmation a juger. */}
-            <p className="text-lg font-medium whitespace-pre-line">{question.text}</p>
-            <div className="flex gap-3">
-                {options.map(({ value, label }) => {
+            <p data-enonce className="lecteur-enonce whitespace-pre-line">{question.text}</p>
+            <div className={`grid gap-2.5 ${options.length === 2 ? 'grid-cols-2' : 'grid-cols-1 sm:grid-cols-3'}`}>
+                {options.map(({ value, label }, i) => {
                     const isSelected = selectedAnswer === value;
-                    const isExpected = disabled && expected !== '' && expected === value.toLowerCase();
-                    const isWrongPick = disabled && isSelected && !isExpected;
 
                     return (
-                        <button
+                        <ChoiceOption
                             key={value}
-                            onClick={() => !disabled && onAnswer(question.id, value)}
+                            index={i}
+                            align="centre"
+                            selected={isSelected}
+                            verdict={verdictDuChoix(!!revealed, expected, value.toLowerCase(), isSelected)}
                             disabled={disabled}
-                            aria-pressed={isSelected}
-                            className={`duo-press flex-1 rounded-lg border-2 p-3 text-center font-medium ${
-                                isExpected
-                                    ? 'border-emerald-400 bg-emerald-50 text-emerald-950 dark:bg-emerald-950/40 dark:text-emerald-100'
-                                    : isWrongPick
-                                      ? 'border-red-400 bg-red-50 text-red-950 dark:bg-red-950/40 dark:text-red-100'
-                                      : isSelected
-                                        ? 'border-primary bg-primary/5'
-                                        : 'border-border'
-                            }`}
-                            style={{
-                                boxShadow: isSelected && !disabled ? '0 4px 0 0 var(--primary, #4A90E2)' : '0 3px 0 0 #e5e7eb',
-                            }}
+                            onSelect={() => onAnswer(question.id, value)}
                         >
                             {label}
-                            {isExpected && <span className="sr-only"> — Bonne réponse</span>}
-                            {isWrongPick && <span className="sr-only"> — Réponse incorrecte</span>}
-                        </button>
+                        </ChoiceOption>
                     );
                 })}
             </div>

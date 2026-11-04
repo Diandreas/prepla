@@ -50,6 +50,13 @@ class ExerciseGeneratorService
 
         $prompt = $this->buildPrompt($exerciseType, $exam, $difficulty, $language, $languageNative, $lessonContext, $partieExamen, $faiblesse);
 
+        // Ce que l'exercice doit respecter une fois ecrit, et pas seulement ce
+        // qu'on demande : les libelles du vrai/faux de CETTE epreuve, la langue
+        // des explications pour CE niveau.
+        $libellesVraiFaux = $this->libellesVraiFaux($exerciseType, $exam, $partieExamen);
+        $langueDesExplications = $this->langueDesExplications($difficulty, $language, $lessonContext);
+        $skillType = $exerciseType->section?->skill_type ?? 'reading';
+
         // Up to 2 attempts: if the first generation contains structurally broken
         // MCQ-style questions (duplicate options, correct_answer letter out of
         // range, etc.), retry the WHOLE batch once before falling back to
@@ -82,6 +89,7 @@ class ExerciseGeneratorService
             $avantFiltre = $candidate['questions'];
             $candidate['questions'] = $this->rectifierLeType($candidate['questions'], $exerciseType->component_key);
             $candidate['questions'] = $this->normalizeOptionLetters($candidate['questions']);
+            $candidate['questions'] = $this->appliquerLibellesVraiFaux($candidate['questions'], $libellesVraiFaux);
             $candidate['questions'] = $this->shuffleOptions($candidate['questions']);
             $candidate['questions'] = $this->dropInvalidChoiceQuestions($candidate['questions'], $exerciseType->component_key);
             $candidate['questions'] = $this->dropInvalidMultiFieldQuestions($candidate['questions'], $exerciseType->component_key);
@@ -114,6 +122,34 @@ class ExerciseGeneratorService
                     'component' => $exerciseType->component_key,
                     'attendu' => $itemsRequis,
                     'obtenu' => $obtenus,
+                ]);
+
+                continue;
+            }
+
+            // LA QUALITE, verifiee et non pas seulement demandee. L'audit du
+            // 2026-11-04 a trouve, dans ce que le prompt interdisait deja, des
+            // trous dont la reponse est ecrite dans le texte, des ecoutes dont
+            // le son ne dit que la question, des sections de grammaire remplies
+            // de comprehension ecrite, des textes de 120 mots au C1. Le modele
+            // obeit la plupart du temps : on refuse et on recommence le reste.
+            $defauts = $this->defautsDeQualite($candidate, $exerciseType, $difficulty, $skillType, $libellesVraiFaux, $lessonContext, $langueDesExplications);
+            if ($defauts !== []) {
+                $raisons[] = implode(' ; ', $defauts);
+                Log::info('Exercise generation: quality check failed, retrying', [
+                    'component' => $exerciseType->component_key,
+                    'defauts' => $defauts,
+                ]);
+
+                continue;
+            }
+
+            // LA CLE, resolue par un second regard qui ne la connait pas.
+            if ($desaccord = $this->verifierALAveugle($candidate, $exerciseType->component_key, $libellesVraiFaux)) {
+                $raisons[] = $desaccord;
+                Log::info('Exercise generation: blind check disagrees, retrying', [
+                    'component' => $exerciseType->component_key,
+                    'desaccord' => $desaccord,
                 ]);
 
                 continue;
@@ -156,10 +192,18 @@ class ExerciseGeneratorService
                 }, $data['questions']);
             }
 
+            // La langue des explications reste notee : le vivier est partage, et
+            // un exercice ecrit pour un debutant hispanophone n'explique pas en
+            // francais. C'est ce qui permettra de le reconnaitre.
+            $contenu = $data['content'];
+            if (is_array($contenu) && $this->exigeUneExplication($exerciseType->component_key)) {
+                $contenu['explanation_language'] = $langueDesExplications;
+            }
+
             return Exercise::create([
                 'exercise_type_id' => $exerciseType->id,
                 'exam_id' => $exam->id,
-                'content' => $data['content'],
+                'content' => $contenu,
                 'questions' => $data['questions'],
                 'difficulty' => $difficulty,
                 'xp_reward' => $this->calculateXpReward($difficulty),
@@ -181,10 +225,52 @@ class ExerciseGeneratorService
             .($raisons ? ' — '.implode(' ; ', $raisons) : ''));
     }
 
-    /** Strip letter prefixes like "A) ", "B) " that Mistral sometimes adds to options. */
+    /**
+     * Strip letter prefixes like "A) ", "B) " that Mistral sometimes adds to options.
+     *
+     * Et aussi « A » + espace : « D Dance group », « C Fireworks show »... Ce
+     * prefixe-la passait, puis shuffleOptions deplacait les options : a #2287,
+     * la bonne reponse etait « C » et l'option affichee en C s'appelait
+     * « A Spring Festival ». On ne le retire que quand TOUTES les options
+     * d'une question en portent un, avec des lettres distinctes — « A book »
+     * seul n'est pas une lettre d'option. Et la reponse attendue designait la
+     * LETTRE ecrite, pas la position : on la reporte sur la position de
+     * l'option qui portait cette lettre, avant tout melange.
+     */
     private function normalizeOptionLetters(array $questions): array
     {
         return array_map(function ($q) {
+            if (! is_array($q)) {
+                return $q;
+            }
+
+            $opts = $q['options'] ?? null;
+            if (is_array($opts) && count($opts) >= 2 && array_is_list($opts)) {
+                $lettres = [];
+                $textes = [];
+                foreach ($opts as $opt) {
+                    if (! is_string($opt) || ! preg_match('/^\s*([A-H])(?:[).:]\s*|\s+)(\S.*)$/su', $opt, $m)) {
+                        $lettres = null;
+                        break;
+                    }
+                    $lettres[] = $m[1];
+                    $textes[] = trim($m[2]);
+                }
+
+                if ($lettres !== null && count(array_unique($lettres)) === count($lettres)) {
+                    $q['options'] = $textes;
+                    $ca = $q['correct_answer'] ?? null;
+                    if (is_string($ca) && preg_match('/^[A-H]$/', strtoupper(trim($ca)))) {
+                        $rang = array_search(strtoupper(trim($ca)), $lettres, true);
+                        if ($rang !== false) {
+                            $q['correct_answer'] = chr(65 + $rang);
+                        }
+                    }
+
+                    return $q;
+                }
+            }
+
             if (isset($q['options']) && is_array($q['options'])) {
                 $q['options'] = array_map(
                     fn ($opt) => is_string($opt) ? preg_replace('/^[A-D]\)\s*/u', '', $opt) : $opt,
@@ -249,9 +335,7 @@ class ExerciseGeneratorService
      * correct). Non-choice question types (gap-fill, essay, etc.) pass through
      * untouched since they have no `options` array to validate.
      * $componentKey additionally gates a required non-empty `explanation` for
-     * the grammar-drilling types that already ask for one in their prompt
-     * format (mcq, gap-fill, sentence-completion) — these are exactly the
-     * items where a learner most needs the rule explained, and it was being
+     * every automatically-scored type (see exigeUneExplication) — it was being
      * silently omitted by Mistral without any retry being triggered.
      */
     /**
@@ -288,12 +372,648 @@ class ExerciseGeneratorService
         return count($questions);
     }
 
+    /**
+     * La longueur du texte a lire, en mots, selon le niveau.
+     *
+     * Le prompt imposait « 150-200 words » a tous les niveaux : trop pour un
+     * A1, beaucoup trop peu pour un C1. Releve : 129 mots en moyenne pour les
+     * textes generes au C1, quand une epreuve verifiee B1 en compte environ 200.
+     *
+     * @return array{0: int, 1: int}
+     */
+    private function plageDuPassage(string $difficulty): array
+    {
+        return match ($difficulty) {
+            'A0', 'A1' => [80, 120],
+            'A2' => [120, 180],
+            'B1' => [200, 300],
+            'B2' => [300, 400],
+            'C1', 'C2' => [400, 600],
+            default => [200, 300],
+        };
+    }
+
+    /**
+     * Dans quelle langue expliquer : celle de l'apprenant jusqu'au A2, celle de
+     * l'examen a partir du B1.
+     *
+     * Les explications etaient toujours dans la langue de l'examen : un
+     * francophone A1 lisait en allemand pourquoi il s'etait trompe en allemand
+     * (#476). La langue de l'apprenant est celle de son profil, a defaut le
+     * francais.
+     */
+    private function langueDesExplications(string $difficulty, string $language, ?array $lessonContext): string
+    {
+        if (! in_array($difficulty, ['A0', 'A1', 'A2'], true)) {
+            return $language;
+        }
+
+        return $this->langueMaternelle($lessonContext);
+    }
+
+    private function langueMaternelle(?array $lessonContext): string
+    {
+        $langue = $lessonContext['native_language'] ?? null;
+        if (! is_string($langue) || trim($langue) === '') {
+            $langue = auth()->user()?->profile?->native_language;
+        }
+
+        return is_string($langue) && trim($langue) !== '' ? trim($langue) : 'Français';
+    }
+
+    /** Les choix du vrai/faux, dans l'ordre vrai, faux, non mentionne. */
+    private const LIBELLES_VRAI_FAUX = [
+        'german' => ['Richtig', 'Falsch', 'Nicht im Text'],
+        'french' => ['Vrai', 'Faux', 'Non mentionné'],
+        'english' => ['True', 'False', 'Not Given'],
+    ];
+
+    /**
+     * Les libelles du vrai/faux de CETTE epreuve, ou null hors vrai/faux.
+     *
+     * Le generateur demandait « True/False/Not Given » partout : les examens
+     * allemands recevaient des libelles anglais (True 96 et False 133 contre
+     * Richtig 24 et Falsch 36), et un « Not Given » que le Goethe ne propose
+     * jamais. On suit la configuration de l'examen :
+     *  - la partie travaillee dit si elle offre deux ou trois choix (type
+     *    `true-false` ou `true-false-not-given`) ;
+     *  - un type pedagogique hors partie suit l'examen : s'il declare des
+     *    parties en vrai/faux et AUCUNE avec « non mentionne », il n'en aura
+     *    pas non plus (Goethe, OSD, DELF) ; sinon le type decide.
+     * La langue des libelles est celle de l'examen.
+     *
+     * @return list<string>|null
+     */
+    private function libellesVraiFaux(ExerciseType $exerciseType, Exam $exam, ?array $partieExamen): ?array
+    {
+        if ($exerciseType->component_key !== 'true-false-ng') {
+            return null;
+        }
+
+        $exam->loadMissing('language');
+        $libelles = self::LIBELLES_VRAI_FAUX[$exam->language?->slug] ?? self::LIBELLES_VRAI_FAUX['english'];
+
+        // UNE PARTIE EN OUI / NON. Certaines parties en `true-false` ne se
+        // jouent pas en « juste / faux » mais en « Ja / Nein » : le Goethe B1
+        // Lesen Teil 4 (pour ou contre ?), les Lesen Aufgabe 2 et 4 de l'OSD,
+        // des Horen du Goethe (« repondre par oui ou non »). C'est la partie
+        // qui le dit, dans sa propre description : on la lit, partie par
+        // partie, sans l'etendre a tout l'examen.
+        if ($partieExamen && ($partieExamen['exercise_type_id'] ?? null) === $exerciseType->id
+            && $this->partieEnOuiNon($partieExamen)) {
+            return self::LIBELLES_OUI_NON[$exam->language?->slug] ?? self::LIBELLES_OUI_NON['english'];
+        }
+
+        $troisChoix = $exerciseType->slug !== 'true-false';
+
+        // Une partie de l'epreuve emploie ce type : son slug est le type de la
+        // partie, et il fait foi tel quel.
+        if (! $partieExamen || ($partieExamen['exercise_type_id'] ?? null) !== $exerciseType->id) {
+            $typesDeclares = [];
+            foreach (\App\Models\ExamBlueprint::where('exam_id', $exam->id)->get() as $plan) {
+                foreach ($plan->sections_config ?? [] as $section) {
+                    foreach (($section['parts'] ?? []) as $partie) {
+                        if (is_array($partie) && in_array($partie['type'] ?? null, ['true-false', 'true-false-not-given'], true)) {
+                            $typesDeclares[] = $partie['type'];
+                        }
+                    }
+                }
+            }
+
+            if ($typesDeclares !== [] && ! in_array('true-false-not-given', $typesDeclares, true)) {
+                $troisChoix = false;
+            }
+        }
+
+        return $troisChoix ? $libelles : array_slice($libelles, 0, 2);
+    }
+
+    private function libellesOuiNon(array $libelles): bool
+    {
+        return in_array($libelles, self::LIBELLES_OUI_NON, true);
+    }
+
+    /** Les choix d'une partie qui se joue en oui / non, dans l'ordre oui, non. */
+    private const LIBELLES_OUI_NON = [
+        'german' => ['Ja', 'Nein'],
+        'french' => ['Oui', 'Non'],
+        'english' => ['Yes', 'No'],
+    ];
+
+    /**
+     * La partie se joue-t-elle en oui / non, d'apres sa propre description
+     * (nom, nom francais, tache) dans config/exams ?
+     */
+    private function partieEnOuiNon(array $partie): bool
+    {
+        $description = mb_strtolower(implode(' ', array_filter([
+            $partie['name'] ?? null, $partie['name_fr'] ?? null, $partie['task'] ?? null,
+        ], 'is_string')));
+
+        return (bool) preg_match('/\bja\s*(?:\/|ou|oder|or)\s*nein\b|\boui\s*(?:\/|ou)\s*non\b|\byes\s*(?:\/|or)\s*no\b|\bpour\s+ou\s+contre\b/u', $description);
+    }
+
+    /**
+     * Ramene la reponse de chaque vrai/faux sur un libelle de l'epreuve, et
+     * declare les choix offerts (`answer_options`, que lit le composant).
+     *
+     * Le modele ecrit souvent « True » pour un examen allemand : la reponse
+     * est juste, le libelle non. On la reporte sur « Richtig ». Une question
+     * qui repond « non mentionne » la ou l'epreuve n'offre que deux choix est
+     * ecartee : elle n'a pas de bonne reponse a l'ecran.
+     */
+    private function appliquerLibellesVraiFaux(array $questions, ?array $libelles): array
+    {
+        if (! $libelles) {
+            return $questions;
+        }
+
+        $sens = [
+            0 => ['true', 'vrai', 'richtig', 'ja', 'yes', 'juste', 'correct', 'oui', 'dafür', 'für'],
+            1 => ['false', 'faux', 'falsch', 'nein', 'no', 'incorrect', 'non', 'dagegen', 'gegen'],
+            2 => ['not given', 'not mentioned', 'non mentionné', 'non mentionne', 'on ne sait pas',
+                'nicht im text', 'steht nicht im text', 'nicht erwähnt', 'nicht gegeben', 'ng'],
+        ];
+
+        $gardees = [];
+        foreach ($questions as $q) {
+            if (! is_array($q) || ! is_scalar($q['correct_answer'] ?? null)) {
+                $gardees[] = $q;
+
+                continue;
+            }
+
+            $reponse = mb_strtolower(trim((string) $q['correct_answer']));
+            $rang = null;
+            foreach ($libelles as $i => $libelle) {
+                if ($reponse === mb_strtolower($libelle)) {
+                    $rang = $i;
+                }
+            }
+            if ($rang === null) {
+                foreach ($sens as $i => $mots) {
+                    if (in_array($reponse, $mots, true)) {
+                        $rang = $i;
+                    }
+                }
+            }
+
+            if ($rang === null || ! isset($libelles[$rang])) {
+                continue; // pas de bonne reponse parmi les choix de l'epreuve
+            }
+
+            $q['correct_answer'] = $libelles[$rang];
+            $q['answer_options'] = $libelles;
+            $gardees[] = $q;
+        }
+
+        return $gardees;
+    }
+
+    /**
+     * Les defauts qu'un exercice ecrit ne doit pas avoir, chacun dit en clair.
+     *
+     * Vide quand l'exercice est bon. Chaque defaut fait refuser l'exercice et
+     * recommencer, comme un mauvais nombre d'items.
+     *
+     * @return list<string>
+     */
+    private function defautsDeQualite(array $candidate, ExerciseType $exerciseType, string $difficulty, string $skillType, ?array $libellesVraiFaux, ?array $lessonContext, string $langueDesExplications = ''): array
+    {
+        $componentKey = (string) $exerciseType->component_key;
+        $content = is_array($candidate['content'] ?? null) ? $candidate['content'] : [];
+        $questions = array_values(array_filter($candidate['questions'] ?? [], 'is_array'));
+        $passage = is_string($content['passage'] ?? null) ? trim($content['passage']) : '';
+        $defauts = [];
+
+        // f. LA GRAMMAIRE N'EST PAS UNE LECTURE. Au TEF, 12 exercices de
+        //    grammaire sur 12 etaient de la comprehension ecrite ; au TCF, 6 sur 6.
+        //    Sauf la ou l'examen declare lui-meme un texte a trous en grammaire
+        //    (telc, Sprachbausteine : une lettre a trous) : le texte y est
+        //    l'epreuve, et le refuser ecrasait la structure de l'examen.
+        if ($skillType === 'grammar') {
+            if ($passage !== '' && ! $this->texteATrous($exerciseType)) {
+                $defauts[] = 'section de grammaire avec un texte a lire';
+            }
+            $consignes = [is_string($content['instructions'] ?? null) ? $content['instructions'] : ''];
+            foreach ($questions as $q) {
+                $consignes[] = is_string($q['text'] ?? null) ? $q['text'] : '';
+            }
+            // La consigne d'un texte a trous parle de son texte (« complete les
+            // trous du texte ») : ce n'est pas une question de comprehension.
+            if (! $this->texteATrous($exerciseType) && preg_match('/selon le texte|d[\'’]apr[eè]s le texte|dans le texte|according to the (text|passage)|in the (text|passage)|laut (dem )?text|im text|aus dem text/iu', implode("\n", $consignes))) {
+                $defauts[] = 'section de grammaire qui renvoie a un texte';
+            }
+        }
+
+        // d. LA LONGUEUR DU TEXTE A LIRE, selon le niveau. On tolere un ecart
+        //    (le modele compte mal les mots) : moins de 80 % du minimum ou plus
+        //    de 150 % du maximum, c'est un autre niveau.
+        if ($skillType === 'reading' && $passage !== '' && $this->passageAttendu($componentKey, $skillType, $lessonContext)) {
+            [$min, $max] = $this->plageDuPassage($difficulty);
+            $mots = Exercise::nombreDeMots($passage);
+            if ($mots < (int) floor($min * 0.8) || $mots > (int) ceil($max * 1.5)) {
+                $defauts[] = "texte de {$mots} mots, attendu {$min}-{$max} au {$difficulty}";
+            }
+        }
+
+        // e. TEXTES A TROUS : rien a recopier. 79 % des trous du vivier libre
+        //    avaient leur reponse ecrite dans le passage, et 37 reprenaient
+        //    tel quel l'indice entre parentheses (#476 : « eine ___ (Schwester) »
+        //    → « Schwester »).
+        if ($componentKey === 'gap-fill') {
+            foreach ($questions as $n => $q) {
+                $reponse = $q['correct_answer'] ?? null;
+                if (! is_string($reponse) || trim($reponse) === '' || is_array($q['options'] ?? null)) {
+                    continue;
+                }
+                $reponse = trim($reponse);
+                if ($passage !== '' && $this->contientLeMot($passage, $reponse)) {
+                    $defauts[] = 'trou '.($n + 1)." : la reponse « {$reponse} » est ecrite dans le texte";
+                }
+                $texte = is_string($q['text'] ?? null) ? $q['text'] : '';
+                if (preg_match_all('/_{2,}\s*\(([^)]+)\)/u', $texte, $indices)) {
+                    foreach ($indices[1] as $indice) {
+                        if (mb_strtolower(trim($indice)) === mb_strtolower($reponse)) {
+                            $defauts[] = 'trou '.($n + 1)." : la reponse « {$reponse} » recopie l'indice";
+                        }
+                    }
+                }
+            }
+        }
+
+        // g. ECOUTES : le son dit le passage, pas la question. Releve : des
+        //    ecoutes dont le son disait « Was macht Anna im Park? » (#464), ou
+        //    la consigne (#387). Les dictees et repliques sont courtes par nature.
+        if ($skillType === 'listening' && ! in_array($componentKey, ['dictation', 'listen-repeat', 'listen-choose-response'], true)) {
+            foreach ($questions as $n => $q) {
+                $son = $q['audio_text'] ?? $content['audio_text'] ?? null;
+                if (! is_string($son) || trim($son) === '') {
+                    continue; // pas de son ecrit : rien a juger ici
+                }
+                $motsDuSon = Exercise::nombreDeMots($son);
+                $enonce = is_string($q['text'] ?? null) ? $q['text'] : '';
+                if ($motsDuSon < 25) {
+                    $defauts[] = 'ecoute '.($n + 1)." : {$motsDuSon} mots a entendre, il en faut au moins 25";
+                } elseif ($enonce !== '' && $this->recopie($son, $enonce)) {
+                    $defauts[] = 'ecoute '.($n + 1).' : le son recopie la question';
+                }
+            }
+        }
+
+        //    Et la MEME regle que le service : un son que
+        //    Exercise::answerableQuestions remplacerait par le passage (moins du
+        //    tiers du passage) n'est pas jouable tel quel, et sa piste serait
+        //    jetee. Le generateur acceptait a 25 mots ce que le service
+        //    ecartait ensuite. On demande donc a l'exercice lui-meme.
+        if ($passage !== '') {
+            $essai = new Exercise(['content' => $content, 'questions' => $questions]);
+            $essai->setRelation('exerciseType', $exerciseType);
+            foreach ($questions as $n => $q) {
+                if (is_string($q['audio_text'] ?? null) && trim($q['audio_text']) !== ''
+                    && $essai->sonDeLaQuestionTropPauvre($q)) {
+                    $defauts[] = 'ecoute '.($n + 1).' : le son fait moins du tiers du passage, le lecteur le remplacerait';
+                }
+            }
+        }
+
+        // c. LA LANGUE DES EXPLICATIONS, verifiee et pas seulement demandee :
+        //    un exercice explique dans la langue de l'examen la ou on attendait
+        //    celle de l'apprenant entrerait dans le vivier sous une etiquette
+        //    fausse. On ne juge que ce qui se reconnait sans doute possible.
+        if ($langueDesExplications !== ''
+            && ($ecart = $this->explicationsDansUneAutreLangue($questions, $langueDesExplications))) {
+            $defauts[] = $ecart;
+        }
+
+        // h. VRAI/FAUX : au moins un « non mentionne » quand l'epreuve en
+        //    offre un. Il n'apparaissait que 17 fois sur 320 questions : on
+        //    s'entrainait a un choix qu'on ne cochait jamais.
+        if ($libellesVraiFaux && count($libellesVraiFaux) === 3 && count($questions) >= 3) {
+            $reponses = array_map(fn ($q) => $q['correct_answer'] ?? null, $questions);
+            if (! in_array($libellesVraiFaux[2], $reponses, true)) {
+                $defauts[] = "aucune affirmation « {$libellesVraiFaux[2]} »";
+            }
+        }
+
+        // Deux textes sous la meme etiquette rendent une association
+        // insoluble : a #581, les textes A et C s'appelaient tous deux
+        // « Person A ».
+        if ($componentKey === 'multiple-matching') {
+            foreach ($questions as $q) {
+                $titres = array_map(
+                    fn ($t) => mb_strtolower(trim((string) (is_array($t) ? ($t['title'] ?? '') : ''))),
+                    is_array($q['texts'] ?? null) ? $q['texts'] : []
+                );
+                $titres = array_filter($titres, fn ($t) => $t !== '');
+                if (count($titres) !== count(array_unique($titres))) {
+                    $defauts[] = 'deux textes portent la meme etiquette';
+                }
+            }
+        }
+
+        return array_values(array_unique($defauts));
+    }
+
+    /**
+     * Les types dont l'epreuve est, par nature, un TEXTE a trous : le slug est
+     * celui que chaque examen donne a sa partie (config/exams/*.php). Au telc,
+     * les Sprachbausteine sont rangees en grammaire mais se passent sur une
+     * lettre a trous (mcq-cloze, puis summary-completion) : la consigne
+     * generale de la grammaire — « des phrases isolees, pas de texte » —
+     * contredisait celle de la partie.
+     */
+    private const TYPES_TEXTE_A_TROUS = ['mcq-cloze', 'open-cloze', 'summary-completion'];
+
+    private function texteATrous(ExerciseType $exerciseType): bool
+    {
+        return in_array($exerciseType->slug, self::TYPES_TEXTE_A_TROUS, true);
+    }
+
+    /**
+     * Des mots-outils propres a chaque langue : assez pour reconnaitre la
+     * langue d'une explication, sans pretendre a mieux.
+     */
+    private const MOTS_OUTILS = [
+        'fr' => ['le', 'la', 'les', 'des', 'est', 'une', 'du', 'et', 'pour', 'dans', 'qui', 'pas', 'avec', 'au', 'sont', 'ce', 'il', 'on'],
+        'en' => ['the', 'is', 'and', 'of', 'to', 'it', 'that', 'because', 'not', 'with', 'are', 'this', 'means'],
+        'de' => ['der', 'die', 'das', 'und', 'ist', 'nicht', 'mit', 'ein', 'eine', 'im', 'den', 'dem', 'von', 'weil', 'auf', 'steht'],
+        'es' => ['el', 'los', 'las', 'porque', 'una', 'con', 'por', 'del', 'está', 'significa', 'y'],
+        'it' => ['il', 'gli', 'della', 'perché', 'sono', 'non', 'è', 'che'],
+        'pt' => ['os', 'não', 'uma', 'com', 'porque', 'é', 'da', 'também'],
+    ];
+
+    /** Le code d'une langue nommee comme dans un profil (« Français », « German »...), ou null. */
+    private function codeDeLangue(string $nom): ?string
+    {
+        $nom = strtolower(trim(\Illuminate\Support\Str::ascii($nom)));
+        $nom = preg_replace('/[^a-z]/', '', $nom);
+
+        return match (true) {
+            in_array($nom, ['francais', 'french', 'franzosisch', 'frances'], true) => 'fr',
+            in_array($nom, ['english', 'anglais', 'englisch', 'ingles'], true) => 'en',
+            in_array($nom, ['deutsch', 'german', 'allemand', 'aleman'], true) => 'de',
+            in_array($nom, ['espanol', 'spanish', 'espagnol', 'spanisch'], true) => 'es',
+            in_array($nom, ['italiano', 'italian', 'italien', 'italienisch'], true) => 'it',
+            in_array($nom, ['portugues', 'portuguese', 'portugais', 'portugiesisch'], true) => 'pt',
+            default => null,
+        };
+    }
+
+    /**
+     * Les explications sont-elles clairement ecrites dans une AUTRE langue
+     * que celle attendue ? Rend le defaut, ou null.
+     *
+     * Volontairement prudent : on ne refuse que quand une autre langue se
+     * reconnait nettement (au moins quatre mots-outils) et que la langue
+     * attendue n'en montre AUCUN. Une explication en francais qui cite un mot
+     * allemand (« der » est masculin) reste donc en francais.
+     */
+    private function explicationsDansUneAutreLangue(array $questions, string $langueAttendue): ?string
+    {
+        $attendue = $this->codeDeLangue($langueAttendue);
+        if ($attendue === null) {
+            return null; // langue qu'on ne sait pas reconnaitre : on ne juge pas
+        }
+
+        $textes = [];
+        foreach ($questions as $q) {
+            // Une explication par trou, quand il y en a : l'explication
+            // d'ensemble en est composee, la compter aussi doublerait tout.
+            if (is_array($q['explanations'] ?? null)) {
+                foreach ($q['explanations'] as $e) {
+                    if (is_string($e)) {
+                        $textes[] = $e;
+                    }
+                }
+            } elseif (is_string($q['explanation'] ?? null)) {
+                $textes[] = $q['explanation'];
+            }
+        }
+        // Les mots cites entre guillemets sont des exemples, pas la langue de l'explication.
+        $texte = preg_replace('/«[^»]*»|"[^"]*"|“[^”]*”|„[^“”]*[“”]/u', ' ', implode(' ', $textes));
+        $mots = preg_split('/[^\p{L}]+/u', mb_strtolower((string) $texte), -1, PREG_SPLIT_NO_EMPTY);
+        if ($mots === []) {
+            return null;
+        }
+
+        $compte = [];
+        foreach (self::MOTS_OUTILS as $code => $liste) {
+            $compte[$code] = count(array_filter($mots, fn ($m) => in_array($m, $liste, true)));
+        }
+        arsort($compte);
+        $dominante = array_key_first($compte);
+
+        if ($dominante !== $attendue && $compte[$dominante] >= 4 && $compte[$attendue] === 0) {
+            return "explications ecrites dans une autre langue que {$langueAttendue}";
+        }
+
+        return null;
+    }
+
+    /** Le mot (ou l'expression) figure-t-il tel quel dans le texte, en mot entier ? */
+    private function contientLeMot(string $texte, string $mot): bool
+    {
+        return (bool) preg_match('/(?<![\p{L}\p{N}])'.preg_quote($mot, '/').'(?![\p{L}\p{N}])/iu', $texte);
+    }
+
+    /** Le son ne fait-il que redire la question ? */
+    private function recopie(string $son, string $enonce): bool
+    {
+        $aPlat = fn (string $t) => trim(preg_replace('/[^\p{L}\p{N}]+/u', ' ', mb_strtolower($t)));
+        $son = $aPlat($son);
+        $enonce = $aPlat($enonce);
+        if ($enonce === '' || $son === '') {
+            return false;
+        }
+        if ($son === $enonce) {
+            return true;
+        }
+
+        // La question, a peine entouree : « Hor zu. Was macht Anna im Park? »
+        return str_contains($son, $enonce)
+            && Exercise::nombreDeMots($son) <= Exercise::nombreDeMots($enonce) * 1.5;
+    }
+
+    /**
+     * La verification a l'aveugle : un second appel resout l'exercice sans
+     * la cle.
+     *
+     * Rend la raison du refus, ou null quand l'exercice passe. On ne juge que
+     * ce qui se compare sans ambiguite : les questions a choix (une lettre) et
+     * les vrai/faux (un libelle). Si la verification elle-meme echoue —
+     * fournisseur muet, reponse illisible —, on ne refuse pas : ce n'est pas
+     * l'exercice qui est en faute, et le refuser priverait l'apprenant de tout
+     * exercice pendant une panne.
+     */
+    private function verifierALAveugle(array $candidate, ?string $componentKey, ?array $libellesVraiFaux): ?string
+    {
+        if (! config('prepla.generation.verification_aveugle', true)) {
+            return null;
+        }
+
+        $content = is_array($candidate['content'] ?? null) ? $candidate['content'] : [];
+        $items = [];
+        $attendus = [];
+        $optionsParId = [];
+        $support =trim((string) ($content['passage'] ?? $content['audio_text'] ?? ''));
+
+        foreach (array_values($candidate['questions'] ?? []) as $n => $q) {
+            if (! is_array($q)) {
+                continue;
+            }
+            $id = (string) ($n + 1);
+            if ($support === '' && is_string($q['audio_text'] ?? null)) {
+                $support = trim($q['audio_text']);
+            }
+            $enonce = trim((string) Exercise::optionText($q['text'] ?? $q['sentence'] ?? ''));
+
+            $options = Exercise::optionList($q['options'] ?? null);
+            $lettre = is_string($q['correct_answer'] ?? null) ? strtoupper(trim($q['correct_answer'])) : '';
+            if ($options !== [] && preg_match('/^[A-Z]$/', $lettre)) {
+                $choix = [];
+                foreach ($options as $i => $option) {
+                    $choix[chr(65 + $i)] = $option;
+                }
+                $items[] = ['id' => $id, 'question' => $enonce, 'options' => $choix];
+                $attendus[$id] = $lettre;
+                $optionsParId[$id] = $choix;
+
+                continue;
+            }
+
+            if ($libellesVraiFaux && is_string($q['correct_answer'] ?? null)) {
+                $items[] = ['id' => $id, 'statement' => $enonce, 'choices' => $libellesVraiFaux];
+                $attendus[$id] = mb_strtolower(trim($q['correct_answer']));
+            }
+        }
+
+        if ($items === []) {
+            return null;
+        }
+
+        $demande = "You are a careful candidate sitting a language exam. Solve every item below WITHOUT any answer key, "
+            ."using only the text provided (it may be the transcript of a recording).\n"
+            ."For an item with \"options\", answer with the LETTER of the single correct option. "
+            ."For an item with \"choices\", answer with one of the choices, copied exactly.\n"
+            ."If more than one option could be defended as correct, or none is correct, put the item id in \"ambiguous\".\n"
+            ."Return JSON only: {\"answers\": {\"<id>\": \"<letter or choice>\"}, \"ambiguous\": [\"<id>\"]}\n\n"
+            .($support !== '' ? "TEXT:\n{$support}\n\n" : '')
+            .'ITEMS: '.json_encode($items, JSON_UNESCAPED_UNICODE);
+
+        $reponse = $this->mistral->chat([
+            ['role' => 'system', 'content' => 'You solve exam items honestly and say when an item is ambiguous. Always respond with valid JSON only.'],
+            ['role' => 'user', 'content' => $demande],
+        ]);
+        $lu = is_string($reponse) ? json_decode($reponse, true) : null;
+        if (! is_array($lu) || ! is_array($lu['answers'] ?? null)) {
+            Log::info('Exercise generation: blind check unavailable, exercise kept', ['component' => $componentKey]);
+
+            return null;
+        }
+
+        $ecarts = [];
+        foreach ($attendus as $id => $attendu) {
+            $donnee = $lu['answers'][$id] ?? null;
+            if (! is_scalar($donnee) || trim((string) $donnee) === '') {
+                continue; // non resolue : ni pour ni contre
+            }
+            $donnee = $this->lireLaReponseAveugle(trim((string) $donnee), $optionsParId[$id] ?? null, $libellesVraiFaux);
+            if ($donnee !== $attendu) {
+                $ecarts[] = "question {$id} : resolue « {$donnee} », la cle dit « {$attendu} »";
+            }
+        }
+        foreach ((array) ($lu['ambiguous'] ?? []) as $id) {
+            if (is_scalar($id) && isset($attendus[(string) $id])) {
+                $ecarts[] = "question {$id} : plusieurs bonnes reponses ou aucune";
+            }
+        }
+
+        return $ecarts === [] ? null : 'verification a l\'aveugle : '.implode(' ; ', array_unique($ecarts));
+    }
+
+    /**
+     * La reponse du second regard, ramenee a la forme de la cle : une lettre
+     * majuscule pour un choix, un libelle en minuscules pour un vrai/faux.
+     *
+     * @param  array<string, string>|null  $options  lettre → texte de l'option
+     */
+    private function lireLaReponseAveugle(string $donnee, ?array $options, ?array $libellesVraiFaux): string
+    {
+        if ($options !== null) {
+            // « B », « B) », « b. Berlin »
+            if (preg_match('/^([A-Za-z])(?:$|[).:\s])/u', $donnee, $m) && isset($options[strtoupper($m[1])])) {
+                return strtoupper($m[1]);
+            }
+            // Le texte de l'option recopie au lieu de sa lettre.
+            foreach ($options as $lettre => $texte) {
+                if (mb_strtolower(trim($texte)) === mb_strtolower($donnee)) {
+                    return $lettre;
+                }
+            }
+
+            return mb_strtoupper($donnee);
+        }
+
+        if ($libellesVraiFaux) {
+            $ramenee = $this->appliquerLibellesVraiFaux([['correct_answer' => $donnee]], $libellesVraiFaux);
+            if (isset($ramenee[0]['correct_answer'])) {
+                return mb_strtolower($ramenee[0]['correct_answer']);
+            }
+        }
+
+        return mb_strtolower($donnee);
+    }
+
+    /**
+     * L'exercice doit-il s'appuyer sur un texte a lire ?
+     *
+     * Pour un exercice de lecon (grammaire, vocabulaire), le texte est un
+     * piege : l'apprenant recopie au lieu d'appliquer la regle. Et une section
+     * de grammaire n'en a jamais : c'etait de la comprehension ecrite deguisee.
+     */
+    private function passageAttendu(string $componentKey, string $skillType, ?array $lessonContext, bool $texteATrous = false): bool
+    {
+        // Une partie de grammaire que l'examen declare en texte a trous (telc,
+        // Sprachbausteine) a un texte : c'est la lettre a trous elle-meme.
+        if ($skillType === 'grammar') {
+            return $texteATrous;
+        }
+
+        // Une ecoute n'a pas de texte a LIRE : ce qu'on entend est dans
+        // audio_text. Le prompt demandait en plus un passage a la longueur de
+        // lecture du niveau (400-600 mots au C1) : l'enregistrement de 60-100
+        // mots en faisait alors moins du tiers, et le service le remplacait
+        // par ce passage en jetant sa piste (Exercise::sonDeLaQuestionTropPauvre).
+        if ($skillType === 'listening') {
+            return false;
+        }
+
+        $avecTexte = in_array($componentKey, ['mcq', 'true-false-ng', 'gap-fill', 'matching', 'sentence-completion', 'short-answer', 'open-cloze'], true);
+
+        return $avecTexte && ! ($lessonContext && $skillType !== 'reading');
+    }
+
     private function dropInvalidChoiceQuestions(array $questions, ?string $componentKey = null): array
     {
-        $explanationRequiredTypes = ['mcq', 'gap-fill', 'sentence-completion'];
-        $requireExplanation = in_array($componentKey, $explanationRequiredTypes, true);
+        // L'EXPLICATION POUR TOUT FORMAT CORRIGE AUTOMATIQUEMENT. Elle n'etait
+        // exigee que pour le QCM, le texte a trous et la phrase a completer :
+        // en production, 346 associations sur 451 et toutes les completions de
+        // notes en etaient privees. Un apprenant qui se trompe sans savoir
+        // pourquoi n'apprend rien. Pour les formats a champs multiples, c'est
+        // une explication PAR TROU (voir explicationsParTrou).
+        $requireExplanation = $this->exigeUneExplication($componentKey);
+        $multi = ExerciseSchemaRegistry::familyFor((string) $componentKey) === ExerciseSchemaRegistry::FAMILY_MULTI;
+
+        $questions = array_map(
+            fn ($q) => ($requireExplanation && $multi && is_array($q)) ? $this->explicationsParTrou($q) : $q,
+            $questions
+        );
 
         return array_values(array_filter($questions, function ($q) use ($requireExplanation, $componentKey) {
+            if (! is_array($q)) {
+                return false;
+            }
             // Reject if the question's own declared `type` doesn't match the
             // component_key it was generated for — Mistral occasionally returns
             // a generic/wrong-type payload (confirmed: a "matching" request
@@ -334,7 +1054,8 @@ class ExerciseGeneratorService
                 // L'explication est LUE : rendue en objet (concept/evidence/hint), le
                 // transtypage levait une alerte et la question etait jetee — parfois
                 // toute la fournee, donc aucun exercice servi.
-                if ($requireExplanation && trim(\App\Models\Exercise::optionText($q['explanation'] ?? '')) === '') {
+                if ($requireExplanation && $this->corrigeeAutomatiquement($q)
+                    && trim(\App\Models\Exercise::optionText($q['explanation'] ?? '')) === '') {
                     return false;
                 }
 
@@ -363,12 +1084,87 @@ class ExerciseGeneratorService
                 return false;
             }
 
-            if ($requireExplanation && empty(trim((string) ($q['explanation'] ?? '')))) {
+            if ($requireExplanation && trim(\App\Models\Exercise::optionText($q['explanation'] ?? '')) === '') {
                 return false;
             }
 
             return true;
         }));
+    }
+
+    /**
+     * Ce format est-il corrige automatiquement, et doit-il donc s'expliquer ?
+     *
+     * Tout ce qui n'est pas juge par l'IA : redactions et prises de parole
+     * n'ont pas de reponse attendue a expliquer.
+     */
+    private function exigeUneExplication(?string $componentKey): bool
+    {
+        if (! $componentKey || in_array($componentKey, Exercise::AI_EVALUATED_TYPES, true)) {
+            return false;
+        }
+
+        return ! in_array(ExerciseSchemaRegistry::familyFor($componentKey), [
+            ExerciseSchemaRegistry::FAMILY_AI_WRITING, ExerciseSchemaRegistry::FAMILY_AI_SPEAKING,
+        ], true);
+    }
+
+    /** La question porte-t-elle une reponse attendue (donc une correction automatique) ? */
+    private function corrigeeAutomatiquement(array $q): bool
+    {
+        $attendu = $q['correct_answer'] ?? $q['correct_answers'] ?? $q['correct_order'] ?? null;
+
+        return is_array($attendu) ? $attendu !== [] : (is_scalar($attendu) && trim((string) $attendu) !== '');
+    }
+
+    /**
+     * Une explication par trou pour les formats a champs multiples.
+     *
+     * Le modele rend `explanations`, une carte aux memes cles que
+     * `correct_answers`. Sans une entree non vide pour CHAQUE trou, la
+     * question perd son explication et sera refusee. Avec, on en compose
+     * aussi `explanation`, le champ que lisent la correction et l'ecran.
+     */
+    private function explicationsParTrou(array $q): array
+    {
+        $attendues = $q['correct_answers'] ?? null;
+        $explications = $q['explanations'] ?? null;
+        if (! is_array($attendues) || $attendues === []) {
+            return $q;
+        }
+
+        if (! is_array($explications)) {
+            unset($q['explanation']);
+
+            return $q;
+        }
+
+        $lignes = [];
+        foreach (array_keys($attendues) as $cle) {
+            $texte = trim(Exercise::optionText($explications[$cle] ?? $explications[(string) $cle] ?? ''));
+            if ($texte === '') {
+                unset($q['explanation']);
+
+                return $q;
+            }
+            $lignes[] = $this->nomDuTrou($q, $cle).' : '.$texte;
+        }
+
+        $q['explanation'] = implode("\n", $lignes);
+
+        return $q;
+    }
+
+    /** Comment designer un trou dans l'explication composee. */
+    private function nomDuTrou(array $q, int|string $cle): string
+    {
+        $attendue = $q['correct_answers'][$cle] ?? null;
+
+        // Une association rend une lettre (« s1 » → « B ») : la lettre seule ne
+        // dit rien, la cle de l'affirmation si.
+        return is_scalar($attendue) && mb_strlen(trim((string) $attendue)) > 1
+            ? '« '.trim((string) $attendue).' »'
+            : (string) $cle;
     }
 
     /**
@@ -566,7 +1362,12 @@ class ExerciseGeneratorService
     {
         $componentKey = $exerciseType->component_key;
         $skillType = $exerciseType->section?->skill_type ?? 'reading';
-        $nativeLang = $lessonContext['native_language'] ?? 'Français';
+        // La langue de l'apprenant : celle de la lecon, sinon celle de son
+        // profil, a defaut le francais. Hors lecon, elle valait toujours
+        // « Français », meme pour un apprenant hispanophone.
+        $nativeLang = $this->langueMaternelle($lessonContext);
+        $langueExplications = $this->langueDesExplications($difficulty, $language, $lessonContext);
+        $libellesVraiFaux = $this->libellesVraiFaux($exerciseType, $exam, $partieExamen);
 
         // Lesson-aware context: when an exercise is generated AFTER a lesson, it MUST test
         // the lesson's specific concept (e.g. "grammar.simple_present") — not random content.
@@ -635,7 +1436,7 @@ DIRECTIVE;
         $audioField = $isListening ? ', audio_text (string: the SAME spoken passage of 60-100 words in '.$language.' — a short dialogue or monologue — repeated identically on every question; questions ask about details/intentions/facts that can only be answered by listening, NOT by reading the question)' : '';
 
         $listeningDirective = $isListening
-            ? "\n\nLISTENING RULES:\n- audio_text is the recording (a 60-100-word dialogue/monologue). It is the SAME on every question.\n- Questions test comprehension BY EAR (who, what, where, why, intention). Do NOT write the answer in the question.\n- Never just name a term and ask to match it to its definition — that's not listening."
+            ? "\n\nLISTENING RULES:\n- audio_text is the recording (a 60-100-word dialogue/monologue). It is the SAME on every question.\n- audio_text is NEVER the question itself nor the instruction: it is the text the student must understand, at least 25 words.\n- Questions test comprehension BY EAR (who, what, where, why, intention). Do NOT write the answer in the question.\n- Never just name a term and ask to match it to its definition — that's not listening."
             : '';
 
         // A beginner (A0/A1/A2) cannot parse a scenario/role instruction written
@@ -696,8 +1497,8 @@ THIS IS A SPEAKING TASK — the student RECORDS their own voice. It is NOT a com
             $estDescriptionImage => 'Array of 1 question with: id (string), type ("speaking-recorder"), text (instruction in '.$scenarioLang.' asking the student to FIRST describe what the picture shows, THEN comment on it and give their own opinion), image_prompt (a short English description of an everyday scene to illustrate — people doing something ordinary, e.g. "a family having breakfast in a small kitchen" — no text, no charts), prep_time (60), speak_time (180), image_url (null), correct_answer (null)',
             default => match ($componentKey) {
             // --- Original components ---
-            'mcq' => 'Array of 3 questions, each with: id (string q1/q2/q3), type ("mcq"), text (question in '.$language.'), options (array of exactly 4 answer choices in '.$language.', do NOT include letters like "A)" prefix), correct_answer (ONLY the letter: "A", "B", "C", or "D" corresponding to the correct option index), explanation (string in '.$language.')'.$audioField,
-            'true-false-ng' => 'Array of 3 statements, each with: id (string), type ("true-false-ng"), text (statement in '.$language.'), correct_answer ("True"/"False"/"Not Given"), explanation (string)'.$audioField,
+            'mcq' => 'Array of 3 questions, each with: id (string q1/q2/q3), type ("mcq"), text (question in '.$language.'), options (array of exactly 4 answer choices in '.$language.', do NOT include letters like "A)" prefix), correct_answer (ONLY the letter: "A", "B", "C", or "D" corresponding to the correct option index), explanation (string in '.$langueExplications.')'.$audioField,
+            'true-false-ng' => 'Array of 3 statements, each with: id (string), type ("true-false-ng"), text (statement in '.$language.'), correct_answer ('.implode('/', array_map(fn ($l) => '"'.$l.'"', $libellesVraiFaux ?? ['True', 'False', 'Not Given'])).' — exactly one of these labels), explanation (string)'.$audioField,
             'gap-fill' => 'Array of 3 items, each with: id (string), type ("gap-fill"), text (sentence in '.$language.' containing EXACTLY ONE blank written as ___ — never two or more blanks in the same sentence), correct_answer (string: the single word or phrase that fills that one blank), explanation (string)'.$audioField,
             'matching' => 'Array of 4 questions, each with: id (string q1-q4), type ("matching"), text (the term/concept to identify in '.$language.'), options (array of exactly 4 definitions in '.$language.' — one correct, three plausible distractors, shuffled), correct_answer (ONLY the letter "A", "B", "C", or "D" for the correct option)'.$audioField,
             'essay-editor' => 'Array of 1 question with: id (string), type ("essay-editor"), text (writing prompt in '.$language.', scoped to what a '.$difficulty.' learner can realistically write about), min_words ('.$wMin.'), max_words ('.$wMax.'), correct_answer (null — scored manually)',
@@ -763,17 +1564,51 @@ THIS IS A SPEAKING TASK — the student RECORDS their own voice. It is NOT a com
         // short-answer, mcq, matching), the passage is usually a distractor: it tempts
         // students to copy-paste instead of applying the concept. Skip the passage when
         // we have lesson context, unless the skill is reading.
-        $needsPassage = in_array($componentKey, ['mcq', 'true-false-ng', 'gap-fill', 'matching', 'sentence-completion', 'short-answer', 'open-cloze']);
-        if ($needsPassage && $lessonContext && $skillType !== 'reading') {
-            $needsPassage = false;
-        }
+        // Une section de grammaire n'a pas de texte a lire (voir passageAttendu).
+        $texteATrous = $skillType === 'grammar' && $this->texteATrous($exerciseType);
+        $needsPassage = $this->passageAttendu($componentKey, $skillType, $lessonContext, $texteATrous);
 
-        $contentStructure = $needsPassage
-            ? '"content": {"passage": "A '.$difficulty.'-level text in '.$language.' (150-200 words) — questions must require INFERENCE, not literal copying from the passage", "instructions": "Instructions in '.$language.'"}'
-            : '"content": {"instructions": "Instructions in '.$language.'"}';
+        // La longueur du texte suit le niveau : « 150-200 words » partout
+        // donnait des textes trop longs au A1 et trop courts au C1.
+        [$passageMin, $passageMax] = $this->plageDuPassage($difficulty);
+        $contentStructure = match (true) {
+            // Le texte a trous d'une partie de grammaire : la lettre elle-meme,
+            // dont les trous sont les items. Rien a comprendre, tout a completer.
+            $texteATrous && $componentKey !== 'summary-completion' && $componentKey !== 'open-cloze' => '"content": {"passage": "The '.$difficulty.'-level text in '.$language.' ('.$passageMin.'-'.$passageMax.' words) with its gaps numbered (1)___, (2)___ … in reading order, one per item", "instructions": "Instructions in '.$language.'"}',
+            $needsPassage && ! $texteATrous => '"content": {"passage": "A '.$difficulty.'-level text in '.$language.' ('.$passageMin.'-'.$passageMax.' words) — questions must require INFERENCE, not literal copying from the passage; distractors must be things the text mentions but that do not answer the question (paraphrase, never copy)", "instructions": "Instructions in '.$language.'"}',
+            default => '"content": {"instructions": "Instructions in '.$language.'"}',
+        };
+
+        // Deux consignes de grammaire : des phrases isolees en general, mais le
+        // texte a trous la ou l'examen le declare pour cette partie. Envoyer
+        // les deux a la fois donnait au modele des ordres contraires.
+        $grammarDirective = match (true) {
+            $texteATrous => "\n\nTHIS IS A GRAMMAR PART PASSED ON A TEXT WITH GAPS (as the exam part above describes):\n- Write ONE coherent text (a letter, an e-mail, an article — whatever the part says) and blank out the words to test.\n- Each item is ONE gap of that text and tests grammar or vocabulary the student must apply — never comprehension of the text. When an item has a \"text\", it repeats the sentence of the text that holds its gap, the gap written ___.\n- NEVER ask \"according to the text\" questions: the text is only the frame of the gaps.",
+            $skillType === 'grammar' => "\n\nTHIS IS A GRAMMAR SECTION, NOT A READING TEST:\n- Do NOT write any passage or text to read: no \"passage\" field.\n- Each item is a standalone sentence that tests ONE grammar point the student must apply.\n- NEVER write \"according to the text\", \"selon le texte\", \"laut Text\" or any reference to a text.",
+            default => '',
+        };
 
         $gapFillBan = $componentKey === 'gap-fill'
-            ? "\n\nCRITICAL FOR GAP-FILL (grammar drilling — make it CHALLENGING):\n- The answer to each blank MUST NOT appear verbatim in the passage or in any other question.\n- Each gap tests grammar or vocabulary the student has to KNOW and PRODUCE, not COPY.\n- When the gap is a VERB: put the infinitive/base form in parentheses right after the blank so the learner knows what to conjugate, e.g. (in {$language}) 'Gestern ___ (gehen) ich ins Kino.' → answer 'ging' (correct tense + person).\n- When the gap tests WORD FORM/ENDINGS (e.g. German adjective endings, plurals, declensions): give the base word in parentheses and require the correctly inflected form, e.g. 'Ich sehe einen ___ (groß) Hund.' → 'großen'.\n- Vary tenses/persons/cases across the 3 items so it really tests the rule.\n- Bad: 'Madrid is a ___ city' with 'big' visible earlier. NEVER do this."
+            ? "\n\nCRITICAL FOR GAP-FILL (grammar drilling — make it CHALLENGING):\n- The answer to each blank MUST NOT appear verbatim in the passage or in any other question.\n- Each gap tests grammar or vocabulary the student has to KNOW and PRODUCE, not COPY.\n- When the gap is a VERB: put the infinitive/base form in parentheses right after the blank so the learner knows what to conjugate, e.g. (in {$language}) 'Gestern ___ (gehen) ich ins Kino.' → answer 'ging' (correct tense + person).\n- When the gap tests WORD FORM/ENDINGS (e.g. German adjective endings, plurals, declensions): give the base word in parentheses and require the correctly inflected form, e.g. 'Ich sehe einen ___ (groß) Hund.' → 'großen'.\n- The answer must NEVER be identical to the word in parentheses: the student must transform it.\n- Vary tenses/persons/cases across the 3 items so it really tests the rule.\n- Bad: 'Madrid is a ___ city' with 'big' visible earlier. NEVER do this."
+            : '';
+
+        // L'EXPLICATION, pour tout ce qui est corrige automatiquement, dans la
+        // langue de l'apprenant jusqu'au A2 et dans celle de l'examen ensuite.
+        $explanationDirective = '';
+        if ($this->exigeUneExplication($componentKey)) {
+            $explanationDirective = ExerciseSchemaRegistry::familyFor($componentKey) === ExerciseSchemaRegistry::FAMILY_MULTI
+                ? "\n\nEXPLANATIONS — mandatory: every question MUST include \"explanations\", an object with EXACTLY the same keys as correct_answers, giving for EACH blank one short sentence in {$langueExplications} that says why this answer is right."
+                : "\n\nEXPLANATIONS — mandatory: every question MUST include \"explanation\", one or two sentences in {$langueExplications} saying why the right answer is right (and, when there are options, why the most tempting wrong one is wrong).";
+        }
+
+        $trueFalseDirective = $libellesVraiFaux
+            ? "\n\nTRUE/FALSE LABELS: this exam part uses exactly these answers: ".implode(' / ', $libellesVraiFaux).'. '
+                .'correct_answer is one of them, copied exactly.'
+                .(count($libellesVraiFaux) === 3
+                    ? " At least one statement MUST be \"{$libellesVraiFaux[2]}\": the text says nothing about it either way."
+                    : ($this->libellesOuiNon($libellesVraiFaux)
+                        ? ' This part is answered YES or NO: each item is a question (or a stance, e.g. is this person for or against?) whose answer is clearly yes or no according to the text. There is NO "not given" answer.'
+                        : ' There is NO "not given" answer in this part: every statement is clearly right or wrong according to the text.'))
             : '';
 
         // Comprehension grounding: for reading/listening, EVERY question must be
@@ -781,7 +1616,7 @@ THIS IS A SPEAKING TASK — the student RECORDS their own voice. It is NOT a com
         // problem of questions asking about facts that are not in the text.
         $isComprehension = in_array($skillType, ['reading', 'listening'], true);
         $comprehensionGuard = $isComprehension
-            ? "\n\nCRITICAL FOR THIS COMPREHENSION EXERCISE:\n- EVERY question's correct answer MUST be explicitly stated in, or directly inferable from, the passage/recording. NEVER ask about a detail, name, number or fact that is not present in the text.\n- Distractors must be plausible but clearly wrong according to the text.\n- For listening, the passage IS the transcript that will be read aloud (the student does NOT see it) — questions must be answerable by ear, so keep them concrete and not dependent on exact spelling.\n- Do NOT require outside/world knowledge the text doesn't provide."
+            ? "\n\nCRITICAL FOR THIS COMPREHENSION EXERCISE:\n- EVERY question's correct answer MUST be explicitly stated in, or directly inferable from, the passage/recording. NEVER ask about a detail, name, number or fact that is not present in the text.\n- Distractors must be plausible but clearly wrong according to the text.\n- For listening, audio_text IS the transcript that will be read aloud (the student does NOT see it); there is no separate passage — questions must be answerable by ear, so keep them concrete and not dependent on exact spelling.\n- Do NOT require outside/world knowledge the text doesn't provide."
             : '';
 
         // Level guard: keep vocabulary and structures within the target CEFR level so
@@ -851,7 +1686,7 @@ TARGET THIS WEAKNESS: the learner keeps getting «{$faiblesse}» wrong. "
         return <<<PROMPT
 Generate a {$exerciseType->name} exercise for the {$exam->name} exam at CEFR {$difficulty} level.
 The exercise must be entirely in {$language} ({$languageNative}) — this is a {$language} language exam.
-Skill tested: {$skillType}.{$directiveDeLaPartie}{$directiveFaiblesse}{$directiveDesPoints}{$lessonDirective}{$gapFillBan}{$comprehensionGuard}{$levelGuard}{$listeningDirective}{$speakingDirective}{$instructionDirective}{$directiveDesItems}
+Skill tested: {$skillType}.{$directiveDeLaPartie}{$directiveFaiblesse}{$directiveDesPoints}{$lessonDirective}{$grammarDirective}{$gapFillBan}{$comprehensionGuard}{$levelGuard}{$listeningDirective}{$speakingDirective}{$instructionDirective}{$trueFalseDirective}{$explanationDirective}{$directiveDesItems}
 
 Return JSON with exactly this structure:
 {
@@ -859,7 +1694,7 @@ Return JSON with exactly this structure:
   "questions": [{$questionFormat}]
 }
 
-Important: ALL text (passage, questions, options, explanations) must be in {$language}, EXCEPT where a field above is explicitly marked to be in the student's native language (beginner speaking/instruction fields). No English unless it's an English exam.
+Important: ALL text (passage, questions, options) must be in {$language}, EXCEPT where a field above is explicitly marked to be in the student's native language (beginner speaking/instruction fields). Explanations are written in {$langueExplications}. No English unless it's an English exam or English is the explanation language.
 For writing/speaking exercises, correct_answer should be null (these are scored differently).
 {$consignesDeCorrection}
 PROMPT;

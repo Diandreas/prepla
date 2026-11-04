@@ -222,12 +222,14 @@ test('practice does not select private lesson node mock or wrong-level content',
 })->with(['center', 'lesson', 'node', 'mock', 'level']);
 
 test('practice reuses a public exercise at the exact level before creating a starter', function () {
+    // A partir du B1 : jusqu'au A2, la serie preparee passe avant le vivier
+    // (ses textes y sont assez longs ; au-dela, plus courts que ceux de l'IA).
     [$exam, , $type] = starterPracticeFixture();
-    $this->actingAs(starterPracticeUser($exam));
+    $this->actingAs(starterPracticeUser($exam, 'B1'));
     $this->mock(ExerciseGeneratorService::class, fn ($mock) => $mock->shouldNotReceive('generate'));
     $existing = Exercise::create([
         'exam_id' => $exam->id, 'exercise_type_id' => $type->id,
-        'difficulty' => 'A2', 'content' => [], 'questions' => [],
+        'difficulty' => 'B1', 'content' => [], 'questions' => [],
     ]);
 
     $this->get(route('practice.drill.type', [$exam, $type]))
