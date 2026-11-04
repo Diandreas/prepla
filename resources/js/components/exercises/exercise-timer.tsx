@@ -8,9 +8,12 @@ interface ExerciseTimerProps {
     // onTimeUpdate ne rapporte que le temps de cette ouverture, que le lecteur
     // additionne lui-meme au temps sauvegarde.
     decalage?: number;
+    // Le temps est compte mais pas affiche (essai sans compte : un chronometre
+    // qui monte ajoute de la pression sans rien apporter au visiteur).
+    masque?: boolean;
 }
 
-export function ExerciseTimer({ onTimeUpdate, onExpire, timeLimit, decalage = 0 }: ExerciseTimerProps) {
+export function ExerciseTimer({ onTimeUpdate, onExpire, timeLimit, decalage = 0, masque = false }: ExerciseTimerProps) {
     const isCountdown = !!timeLimit;
     const [seconds, setSeconds] = useState(isCountdown ? timeLimit! : 0);
     const expiredRef = useRef(false);
@@ -71,9 +74,13 @@ export function ExerciseTimer({ onTimeUpdate, onExpire, timeLimit, decalage = 0 
     const isCritical = isCountdown && seconds <= 10 && seconds > 0;
     const isExpired = isCountdown && seconds === 0;
 
+    if (masque) return null;
+
     return (
         <div
-            className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-semibold tabular-nums transition-all duration-300 ${
+            role="timer"
+            aria-label={isCountdown ? 'Temps restant' : 'Temps passé'}
+            className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[0.8125rem] font-semibold tabular-nums transition-all duration-300 ${
                 isExpired
                     ? 'bg-red-100 text-red-600 dark:bg-red-900/30'
                     : isCritical

@@ -9,7 +9,8 @@ import { useTranslation } from 'react-i18next';
 import { playSound } from '@/hooks/use-sound';
 import { getCachedTtsUrl, rememberTtsUrl, prefetchExercisesAudio } from '@/lib/tts-cache';
 import { evaluateAnswer, expectedAnswerText, isBlankAnswer, isSkippedAnswer, needsServerEvaluation, optionList } from '@/lib/scoring';
-import { LearningScene, sceneVariantForSkill } from '@/components/learning-scene';
+import { AlertCircle, BookOpen, Check, ChevronDown, ChevronRight, Headphones, Info, Loader2, MessageSquare, Mic, PenLine, Play, Plus, Puzzle, Search, Volume1, Volume2, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 // Read the freshest CSRF token. The XSRF-TOKEN cookie tracks the live session,
 // whereas the <meta> tag is frozen at page load and goes stale on a long-running
@@ -18,24 +19,6 @@ function csrfToken(): string {
     const cookie = document.cookie.split('; ').find(c => c.startsWith('XSRF-TOKEN='));
     if (cookie) return decodeURIComponent(cookie.split('=')[1]);
     return (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
-}
-
-const INLINE_SVGS: Record<string, React.ReactElement<React.SVGProps<SVGSVGElement>>> = {
-    'volume-1': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>,
-    'volume-2': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>,
-    'plus': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
-    'info': <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>,
-};
-
-function Icon({ name, size = 20, className, style }: { name: string; size?: number; className?: string; style?: React.CSSProperties }) {
-    if (INLINE_SVGS[name]) {
-        return (
-            <span className={className} style={{ width: size, height: size, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, ...style }}>
-                {React.cloneElement(INLINE_SVGS[name], { width: size, height: size })}
-            </span>
-        );
-    }
-    return <img src={`/icons/${name}.png`} alt="" width={size} height={size} className={className} style={{ objectFit: 'contain', ...style }} />;
 }
 
 import { Mcq } from '@/components/exercises/mcq';
@@ -226,119 +209,222 @@ const INSTRUCTIONS: Record<string, string> = {
     'guided-writing': 'Rédige en suivant les contraintes indiquées',
 };
 
-// Segmented progress dots
-// `whitespace-pre-line` : les sauts de ligne du texte source comptent. Une partie
+// Le texte a lire. `lecteur-passage` (app.css) : 16 px, interligne 28 px, une
+// largeur de lecture, et les sauts de ligne du texte source comptent. Une partie
 // de lecture qui donne DEUX documents — un message puis un courriel — les voyait
 // recoller en un seul bloc, et on ne savait plus ou l'un finissait.
 function HighlightedPassage({ text, highlight }: { text: string; highlight: string }) {
-    if (!highlight) return <p className="leading-relaxed whitespace-pre-line">{text}</p>;
+    if (!highlight) return <p className="lecteur-passage text-foreground">{text}</p>;
 
     const parts = text.split(new RegExp(`(${highlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
 
     return (
-        <p className="leading-relaxed whitespace-pre-line">
+        <p className="lecteur-passage text-foreground">
             {parts.map((part, i) =>
                 part.toLowerCase() === highlight.toLowerCase() ? (
-                    <span key={i} className="bg-yellow-200 dark:bg-yellow-900/50 px-0.5 rounded transition-all duration-500 font-medium">
+                    <mark key={i} className="rounded bg-amber-200 px-0.5 font-medium text-amber-950 dark:bg-amber-400/30 dark:text-amber-50">
                         {part}
-                    </span>
+                    </mark>
                 ) : part
             )}
         </p>
     );
 }
 
-function ProgressDots({ total, current }: { total: number; current: number }) {
-    // Cap at 40 dots for readability
-    const MAX = 40;
-    const capped = Math.min(total, MAX);
-    const ratio = total > MAX ? current / total : current;
-    const filledCount = total > MAX ? Math.round(ratio * capped) : current;
+/**
+ * Ou en est l'eleve dans la seance : « Question n/N » et une barre sur toute la
+ * largeur. Le libelle est annonce poliment a chaque question ; la barre porte son
+ * role et ses valeurs. Elle remplace les pastilles, illisibles au-dela de vingt
+ * questions et muettes pour un lecteur d'ecran.
+ */
+function BarreDeProgression({ libelle, fait, total }: { libelle: string; fait: number; total: number }) {
+    const faites = Math.max(0, Math.min(fait, total));
+    const pourcent = total > 0 ? (faites / total) * 100 : 0;
 
     return (
-        <div className="flex items-center gap-[3px] flex-wrap">
-            {Array.from({ length: capped }).map((_, i) => {
-                const filled = i < filledCount;
-                const active = i === filledCount;
-                return (
-                    <span
-                        key={i}
-                        style={{
-                            width: capped > 20 ? 6 : 8,
-                            height: capped > 20 ? 6 : 8,
-                            borderRadius: '50%',
-                            display: 'block',
-                            transition: 'all 0.3s cubic-bezier(.4,0,.2,1)',
-                            background: filled
-                                ? 'var(--player-accent)'
-                                : active
-                                ? 'var(--player-accent-muted)'
-                                : 'var(--player-dot-empty)',
-                            transform: active ? 'scale(1.35)' : 'scale(1)',
-                            boxShadow: active ? '0 0 0 2px var(--player-accent-muted)' : 'none',
-                        }}
-                    />
-                );
-            })}
+        <div className="flex items-center gap-3">
+            <span aria-live="polite" className="shrink-0 text-[0.8125rem] font-semibold tabular-nums text-muted-foreground">
+                {libelle}
+            </span>
+            <div
+                role="progressbar"
+                aria-label="Progression dans la séance"
+                aria-valuemin={0}
+                aria-valuemax={total}
+                aria-valuenow={faites}
+                aria-valuetext={`${faites} sur ${total}`}
+                className="h-2.5 flex-1 overflow-hidden rounded-full bg-muted"
+            >
+                <div className="h-full rounded-full bg-primary transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${pourcent}%` }} />
+            </div>
         </div>
     );
 }
 
-// Circular SVG countdown arc
+/**
+ * Le temps restant pour la question : un petit arc et les minutes:secondes en
+ * 14 px (11 px auparavant, dans des rouges et ambres ecrits en dur). L'alerte
+ * passe par la couleur ET le fond de la pastille, aux couleurs du theme.
+ */
 function ArcTimer({ seconds, limit, warning, critical, expired }: {
     seconds: number; limit: number;
     warning: boolean; critical: boolean; expired: boolean;
 }) {
-    const r = 18;
+    const r = 9;
     const circ = 2 * Math.PI * r;
-    const pct = limit > 0 ? seconds / limit : 1;
-    const offset = circ * (1 - pct);
+    const pct = limit > 0 ? Math.max(0, Math.min(1, seconds / limit)) : 1;
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-
-    const trackColor = expired || critical ? '#ef4444' : warning ? '#f59e0b' : 'var(--player-accent)';
-    const bgColor = expired || critical ? 'rgba(239,68,68,0.12)' : warning ? 'rgba(245,158,11,0.12)' : 'rgba(var(--player-accent-rgb),0.1)';
+    const alerte = expired || critical;
 
     return (
         <div
-            style={{
-                position: 'relative',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 52,
-                height: 52,
-                animation: critical && !expired ? 'timerPulse 1s ease-in-out infinite' : 'none',
-            }}
+            role="timer"
+            aria-label={`Temps restant pour cette question : ${mins} min ${secs} s`}
+            className={cn(
+                'inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[0.875rem] font-bold tabular-nums',
+                alerte
+                    ? 'bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-200'
+                    : warning
+                        ? 'bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-100'
+                        : 'bg-muted text-foreground',
+                critical && !expired && 'motion-safe:animate-pulse',
+            )}
         >
-            <svg width="52" height="52" style={{ position: 'absolute', top: 0, left: 0 }}>
-                {/* Background track */}
-                <circle cx="26" cy="26" r={r} fill="none" stroke={bgColor} strokeWidth="3" />
-                {/* Progress arc */}
+            <svg viewBox="0 0 24 24" className="h-5 w-5 -rotate-90" aria-hidden="true">
+                <circle cx="12" cy="12" r={r} fill="none" stroke="currentColor" strokeOpacity={0.2} strokeWidth="3" />
                 <circle
-                    cx="26" cy="26" r={r}
+                    cx="12" cy="12" r={r}
                     fill="none"
-                    stroke={trackColor}
+                    stroke="currentColor"
                     strokeWidth="3"
                     strokeLinecap="round"
                     strokeDasharray={circ}
-                    strokeDashoffset={offset}
-                    transform="rotate(-90 26 26)"
-                    style={{ transition: 'stroke-dashoffset 0.9s linear, stroke 0.3s' }}
+                    strokeDashoffset={circ * (1 - pct)}
+                    className={alerte || warning ? '' : 'text-primary'}
+                    style={{ transition: 'stroke-dashoffset 0.9s linear' }}
                 />
             </svg>
-            <span style={{
-                fontSize: 11,
-                fontWeight: 700,
-                fontVariantNumeric: 'tabular-nums',
-                letterSpacing: '-0.02em',
-                color: expired || critical ? '#ef4444' : warning ? '#f59e0b' : 'var(--player-text-muted)',
-                lineHeight: 1,
-            }}>
-                {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
-            </span>
+            <span aria-hidden="true">{String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}</span>
         </div>
     );
+}
+
+/** La competence de l'exercice, en une pastille (a la place de la grande carte). */
+const COMPETENCES: Record<string, { nom: string; icone: typeof BookOpen }> = {
+    reading: { nom: 'Lecture', icone: BookOpen },
+    listening: { nom: 'Écoute', icone: Headphones },
+    writing: { nom: 'Écrit', icone: PenLine },
+    speaking: { nom: 'Oral', icone: Mic },
+    grammar: { nom: 'Grammaire', icone: Puzzle },
+    vocabulary: { nom: 'Vocabulaire', icone: BookOpen },
+};
+
+/** Les caracteres qu'un clavier francais ou un telephone font chercher. */
+const CARACTERES: Record<string, { minuscules: string[]; majuscules: string[] }> = {
+    german: { minuscules: ['ä', 'ö', 'ü', 'ß'], majuscules: ['Ä', 'Ö', 'Ü'] },
+    french: {
+        minuscules: ['é', 'è', 'ê', 'ë', 'à', 'â', 'ç', 'î', 'ï', 'ô', 'œ', 'ù', 'û'],
+        majuscules: ['É', 'È', 'Ê', 'À', 'Ç', 'Î', 'Ô', 'Œ', 'Ù'],
+    },
+};
+
+// Un <input> sans attribut type est un champ texte : le selecteur
+// `input[type="text"]` seul le manquait.
+const CHAMP_TEXTE = 'input:not([type]):not(:disabled), input[type="text"]:not(:disabled), textarea:not(:disabled)';
+
+const estChampTexte = (t: EventTarget | null): t is HTMLInputElement | HTMLTextAreaElement =>
+    (t instanceof HTMLInputElement && t.type === 'text') || t instanceof HTMLTextAreaElement;
+
+/**
+ * La barre ä ö ü ß (ou é è ç… en francais) sous les champs de saisie.
+ *
+ * Meme barre que dans le lecteur de l'essai (components/exercises/exercise-player.tsx).
+ * Elle n'apparait que si la question a un champ ou ecrire encore actif. Un clic
+ * insere le caractere a l'endroit du curseur dans le dernier champ touche ; le
+ * champ garde le focus (le bouton ne le prend pas).
+ */
+function CaracteresSpeciaux({ langue, zone, cle }: { langue: string; zone: React.RefObject<HTMLElement | null>; cle: string }) {
+    const jeu = CARACTERES[langue];
+    const [visible, setVisible] = useState(false);
+    const [majuscules, setMajuscules] = useState(false);
+    const dernierChamp = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
+
+    useEffect(() => {
+        const el = zone.current;
+        if (!el || !jeu) return;
+        dernierChamp.current = null;
+        const verifier = () => setVisible(el.querySelector(CHAMP_TEXTE) !== null);
+        verifier();
+        const surFocus = (e: FocusEvent) => {
+            if (estChampTexte(e.target)) dernierChamp.current = e.target;
+        };
+        el.addEventListener('focusin', surFocus);
+        const observateur = new MutationObserver(verifier);
+        observateur.observe(el, { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled'] });
+        return () => {
+            el.removeEventListener('focusin', surFocus);
+            observateur.disconnect();
+        };
+    }, [zone, jeu, cle]);
+
+    if (!jeu || !visible) return null;
+
+    const inserer = (c: string) => {
+        const el = zone.current;
+        const memorise = dernierChamp.current;
+        const champ = memorise && el?.contains(memorise) && !memorise.disabled ? memorise : el?.querySelector<HTMLInputElement | HTMLTextAreaElement>(CHAMP_TEXTE);
+        if (!champ) return;
+        const debut = champ.selectionStart ?? champ.value.length;
+        const fin = champ.selectionEnd ?? debut;
+        const valeur = champ.value.slice(0, debut) + c + champ.value.slice(fin);
+        // Les champs sont controles par React : on passe par le setter natif puis
+        // un evenement « input », sinon React ne verrait pas le changement.
+        const proto = champ instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+        Object.getOwnPropertyDescriptor(proto, 'value')?.set?.call(champ, valeur);
+        champ.dispatchEvent(new Event('input', { bubbles: true }));
+        champ.focus();
+        champ.setSelectionRange(debut + c.length, debut + c.length);
+        dernierChamp.current = champ;
+    };
+
+    const garderLeFocus = (e: React.MouseEvent) => e.preventDefault();
+    const touche = 'inline-flex h-11 min-w-11 items-center justify-center rounded-xl border-[1.5px] border-border bg-card px-2 text-lg font-semibold text-foreground transition-colors hover:border-primary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+
+    return (
+        <div role="group" aria-label="Caractères spéciaux" className="mt-4 flex flex-wrap items-center gap-1.5">
+            {(majuscules ? jeu.majuscules : jeu.minuscules).map((c) => (
+                <button key={c} type="button" onMouseDown={garderLeFocus} onClick={() => inserer(c)} aria-label={`Insérer ${c}`} className={touche}>
+                    {c}
+                </button>
+            ))}
+            <button
+                type="button"
+                onMouseDown={garderLeFocus}
+                onClick={() => setMajuscules((m) => !m)}
+                aria-pressed={majuscules}
+                aria-label="Majuscules"
+                className={cn(touche, 'px-3 text-[0.9375rem]', majuscules && 'border-primary bg-primary/10')}
+            >
+                Maj
+            </button>
+        </div>
+    );
+}
+
+/** La hauteur reelle d'un element (en-tete ou barre fixes), suivie a chaque changement. */
+function useHauteurDe(el: HTMLElement | null): number {
+    const [hauteur, setHauteur] = useState(0);
+    useEffect(() => {
+        if (!el) return;
+        const mesurer = () => setHauteur(Math.round(el.getBoundingClientRect().height));
+        mesurer();
+        if (typeof ResizeObserver === 'undefined') return;
+        const observateur = new ResizeObserver(mesurer);
+        observateur.observe(el);
+        return () => observateur.disconnect();
+    }, [el]);
+    return hauteur;
 }
 
 interface ExplanationObj {
@@ -533,6 +619,14 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
     const [audioUnavailable, setAudioUnavailable] = useState(false);
     const contentRef = useRef<HTMLDivElement>(null);
     const correctionRef = useRef<HTMLDivElement>(null);
+    // La zone de la question : focus sur l'enonce, raccourcis 1-4 / A-D, barre
+    // de caracteres. En-tete et barre d'actions fixes, mesures pour poser le
+    // contenu entre les deux.
+    const zoneQuestion = useRef<HTMLElement>(null);
+    const premierAffichage = useRef(true);
+    const [passageOuvert, setPassageOuvert] = useState(true);
+    const [entete, setEntete] = useState<HTMLElement | null>(null);
+    const [barreActions, setBarreActions] = useState<HTMLDivElement | null>(null);
     // Lecture audio : un seul élément actif à la fois + garde synchrone anti
     // double-lancement (l'état React est trop lent pour ça — voir playTts).
     const currentAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -665,9 +759,11 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
     );
 
     const handleAnswer = useCallback((questionId: string, answer: FormDataConvertible) => {
-        if (isChecked) return;
+        // Ni apres la correction, ni pendant la verification par le serveur :
+        // le verdict affiche doit porter sur la reponse enregistree.
+        if (isChecked || isVerifying) return;
         setAnswers(prev => ({ ...prev, [answerKey(questionId)]: answer }));
-    }, [isChecked, answerKey]);
+    }, [isChecked, isVerifying, answerKey]);
 
     /** Prépare (et débloque) le lecteur partagé, dans le geste de l'apprenant. */
     const unlockedPlayer = useCallback((): HTMLAudioElement => {
@@ -1066,21 +1162,65 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
         expireTimeoutRef.current = setTimeout(() => nextStep(), 1200);
     }, [isChecked, isVerifying, nextStep, question, questionContext, answers, answerKey, checkAnswer]);
 
-    // Keyboard shortcut: Space / Enter
+    // Clavier : Espace / Entree verifient puis passent a la suite ; 1-4 ou A-D
+    // choisissent un choix (comme dans le lecteur de l'essai).
     useEffect(() => {
+        const valider = () => {
+            if (isChecked) nextStep();
+            // Pendant l'oral le focus n'est dans aucun champ : Espace/Entree
+            // envoyait encore une reponse vide.
+            else if (!isBlankAnswer(answers[answerKey(question?.id)])) checkAnswer();
+        };
         const onKey = (e: KeyboardEvent) => {
-            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-            if (e.code === 'Space' || e.code === 'Enter') {
+            if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+            // Dictionnaire ou discussion ouverts : les touches leur appartiennent.
+            if (isDictionaryOpen || isChatOpen) return;
+            const zone = zoneQuestion.current;
+            const cible = e.target instanceof HTMLElement ? e.target : null;
+
+            // Entree dans un champ de la question : champ suivant, puis on verifie
+            // apres le dernier. Elle ne faisait rien.
+            if (e.key === 'Enter' && cible instanceof HTMLInputElement && cible.type === 'text' && zone?.contains(cible)) {
                 e.preventDefault();
-                if (isChecked) nextStep();
-                // Pendant l'oral le focus n'est dans aucun champ : Espace/Entree
-                // envoyait encore une reponse vide.
-                else if (!isBlankAnswer(answers[answerKey(question?.id)])) checkAnswer();
+                const champs = Array.from(zone.querySelectorAll<HTMLInputElement>('input[type="text"]:not(:disabled), input:not([type]):not(:disabled)'));
+                const rang = champs.indexOf(cible);
+                if (rang >= 0 && rang < champs.length - 1) champs[rang + 1].focus();
+                else valider();
+                return;
             }
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return;
+
+            if (e.code === 'Space' || e.code === 'Enter') {
+                // Sur un choix, Espace le coche et Entree le coche puis verifie
+                // une fois retenu ; sur un autre bouton ou un lien (Dictionnaire,
+                // ecoute, Quitter…), la touche garde son sens au lieu de verifier.
+                const choix = cible?.closest('[data-choix]');
+                if (choix) {
+                    if (e.code === 'Space' || choix.getAttribute('aria-pressed') !== 'true') return;
+                } else if (cible?.closest('button, a, summary, [role="button"]')) {
+                    return;
+                }
+                e.preventDefault();
+                valider();
+                return;
+            }
+
+            // Pendant la verification par le serveur, les choix sont verrouilles :
+            // le raccourci ne doit pas les changer non plus.
+            if (isChecked || isVerifying || submitting || !zone) return;
+            let rang = -1;
+            if (/^[1-9]$/.test(e.key)) rang = Number(e.key) - 1;
+            else if (/^[a-h]$/i.test(e.key)) rang = e.key.toUpperCase().charCodeAt(0) - 65;
+            if (rang < 0) return;
+            const bouton = zone.querySelector<HTMLButtonElement>(`[data-choix="${rang}"]:not(:disabled)`);
+            if (!bouton) return;
+            e.preventDefault();
+            bouton.click();
+            bouton.focus();
         };
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
-    }, [isChecked, nextStep, checkAnswer, answers, answerKey, question]);
+    }, [isChecked, isVerifying, submitting, nextStep, checkAnswer, answers, answerKey, question, isDictionaryOpen, isChatOpen]);
 
     const timerWarning = timerSeconds <= TIME_PER_QUESTION * 0.2 && timerSeconds > 0;
     const timerCritical = timerSeconds <= 10 && timerSeconds > 0;
@@ -1108,497 +1248,479 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
         return () => cancelAnimationFrame(frame);
     }, [isChecked, isCorrect, explanation, fetchingExplanation]);
 
+    // L'en-tete et la barre d'actions sont fixes : le contenu se pose entre les
+    // deux, a leur hauteur reelle (le titre peut passer sur deux lignes, la barre
+    // grandit avec la correction). Un en-tete « sticky » ne collerait pas ici :
+    // la mise en page de l'application masque le debordement horizontal, ce qui
+    // fait de son conteneur le repere de defilement.
+    const hauteurEntete = useHauteurDe(entete);
+    const hauteurBarre = useHauteurDe(barreActions);
+
+    // Le texte a lire : toujours visible a cote de la question sur ordinateur ;
+    // sur telephone, deplie a la premiere question d'un exercice puis replie
+    // (« Revoir le texte ») pour que la question suivante arrive sans tout faire
+    // defiler. A chaque nouvelle question, le focus va sur l'enonce : un lecteur
+    // d'ecran le lit, et au clavier on repart de la question.
+    useEffect(() => {
+        setPassageOuvert(currentQuestionIndex === 0 && !isReviewMode);
+        if (premierAffichage.current) {
+            premierAffichage.current = false;
+            return;
+        }
+        const zone = zoneQuestion.current;
+        if (!zone) return;
+        const frame = requestAnimationFrame(() => {
+            const cible = zone.querySelector<HTMLElement>('[data-enonce]') ?? zone;
+            if (!cible.hasAttribute('tabindex')) cible.setAttribute('tabindex', '-1');
+            cible.focus({ preventScroll: true });
+            const reduit = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            window.scrollTo({ top: 0, behavior: reduit ? 'auto' : 'smooth' });
+        });
+        return () => cancelAnimationFrame(frame);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [remountKey]);
+
+    // Une erreur surligne la phrase qui la prouve dans le texte : on le rouvre.
+    useEffect(() => {
+        if (highlightedText) setPassageOuvert(true);
+    }, [highlightedText]);
+
     if (!exercise || !question) {
         return (
             <AppLayout focusMode>
                 <div className="flex flex-col items-center justify-center py-20">
-                    <Icon name="alert-circle" size={48} />
-                    <p className="mt-4 text-xl font-medium">Session non disponible</p>
+                    <AlertCircle aria-hidden="true" className="h-12 w-12 text-muted-foreground" />
+                    <h1 className="mt-4 text-xl font-medium">Session non disponible</h1>
                 </div>
             </AppLayout>
         );
     }
 
+    const avecEcoute = isListening && !!(listeningAudioUrl || listeningAudioText);
+    const avecPassage = !avecEcoute && !!activePassage;
+    const competence = COMPETENCES[activeSkillType];
+    const enLecture = playingTts === 'passage';
+    const ecoutesRestantes = Math.max(0, 2 - listenCount);
+    const libelleEcoute = enLecture
+        ? 'Lecture en cours…'
+        : listenCount === 0
+            ? 'Écouter l’enregistrement'
+            : listenCount >= 2
+                ? 'Limite d’écoutes atteinte'
+                : `Réécouter (${ecoutesRestantes} restante${ecoutesRestantes > 1 ? 's' : ''})`;
+
+    const totalAffiche = isReviewMode ? reviewQueue.length : totalQuestionsInSession;
+    const rangAffiche = isReviewMode ? currentQuestionIndex + 1 : Math.min(overallProgressCount + 1, totalQuestionsInSession);
+    const faites = (isReviewMode ? currentQuestionIndex : overallProgressCount) + (isChecked ? 1 : 0);
+    const libelleProgression = `${isReviewMode ? t('exercise.review', 'Révision') : 'Question'} ${rangAffiche}/${totalAffiche}`;
+
+    const etat: 'neutre' | 'passee' | 'juste' | 'faux' = !isChecked ? 'neutre' : skipped ? 'passee' : isCorrect ? 'juste' : 'faux';
+    const enAttente = submitting || isVerifying;
+
+    const quitter = () => {
+        if (window.confirm(t('exercise.quit_confirm', 'Quitter la session ? Ta progression sur cette session ne sera pas enregistrée.'))) {
+            router.visit(route('dashboard'));
+        }
+    };
+
+    const boutonRond = 'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background';
+
     return (
         <AppLayout focusMode>
             <Head title={`${node.title} - PrePla`} />
-            <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@400;500;600;700&display=swap');
 
-                :root {
-                    --player-accent: #6366f1;
-                    --player-accent-rgb: 99,102,241;
-                    --player-accent-muted: rgba(99,102,241,0.3);
-                    --player-dot-empty: rgba(var(--player-accent-rgb),0.12);
-                    --player-text-muted: var(--muted-foreground, #64748b);
-                }
-
-                @keyframes slideInUp {
-                    from { opacity: 0; transform: translateY(20px) scale(0.99); }
-                    to   { opacity: 1; transform: translateY(0) scale(1); }
-                }
-                @keyframes slideOutUp {
-                    from { opacity: 1; transform: translateY(0) scale(1); }
-                    to   { opacity: 0; transform: translateY(-14px) scale(0.99); }
-                }
-                @keyframes feedbackSlideIn {
-                    from { opacity: 0; transform: translateY(6px); }
-                    to   { opacity: 1; transform: translateY(0); }
-                }
-                @keyframes timerPulse {
-                    0%, 100% { transform: scale(1); }
-                    50%       { transform: scale(1.06); }
-                }
-                @keyframes checkPop {
-                    0%   { transform: scale(0.6); opacity: 0; }
-                    60%  { transform: scale(1.15); opacity: 1; }
-                    100% { transform: scale(1); }
-                }
-
-                .player-font { font-family: 'DM Sans', system-ui, sans-serif; }
-                .question-enter { animation: slideInUp 0.26s cubic-bezier(.22,1,.36,1) forwards; }
-                .question-exit  { animation: slideOutUp 0.18s cubic-bezier(.4,0,.2,1) forwards; }
-                .feedback-enter { animation: feedbackSlideIn 0.22s cubic-bezier(.22,1,.36,1) forwards; }
-                .check-pop      { animation: checkPop 0.32s cubic-bezier(.22,1,.36,1) forwards; }
-
-                .player-card {
-                    border-radius: 16px;
-                    border: 1px solid rgba(var(--player-accent-rgb), 0.12);
-                    background: var(--card, #fff);
-                    box-shadow: 0 2px 16px rgba(0,0,0,0.05), 0 0 0 1px rgba(var(--player-accent-rgb),0.04);
-                }
-
-                .action-bar-correct {
-                    background: linear-gradient(to right, rgba(16,185,129,0.06), rgba(16,185,129,0.02));
-                    border-top-color: rgba(16,185,129,0.25) !important;
-                }
-                .action-bar-incorrect {
-                    background: linear-gradient(to right, rgba(239,68,68,0.06), rgba(239,68,68,0.02));
-                    border-top-color: rgba(239,68,68,0.22) !important;
-                }
-                /* Question passee faute d'avoir pu etre presentee : ni vert, ni rouge. */
-                .action-bar-neutral {
-                    background: linear-gradient(to right, rgba(245,158,11,0.07), rgba(245,158,11,0.02));
-                    border-top-color: rgba(245,158,11,0.25) !important;
-                }
-
-                .btn-check {
-                    font-family: 'DM Sans', system-ui, sans-serif;
-                    font-weight: 700;
-                    font-size: 0.9375rem;
-                    letter-spacing: 0.01em;
-                    height: 48px;
-                    min-width: 148px;
-                    border-radius: 12px;
-                    border: none;
-                    cursor: pointer;
-                    display: inline-flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 7px;
-                    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
-                    padding: 0 24px;
-                }
-                .btn-check:not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
-                .btn-check:not(:disabled):active { transform: translateY(0); }
-                .btn-check:disabled { opacity: 0.42; cursor: not-allowed; }
-
-                .btn-default  { background: var(--player-accent); color: #fff; box-shadow: 0 3px 12px rgba(99,102,241,0.35); }
-                .btn-correct  { background: #10b981; color: #fff; box-shadow: 0 3px 12px rgba(16,185,129,0.35); }
-                .btn-incorrect { background: #ef4444; color: #fff; box-shadow: 0 3px 12px rgba(239,68,68,0.3); }
-                .btn-neutral { background: #d97706; color: #fff; box-shadow: 0 3px 12px rgba(217,119,6,0.3); }
-                .btn-submitting { background: var(--player-accent); color: #fff; opacity: 0.7; }
-
-                .passage-card {
-                    border-radius: 14px;
-                    border: 1px solid rgba(var(--player-accent-rgb), 0.1);
-                    background: rgba(var(--player-accent-rgb), 0.025);
-                    padding: 20px 24px;
-                    font-size: 0.875rem;
-                    line-height: 1.75;
-                }
-
-                .kbd-hint {
-                    display: inline-flex; align-items: center; gap: 4px;
-                    font-size: 11px; opacity: 0.45; font-family: monospace;
-                    border: 1px solid currentColor; border-radius: 4px;
-                    padding: 1px 5px; margin-left: 6px;
-                }
-            `}</style>
-
-            <div className="learning-canvas player-font mx-auto max-w-2xl px-4 py-4 sm:py-6" style={{ paddingBottom: 'calc(128px + env(safe-area-inset-bottom))' }}>
-
-                {/* ── Header ── */}
-                <div style={{ marginBottom: 20 }}>
-                    {/* Top row: title + timer */}
-                    <div className="flex items-start justify-between gap-3 sm:items-center" style={{ marginBottom: 14 }}>
-                        <div className="min-w-0" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <div style={{
-                                width: 36, height: 36,
-                                borderRadius: 10,
-                                background: 'rgba(var(--player-accent-rgb),0.1)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                flexShrink: 0,
-                            }}>
-                                <Icon name="sparkles" size={18} style={{ opacity: 0.8, }} />
-                            </div>
-                            <div className="min-w-0">
-                                <div className="line-clamp-2" style={{ fontWeight: 700, fontSize: '0.9375rem', lineHeight: 1.2 }}>{node.title}</div>
-                                <div className="hidden sm:block" style={{ fontSize: '0.75rem', opacity: 0.5, marginTop: 2 }}>
-                                    {node.exam.language.name} · {node.exam.name}
-                                    {!isReviewMode && ' · ' + t('exercise.mastery_threshold', 'Valide ce concept à 60%')}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="shrink-0" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            {/* Quit session */}
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    if (window.confirm(t('exercise.quit_confirm', 'Quitter la session ? Ta progression sur cette session ne sera pas enregistrée.'))) {
-                                        router.visit(route('dashboard'));
-                                    }
-                                }}
-                                title={t('exercise.quit', 'Quitter')}
-                                aria-label={t('exercise.quit', 'Quitter')}
-                                style={{
-                                    width: 32, height: 32, borderRadius: 8,
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    background: 'rgba(0,0,0,0.04)', border: 'none', cursor: 'pointer',
-                                    opacity: 0.6,
-                                }}
-                            >
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                            </button>
-
-                            {/* Question counter */}
-                            <div style={{
-                                fontSize: '0.8125rem',
-                                fontWeight: 600,
-                                fontVariantNumeric: 'tabular-nums',
-                                opacity: 0.55,
-                            }}>
-                                {isReviewMode ? (
-                                    <span>{t('exercise.review', 'Révision')} {currentQuestionIndex + 1}/{reviewQueue.length}</span>
-                                ) : (
-                                    <>
-                                        {Math.min(overallProgressCount + 1, totalQuestionsInSession)}
-                                        <span style={{ opacity: 0.5, margin: '0 3px' }}>/</span>
-                                        {totalQuestionsInSession}
-                                    </>
-                                )}
-                            </div>
-
-                            {/* Arc timer — hidden ExerciseTimer drives the state */}
-                            <div style={{ display: 'none' }}>
-                                <ExerciseTimer
-                                    key={timerKey}
-                                    timeLimit={TIME_PER_QUESTION}
-                                    onTimeUpdate={handleTimeUpdate}
-                                    onExpire={handleTimeExpire}
-                                />
-                            </div>
-                            <ArcTimer
-                                seconds={timerSeconds}
-                                limit={TIME_PER_QUESTION}
-                                warning={timerWarning}
-                                critical={timerCritical}
-                                expired={timerExpired}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Segmented progress dots */}
-                    <ProgressDots total={totalQuestionsInSession} current={overallProgressCount} />
-                </div>
-
-                <LearningScene
-                    compact
-                    className="mb-4"
-                    variant={sceneVariantForSkill(activeSkillType, activeComponentKey)}
-                    title={activeTypeName || node.title}
-                />
-
-                {/* ── Exercise Content ── */}
-                <div
-                    ref={contentRef}
-                    className={visible ? 'question-enter' : 'question-exit'}
-                    style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
-                >
-                    {/* LISTENING: audio-only card — the transcript is NEVER shown, the
-                        learner must listen. Replays capped at 2 (exam-realistic). */}
-                    {isListening && (listeningAudioUrl || listeningAudioText) ? (
-                        <div className="passage-card relative overflow-hidden">
-                            <div className="flex items-center gap-2 mb-3 border-b border-indigo-100/50 pb-2">
-                                <Icon name="headphones" size={16} />
-                                <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Enregistrement audio</span>
-                            </div>
-                            <button
-                                onClick={() => {
-                                    if (listenCount >= 2 || playingTts === 'passage') return;
-                                    setListenCount(c => c + 1);
-                                    playListening(listeningAudioUrl, listeningAudioText);
-                                }}
-                                disabled={listenCount >= 2 && playingTts !== 'passage'}
-                                className="flex w-full items-center justify-center gap-3 rounded-xl border-2 border-indigo-200 bg-indigo-50/40 px-4 py-3.5 text-indigo-600 transition-all hover:bg-indigo-50 disabled:opacity-40"
-                            >
-                                <Icon name={playingTts === 'passage' ? 'volume-2' : 'volume-1'} size={20} />
-                                <span className="text-sm font-bold">
-                                    {playingTts === 'passage'
-                                        ? 'Lecture…'
-                                        : listenCount === 0
-                                            ? 'Écouter l’enregistrement'
-                                            : listenCount >= 2
-                                                ? 'Limite d’écoutes atteinte'
-                                                : `Réécouter (${2 - listenCount} restante${2 - listenCount > 1 ? 's' : ''})`}
-                                </span>
-                            </button>
-                            <p className="mt-2 text-center text-[11px] text-muted-foreground">Écoute l’enregistrement, puis réponds à la question ci-dessous.</p>
-                            {audioUnavailable && listeningAudioText && (
-                                <div
-                                    role="status"
-                                    className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-left text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100"
-                                >
-                                    <p className="font-bold">L’audio est indisponible pour le moment.</p>
-                                    <p className="mt-1">Voici le texte de l’enregistrement, pour que tu puisses quand même répondre :</p>
-                                    <p className="mt-2 italic">{listeningAudioText}</p>
-                                </div>
-                            )}
-                        </div>
-                    ) : activePassage && (
-                        <div className="passage-card relative overflow-hidden group">
-                           <div className="flex items-center justify-between mb-3 border-b border-indigo-100/50 pb-2">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Texte de référence</span>
-                                <button
-                                    onClick={() => playTts(activePassage, 'passage')}
-                                    className={`p-1.5 rounded-lg transition-all ${playingTts === 'passage' ? 'bg-indigo-100 text-indigo-600 scale-110' : 'hover:bg-indigo-50 text-slate-400 hover:text-indigo-500'}`}
-                                >
-                                    <Icon name={playingTts === 'passage' ? 'volume-2' : 'volume-1'} size={18} />
-                                </button>
-                            </div>
-                            <HighlightedPassage text={activePassage} highlight={highlightedText || ''} />
-                        </div>
-                    )}
-
-                    {/* Action instruction — tells the learner what to do (select / write / record…) */}
-                    {consigneDuType && (
-                        <div className="flex items-center gap-1.5 px-1" style={{ color: 'var(--player-accent)' }}>
-                            <Icon name="info" size={14} style={{ opacity: 0.7 }} />
-                            <span style={{ fontSize: '0.8125rem', fontWeight: 600 }}>
-                                {consigneDuType}
-                            </span>
-                        </div>
-                    )}
-
-                    <div
-                        className={`player-card group/card relative p-4 sm:p-6 ${isChecked ? (isCorrect ? 'answer-pop' : 'answer-shake') : ''}`}
-                    >
-                        {/* Floating TTS button — the question text itself is rendered by each Component to avoid duplication */}
+            {/* Hauteur d'ecran en style en ligne : `.learning-canvas` (CSS hors couche,
+                `min-height: 100%`) l'emporte sur `min-h-screen`. `palette-lecteur` : le
+                bleu des boutons et son texte, lisibles dans les deux themes (app.css). */}
+            <div className="learning-canvas palette-lecteur flex flex-col" style={{ minHeight: '100dvh' }}>
+                {/* ── En-tete : une bande fine, la progression sur toute la largeur ── */}
+                <header ref={setEntete} className="fixed inset-x-0 top-0 z-40 border-b border-border/70 bg-background/90 backdrop-blur-xl">
+                    <div className="mx-auto flex max-w-6xl items-center gap-2 px-2 py-1.5 sm:px-4">
                         <button
-                            onClick={() => playTts(question.text || question.prompt || '', 'question')}
-                            className={`absolute top-3 right-3 p-1.5 rounded-lg transition-all z-10 ${playingTts === 'question' ? 'bg-indigo-100 text-indigo-600 scale-110' : 'opacity-50 hover:opacity-100 hover:bg-slate-100 text-slate-400'}`}
-                            aria-label="Écouter la question"
+                            type="button"
+                            onClick={quitter}
+                            title={t('exercise.quit', 'Quitter')}
+                            aria-label={t('exercise.quit', 'Quitter')}
+                            className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         >
-                            <Icon name={playingTts === 'question' ? 'volume-2' : 'volume-1'} size={18} />
+                            <X className="h-5 w-5" aria-hidden="true" />
                         </button>
-                        {/* Sans cette barriere, un seul champ mal forme venu de l'IA
-                            (un objet la ou une chaine etait attendue) vidait l'ecran de
-                            la seance et effacait toutes les reponses deja donnees. Elle
-                            n'entoure que le champ de saisie : barre d'action, minuteur
-                            et reponses du parent restent intacts, et la question peut
-                            etre passee sans compter. */}
-                        <ExerciseErrorBoundary
-                            resetKey={remountKey}
-                            onSkip={() => handleAnswer(question.id ?? String(currentQuestionIndex), '__skipped__')}
-                        >
-                            <Component
-                                // Always-unique key so the input component fully remounts between
-                                // questions (AI-generated questions can share/duplicate ids, which
-                                // left the previous answer stuck in the text field).
-                                key={remountKey}
-                                question={{ ...exercise.content, ...question }}
-                                lang={nodeCode}
-                                onAnswer={(_childId: string, ans: FormDataConvertible) => handleAnswer(question.id ?? String(currentQuestionIndex), ans)}
-                                selectedAnswer={answers[answerKey(question.id ?? String(currentQuestionIndex))]}
-                                disabled={isChecked}
-                            />
-                        </ExerciseErrorBoundary>
-
-                        {/* Speaking: show what the AI heard (the transcription) so the
-                            learner can tell a real mistake from a mis-transcription. */}
-                        {isChecked && Boolean(answers[`${question.id}_transcription`]) && (
-                            <div className="mt-4 rounded-xl border-2 border-indigo-100 bg-indigo-50/60 p-4">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-1.5">
-                                    {t('exercise.heard', 'Ce que l’IA a entendu')}
-                                </p>
-                                <p className="text-sm font-medium italic text-slate-700">
-                                    « {String(answers[`${question.id}_transcription`])} »
-                                </p>
-                            </div>
-                        )}
-
-                        {/* Speaking formative feedback: what you covered + what to add to go further */}
-                        {isChecked && speakingPoints && (speakingPoints.covered.length > 0 || speakingPoints.missing.length > 0) && (
-                            <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                                {speakingPoints.covered.length > 0 && (
-                                    <div className="rounded-xl border-2 border-emerald-100 bg-emerald-50/60 p-3">
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-emerald-500 mb-1.5">Bien dit</p>
-                                        <ul className="space-y-1">
-                                            {collection<unknown>(speakingPoints.covered).map((p, i) => (
-                                                <li key={i} className="text-xs font-medium text-slate-700 flex gap-1.5">
-                                                    <span className="text-emerald-500">✓</span>{coerceOption(p)}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
-                                {speakingPoints.missing.length > 0 && (
-                                    <div className="rounded-xl border-2 border-amber-100 bg-amber-50/60 p-3">
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-amber-500 mb-1.5">Pour aller plus loin</p>
-                                        <ul className="space-y-1">
-                                            {collection<unknown>(speakingPoints.missing).map((p, i) => (
-                                                <li key={i} className="text-xs font-medium text-slate-700 flex gap-1.5">
-                                                    <span className="text-amber-500">+</span>{coerceOption(p)}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* ── Correction — dans le flux, juste sous l'exercice ──
-                        Ce panneau flottait au-dessus de la barre d'action : la barre
-                        « Incorrect » grandit avec son bouton et recouvrait le bas des
-                        explications, et le panneau masquait l'exercice, donc la réponse
-                        donnée n'était plus visible au moment de lire la correction. Il
-                        défile maintenant avec la page, sous la question et sous ce que
-                        l'apprenant a répondu. */}
-                    {isChecked && skipped && (
-                        <div role="status" className="player-font rounded-2xl border-2 border-amber-200 bg-card p-4 shadow-sm dark:border-amber-900">
-                            <p className="text-sm leading-relaxed text-foreground">
-                                Question passee : elle ne compte pas dans ton score, l'exercice ne s'est pas affiche correctement.
+                        <div className="min-w-0 flex-1">
+                            <h1 className="line-clamp-2 text-[0.9375rem] font-semibold leading-tight sm:truncate">{node.title}</h1>
+                            <p className="truncate text-[0.8125rem] leading-tight text-muted-foreground">
+                                {node.exam.language.name} · {node.exam.name}
+                                {!isReviewMode && <span className="hidden sm:inline"> · {t('exercise.mastery_threshold', 'Valide ce concept à 60%')}</span>}
                             </p>
                         </div>
-                    )}
 
-                    {isChecked && !skipped && !isCorrect && (explanation || fetchingExplanation || expectedText) && (
-                        <div
-                            ref={correctionRef}
-                            role="status"
-                            className="player-font rounded-2xl border-2 border-red-200 bg-card p-4 shadow-sm dark:border-red-900"
-                        >
-                            {expectedText && (
-                                <p className="mb-2 text-sm leading-relaxed text-foreground">
-                                    Réponse attendue : <strong>{expectedText}</strong>
-                                </p>
+                        {/* Le minuteur cache tient l'etat ; l'arc l'affiche. */}
+                        <div className="hidden">
+                            <ExerciseTimer
+                                key={timerKey}
+                                timeLimit={TIME_PER_QUESTION}
+                                onTimeUpdate={handleTimeUpdate}
+                                onExpire={handleTimeExpire}
+                            />
+                        </div>
+                        <ArcTimer
+                            seconds={timerSeconds}
+                            limit={TIME_PER_QUESTION}
+                            warning={timerWarning}
+                            critical={timerCritical}
+                            expired={timerExpired}
+                        />
+                    </div>
+                    <div className="mx-auto max-w-6xl px-3 pb-2 sm:px-4">
+                        <BarreDeProgression libelle={libelleProgression} fait={faites} total={totalAffiche} />
+                    </div>
+                </header>
+
+                {/* Un <div> : la mise en page de l'application fournit deja le <main>. */}
+                <div
+                    className="mx-auto w-full max-w-6xl flex-1 px-4"
+                    style={{ paddingTop: (hauteurEntete || 96) + 16, paddingBottom: (hauteurBarre || 80) + 24 }}
+                >
+                    <div
+                        ref={contentRef}
+                        className={visible ? 'animate-in fade-in slide-in-from-bottom-2 duration-300 motion-reduce:animate-none' : 'opacity-0 transition-opacity duration-150'}
+                    >
+                        {/* Une ligne de presentation au lieu de la grande carte : la
+                            question doit etre visible des le chargement. */}
+                        <div className="mb-4 flex flex-wrap items-center gap-2">
+                            {isReviewMode && (
+                                <span className="rounded-full bg-amber-100 px-3 py-1 text-[0.8125rem] font-semibold text-amber-900 dark:bg-amber-950/60 dark:text-amber-100">
+                                    Révision de tes erreurs
+                                </span>
                             )}
-                            {givenText && (
-                                <p className="mb-2 text-sm leading-relaxed text-muted-foreground">
-                                    Ta réponse : <span className="font-medium line-through decoration-red-500">{givenText}</span>
-                                </p>
+                            {(competence || activeTypeName) && (
+                                <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-[0.8125rem] font-semibold text-primary">
+                                    {competence && <competence.icone aria-hidden="true" className="h-3.5 w-3.5" />}
+                                    {[competence?.nom, activeTypeName].filter(Boolean).join(' · ')}
+                                </span>
                             )}
-                            {fetchingExplanation ? (
-                                <p className="text-sm font-medium text-red-600/80 italic">Analyse de ton erreur…</p>
-                            ) : explanation && typeof explanation === 'object' ? (
-                                <div className="space-y-2">
-                                    <p className="text-sm font-bold text-red-700 dark:text-red-300 leading-relaxed">
-                                        {(i18n.language === 'fr' && explanation.french_translation?.concept) ? explanation.french_translation.concept : explanation.concept}
-                                    </p>
-                                    {(i18n.language === 'fr' && explanation.french_translation?.hint ? explanation.french_translation.hint : explanation.hint) && (
-                                        <p className="text-sm text-muted-foreground leading-relaxed">
-                                            {i18n.language === 'fr' && explanation.french_translation?.hint ? explanation.french_translation.hint : explanation.hint}
-                                        </p>
+                        </div>
+
+                        <div className={avecPassage ? 'lg:grid lg:grid-cols-2 lg:items-start lg:gap-8' : 'mx-auto w-full max-w-3xl'}>
+                            {/* Le texte a lire — jamais pour une ecoute (c'est la
+                                transcription a entendre). Sur ordinateur, a gauche,
+                                avec son propre defilement : texte et question restent
+                                a l'ecran ensemble. */}
+                            {avecPassage && (
+                                <aside
+                                    aria-label="Texte de référence"
+                                    className="mb-4 lg:sticky lg:top-[var(--haut-passage)] lg:mb-0 lg:max-h-[var(--max-passage)] lg:overflow-y-auto"
+                                    style={{
+                                        '--haut-passage': `${(hauteurEntete || 96) + 16}px`,
+                                        '--max-passage': `calc(100dvh - ${(hauteurEntete || 96) + (hauteurBarre || 80) + 40}px)`,
+                                    } as React.CSSProperties}
+                                >
+                                    <button
+                                        type="button"
+                                        aria-expanded={passageOuvert}
+                                        aria-controls="passage-seance"
+                                        onClick={() => setPassageOuvert((o) => !o)}
+                                        className="flex min-h-12 w-full items-center justify-between gap-2 rounded-2xl border-[1.5px] border-border bg-card px-4 text-left text-[0.9375rem] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
+                                    >
+                                        {passageOuvert ? 'Masquer le texte' : 'Revoir le texte'}
+                                        <ChevronDown aria-hidden="true" className={cn('h-5 w-5 transition-transform', passageOuvert && 'rotate-180')} />
+                                    </button>
+                                    <div
+                                        id="passage-seance"
+                                        className={cn('mt-2 rounded-2xl border-[1.5px] border-border bg-card p-4 sm:p-5 lg:mt-0 lg:block', !passageOuvert && 'hidden')}
+                                    >
+                                        <div className="mb-3 flex items-center justify-between gap-2 border-b border-border pb-2">
+                                            <span className="text-[0.8125rem] font-bold uppercase tracking-wide text-muted-foreground">Texte de référence</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => playTts(activePassage, 'passage')}
+                                                aria-label={enLecture ? 'Lecture du texte en cours' : 'Écouter le texte'}
+                                                aria-pressed={enLecture}
+                                                className={cn(boutonRond, enLecture ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground')}
+                                            >
+                                                {enLecture ? <Volume2 aria-hidden="true" className="h-5 w-5" /> : <Volume1 aria-hidden="true" className="h-5 w-5" />}
+                                            </button>
+                                        </div>
+                                        <HighlightedPassage text={activePassage} highlight={highlightedText || ''} />
+                                    </div>
+                                </aside>
+                            )}
+
+                            <section ref={zoneQuestion} aria-label={libelleProgression} className="space-y-4">
+                                {/* ECOUTE : la transcription n'est JAMAIS montree, il faut
+                                    ecouter. Deux ecoutes au plus, comme a l'examen. Tout le
+                                    cadre est le bouton. */}
+                                {avecEcoute && (
+                                    <div className="space-y-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                if (listenCount >= 2 || playingTts === 'passage') return;
+                                                setListenCount(c => c + 1);
+                                                playListening(listeningAudioUrl, listeningAudioText);
+                                            }}
+                                            disabled={listenCount >= 2 && playingTts !== 'passage'}
+                                            aria-label={libelleEcoute}
+                                            aria-busy={enLecture}
+                                            className="flex min-h-16 w-full items-center gap-4 rounded-2xl border-[1.5px] border-primary/40 bg-primary/5 px-4 py-3 text-left transition-colors enabled:hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60"
+                                        >
+                                            <span aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                                                {enLecture ? <Volume2 className="h-6 w-6 motion-safe:animate-pulse" /> : <Play className="ml-0.5 h-6 w-6" />}
+                                            </span>
+                                            <span className="min-w-0 flex-1">
+                                                <span className="block text-base font-semibold text-foreground">{libelleEcoute}</span>
+                                                <span className="mt-0.5 block text-[0.8125rem] text-muted-foreground">
+                                                    Écoute {Math.min(listenCount, 2)}/2 · puis réponds à la question
+                                                </span>
+                                            </span>
+                                            <Headphones aria-hidden="true" className="hidden h-5 w-5 shrink-0 text-muted-foreground sm:block" />
+                                        </button>
+                                        {audioUnavailable && listeningAudioText && (
+                                            <div
+                                                role="status"
+                                                className="rounded-2xl border-[1.5px] border-amber-300 bg-amber-50 p-4 text-left text-[0.9375rem] text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100"
+                                            >
+                                                <p className="font-bold">L’audio est indisponible pour le moment.</p>
+                                                <p className="mt-1">Voici le texte de l’enregistrement, pour que tu puisses quand même répondre :</p>
+                                                <p className="mt-2 italic">{listeningAudioText}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                <div className={cn('rounded-2xl border-[1.5px] border-border bg-card p-4 sm:p-6', isChecked ? (isCorrect ? 'answer-pop' : 'answer-shake') : '')}>
+                                    {/* Ce qu'il faut faire, et l'ecoute de la question. L'enonce
+                                        lui-meme est rendu par chaque format. */}
+                                    <div className="mb-4 flex items-start justify-between gap-3">
+                                        {consigneDuType ? (
+                                            <p className="flex items-center gap-1.5 pt-2.5 text-[0.875rem] font-semibold text-primary">
+                                                <Info aria-hidden="true" className="h-4 w-4 shrink-0" />
+                                                {consigneDuType}
+                                            </p>
+                                        ) : <span />}
+                                        <button
+                                            type="button"
+                                            onClick={() => playTts(question.text || question.prompt || '', 'question')}
+                                            aria-label={playingTts === 'question' ? 'Lecture de la question en cours' : 'Écouter la question'}
+                                            aria-pressed={playingTts === 'question'}
+                                            className={cn(boutonRond, playingTts === 'question' ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground')}
+                                        >
+                                            {playingTts === 'question' ? <Volume2 aria-hidden="true" className="h-5 w-5" /> : <Volume1 aria-hidden="true" className="h-5 w-5" />}
+                                        </button>
+                                    </div>
+
+                                    {/* Sans cette barriere, un seul champ mal forme venu de l'IA
+                                        (un objet la ou une chaine etait attendue) vidait l'ecran de
+                                        la seance et effacait toutes les reponses deja donnees. Elle
+                                        n'entoure que le champ de saisie : barre d'action, minuteur
+                                        et reponses du parent restent intacts, et la question peut
+                                        etre passee sans compter. */}
+                                    <ExerciseErrorBoundary
+                                        resetKey={remountKey}
+                                        onSkip={() => handleAnswer(question.id ?? String(currentQuestionIndex), '__skipped__')}
+                                    >
+                                        {/* Ici la correction s'affiche question par question :
+                                            `revealed` la montre des que la reponse est verifiee.
+                                            `disabled` verrouille aussi pendant la verification par
+                                            le serveur et pendant l'envoi : sinon la reponse
+                                            modifiee entre-temps partait au serveur alors que le
+                                            verdict affiche portait sur l'ancienne. */}
+                                        <Component
+                                            // Always-unique key so the input component fully remounts between
+                                            // questions (AI-generated questions can share/duplicate ids, which
+                                            // left the previous answer stuck in the text field).
+                                            key={remountKey}
+                                            question={{ ...exercise.content, ...question }}
+                                            lang={nodeCode}
+                                            onAnswer={(_childId: string, ans: FormDataConvertible) => handleAnswer(question.id ?? String(currentQuestionIndex), ans)}
+                                            selectedAnswer={answers[answerKey(question.id ?? String(currentQuestionIndex))]}
+                                            disabled={isChecked || enAttente}
+                                            revealed={isChecked}
+                                        />
+                                    </ExerciseErrorBoundary>
+
+                                    <CaracteresSpeciaux langue={nodeCode} zone={zoneQuestion} cle={remountKey} />
+
+                                    {/* Speaking: show what the AI heard (the transcription) so the
+                                        learner can tell a real mistake from a mis-transcription. */}
+                                    {isChecked && Boolean(answers[`${question.id}_transcription`]) && (
+                                        <div className="mt-4 rounded-2xl border-[1.5px] border-border bg-muted/40 p-4">
+                                            <p className="mb-1.5 text-[0.8125rem] font-bold uppercase tracking-wide text-muted-foreground">
+                                                {t('exercise.heard', 'Ce que l’IA a entendu')}
+                                            </p>
+                                            <p className="text-[0.9375rem] font-medium italic text-foreground">
+                                                « {String(answers[`${question.id}_transcription`])} »
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {/* Speaking formative feedback: what you covered + what to add to go further */}
+                                    {isChecked && speakingPoints && (speakingPoints.covered.length > 0 || speakingPoints.missing.length > 0) && (
+                                        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                                            {speakingPoints.covered.length > 0 && (
+                                                <div className="rounded-2xl border-[1.5px] border-emerald-300 bg-emerald-50 p-3 dark:border-emerald-800 dark:bg-emerald-950/40">
+                                                    <p className="mb-1.5 text-[0.8125rem] font-bold uppercase tracking-wide text-emerald-800 dark:text-emerald-200">Bien dit</p>
+                                                    <ul className="space-y-1">
+                                                        {collection<unknown>(speakingPoints.covered).map((p, i) => (
+                                                            <li key={i} className="flex gap-1.5 text-[0.875rem] font-medium text-foreground">
+                                                                <Check aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700 dark:text-emerald-300" />
+                                                                {coerceOption(p)}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+                                            {speakingPoints.missing.length > 0 && (
+                                                <div className="rounded-2xl border-[1.5px] border-amber-300 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-950/40">
+                                                    <p className="mb-1.5 text-[0.8125rem] font-bold uppercase tracking-wide text-amber-900 dark:text-amber-100">Pour aller plus loin</p>
+                                                    <ul className="space-y-1">
+                                                        {collection<unknown>(speakingPoints.missing).map((p, i) => (
+                                                            <li key={i} className="flex gap-1.5 text-[0.875rem] font-medium text-foreground">
+                                                                <Plus aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-amber-700 dark:text-amber-300" />
+                                                                {coerceOption(p)}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
-                            ) : explanation ? (
-                                <FormattedFeedback
-                                    text={explanation}
-                                    className="text-sm font-medium text-foreground leading-relaxed space-y-1.5"
-                                />
-                            ) : null}
+
+                                {/* ── Correction — dans le flux, juste sous l'exercice ──
+                                    Ce panneau flottait au-dessus de la barre d'action : la barre
+                                    « Incorrect » grandit avec son bouton et recouvrait le bas des
+                                    explications, et le panneau masquait l'exercice, donc la réponse
+                                    donnée n'était plus visible au moment de lire la correction. Il
+                                    défile maintenant avec la page, sous la question et sous ce que
+                                    l'apprenant a répondu. */}
+                                {isChecked && skipped && (
+                                    <div role="status" className="flex gap-3 rounded-2xl border-[1.5px] border-amber-300 bg-card p-4 dark:border-amber-800">
+                                        <Info aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-amber-700 dark:text-amber-300" />
+                                        <p className="text-[0.9375rem] leading-relaxed text-foreground">
+                                            Question passée : elle ne compte pas dans ton score, l’exercice ne s’est pas affiché correctement.
+                                        </p>
+                                    </div>
+                                )}
+
+                                {isChecked && !skipped && !isCorrect && (explanation || fetchingExplanation || expectedText) && (
+                                    <div
+                                        ref={correctionRef}
+                                        role="status"
+                                        className="space-y-3 rounded-2xl border-[1.5px] border-red-300 bg-card p-4 sm:p-5 dark:border-red-800"
+                                    >
+                                        {expectedText && (
+                                            <p className="flex gap-2 text-[0.9375rem] leading-relaxed text-foreground">
+                                                <Check aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700 dark:text-emerald-300" />
+                                                <span>Réponse attendue : <strong>{expectedText}</strong></span>
+                                            </p>
+                                        )}
+                                        {givenText && (
+                                            <p className="flex gap-2 text-[0.9375rem] leading-relaxed text-muted-foreground">
+                                                <X aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-red-700 dark:text-red-300" />
+                                                <span>Ta réponse : <span className="font-medium line-through decoration-red-500">{givenText}</span></span>
+                                            </p>
+                                        )}
+                                        {fetchingExplanation ? (
+                                            <p className="flex items-center gap-2 text-[0.9375rem] font-medium italic text-muted-foreground">
+                                                <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
+                                                Analyse de ton erreur…
+                                            </p>
+                                        ) : explanation ? (
+                                            <div className="rounded-xl bg-muted/50 p-3 sm:p-4">
+                                                <p className="mb-1 text-[0.8125rem] font-bold uppercase tracking-wide text-foreground/80">Pourquoi</p>
+                                                {typeof explanation === 'object' ? (
+                                                    <div className="space-y-2">
+                                                        <p className="text-[0.9375rem] font-bold leading-relaxed text-foreground">
+                                                            {(i18n.language === 'fr' && explanation.french_translation?.concept) ? explanation.french_translation.concept : explanation.concept}
+                                                        </p>
+                                                        {(i18n.language === 'fr' && explanation.french_translation?.hint ? explanation.french_translation.hint : explanation.hint) && (
+                                                            <p className="text-[0.9375rem] leading-relaxed text-foreground">
+                                                                {i18n.language === 'fr' && explanation.french_translation?.hint ? explanation.french_translation.hint : explanation.hint}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <FormattedFeedback
+                                                        text={explanation}
+                                                        className="space-y-1.5 text-[0.9375rem] font-medium leading-relaxed text-foreground"
+                                                    />
+                                                )}
+                                            </div>
+                                        ) : null}
+                                    </div>
+                                )}
+                            </section>
                         </div>
-                    )}
+                    </div>
                 </div>
             </div>
 
-            {/* ── Bottom Action Bar ── */}
+            {/* ── Barre d'actions, collee en bas a toutes les tailles ──
+                Elle porte le verdict (couleur ET icone ET mot, jamais la couleur
+                seule) et l'action principale, d'au moins 48 px de haut. */}
             <div
-                className={`fixed bottom-0 left-0 right-0 z-50 transition-all duration-300 ${
-                    isChecked
-                        ? skipped ? 'action-bar-neutral' : isCorrect ? 'action-bar-correct' : 'action-bar-incorrect'
-                        : ''
-                }`}
-                style={{
-                    borderTop: '1px solid rgba(0,0,0,0.07)',
-                    background: isChecked ? undefined : 'var(--background, #fff)',
-                    backdropFilter: 'blur(12px)',
-                    WebkitBackdropFilter: 'blur(12px)',
-                }}
+                ref={setBarreActions}
+                className={cn(
+                    'palette-lecteur fixed inset-x-0 bottom-0 z-40 border-t backdrop-blur-xl transition-colors duration-300',
+                    etat === 'neutre' && 'border-border/70 bg-background/90',
+                    etat === 'juste' && 'border-emerald-300 bg-emerald-50/95 dark:border-emerald-800 dark:bg-emerald-950/90',
+                    etat === 'faux' && 'border-red-300 bg-red-50/95 dark:border-red-800 dark:bg-red-950/90',
+                    etat === 'passee' && 'border-amber-300 bg-amber-50/95 dark:border-amber-800 dark:bg-amber-950/90',
+                )}
             >
                 <div
-                    className="player-font mx-auto"
-                    style={{
-                        maxWidth: 672,
-                        padding: '12px 16px calc(14px + env(safe-area-inset-bottom))',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: 16,
-                    }}
+                    className={cn(
+                        'mx-auto flex max-w-6xl gap-3 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]',
+                        isChecked ? 'flex-col sm:flex-row sm:items-center' : 'flex-row items-center',
+                    )}
                 >
-                    {/* Feedback panel */}
-                    <div style={{ flex: 1, minHeight: 48, display: 'flex', alignItems: 'center' }}>
+                    {/* Verdict, ou outils tant que la reponse n'est pas verifiee */}
+                    <div aria-live="polite" className={cn('flex min-h-12 items-center gap-3', isChecked ? 'flex-1' : 'shrink-0 sm:flex-1')}>
                         {isChecked && (
-                            <div className="feedback-enter" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                {isCorrect ? (
+                            <div className="flex items-center gap-3 animate-in fade-in slide-in-from-bottom-1 duration-200 motion-reduce:animate-none">
+                                {etat === 'juste' ? (
                                     // Light "win" GIF on a correct answer (the big trophy is
                                     // reserved for end-of-session results).
                                     <img
                                         src="/animation/star.gif"
                                         alt=""
-                                        width={48}
-                                        height={48}
-                                        className="check-pop"
-                                        style={{ flexShrink: 0, objectFit: 'contain' }}
+                                        width={44}
+                                        height={44}
+                                        className="shrink-0 object-contain animate-in zoom-in-50 duration-300 motion-reduce:animate-none"
                                     />
                                 ) : (
-                                    <div
-                                        className="check-pop"
-                                        style={{
-                                            width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            background: '#ef4444',
-                                        }}
+                                    <span
+                                        aria-hidden="true"
+                                        className={cn(
+                                            'flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white animate-in zoom-in-50 duration-300 motion-reduce:animate-none',
+                                            etat === 'passee' ? 'bg-amber-700' : 'bg-red-700',
+                                        )}
                                     >
-                                        <Icon
-                                            name="x"
-                                            size={22}
-                                            style={{ filter: 'brightness(0) invert(1)' }}
-                                        />
-                                    </div>
+                                        {etat === 'passee' ? <Info className="h-6 w-6" /> : <X className="h-6 w-6" />}
+                                    </span>
                                 )}
-                                <div>
-                                    <div style={{
-                                        fontWeight: 700,
-                                        fontSize: '1rem',
-                                        color: skipped ? '#b45309' : isCorrect ? '#059669' : '#dc2626',
-                                        lineHeight: 1.2,
-                                    }}>
-                                        {skipped ? 'Question passee' : isCorrect ? t('exercise.correct') : t('exercise.incorrect')}
-                                    </div>
+                                <div className="min-w-0">
+                                    <p
+                                        className={cn(
+                                            'text-base font-bold leading-tight',
+                                            etat === 'juste' && 'text-emerald-800 dark:text-emerald-200',
+                                            etat === 'faux' && 'text-red-800 dark:text-red-200',
+                                            etat === 'passee' && 'text-amber-900 dark:text-amber-100',
+                                        )}
+                                    >
+                                        {skipped ? 'Question passée' : isCorrect ? t('exercise.correct') : t('exercise.incorrect')}
+                                    </p>
                                     {!isCorrect && !skipped && (
-                                        <div className="mt-1 flex items-center gap-3">
-                                            <span className="text-[12px] font-medium text-red-600/80">
+                                        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+                                            <span className="text-[0.8125rem] font-medium text-red-900 dark:text-red-200">
                                                 {fetchingExplanation ? 'Analyse…' : 'Vois l’explication ci-dessus'}
                                             </span>
                                             <button
+                                                type="button"
                                                 onClick={() => setIsChatOpen(true)}
-                                                className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 transition-colors text-xs font-bold"
+                                                className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border-[1.5px] border-red-300 bg-background/70 px-3 text-[0.875rem] font-bold text-red-800 transition-colors hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:border-red-700 dark:text-red-100"
                                             >
-                                                <Icon name="message-square" size={14} />
+                                                <MessageSquare aria-hidden="true" className="h-4 w-4" />
                                                 Discuter
                                             </button>
                                         </div>
@@ -1606,7 +1728,31 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
                                 </div>
                             </div>
                         )}
-                        
+
+
+                        {!isChecked && (
+                            <>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsDictionaryOpen(true)}
+                                    className="inline-flex h-12 items-center gap-2 rounded-full border-[1.5px] border-border bg-card px-4 text-[0.9375rem] font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                >
+                                    <Search aria-hidden="true" className="h-4 w-4" />
+                                    Dictionnaire
+                                </button>
+                                <span className="hidden items-center gap-1.5 text-[0.8125rem] text-muted-foreground select-none lg:inline-flex" aria-hidden="true">
+                                    <kbd className="rounded border border-border px-1.5 font-mono text-[0.8125rem]">1–4</kbd> choisir
+                                    <kbd className="ml-1 rounded border border-border px-1.5 font-mono text-[0.8125rem]">Entrée</kbd> {t('exercise.check', 'Check')}
+                                </span>
+                            </>
+                        )}
+                    </div>
+
+                    {/* La discussion s'ouvre en plein ecran : rendue dans <body>, car le flou
+                        de cette barre (backdrop-filter) devient le repere des enfants en
+                        position fixed, et la fenetre restait coincee dans la barre. Toujours
+                        montee (elle garde la conversation), elle ne rend rien fermee. */}
+                    {typeof document !== 'undefined' && createPortal((
                         <AiChatFeedback
                             isOpen={isChatOpen}
                             onClose={() => setIsChatOpen(false)}
@@ -1626,22 +1772,7 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
                                 language: node.exam.language.name
                             }}
                         />
-
-                        {!isChecked && (
-                            <div className="flex items-center gap-4">
-                                <div style={{ fontSize: '0.75rem', opacity: 0.3, userSelect: 'none' }}>
-                                    <span className="kbd-hint">Space</span> {t('exercise.check', 'Check')}
-                                </div>
-                                <button 
-                                    onClick={() => setIsDictionaryOpen(true)}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors text-xs font-bold"
-                                >
-                                    <Icon name="search" size={14} />
-                                    Dictionnaire
-                                </button>
-                            </div>
-                        )}
-                    </div>
+                    ), document.body)}
 
                     {/* Dictionnaire : rendu dans <body> par un portail. Les conteneurs du
                         lecteur portent des transform d'animation, et un parent transforme
@@ -1650,30 +1781,38 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
                         coince hors de vue sur grand ecran. */}
                     {isDictionaryOpen && createPortal((
                         <div
-                            className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm"
+                            className="palette-lecteur fixed inset-0 z-[100] flex items-end justify-center bg-black/50 p-0 backdrop-blur-sm sm:items-center sm:p-4"
                             onClick={() => setIsDictionaryOpen(false)}
                         >
                             <div
+                                role="dialog"
+                                aria-modal="true"
+                                aria-labelledby="titre-dictionnaire"
                                 onClick={(e) => e.stopPropagation()}
-                                className="bg-white w-full max-w-md shadow-2xl overflow-hidden border border-slate-200 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200
-                                           rounded-t-2xl sm:rounded-2xl max-h-[85vh] sm:max-h-[80vh] flex flex-col"
+                                className="flex max-h-[85vh] w-full max-w-md flex-col overflow-hidden rounded-t-2xl border-[1.5px] border-border bg-card text-foreground shadow-2xl animate-in slide-in-from-bottom duration-200 sm:max-h-[80vh] sm:rounded-2xl sm:zoom-in-95"
                             >
-                                <div className="pt-2 pb-1 flex justify-center sm:hidden" aria-hidden="true">
-                                    <span className="h-1 w-10 rounded-full bg-slate-300" />
+                                <div className="flex justify-center pt-2 pb-1 sm:hidden" aria-hidden="true">
+                                    <span className="h-1 w-10 rounded-full bg-border" />
                                 </div>
-                                <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 flex-shrink-0">
-                                    <h3 className="font-bold text-slate-800">Dictionnaire Rapide</h3>
-                                    <button onClick={() => setIsDictionaryOpen(false)} className="p-1 hover:bg-slate-200 rounded-full transition-colors">
-                                        <Icon name="x" size={18} />
+                                <div className="flex flex-shrink-0 items-center justify-between border-b border-border bg-muted/40 px-4 py-2">
+                                    <h2 id="titre-dictionnaire" className="font-bold">Dictionnaire rapide</h2>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsDictionaryOpen(false)}
+                                        aria-label="Fermer le dictionnaire"
+                                        className={cn(boutonRond, 'hover:bg-muted')}
+                                    >
+                                        <X aria-hidden="true" className="h-5 w-5" />
                                     </button>
                                 </div>
-                                <div className="p-4 overflow-y-auto">
+                                <div className="overflow-y-auto p-4">
                                     <div className="relative">
-                                        <input 
+                                        <input
                                             autoFocus
-                                            type="text" 
-                                            placeholder="Rechercher un mot..." 
-                                            className="w-full px-4 py-3 bg-slate-100 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all font-medium"
+                                            type="text"
+                                            aria-label="Mot à rechercher"
+                                            placeholder="Rechercher un mot…"
+                                            className="h-12 w-full rounded-xl border-[1.5px] border-border bg-background px-4 text-base font-medium text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
                                             onKeyDown={async (e) => {
@@ -1696,25 +1835,28 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
                                             }}
                                         />
                                     </div>
-                                    <div className="mt-4 min-h-[120px]">
+                                    <div className="mt-4 min-h-[120px]" aria-live="polite">
                                         {isSearching ? (
-                                            <div className="flex flex-col items-center justify-center py-6 gap-3">
-                                                <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-                                                <p className="text-xs text-slate-400 font-medium italic">Recherche intelligente en cours...</p>
+                                            <div className="flex flex-col items-center justify-center gap-3 py-6">
+                                                <Loader2 aria-hidden="true" className="h-6 w-6 animate-spin text-primary" />
+                                                <p className="text-[0.875rem] font-medium italic text-muted-foreground">Recherche en cours…</p>
                                             </div>
                                         ) : searchResult?.error ? (
-                                            <div className="text-center py-6 text-slate-400 text-sm">Mot non trouvé. Essayez une autre orthographe.</div>
+                                            <div className="py-6 text-center text-[0.9375rem] text-muted-foreground">Mot non trouvé. Essaie une autre orthographe.</div>
                                         ) : searchResult ? (
                                             <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                                                <div className="p-4 bg-indigo-50/50 rounded-xl border border-indigo-100">
-                                                    <div className="flex items-center justify-between mb-2">
-                                                        <h4 className="font-bold text-indigo-900 text-lg">{searchResult.word}</h4>
-                                                        <span className="text-[10px] font-black bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded uppercase">{searchResult.skill_level}</span>
+                                                <div className="rounded-xl border-[1.5px] border-primary/25 bg-primary/5 p-4">
+                                                    <div className="mb-2 flex items-center justify-between gap-2">
+                                                        <h3 className="text-lg font-bold text-foreground">{searchResult.word}</h3>
+                                                        {searchResult.skill_level && (
+                                                            <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[0.8125rem] font-bold uppercase text-primary">{searchResult.skill_level}</span>
+                                                        )}
                                                     </div>
-                                                    <p className="text-sm text-slate-700 leading-relaxed italic mb-3">"{searchResult.definition}"</p>
-                                                    <div className="text-xs text-slate-500 font-medium">Traduction : <span className="text-indigo-600">{searchResult.translation}</span></div>
+                                                    <p className="mb-3 text-[0.9375rem] italic leading-relaxed text-foreground">« {searchResult.definition} »</p>
+                                                    <p className="text-[0.875rem] font-medium text-muted-foreground">Traduction : <span className="text-foreground">{searchResult.translation}</span></p>
                                                 </div>
                                                 <button
+                                                    type="button"
                                                     disabled={isVocabSaved}
                                                     onClick={async () => {
                                                         // Plain fetch, not an Inertia visit: the previous
@@ -1744,20 +1886,21 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
                                                             setVocabError("Le mot n'a pas pu être ajouté. Vérifie ta connexion, puis réessaie.");
                                                         }
                                                     }}
-                                                    className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${
-                                                        isVocabSaved ? 'bg-emerald-500 text-white' : 'bg-indigo-600 text-white shadow-lg shadow-indigo-100'
-                                                    }`}
+                                                    className={cn(
+                                                        'flex h-12 w-full items-center justify-center gap-2 rounded-full font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                                                        isVocabSaved ? 'bg-emerald-700 text-white' : 'bg-primary text-primary-foreground hover:bg-primary/90',
+                                                    )}
                                                 >
-                                                    <Icon name={isVocabSaved ? 'check' : 'plus'} size={16} style={{ filter: 'brightness(0) invert(1)' }} />
-                                                    {isVocabSaved ? 'Ajouté au Lexique !' : 'Ajouter à mon Lexique'}
+                                                    {isVocabSaved ? <Check aria-hidden="true" className="h-4 w-4" /> : <Plus aria-hidden="true" className="h-4 w-4" />}
+                                                    {isVocabSaved ? 'Ajouté au lexique !' : 'Ajouter à mon lexique'}
                                                 </button>
                                                 {vocabError && (
-                                                    <p role="alert" className="text-sm font-medium text-red-600">{vocabError}</p>
+                                                    <p role="alert" className="text-[0.875rem] font-medium text-red-700 dark:text-red-300">{vocabError}</p>
                                                 )}
                                             </div>
                                         ) : (
-                                            <div className="text-center py-6 text-slate-400 text-sm italic">
-                                                Entrez un mot pour voir sa définition et l'ajouter à votre lexique.
+                                            <div className="py-6 text-center text-[0.9375rem] italic text-muted-foreground">
+                                                Tape un mot pour voir sa définition et l’ajouter à ton lexique.
                                             </div>
                                         )}
                                     </div>
@@ -1766,31 +1909,38 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
                         </div>
                     ), document.body)}
 
-                    {/* CTA button */}
+                    {/* Action principale */}
                     <button
-                        className={`btn-check ${
-                            submitting || isVerifying
-                                ? 'btn-submitting'
-                                : isChecked
-                                    ? skipped ? 'btn-neutral' : isCorrect ? 'btn-correct' : 'btn-incorrect'
-                                    : 'btn-default'
-                        }`}
+                        type="button"
+                        className={cn(
+                            'inline-flex h-12 items-center justify-center gap-2 rounded-full px-6 text-base font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50',
+                            isChecked ? 'w-full sm:w-auto sm:min-w-44' : 'flex-1 sm:flex-none sm:min-w-44',
+                            enAttente || etat === 'neutre'
+                                ? 'bg-primary text-primary-foreground enabled:hover:bg-primary/90'
+                                : etat === 'juste'
+                                    ? 'bg-emerald-700 text-white hover:bg-emerald-800'
+                                    : etat === 'faux'
+                                        ? 'bg-red-700 text-white hover:bg-red-800'
+                                        : 'bg-amber-700 text-white hover:bg-amber-800',
+                        )}
                         disabled={!hasAnswer || submitting || isVerifying}
                         onClick={isChecked ? nextStep : checkAnswer}
+                        aria-keyshortcuts="Enter"
                     >
-                        {submitting || isVerifying ? (
+                        {enAttente ? (
                             <>
-                                <span style={{ opacity: 0.8 }}>{isVerifying ? 'Vérification...' : t('exercise.finish', 'Finish')}</span>
+                                <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
+                                {isVerifying ? 'Vérification…' : t('exercise.finish', 'Finish')}
                             </>
                         ) : isChecked ? (
                             <>
                                 {isCorrect || skipped ? (isLastQuestion ? t('exercise.finish', 'Finish') : t('exercise.next', 'Next')) : 'Continuer'}
-                                <Icon name="chevron-right" size={15} style={{ filter: 'brightness(0) invert(1)' }} />
+                                <ChevronRight aria-hidden="true" className="h-4 w-4" />
                             </>
                         ) : (
                             <>
                                 {t('exercise.check', 'Check')}
-                                <Icon name="chevron-right" size={15} style={{ filter: 'brightness(0) invert(1)' }} />
+                                <ChevronRight aria-hidden="true" className="h-4 w-4" />
                             </>
                         )}
                     </button>

@@ -53,36 +53,38 @@ export function MultipleMatching({ question, onAnswer, selectedAnswer, disabled 
             {/* Texts */}
             <div className="grid gap-3 sm:grid-cols-2">
                 {texts.map((text) => (
-                    <div key={text.id} className="rounded-xl border bg-muted/30 p-4">
+                    <div key={text.id} className="rounded-2xl border-[1.5px] bg-muted/30 p-4">
                         <div className="mb-2 flex items-center gap-2">
-                            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">
+                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
                                 {text.id}
                             </span>
-                            <span className="text-sm font-bold">{text.title}</span>
+                            <span className="text-[0.9375rem] font-bold">{text.title}</span>
                         </div>
-                        <p className="text-sm leading-relaxed text-muted-foreground">{text.content}</p>
+                        <p className="lecteur-passage text-foreground/90">{text.content}</p>
                     </div>
                 ))}
             </div>
 
             {/* Statements */}
             <div className="space-y-2">
-                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    Associez chaque affirmation au texte correspondant
+                <p data-enonce className="lecteur-enonce">
+                    Associe chaque affirmation au bon texte
                 </p>
                 {statements.map((stmt, i) => {
                     const selected = values[stmt.id];
                     return (
-                        <div key={stmt.id} className="flex items-center gap-3 rounded-xl border bg-background p-3">
-                            <span className="min-w-[24px] text-sm font-bold text-muted-foreground">{i + 1}.</span>
-                            <p className="flex-1 text-sm">{stmt.text}</p>
-                            <div className="flex gap-1">
+                        <div key={stmt.id} className="flex flex-col gap-2 rounded-2xl border-[1.5px] bg-card p-3 sm:flex-row sm:items-center sm:gap-3">
+                            <span className="min-w-[24px] text-[0.9375rem] font-bold text-muted-foreground">{i + 1}.</span>
+                            <p className="flex-1 text-base">{stmt.text}</p>
+                            <div className="flex flex-wrap gap-1.5" role="group" aria-label={`Texte pour l’affirmation ${i + 1}`}>
                                 {textIds.map((tid) => (
                                     <button
                                         key={tid}
+                                        type="button"
+                                        aria-pressed={selected === tid}
                                         onClick={() => handleSelect(stmt.id, tid)}
                                         disabled={disabled}
-                                        className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold transition-all ${
+                                        className={`flex h-11 w-11 items-center justify-center rounded-xl text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                                             selected === tid
                                                 ? 'bg-primary text-primary-foreground shadow-sm'
                                                 : 'border border-border bg-muted/30 text-foreground hover:border-primary/50'

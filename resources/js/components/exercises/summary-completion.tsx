@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { CHAMP_DANS_LA_PHRASE } from './choice-option';
 
 interface SummaryCompletionProps {
     question: {
@@ -44,13 +45,13 @@ export function SummaryCompletion({ question, onAnswer, selectedAnswer, disabled
     return (
         <div className="space-y-4">
             {/* Word list */}
-            <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
-                <p className="mb-2 text-xs font-bold uppercase tracking-wider text-primary">Mots disponibles</p>
+            <div className="rounded-2xl border-[1.5px] border-primary/20 bg-primary/5 p-4">
+                <p className="mb-2 text-[0.8125rem] font-semibold text-primary">Mots disponibles</p>
                 <div className="flex flex-wrap gap-2">
                     {wordList.map((word, i) => (
                         <span
                             key={i}
-                            className={`rounded-lg border px-3 py-1 text-sm font-medium transition-all ${
+                            className={`rounded-lg border px-3 py-1 text-[0.9375rem] font-medium transition-all ${
                                 usedWords.has(word)
                                     ? 'border-muted bg-muted/50 text-muted-foreground line-through'
                                     : 'border-primary/30 bg-background text-foreground'
@@ -63,7 +64,7 @@ export function SummaryCompletion({ question, onAnswer, selectedAnswer, disabled
             </div>
 
             {/* Summary with dropdowns */}
-            <div className="rounded-xl border bg-muted/30 p-6 leading-relaxed text-sm">
+            <div data-enonce className="rounded-2xl border-[1.5px] bg-muted/30 p-4 text-base leading-[3.25rem] sm:p-6">
                 {parts.map((part, i) => (
                     <span key={i}>
                         {part}
@@ -72,7 +73,8 @@ export function SummaryCompletion({ question, onAnswer, selectedAnswer, disabled
                                 value={values[String(i)] ?? ''}
                                 onChange={(e) => handleChange(i, e.target.value)}
                                 disabled={disabled}
-                                className="mx-1 inline-block min-w-[120px] rounded border-2 border-primary/40 bg-background px-2 py-1 text-sm font-medium focus:border-primary focus:outline-none disabled:opacity-50"
+                                aria-label={`Blanc ${i + 1} sur ${gapCount}`}
+                                className={`${CHAMP_DANS_LA_PHRASE} min-w-[8rem] text-left`}
                             >
                                 <option value="">({i + 1})</option>
                                 {wordList.map((word, j) => (

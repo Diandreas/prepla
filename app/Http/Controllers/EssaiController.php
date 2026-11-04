@@ -80,6 +80,9 @@ class EssaiController extends Controller
                 'examen' => $exercise->exam->name,
                 'niveau' => $exercise->difficulty,
                 'officiel' => ExercicesDEssai::SOURCES[$exercise->content['source'] ?? ''] ?? false,
+                // Pour « Essayer un autre exercice » : la liste rouvre sur la
+                // langue de l'exercice au lieu de la premiere de la liste.
+                'langue' => $exercise->exam->language->slug ?? null,
             ],
             // `score` est le NOMBRE de bonnes reponses, `accuracy` le pourcentage.
             // Une question que le visiteur n'a pas pu faire (panne de notre cote)

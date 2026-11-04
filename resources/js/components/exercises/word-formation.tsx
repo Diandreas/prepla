@@ -1,3 +1,5 @@
+import { CHAMP_DANS_LA_PHRASE } from './choice-option';
+
 interface WordFormationProps {
     question: { id: string; text: string; root_word: string };
     onAnswer: (questionId: string, answer: string) => void;
@@ -18,7 +20,7 @@ export function WordFormation({ question, onAnswer, selectedAnswer, disabled }: 
 
     return (
         <div className="space-y-4">
-            <div className="rounded-xl border bg-muted/30 p-6 text-sm leading-relaxed">
+            <div data-enonce className="rounded-2xl border-[1.5px] bg-muted/30 p-4 text-base leading-[3.25rem] sm:p-6">
                 {parts.map((part, index) => (
                     <span key={index}>
                         {part}
@@ -28,7 +30,10 @@ export function WordFormation({ question, onAnswer, selectedAnswer, disabled }: 
                                 value={value}
                                 onChange={(e) => onAnswer(question.id, e.target.value)}
                                 aria-label="Forme dérivée à écrire"
-                                className="border-primary bg-background mx-1 inline-block w-32 rounded border-b-2 px-2 py-0.5 text-center text-sm focus:outline-none disabled:opacity-60"
+                                autoComplete="off"
+                                autoCapitalize="off"
+                                spellCheck={false}
+                                className={`${CHAMP_DANS_LA_PHRASE} w-40`}
                                 disabled={disabled}
                             />
                         )}
@@ -37,8 +42,8 @@ export function WordFormation({ question, onAnswer, selectedAnswer, disabled }: 
             </div>
 
             <div className="flex items-center gap-2">
-                <span className="text-muted-foreground text-sm">Mot racine :</span>
-                <span className="bg-primary/10 text-primary rounded px-3 py-1 font-mono text-sm font-bold">
+                <span className="text-muted-foreground text-[0.9375rem]">Mot racine :</span>
+                <span className="bg-primary/10 text-primary rounded-lg px-3 py-1 font-mono text-base font-bold">
                     {question.root_word}
                 </span>
             </div>

@@ -127,6 +127,24 @@ test('la correction rend le resultat et ses explications', function () {
 });
 
 /**
+ * « Essayer un autre exercice » rouvre la liste sur la langue de l'exercice :
+ * le resultat doit donc la connaitre.
+ */
+test('le resultat connait la langue de l exercice', function () {
+    interdireLIA();
+    $exercice = exerciceDEssai();
+
+    $this->post(route('essai.corriger', $exercice), [
+        'answers' => ['q1' => 'B', 'q2' => 'A'],
+    ])
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('essai/resultat')
+            ->where('exercise.langue', 'german')
+            ->where('exercise.titre', 'Goethe B1 · Lesen, Teil 2'));
+});
+
+/**
  * Un essai n'est rattache a personne : il ne doit laisser aucune trace, ni
  * tentative, ni XP, ni progression.
  */

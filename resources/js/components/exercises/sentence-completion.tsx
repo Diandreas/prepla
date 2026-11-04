@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { CHAMP_SAISIE, ChoiceOption, lettreDuChoix, verdictDuChoix } from './choice-option';
 import { normalizeOptions } from './normalize-options';
 
 interface SentenceCompletionProps {
@@ -14,9 +15,11 @@ interface SentenceCompletionProps {
     onAnswer: (questionId: string, answer: string) => void;
     selectedAnswer?: string;
     disabled?: boolean;
+    /** Correction montree ; par defaut `disabled`, comme avant (voir mcq.tsx). */
+    revealed?: boolean;
 }
 
-export function SentenceCompletion({ question, onAnswer, selectedAnswer, disabled }: SentenceCompletionProps) {
+export function SentenceCompletion({ question, onAnswer, selectedAnswer, disabled, revealed = disabled }: SentenceCompletionProps) {
     const [value, setValue] = useState(selectedAnswer ?? '');
     const parts = (question.text ?? '').split('___');
     const options = normalizeOptions(question.options);
@@ -27,7 +30,7 @@ export function SentenceCompletion({ question, onAnswer, selectedAnswer, disable
         const correct = String(question.correct_answer ?? '').trim().toUpperCase();
         return (
             <div className="space-y-4">
-                <p className="text-lg font-medium leading-relaxed">
+                <p data-enonce className="lecteur-enonce leading-relaxed">
                     {parts[0]}
                     <span className="inline-block min-w-[120px] border-b-2 border-primary mx-1 px-1 text-center font-bold">
                         {(() => {
@@ -38,32 +41,22 @@ export function SentenceCompletion({ question, onAnswer, selectedAnswer, disable
                     </span>
                     {parts.slice(1).join(' ___ ')}
                 </p>
-                <div className="grid gap-2">
+                <div className="grid gap-2.5">
                     {options.map((opt, i) => {
-                        const letter = String.fromCharCode(65 + i);
+                        const letter = lettreDuChoix(i);
                         const isSelected = (selectedAnswer ?? '').toUpperCase() === letter;
-                        const isCorrect = disabled && correct === letter;
-                        const isWrong = disabled && isSelected && correct !== letter;
                         return (
-                            <button
+                            <ChoiceOption
                                 key={i}
-                                onClick={() => !disabled && onAnswer(question.id, letter)}
+                                index={i}
+                                letter={letter}
+                                selected={isSelected}
+                                verdict={verdictDuChoix(!!revealed, correct, letter, isSelected)}
                                 disabled={disabled}
-                                className={`rounded-xl border-2 p-3 text-left text-sm transition-all ${
-                                    isCorrect
-                                        ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-950/20'
-                                        : isWrong
-                                        ? 'border-red-400 bg-red-50 dark:bg-red-950/20'
-                                        : isSelected
-                                        ? 'border-primary bg-primary/5'
-                                        : 'border-border disabled:opacity-50'
-                                }`}
+                                onSelect={() => onAnswer(question.id, letter)}
                             >
-                                <span className="mr-2.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-muted text-xs font-bold">
-                                    {letter}
-                                </span>
                                 {opt}
-                            </button>
+                            </ChoiceOption>
                         );
                     })}
                 </div>
@@ -74,7 +67,7 @@ export function SentenceCompletion({ question, onAnswer, selectedAnswer, disable
     // ─── Free-text mode: no options → type the missing word(s) ───
     return (
         <div className="space-y-4">
-            <p className="text-lg font-medium leading-relaxed">
+            <p data-enonce className="lecteur-enonce leading-relaxed">
                 {parts[0]}
                 <span className="inline-block min-w-[120px] border-b-2 border-primary mx-1 px-1">
                     {selectedAnswer || value || ' '}
@@ -89,7 +82,7 @@ export function SentenceCompletion({ question, onAnswer, selectedAnswer, disable
                     onAnswer(question.id, e.target.value);
                 }}
                 aria-label="Ta réponse"
-                className="border-border bg-background focus:border-primary focus:ring-primary w-full rounded-lg border px-4 py-3 text-sm focus:ring-1 focus:outline-none disabled:opacity-60"
+                className={CHAMP_SAISIE}
                 placeholder="Écris ta réponse…"
                 disabled={disabled}
             />
