@@ -74,8 +74,8 @@ return [
             'scoring_weight' => 20,
             'description' => '50 questions QCM. Sections : documents courts, textes informatifs, textes argumentatifs.',
             'parts' => [
-                ['part' => 1, 'name' => 'Comprehension ecrite, Teil 1', 'name_fr' => 'Questionnaire a choix multiple',
-                    "task" => "40 questions a choix multiple en 1 heure. Bonne reponse : 1 point.",
+                ['part' => 1, 'name' => 'Compréhension écrite, partie 1', 'name_fr' => 'Questionnaire à choix multiple',
+                    "task" => "40 questions à choix multiple en 1 heure. Bonne réponse : 1 point.",
                     'type' => 'mcq', 'items' => 40, 'source' => 'architecture'],
             ],
             'exercise_types' => ['mcq'],
@@ -92,8 +92,8 @@ return [
             'scoring_weight' => 20,
             'description' => '60 questions QCM. Messages courts, dialogues, documents radiophoniques.',
             'parts' => [
-                ['part' => 1, 'name' => 'Comprehension orale, Teil 1', 'name_fr' => 'Questionnaire a choix multiple',
-                    "task" => "40 questions a choix multiple en 40 minutes. Bonne reponse : 1 point.",
+                ['part' => 1, 'name' => 'Compréhension orale, partie 1', 'name_fr' => 'Questionnaire à choix multiple',
+                    "task" => "40 questions à choix multiple en 40 minutes. Bonne réponse : 1 point.",
                     'type' => 'mcq', 'items' => 40, 'source' => 'architecture'],
             ],
             'exercise_types' => ['mcq'],
@@ -110,8 +110,8 @@ return [
             'scoring_weight' => 20,
             'description' => '40 questions QCM. Vocabulaire et grammaire : choisir la forme correcte, synonymes, antonymes.',
             'parts' => [
-                ['part' => 1, 'name' => 'Lexique et structure, Teil 1', 'name_fr' => 'Questionnaire a choix multiple',
-                    "task" => "40 questions a choix multiple en 30 minutes. Bonne reponse : 1 point.",
+                ['part' => 1, 'name' => 'Lexique et structure, partie 1', 'name_fr' => 'Questionnaire à choix multiple',
+                    "task" => "40 questions à choix multiple en 30 minutes. Bonne réponse : 1 point.",
                     'type' => 'grammar-mcq', 'items' => 40, 'source' => 'architecture'],
             ],
             'exercise_types' => ['mcq', 'grammar-mcq'],
@@ -127,10 +127,10 @@ return [
             'max_score' => 450,
             'scoring_weight' => 20,
             'parts' => [
-                ['part' => 1, 'name' => 'Expression ecrite, Teil 1', 'name_fr' => 'Section A',
-                    "task" => "Ecrire la suite d'un article, 80 mots au minimum. 25 minutes.",
+                ['part' => 1, 'name' => 'Expression écrite, partie 1', 'name_fr' => 'Section A',
+                    "task" => "Écrire la suite d'un article, 80 mots au minimum. 25 minutes.",
                     'type' => 'text-continuation', 'source' => 'architecture'],
-                ['part' => 2, 'name' => 'Expression ecrite, Teil 2', 'name_fr' => 'Section B',
+                ['part' => 2, 'name' => 'Expression écrite, partie 2', 'name_fr' => 'Section B',
                     "task" => "Exprimer son point de vue et le justifier, 200 mots au minimum. 35 minutes.",
                     'type' => 'essay', 'source' => 'architecture'],
             ],
@@ -167,10 +167,10 @@ return [
             // ne declarait AUCUN format et ne pouvait rien produire — le sujet
             // sortait ampute de cette epreuve.
             'parts' => [
-                ['part' => 1, 'name' => 'Expression orale, Teil 1', 'name_fr' => 'Section A',
+                ['part' => 1, 'name' => 'Expression orale, partie 1', 'name_fr' => 'Section A',
                     "task" => "Obtenir des renseignements. 5 minutes.",
                     'type' => 'speaking-elicitation', 'source' => 'architecture'],
-                ['part' => 2, 'name' => 'Expression orale, Teil 2', 'name_fr' => 'Section B',
+                ['part' => 2, 'name' => 'Expression orale, partie 2', 'name_fr' => 'Section B',
                     "task" => "Argumenter pour convaincre. 10 minutes.",
                     'type' => 'oral-debate', 'source' => 'architecture'],
             ],

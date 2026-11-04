@@ -110,6 +110,57 @@ test('chaque langue porte son titre et son canonique', function () {
         ->assertSee('Structures des examens de français');
 });
 
+/**
+ * Chaque partie porte le nom qu'on lui donne dans la langue de son examen.
+ *
+ * Le TCF, le TEF, l'IELTS et le TOEFL nommaient leurs parties avec le mot
+ * allemand « Teil », et sans accents : un directeur de centre francophone
+ * lisait « Comprehension ecrite, Teil 1 » sur la structure du TCF. Les examens
+ * francais disent « partie » (ou « tache » quand l'epreuve parle de taches),
+ * les examens anglais « Part », comme le fait deja Cambridge.
+ */
+test('les parties des examens francais et anglais ne portent plus le mot allemand Teil', function () {
+    $attendus = [
+        'tcf' => '/^\p{Lu}[^,]*, (partie|tâche) \d+$/u',
+        'tef' => '/^\p{Lu}[^,]*, (partie|tâche) \d+$/u',
+        'ielts' => '/^[A-Z][A-Za-z ]*, Part \d+$/',
+        'toefl' => '/^[A-Z][A-Za-z ]*, Part \d+$/',
+    ];
+
+    foreach ($attendus as $examen => $forme) {
+        $config = require config_path("exams/{$examen}.php");
+        $sections = $config['sections'] ?? array_merge(
+            $config['mandatory_sections'] ?? [],
+            $config['optional_sections'] ?? [],
+        );
+
+        $noms = collect($sections)->flatMap(fn ($section) => array_column($section['parts'] ?? [], 'name'));
+
+        expect($noms)->not->toBeEmpty();
+        foreach ($noms as $nom) {
+            expect($nom)->not->toContain('Teil')
+                ->and($nom)->toMatch($forme, "{$examen} : « {$nom} »");
+        }
+    }
+});
+
+test('la page des structures francaises affiche des noms de parties en francais', function () {
+    $this->get(route('structures', ['langue' => 'french']))
+        ->assertOk()
+        ->assertSee('Compréhension écrite, partie 1', false)
+        ->assertSee('Maîtrise des structures de la langue, partie 1', false)
+        ->assertSee('Expression écrite, tâche 3', false)
+        ->assertDontSee('Teil', false);
+});
+
+test('la page des structures anglaises affiche des noms de parties en anglais', function () {
+    $this->get(route('structures', ['langue' => 'english']))
+        ->assertOk()
+        ->assertSee('Reading, Part 3', false)
+        ->assertSee('Listening, Part 4', false)
+        ->assertDontSee(', Teil', false);
+});
+
 test('le sitemap annonce la page et ses langues', function () {
     $this->get('/sitemap.xml')
         ->assertOk()
