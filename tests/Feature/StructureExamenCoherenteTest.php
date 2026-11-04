@@ -3,6 +3,8 @@
 use App\Models\Exam;
 use App\Models\ExamSection;
 use App\Models\ExerciseType;
+use Database\Seeders\ExamSeeder;
+use Database\Seeders\LanguageSeeder;
 
 /**
  * Une structure d'examen ne doit jamais promettre plus qu'elle ne tient.
@@ -25,7 +27,17 @@ function partiesDeLaConfig(string $slug): array
     $config = require base_path("config/exams/{$slug}.php");
     $out = [];
 
-    foreach ($config['levels'] ?? [] as $niveau => $L) {
+    // Un examen sans paliers (TCF, TEF, IELTS, TOEFL) declare ses epreuves a la
+    // racine — et le TCF les range en obligatoires et complementaires, comme le
+    // seeder les lit. Sans ce cas, aucun de ces quatre examens n'etait controle.
+    $paliers = $config['levels'] ?? [];
+    if ($paliers === []) {
+        $sections = $config['sections']
+            ?? array_merge($config['mandatory_sections'] ?? [], $config['optional_sections'] ?? []);
+        $paliers = ['—' => ['sections' => $sections]];
+    }
+
+    foreach ($paliers as $niveau => $L) {
         foreach ($L['sections'] ?? [] as $section) {
             foreach ($section['parts'] ?? [] as $partie) {
                 // Une partie annonce UN format (`type`), ou PLUSIEURS quand
@@ -112,7 +124,9 @@ test('une partie a questions fermees et marquee officielle annonce ses items', f
         'integrated-writing', 'report-writing', 'guided-writing', 'graph-description',
         'speaking-response', 'speaking-long-turn', 'speaking-discussion', 'negotiation',
         'role-play', 'oral-debate', 'speaking-recorder', 'synthesis', 'academic-discussion',
-        'picture-description', 'integrated-speaking'];
+        'picture-description', 'integrated-speaking',
+        // Les deux sections A du TEF : suite d'un article, prise de renseignements.
+        'text-continuation', 'speaking-elicitation'];
 
     $muettes = [];
 
@@ -206,7 +220,11 @@ test('une epreuve orale ne declare aucun item', function () {
 
     foreach (examensStructures() as $slug) {
         foreach (partiesDeLaConfig($slug) as $p) {
-            if (str_contains($p['section'], 'speaking') || str_contains($p['section'], 'orale')) {
+            // L'expression orale, pas la COMPREHENSION orale : celle-ci est un QCM
+            // a items comptes (29 au TCF, 40 au TEF).
+            $production = str_contains($p['section'], 'speaking')
+                || (str_contains($p['section'], 'orale') && ! str_contains($p['section'], 'comprehension'));
+            if ($production) {
                 if ($p['items'] !== null) {
                     $comptees[] = "{$p['examen']} {$p['niveau']} {$p['nom']} : items = {$p['items']}";
                 }
@@ -224,8 +242,8 @@ test('une epreuve orale ne declare aucun item', function () {
  * renseignait : elle est restee vide pour les dix examens depuis sa creation.
  */
 test('le seeder inscrit le nombre de questions de chaque module', function () {
-    $this->seed(\Database\Seeders\LanguageSeeder::class);
-    $this->seed(\Database\Seeders\ExamSeeder::class);
+    $this->seed(LanguageSeeder::class);
+    $this->seed(ExamSeeder::class);
 
     $cambridge = Exam::where('slug', 'cambridge')->sole();
 
