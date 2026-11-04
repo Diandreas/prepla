@@ -134,6 +134,61 @@ test('un vrai-faux a deux choix les declare, sinon le lecteur en montre trois', 
     expect($muettes)->toBe([]);
 });
 
+test('un QCM ecrit a la main a le nombre de choix de son epreuve, et sa reponse existe', function () {
+    // Le nombre de choix fait partie du format : quatre au TCF (« 4 choix de
+    // reponse », page du TCF tout public) et au TEF (livrets d'exemples A a D),
+    // trois au DELF (« entre trois choix », manuels du candidat). Un QCM a trois
+    // choix au TCF donnerait une chance sur trois au hasard au lieu d'une sur
+    // quatre : l'entrainement mentirait sur la difficulte.
+    $choixParExamen = ['tcf' => 4, 'tef' => 4, 'delf-dalf' => 3];
+    $ecarts = [];
+
+    foreach (modulesEcritsALaMain() as $cle => $module) {
+        foreach ($module['parts'] as $partie) {
+            if (! in_array($partie['type'], ['mcq', 'grammar-mcq'], true)) {
+                continue;
+            }
+            foreach ($partie['questions'] as $q) {
+                $options = $q['options'] ?? [];
+                $attendu = $choixParExamen[$module['exam']] ?? null;
+                if ($attendu !== null && count($options) !== $attendu) {
+                    $ecarts[] = "{$cle} {$partie['name']} / {$q['id']} : ".count($options)." choix, l'epreuve en a {$attendu}";
+                }
+                $rang = ord((string) ($q['correct_answer'] ?? '')) - ord('A');
+                if ($rang < 0 || $rang >= count($options)) {
+                    $ecarts[] = "{$cle} {$partie['name']} / {$q['id']} : la reponse « {$q['correct_answer']} » ne designe aucun choix";
+                }
+            }
+        }
+    }
+
+    expect($ecarts)->toBe([]);
+});
+
+test('la bonne reponse ne tombe pas presque toujours sur la meme lettre', function () {
+    // Ecrites a la main, les premieres series du TCF plaçaient la reponse en B
+    // vingt-sept fois sur vingt-neuf. Un apprenant le remarque en trois
+    // questions, et l'exercice ne mesure plus rien. Les listes ordonnees
+    // (« Offre 1 » a « Offre 4 », une echelle d'opinion) gardent leur ordre :
+    // on ne juge donc la repartition que sur une serie assez longue.
+    $deseq = [];
+
+    foreach (modulesEcritsALaMain() as $cle => $module) {
+        foreach ($module['parts'] as $partie) {
+            if (! in_array($partie['type'], ['mcq', 'grammar-mcq'], true) || count($partie['questions']) < 10) {
+                continue;
+            }
+            $lettres = array_count_values(array_column($partie['questions'], 'correct_answer'));
+            $part = max($lettres) / count($partie['questions']);
+            if ($part > 0.5) {
+                $deseq[] = "{$cle} {$partie['name']} : ".json_encode($lettres);
+            }
+        }
+    }
+
+    expect($deseq)->toBe([]);
+});
+
 test('chaque question ecrite a la main explique sa reponse', function () {
     // Un « faux » sans raison n'apprend rien. L'explication cite le mot allemand
     // qui tranche : c'est la difference entre corriger et enseigner.
