@@ -7,6 +7,13 @@
  * Test adaptatif par ordinateur pour les épreuves obligatoires
  * Scoring: 100-699 points, correspondance CEFR
  * 3 épreuves obligatoires + 2 épreuves complémentaires optionnelles
+ *
+ * Chiffres relus le 2026-11-04 sur la page « TCF tout public »
+ * (https://www.france-education-international.fr/test/tcf-tout-public), dans
+ * sa copie archivee du 2026-07-11 : le site est desormais derriere un controle
+ * anti-robot. Quatre choix (A a D) aux trois epreuves a QCM ; expression
+ * ecrite 60-120, 120-150 et 120-180 mots ; expression orale 12 minutes dont
+ * 2 de preparation, toutes deux pour la tache 2.
  */
 
 return [
@@ -19,6 +26,11 @@ return [
         'min' => 100,
         'max' => 699,
         'overall_calculation' => 'average_mandatory',
+    ],
+
+    // Le TCF n'a pas de paliers : une seule entree atteste tout l'examen.
+    'verifications' => [
+        'TCF' => ['document' => 'TCF tout public, page officielle de France Éducation international (france-education-international.fr/test/tcf-tout-public), lue dans sa copie archivée du 2026-07-11', 'date' => '2026-11-04'],
     ],
 
     'variants' => [
@@ -47,9 +59,9 @@ return [
             'time_limit' => 25,
             'question_count' => 29,
             'scoring_weight' => 33,
-            'description' => '29 questions QCM (3 choix). Comprendre des mots familiers, des phrases, des échanges, des extraits de conférences/cours.',
+            'description' => '29 questions QCM (4 choix). Comprendre des mots familiers, des phrases, des échanges, des extraits de conférences/cours.',
             'difficulty_range' => 'A1-C2',
-            'format' => 'QCM à 3 choix, difficulté croissante',
+            'format' => 'QCM à 4 choix, difficulté croissante',
             'parts' => [
                 ['part' => 1, 'name' => 'Compréhension orale, partie 1', 'name_fr' => 'Questionnaire à choix multiple',
                     "task" => "29 questions à choix multiple, quatre propositions, une seule bonne réponse. 25 minutes.",
@@ -123,24 +135,24 @@ return [
                 [
                     'task' => 1,
                     'level' => 'A1-A2',
-                    'description' => 'Rédiger un message court (40-60 mots) : description d\'événement, demande d\'information.',
-                    'min_words' => 40,
-                    'max_words' => 60,
+                    'description' => 'Rédiger un message pour décrire, raconter ou expliquer, à un ou plusieurs destinataires (60 à 120 mots).',
+                    'min_words' => 60,
+                    'max_words' => 120,
                     'exercise_type' => 'short-writing',
                 ],
                 [
                     'task' => 2,
                     'level' => 'B1-B2',
-                    'description' => 'Rédiger un article, un courrier, une note (~120 mots) : raconter, décrire, expliquer.',
-                    'min_words' => 100,
-                    'max_words' => 120,
+                    'description' => 'Rédiger un article, un courrier, une note : compte rendu d\'expérience ou récit, avec commentaires ou arguments (120 à 150 mots).',
+                    'min_words' => 120,
+                    'max_words' => 150,
                     'exercise_type' => 'letter-email-writing',
                 ],
                 [
                     'task' => 3,
                     'level' => 'C1-C2',
-                    'description' => 'Rédiger un texte argumentatif (~180 mots) : comparer, prendre position, argumenter.',
-                    'min_words' => 160,
+                    'description' => 'Comparer deux points de vue sur un fait de société, exprimés dans deux documents, et donner son avis (120 à 180 mots).',
+                    'min_words' => 120,
                     'max_words' => 180,
                     'exercise_type' => 'essay',
                 ],
@@ -188,15 +200,16 @@ return [
                     'level' => 'B1-B2',
                     'duration' => '5 min 30',
                     'prep_time' => '2 min',
-                    'description' => 'Exercice en interaction. Jeu de rôle avec l\'examinateur à partir d\'un document déclencheur.',
+                    'description' => 'Exercice en interaction avec préparation. Jeu de rôle avec l\'examinateur à partir d\'un document déclencheur.',
                     'exercise_type' => 'role-play',
                 ],
                 [
                     'task' => 3,
                     'level' => 'C1-C2',
                     'duration' => '4 min 30',
-                    'prep_time' => '3 min',
-                    'description' => 'Expression d\'un point de vue. Prendre position sur un sujet à partir d\'un document.',
+                    // Sans preparation : la page officielle le dit en toutes lettres.
+                    // Les 2 minutes de preparation de l'epreuve sont celles de la tache 2.
+                    'description' => 'Expression d\'un point de vue sans préparation. Répondre de manière spontanée, continue et convaincante à une question choisie par l\'examinateur.',
                     'exercise_type' => 'speaking-discussion',
                 ],
             ],
