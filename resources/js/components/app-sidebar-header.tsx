@@ -103,6 +103,9 @@ export function AppSidebarHeader() {
     const { toggleSidebar } = useSidebar();
     const page = usePage<SharedData & { userProfile?: any }>();
     const { userProfile, isPremium, freeExercisesUsedToday, freeExercisesLimit } = page.props;
+    // Le compteur suit le middleware : un responsable d'espace libre-service est
+    // limite, il doit le voir avant d'etre bloque.
+    const quotaExempt = (page.props as { quotaExempt?: boolean }).quotaExempt ?? false;
     const url = page.url ?? '';
 
     // Le staff d'un centre (admin/prof) n'a pas de pratique d'élève — quota
@@ -176,7 +179,7 @@ export function AppSidebarHeader() {
 
             {/* Right: a single discreet stat group + theme toggle */}
             <div className="flex items-center gap-2">
-                {!isPremium && !isCenterStaff && (
+                {!isPremium && !quotaExempt && (
                     <Link
                         href={route('subscription.index')}
                         className="hidden items-center gap-1 rounded-full border border-amber-300/60 bg-amber-50 px-3 py-1 text-xs font-black tabular-nums text-amber-700 dark:bg-amber-950/30 dark:text-amber-300 sm:flex"

@@ -96,6 +96,9 @@ class HandleInertiaRequests extends Middleware
             'trialDaysLeft' => $request->user()?->trialDaysLeft() ?? 0,
             'freeExercisesUsedToday' => $exercisesToday,
             'freeExercisesLimit' => EnsureExerciseQuota::DAILY_FREE_LIMIT,
+            // Le personnel d'un espace libre-service est limite comme un apprenant :
+            // l'interface doit le lui annoncer avant le blocage, pas le cacher.
+            'quotaExempt' => fn () => $user !== null && ! $isPremium && EnsureExerciseQuota::exempte($user),
             'vapidPublicKey' => config('webpush.vapid.public_key'),
             'flash' => [
                 'correction' => $request->session()->get('correction'),

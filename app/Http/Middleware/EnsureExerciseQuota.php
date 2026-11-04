@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\CenterUser;
+use App\Models\User;
 use App\Models\UserExerciseAttempt;
 use Closure;
 use Illuminate\Http\Request;
@@ -28,17 +30,7 @@ class EnsureExerciseQuota
     {
         $user = $request->user();
 
-        if (!$user || $user->hasPremiumAccess()) {
-            return $next($request);
-        }
-
-        // Un eleve inscrit dans la classe d'un enseignant n'est pas un apprenant
-        // libre : son travail lui est donne par son professeur. Le quota gratuit le
-        // renvoyait vers l'abonnement au quatrieme exercice de son devoir, alors que
-        // ce devoir vient de son etablissement.
-        // Le personnel est dans le meme cas : un enseignant qui prepare ses exercices
-        // ou verifie un devoir n'est pas un apprenant libre.
-        if ($user->isCenterStudent() || $user->isCenterStaff() || $user->isSuperAdmin()) {
+        if (!$user || $user->hasPremiumAccess() || self::exempte($user)) {
             return $next($request);
         }
 
@@ -70,5 +62,45 @@ class EnsureExerciseQuota
         } finally {
             $lock->release();
         }
+    }
+
+    /**
+     * Hors quota gratuit, quel que soit l'abonnement. Partage avec l'interface :
+     * le compteur « x/3 » ne s'affiche qu'a qui le middleware bloquera vraiment.
+     */
+    public static function exempte(User $user): bool
+    {
+        // Un eleve inscrit dans la classe d'un enseignant n'est pas un apprenant
+        // libre : son travail lui est donne par son professeur. Le quota gratuit le
+        // renvoyait vers l'abonnement au quatrieme exercice de son devoir, alors que
+        // ce devoir vient de son etablissement.
+        if ($user->isSuperAdmin() || $user->isCenterStudent()) {
+            return true;
+        }
+
+        // Le personnel est dans le meme cas : un enseignant qui prepare ses exercices
+        // ou verifie un devoir n'est pas un apprenant libre. Mais seulement dans un
+        // centre ouvert par PrePla : un espace libre-service s'ouvre en un clic sur
+        // /enseigner, et l'exemption y remplacait l'abonnement. Son personnel garde
+        // la limite gratuite pour son propre entrainement.
+        return self::encadreUnCentreExempte($user);
+    }
+
+    /**
+     * La personne fait-elle partie du personnel d'un centre ouvert par PrePla ?
+     *
+     * On regarde TOUTES ses appartenances, pas le seul centre courant : un
+     * enseignant d'un centre client qui ouvre aussi son espace sur /enseigner y
+     * devient responsable, et ce role passe avant le sien dans le centre client
+     * quand rien n'est choisi en session. Il perdait l'exemption des qu'il agissait
+     * dans son espace, alors qu'il reste membre du personnel du centre client.
+     */
+    private static function encadreUnCentreExempte(User $user): bool
+    {
+        return CenterUser::with('center')
+            ->where('user_id', $user->id)
+            ->whereIn('role', ['center_admin', 'teacher'])
+            ->get()
+            ->contains(fn (CenterUser $a) => (bool) $a->center?->exempteSonPersonnelDuQuota());
     }
 }

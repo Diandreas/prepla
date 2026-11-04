@@ -68,6 +68,9 @@ class TeacherSpaceController extends Controller
                 'owner_email' => $user->email,
                 'default_exam_id' => $validated['exam_id'] ?? null,
                 'is_active' => true,
+                // Ouvert sans nous : son personnel garde la limite du compte gratuit
+                // pour son propre entrainement (voir EnsureExerciseQuota).
+                'settings' => [LanguageCenter::LIBRE_SERVICE => true],
             ]);
 
             // center_admin, et pas teacher : c'est son espace, il en gère les classes

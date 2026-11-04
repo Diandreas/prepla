@@ -12,6 +12,12 @@ class LanguageCenter extends Model
 {
     use HasFactory;
 
+    /**
+     * Cle de settings posee sur un espace ouvert en libre-service via /enseigner.
+     * Un centre cree par l'equipe (super administrateur) ne la porte pas.
+     */
+    public const LIBRE_SERVICE = 'libre_service';
+
     protected $fillable = [
         'name',
         'slug',
@@ -68,5 +74,24 @@ class LanguageCenter extends Model
     public function seatsAvailable(): int
     {
         return max(0, $this->seats_limit - $this->seatsUsed());
+    }
+
+    /** Espace ouvert par un enseignant lui-meme, sans passer par PrePla. */
+    public function estLibreService(): bool
+    {
+        return (bool) ($this->settings[self::LIBRE_SERVICE] ?? false);
+    }
+
+    /**
+     * Le personnel de ce centre s'entraine-t-il sans la limite du compte gratuit ?
+     *
+     * Oui pour un centre ouvert par PrePla (un client, ou la demonstration). Non pour
+     * un espace ouvert en libre-service : n'importe quel compte en ouvre un en une
+     * etape, et l'exemption aurait remplace l'abonnement en un clic. Ses outils
+     * enseignant restent entiers ; seul son propre entrainement reste limite.
+     */
+    public function exempteSonPersonnelDuQuota(): bool
+    {
+        return ! $this->estLibreService();
     }
 }
