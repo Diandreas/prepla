@@ -2,11 +2,15 @@
 
 use App\Http\Middleware\AddSecurityHeaders;
 use App\Http\Middleware\EnsureDisplayedCenter;
+use App\Http\Middleware\EnsureMembreDuCentreDeLHote;
+use App\Http\Middleware\FaireConfianceAuxHotes;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\ResolveCenterFromHost;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Illuminate\Http\Middleware\TrustHosts;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,7 +19,19 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->web(append: [
+        // Sous-domaines et domaines propres des centres (lot B). Seuls nos
+        // hotes sont acceptes (l'hote principal, *.racine, les domaines
+        // verifies) : un lien fabrique pendant la requete ne peut plus pointer
+        // vers un hote choisi par l'attaquant.
+        $middleware->trustHosts();
+        $middleware->replace(TrustHosts::class, FaireConfianceAuxHotes::class);
+
+        // ResolveCenterFromHost en tete : le centre de l'adresse est connu
+        // avant tout le reste. EnsureMembreDuCentreDeLHote apres la session.
+        $middleware->web(prepend: [
+            ResolveCenterFromHost::class,
+        ], append: [
+            EnsureMembreDuCentreDeLHote::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
             AddSecurityHeaders::class,

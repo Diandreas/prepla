@@ -55,7 +55,9 @@ class TeacherInvitationController extends Controller
                 ]),
             // Un responsable d'espace invite DANS son espace ; l'équipe en ouvre un.
             'ownCenter' => $request->user()->isSuperAdmin() ? null : $request->user()->center()?->only(['id', 'name']),
-            'exams' => Exam::proposables()->with('language:id,name')->get(['id', 'name', 'language_id'])
+            // Un responsable n'invite que sur les examens que son centre propose.
+            'exams' => Exam::proposables($request->user()->isSuperAdmin() ? null : $request->user()->center())
+                ->with('language:id,name')->get(['id', 'name', 'language_id'])
                 ->map(fn (Exam $exam) => ['id' => $exam->id, 'name' => $exam->name, 'language' => $exam->language?->name]),
         ]);
     }
@@ -104,7 +106,8 @@ class TeacherInvitationController extends Controller
 
         // Le lien complet n'existe qu'ici : la base n'en garde qu'une empreinte.
         return back()
-            ->with('invitationLink', route('teach.invitation.show', $plainToken))
+            // Sur l'adresse du centre s'il en a une (lot B) : l'invite entre chez lui.
+            ->with('invitationLink', \App\Support\UrlDuCentre::route($center, 'teach.invitation.show', $plainToken))
             ->with('success', "Lien d'invitation prêt pour {$invitation->name}.");
     }
 
@@ -134,6 +137,9 @@ class TeacherInvitationController extends Controller
                 'compte_existant' => $compteExistant,
                 'connecte_comme_invite' => $connecteCommeInvite,
             ] : null,
+            // La page est publique : la personne invitee voit la marque du centre
+            // qui l'invite (la donnee partagee « marque » est remplacee ici).
+            'marque' => app(\App\Services\Center\Marque::class)->pourCentre($invitation?->center),
         ]);
     }
 
@@ -249,7 +255,14 @@ class TeacherInvitationController extends Controller
                 'is_active' => true,
             ]);
 
-            $center->members()->attach($user->id, ['role' => $invitation->role, 'joined_at' => now()]);
+            // Par le modele, et non members()->attach() : CenterUserObserver ouvre
+            // ainsi la periode d'appartenance.
+            \App\Models\CenterUser::create([
+                'center_id' => $center->id,
+                'user_id' => $user->id,
+                'role' => $invitation->role,
+                'joined_at' => now(),
+            ]);
 
             $classroom = $center->classrooms()->create([
                 'name' => $invitation->classroom_name,

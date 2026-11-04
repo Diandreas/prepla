@@ -27,13 +27,16 @@ class ProfileController extends Controller
     {
         $user = $request->user();
         $profile = $user->profile?->load('targetExam.language');
-        $exams = Exam::proposables()->with('language')->get();
+        // Un eleve de centre ne voit que les examens que son centre propose.
+        $exams = Exam::proposables($user->center())->with('language')->get();
 
         return Inertia::render('settings/profile', [
             'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
             'profile' => $profile,
             'exams' => $exams,
+            // Centre en marque blanche : la carte « PrePla Plus » n'est pas montree.
+            'offrePrePlaMasquee' => app(\App\Services\Center\Marque::class)->offrePrePlaMasquee($user),
         ]);
     }
 
@@ -61,7 +64,8 @@ class ProfileController extends Controller
         // NOTE: current_level n'est PAS modifiable ici — il est défini par le test
         // de placement / l'onboarding. On l'ignore volontairement même s'il est posté.
         $validated = $request->validate([
-            'target_exam_id' => 'nullable|exists:exams,id',
+            'target_exam_id' => ['nullable', 'exists:exams,id',
+                new \App\Rules\ExamenDuCentre($request->user()->center(), $request->user()->profile?->target_exam_id)],
             'target_score' => 'nullable|numeric|min:0',
             'exam_date' => 'nullable|date',
             'interface_language' => 'nullable|string|in:en,fr',

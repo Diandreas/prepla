@@ -3,6 +3,8 @@
 namespace App\Notifications;
 
 use App\Models\Assignment;
+use App\Services\Center\Marque;
+use App\Support\UrlDuCentre;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -27,16 +29,35 @@ class AssignmentPublishedNotification extends Notification implements ShouldQueu
         public readonly int $exerciseCount,
         public readonly ?string $teacherName = null,
         public readonly ?string $dueAt = null,
+        // Le centre au nom duquel le devoir part (signature, objet), et s'il
+        // masque la marque PrePla (en-tete et pied du courriel a son nom).
+        public readonly ?string $centreNom = null,
+        public readonly bool $masquerPrepla = false,
+        // Le lien vers le tableau de bord, sur l'adresse du centre s'il en a
+        // une (lot B) : la notification part en file, hors de toute requete.
+        public readonly ?string $lien = null,
     ) {}
 
     public static function forAssignment(Assignment $assignment, ?string $teacherName = null): self
     {
+        $centre = $assignment->classroom?->center;
+        $marque = app(Marque::class)->pourCentre($centre);
+
         return new self(
             title: $assignment->title,
             exerciseCount: $assignment->items()->count(),
             teacherName: $teacherName,
             dueAt: $assignment->due_at?->translatedFormat('d F'),
+            // Le nom que le centre montre a ses eleves ; sans centre, PrePla.
+            centreNom: $centre?->nomAffiche(),
+            masquerPrepla: (bool) $marque['masquer_prepla'],
+            lien: UrlDuCentre::route($centre, 'dashboard'),
         );
+    }
+
+    private function lienDuTableauDeBord(): string
+    {
+        return $this->lien ?? route('dashboard');
     }
 
     public function via(object $notifiable): array
@@ -71,20 +92,28 @@ class AssignmentPublishedNotification extends Notification implements ShouldQueu
             ->body($this->body())
             ->icon('/icons/pwa-192-v4.png')
             ->badge('/icons/pwa-192-v4.png')
-            ->action('Commencer', route('dashboard'))
-            ->data(['url' => route('dashboard')]);
+            ->action('Commencer', $this->lienDuTableauDeBord())
+            ->data(['url' => $this->lienDuTableauDeBord()]);
     }
 
     public function toMail(object $notifiable): MailMessage
     {
         $from = $this->teacherName ? " par {$this->teacherName}" : '';
 
-        return (new MailMessage)
-            ->subject("Nouveau devoir : {$this->title}")
+        $message = (new MailMessage)
+            ->subject(($this->centreNom ? "{$this->centreNom} · " : '')."Nouveau devoir : {$this->title}")
             ->greeting("Bonjour {$notifiable->name} !")
             ->line("Un devoir vient de t'être donné{$from} : **{$this->title}**.")
             ->line($this->body())
-            ->action('Ouvrir mon devoir', route('dashboard'))
-            ->salutation("L'équipe PrePla");
+            ->action('Ouvrir mon devoir', $this->lienDuTableauDeBord())
+            // Le devoir vient du centre : c'est lui qui signe.
+            ->salutation($this->centreNom ? "L'équipe de {$this->centreNom}" : "L'équipe PrePla");
+
+        // Marque blanche : ni l'en-tete ni le pied du courriel ne disent PrePla.
+        if ($this->masquerPrepla && $this->centreNom) {
+            $message->markdown('emails.centre.notification', ['nomDuSite' => $this->centreNom]);
+        }
+
+        return $message;
     }
 }

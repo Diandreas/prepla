@@ -37,7 +37,39 @@ export interface SharedData {
     trialDaysLeft: number;
     freeExercisesUsedToday: number;
     freeExercisesLimit: number;
+    marque?: Marque;
+    menus?: MenusDisponibles;
     [key: string]: unknown;
+}
+
+/** Marque affichée : celle de PrePla, ou celle du centre (app/Services/Center/Marque.php). */
+export interface Marque {
+    nom: string;
+    /** null : centre sans logo (le front montre ses initiales). */
+    logo_url: string | null;
+    couleurs: { primaire: string; accent: string };
+    masquer_prepla: boolean;
+    /** null : marque PrePla, app.css reste tel quel. */
+    centre_id: number | null;
+    /** Valeurs posées en variables CSS, texte lisible compris ; null pour PrePla. */
+    theme: ThemeDeMarque | null;
+}
+
+export interface ThemeDeMarque {
+    primaire: string;
+    texte_sur_primaire: string;
+    primaire_sombre: string;
+    texte_sur_primaire_sombre: string;
+    accent: string;
+    accent_sombre: string;
+}
+
+/** Pages livrées par lots : vrai seulement si leur route existe côté serveur. */
+export interface MenusDisponibles {
+    personnalisation: boolean;
+    acces: boolean;
+    releves: boolean;
+    parrainage?: boolean;
 }
 
 export interface User {

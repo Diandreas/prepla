@@ -55,7 +55,9 @@ class PracticeController extends Controller
         }
 
         // Sinon, on liste tous les examens (cas rare après onboarding)
-        $exams = Exam::with('language')->whereHas('language', fn ($q) => $q->where('is_active', true))->get();
+        // Meme regle que partout ailleurs : langues travaillees, et examens retenus
+        // par le centre de l'eleve s'il en a choisi.
+        $exams = Exam::proposables($user->center())->with('language')->get();
         return Inertia::render('practice/index', [
             'exams' => $exams,
             'targetExamId' => null,

@@ -2,6 +2,10 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\AAccesVendus;
+use App\Models\Concerns\ADomaines;
+use App\Models\Concerns\AMarque;
+use App\Models\Concerns\AParrainage;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,6 +15,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class LanguageCenter extends Model
 {
     use HasFactory;
+
+    // Un trait par lot (A marque, C acces vendus, D parrainage) : chacun ajoute
+    // ses methodes dans le sien, sans toucher ce fichier partage.
+    use AAccesVendus, AMarque, AParrainage;
+
+    // Sous-domaines et domaines propres (lot B).
+    use ADomaines;
 
     /**
      * Cle de settings posee sur un espace ouvert en libre-service via /enseigner.
@@ -26,6 +37,11 @@ class LanguageCenter extends Model
         'default_exam_id',
         'is_active',
         'settings',
+        // Formule commerciale et prix d'un acces vendu (lot C) : seul le super
+        // administrateur les fixe (SuperAdmin\CenterController::formule).
+        'formule',
+        'prix_acces',
+        'duree_acces_jours',
     ];
 
     protected function casts(): array
@@ -34,6 +50,8 @@ class LanguageCenter extends Model
             'is_active' => 'boolean',
             'settings' => 'array',
             'seats_limit' => 'integer',
+            'prix_acces' => 'integer',
+            'duree_acces_jours' => 'integer',
         ];
     }
 

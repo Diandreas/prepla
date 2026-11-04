@@ -3,8 +3,10 @@
 namespace App\Http\Middleware;
 
 use App\Models\UserExerciseAttempt;
+use App\Services\Center\Marque;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -56,8 +58,10 @@ class HandleInertiaRequests extends Middleware
             ];
 
             // Les centres entre lesquels passer, seulement quand il y en a plusieurs.
+            // Pas sur l'adresse d'un centre (lot B) : elle fixe le centre, et
+            // changer de centre n'y aurait aucun effet.
             $encadres = $user->centresEncadres();
-            if ($encadres->count() > 1) {
+            if ($encadres->count() > 1 && ResolveCenterFromHost::centre($request) === null) {
                 $centres = $encadres->map(fn ($a) => [
                     'id' => $a->center_id,
                     'name' => $a->center->name,
@@ -99,6 +103,17 @@ class HandleInertiaRequests extends Middleware
             // Le personnel d'un espace libre-service est limite comme un apprenant :
             // l'interface doit le lui annoncer avant le blocage, pas le cacher.
             'quotaExempt' => fn () => $user !== null && ! $isPremium && EnsureExerciseQuota::exempte($user),
+            // La marque affichee (PrePla, ou celle du centre une fois le lot A livre).
+            // Aussi pour les eleves et les pages publiques : jamais derriere un role.
+            'marque' => fn () => app(Marque::class)->pourRequete($request),
+            // Entrees de menu des fonctions livrees par lots : le menu ne propose
+            // une page que si sa route existe cote serveur.
+            'menus' => fn () => [
+                'personnalisation' => Route::has('center.personnalisation.edit'),
+                'acces' => Route::has('center.acces.index'),
+                'releves' => Route::has('admin.releves.index'),
+                'parrainage' => Route::has('center.parrainage.index'),
+            ],
             'vapidPublicKey' => config('webpush.vapid.public_key'),
             'flash' => [
                 'correction' => $request->session()->get('correction'),

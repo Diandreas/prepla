@@ -31,6 +31,9 @@ class TeacherSpaceController extends Controller
             'existing' => $user->center()?->only(['id', 'name']),
             'peutOuvrirUnAutre' => $user->centerRole() === null || $user->isCenterStaff(),
             'role' => $user->centerRole(),
+            // Sans le filtre d'un centre, a dessein : on ouvre ici un NOUVEL espace,
+            // qui n'a encore retenu aucun examen. Les examens de l'espace courant
+            // n'ont pas a limiter ceux du suivant.
             'exams' => Exam::proposables()->with('language:id,name')
                 ->get(['id', 'name', 'language_id'])
                 ->map(fn (Exam $exam) => [
@@ -71,11 +74,19 @@ class TeacherSpaceController extends Controller
                 // Ouvert sans nous : son personnel garde la limite du compte gratuit
                 // pour son propre entrainement (voir EnsureExerciseQuota).
                 'settings' => [LanguageCenter::LIBRE_SERVICE => true],
+                'formule' => LanguageCenter::FORMULE_LIBRE_SERVICE,
             ]);
 
             // center_admin, et pas teacher : c'est son espace, il en gère les classes
             // et pourra y inviter d'autres professeurs.
-            $center->members()->attach($user->id, ['role' => 'center_admin', 'joined_at' => now()]);
+            // Par le modele, et non members()->attach() : CenterUserObserver ouvre
+            // ainsi la periode d'appartenance.
+            \App\Models\CenterUser::create([
+                'center_id' => $center->id,
+                'user_id' => $user->id,
+                'role' => 'center_admin',
+                'joined_at' => now(),
+            ]);
 
             $classroom = $center->classrooms()->create([
                 'name' => $validated['classroom_name'],

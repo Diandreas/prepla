@@ -308,7 +308,16 @@ Route::middleware(['auth', EnsureSuperAdmin::class])
         Route::post('centers', [CenterController::class, 'store'])->name('centers.store');
         Route::get('centers/{center}', [CenterController::class, 'show'])->name('centers.show');
         Route::patch('centers/{center}', [CenterController::class, 'update'])->name('centers.update');
+        // Formule commerciale et prix d'un acces vendu (lot C) : au super administrateur seul.
+        Route::patch('centers/{center}/formule', [CenterController::class, 'formule'])->name('centers.formule');
         Route::delete('centers/{center}', [CenterController::class, 'destroy'])->name('centers.destroy');
+
+        // Releves mensuels (actifs, acces vendus, commissions) : fichier dedie,
+        // il herite de ce groupe (auth, EnsureSuperAdmin, prefixe admin/).
+        require __DIR__.'/admin-releves.php';
+
+        // Sous-domaines et domaines propres d'un centre (lot B).
+        require __DIR__.'/admin-domaines.php';
     });
 
 // Staff du centre (center_admin + teacher). Le middleware injecte le centre courant.
@@ -363,7 +372,19 @@ Route::middleware(['auth', EnsureCenterStaff::class])
         Route::post('assignments', [AssignmentController::class, 'store'])->name('assignments.store');
         Route::get('assignments/{assignment}', [AssignmentController::class, 'show'])->name('assignments.show');
         Route::delete('assignments/{assignment}', [AssignmentController::class, 'destroy'])->name('assignments.destroy');
+
+        // Fonctions du responsable dans des fichiers dedies : ils heritent de ce
+        // groupe (auth, EnsureCenterStaff, prefixe center/), et chaque controleur
+        // y reserve ses actions au responsable.
+        require __DIR__.'/centre-personnalisation.php';
+        require __DIR__.'/centre-acces.php';
     });
+
+// Parrainage : le lien d'un centre s'ouvre sans compte, il mene a l'inscription.
+require __DIR__.'/parrainage.php';
+
+// Adresse d'un centre : page d'un compte qui suit un autre etablissement (lot B).
+require __DIR__.'/centre-domaines.php';
 
 // Élève — rejoindre un centre via code d'invitation.
 Route::middleware('auth')->group(function () {

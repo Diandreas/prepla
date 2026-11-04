@@ -3,6 +3,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import DomainesDuCentre, { type DomaineDuCentre, type ReglagesDomaines } from '@/components/domaines-du-centre';
 
 interface Center {
     id: number;
@@ -14,7 +15,16 @@ interface Center {
     default_exam_id: number | null;
     default_exam: string | null;
     owner_email: string | null;
+    formule: 'paliers' | 'revente' | 'libre_service';
+    prix_acces: number | null;
+    duree_acces_jours: number | null;
 }
+
+const FORMULES: { valeur: Center['formule']; titre: string; aide: string }[] = [
+    { valeur: 'paliers', titre: 'Paliers', aide: 'Le centre paie selon ses élèves actifs ; ses élèves sont illimités.' },
+    { valeur: 'revente', titre: 'Revente', aide: "Ses élèves suivent la limite gratuite, sauf ceux à qui le centre ouvre un accès (30 % pour PrePla)." },
+    { valeur: 'libre_service', titre: 'Libre-service', aide: 'Espace ouvert seul sur /enseigner : son personnel garde la limite gratuite.' },
+];
 
 interface Staff { id: number; name: string; email: string; role: string | null }
 interface Classroom { id: number; name: string; invite_code: string }
@@ -25,11 +35,15 @@ export default function CenterShow({
     staff,
     classrooms,
     exams,
+    domaines = [],
+    domainesReglages,
 }: {
     center: Center;
     staff: Staff[];
     classrooms: Classroom[];
     exams: Exam[];
+    domaines?: DomaineDuCentre[];
+    domainesReglages?: ReglagesDomaines;
 }) {
     const { flash } = usePage().props as any;
 
@@ -43,6 +57,17 @@ export default function CenterShow({
     function save(e: React.FormEvent) {
         e.preventDefault();
         form.patch(route('admin.centers.update', center.id), { preserveScroll: true });
+    }
+
+    const formule = useForm({
+        formule: center.formule,
+        prix_acces: center.prix_acces ?? '',
+        duree_acces_jours: center.duree_acces_jours ?? '',
+    });
+
+    function saveFormule(e: React.FormEvent) {
+        e.preventDefault();
+        formule.patch(route('admin.centers.formule', center.id), { preserveScroll: true });
     }
 
     const inputClass =
@@ -104,6 +129,53 @@ export default function CenterShow({
                         </form>
                     </CardContent>
                 </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-base">Formule</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <form onSubmit={saveFormule} className="space-y-4">
+                            <div className="space-y-2">
+                                {FORMULES.map((f) => (
+                                    <label key={f.valeur} className="flex items-start gap-2 text-sm">
+                                        <input
+                                            type="radio"
+                                            name="formule"
+                                            className="mt-1"
+                                            checked={formule.data.formule === f.valeur}
+                                            onChange={() => formule.setData('formule', f.valeur)}
+                                        />
+                                        <span>
+                                            <span className="font-medium">{f.titre}</span>
+                                            <span className="block text-xs text-muted-foreground">{f.aide}</span>
+                                        </span>
+                                    </label>
+                                ))}
+                                {formule.errors.formule && <p className="text-xs text-red-600">{formule.errors.formule}</p>}
+                            </div>
+                            {formule.data.formule === 'revente' && (
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div>
+                                        <label className="text-sm font-medium">Prix d'un accès (FCFA)</label>
+                                        <input type="number" min={0} step={1} className={inputClass} value={formule.data.prix_acces}
+                                            onChange={(e) => formule.setData('prix_acces', e.target.value === '' ? '' : Number(e.target.value))} />
+                                        {formule.errors.prix_acces && <p className="mt-1 text-xs text-red-600">{formule.errors.prix_acces}</p>}
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium">Durée d'un accès (jours)</label>
+                                        <input type="number" min={1} max={366} className={inputClass} value={formule.data.duree_acces_jours} placeholder="30"
+                                            onChange={(e) => formule.setData('duree_acces_jours', e.target.value === '' ? '' : Number(e.target.value))} />
+                                        {formule.errors.duree_acces_jours && <p className="mt-1 text-xs text-red-600">{formule.errors.duree_acces_jours}</p>}
+                                    </div>
+                                </div>
+                            )}
+                            <Button type="submit" disabled={formule.processing}>{formule.processing ? 'Enregistrement…' : 'Enregistrer la formule'}</Button>
+                        </form>
+                    </CardContent>
+                </Card>
+
+                {domainesReglages && <DomainesDuCentre centreId={center.id} domaines={domaines} reglages={domainesReglages} />}
 
                 <Card>
                     <CardHeader>

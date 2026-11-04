@@ -74,7 +74,16 @@ class EnsureExerciseQuota
         // libre : son travail lui est donne par son professeur. Le quota gratuit le
         // renvoyait vers l'abonnement au quatrieme exercice de son devoir, alors que
         // ce devoir vient de son etablissement.
-        if ($user->isSuperAdmin() || $user->isCenterStudent()) {
+        if ($user->isSuperAdmin()) {
+            return true;
+        }
+
+        // Sauf dans un centre en formule revente : il vend lui-meme l'acces illimite
+        // a ses eleves. Ceux-la suivent le quota gratuit, et l'acces ouvert par le
+        // centre passe par hasPremiumAccess(), comme un abonnement. Les eleves des
+        // centres paliers et libre-service gardent l'exemption.
+        $appartenance = $user->appartenanceCourante();
+        if ($appartenance?->role === 'student' && ! $appartenance->center->estEnRevente()) {
             return true;
         }
 

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ConsumedTrial;
 use App\Models\User;
 use App\Models\UserProfile;
+use App\Services\Center\Parrainage;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -49,6 +50,9 @@ class RegisteredUserController extends Controller
             'phone_prompted_at' => now(),
             'password' => Hash::make($request->password),
         ]);
+
+        // Arrive par le lien d'un centre (/r/{code}) : le compte lui est rattache.
+        Parrainage::rattacher($user, $request);
 
         // Without this check, a user could delete their account (self-service,
         // password-confirmation only) and re-register with the same email to

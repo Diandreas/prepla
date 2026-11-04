@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ConsumedTrial;
 use App\Models\User;
 use App\Models\UserProfile;
+use App\Services\Center\Parrainage;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
@@ -63,6 +64,9 @@ class GoogleController extends Controller
             // same email pass the verified-email check above. Not mass-
             // assignable on purpose, set directly.
             $user->forceFill(['email_verified_at' => now()])->save();
+
+            // Nouveau compte seulement : arrive par le lien d'un centre, il lui est rattache.
+            Parrainage::rattacher($user, request());
 
             // See RegisteredUserController::store() for why this check exists
             // — prevents an infinite free trial via delete + re-register.
