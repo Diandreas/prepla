@@ -28,6 +28,13 @@ return [
 
     'variants' => null, // Chaque niveau est un blueprint distinct
 
+    // Le document qui atteste les parties marquees « officiel ». Au A1, ce sont
+    // les quatre exercices de comprehension des ecrits ; le reste du niveau
+    // reste « tache » tant qu'aucun document ne fixe ses chiffres.
+    'verifications' => [
+        'A1' => ['document' => 'DELF A1 tout public, compréhension des écrits : manuel du candidat (france-education-international.fr/document/manuel-candidat-delf-a1) et corrigés des deux sujets d\'exemple (delf-dalf-a1-tp-correcteur-sujet-demo, delfa1toutpubliccorrecteurexemple2), lus dans leurs copies archivées', 'date' => '2026-11-04'],
+    ],
+
     // ─── Structure par niveau ───
     'levels' => [
         // ━━━━━━━━━━ DELF A1 ━━━━━━━━━━
@@ -68,20 +75,35 @@ return [
                     'skill_type' => 'reading',
                     'time_limit' => 30,
                     'scoring_weight' => 25,
-                    'description' => '3-4 exercices de lecture (petites annonces, menus, horaires, courriels simples).',
+                    'description' => '4 exercices de 5 questions : un message court, une affiche ou des indications pour s\'orienter dans l\'espace, des instructions ou une publicité pour s\'orienter dans le temps, un article court.',
+                    // VERIFIE le 2026-11-04 sur les documents de France Education
+                    // international (copies archivees : le site oppose un controle
+                    // anti-robot) :
+                    //  - le manuel du candidat DELF A1, § 3.4 : « Cette epreuve dure
+                    //    30 minutes. Il y a 4 exercices », et l'objet de chacun ;
+                    //    § 3.2 : « Je choisis la bonne reponse entre trois choix »
+                    //    https://www.france-education-international.fr/document/manuel-candidat-delf-a1
+                    //    (https://web.archive.org/web/20251221140604/https://www.france-education-international.fr/document/manuel-candidat-delf-a1) ;
+                    //  - les corriges des DEUX sujets d'exemple publies — les deux
+                    //    formats en circulation — qui comptent tous deux 5 questions
+                    //    par exercice (6, 6, 6 et 7 points) :
+                    //    https://www.france-education-international.fr/document/delf-dalf-a1-tp-correcteur-sujet-demo
+                    //    https://www.france-education-international.fr/document/delfa1toutpubliccorrecteurexemple2
+                    // Le format actualise (exemple 2) est entierement a choix
+                    // multiple ; l'exercice 2 n'est donc pas un appariement.
                     'parts' => [
-                        ['part' => 1, 'name' => 'Compréhension des écrits, exercice 1', 'name_fr' => 'Consignes et panneaux',
-                                "task" => "De courts documents du quotidien : choisir la bonne réponse.",
-                                'type' => 'mcq', 'points' => 25, 'source' => 'tache'],
-                        ['part' => 2, 'name' => 'Compréhension des écrits, exercice 2', 'name_fr' => 'Petites annonces',
-                                "task" => "Associer chaque situation à l'annonce qui y répond.",
-                                'type' => 'matching', 'source' => 'tache'],
-                        ['part' => 3, 'name' => 'Compréhension des écrits, exercice 3', 'name_fr' => 'Documents courts',
-                                "task" => "Plusieurs documents brefs : choisir la bonne réponse.",
-                                'type' => 'mcq', 'source' => 'tache'],
-                        ['part' => 4, 'name' => 'Compréhension des écrits, exercice 4', 'name_fr' => 'Message personnel',
-                                "task" => "Un message simple, puis des questions à choix multiple.",
-                                'type' => 'mcq', 'source' => 'tache'],
+                        ['part' => 1, 'name' => 'Compréhension des écrits, exercice 1', 'name_fr' => 'Message court',
+                                "task" => "Comprendre une instruction simple dans un message court (courriel, carte d'invitation) : 5 questions.",
+                                'type' => 'mcq', 'items' => 5, 'points' => 6, 'source' => 'officiel'],
+                        ['part' => 2, 'name' => 'Compréhension des écrits, exercice 2', 'name_fr' => 'S\'orienter dans l\'espace',
+                                "task" => "Comprendre une affiche ou des indications dans un lieu public pour s'orienter : 5 questions.",
+                                'type' => 'mcq', 'items' => 5, 'points' => 6, 'source' => 'officiel'],
+                        ['part' => 3, 'name' => 'Compréhension des écrits, exercice 3', 'name_fr' => 'S\'orienter dans le temps',
+                                "task" => "Comprendre des instructions ou une publicité pour s'orienter dans le temps : 5 questions.",
+                                'type' => 'mcq', 'items' => 5, 'points' => 6, 'source' => 'officiel'],
+                        ['part' => 4, 'name' => 'Compréhension des écrits, exercice 4', 'name_fr' => 'Article court',
+                                "task" => "Comprendre un article court pour s'informer : 5 questions.",
+                                'type' => 'mcq', 'items' => 5, 'points' => 7, 'source' => 'officiel'],
                     ],
                     'exercise_types' => ['mcq', 'true-false', 'matching', 'short-answer'],
                 ],
@@ -167,20 +189,31 @@ return [
                     'skill_type' => 'reading',
                     'time_limit' => 30,
                     'scoring_weight' => 25,
-                    'description' => '3-4 exercices. Comprendre des textes courts de la vie quotidienne (correspondance, publicités, etc.).',
+                    'description' => '4 exercices : des annonces pour chercher une information, un courriel ou une lettre, des instructions, un article.',
+                    // Lu le 2026-11-04 : le manuel du candidat DELF A2, § 3.4, donne
+                    // 4 exercices et leur objet, dans cet ordre, et « trois choix »
+                    // par question a choix multiple
+                    // (https://www.france-education-international.fr/document/manuel-candidat-delf-a2,
+                    // copie https://web.archive.org/web/20260422050840/https://www.france-education-international.fr/document/manuel-candidat-delf-a2).
+                    // PAS DE NOMBRE D'ITEMS : les deux sujets d'exemple officiels, un
+                    // par format en circulation, n'en comptent pas autant — 6, 6, 6
+                    // et 5 questions dans l'un, 5, 5, 5 et 6 dans l'autre
+                    // (documents delf-a2-tp-correcteur-coll-exemple1 et -exemple2).
+                    // Dans les deux, l'exercice 4 est surtout a choix multiple : le
+                    // vrai-faux n'y est qu'une question parmi d'autres.
                     'parts' => [
-                        ['part' => 1, 'name' => 'Compréhension des écrits, exercice 1', 'name_fr' => 'Situations et annonces',
-                                "task" => "Associer chaque situation au document qui y répond.",
-                                'type' => 'matching', 'points' => 25, 'source' => 'tache'],
-                        ['part' => 2, 'name' => 'Compréhension des écrits, exercice 2', 'name_fr' => 'Document informatif',
-                                "task" => "Un document pratique, puis des questions à choix multiple.",
+                        ['part' => 1, 'name' => 'Compréhension des écrits, exercice 1', 'name_fr' => 'Annonces',
+                                "task" => "Comprendre des affiches, des menus ou des annonces pour chercher une information : associer chaque document à la personne ou à la situation qui lui correspond.",
+                                'type' => 'matching', 'source' => 'tache'],
+                        ['part' => 2, 'name' => 'Compréhension des écrits, exercice 2', 'name_fr' => 'Courriel ou lettre',
+                                "task" => "Comprendre un courrier électronique ou une lettre, puis des questions à choix multiple.",
                                 'type' => 'mcq', 'source' => 'tache'],
-                        ['part' => 3, 'name' => 'Compréhension des écrits, exercice 3', 'name_fr' => 'Message personnel',
-                                "task" => "Une lettre ou un courriel, puis des questions à choix multiple.",
+                        ['part' => 3, 'name' => 'Compréhension des écrits, exercice 3', 'name_fr' => 'Instructions',
+                                "task" => "Comprendre des instructions (règlement intérieur, recette), puis des questions à choix multiple.",
                                 'type' => 'mcq', 'source' => 'tache'],
-                        ['part' => 4, 'name' => 'Compréhension des écrits, exercice 4', 'name_fr' => 'Article court',
-                                "task" => "Un article bref : juger des affirmations vraies ou fausses.",
-                                'type' => 'true-false', 'source' => 'tache'],
+                        ['part' => 4, 'name' => 'Compréhension des écrits, exercice 4', 'name_fr' => 'Article',
+                                "task" => "Comprendre un article de journal, de magazine ou de guide touristique, puis des questions à choix multiple.",
+                                'type' => 'mcq', 'source' => 'tache'],
                     ],
                     'exercise_types' => ['mcq', 'true-false', 'matching', 'short-answer'],
                 ],
@@ -264,13 +297,27 @@ return [
                     'skill_type' => 'reading',
                     'time_limit' => 45,
                     'scoring_weight' => 25,
-                    'description' => '2 exercices. Comprendre des textes informatifs et reconnaître des positions.',
+                    'description' => '2 exercices (3 dans le format actualisé) : repérer des informations dans plusieurs annonces pour faire un choix, puis comprendre un article d\'intérêt général.',
+                    // Lu le 2026-11-04 : le manuel du candidat DELF B1, § 3.4 : « Il y a
+                    // 2 ou 3 exercices selon le format proposé » ; exercice 1,
+                    // « repérer des informations dans une brochure, une annonce, un
+                    // menu pour réaliser une tâche donnée » en mettant « une croix pour
+                    // chaque critère et pour chaque annonce » ; exercice 2 (et 3),
+                    // « comprendre un article d'intérêt général »
+                    // (https://www.france-education-international.fr/document/manuel-candidat-delf-b1,
+                    // copie https://web.archive.org/web/20251217101149/https://www.france-education-international.fr/document/manuel-candidat-delf-b1).
+                    // La page du DELF B1 annonce 2 exercices et 45 minutes
+                    // (https://www.france-education-international.fr/diplome/delf-tout-public/niveau-b1).
+                    // L'exercice 1 est une grille oui / non : d'ou le vrai-faux a deux
+                    // reponses. PAS DE NOMBRE D'ITEMS : 20 cases et 11 questions dans
+                    // un sujet d'exemple, 16 cases puis deux articles de 7 questions
+                    // dans l'autre (delf-b1-tp-correcteur-coll-exemple1 et -exemple2).
                     'parts' => [
-                        ['part' => 1, 'name' => 'Compréhension des écrits, exercice 1', 'name_fr' => 'Dégager une information',
-                                "task" => "Plusieurs documents : trouver celui qui répond à chaque besoin.",
-                                'type' => 'matching', 'points' => 25, 'source' => 'tache'],
-                        ['part' => 2, 'name' => 'Compréhension des écrits, exercice 2', 'name_fr' => 'Analyser un texte',
-                                "task" => "Un article, puis des questions à choix multiple.",
+                        ['part' => 1, 'name' => 'Compréhension des écrits, exercice 1', 'name_fr' => 'Choisir parmi des annonces',
+                                "task" => "Plusieurs annonces : pour chacune, dire si elle répond ou non à chaque critère (oui / non), pour faire un choix.",
+                                'type' => 'true-false', 'source' => 'tache'],
+                        ['part' => 2, 'name' => 'Compréhension des écrits, exercice 2', 'name_fr' => 'Article d\'intérêt général',
+                                "task" => "Un article d'intérêt général, puis des questions à choix multiple.",
                                 'type' => 'mcq', 'source' => 'tache'],
                     ],
                     'exercise_types' => ['mcq', 'true-false', 'matching', 'short-answer'],
@@ -350,6 +397,12 @@ return [
                     'time_limit' => 60,
                     'scoring_weight' => 25,
                     'description' => '2 exercices. Textes informatifs et argumentatifs (articles de presse, essais).',
+                    // Lu le 2026-11-04 : la page du DELF B2 annonce 2 exercices et
+                    // 1 heure (france-education-international.fr/diplome/delf-tout-public/niveau-b2).
+                    // PAS DE NOMBRE D'ITEMS : les deux sujets d'exemple ne suivent pas
+                    // le meme format — deux textes de 10 questions chacun dans l'un,
+                    // trois textes de 7, 7 et 6 dans l'autre
+                    // (delf-b2-tp-correcteur-coll-exemple1 et -exemple2).
                     'parts' => [
                         ['part' => 1, 'name' => 'Compréhension des écrits, exercice 1', 'name_fr' => 'Texte informatif',
                                 "task" => "Un texte à portée générale, puis des questions à choix multiple.",
