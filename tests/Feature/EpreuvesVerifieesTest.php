@@ -21,7 +21,11 @@ function modulesEcritsALaMain(): array
 function partieDeLaConfigExamen(string $examen, string $niveau, string $section, string $nom): ?array
 {
     $config = require base_path("config/exams/{$examen}.php");
-    $sections = $config['levels'][$niveau]['sections'] ?? $config['sections'] ?? [];
+    // Le TCF range ses epreuves en « obligatoires » et « complementaires » ; le
+    // seeder les reunit de la meme facon (ExamSeeder::seedFromConfig).
+    $sections = $config['levels'][$niveau]['sections']
+        ?? $config['sections']
+        ?? array_merge($config['mandatory_sections'] ?? [], $config['optional_sections'] ?? []);
 
     foreach ($sections as $s) {
         if (($s['slug'] ?? null) !== $section) {
@@ -159,7 +163,9 @@ test('une partie de comprehension orale porte le texte de son enregistrement', f
     $muets = [];
 
     foreach (modulesEcritsALaMain() as $cle => $module) {
-        if (! in_array($module['section'], ['hoeren', 'hoeren-schreiben'], true)) {
+        // Les modules d'ecoute portent le nom de leur examen : Hoeren en allemand,
+        // compréhension orale (ou de l'oral) au TCF, au TEF et au DELF.
+        if (! in_array($module['section'], ['hoeren', 'hoeren-schreiben', 'comprehension-orale'], true)) {
             continue;
         }
         foreach ($module['parts'] as $partie) {
