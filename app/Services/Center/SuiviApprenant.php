@@ -146,6 +146,9 @@ class SuiviApprenant
             ->groupBy(fn (UserError $e) => $e->error_category.'|'.($e->subcategory ?? ''))
             ->map(fn ($groupe) => [
                 'libelle' => self::libelleCategorie($groupe->first()->error_category, $groupe->first()->subcategory),
+                // La cle brute, pour qu'une page puisse ne garder qu'une famille
+                // (la page vocabulaire ne montre que les fautes de vocabulaire).
+                'categorie' => $groupe->first()->error_category,
                 'nombre' => $groupe->count(),
                 'competences' => $groupe->pluck('skill_type')->filter()->unique()->values()->all(),
                 'derniere' => $groupe->first()->updated_at?->toIso8601String(),
@@ -363,7 +366,7 @@ class SuiviApprenant
      * s'il a reussi.
      *
      * @param  array<string, mixed>  $retour
-     * @return array<string, mixed>|null  null pour une question a reponse fermee
+     * @return array<string, mixed>|null null pour une question a reponse fermee
      */
     private function production(array $retour): ?array
     {

@@ -338,6 +338,9 @@ Route::middleware(['auth', EnsureCenterStaff::class])
         Route::get('students/{user}/tentatives/{attempt}', [StudentController::class, 'tentative'])
             ->whereNumber('attempt')->name('students.attempt');
 
+        // Vocabulaire des eleves : par classe et par eleve.
+        require __DIR__.'/centre-vocabulaire.php';
+
         // Médiathèque (upload images / audio en local)
         Route::get('media', [MediaController::class, 'index'])->name('media.index');
         Route::post('media', [MediaController::class, 'store'])->name('media.store');

@@ -3,7 +3,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
+import { BookOpen, Download } from 'lucide-react';
 import { competence, dateHeure, duree, ilYA } from '@/lib/suivi';
 
 interface Student { id: number; name: string; email: string; level: string | null; classes: string[] }
@@ -104,11 +104,18 @@ export default function StudentShow({
                             {student.classes.length > 0 && <> · {student.classes.join(', ')}</>}
                         </p>
                     </div>
-                    <Button asChild variant="outline" size="sm">
-                        <a href={route('center.students.export', student.id)}>
-                            <Download className="mr-1.5 h-4 w-4" /> Exporter l'historique
-                        </a>
-                    </Button>
+                    <div className="flex flex-wrap gap-2">
+                        <Button asChild variant="outline" size="sm">
+                            <Link href={route('center.students.vocabulaire', student.id)}>
+                                <BookOpen className="mr-1.5 h-4 w-4" /> Vocabulaire
+                            </Link>
+                        </Button>
+                        <Button asChild variant="outline" size="sm">
+                            <a href={route('center.students.export', student.id)}>
+                                <Download className="mr-1.5 h-4 w-4" /> Exporter l'historique
+                            </a>
+                        </Button>
+                    </div>
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

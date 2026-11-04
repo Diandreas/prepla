@@ -206,7 +206,10 @@ export default function ClassShow({ classroom, students, stats, exams }: { class
                     </Card>
                 )}
 
-                <div className="flex justify-end">
+                <div className="flex flex-wrap justify-end gap-2">
+                    <Button asChild variant="outline">
+                        <Link href={route('center.classes.vocabulaire', classroom.id)}>Vocabulaire de la classe</Link>
+                    </Button>
                     <a href={route('center.classes.export', classroom.id)}>
                         <Button variant="outline">Exporter en CSV</Button>
                     </a>
