@@ -17,6 +17,9 @@ class Classroom extends Model
         'center_id',
         'name',
         'level',
+        // Salle et horaire : texte libre, pour ranger les classes d'un centre.
+        'room',
+        'schedule',
         'exam_id',
         'invite_code',
         'archived_at',
@@ -59,6 +62,12 @@ class Classroom extends Model
     public function assignments(): HasMany
     {
         return $this->hasMany(Assignment::class);
+    }
+
+    /** Le parcours construit par le centre pour cette classe, dans l'ordre. */
+    public function pathSteps(): HasMany
+    {
+        return $this->hasMany(ClassroomPathStep::class)->orderBy('position')->orderBy('id');
     }
 
     /** Generate a short, unique, human-friendly invite code. */

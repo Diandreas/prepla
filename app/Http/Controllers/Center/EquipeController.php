@@ -72,6 +72,8 @@ class EquipeController extends Controller
         return Inertia::render('center/equipe', [
             'centre' => ['id' => $center->id, 'name' => $center->name],
             'equipe' => $equipe,
+            // Pour attribuer une classe existante a un enseignant.
+            'toutesLesClasses' => $classes->map(fn (Classroom $k) => ['id' => $k->id, 'name' => $k->name, 'level' => $k->level])->values(),
             // Une classe sans enseignant est une classe dont personne ne s'occupe.
             'classesSansEnseignant' => $classes
                 ->filter(fn (Classroom $k) => $k->teachers->isEmpty())

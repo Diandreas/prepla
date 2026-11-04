@@ -87,7 +87,9 @@ class GoogleController extends Controller
         Auth::login($user, true);
 
         // New users (no profile or onboarding not done) → onboarding
-        if (!$user->profile?->onboarding_completed_at) {
+        // Sauf l'eleve d'un centre : sa classe lui donne son objectif.
+        if (!$user->profile?->onboarding_completed_at
+            && ! app(\App\Services\Center\ParcoursEleveDeCentre::class)->appartenance($user)) {
             return redirect()->route('onboarding.native-language');
         }
 

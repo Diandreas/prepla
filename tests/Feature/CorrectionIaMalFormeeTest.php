@@ -238,3 +238,12 @@ test('un oral rate sans faute relevee reste une faiblesse orale, avec ce qui a e
     expect($erreur->error_category)->toBe('speaking')
         ->and($erreur->user_answer)->toBe('Ich weiß nicht.');
 });
+
+test('une correction identique au texte de l eleve est ecartee', function () {
+    $propres = \App\Services\AI\CorrectionsDeProduction::nettoyer([
+        ['original' => 'kannst du mir ein Hotel empfehlen?', 'corrected' => 'kannst du mir ein Hotel empfehlen?', 'category' => 'grammar.article', 'explanation' => 'correct'],
+        ['original' => 'ein Frage', 'corrected' => 'eine Frage', 'category' => 'grammar.article', 'explanation' => 'Frage est feminin.'],
+    ]);
+
+    expect($propres)->toHaveCount(1)->and($propres[0]['corrected'])->toBe('eine Frage');
+});

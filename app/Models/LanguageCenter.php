@@ -23,6 +23,9 @@ class LanguageCenter extends Model
     // Sous-domaines et domaines propres (lot B).
     use ADomaines;
 
+    // Contenu propose aux eleves : devoirs + entrainement PrePla, ou devoirs seuls.
+    use Concerns\AContenuEleves;
+
     /**
      * Cle de settings posee sur un espace ouvert en libre-service via /enseigner.
      * Un centre cree par l'equipe (super administrateur) ne la porte pas.

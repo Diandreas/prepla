@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\Center\ParcoursEleveDeCentre;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -11,7 +12,23 @@ class EnsureOnboardingComplete
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
-        if (!$user || $user->profile?->onboarding_completed_at) {
+        if (!$user) {
+            return $next($request);
+        }
+
+        // L'eleve d'un centre n'a pas d'objectif a choisir : c'est sa classe qui le
+        // donne. Son profil le recoit au vol s'il lui manque (eleves inscrits avant
+        // ce reglage), et on ne l'envoie jamais construire « son parcours ».
+        $eleve = app(ParcoursEleveDeCentre::class);
+        if ($eleve->appartenance($user)) {
+            if (! $user->profile?->target_exam_id || ! $user->profile?->current_level) {
+                $eleve->completerObjectif($user);
+            }
+
+            return $next($request);
+        }
+
+        if ($user->profile?->onboarding_completed_at) {
             return $next($request);
         }
 

@@ -50,6 +50,23 @@ class Assignment extends Model
 
     public function isOverdue(): bool
     {
-        return $this->due_at !== null && $this->due_at->isPast();
+        return self::depassee($this->due_at);
+    }
+
+    /**
+     * L'echeance est-elle depassee ? L'enseignant la saisit avec un champ date
+     * (center/assignments/create.tsx) : elle arrive a minuit pile, et le devoir
+     * passait « en retard » des le matin du jour de remise. Une echeance a
+     * 00:00 vaut donc pour toute la journee ; une heure precise reste precise.
+     */
+    public static function depassee(?\Carbon\CarbonInterface $echeance): bool
+    {
+        if ($echeance === null) {
+            return false;
+        }
+
+        $limite = $echeance->format('H:i:s') === '00:00:00' ? $echeance->copy()->endOfDay() : $echeance;
+
+        return $limite->isPast();
     }
 }

@@ -1,6 +1,7 @@
 import { Head, router, useForm } from '@inertiajs/react';
 import { useRef, useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
+import OngletsParametresCentre from '@/components/onglets-parametres-centre';
 import { LogoDeCentre } from '@/components/app-logo';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { contraste, couleurLisible, estHexa, texteSur } from '@/lib/marque-centre.js';
+import ReglageContenuEleves, { type ContenuEleves } from '@/components/reglage-contenu-eleves';
 
 interface Centre {
     id: number;
@@ -100,6 +102,7 @@ export default function Personnalisation({
     defauts,
     contrasteMinimal,
     logoKoMax,
+    contenuEleves,
 }: {
     centre: Centre;
     examens: GroupeDExamens[];
@@ -107,6 +110,7 @@ export default function Personnalisation({
     defauts: { primaire: string; accent: string };
     contrasteMinimal: number;
     logoKoMax: number;
+    contenuEleves?: ContenuEleves;
 }) {
     const tous = examens.flatMap((g) => g.examens.map((e) => e.id));
 
@@ -168,11 +172,12 @@ export default function Personnalisation({
 
     return (
         <AppLayout>
-            <Head title={`Personnalisation — ${centre.name}`} />
+            <Head title={`Identité et examens — ${centre.name}`} />
             <div className="mx-auto w-full max-w-4xl space-y-5 p-4 md:p-6">
+                <OngletsParametresCentre />
                 <div>
                     <p className="text-sm text-muted-foreground">{centre.name}</p>
-                    <h1 className="text-2xl font-bold tracking-tight">Personnalisation</h1>
+                    <h1 className="text-2xl font-bold tracking-tight">Identité et examens</h1>
                     <p className="mt-1 text-sm text-muted-foreground">
                         Vos élèves et votre équipe voient votre nom, votre logo et vos couleurs dans l'application.
                     </p>
@@ -297,7 +302,7 @@ export default function Personnalisation({
                         </CardContent>
                     </Card>
 
-                    <Card>
+                    <Card id="examens" className="scroll-mt-20">
                         <CardHeader className="pb-2">
                             <CardTitle className="text-base">Examens proposés</CardTitle>
                             <p className="text-xs text-muted-foreground">
@@ -332,6 +337,9 @@ export default function Personnalisation({
                         </Button>
                     </div>
                 </form>
+
+                {/* Réglage à part : il s'enregistre seul, sans renvoyer la marque ni les examens. */}
+                <ReglageContenuEleves valeur={contenuEleves ?? 'libre'} />
             </div>
         </AppLayout>
     );

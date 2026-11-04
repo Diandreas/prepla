@@ -381,6 +381,16 @@ Route::middleware(['auth', EnsureCenterStaff::class])
         // y reserve ses actions au responsable.
         require __DIR__.'/centre-personnalisation.php';
         require __DIR__.'/centre-acces.php';
+        // Analyse IA (eleve, classe, centre) : droits verifies dans AnalyseController.
+        require __DIR__.'/centre-analyse.php';
+        require __DIR__.'/centre-parametres.php';
+        require __DIR__.'/centre-equipe.php';
+        // Parcours de classe construit par le centre : droits dans ParcoursClasseController.
+        require __DIR__.'/centre-parcours.php';
+        // Createur d'exercices : parties officielles, banque PrePla des devoirs.
+        require __DIR__.'/centre-createur.php';
+        // Tableau de bord d'une classe (JSON) : droits dans TableauClasseController.
+        require __DIR__.'/centre-tableau-classe.php';
     });
 
 // Parrainage : le lien d'un centre s'ouvre sans compte, il mene a l'inscription.
@@ -394,6 +404,11 @@ Route::middleware('auth')->group(function () {
     Route::get('join', [JoinCenterController::class, 'show'])->name('center.join');
     Route::post('join', [JoinCenterController::class, 'store'])->name('center.join.store');
 });
+
+// Élève d'un centre — ses devoirs.
+require __DIR__.'/eleve-devoirs.php';
+// Élève d'un centre — le parcours construit par son centre.
+require __DIR__.'/eleve-parcours.php';
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

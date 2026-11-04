@@ -25,6 +25,8 @@ export interface NavItem {
     isActive?: boolean;
     // Lien hors application (WhatsApp, tel:, mailto:) — rendu en <a> et non en Link Inertia
     external?: boolean;
+    // Autres adresses (et leurs sous-chemins) pour lesquelles l'entree est active
+    aussiActifSur?: string[];
 }
 
 export interface SharedData {
@@ -70,6 +72,8 @@ export interface MenusDisponibles {
     acces: boolean;
     releves: boolean;
     parrainage?: boolean;
+    /** L'accueil « Paramètres du centre » (center.parametres). */
+    parametres?: boolean;
 }
 
 export interface User {

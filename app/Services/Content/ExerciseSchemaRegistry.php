@@ -105,9 +105,22 @@ class ExerciseSchemaRegistry
 
         $family = self::familyFor($componentKey);
 
+        // Un identifiant vide ou deja pris : le createur en laisse un vide a la
+        // question dupliquee. Deux questions au meme identifiant partageaient la
+        // meme reponse dans le lecteur : repondre a l'une repondait a l'autre.
+        $vus = [];
         foreach ($questions as $i => &$q) {
             $n = $i + 1;
-            $q['id'] = $q['id'] ?? 'q' . $n;
+            $id = trim((string) ($q['id'] ?? ''));
+            if ($id === '' || isset($vus[$id])) {
+                $k = $n;
+                while (isset($vus['q' . $k])) {
+                    $k++;
+                }
+                $id = 'q' . $k;
+            }
+            $vus[$id] = true;
+            $q['id'] = $id;
             $q['type'] = $componentKey;
 
             switch ($family) {

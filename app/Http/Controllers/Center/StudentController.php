@@ -8,6 +8,7 @@ use App\Models\LanguageCenter;
 use App\Models\User;
 use App\Models\UserError;
 use App\Models\UserExerciseAttempt;
+use App\Services\Center\ClassementCentre;
 use App\Services\Center\SuiviApprenant;
 use App\Support\ExportTableur;
 use Illuminate\Http\Request;
@@ -18,42 +19,18 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class StudentController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request, ClassementCentre $classement): Response
     {
         /** @var LanguageCenter $center */
         $center = $request->attributes->get('center');
-        $user = $request->user();
 
-        // center_id doit être sélectionné : le filtre ->where('center_id', ...)
-        // plus bas s'applique sur la collection déjà chargée en mémoire, pas en
-        // SQL — sans cette colonne, il ne matchait jamais rien (toujours null),
-        // et la liste de classes affichée restait vide pour tous les élèves.
-        $query = $center->students()->with('classrooms:id,name,center_id');
-
-        // A teacher only sees students of the classrooms they teach; a
-        // center_admin sees every student of the center.
-        if (! $user->centerRoleIs('center_admin')) {
-            $query->whereHas(
-                'classrooms',
-                fn ($q) => $q->where('center_id', $center->id)
-                    ->whereHas('teachers', fn ($q2) => $q2->whereKey($user->id))
-            );
-        }
-
-        $students = $query->get()
-            ->map(fn (User $u) => [
-                'id' => $u->id,
-                'name' => $u->name,
-                'email' => $u->email,
-                'classrooms' => $u->classrooms
-                    ->where('center_id', $center->id)
-                    ->pluck('name')
-                    ->values(),
-                'attempts' => UserExerciseAttempt::where('user_id', $u->id)->count(),
-            ]);
-
+        // Classes, salle, langue, niveau, exercices, score et statut de chaque
+        // eleve, en un nombre fixe de requetes (il y en avait une par eleve).
+        // Le perimetre est le meme qu'avant : un enseignant ne voit que les
+        // eleves des classes qu'il encadre.
         return Inertia::render('center/students/index', [
-            'students' => $students,
+            'students' => $classement->eleves($center, $request->user()),
+            'joursAvantRelance' => DashboardController::JOURS_AVANT_RELANCE,
         ]);
     }
 

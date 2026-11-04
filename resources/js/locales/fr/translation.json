@@ -89,7 +89,10 @@
     "content": "Contenu",
     "centers": "Centres",
     "support": "Aide & support",
-    "open_menu": "Ouvrir le menu"
+    "open_menu": "Ouvrir le menu",
+    "my_assignments": "Mes devoirs",
+    "my_path": "Mon parcours",
+    "my_words": "Mes mots"
   },
   "support": {
     "title": "Aide & support",
@@ -115,6 +118,7 @@
     "content": "Contenu",
     "assignments": "Devoirs",
     "center": "Espace centre",
+    "center_settings": "Paramètres du centre",
     "join": "Rejoindre un centre",
     "guide": "Comment apprendre"
   },

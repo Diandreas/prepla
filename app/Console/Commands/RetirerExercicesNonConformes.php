@@ -23,7 +23,9 @@ use Illuminate\Console\Command;
  *
  * 1. On ne touche JAMAIS a un exercice qu'un apprenant a ouvert. Sa tentative y
  *    renvoie, son historique le cite, sa revision le reprend. Le supprimer
- *    effacerait du travail reel.
+ *    effacerait du travail reel. Un compte de demonstration (@demo.prepla.local)
+ *    n'est pas un apprenant : ses tentatives fabriquees ne protegent rien, et
+ *    partent avec l'exercice (elles sont comptees dans l'annonce).
  * 2. Rien n'est supprime sans que la commande l'ait d'abord annonce. Le mode a
  *    blanc est le defaut : il faut `--vraiment` pour ecrire.
  *
@@ -95,7 +97,13 @@ class RetirerExercicesNonConformes extends Command
                         if (in_array($items, $structure->itemsAttendus($exam, $niveau, $type), true)) {
                             continue;
                         }
-                        if (! $memeTentes && UserExerciseAttempt::where('exercise_id', $exo->id)->exists()) {
+                        // Seul le travail d'un VRAI apprenant protege : les
+                        // tentatives fabriquees pour le centre de demonstration
+                        // (prepla:demo-completer, le seeder) ne figent pas le vivier.
+                        $tenteParUnApprenant = UserExerciseAttempt::where('exercise_id', $exo->id)
+                            ->whereHas('user', fn ($q) => $q->where('email', 'not like', '%'.DemoCompleter::DOMAINE))
+                            ->exists();
+                        if (! $memeTentes && $tenteParUnApprenant) {
                             $proteges++;
 
                             continue;

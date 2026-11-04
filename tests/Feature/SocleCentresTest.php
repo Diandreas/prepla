@@ -53,6 +53,7 @@ test('le menu ne propose que les pages dont la route existe', function () {
         'personnalisation' => Route::has('center.personnalisation.edit'),
         'acces' => Route::has('center.acces.index'),
         'releves' => Route::has('admin.releves.index'),
+        'parametres' => Route::has('center.parametres'),
     ];
 
     $this->actingAs(responsableDuSocle())
@@ -62,6 +63,7 @@ test('le menu ne propose que les pages dont la route existe', function () {
             ->where('menus.personnalisation', $attendu['personnalisation'])
             ->where('menus.acces', $attendu['acces'])
             ->where('menus.releves', $attendu['releves'])
+            ->where('menus.parametres', $attendu['parametres'])
         );
 });
 

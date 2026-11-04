@@ -1,5 +1,5 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { isAnswerCorrect, normalizeAnswer } from '@/lib/scoring';
@@ -73,6 +73,10 @@ interface FreshQuestion {
 
 export default function ErrorsPractice({ errors }: Props) {
     const { t } = useTranslation();
+    // Le centre qui crée le parcours de ses classes ferme les exercices écrits
+    // par l'IA hors devoir (ContenuProposeAuxEleves) : le bouton répondait par
+    // un message sur les devoirs, sans rapport avec l'erreur.
+    const centreSeul = (usePage().props as { eleveDeCentre?: { contenu: string } }).eleveDeCentre?.contenu === 'centre';
     const [reviewed, setReviewed] = useState<Set<number>>(new Set());
     const [loading, setLoading] = useState<number | null>(null);
     // Active recall: the learner must re-answer BEFORE seeing the solution.
@@ -354,7 +358,7 @@ export default function ErrorsPractice({ errors }: Props) {
                                                 </div>
                                             )}
                                         </div>
-                                    ) : (
+                                    ) : centreSeul ? null : (
                                         <button
                                             onClick={() => askSimilar(error.id)}
                                             disabled={freshLoading === error.id}

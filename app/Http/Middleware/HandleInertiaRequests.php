@@ -55,6 +55,9 @@ class HandleInertiaRequests extends Middleware
                 'name' => $c->name,
                 'slug' => $c->slug,
                 'role' => $appartenance->role, // center_admin | teacher | student
+                // La barre « Parametres du centre » n'offre l'onglet Acces vendus
+                // qu'en formule revente, comme la carte de la page d'accueil.
+                'formule' => $c->formule,
             ];
 
             // Les centres entre lesquels passer, seulement quand il y en a plusieurs.
@@ -113,6 +116,8 @@ class HandleInertiaRequests extends Middleware
                 'acces' => Route::has('center.acces.index'),
                 'releves' => Route::has('admin.releves.index'),
                 'parrainage' => Route::has('center.parrainage.index'),
+                // L'accueil des parametres du centre, qui rassemble les reglages ci-dessus.
+                'parametres' => Route::has('center.parametres'),
             ],
             'vapidPublicKey' => config('webpush.vapid.public_key'),
             'flash' => [

@@ -16,6 +16,27 @@ const LEARNER_TABS: Tab[] = [
     { labelKey: 'sidebar.results', href: '/results', icon: 'statistics' },
 ];
 
+// L'eleve d'un centre : ses devoirs au centre de la barre. Quand son centre
+// propose aussi l'entrainement PrePla, il garde les Outils IA comme
+// l'apprenant libre (et comme son menu lateral) ; « Mes mots » reste a un
+// geste depuis l'accueil.
+const STUDENT_TABS: Tab[] = [
+    { labelKey: 'sidebar.home', href: '/dashboard', icon: 'home' },
+    { labelKey: 'sidebar.practice', href: '/practice', icon: 'puzzle' },
+    { labelKey: 'sidebar.my_assignments', label: 'Mes devoirs', href: '/devoirs', icon: 'tasks', isCenter: true },
+    { labelKey: 'sidebar.ai_tools', label: 'Outils IA', href: '/ai-tools', icon: 'sparkles' },
+    { labelKey: 'sidebar.results', href: '/results', icon: 'statistics' },
+];
+// Parcours créé par le centre : « Mon parcours » à la place de « Pratiquer », et
+// « Mes mots » à la place des Outils IA, qui lui sont fermés.
+const STUDENT_CENTRE_TABS: Tab[] = STUDENT_TABS.map((tab) =>
+    tab.href === '/practice'
+        ? { labelKey: 'sidebar.my_path', label: 'Mon parcours', href: '/mon-parcours', icon: 'puzzle' }
+        : tab.href === '/ai-tools'
+          ? { labelKey: 'sidebar.my_words', label: 'Mes mots', href: '/dictionary', icon: 'book' }
+          : tab,
+);
+
 const CENTER_TABS: Tab[] = [
     { labelKey: 'sidebar.home', href: '/center', icon: 'home' },
     { labelKey: 'sidebar.classes', href: '/center/classes', icon: 'layout-grid' },
@@ -35,13 +56,18 @@ export function MobileTabBar() {
     const auth = (props as any)?.auth;
     const role: string | undefined = auth?.role;
     const centerRole: string | undefined = auth?.center?.role;
+    const eleveDeCentre = (props as { eleveDeCentre?: { contenu: 'libre' | 'centre' } })?.eleveDeCentre;
 
     const tabs =
         role === 'super_admin'
             ? ADMIN_TABS
             : centerRole === 'center_admin' || centerRole === 'teacher'
               ? CENTER_TABS
-              : LEARNER_TABS;
+              : eleveDeCentre
+                ? eleveDeCentre.contenu === 'centre'
+                    ? STUDENT_CENTRE_TABS
+                    : STUDENT_TABS
+                : LEARNER_TABS;
 
     return (
         <nav className="app-mobile-nav fixed bottom-0 left-0 right-0 z-50 border-t border-border/60 bg-background/85 backdrop-blur-xl md:hidden">

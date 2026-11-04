@@ -37,7 +37,8 @@ class B2BDemoSeeder extends Seeder
 {
     private const CENTER_SLUG = 'institut-linguae-demo';
     private const EMAIL_DOMAIN = 'demo.prepla.local';
-    private const DEMO_PASSWORD = 'Demo-Prepla-2026';
+    // Public : prepla:demo-completer donne le meme mot de passe aux eleves qu'il ajoute.
+    public const DEMO_PASSWORD = 'Demo-Prepla-2026';
 
     private array $summary = [];
 

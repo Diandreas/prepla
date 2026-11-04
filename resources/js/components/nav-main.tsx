@@ -18,7 +18,10 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
             </SidebarGroupLabel>
             <SidebarMenu>
                 {items.map((item) => {
-                    const isActive = item.url === page.url || page.url.startsWith(item.url + '/');
+                    const url = page.url.split('?')[0];
+                    const isActive = [item.url, ...(item.aussiActifSur ?? [])].some(
+                        (u) => u === url || url.startsWith(u + '/'),
+                    );
                     return (
                         <SidebarMenuItem key={item.title}>
                             <SidebarMenuButton

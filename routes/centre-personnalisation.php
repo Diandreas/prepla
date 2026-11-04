@@ -24,3 +24,7 @@ Route::get('personnalisation', [PersonnalisationController::class, 'edit'])->nam
 Route::patch('personnalisation', [PersonnalisationController::class, 'update'])->name('personnalisation.update');
 Route::post('personnalisation/logo', [PersonnalisationController::class, 'storeLogo'])->name('personnalisation.logo.store');
 Route::delete('personnalisation/logo', [PersonnalisationController::class, 'destroyLogo'])->name('personnalisation.logo.destroy');
+
+// « Contenu proposé aux élèves » : devoirs + entrainement PrePla, ou devoirs seuls.
+Route::patch('personnalisation/contenu-eleves', \App\Http\Controllers\Center\ContenuElevesController::class)
+    ->name('personnalisation.contenu-eleves');

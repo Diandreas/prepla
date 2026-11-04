@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ClipboardList, Plus, UserPlus } from 'lucide-react';
 import { dateHeure, duree, ilYA } from '@/lib/suivi';
+import { Drapeau } from '@/components/center/barre-classement';
+import { activiteCoherente, pluriel } from '@/lib/classement-centre';
 
 interface Center {
     id: number;
@@ -16,6 +18,42 @@ interface Semaine { eleves: number; actifs: number; exercices: number; minutes: 
 interface Classe { id: number; name: string; level: string | null; enseignants: string[]; eleves: number; derniere_activite: string | null }
 interface ARelancer { id: number; name: string; derniere_activite: string | null }
 interface ActifsMois { eleves: number; palier: string }
+interface LigneRepartition { cle: string; libelle: string; drapeau?: string | null; classes: number; eleves: number }
+interface Repartition { langues: LigneRepartition[]; niveaux: LigneRepartition[] }
+
+/**
+ * Une colonne de la repartition : une ligne par langue (ou niveau), une barre
+ * proportionnelle au nombre d'eleves, et un lien vers la page Eleves filtree.
+ */
+function Colonne({ titre, filtre, lignes }: { titre: string; filtre: 'langue' | 'niveau'; lignes: LigneRepartition[] }) {
+    const max = Math.max(1, ...lignes.map((l) => l.eleves));
+    return (
+        <div className="min-w-0 space-y-1.5">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{titre}</p>
+            {lignes.length === 0 && <p className="text-sm text-muted-foreground">Rien à répartir pour le moment.</p>}
+            {lignes.map((l) => (
+                <Link
+                    key={l.cle}
+                    href={route('center.students.index', { [filtre]: l.cle })}
+                    className="block rounded-md px-2 py-1.5 text-sm transition hover:bg-muted/50"
+                >
+                    <span className="flex items-center justify-between gap-2">
+                        <span className="flex min-w-0 items-center gap-1.5 font-medium">
+                            {l.drapeau && <Drapeau emoji={l.drapeau} />}
+                            <span className="truncate">{l.libelle}</span>
+                        </span>
+                        <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+                            {pluriel(l.eleves, 'élève')} · {pluriel(l.classes, 'classe')}
+                        </span>
+                    </span>
+                    <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-muted">
+                        <span className="block h-full rounded-full bg-primary/70" style={{ width: `${(l.eleves / max) * 100}%` }} />
+                    </span>
+                </Link>
+            ))}
+        </div>
+    );
+}
 
 function Stat({ label, value, detail, href }: { label: string; value: React.ReactNode; detail?: string; href?: string }) {
     const inner = (
@@ -49,12 +87,16 @@ export default function CenterDashboard({
     classes,
     a_relancer,
     actifs_mois = null,
+    repartition = { langues: [], niveaux: [] },
+    joursAvantRelance = 7,
 }: {
     center: Center;
     semaine: Semaine;
     classes: Classe[];
     a_relancer: ARelancer[];
     actifs_mois?: ActifsMois | null;
+    repartition?: Repartition;
+    joursAvantRelance?: number;
 }) {
     const { auth } = usePage().props as unknown as { auth?: { center?: { role?: string } } };
     const responsable = auth?.center?.role === 'center_admin';
@@ -124,10 +166,23 @@ export default function CenterDashboard({
                                 >
                                     <span className="truncate font-medium">{e.name}</span>
                                     <span className="shrink-0 text-xs text-muted-foreground" title={dateHeure(e.derniere_activite)}>
-                                        {e.derniere_activite ? ilYA(e.derniere_activite) : 'jamais venu'}
+                                        {e.derniere_activite ? activiteCoherente(e.derniere_activite, 'a_relancer', joursAvantRelance, ilYA) : 'jamais venu'}
                                     </span>
                                 </Link>
                             ))}
+                        </CardContent>
+                    </Card>
+                )}
+
+                {(repartition.langues.length > 0 || repartition.niveaux.length > 0) && (
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-base">Répartition</CardTitle>
+                            <p className="text-xs text-muted-foreground">Par langue et par niveau. Cliquez une ligne pour voir ces élèves.</p>
+                        </CardHeader>
+                        <CardContent className="grid gap-5 sm:grid-cols-2">
+                            <Colonne titre="Par langue" filtre="langue" lignes={repartition.langues} />
+                            <Colonne titre="Par niveau" filtre="niveau" lignes={repartition.niveaux} />
                         </CardContent>
                     </Card>
                 )}

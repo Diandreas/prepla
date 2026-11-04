@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Models\AssignmentItem;
+use App\Models\ClassroomPathStep;
 use App\Models\Exercise;
 use App\Models\User;
 
@@ -21,12 +22,19 @@ class ExercisePolicy
                 return true;
             }
 
+            $classes = $user->classrooms()->pluck('classrooms.id');
+
+            // Une etape du parcours construit par le centre pour l'une de ses classes.
+            if (ClassroomPathStep::whereIn('classroom_id', $classes)->where('exercise_id', $exercise->id)->exists()) {
+                return true;
+            }
+
             return AssignmentItem::where('itemable_type', Exercise::class)
                 ->where('itemable_id', $exercise->id)
                 ->whereHas('assignment', fn ($query) => $query
                     ->whereNotNull('published_at')
                     ->where('published_at', '<=', now())
-                    ->whereIn('classroom_id', $user->classrooms()->pluck('classrooms.id')))
+                    ->whereIn('classroom_id', $classes))
                 ->exists();
         }
 

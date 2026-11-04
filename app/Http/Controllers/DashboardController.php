@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Assignment;
 use App\Models\CurriculumSkeleton;
-use App\Models\Exercise;
 use App\Models\LearningPathNode;
 use App\Models\Lesson;
 use App\Models\UserError;
 use App\Models\UserExerciseAttempt;
 use App\Models\UserLearningProgress;
+use App\Services\Center\ParcoursEleveDeCentre;
 use App\Services\LearningJourneyService;
 use App\Services\PersonalLexiconService;
 use Inertia\Inertia;
@@ -273,6 +272,11 @@ class DashboardController extends Controller
         $duJour = \App\Models\UserExerciseAttempt::where('user_id', $user->id)
             ->whereDate('created_at', today())->get();
 
+        // Eleve d'un centre en « devoirs seulement » : pas de parcours personnel
+        // PrePla a l'accueil, seulement le travail donne par son centre.
+        $eleveDeCentre = app(ParcoursEleveDeCentre::class);
+        $centreSeul = $eleveDeCentre->contenuReserveAuCentre($user);
+
         return Inertia::render('dashboard', [
             'aujourdhui' => [
                 'exercices' => $duJour->count(),
@@ -282,76 +286,35 @@ class DashboardController extends Controller
                 'reussite' => $duJour->isEmpty() ? null : (int) round($duJour->avg('accuracy_percent')),
             ],
             'profile' => $profile,
-            'chapters' => $chapters,
+            'chapters' => $centreSeul ? [] : $chapters,
             'stats' => [
                 'total_nodes' => $totalNodes,
                 'completed_nodes' => $completedNodes,
                 'progress_percent' => $totalNodes > 0 ? round(($completedNodes / $totalNodes) * 100) : 0,
             ],
             // New curriculum data (Pilier 9)
-            'curriculum' => $curriculumData,
-            'nextLesson' => $nextLesson,
+            'curriculum' => $centreSeul ? null : $curriculumData,
+            'nextLesson' => $centreSeul ? null : $nextLesson,
             'errorDiagnostic' => $errorDiagnostic,
             'dueErrorsCount' => $dueErrorsCount,
             'nextAction' => app(LearningJourneyService::class)->nextAction($user),
             'wordReviewCount' => app(PersonalLexiconService::class)->due($user)->count(),
             // B2B: when the learner belongs to a center, their assignments take
             // priority over the personal AI journey.
-            'centerMode' => $user->isCenterStudent(),
+            'centerMode' => $eleveDeCentre->appartenance($user) !== null,
             'centerAssignments' => $this->centerAssignments($user),
+            'contenuCentre' => $centreSeul,
         ]);
     }
 
     /**
-     * Active published assignments for a center student, with their own
-     * completion derived from existing attempts.
+     * Les devoirs publies de l'eleve dans son centre courant, avec sa propre
+     * progression, l'echeance la plus proche d'abord (ParcoursEleveDeCentre).
      *
      * @return array<int, array<string, mixed>>
      */
     private function centerAssignments($user): array
     {
-        if (! $user->isCenterStudent()) {
-            return [];
-        }
-
-        $classroomIds = $user->classrooms()->pluck('classrooms.id');
-        if ($classroomIds->isEmpty()) {
-            return [];
-        }
-
-        $assignments = Assignment::whereIn('classroom_id', $classroomIds)
-            ->whereNotNull('published_at')
-            ->where('published_at', '<=', now())
-            ->with('items')
-            ->orderByRaw('due_at is null, due_at asc')
-            ->get();
-
-        return $assignments->map(function (Assignment $a) use ($user) {
-            $exerciseIds = $a->items
-                ->where('itemable_type', Exercise::class)
-                ->pluck('itemable_id');
-            $total = $exerciseIds->count();
-
-            $done = UserExerciseAttempt::where('user_id', $user->id)
-                ->whereIn('exercise_id', $exerciseIds)
-                ->where('created_at', '>=', $a->published_at)
-                ->distinct('exercise_id')
-                ->count('exercise_id');
-
-            return [
-                'id' => $a->id,
-                'title' => $a->title,
-                'instructions' => $a->instructions,
-                'due_at' => $a->due_at,
-                'overdue' => $a->isOverdue(),
-                'total' => $total,
-                'done' => $done,
-                // First not-yet-attempted exercise → entry point for the player.
-                'next_exercise_id' => $exerciseIds->first(fn ($id) => ! UserExerciseAttempt::where('user_id', $user->id)
-                    ->where('exercise_id', $id)
-                    ->where('created_at', '>=', $a->published_at)
-                    ->exists()),
-            ];
-        })->all();
+        return app(ParcoursEleveDeCentre::class)->devoirs($user)->all();
     }
 }

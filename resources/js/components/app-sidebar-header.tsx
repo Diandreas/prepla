@@ -1,9 +1,9 @@
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { Menu } from 'lucide-react';
+import { Menu, Settings } from 'lucide-react';
 import { Link, usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
-import type { Marque, SharedData } from '@/types';
+import type { Marque, MenusDisponibles, SharedData } from '@/types';
 import { useAppearance } from '@/hooks/use-appearance';
 import { useState, useEffect, useRef } from 'react';
 import i18n from '@/lib/i18n/i18n';
@@ -33,6 +33,10 @@ const PAGE_TITLE_KEYS: [string, string][] = [
     ['/center/students', 'students'],
     ['/center/exercises', 'content'],
     ['/center/assignments', 'assignments'],
+    ['/center/parametres', 'center_settings'],
+    ['/center/personnalisation', 'center_settings'],
+    ['/center/acces', 'center_settings'],
+    ['/center/parrainage', 'center_settings'],
     ['/center', 'center'],
     ['/join', 'join'],
 ];
@@ -113,6 +117,12 @@ export function AppSidebarHeader() {
     // s'affichaient quand même (ex: "0/3 exercices gratuits" pour un center_admin).
     const centerRole = (page.props.auth as any)?.center?.role as string | undefined;
     const isCenterStaff = centerRole === 'center_admin' || centerRole === 'teacher';
+    // Le responsable cherchait « les parametres de son centre » : un engrenage
+    // toujours visible en haut, en plus de l'entree du menu.
+    const menus = (page.props as { menus?: MenusDisponibles }).menus;
+    const voitParametresDuCentre = centerRole === 'center_admin' && !!menus?.parametres;
+    const surLesParametres = ['/center/parametres', '/center/personnalisation', '/center/acces', '/center/parrainage']
+        .some((p) => url === p || url.startsWith(p + '/') || url.startsWith(p + '?'));
 
     // Find current page title (resolve its i18n key; fall back to the brand name)
     const titleKey = PAGE_TITLE_KEYS.find(([path]) => url === path || url.startsWith(path + '/'))?.[1];
@@ -210,6 +220,22 @@ export function AppSidebarHeader() {
                             {xp}
                         </span>
                     </div>
+                )}
+                {voitParametresDuCentre && (
+                    <Link
+                        href="/center/parametres"
+                        aria-label="Paramètres du centre"
+                        title="Paramètres du centre"
+                        aria-current={surLesParametres ? 'page' : undefined}
+                        className={`flex h-[34px] items-center gap-1.5 rounded-full border px-2.5 text-xs font-semibold transition-colors sm:px-3 ${
+                            surLesParametres
+                                ? 'border-primary/40 bg-primary/10 text-primary'
+                                : 'border-border/60 bg-card/60 text-foreground hover:bg-accent'
+                        }`}
+                    >
+                        <Settings className="h-4 w-4 shrink-0" aria-hidden="true" />
+                        <span className="hidden sm:inline">Paramètres du centre</span>
+                    </Link>
                 )}
                 <ThemeToggleButton />
             </div>

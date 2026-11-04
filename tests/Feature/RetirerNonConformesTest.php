@@ -113,3 +113,19 @@ test('sans --meme-tentes, la tentative reste intacte', function () {
 
     expect(UserExerciseAttempt::count())->toBe(1);
 });
+
+test('une tentative d un compte de demonstration ne protege pas un exercice non conforme', function () {
+    // prepla:demo-completer fabrique des tentatives sur le vivier commun : elles
+    // ne doivent pas figer ce que la maintenance a le droit de retirer.
+    $trompeur = exerciceDe('goethe', 'lesen', 'mcq', 3);
+    UserExerciseAttempt::create([
+        'user_id' => User::factory()->create(['email' => 'eleve.demo@demo.prepla.local'])->id,
+        'exercise_id' => $trompeur->id,
+        'score' => 2,
+        'answers' => ['q1' => 'A'],
+    ]);
+
+    $this->artisan('prepla:retirer-non-conformes', ['--examen' => 'goethe', '--vraiment' => true]);
+
+    expect(Exercise::find($trompeur->id))->toBeNull();
+});

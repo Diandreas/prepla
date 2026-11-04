@@ -15,36 +15,53 @@ class ClassStatsService
 {
     public function forClassroom(Classroom $classroom): array
     {
-        $students = $classroom->students()->get();
+        $students = $classroom->students()->get(['users.id', 'users.name']);
+        $ids = $students->pluck('id')->all();
+
+        // Une requete groupee par eleve, au lieu de quatre requetes par eleve.
+        $activite = empty($ids) ? collect() : UserExerciseAttempt::whereIn('user_id', $ids)
+            ->selectRaw('user_id, count(*) as n, avg(accuracy_percent) as moyenne, max(created_at) as derniere, coalesce(sum(time_spent), 0) as temps')
+            ->groupBy('user_id')
+            ->toBase()
+            ->get()
+            ->keyBy('user_id');
 
         $perStudent = [];
-        $commonWeaknesses = []; // category|subcategory => total count
-
         foreach ($students as $student) {
-            $attempts = UserExerciseAttempt::where('user_id', $student->id);
-            $count = (clone $attempts)->count();
+            $a = $activite->get($student->id);
             // Sans tentative notee, pas de moyenne : « 0 % » ferait croire a un
             // eleve qui rate tout.
-            $moyenne = (clone $attempts)->avg('accuracy_percent');
-            $avg = $moyenne !== null ? round((float) $moyenne, 1) : null;
+            $avg = $a?->moyenne !== null ? round((float) $a->moyenne, 1) : null;
 
-            // La derniere activite, en ISO avec son fuseau. `value('created_at')`
-            // rendait la chaine brute de la base, sans fuseau : un navigateur la
-            // prenait pour de l'heure locale, et l'affichait decalee.
-            $last = (clone $attempts)->latest()->value('created_at');
+            // La derniere activite, en ISO avec son fuseau : la chaine brute de la
+            // base, sans fuseau, etait prise pour de l'heure locale par un navigateur.
+            $last = $a?->derniere;
 
             $perStudent[] = [
                 'user_id' => $student->id,
                 'name' => $student->name,
-                'attempts' => $count,
+                'attempts' => (int) ($a?->n ?? 0),
                 'avg_accuracy' => $avg,
                 'last_active' => $last ? \Illuminate\Support\Carbon::parse($last, 'UTC')->toIso8601String() : null,
-                'temps_total_secondes' => (int) (clone $attempts)->sum('time_spent'),
+                'temps_total_secondes' => (int) ($a?->temps ?? 0),
             ];
+        }
 
-            foreach (UserError::categoryStats($student->id) as $w) {
-                $key = $w['error_category'] . ($w['subcategory'] ? '|' . $w['subcategory'] : '');
-                $commonWeaknesses[$key] = ($commonWeaknesses[$key] ?? 0) + (int) $w['count'];
+        // Les faiblesses de toute la classe en une requete : les memes filtres que
+        // UserError::categoryStats, sommes sur les eleves de la classe.
+        $commonWeaknesses = []; // category|subcategory => total count
+        if (! empty($ids)) {
+            $erreurs = UserError::whereIn('user_id', $ids)
+                ->where('mastered', false)
+                ->whereNotNull('error_category')
+                ->where('error_category', '!=', 'session_mistake')
+                ->selectRaw('error_category, subcategory, count(*) as count')
+                ->groupBy('error_category', 'subcategory')
+                ->toBase()
+                ->get();
+            foreach ($erreurs as $w) {
+                $key = $w->error_category . ($w->subcategory ? '|' . $w->subcategory : '');
+                $commonWeaknesses[$key] = ($commonWeaknesses[$key] ?? 0) + (int) $w->count;
             }
         }
 

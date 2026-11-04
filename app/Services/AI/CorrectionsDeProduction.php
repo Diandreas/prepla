@@ -33,6 +33,11 @@ final class CorrectionsDeProduction
             if ($original === '' || $corrige === '') {
                 continue;
             }
+            // Une « correction » identique au texte de l'eleve n'en est pas une :
+            // l'IA la rend parfois, et elle signalait une faute qui n'existe pas.
+            if (mb_strtolower($original) === mb_strtolower($corrige)) {
+                continue;
+            }
 
             $explication = $c['explanation'] ?? null;
             $propre = [

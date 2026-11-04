@@ -54,6 +54,12 @@ class OnboardingController extends Controller
 
         $profile->save();
 
+        // L'eleve d'un centre s'arrete la : son examen et son niveau viennent de sa
+        // classe, et sa prochaine mission de ses devoirs.
+        if (app(\App\Services\Center\ParcoursEleveDeCentre::class)->appartenance($request->user())) {
+            return redirect()->route('dashboard');
+        }
+
         return redirect()->route('onboarding.exam');
     }
 

@@ -89,7 +89,10 @@
     "content": "Inhalt",
     "centers": "Zentren",
     "support": "Hilfe & Support",
-    "open_menu": "Menü öffnen"
+    "open_menu": "Menü öffnen",
+    "my_assignments": "Meine Aufgaben",
+    "my_path": "Mein Lernpfad",
+    "my_words": "Meine Wörter"
   },
   "support": {
     "title": "Hilfe & Support",
@@ -115,6 +118,7 @@
     "content": "Inhalt",
     "assignments": "Aufgaben",
     "center": "Zentrumsbereich",
+    "center_settings": "Zentrumseinstellungen",
     "join": "Einem Zentrum beitreten",
     "guide": "So lernst du"
   },

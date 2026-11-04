@@ -25,6 +25,80 @@ class PracticeController extends Controller
         $this->streakService = $streakService;
     }
 
+    /**
+     * Le centre de l'eleve, quand il s'entraine avec le parcours PrePla par
+     * defaut. Null pour l'apprenant libre et le personnel (rien ne change pour
+     * eux) ; le centre en « Parcours créé par le centre » ferme deja cette page
+     * (ContenuProposeAuxEleves).
+     */
+    private function centreDeLEleve(?\App\Models\User $user): ?\App\Models\LanguageCenter
+    {
+        if (! $user) {
+            return null;
+        }
+
+        return $this->memo($user, 'centre', function () use ($user) {
+            $centre = app(\App\Services\Center\ParcoursEleveDeCentre::class)->centre($user);
+
+            return $centre && ! $centre->reserveSesElevesASonContenu() ? $centre : null;
+        });
+    }
+
+    /** Sa classe actuelle : la plus recente du centre courant. */
+    private function classeDeLEleve(?\App\Models\User $user): ?\App\Models\Classroom
+    {
+        $centre = $this->centreDeLEleve($user);
+        if (! $centre) {
+            return null;
+        }
+
+        return $this->memo($user, 'classe', fn () => app(\App\Services\Center\ParcoursEleveDeCentre::class)
+            ->classeActuelle($user, $centre));
+    }
+
+    /**
+     * Lu une fois par requete, range dans la requete elle-meme : le controleur,
+     * lui, peut servir plusieurs requetes (la route garde son instance).
+     */
+    private function memo(\App\Models\User $user, string $cle, \Closure $lire): mixed
+    {
+        $attributs = request()->attributes;
+        $nom = "pratique.{$user->id}.{$cle}";
+        if (! $attributs->has($nom)) {
+            $attributs->set($nom, $lire());
+        }
+
+        return $attributs->get($nom);
+    }
+
+    /**
+     * L'examen ou s'entraine l'eleve d'un centre : celui de sa classe, sinon
+     * celui du centre par defaut, s'il est retenu par le centre. Null pour
+     * l'apprenant libre.
+     */
+    private function examenPratique(?\App\Models\User $user): ?Exam
+    {
+        $centre = $this->centreDeLEleve($user);
+        if (! $centre) {
+            return null;
+        }
+
+        return $this->memo($user, 'examen', fn () => app(\App\Services\Center\ParcoursEleveDeCentre::class)
+            ->examenDEntrainement($user, $centre, $this->classeDeLEleve($user)));
+    }
+
+    /**
+     * Son niveau d'entrainement. L'eleve d'un centre : celui de sa classe, relu a
+     * chaque requete (l'enseignant peut le changer). Sinon, celui de son profil.
+     */
+    private function niveauPratique(?\App\Models\User $user): ?string
+    {
+        $niveau = app(\App\Services\Center\ParcoursEleveDeCentre::class)
+            ->niveauDEntrainement($this->classeDeLEleve($user));
+
+        return $niveau ?? $user?->profile?->current_level;
+    }
+
     // (startNodeSession supprime : aucune route ne l'appelait depuis que
     //  NodeStartController sert les seances de noeud. Sa requete de secours ne
     //  filtrait ni les centres, ni les lecons, ni les epreuves blanches.)
@@ -32,9 +106,9 @@ class PracticeController extends Controller
     public function skill(string $skill)
     {
         abort_unless(in_array($skill, ['speaking', 'listening'], true), 404);
-        $examId = auth()->user()->profile?->target_exam_id;
+        $examId = $this->examenPratique(auth()->user())?->id ?? auth()->user()->profile?->target_exam_id;
         if ($skill === 'speaking' && ($exam = Exam::find($examId))) {
-            app(\App\Services\Content\OralStarter::class)->ensure($exam, auth()->user()->profile?->current_level ?? 'A1');
+            app(\App\Services\Content\OralStarter::class)->ensure($exam, $this->niveauPratique(auth()->user()) ?? 'A1');
         }
         $section = ExamSection::where('exam_id', $examId)->where('skill_type', $skill)
             ->whereHas('exerciseTypes')->first();
@@ -46,8 +120,20 @@ class PracticeController extends Controller
     public function index()
     {
         $user = auth()->user();
+
+        // L'eleve d'un centre s'entraine sur l'examen de SA CLASSE, pas sur celui
+        // de son profil : si l'enseignant change la classe, la page suit.
+        if ($examen = $this->examenPratique($user)) {
+            return $this->examDashboard($examen);
+        }
+
         $profile = $user->profile?->load('targetExam.language');
         $targetExam = $profile?->targetExam;
+        // Et jamais un examen que son centre n'a pas retenu.
+        if ($targetExam && ($centre = $this->centreDeLEleve($user))
+            && ! Exam::proposables($centre)->whereKey($targetExam->id)->exists()) {
+            $targetExam = null;
+        }
 
         // Si l'utilisateur a un examen cible, on l'affiche directement lui, sans les autres.
         if ($targetExam) {
@@ -64,17 +150,27 @@ class PracticeController extends Controller
         ]);
     }
 
-    public function examDashboard(Exam $exam): Response
+    public function examDashboard(Exam $exam): Response|\Illuminate\Http\RedirectResponse
     {
         // Masquer un examen des listes ne suffit pas : son adresse restait
         // ouverte. Sept langues ne sont pas travaillees et leurs examens n'ont
         // qu'un squelette generique — on ne les sert pas non plus en direct.
         abort_unless($exam->language?->is_active, 404);
 
+        // L'eleve d'un centre : seulement les examens retenus par son centre.
+        $centre = $this->centreDeLEleve(auth()->user());
+        if ($centre && ! Exam::proposables($centre)->whereKey($exam->id)->exists()) {
+            $examen = $this->examenPratique(auth()->user());
+
+            return $examen && $examen->id !== $exam->id
+                ? redirect()->route('practice.exam', $examen->id)
+                : abort(404);
+        }
+
         $exam->load(['language', 'sections' => fn ($q) => $q->where('slug', '!=', 'level-assessment')->with('exerciseTypes')]);
 
         $user = auth()->user();
-        $niveau = $user->profile?->current_level ?: 'A1';
+        $niveau = $this->niveauPratique($user) ?: 'A1';
 
         // LES MODULES DE SON NIVEAU, pas tous ceux de l'examen. Les sections sont
         // partagees entre les niveaux — une ligne par examen et par slug — et la
@@ -142,9 +238,9 @@ class PracticeController extends Controller
             'levelDuration' => $plan?->total_duration_minutes,
             'levelIsOfficial' => $duNiveau->isNotEmpty(),
             'learnerLevel' => $niveau,
-            'canSimulate' => ! in_array($user->profile?->current_level ?? 'A1', ['A0', 'A1', 'A2'], true)
+            'canSimulate' => ! in_array($niveau, ['A0', 'A1', 'A2'], true)
                 || MockExam::where('is_published', true)->whereHas('exercises')
-                    ->whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id)->where('level', $user->profile?->current_level ?? 'A1'))->exists(),
+                    ->whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id)->where('level', $niveau))->exists(),
         ]);
     }
 
@@ -214,7 +310,7 @@ class PracticeController extends Controller
         abort_unless($exam->language?->is_active, 404);
 
         $user = auth()->user();
-        $niveau = $user->profile?->current_level ?: 'A1';
+        $niveau = $this->niveauPratique($user) ?: 'A1';
         $propose = $choix->pour($user, $exam, $niveau);
 
         if (! $propose['type']) {
@@ -272,7 +368,7 @@ class PracticeController extends Controller
     public function drillByType(Exam $exam, \App\Models\ExerciseType $exerciseType, \App\Services\AI\ExerciseGeneratorService $generator, \App\Services\Content\StarterPracticeLibrary $library, \App\Services\Content\ExerciseTypeSuitability $pertinence)
     {
         $user = auth()->user();
-        $difficulty = $user->profile?->current_level ?? 'B1';
+        $difficulty = $this->niveauPratique($user) ?? 'B1';
         $exerciseType->loadMissing('section');
         abort_unless($exerciseType->section?->exam_id === $exam->id, 404);
 
@@ -398,7 +494,7 @@ class PracticeController extends Controller
         abort_unless($section->exam_id === $exam->id, 404);
         $section->load('exerciseTypes');
         $exam->load('language');
-        $learnerLevel = auth()->user()->profile?->current_level ?? 'A1';
+        $learnerLevel = $this->niveauPratique(auth()->user()) ?? 'A1';
         $beginner = in_array($learnerLevel, ['A0', 'A1', 'A2'], true);
 
         // Lesquels de ces formats sont une PARTIE de l'epreuve, et sous quel nom.
@@ -438,7 +534,7 @@ class PracticeController extends Controller
                 'name' => $beginner ? (['mcq' => 'Choisir la bonne réponse', 'gap-fill' => 'Compléter les mots', 'sentence-completion' => 'Compléter une phrase', 'speaking-recorder' => 'Répondre à voix haute', 'listen-repeat' => 'Écouter et répéter', 'matching' => 'Associer les mots', 'short-answer' => 'Répondre en quelques mots', 'dictation' => 'Écrire ce que tu entends', 'build-a-sentence' => 'Construire une phrase'][$t->component_key] ?? $t->name) : $t->name,
                 'skill_type' => $t->skill_type,
                 'component_key' => $t->component_key,
-                'starter_available' => $library->template($exam, $t, auth()->user()->profile?->current_level ?? 'B1') !== null,
+                'starter_available' => $library->template($exam, $t, $this->niveauPratique(auth()->user()) ?? 'B1') !== null,
                 // Le nom officiel de la partie quand ce format en est une, null sinon.
                 'exam_part_name' => $parties->get($t->id)['name'] ?? null,
                 'exam_part_task' => $parties->get($t->id)['task'] ?? null,
@@ -464,7 +560,7 @@ class PracticeController extends Controller
 
     public function simulate(Exam $exam, Request $request): Response|\Illuminate\Http\RedirectResponse
     {
-        $level = $request->user()->profile?->current_level ?? 'A1';
+        $level = $this->niveauPratique($request->user()) ?? 'A1';
         $cefrLevels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
         $allowedLevels = array_slice($cefrLevels, 0, (array_search($level, $cefrLevels, true) ?: 0) + 1);
         $isBeginner = in_array($level, ['A0', 'A1', 'A2'], true);

@@ -89,7 +89,10 @@
     "content": "Content",
     "centers": "Centers",
     "support": "Help & support",
-    "open_menu": "Open menu"
+    "open_menu": "Open menu",
+    "my_assignments": "My assignments",
+    "my_path": "My path",
+    "my_words": "My words"
   },
   "support": {
     "title": "Help & support",
@@ -115,6 +118,7 @@
     "content": "Content",
     "assignments": "Assignments",
     "center": "Center space",
+    "center_settings": "Center settings",
     "join": "Join a center",
     "guide": "How to learn"
   },

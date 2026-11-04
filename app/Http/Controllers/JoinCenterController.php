@@ -119,17 +119,15 @@ class JoinCenterController extends Controller
                 $user->id => ['role_in_class' => 'student'],
             ]);
 
-            // L'examen de la classe n'est repris que si l'apprenant n'a PAS encore de
-            // parcours. Sinon on changeait son examen cible sous ses pieds : son
-            // programme restait ecrit pour l'ancien examen, et le tableau de bord ne
-            // retrouvait plus rien — parcours gele, semaines de travail inaccessibles.
-            // Les devoirs du centre ne dependent pas de l'examen cible.
+            // L'examen et le niveau de la classe ne remplissent que ce qui manque au
+            // profil : on ne remplace jamais un choix de l'apprenant. Changer son
+            // examen cible sous ses pieds gelait son parcours : son programme restait
+            // ecrit pour l'ancien examen, et le tableau de bord ne retrouvait plus
+            // rien. Les devoirs du centre ne dependent pas de l'examen cible.
             $examId = $classroom->exam_id ?? $center->default_exam_id;
             $aDejaUnParcours = CurriculumSkeleton::where('user_id', $user->id)->exists();
 
-            if ($examId && $user->profile && ! $aDejaUnParcours) {
-                $user->profile->update(['target_exam_id' => $examId]);
-            }
+            app(\App\Services\Center\ParcoursEleveDeCentre::class)->completerObjectif($user, $classroom);
 
             $parcoursConserve = $aDejaUnParcours
                 && $examId

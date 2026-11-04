@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
+import AnalyseIa from '@/components/center/analyse-ia';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -117,6 +118,9 @@ export default function StudentShow({
                         </Button>
                     </div>
                 </div>
+
+                {/* Le probleme principal et le levier de progression, d'abord : c'est ce que l'enseignant vient chercher. */}
+                <AnalyseIa sujet="eleve" url={route('center.analyses.eleve', student.id)} />
 
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                     <Card>

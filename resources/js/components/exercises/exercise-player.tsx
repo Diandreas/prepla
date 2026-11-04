@@ -267,6 +267,16 @@ const componentMap: Record<string, React.ComponentType<any>> = {
     'guided-writing': GuidedWriting,
 };
 
+/**
+ * Le composant qui affiche une question de ce format, celui du lecteur. Le
+ * createur d'exercices des centres s'en sert pour son apercu : l'enseignant voit
+ * exactement ce que l'eleve verra, pas une maquette.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- each renderer declares its own question and answer shape
+export function composantDuLecteur(componentKey: string): React.ComponentType<any> {
+    return componentMap[componentKey] ?? Mcq;
+}
+
 export function ExercisePlayer({ exercise, submitUrl, essai = false }: ExercisePlayerProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [answers, setAnswers] = useState<Record<string, FormDataConvertible>>({});

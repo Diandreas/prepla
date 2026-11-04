@@ -1,439 +1,778 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
-import AppLayout from '@/layouts/app-layout';
+import { AlertCircle, ArrowLeft, ArrowRight, BookOpen, Check, ClipboardList, Headphones, Mic, PenLine, Plus, Puzzle, RefreshCw, Sparkles, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Apercu } from '@/components/createur-exercices/apercu';
+import { champ, EditeurQuestion } from '@/components/createur-exercices/editeur-question';
+import { ZoneMedia } from '@/components/createur-exercices/zone-media';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useMemo, useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
+import AppLayout from '@/layouts/app-layout';
+import {
+    brouillonUtile,
+    cleDuBrouillon,
+    descriptionDuType,
+    deplacer,
+    dupliquer,
+    ecrireObjet,
+    effacerObjet,
+    libelleDuType,
+    lireObjet,
+    niveauDeLaClasse,
+    nomDeLaPartie,
+    nombreDeQuestions,
+    NIVEAUX,
+    problemesDeLaQuestion,
+    problemesDeLExercice,
+    questionsACompleter,
+    questionsAEnvoyer,
+    regrouperParCompetence,
+    resumeACompleter,
+    retirer,
+    stockageDuNavigateur,
+    type PartieOfficielle,
+} from '@/lib/createur-exercices';
 import { EXERCISE_SCHEMAS, emptyQuestion, familyOf, type Family } from '@/lib/exercise-schemas';
+import { cn } from '@/lib/utils';
 
-interface ExerciseType { id: number; name: string; component_key: string; skill_type: string; exam_id: number | null }
-interface Exam { id: number; name: string }
+interface ExerciseType { id: number; name: string; slug: string | null; component_key: string; skill_type: string | null; exam_id: number | null }
+interface Exam { id: number; name: string; language: string | null }
+interface Classroom { id: number; name: string; exam_id: number | null; level: string | null }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- le contenu suit le schema de chaque format
+type Libre = Record<string, any>;
 interface Props {
     exerciseTypes: ExerciseType[];
     exams: Exam[];
     defaultExamId: number | null;
+    classrooms: Classroom[];
+    retour: 'devoir' | null;
+    devoir: { id: number; title: string; classroom_id: number } | null;
+    limiteIa: { par_fenetre: number; minutes: number };
     exercise?: {
         id: number;
         exercise_type_id: number;
+        exam_id: number;
         difficulty: string;
-        content: Record<string, any> | null;
-        questions: any[];
+        content: Libre | null;
+        questions: Libre[];
+        is_ai_generated: boolean;
     };
 }
 
-const input = 'w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary';
+const ETAPES = ['Examen et niveau', 'Type d’exercice', 'Contenu', 'Aperçu'];
 
-export default function ExerciseBuilder({ exerciseTypes, exams, defaultExamId, exercise }: Props) {
+const ICONES: Record<string, typeof BookOpen> = {
+    reading: BookOpen,
+    listening: Headphones,
+    writing: PenLine,
+    speaking: Mic,
+    grammar: Puzzle,
+    autre: ClipboardList,
+};
+
+const MESSAGES_IA = [
+    'L’IA lit la structure officielle de l’examen…',
+    'Elle écrit le texte et les questions…',
+    'Elle vérifie chaque bonne réponse…',
+    'Encore quelques secondes : elle relit l’ensemble…',
+];
+
+type Origine = 'ia' | 'manuel' | null;
+
+export default function ExerciseBuilder({ exerciseTypes, exams, defaultExamId, classrooms, retour, devoir, limiteIa, exercise }: Props) {
     const editing = !!exercise;
-    const initialType = exercise
-        ? exerciseTypes.find((t) => t.id === exercise.exercise_type_id)
-        : undefined;
+    const page = usePage();
+    const compte = (page.props as { auth?: { user?: { id?: number } | null } }).auth?.user?.id ?? null;
+    const cle = cleDuBrouillon(compte);
 
-    const [typeId, setTypeId] = useState<number | ''>(exercise?.exercise_type_id ?? '');
-    const [examId, setExamId] = useState<number | ''>(defaultExamId ?? (exams[0]?.id ?? ''));
+    const examInitial = exercise?.exam_id ?? (exams.some((e) => e.id === defaultExamId) ? defaultExamId : exams[0]?.id) ?? null;
+    const [etape, setEtape] = useState(editing ? 3 : 1);
+    const [examId, setExamId] = useState<number | null>(examInitial);
     const [difficulty, setDifficulty] = useState(exercise?.difficulty ?? 'B1');
-    const [content, setContent] = useState<Record<string, any>>(exercise?.content ?? {});
-    const [questions, setQuestions] = useState<any[]>(exercise?.questions ?? []);
-    const [aiLoading, setAiLoading] = useState(false);
+    const [classroomId, setClassroomId] = useState<number | null>(null);
+    const [typeId, setTypeId] = useState<number | null>(exercise?.exercise_type_id ?? null);
+    const [content, setContent] = useState<Libre>(exercise?.content ?? {});
+    const [questions, setQuestions] = useState<Libre[]>(exercise?.questions ?? []);
+    const [origine, setOrigine] = useState<Origine>(editing ? (exercise?.is_ai_generated ? 'ia' : 'manuel') : null);
+    // Le chemin choisi a l'etape 3 : l'IA par defaut, ou l'ecriture a la main.
+    const [chemin, setChemin] = useState<'ia' | 'manuel'>(editing ? 'manuel' : 'ia');
+    const [ouvertes, setOuvertes] = useState<Record<number, boolean>>({ 0: true });
+    const [afficherProblemes, setAfficherProblemes] = useState(false);
+    const [modifie, setModifie] = useState(false);
+    const [brouillonRestaure, setBrouillonRestaure] = useState(false);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Types propres à l'examen choisi uniquement — sans ce filtre, tous les
-    // examens partagent le même menu et affichent des centaines d'entrées
-    // dupliquées (une par examen pour chaque type comme "Multiple Choice").
-    const availableTypes = useMemo(
-        () => exerciseTypes.filter((t) => t.exam_id === examId),
-        [exerciseTypes, examId],
-    );
+    // IA
+    const [theme, setTheme] = useState('');
+    const [consignes, setConsignes] = useState('');
+    const [nombre, setNombre] = useState('');
+    const [aiLoading, setAiLoading] = useState(false);
+    const [aiError, setAiError] = useState<string | null>(null);
+    const [message, setMessage] = useState(0);
 
-    function onExamChange(id: number) {
-        setExamId(id);
-        // Le type sélectionné peut ne plus exister pour ce nouvel examen.
-        if (!editing && typeId && !exerciseTypes.some((t) => t.id === typeId && t.exam_id === id)) {
-            setTypeId('');
-            setQuestions([]);
-        }
-    }
+    const [parties, setParties] = useState<Record<string, PartieOfficielle[]>>({});
+    const [partiesChargees, setPartiesChargees] = useState(false);
+    const envoiEnCours = useRef(false);
 
-    const selectedType = useMemo(
-        () => exerciseTypes.find((t) => t.id === typeId) ?? initialType,
-        [typeId, exerciseTypes, initialType],
-    );
+    const exam = exams.find((e) => e.id === examId) ?? null;
+    const availableTypes = useMemo(() => exerciseTypes.filter((t) => t.exam_id === examId), [exerciseTypes, examId]);
+    const selectedType = useMemo(() => exerciseTypes.find((t) => t.id === typeId) ?? null, [typeId, exerciseTypes]);
     const componentKey = selectedType?.component_key ?? '';
     const family: Family | null = componentKey ? familyOf(componentKey) : null;
     const schema = componentKey ? EXERCISE_SCHEMAS[componentKey] : null;
+    const ecoute = selectedType?.skill_type === 'listening';
+    const contexte = useMemo(() => ({ famille: family ?? '', componentKey }), [family, componentKey]);
+    const aCompleter = useMemo(() => (family ? questionsACompleter(questions, contexte) : []), [questions, contexte, family]);
+    const problemesExercice = useMemo(() => problemesDeLExercice({ skillType: selectedType?.skill_type, content, questions }), [selectedType, content, questions]);
+    const titreDuType = libelleDuType(selectedType);
+    const groupes = useMemo(() => regrouperParCompetence(availableTypes, parties), [availableTypes, parties]);
+    const contenuPret = family !== null && questions.length > 0 && aCompleter.length === 0 && problemesExercice.length === 0;
 
-    function onTypeChange(id: number) {
-        setTypeId(id);
-        const ck = exerciseTypes.find((t) => t.id === id)?.component_key ?? '';
-        const fam = familyOf(ck);
-        // reset questions to one empty of the right family when type changes
-        if (!editing) setQuestions(fam ? [emptyQuestion(fam)] : []);
+    // ── Brouillon : jamais pour un exercice en edition ──
+    const brouillonLu = useRef(false);
+    useEffect(() => {
+        brouillonLu.current = true;
+        if (editing) return;
+        const b = lireObjet(stockageDuNavigateur(), cle);
+        if (!b || !brouillonUtile(b)) return;
+        if (!exams.some((e) => e.id === b.examId)) return;
+        setExamId(b.examId);
+        setDifficulty(b.difficulty ?? 'B1');
+        setTypeId(b.typeId);
+        setContent(b.content ?? {});
+        setQuestions(Array.isArray(b.questions) ? b.questions : []);
+        setOrigine(b.origine ?? 'manuel');
+        setChemin(b.origine === 'ia' ? 'ia' : 'manuel');
+        setClassroomId(b.classroomId ?? null);
+        setEtape(Math.min(Math.max(Number(b.etape) || 3, 3), 4));
+        setBrouillonRestaure(true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        if (editing || !brouillonLu.current || !modifie) return;
+        const donnees = { examId, difficulty, typeId, content, questions, origine, classroomId, etape };
+        if (brouillonUtile(donnees)) ecrireObjet(stockageDuNavigateur(), cle, donnees);
+    }, [editing, modifie, examId, difficulty, typeId, content, questions, origine, classroomId, etape, cle]);
+
+    function repartirDeZero() {
+        effacerObjet(stockageDuNavigateur(), cle);
+        setBrouillonRestaure(false);
+        setTypeId(null);
+        setContent({});
+        setQuestions([]);
+        setOrigine(null);
+        setChemin('ia');
+        setModifie(false);
+        setEtape(1);
     }
 
-    function addQuestion() {
-        if (family) setQuestions((q) => [...q, emptyQuestion(family)]);
-    }
-    function updateQuestion(i: number, patch: Record<string, any>) {
-        setQuestions((qs) => qs.map((q, idx) => (idx === i ? { ...q, ...patch } : q)));
-    }
-    function removeQuestion(i: number) {
-        setQuestions((qs) => qs.filter((_, idx) => idx !== i));
+    // ── Quitter avec des modifications non enregistrees ──
+    useEffect(() => {
+        if (!modifie) return;
+        const avant = (e: BeforeUnloadEvent) => {
+            if (envoiEnCours.current) return;
+            e.preventDefault();
+            e.returnValue = '';
+        };
+        window.addEventListener('beforeunload', avant);
+        const retirerEcoute = router.on('before', (event) => {
+            if (envoiEnCours.current) return;
+            const methode = event.detail.visit.method;
+            if (methode !== 'get') return;
+            if (!confirm('Vos modifications ne sont pas enregistrées. Quitter quand même ? (Un brouillon reste gardé sur cet appareil.)')) {
+                event.preventDefault();
+            }
+        });
+        return () => {
+            window.removeEventListener('beforeunload', avant);
+            retirerEcoute();
+        };
+    }, [modifie]);
+
+    // ── Parties officielles de l'examen a ce niveau ──
+    useEffect(() => {
+        if (!examId) return;
+        let annule = false;
+        setPartiesChargees(false);
+        axios.get(route('center.exercises.parties'), { params: { exam_id: examId, difficulty } })
+            .then((res) => { if (!annule) setParties(res.data?.parties ?? {}); })
+            .catch(() => { if (!annule) setParties({}); })
+            .finally(() => { if (!annule) setPartiesChargees(true); });
+        return () => { annule = true; };
+    }, [examId, difficulty]);
+
+    // ── Messages pendant la generation ──
+    useEffect(() => {
+        if (!aiLoading) return;
+        setMessage(0);
+        const t = window.setInterval(() => setMessage((m) => Math.min(m + 1, MESSAGES_IA.length - 1)), 4500);
+        return () => window.clearInterval(t);
+    }, [aiLoading]);
+
+    const changer = useCallback(() => setModifie(true), []);
+
+    function choisirExamen(id: number) {
+        setExamId(id);
+        changer();
+        if (!editing && typeId && !exerciseTypes.some((t) => t.id === typeId && t.exam_id === id)) {
+            setTypeId(null);
+            setQuestions([]);
+            setOrigine(null);
+        }
     }
 
-    async function generateWithAi() {
+    function choisirClasse(id: number | null) {
+        setClassroomId(id);
+        const classe = classrooms.find((c) => c.id === id);
+        if (!classe) return;
+        if (!editing && classe.exam_id && exams.some((e) => e.id === classe.exam_id)) choisirExamen(classe.exam_id);
+        const niveau = niveauDeLaClasse(classe.level);
+        if (niveau) setDifficulty(niveau);
+    }
+
+    function choisirType(t: ExerciseType) {
+        if (t.id !== typeId) {
+            const fam = familyOf(t.component_key);
+            setTypeId(t.id);
+            setQuestions([]);
+            setContent((c) => (c.title ? { title: c.title } : {}));
+            setOrigine(null);
+            setOuvertes({ 0: true });
+            if (!fam) return;
+        }
+        changer();
+        setEtape(3);
+    }
+
+    function ecrireMoiMeme() {
+        if (!family) return;
+        setChemin('manuel');
+        if (origine === null) setOrigine('manuel');
+        if (questions.length === 0) setQuestions([emptyQuestion(family)]);
+        setOuvertes({ 0: true });
+        changer();
+    }
+
+    async function genererAvecIa() {
         if (!typeId || !examId) return;
+        if (questions.length > 0 && modifie && !confirm('Remplacer les questions actuelles par une nouvelle proposition de l’IA ?')) return;
         setAiLoading(true);
-        setError(null);
+        setAiError(null);
         try {
             const res = await axios.post(route('center.exercises.ai-draft'), {
                 exercise_type_id: typeId,
                 exam_id: examId,
                 difficulty,
+                theme: theme.trim() || null,
+                consignes: consignes.trim() || null,
+                nombre_questions: nombreDeQuestions(nombre),
             });
-            setContent(res.data.content ?? {});
-            setQuestions(res.data.questions ?? []);
-        } catch (e: any) {
-            setError(e?.response?.data?.error ?? 'La génération IA a échoué.');
+            const titre = typeof content.title === 'string' ? content.title : '';
+            setContent({ ...(res.data.content ?? {}), ...(titre ? { title: titre } : {}) });
+            setQuestions(Array.isArray(res.data.questions) ? res.data.questions : []);
+            setOrigine('ia');
+            setOuvertes({ 0: true });
+            setAfficherProblemes(false);
+            changer();
+        } catch (e: unknown) {
+            const r = (e as { response?: { status?: number; data?: { error?: string; message?: string } } })?.response;
+            setAiError(r?.data?.error ?? r?.data?.message ?? (r?.status === 419 ? 'La session a expiré : rechargez la page.' : 'La génération a échoué. Vérifiez votre connexion et réessayez.'));
         } finally {
             setAiLoading(false);
         }
     }
 
-    function save() {
+    function majQuestions(next: Libre[]) {
+        setQuestions(next);
+        changer();
+    }
+
+    function aller(cible: number) {
+        if (cible === 4 && !contenuPret) {
+            setAfficherProblemes(true);
+            const premiere = aCompleter[0];
+            if (premiere !== undefined) {
+                setOuvertes((o) => ({ ...o, [premiere]: true }));
+                window.setTimeout(() => document.getElementById(`question-${premiere}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 50);
+            }
+            return;
+        }
+        setEtape(cible);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function accessible(n: number) {
+        if (editing) return n >= 3 || n === 1;
+        if (n === 1) return true;
+        if (n === 2) return !!examId;
+        if (n === 3) return !!typeId;
+        return !!typeId && contenuPret;
+    }
+
+    function save(versDevoir: boolean) {
         if (!typeId || !examId) {
-            setError('Choisissez un type et un examen.');
+            setError('Choisissez un examen et un type d’exercice.');
+            return;
+        }
+        if (!contenuPret) {
+            setAfficherProblemes(true);
+            setEtape(3);
+            setError(problemesExercice[0] ?? resumeACompleter(aCompleter.length) ?? 'L’exercice n’est pas complet.');
             return;
         }
         setSaving(true);
+        envoiEnCours.current = true;
         setError(null);
         const payload = {
             exercise_type_id: typeId,
             exam_id: examId,
             difficulty,
             content,
-            questions,
-            is_ai_generated: false,
+            questions: questionsAEnvoyer(questions, content),
+            is_ai_generated: origine === 'ia',
+            retour: versDevoir || retour === 'devoir' ? 'devoir' : null,
+            assignment_id: devoir?.id ?? null,
         };
         const opts = {
-            onError: (errs: any) => setError(Object.values(errs)[0] as string),
-            onFinish: () => setSaving(false),
+            onSuccess: () => {
+                if (!editing) effacerObjet(stockageDuNavigateur(), cle);
+                setModifie(false);
+            },
+            onError: (errs: Record<string, string>) => {
+                envoiEnCours.current = false;
+                setError(Object.values(errs)[0] ?? 'L’enregistrement a échoué.');
+            },
+            onFinish: () => {
+                setSaving(false);
+                envoiEnCours.current = false;
+            },
         };
-        if (editing) {
-            router.patch(route('center.exercises.update', exercise!.id), payload, opts);
-        } else {
-            router.post(route('center.exercises.store'), payload, opts);
-        }
+        if (editing) router.patch(route('center.exercises.update', exercise!.id), payload, opts);
+        else router.post(route('center.exercises.store'), payload, opts);
     }
+
+    const titrePage = editing ? 'Modifier un exercice' : 'Créer un exercice';
+    const retourLien = devoir ? route('center.assignments.show', devoir.id) : retour === 'devoir' ? route('center.assignments.create') : route('center.exercises.index');
+    const retourTexte = devoir ? `← Devoir « ${devoir.title} »` : retour === 'devoir' ? '← Retour au devoir' : '← Contenu';
+    const libelleEnregistrer = devoir ? 'Enregistrer et ajouter au devoir' : retour === 'devoir' ? 'Enregistrer et revenir au devoir' : 'Enregistrer';
+    const resume = resumeACompleter(aCompleter.length);
+    const enEdition = family !== null && (questions.length > 0 || chemin === 'manuel');
 
     return (
         <AppLayout>
-            <Head title={editing ? 'Modifier un exercice' : 'Nouvel exercice'} />
-            <div className="mx-auto w-full max-w-3xl space-y-5 p-4 md:p-6">
+            <Head title={titrePage} />
+            <div className="mx-auto w-full max-w-6xl space-y-5 p-4 pb-32 md:p-6 md:pb-32">
                 <div>
-                    <Link href={route('center.exercises.index')} className="text-sm text-muted-foreground hover:text-foreground">
-                        ← Contenu
-                    </Link>
-                    <h1 className="mt-1 text-2xl font-bold tracking-tight">{editing ? 'Modifier un exercice' : 'Nouvel exercice'}</h1>
+                    <Link href={retourLien} className="text-sm text-muted-foreground hover:text-foreground">{retourTexte}</Link>
+                    <h1 className="mt-1 text-2xl font-bold tracking-tight">{titrePage}</h1>
+                    <p className="text-sm text-muted-foreground">
+                        {editing ? `${titreDuType} · ${exam?.name ?? ''} · ${difficulty}` : 'Quatre étapes : l’examen, le type, le contenu, puis l’aperçu avant d’enregistrer.'}
+                    </p>
                 </div>
 
-                {error && <div className="rounded-lg border border-rose-300 bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-950/30">{error}</div>}
+                <Etapes etape={etape} accessible={accessible} onAller={aller} />
 
-                <Card>
-                    <CardHeader><CardTitle className="text-base">Type & paramètres</CardTitle></CardHeader>
-                    <CardContent className="grid gap-4 sm:grid-cols-3">
-                        <div className="sm:col-span-1">
-                            <label className="text-sm font-medium">Type</label>
-                            <select className={`mt-1 ${input}`} value={typeId} onChange={(e) => onTypeChange(Number(e.target.value))} disabled={editing}>
-                                <option value="">—</option>
-                                {availableTypes.map((t) => (
-                                    <option key={t.id} value={t.id}>{t.name} ({t.skill_type})</option>
-                                ))}
-                            </select>
+                {brouillonRestaure && (
+                    <div role="status" className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-sky-300 bg-sky-50 px-4 py-3 text-sm text-sky-900 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-100">
+                        <span><strong>Brouillon restauré.</strong> Vous reprenez l’exercice commencé sur cet appareil.</span>
+                        <div className="flex gap-2">
+                            <Button type="button" variant="ghost" size="sm" onClick={repartirDeZero}>Repartir de zéro</Button>
+                            <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => setBrouillonRestaure(false)} aria-label="Fermer"><X className="h-4 w-4" /></Button>
                         </div>
-                        <div>
-                            <label className="text-sm font-medium">Examen</label>
-                            <select className={`mt-1 ${input}`} value={examId} onChange={(e) => onExamChange(Number(e.target.value))} disabled={editing}>
-                                {exams.map((ex) => (<option key={ex.id} value={ex.id}>{ex.name}</option>))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="text-sm font-medium">Niveau</label>
-                            <select className={`mt-1 ${input}`} value={difficulty} onChange={(e) => setDifficulty(e.target.value)}>
-                                {['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((l) => (<option key={l} value={l}>{l}</option>))}
-                            </select>
-                        </div>
-                        {!editing && typeId && (
-                            <div className="sm:col-span-3">
-                                <Button type="button" variant="outline" onClick={generateWithAi} disabled={aiLoading}>
-                                    {aiLoading ? 'Génération…' : '✨ Générer un brouillon avec l\'IA'}
-                                </Button>
-                                <span className="ml-2 text-xs text-muted-foreground">puis éditez librement avant d'enregistrer</span>
+                    </div>
+                )}
+
+                {error && (
+                    <div role="alert" className="flex items-start gap-2 rounded-xl border border-rose-300 bg-rose-50 p-3 text-sm text-rose-800 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-100">
+                        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /> {error}
+                    </div>
+                )}
+
+                {/* ── Etape 1 : examen, niveau, classe ── */}
+                {etape === 1 && (
+                    <section aria-labelledby="titre-etape-1" className="space-y-6 rounded-2xl border border-border bg-card p-4 sm:p-6">
+                        <h2 id="titre-etape-1" className="text-lg font-bold">Pour quel examen et quel niveau ?</h2>
+
+                        {classrooms.length > 0 && !editing && (
+                            <div>
+                                <label htmlFor="classe" className="text-sm font-medium">Classe visée <span className="font-normal text-muted-foreground">(facultatif : remplit l’examen et le niveau)</span></label>
+                                <select id="classe" className={`mt-1 max-w-sm ${champ}`} value={classroomId ?? ''} onChange={(e) => choisirClasse(e.target.value ? Number(e.target.value) : null)}>
+                                    <option value="">Aucune classe en particulier</option>
+                                    {classrooms.map((c) => <option key={c.id} value={c.id}>{c.name}{c.level ? ` · ${c.level}` : ''}</option>)}
+                                </select>
                             </div>
                         )}
-                    </CardContent>
-                </Card>
 
-                {schema && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-base">Contenu commun</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                            <div>
-                                <label className="text-sm font-medium">Passage / consigne (facultatif)</label>
-                                <textarea className={`mt-1 min-h-[80px] ${input}`} value={content.passage ?? ''} onChange={(e) => setContent({ ...content, passage: e.target.value })} />
+                        <fieldset>
+                            <legend className="text-sm font-medium">Examen</legend>
+                            {editing && <p className="text-xs text-muted-foreground">L’examen d’un exercice existant ne change pas.</p>}
+                            <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                                {exams.map((e) => (
+                                    <CarteChoix key={e.id} choisi={examId === e.id} disabled={editing} onClick={() => choisirExamen(e.id)} titre={e.name} />
+                                ))}
                             </div>
-                            {schema.media.includes('image') && (
-                                <MediaPicker type="image" value={content.image_url} onChange={(url) => setContent({ ...content, image_url: url })} />
-                            )}
-                            {schema.media.includes('audio') && (
-                                <div className="space-y-2">
-                                    <MediaPicker type="audio" value={content.audio_url} onChange={(url) => setContent({ ...content, audio_url: url })} />
-                                    <p className="text-xs text-muted-foreground">Ou laissez vide et renseignez « texte audio » par question pour une génération vocale automatique.</p>
+                            {exams.length === 0 && <p className="mt-2 text-sm text-muted-foreground">Aucun examen n’est proposé par votre centre : choisissez-en dans les paramètres.</p>}
+                        </fieldset>
+
+                        <fieldset>
+                            <legend className="text-sm font-medium">Niveau</legend>
+                            <div className="mt-2 flex flex-wrap gap-2" role="radiogroup" aria-label="Niveau">
+                                {NIVEAUX.map((n) => (
+                                    <button
+                                        key={n}
+                                        type="button"
+                                        role="radio"
+                                        aria-checked={difficulty === n}
+                                        onClick={() => { setDifficulty(n); changer(); }}
+                                        className={cn('min-h-11 min-w-14 rounded-xl border-[1.5px] px-4 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring', difficulty === n ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:bg-muted')}
+                                    >
+                                        {n}
+                                    </button>
+                                ))}
+                            </div>
+                        </fieldset>
+                    </section>
+                )}
+
+                {/* ── Etape 2 : type en cartes, par competence ── */}
+                {etape === 2 && (
+                    <section aria-labelledby="titre-etape-2" className="space-y-6">
+                        <div>
+                            <h2 id="titre-etape-2" className="text-lg font-bold">Quel type d’exercice ?</h2>
+                            <p className="text-sm text-muted-foreground">Les formats de {exam?.name ?? 'l’examen'}, rangés par compétence. Le badge indique la partie officielle de l’épreuve au niveau {difficulty}.</p>
+                        </div>
+                        {availableTypes.length === 0 && (
+                            <p className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">Aucun format n’est encore disponible pour cet examen.</p>
+                        )}
+                        {groupes.map(({ competence, types }) => {
+                            const Icone = ICONES[competence.cle] ?? ClipboardList;
+                            return (
+                                <div key={competence.cle}>
+                                    <h3 className="mb-2 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-muted-foreground">
+                                        <Icone className="h-4 w-4" aria-hidden="true" /> {competence.nom}
+                                    </h3>
+                                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                                        {types.map((t) => {
+                                            const sesParties = parties[t.id] ?? [];
+                                            return (
+                                                <button
+                                                    key={t.id}
+                                                    type="button"
+                                                    onClick={() => choisirType(t)}
+                                                    aria-pressed={typeId === t.id}
+                                                    className={cn(
+                                                        'flex h-full flex-col items-start gap-1.5 rounded-2xl border-[1.5px] bg-card p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                                                        typeId === t.id ? 'border-primary ring-1 ring-primary' : 'border-border hover:border-primary/60 hover:bg-muted/40',
+                                                    )}
+                                                >
+                                                    <span className="flex w-full items-start justify-between gap-2">
+                                                        <span className="font-semibold">{libelleDuType(t)}</span>
+                                                        {typeId === t.id && <Check className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />}
+                                                    </span>
+                                                    {descriptionDuType(t) && <span className="text-sm text-muted-foreground">{descriptionDuType(t)}</span>}
+                                                    {sesParties.length > 0 && (
+                                                        <span className="mt-auto flex flex-wrap gap-1 pt-1">
+                                                            {sesParties.slice(0, 3).map((p, i) => (
+                                                                <span key={i} className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                                                                    {nomDeLaPartie(p)}{p.items ? ` · ${p.items} items` : ''}
+                                                                </span>
+                                                            ))}
+                                                        </span>
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                        {!partiesChargees && availableTypes.length > 0 && <p className="text-xs text-muted-foreground" aria-live="polite">Recherche des parties officielles…</p>}
+                    </section>
+                )}
+
+                {/* ── Etape 3 : contenu ── */}
+                {etape === 3 && family && (
+                    <div className={cn('gap-6', enEdition && 'lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]')}>
+                        <section aria-labelledby="titre-etape-3" className="space-y-5">
+                            <div>
+                                <h2 id="titre-etape-3" className="text-lg font-bold">{titreDuType}</h2>
+                                {descriptionDuType(selectedType) && <p className="text-sm text-muted-foreground">{descriptionDuType(selectedType)}</p>}
+                            </div>
+
+                            {!editing && (
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                    <CheminCarte
+                                        actif={chemin === 'ia'}
+                                        icone={Sparkles}
+                                        titre="Générer avec l’IA"
+                                        texte="Un brouillon conforme à l’épreuve en quelques secondes, à relire et modifier."
+                                        onClick={() => setChemin('ia')}
+                                        id="chemin-ia"
+                                    />
+                                    <CheminCarte
+                                        actif={chemin === 'manuel'}
+                                        icone={PenLine}
+                                        titre="Écrire moi-même"
+                                        texte="Vous rédigez les questions et cochez les bonnes réponses."
+                                        onClick={ecrireMoiMeme}
+                                        id="chemin-manuel"
+                                    />
                                 </div>
                             )}
-                        </CardContent>
-                    </Card>
+
+                            {/* Formulaire IA : visible tant qu'on n'ecrit pas a la main. */}
+                            {!editing && chemin === 'ia' && (
+                                <div className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-5">
+                                    <div className="flex items-center gap-2">
+                                        <Sparkles className="h-5 w-5 text-primary" aria-hidden="true" />
+                                        <h3 className="font-semibold">Ce que l’IA doit savoir <span className="font-normal text-muted-foreground">(tout est facultatif)</span></h3>
+                                    </div>
+                                    <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_10rem]">
+                                        <label className="text-sm font-medium">Thème
+                                            <input className={`mt-1 ${champ}`} maxLength={120} value={theme} onChange={(e) => setTheme(e.target.value)} placeholder="Ex. : la santé, le travail en Allemagne" />
+                                        </label>
+                                        <label className="text-sm font-medium">Nombre de questions
+                                            <select className={`mt-1 ${champ}`} value={nombre} onChange={(e) => setNombre(e.target.value)}>
+                                                <option value="">Comme à l’examen</option>
+                                                {Array.from({ length: 20 }, (_, i) => i + 1).map((n) => <option key={n} value={n}>{n}</option>)}
+                                            </select>
+                                        </label>
+                                    </div>
+                                    <label className="block text-sm font-medium">Consignes pour l’IA
+                                        <textarea className={`mt-1 min-h-[70px] ${champ}`} maxLength={600} value={consignes} onChange={(e) => setConsignes(e.target.value)} placeholder="Ex. : vocabulaire de l’hôpital, des prénoms camerounais, phrases courtes." />
+                                    </label>
+                                    <div className="flex flex-wrap items-center gap-3">
+                                        <Button type="button" onClick={genererAvecIa} disabled={aiLoading}>
+                                            {questions.length > 0 && origine === 'ia' ? <RefreshCw className="h-4 w-4" aria-hidden="true" /> : <Sparkles className="h-4 w-4" aria-hidden="true" />}
+                                            {aiLoading ? 'Génération en cours…' : questions.length > 0 && origine === 'ia' ? 'Régénérer' : 'Générer le brouillon'}
+                                        </Button>
+                                        <span className="text-xs text-muted-foreground">Jusqu’à {limiteIa.par_fenetre} générations toutes les {limiteIa.minutes} minutes.</span>
+                                    </div>
+                                    {aiError && (
+                                        <div role="alert" className="flex flex-wrap items-center gap-2 rounded-xl border border-rose-300 bg-rose-50 p-3 text-sm text-rose-800 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-100">
+                                            <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
+                                            <span className="flex-1">{aiError}</span>
+                                            <Button type="button" variant="outline" size="sm" onClick={genererAvecIa} disabled={aiLoading}>Réessayer</Button>
+                                            <Button type="button" variant="ghost" size="sm" onClick={ecrireMoiMeme}>Écrire moi-même</Button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {aiLoading && (
+                                <div className="space-y-3 rounded-2xl border border-border bg-card p-4" aria-busy="true">
+                                    <p className="text-sm font-medium" aria-live="polite">{MESSAGES_IA[message]}</p>
+                                    <Skeleton className="h-5 w-2/3" />
+                                    <Skeleton className="h-20 w-full" />
+                                    <Skeleton className="h-10 w-full" />
+                                    <Skeleton className="h-10 w-full" />
+                                    <Skeleton className="h-10 w-5/6" />
+                                </div>
+                            )}
+
+                            {enEdition && !aiLoading && (
+                                <>
+                                    {origine === 'ia' && !editing && (
+                                        <p className="rounded-xl bg-primary/5 px-3 py-2 text-sm"><Sparkles className="mr-1 inline h-4 w-4 text-primary" aria-hidden="true" />Brouillon écrit par l’IA : relisez-le et corrigez ce qui ne vous convient pas avant d’enregistrer.</p>
+                                    )}
+
+                                    <div className="space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-5">
+                                        <h3 className="font-semibold">L’exercice</h3>
+                                        <label className="block text-sm font-medium">Titre <span className="font-normal text-muted-foreground">(c’est lui que vous retrouverez dans vos listes)</span>
+                                            <input className={`mt-1 ${champ}`} maxLength={160} value={content.title ?? ''} onChange={(e) => { setContent({ ...content, title: e.target.value }); changer(); }} placeholder="Ex. : Rendez-vous chez le médecin" />
+                                        </label>
+                                        {!ecoute && (
+                                            <label className="block text-sm font-medium">Texte à lire ou consigne générale <span className="font-normal text-muted-foreground">(facultatif)</span>
+                                                <textarea className={`mt-1 min-h-[110px] ${champ}`} value={content.passage ?? ''} onChange={(e) => { setContent({ ...content, passage: e.target.value }); changer(); }} />
+                                            </label>
+                                        )}
+                                        {ecoute && (
+                                            <label className="block text-sm font-medium">Texte audio <span className="font-normal text-muted-foreground">(lu par la voix de synthèse si vous n’ajoutez pas d’enregistrement)</span>
+                                                <textarea className={`mt-1 min-h-[110px] ${champ}`} value={content.audio_text ?? ''} onChange={(e) => { setContent({ ...content, audio_text: e.target.value }); changer(); }} placeholder="Le dialogue ou l’annonce que l’élève entendra…" />
+                                            </label>
+                                        )}
+                                        {(schema?.media.includes('audio') && ecoute) && (
+                                            <ZoneMedia type="audio" value={content.audio_url} onChange={(url) => { setContent({ ...content, audio_url: url }); changer(); }} aide="Un enregistrement remplace la voix de synthèse." />
+                                        )}
+                                        {schema?.media.includes('image') && (
+                                            <ZoneMedia type="image" value={content.image_url} onChange={(url) => { setContent({ ...content, image_url: url }); changer(); }} />
+                                        )}
+                                        {afficherProblemes && problemesExercice.map((p) => (
+                                            <p key={p} className="flex items-start gap-1 text-xs text-rose-600 dark:text-rose-400"><AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />{p}</p>
+                                        ))}
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <div className="flex flex-wrap items-center justify-between gap-2">
+                                            <h3 className="font-semibold">Questions ({questions.length})</h3>
+                                            {resume && <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-900 dark:bg-amber-900/40 dark:text-amber-100" aria-live="polite">{resume}</span>}
+                                        </div>
+                                        {questions.map((q, i) => (
+                                            <div key={i} id={`question-${i}`}>
+                                                <EditeurQuestion
+                                                    index={i}
+                                                    total={questions.length}
+                                                    famille={family}
+                                                    componentKey={componentKey}
+                                                    ecoute={ecoute}
+                                                    question={q}
+                                                    problemes={problemesDeLaQuestion(q, contexte)}
+                                                    afficherProblemes={afficherProblemes}
+                                                    ouverte={ouvertes[i] ?? questions.length <= 3}
+                                                    onToggle={() => setOuvertes((o) => ({ ...o, [i]: !(o[i] ?? questions.length <= 3) }))}
+                                                    onChange={(nq) => majQuestions(questions.map((x, j) => (j === i ? nq : x)))}
+                                                    onMonter={() => majQuestions(deplacer(questions, i, -1))}
+                                                    onDescendre={() => majQuestions(deplacer(questions, i, 1))}
+                                                    onDupliquer={() => { majQuestions(dupliquer(questions, i)); setOuvertes((o) => ({ ...o, [i + 1]: true })); }}
+                                                    onSupprimer={() => majQuestions(retirer(questions, i))}
+                                                />
+                                            </div>
+                                        ))}
+                                        <Button type="button" variant="outline" onClick={() => { majQuestions([...questions, emptyQuestion(family)]); setOuvertes((o) => ({ ...o, [questions.length]: true })); }}>
+                                            <Plus className="h-4 w-4" aria-hidden="true" /> Ajouter une question
+                                        </Button>
+                                    </div>
+                                </>
+                            )}
+                        </section>
+
+                        {enEdition && !aiLoading && (
+                            <aside className="hidden lg:block" aria-label="Aperçu en direct">
+                                <div className="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto rounded-2xl border border-border bg-muted/30 p-4">
+                                    <Apercu componentKey={componentKey} skillType={selectedType?.skill_type} content={content} questions={questionsAEnvoyer(questions, content)} lang={exam?.language ?? 'en'} titreDuType={titreDuType} />
+                                </div>
+                            </aside>
+                        )}
+                    </div>
                 )}
 
-                {family && (
-                    <Card>
-                        <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <CardTitle className="text-base">Questions ({questions.length})</CardTitle>
-                                <Button type="button" variant="outline" size="sm" onClick={addQuestion}>+ Ajouter</Button>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            {questions.length === 0 && <p className="text-sm text-muted-foreground">Ajoutez au moins une question.</p>}
-                            {questions.map((q, i) => (
-                                <QuestionEditor
-                                    key={i}
-                                    index={i}
-                                    family={family}
-                                    componentKey={componentKey}
-                                    question={q}
-                                    onChange={(patch) => updateQuestion(i, patch)}
-                                    onRemove={() => removeQuestion(i)}
-                                />
-                            ))}
-                        </CardContent>
-                    </Card>
+                {etape === 3 && !family && (
+                    <p className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">Choisissez d’abord un type d’exercice.</p>
                 )}
 
-                <Button onClick={save} disabled={saving || !family}>{saving ? 'Enregistrement…' : 'Enregistrer'}</Button>
+                {/* ── Etape 4 : apercu final ── */}
+                {etape === 4 && family && (
+                    <section aria-labelledby="titre-etape-4" className="mx-auto max-w-3xl space-y-4">
+                        <div>
+                            <h2 id="titre-etape-4" className="text-lg font-bold">Vérifiez avant d’enregistrer</h2>
+                            <p className="text-sm text-muted-foreground">{titreDuType} · {exam?.name} · {difficulty} · {questions.length} question{questions.length > 1 ? 's' : ''}. Répondez comme un élève, puis affichez la correction.</p>
+                        </div>
+                        <div className="rounded-2xl border border-border bg-muted/30 p-4 sm:p-6">
+                            <Apercu componentKey={componentKey} skillType={selectedType?.skill_type} content={content} questions={questionsAEnvoyer(questions, content)} lang={exam?.language ?? 'en'} titreDuType={titreDuType} />
+                        </div>
+                    </section>
+                )}
+            </div>
+
+            {/* Barre d'actions : collee en bas, a portee de pouce sur telephone. */}
+            <div className="sticky bottom-0 z-20 border-t border-border bg-background/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur">
+                <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-2">
+                    <div>
+                        {etape > 1 && !(editing && etape === 3) && (
+                            <Button type="button" variant="ghost" onClick={() => aller(etape - 1)}><ArrowLeft className="h-4 w-4" aria-hidden="true" /> Retour</Button>
+                        )}
+                        {editing && etape === 1 && (
+                            <Button type="button" variant="ghost" onClick={() => aller(3)}><ArrowLeft className="h-4 w-4" aria-hidden="true" /> Retour au contenu</Button>
+                        )}
+                    </div>
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                        {etape === 3 && resume && afficherProblemes && <span className="hidden text-xs font-semibold text-amber-700 sm:inline dark:text-amber-300">{resume}</span>}
+                        {etape === 1 && <Button type="button" onClick={() => aller(editing ? 3 : 2)} disabled={!examId}>Continuer <ArrowRight className="h-4 w-4" aria-hidden="true" /></Button>}
+                        {etape === 2 && <Button type="button" onClick={() => aller(3)} disabled={!typeId}>Continuer <ArrowRight className="h-4 w-4" aria-hidden="true" /></Button>}
+                        {etape === 3 && enEdition && <Button type="button" onClick={() => aller(4)}>Voir l’aperçu <ArrowRight className="h-4 w-4" aria-hidden="true" /></Button>}
+                        {etape === 4 && (
+                            <>
+                                {!devoir && retour !== 'devoir' && (
+                                    <Button type="button" variant="outline" onClick={() => save(true)} disabled={saving}>Enregistrer et donner en devoir</Button>
+                                )}
+                                <Button type="button" onClick={() => save(false)} disabled={saving}>{saving ? 'Enregistrement…' : libelleEnregistrer}</Button>
+                            </>
+                        )}
+                    </div>
+                </div>
             </div>
         </AppLayout>
     );
 }
 
-// ───────────────────────── per-family question editor ─────────────────────────
-
-function QuestionEditor({
-    index,
-    family,
-    componentKey,
-    question,
-    onChange,
-    onRemove,
-}: {
-    index: number;
-    family: Family;
-    componentKey: string;
-    question: any;
-    onChange: (patch: Record<string, any>) => void;
-    onRemove: () => void;
-}) {
+function Etapes({ etape, accessible, onAller }: { etape: number; accessible: (n: number) => boolean; onAller: (n: number) => void }) {
     return (
-        <div className="rounded-lg border border-border p-3 space-y-3">
-            <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase text-muted-foreground">Question {index + 1}</span>
-                <button onClick={onRemove} className="text-xs text-rose-500 hover:underline">Supprimer</button>
-            </div>
+        <nav aria-label="Étapes">
+            <ol className="grid grid-cols-4 gap-1.5 sm:gap-3">
+                {ETAPES.map((nom, i) => {
+                    const n = i + 1;
+                    const actuelle = n === etape;
+                    const faite = n < etape;
+                    const ok = accessible(n);
+                    return (
+                        <li key={nom}>
+                            <button
+                                type="button"
+                                disabled={!ok || actuelle}
+                                onClick={() => onAller(n)}
+                                aria-current={actuelle ? 'step' : undefined}
+                                className={cn(
+                                    'flex w-full flex-col items-start gap-1 rounded-xl border-t-4 pt-2 text-left text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:text-sm',
+                                    actuelle ? 'border-primary text-foreground' : faite ? 'border-primary/50 text-muted-foreground hover:text-foreground' : 'border-border text-muted-foreground',
+                                    !ok && 'cursor-not-allowed opacity-60',
+                                )}
+                            >
+                                <span className="flex items-center gap-1">
+                                    <span className={cn('inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px]', actuelle || faite ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
+                                        {faite ? <Check className="h-3 w-3" aria-hidden="true" /> : n}
+                                    </span>
+                                    <span className="sr-only">Étape {n} :</span>
+                                </span>
+                                <span className="leading-tight">{nom}</span>
+                            </button>
+                        </li>
+                    );
+                })}
+            </ol>
+        </nav>
+    );
+}
 
-            <textarea className={`min-h-[60px] ${input}`} placeholder="Énoncé de la question…" value={question.text ?? ''} onChange={(e) => onChange({ text: e.target.value })} />
-
-            {family === 'exact-match' && componentKey !== 'true-false-ng' && (
-                <ExactMatchFields question={question} onChange={onChange} />
+function CarteChoix({ choisi, disabled, onClick, titre }: { choisi: boolean; disabled?: boolean; onClick: () => void; titre: string }) {
+    return (
+        <button
+            type="button"
+            role="radio"
+            aria-checked={choisi}
+            disabled={disabled && !choisi}
+            onClick={onClick}
+            className={cn(
+                'flex min-h-14 items-center justify-between gap-2 rounded-xl border-[1.5px] bg-background px-4 text-left font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50',
+                choisi ? 'border-primary ring-1 ring-primary' : 'border-border hover:border-primary/60 hover:bg-muted/40',
             )}
-            {family === 'exact-match' && componentKey === 'true-false-ng' && (
-                <select className={input} value={question.correct_answer ?? ''} onChange={(e) => onChange({ correct_answer: e.target.value })}>
-                    <option value="">Réponse correcte…</option>
-                    <option value="True">Vrai</option>
-                    <option value="False">Faux</option>
-                    <option value="Not Given">Non mentionné</option>
-                </select>
+        >
+            {titre}
+            {choisi && <Check className="h-4 w-4 text-primary" aria-hidden="true" />}
+        </button>
+    );
+}
+
+function CheminCarte({ actif, icone: Icone, titre, texte, onClick, id }: { actif: boolean; icone: typeof Sparkles; titre: string; texte: string; onClick: () => void; id: string }) {
+    return (
+        <button
+            id={id}
+            type="button"
+            onClick={onClick}
+            aria-pressed={actif}
+            className={cn(
+                'flex items-start gap-3 rounded-2xl border-[1.5px] bg-card p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                actif ? 'border-primary ring-1 ring-primary' : 'border-border hover:border-primary/60 hover:bg-muted/40',
             )}
-            {family === 'multi-field' && <KeyValueFields question={question} onChange={onChange} />}
-            {family === 'order' && <OrderFields question={question} onChange={onChange} />}
-            {family === 'ai-writing' && <WordRangeFields question={question} onChange={onChange} />}
-            {family === 'ai-speaking' && <ExpectedPointsFields question={question} onChange={onChange} />}
-        </div>
-    );
-}
-
-function ExactMatchFields({ question, onChange }: { question: any; onChange: (p: any) => void }) {
-    const options: string[] = question.options ?? ['', '', '', ''];
-    const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
-    const hasOptions = options.length > 0;
-    return (
-        <div className="space-y-2">
-            {hasOptions &&
-                options.map((opt, i) => (
-                    <div key={i} className="flex items-center gap-2">
-                        <span className="w-5 text-center text-xs font-bold">{letters[i]}</span>
-                        <input className={input} placeholder={`Option ${letters[i]}`} value={opt} onChange={(e) => {
-                            const next = [...options];
-                            next[i] = e.target.value;
-                            onChange({ options: next });
-                        }} />
-                    </div>
-                ))}
-            <input className={input} placeholder="Réponse correcte (lettre A/B… ou texte exact)" value={question.correct_answer ?? ''} onChange={(e) => onChange({ correct_answer: e.target.value })} />
-            <input className={input} placeholder="Explication (facultatif)" value={question.explanation ?? ''} onChange={(e) => onChange({ explanation: e.target.value })} />
-        </div>
-    );
-}
-
-function KeyValueFields({ question, onChange }: { question: any; onChange: (p: any) => void }) {
-    const map: Record<string, string> = question.correct_answers ?? {};
-    const entries = Object.entries(map);
-    return (
-        <div className="space-y-2">
-            <p className="text-xs text-muted-foreground">Réponses attendues (clé du champ → bonne réponse)</p>
-            {entries.map(([k, v], i) => (
-                <div key={i} className="flex gap-2">
-                    <input className={`${input} w-1/3`} placeholder="clé" value={k} onChange={(e) => {
-                        const next = { ...map };
-                        delete next[k];
-                        next[e.target.value] = v;
-                        onChange({ correct_answers: next });
-                    }} />
-                    <input className={input} placeholder="réponse" value={v} onChange={(e) => onChange({ correct_answers: { ...map, [k]: e.target.value } })} />
-                </div>
-            ))}
-            <Button type="button" variant="outline" size="sm" onClick={() => onChange({ correct_answers: { ...map, [String(entries.length)]: '' } })}>+ Champ</Button>
-        </div>
-    );
-}
-
-function OrderFields({ question, onChange }: { question: any; onChange: (p: any) => void }) {
-    const items: string[] = question.items ?? [];
-    return (
-        <div className="space-y-2">
-            <p className="text-xs text-muted-foreground">Éléments dans le BON ordre (l'ordre saisi est la solution)</p>
-            {items.map((it, i) => (
-                <div key={i} className="flex items-center gap-2">
-                    <span className="w-5 text-center text-xs font-bold">{i + 1}</span>
-                    <input className={input} value={it} onChange={(e) => {
-                        const next = [...items];
-                        next[i] = e.target.value;
-                        onChange({ items: next, correct_order: next });
-                    }} />
-                </div>
-            ))}
-            <Button type="button" variant="outline" size="sm" onClick={() => { const next = [...items, '']; onChange({ items: next, correct_order: next }); }}>+ Élément</Button>
-        </div>
-    );
-}
-
-function WordRangeFields({ question, onChange }: { question: any; onChange: (p: any) => void }) {
-    return (
-        <div className="flex gap-3">
-            <label className="text-sm">Min mots <input type="number" className={`${input} mt-1`} value={question.min_words ?? 50} onChange={(e) => onChange({ min_words: Number(e.target.value) })} /></label>
-            <label className="text-sm">Max mots <input type="number" className={`${input} mt-1`} value={question.max_words ?? 150} onChange={(e) => onChange({ max_words: Number(e.target.value) })} /></label>
-        </div>
-    );
-}
-
-function ExpectedPointsFields({ question, onChange }: { question: any; onChange: (p: any) => void }) {
-    const points: string[] = question.expected_points ?? [''];
-    return (
-        <div className="space-y-2">
-            <p className="text-xs text-muted-foreground">Points que la réponse orale doit couvrir (l'IA évalue la couverture)</p>
-            {points.map((p, i) => (
-                <div key={i} className="flex items-center gap-2">
-                    <span className="text-xs">•</span>
-                    <input className={input} value={p} onChange={(e) => {
-                        const next = [...points];
-                        next[i] = e.target.value;
-                        onChange({ expected_points: next });
-                    }} />
-                </div>
-            ))}
-            <Button type="button" variant="outline" size="sm" onClick={() => onChange({ expected_points: [...points, ''] })}>+ Point</Button>
-        </div>
-    );
-}
-
-// ───────────────────────── media picker (upload local) ─────────────────────────
-
-function MediaPicker({ type, value, onChange }: { type: 'image' | 'audio'; value?: string; onChange: (url: string) => void }) {
-    const [uploading, setUploading] = useState(false);
-    const [err, setErr] = useState<string | null>(null);
-    // L'identifiant du fichier envoye depuis cet ecran : il permet de le supprimer
-    // vraiment, et pas seulement de le detacher de la question.
-    const [uploadedId, setUploadedId] = useState<number | null>(null);
-
-    async function upload(file: File) {
-        setUploading(true);
-        setErr(null);
-        const fd = new FormData();
-        fd.append('type', type);
-        fd.append(type, file);
-        try {
-            const res = await axios.post(route('center.media.store'), fd, { headers: { 'Content-Type': 'multipart/form-data' } });
-            onChange(res.data.url);
-            setUploadedId(res.data.id ?? null);
-        } catch (e: any) {
-            setErr(e?.response?.data?.message ?? "Échec de l'envoi.");
-        } finally {
-            setUploading(false);
-        }
-    }
-
-    // Se tromper de fichier n'avait aucune issue : rien ne permettait de le retirer
-    // de la question, et encore moins de l'effacer de la mediatheque.
-    function detach() {
-        onChange('');
-        setUploadedId(null);
-        setErr(null);
-    }
-
-    async function remove() {
-        if (!uploadedId) { detach(); return; }
-        if (!confirm('Supprimer définitivement ce fichier de la médiathèque ?')) return;
-        try {
-            await axios.delete(route('center.media.destroy', uploadedId));
-            detach();
-        } catch (e: any) {
-            setErr(e?.response?.data?.message ?? 'Suppression impossible.');
-        }
-    }
-
-    return (
-        <div>
-            <label className="text-sm font-medium">{type === 'image' ? 'Image' : 'Audio'} (facultatif)</label>
-            <div className="mt-1 flex items-center gap-3">
-                <input type="file" accept={type === 'image' ? 'image/*' : 'audio/*'} onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f); }} className="text-sm" />
-                {uploading && <span className="text-xs text-muted-foreground">Envoi…</span>}
-            </div>
-            {err && <p className="mt-1 text-xs text-rose-500">{err}</p>}
-            {value && type === 'image' && <img src={value} alt="" className="mt-2 h-24 rounded-md object-cover" />}
-            {value && type === 'audio' && <audio src={value} controls className="mt-2 w-full" />}
-            {value && (
-                <div className="mt-2 flex items-center gap-3">
-                    <button type="button" onClick={detach} className="text-xs font-bold text-muted-foreground hover:text-foreground">
-                        Retirer de la question
-                    </button>
-                    {uploadedId && (
-                        <button type="button" onClick={remove} className="text-xs font-bold text-rose-500 hover:text-rose-600">
-                            Supprimer le fichier
-                        </button>
-                    )}
-                </div>
-            )}
-        </div>
+        >
+            <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', actif ? 'bg-primary text-primary-foreground' : 'bg-primary/10 text-primary')}>
+                <Icone className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <span>
+                <span className="block font-semibold">{titre}</span>
+                <span className="block text-sm text-muted-foreground">{texte}</span>
+            </span>
+        </button>
     );
 }

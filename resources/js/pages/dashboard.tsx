@@ -81,6 +81,8 @@ interface PageProps {
     dueErrorsCount?: number;
     centerMode?: boolean;
     centerAssignments?: CenterAssignment[];
+    /** Élève d'un centre qui ne propose que ses devoirs : pas d'entraînement libre PrePla. */
+    contenuCentre?: boolean;
 }
 
 /* ─── Brand colors ─── */
@@ -168,15 +170,20 @@ interface CenterAssignment {
     total: number;
     done: number;
     next_exercise_id: number | null;
+    /** « pour lundi 10 novembre », « en retard de 2 jours » (serveur). */
+    echeance?: string | null;
 }
 
 function CenterAssignmentsBanner({ assignments }: { assignments: CenterAssignment[] }) {
     return (
         <div className="mx-auto w-full max-w-3xl px-4 pt-4">
             <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
-                <h2 className="mb-3 flex items-center gap-2 text-sm font-black uppercase tracking-widest text-primary">
-                    <Icon name="tasks" size={16} /> Devoirs de votre centre
-                </h2>
+                <div className="mb-3 flex items-center justify-between gap-3">
+                    <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-primary">
+                        <Icon name="tasks" size={16} /> Mes devoirs
+                    </h2>
+                    <Link href={route('devoirs.index')} className="text-xs font-bold text-primary hover:underline">Tout voir</Link>
+                </div>
                 {assignments.length === 0 ? (
                     <p className="text-sm text-muted-foreground">Aucun devoir en cours. 🎉</p>
                 ) : (
@@ -191,7 +198,7 @@ function CenterAssignmentsBanner({ assignments }: { assignments: CenterAssignmen
                                             {a.done}/{a.total} exercice(s)
                                             {a.due_at && (
                                                 <span className={a.overdue && !complete ? 'text-rose-500' : ''}>
-                                                    {' · '}échéance {new Date(a.due_at).toLocaleDateString()}
+                                                    {' · '}{a.echeance ?? `échéance ${new Date(a.due_at).toLocaleDateString()}`}
                                                 </span>
                                             )}
                                         </p>
@@ -218,7 +225,7 @@ function CenterAssignmentsBanner({ assignments }: { assignments: CenterAssignmen
 
 export default function Dashboard() {
     const { t } = useTranslation();
-    const { auth, profile, chapters, stats, curriculum, nextLesson, errorDiagnostic, dueErrorsCount, centerMode, centerAssignments, nextAction, wordReviewCount, aujourdhui } = usePage<SharedData & PageProps>().props;
+    const { auth, profile, chapters, stats, curriculum, nextLesson, errorDiagnostic, dueErrorsCount, centerMode, centerAssignments, contenuCentre, nextAction, wordReviewCount, aujourdhui } = usePage<SharedData & PageProps>().props;
 
     const [loadingNode, setLoadingNode] = useState<{ id: string | number; title: string } | null>(null);
 
@@ -268,12 +275,12 @@ export default function Dashboard() {
         <AppLayout>
             <Head title="Accueil" />
 
-            {/* B2B: a center student sees their assigned work FIRST. The personal
-                AI journey stays below. */}
-            {centerMode && (
+            {/* Élève d'un centre : sa mission est son prochain devoir (nextAction),
+                la liste de ses devoirs suit juste dessous. */}
+            {nextAction && <DailyMission action={nextAction} reviewCount={wordReviewCount ?? 0} name={auth.user?.name} level={profile?.current_level ?? undefined} />}
+            {centerMode && (centerAssignments ?? []).length > 0 && (
                 <CenterAssignmentsBanner assignments={centerAssignments ?? []} />
             )}
-            {nextAction && <DailyMission action={nextAction} reviewCount={wordReviewCount ?? 0} name={auth.user?.name} level={profile?.current_level ?? undefined} />}
 
             {/* La place de cette ligne ne change jamais, meme a zero : c'est ce
                 qui permet d'y jeter un oeil sans la chercher. */}
@@ -542,7 +549,8 @@ export default function Dashboard() {
                 {/* ─── Right column (desktop): actions + progress, sticky ─── */}
                 <aside className="lg:col-span-1 lg:sticky lg:top-20 space-y-4">
                     {/* Desktop quick actions */}
-                    {/* Overall progress */}
+                    {/* Overall progress — celle du parcours PrePla, absent quand le centre ne propose que ses devoirs */}
+                    {!contenuCentre && (
                     <div className="mt-4 lg:mt-0 rounded-2xl bg-card border border-border p-4">
                         <div className="flex items-center justify-between mb-2 text-xs font-black uppercase tracking-wider">
                             <span className="text-muted-foreground">Progression globale</span>
@@ -555,7 +563,8 @@ export default function Dashboard() {
                         </div>
                         <p className="mt-1.5 text-[10px] font-bold text-muted-foreground">{stats.completed_nodes} / {stats.total_nodes} étapes complétées</p>
                     </div>
-                    {nextAction && <MissionExtras reviewCount={wordReviewCount ?? 0} dueErrorsCount={dueErrorsCount ?? 0} />}
+                    )}
+                    {nextAction && <MissionExtras reviewCount={wordReviewCount ?? 0} dueErrorsCount={dueErrorsCount ?? 0} centreSeul={!!contenuCentre} />}
                 </aside>
 
             </div>

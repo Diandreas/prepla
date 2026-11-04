@@ -67,24 +67,49 @@ export function AppSidebar() {
                 : []),
             { title: 'Contenu', url: '/center/exercises', icon: () => <SidebarIcon name="puzzle" /> },
             { title: 'Devoirs', url: '/center/assignments', icon: () => <SidebarIcon name="tasks" /> },
-            // Configuration du centre : au responsable seul, comme l'Equipe.
-            ...(centerRole === 'center_admin' && menus?.personnalisation
-                ? [{ title: 'Personnalisation', url: '/center/personnalisation', icon: () => <SidebarIcon name="settings" /> }]
-                : []),
-            ...(centerRole === 'center_admin' && menus?.acces
-                ? [{ title: 'Accès vendus', url: '/center/acces', icon: () => <SidebarIcon name="tasks" /> }]
-                : []),
-            ...(centerRole === 'center_admin' && menus?.parrainage
-                ? [{ title: 'Parrainage', url: '/center/parrainage', icon: () => <SidebarIcon name="users" /> }]
-                : []),
+            // Les reglages du centre (marque, examens, adresse, formule, acces
+            // vendus, parrainage) sous une seule entree : le responsable ne
+            // trouvait pas « les parametres de son centre » parmi trois entrees
+            // separees. Sans la page d'accueil, on garde les entrees d'avant.
+            ...(centerRole === 'center_admin' && menus?.parametres
+                ? [{
+                    title: 'Paramètres du centre',
+                    url: '/center/parametres',
+                    icon: () => <SidebarIcon name="settings" />,
+                    // Les pages de reglage ont leur propre adresse : l'entree reste
+                    // en surbrillance quand on en ouvre une.
+                    aussiActifSur: ['/center/personnalisation', '/center/acces', '/center/parrainage'],
+                }]
+                : [
+                    ...(centerRole === 'center_admin' && menus?.personnalisation
+                        ? [{ title: 'Personnalisation', url: '/center/personnalisation', icon: () => <SidebarIcon name="settings" /> }]
+                        : []),
+                    ...(centerRole === 'center_admin' && menus?.acces
+                        ? [{ title: 'Accès vendus', url: '/center/acces', icon: () => <SidebarIcon name="tasks" /> }]
+                        : []),
+                    ...(centerRole === 'center_admin' && menus?.parrainage
+                        ? [{ title: 'Parrainage', url: '/center/parrainage', icon: () => <SidebarIcon name="users" /> }]
+                        : []),
+                ]),
         ];
     } else {
+        // Eleve d'un centre : « Mes devoirs » ; si son centre cree le parcours de
+        // ses classes, « Mon parcours », et ni pratique libre, ni guide du
+        // parcours PrePla, ni outils IA PrePla.
+        const eleveDeCentre = (page.props as { eleveDeCentre?: { contenu: 'libre' | 'centre' } }).eleveDeCentre;
+        const libre = eleveDeCentre?.contenu !== 'centre';
         mainNavItems = [
             { title: t('sidebar.home', 'Accueil'), url: '/dashboard', icon: () => <SidebarIcon name="home" /> },
-            { title: t('sidebar.guide', 'Comment apprendre'), url: '/guide', icon: () => <SidebarIcon name="book" /> },
-            { title: t('sidebar.practice', 'Pratiquer'), url: '/practice', icon: () => <SidebarIcon name="puzzle" /> },
+            ...(eleveDeCentre ? [{ title: t('sidebar.my_assignments', 'Mes devoirs'), url: '/devoirs', icon: () => <SidebarIcon name="tasks" /> }] : []),
+            ...(eleveDeCentre && !libre ? [{ title: t('sidebar.my_path', 'Mon parcours'), url: '/mon-parcours', icon: () => <SidebarIcon name="puzzle" /> }] : []),
+            ...(libre
+                ? [
+                      { title: t('sidebar.guide', 'Comment apprendre'), url: '/guide', icon: () => <SidebarIcon name="book" /> },
+                      { title: t('sidebar.practice', 'Pratiquer'), url: '/practice', icon: () => <SidebarIcon name="puzzle" /> },
+                  ]
+                : []),
             { title: t('sidebar.my_words', 'Mes mots'), url: '/dictionary', icon: () => <SidebarIcon name="book" /> },
-            { title: t('sidebar.ai_tools', 'Outils IA'), url: '/ai-tools', icon: () => <SidebarIcon name="sparkles" /> },
+            ...(libre ? [{ title: t('sidebar.ai_tools', 'Outils IA'), url: '/ai-tools', icon: () => <SidebarIcon name="sparkles" /> }] : []),
             { title: t('sidebar.results', 'Résultats'), url: '/results', icon: () => <SidebarIcon name="statistics" /> },
             { title: t('sidebar.leaderboard', 'Classement'), url: '/leaderboard', icon: () => <SidebarIcon name="trophy" /> },
             // Rejoindre la classe de son professeur avec un code n'etait propose
@@ -120,7 +145,13 @@ export function AppSidebar() {
             external: true,
         },
         {
-            title: t('sidebar.settings', 'Paramètres'),
+            // Pour l'equipe d'un centre (responsable, enseignant), ce lien mene au
+            // compte personnel : on le distingue des « Parametres du centre » du
+            // menu principal, ecrit en francais comme le reste du menu equipe.
+            // Un apprenant de centre (role student) garde le libelle traduit.
+            title: centerRole === 'center_admin' || centerRole === 'teacher'
+                ? 'Mon compte'
+                : t('sidebar.settings', 'Paramètres'),
             url: '/settings/profile',
             icon: () => <SidebarIcon name="settings" />,
         },

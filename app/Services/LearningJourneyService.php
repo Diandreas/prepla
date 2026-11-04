@@ -6,6 +6,7 @@ use App\Models\CurriculumSkeleton;
 use App\Models\LearningPathNode;
 use App\Models\Lesson;
 use App\Models\User;
+use App\Services\Center\ParcoursEleveDeCentre;
 
 class LearningJourneyService
 {
@@ -13,6 +14,14 @@ class LearningJourneyService
     {
         $path = CurriculumSkeleton::where('user_id', $user->id)
             ->where('exam_id', $user->profile?->target_exam_id)->first();
+
+        // L'eleve d'un centre ne construit pas son parcours : son centre le fait,
+        // par ses devoirs. Jamais « Choisir mon objectif » pour lui.
+        $eleve = app(ParcoursEleveDeCentre::class);
+        if ($eleve->appartenance($user) && ($mission = $eleve->prochaineMission($user, $path !== null))) {
+            return $mission;
+        }
+
         if (! $path) {
             return ['kind' => 'onboarding', 'title' => 'Choisir mon objectif', 'description' => 'Commençons par la langue et l’examen que tu prépares.', 'url' => route('onboarding.exam')];
         }

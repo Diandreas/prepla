@@ -7,6 +7,7 @@ use App\Models\Classroom;
 use App\Models\LanguageCenter;
 use App\Models\User;
 use App\Models\UserExerciseAttempt;
+use App\Services\Center\ClassementCentre;
 use App\Services\Center\ElevesActifs;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -25,10 +26,13 @@ use Inertia\Response;
  */
 class DashboardController extends Controller
 {
-    /** Au-dela d'une semaine sans exercice, un eleve est a relancer. */
-    private const JOURS_AVANT_RELANCE = 7;
+    /**
+     * Au-dela d'une semaine sans exercice, un eleve est a relancer.
+     * Publique : la page Eleves et son statut « A relancer » s'en servent aussi.
+     */
+    public const JOURS_AVANT_RELANCE = 7;
 
-    public function __invoke(Request $request): Response
+    public function __invoke(Request $request, ClassementCentre $classement): Response
     {
         /** @var LanguageCenter $center */
         $center = $request->attributes->get('center');
@@ -38,7 +42,7 @@ class DashboardController extends Controller
         $classes = Classroom::where('center_id', $center->id)
             ->whereNull('archived_at')
             ->when(! $actor->centerRoleIs('center_admin'), fn ($q) => $q->whereHas('teachers', fn ($t) => $t->whereKey($actor->id)))
-            ->with(['teachers:id,name', 'students:id,name'])
+            ->with(['teachers:id,name', 'students:id,name', 'students.profile:id,user_id,current_level', 'exam.language'])
             ->orderBy('name')
             ->get();
 
@@ -88,12 +92,20 @@ class DashboardController extends Controller
                 'eleves' => $k->students->count(),
                 'derniere_activite' => $iso($k->students->pluck('id')->map(fn ($id) => $derniereParEleve[$id] ?? null)->filter()->max()),
             ])->values(),
+            // Eleves et classes par langue et par niveau, chaque ligne menant a la
+            // page Eleves filtree. Memes classes et memes eleves que les autres
+            // cartes, deja charges : aucune requete de plus sur les exercices.
+            'repartition' => $classement->repartition(
+                $classes,
+                $center->loadMissing('defaultExam.language')->defaultExam,
+            ),
+            'joursAvantRelance' => self::JOURS_AVANT_RELANCE,
             // Qui relancer : jamais venu, ou absent depuis plus d'une semaine — le
             // plus ancien d'abord.
             'a_relancer' => $eleves
                 ->map(fn (User $u) => ['id' => $u->id, 'name' => $u->name, 'derniere_activite' => $iso($derniereParEleve[$u->id] ?? null)])
-                ->filter(fn ($e) => $e['derniere_activite'] === null
-                    || Carbon::parse($e['derniere_activite'])->lt(now()->subDays(self::JOURS_AVANT_RELANCE)))
+                // La meme regle que le statut de la page Eleves.
+                ->filter(fn ($e) => ClassementCentre::statut($derniereParEleve[$e['id']] ?? null) !== 'actif')
                 ->sortBy(fn ($e) => $e['derniere_activite'] ?? '0000')
                 ->take(8)
                 ->values(),

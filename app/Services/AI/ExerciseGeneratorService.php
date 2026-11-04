@@ -30,7 +30,13 @@ class ExerciseGeneratorService
         return $exercises;
     }
 
-    public function generate(ExerciseType $exerciseType, Exam $exam, string $difficulty = 'B1', ?array $lessonContext = null, ?array $partieExamen = null, ?string $faiblesse = null): Exercise
+    /**
+     * @param  array{theme?: ?string, consignes?: ?string, nombre_questions?: ?int}|null  $demandeDuCentre
+     *         ce qu'un enseignant de centre precise dans le createur d'exercices :
+     *         un theme, des consignes libres, un nombre de questions. Tout est
+     *         facultatif ; sans demande, rien ne change pour les autres appels.
+     */
+    public function generate(ExerciseType $exerciseType, Exam $exam, string $difficulty = 'B1', ?array $lessonContext = null, ?array $partieExamen = null, ?string $faiblesse = null, ?array $demandeDuCentre = null): Exercise
     {
         $exam->loadMissing('language');
         $language = $exam->language?->name ?? 'English';
@@ -46,9 +52,16 @@ class ExerciseGeneratorService
         $partieExamen ??= app(StructureOfficielle::class)
             ->partiePour($exam, $difficulty, $exerciseType);
 
+        // LE NOMBRE DEMANDE PAR LE CENTRE passe devant celui de la partie : c'est
+        // l'enseignant qui sait combien de questions tiennent dans sa seance.
+        $demandeDuCentre = self::demandeDuCentre($demandeDuCentre);
+        if ($demandeDuCentre['nombre_questions'] !== null) {
+            $partieExamen = array_merge($partieExamen ?? [], ['items' => $demandeDuCentre['nombre_questions']]);
+        }
+
         $itemsRequis = (int) ($partieExamen['items'] ?? 0) ?: null;
 
-        $prompt = $this->buildPrompt($exerciseType, $exam, $difficulty, $language, $languageNative, $lessonContext, $partieExamen, $faiblesse);
+        $prompt = $this->buildPrompt($exerciseType, $exam, $difficulty, $language, $languageNative, $lessonContext, $partieExamen, $faiblesse, $demandeDuCentre);
 
         // Ce que l'exercice doit respecter une fois ecrit, et pas seulement ce
         // qu'on demande : les libelles du vrai/faux de CETTE epreuve, la langue
@@ -1358,7 +1371,32 @@ class ExerciseGeneratorService
         };
     }
 
-    private function buildPrompt(ExerciseType $exerciseType, Exam $exam, string $difficulty, string $language, string $languageNative, ?array $lessonContext = null, ?array $partieExamen = null, ?string $faiblesse = null): string
+    /**
+     * La demande d'un centre, nettoyee : textes sur une ligne et coupes, nombre
+     * de questions borne de 1 a 20. Ce qui manque vaut null.
+     *
+     * @return array{theme: ?string, consignes: ?string, nombre_questions: ?int}
+     */
+    public static function demandeDuCentre(?array $demande): array
+    {
+        $texte = function ($valeur, int $max): ?string {
+            if (! is_string($valeur)) {
+                return null;
+            }
+            $propre = trim((string) preg_replace('/\s+/u', ' ', $valeur));
+
+            return $propre === '' ? null : mb_substr($propre, 0, $max);
+        };
+        $nombre = (int) ($demande['nombre_questions'] ?? 0);
+
+        return [
+            'theme' => $texte($demande['theme'] ?? null, 120),
+            'consignes' => $texte($demande['consignes'] ?? null, 600),
+            'nombre_questions' => $nombre > 0 ? min($nombre, 20) : null,
+        ];
+    }
+
+    private function buildPrompt(ExerciseType $exerciseType, Exam $exam, string $difficulty, string $language, string $languageNative, ?array $lessonContext = null, ?array $partieExamen = null, ?string $faiblesse = null, ?array $demandeDuCentre = null): string
     {
         $componentKey = $exerciseType->component_key;
         $skillType = $exerciseType->section?->skill_type ?? 'reading';
@@ -1648,6 +1686,21 @@ TARGET THIS WEAKNESS: the learner keeps getting «{$faiblesse}» wrong. "
                 .'Do not mention the weakness in the wording — just make it the difficulty.'
             : '';
 
+        // CE QUE L'ENSEIGNANT DEMANDE. Un centre prepare ses eleves a une
+        // situation precise (« la sante », « le travail en Allemagne ») : sans
+        // theme, l'exercice tombait sur un sujet au hasard. Ses consignes sont
+        // celles d'un professeur, jamais un ordre qui leverait les regles du
+        // format, du niveau ou du JSON : on le dit au modele.
+        $demandeDuCentre = self::demandeDuCentre($demandeDuCentre);
+        $directiveDuCentre = '';
+        if ($demandeDuCentre['theme'] !== null) {
+            $directiveDuCentre .= "\n\nTOPIC REQUESTED BY THE TEACHER: «{$demandeDuCentre['theme']}». "
+                .'Every text, situation and question must be about this topic.';
+        }
+        if ($demandeDuCentre['consignes'] !== null) {
+            $directiveDuCentre .= "\n\nTEACHER'S NOTES — follow them unless they contradict the format, the level or the JSON structure required here: «{$demandeDuCentre['consignes']}»";
+        }
+
         $levelGuard = "\n\nLEVEL: Keep vocabulary, grammar and topics appropriate for CEFR {$difficulty}. Do not use structures or rare vocabulary clearly above {$difficulty}.";
 
         // LE NOMBRE D'ITEMS DE L'EPREUVE REMPLACE CELUI DU GABARIT.
@@ -1686,7 +1739,7 @@ TARGET THIS WEAKNESS: the learner keeps getting «{$faiblesse}» wrong. "
         return <<<PROMPT
 Generate a {$exerciseType->name} exercise for the {$exam->name} exam at CEFR {$difficulty} level.
 The exercise must be entirely in {$language} ({$languageNative}) — this is a {$language} language exam.
-Skill tested: {$skillType}.{$directiveDeLaPartie}{$directiveFaiblesse}{$directiveDesPoints}{$lessonDirective}{$grammarDirective}{$gapFillBan}{$comprehensionGuard}{$levelGuard}{$listeningDirective}{$speakingDirective}{$instructionDirective}{$trueFalseDirective}{$explanationDirective}{$directiveDesItems}
+Skill tested: {$skillType}.{$directiveDeLaPartie}{$directiveFaiblesse}{$directiveDuCentre}{$directiveDesPoints}{$lessonDirective}{$grammarDirective}{$gapFillBan}{$comprehensionGuard}{$levelGuard}{$listeningDirective}{$speakingDirective}{$instructionDirective}{$trueFalseDirective}{$explanationDirective}{$directiveDesItems}
 
 Return JSON with exactly this structure:
 {

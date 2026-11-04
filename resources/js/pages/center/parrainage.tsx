@@ -1,6 +1,7 @@
 import { Head } from '@inertiajs/react';
 import { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
+import OngletsParametresCentre from '@/components/onglets-parametres-centre';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -54,6 +55,7 @@ export default function Parrainage({
         <AppLayout>
             <Head title={`Parrainage — ${centre.name}`} />
             <div className="mx-auto w-full max-w-4xl space-y-5 p-4 md:p-6">
+                <OngletsParametresCentre />
                 <div>
                     <p className="text-sm text-muted-foreground">{centre.name}</p>
                     <h1 className="text-2xl font-bold tracking-tight">Parrainage</h1>

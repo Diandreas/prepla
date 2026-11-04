@@ -5,11 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { dateHeure, duree, ilYA } from '@/lib/suivi';
+import TableauDeClasse from '@/components/center/tableau-de-classe';
 
 interface Classroom {
     id: number;
     name: string;
     level: string | null;
+    room: string | null;
+    schedule: string | null;
     exam: string | null;
     exam_id: number | null;
     invite_code: string;
@@ -32,7 +35,21 @@ interface Stats {
     per_student: SuiviEleve[];
 }
 
-export default function ClassShow({ classroom, students, stats, exams }: { classroom: Classroom; students: Student[]; stats: Stats; exams: ExamOption[] }) {
+export default function ClassShow({
+    classroom,
+    students,
+    stats,
+    exams,
+    parcoursEtapes = 0,
+    contenuCentre = false,
+}: {
+    classroom: Classroom;
+    students: Student[];
+    stats: Stats;
+    exams: ExamOption[];
+    parcoursEtapes?: number;
+    contenuCentre?: boolean;
+}) {
     const page = usePage().props as any;
     const { flash } = page;
     // Archiver est reserve au responsable de l'espace : le bouton etait aussi
@@ -45,6 +62,8 @@ export default function ClassShow({ classroom, students, stats, exams }: { class
     const edit = useForm({
         name: classroom.name,
         level: classroom.level ?? '',
+        room: classroom.room ?? '',
+        schedule: classroom.schedule ?? '',
         exam_id: classroom.exam_id ? String(classroom.exam_id) : '',
     });
 
@@ -83,6 +102,12 @@ export default function ClassShow({ classroom, students, stats, exams }: { class
                         <p className="text-sm text-muted-foreground">
                             {classroom.level ?? 'Niveau libre'} · {classroom.exam ?? 'Examen par défaut'}
                         </p>
+                        {(classroom.room || classroom.schedule) && (
+                            <p className="mt-0.5 flex flex-wrap gap-x-3 text-sm text-muted-foreground">
+                                {classroom.room && <span>Salle : <span className="font-medium text-foreground">{classroom.room}</span></span>}
+                                {classroom.schedule && <span>Horaire : <span className="font-medium text-foreground">{classroom.schedule}</span></span>}
+                            </p>
+                        )}
                     </div>
                     <div className="flex shrink-0 items-center gap-1">
                         <Button variant="ghost" onClick={() => setEditing((open) => !open)} aria-expanded={editing}>
@@ -144,6 +169,33 @@ export default function ClassShow({ classroom, students, stats, exams }: { class
                                     </div>
                                 </div>
 
+                                <div className="grid gap-4 sm:grid-cols-[12rem_1fr]">
+                                    <div className="grid gap-2">
+                                        <label htmlFor="class-edit-room" className="text-sm font-semibold">Salle</label>
+                                        <input
+                                            id="class-edit-room"
+                                            placeholder="Salle 2"
+                                            maxLength={60}
+                                            className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                            value={edit.data.room}
+                                            onChange={(event) => edit.setData('room', event.target.value)}
+                                        />
+                                        {edit.errors.room && <p className="text-xs text-rose-500">{edit.errors.room}</p>}
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <label htmlFor="class-edit-schedule" className="text-sm font-semibold">Horaire</label>
+                                        <input
+                                            id="class-edit-schedule"
+                                            placeholder="Lun et mer 17 h – 19 h"
+                                            maxLength={120}
+                                            className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                                            value={edit.data.schedule}
+                                            onChange={(event) => edit.setData('schedule', event.target.value)}
+                                        />
+                                        {edit.errors.schedule && <p className="text-xs text-rose-500">{edit.errors.schedule}</p>}
+                                    </div>
+                                </div>
+
                                 <Button type="submit" disabled={edit.processing || !edit.data.name.trim()}>
                                     {edit.processing ? 'Enregistrement…' : 'Enregistrer'}
                                 </Button>
@@ -171,12 +223,30 @@ export default function ClassShow({ classroom, students, stats, exams }: { class
                     </CardContent>
                 </Card>
 
-                {/* Vue agrégée de la classe */}
-                <div className="grid gap-3 sm:grid-cols-3">
-                    <Card><CardContent className="p-4"><p className="text-2xl font-bold">{stats.student_count}</p><p className="text-sm text-muted-foreground">Élèves</p></CardContent></Card>
-                    <Card><CardContent className="p-4"><p className="text-2xl font-bold">{stats.class_avg_accuracy != null ? `${stats.class_avg_accuracy}%` : '—'}</p><p className="text-sm text-muted-foreground">Précision moyenne</p></CardContent></Card>
-                    <Card><CardContent className="p-4"><p className="text-2xl font-bold text-rose-500">{stats.dropouts.length}</p><p className="text-sm text-muted-foreground">Décrocheurs</p></CardContent></Card>
-                </div>
+                {/* Le parcours que le centre construit pour la classe : sa page à lui. */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-base">Parcours de la classe</CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="min-w-0 text-sm">
+                            <p className="font-medium">
+                                {parcoursEtapes === 0 ? 'Aucune étape pour le moment' : `${parcoursEtapes} étape${parcoursEtapes > 1 ? 's' : ''}`}
+                            </p>
+                            <p className="mt-0.5 text-xs text-muted-foreground">
+                                {contenuCentre
+                                    ? 'Vos élèves suivent ce parcours, en plus de leurs devoirs.'
+                                    : 'Votre espace utilise le parcours PrePla par défaut : vos élèves ne voient ce parcours que si vous passez au « Parcours créé par le centre ».'}
+                            </p>
+                        </div>
+                        <Link href={route('center.classes.parcours', classroom.id)}>
+                            <Button variant="outline">{parcoursEtapes === 0 ? 'Créer le parcours' : 'Gérer le parcours'}</Button>
+                        </Link>
+                    </CardContent>
+                </Card>
+
+                {/* Tableau de bord de la classe : chiffres, activité, compétences, classement. */}
+                <TableauDeClasse classroomId={classroom.id} />
 
                 {stats.common_weaknesses.length > 0 && (
                     <Card>

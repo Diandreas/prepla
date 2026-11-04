@@ -74,6 +74,8 @@ class PersonnalisationController extends Controller
             'defauts' => ['primaire' => Marque::PRIMAIRE_PREPLA, 'accent' => Marque::ACCENT_PREPLA],
             'contrasteMinimal' => Couleurs::CONTRASTE_MINIMAL,
             'logoKoMax' => self::LOGO_KO_MAX,
+            // « Contenu proposé aux élèves » : 'libre' ou 'centre' (ContenuElevesController).
+            'contenuEleves' => $centre->contenuEleves(),
         ]);
     }
 

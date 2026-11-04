@@ -32,6 +32,9 @@ return Application::configure(basePath: dirname(__DIR__))
             ResolveCenterFromHost::class,
         ], append: [
             EnsureMembreDuCentreDeLHote::class,
+            // L'eleve d'un centre en « devoirs seulement » ne voit pas
+            // l'entrainement libre : ses adresses menent a ses devoirs.
+            \App\Http\Middleware\ContenuProposeAuxEleves::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
             AddSecurityHeaders::class,

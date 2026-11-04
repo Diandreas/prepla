@@ -1,9 +1,12 @@
 import { Head, Link, router } from '@inertiajs/react';
+import { Plus } from 'lucide-react';
+import { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DataTable, type Column } from '@/components/ui/data-table';
+import { competenceDe, libelleDuType, libelleExercice, type LigneExercice } from '@/lib/createur-exercices';
 
 interface Assignment { id: number; title: string; classroom: string | null; due_at: string | null; items_count: number }
 interface Row {
@@ -23,7 +26,29 @@ const STATUS: Record<Row['status'], { label: string; variant: 'default' | 'secon
     not_started: { label: 'Pas commencé', variant: 'secondary' },
 };
 
-export default function AssignmentShow({ assignment, rows }: { assignment: Assignment; rows: Row[] }) {
+export default function AssignmentShow({ assignment, rows, exercises = [], centerExercises = [], canEdit = false }: {
+    assignment: Assignment;
+    rows: Row[];
+    exercises?: LigneExercice[];
+    centerExercises?: LigneExercice[];
+    canEdit?: boolean;
+}) {
+    const [ajout, setAjout] = useState(false);
+    const [choix, setChoix] = useState('');
+    const [envoi, setEnvoi] = useState(false);
+    const dejaLa = new Set(exercises.map((e) => e.id));
+    const ajoutables = centerExercises.filter((e) => !dejaLa.has(e.id));
+
+    function ajouterExistant() {
+        if (!choix) return;
+        setEnvoi(true);
+        router.post(route('center.assignments.exercises.add', assignment.id), { exercise_ids: [Number(choix)] }, {
+            preserveScroll: true,
+            onSuccess: () => { setAjout(false); setChoix(''); },
+            onFinish: () => setEnvoi(false),
+        });
+    }
+
     const columns: Column<Row>[] = [
         { key: 'name', header: 'Élève', cell: (r) => <span className="font-semibold">{r.name}</span> },
         { key: 'progress', header: 'Avancement', cell: (r) => `${r.done} / ${r.total}`, sortValue: (r) => r.done },
@@ -71,6 +96,57 @@ export default function AssignmentShow({ assignment, rows }: { assignment: Assig
                     <CardContent className="p-4">
                         <p className="text-2xl font-bold">{doneCount} / {rows.length}</p>
                         <p className="text-sm text-muted-foreground">élèves ont terminé</p>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                            <CardTitle className="text-base">Exercices du devoir</CardTitle>
+                            {canEdit && !ajout && (
+                                <Button type="button" variant="outline" size="sm" onClick={() => setAjout(true)}>
+                                    <Plus className="h-4 w-4" aria-hidden="true" /> Ajouter un exercice
+                                </Button>
+                            )}
+                        </div>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                        {exercises.length === 0 && <p className="text-sm text-muted-foreground">Aucun exercice dans ce devoir.</p>}
+                        <ol className="space-y-2">
+                            {exercises.map((e, i) => (
+                                <li key={e.id} className="flex items-start gap-3 rounded-xl border border-border p-3 text-sm">
+                                    <span className="mt-0.5 w-5 shrink-0 text-center text-xs font-bold text-muted-foreground">{i + 1}</span>
+                                    <span className="min-w-0">
+                                        <span className="block font-semibold">{libelleExercice(e)}</span>
+                                        <span className="text-xs text-muted-foreground">
+                                            {libelleDuType({ slug: e.type_slug, component_key: e.component_key, name: e.type })} · {competenceDe(e.skill_type).nom}
+                                            {e.difficulty ? ` · ${e.difficulty}` : ''}{e.source === 'prepla' ? ' · Banque PrePla' : ''}
+                                        </span>
+                                    </span>
+                                </li>
+                            ))}
+                        </ol>
+                        {canEdit && ajout && (
+                            <div className="space-y-3 rounded-xl border border-dashed border-border p-3">
+                                <label htmlFor="ajout-exercice" className="text-sm font-medium">Un exercice du centre</label>
+                                <div className="flex flex-col gap-2 sm:flex-row">
+                                    <select id="ajout-exercice" className="min-h-10 w-full rounded-lg border border-border bg-background px-3 text-base sm:text-sm" value={choix} onChange={(e) => setChoix(e.target.value)}>
+                                        <option value="">{ajoutables.length ? 'Choisir…' : 'Tous les exercices du centre y sont déjà'}</option>
+                                        {ajoutables.map((e) => (
+                                            <option key={e.id} value={e.id}>{libelleExercice(e)}{e.difficulty ? ` · ${e.difficulty}` : ''}</option>
+                                        ))}
+                                    </select>
+                                    <Button type="button" onClick={ajouterExistant} disabled={!choix || envoi}>{envoi ? 'Ajout…' : 'Ajouter'}</Button>
+                                </div>
+                                <div className="flex flex-wrap items-center gap-3 text-sm">
+                                    <span className="text-muted-foreground">ou</span>
+                                    <Link href={route('center.exercises.create', { assignment_id: assignment.id })} className="font-semibold text-primary hover:underline">
+                                        Créer un nouvel exercice pour ce devoir
+                                    </Link>
+                                    <button type="button" className="ml-auto text-muted-foreground hover:text-foreground" onClick={() => setAjout(false)}>Annuler</button>
+                                </div>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
 
