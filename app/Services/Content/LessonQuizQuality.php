@@ -28,8 +28,36 @@ class LessonQuizQuality
                 }
             }
             $q['options'] = $options;
+
+            // Mots a remettre en ordre ecrits DANS l'enonce (« heißt / du / Wie ? »)
+            // au lieu d'une liste a part : l'IA le fait souvent. La question etait
+            // rejetee, et avec elle toute la lecon. Les etiquettes se deduisent de
+            // la bonne reponse, et la liste est retiree de l'enonce.
+            if (($q['type'] ?? null) === 'sentence-order' && empty($q['words']) && is_string($q['correct_answer'] ?? null)) {
+                $phrase = preg_replace('/[\s.!?。！？]+$/u', '', trim($q['correct_answer']));
+                $mots = preg_split('/\s+/u', $phrase, -1, PREG_SPLIT_NO_EMPTY);
+                if (count($mots) >= 2) {
+                    // Un ordre melange mais stable : jamais celui de la reponse.
+                    $q['words'] = array_merge(array_slice($mots, 1), [$mots[0]]);
+                    // « … une phrase correcte : heißt / du / Wie ? » -> « … une phrase correcte. »
+                    $sansListe = preg_replace('/\s*[:：]\s*[«"“]?[^:«»"“”]*\/[^:«»"“”]*[»"”]?\s*[?!.]?\s*$/u', '', $q['question']);
+                    if (is_string($sansListe) && trim($sansListe) !== '') {
+                        $q['question'] = rtrim(trim($sansListe), ' .').'.';
+                    }
+                }
+            }
+
             return $q;
         }, $quiz);
+    }
+
+    /**
+     * Les seules questions jouables. Une question mal formee n'invalide plus
+     * toute la lecon : on la retire, tant qu'il en reste assez pour un quiz.
+     */
+    public function questionsValides(array $quiz): array
+    {
+        return array_values(array_filter($this->normalize($quiz), fn ($q) => $this->valid([$q])));
     }
 
     public function valid(array $quiz): bool

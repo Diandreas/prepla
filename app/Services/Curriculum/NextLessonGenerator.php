@@ -361,13 +361,22 @@ PROMPT;
         for ($attempt = 0; $attempt < 2; $attempt++) {
             $response = $this->mistral->chat($messages);
             $candidate = $response ? json_decode($response, true) : null;
-            if (is_array($candidate) && ! empty($candidate['theory_markdown'])
-                && is_array($candidate['comprehension_quiz'] ?? null)
-                && $quality->valid($candidate['comprehension_quiz'])) {
-                $candidate['comprehension_quiz'] = $quality->normalize($candidate['comprehension_quiz']);
+            // Une question defectueuse est retiree, la lecon reste : tout rejeter
+            // pour une seule question laissait l'apprenant devant « Leçon pas
+            // encore rédigée », a chaque nouvel essai.
+            $valides = is_array($candidate) && is_array($candidate['comprehension_quiz'] ?? null)
+                ? $quality->questionsValides($candidate['comprehension_quiz'])
+                : [];
+            if (is_array($candidate) && ! empty($candidate['theory_markdown']) && count($valides) >= 1) {
+                $candidate['comprehension_quiz'] = $valides;
                 $decoded = $candidate;
                 break;
             }
+            \Illuminate\Support\Facades\Log::warning('Lecon rejetee a la verification', [
+                'user_id' => $user->id, 'essai' => $attempt + 1,
+                'json' => is_array($candidate), 'questions_valides' => count($valides),
+                'questions' => is_array($candidate['comprehension_quiz'] ?? null) ? count($candidate['comprehension_quiz']) : 0,
+            ]);
             $messages[] = ['role' => 'user', 'content' => 'The lesson failed structural validation. Rewrite the complete JSON: explicit quiz types, selectable correct MCQ answers, complete sentence word banks and nonempty open answers.'];
         }
         if (! $decoded) return $this->getDefaultLesson($objective, $context);
