@@ -28,6 +28,9 @@ class ProchainExercice
     /** En deçà, une compétence n'a pas assez d'historique pour être jugée faible. */
     private const TENTATIVES_MINIMUM = 3;
 
+    /** Le palier de l'apprenant dans son niveau (voir PalierDeDifficulte). */
+    private ?int $palier = null;
+
     private const SEUIL_FRAGILE = 60;
 
     public function __construct(private ExerciseTypeSuitability $pertinence) {}
@@ -37,9 +40,10 @@ class ProchainExercice
      *
      * @return array{type: ?ExerciseType, pourquoi: string, categorie: ?string, exercice: ?Exercise}
      */
-    public function pour(User $user, Exam $exam, ?string $niveau = null): array
+    public function pour(User $user, Exam $exam, ?string $niveau = null, ?int $palier = null): array
     {
         $niveau = $niveau ?: ($user->profile?->current_level ?: 'A1');
+        $this->palier = $palier;
         $types = $this->typesOuvrables($exam, $niveau);
 
         if ($types->isEmpty()) {
@@ -187,7 +191,7 @@ class ProchainExercice
             ->whereNull('node_id')->whereNull('mock_exam_id')
             ->whereNotIn('id', $dejaFaits)
             ->expliqueDansLaLangueDe(Exercise::langueDExplicationDe($user))
-            ->meilleurDAbord($niveau)
+            ->meilleurDAbord($niveau, $this->palier)
             ->first();
 
         return ['type' => $type, 'pourquoi' => $pourquoi, 'categorie' => $categorie, 'exercice' => $exercice];

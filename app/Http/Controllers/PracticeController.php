@@ -311,7 +311,9 @@ class PracticeController extends Controller
 
         $user = auth()->user();
         $niveau = $this->niveauPratique($user) ?: 'A1';
-        $propose = $choix->pour($user, $exam, $niveau);
+        // Plus exigeant a mesure qu'il reussit, dans son niveau.
+        $palier = app(\App\Services\Content\PalierDeDifficulte::class)->pour($user, $niveau);
+        $propose = $choix->pour($user, $exam, $niveau, $palier);
 
         if (! $propose['type']) {
             return redirect()->route('practice.exam', $exam->id)->with('error', $propose['pourquoi']);
@@ -325,7 +327,7 @@ class PracticeController extends Controller
                 // La faiblesse visee accompagne la demande : un exercice ecrit
                 // pour l'occasion doit porter SUR CE QUI RESISTE, sinon le choix
                 // n'aurait servi a rien.
-                $exercice = $generator->generate($propose['type'], $exam, $niveau, null, null, $propose['categorie']);
+                $exercice = $generator->generate($propose['type'], $exam, $niveau, null, null, $propose['categorie'], null, $palier);
             } catch (\Throwable $e) {
                 \Illuminate\Support\Facades\Log::warning('Continuer : generation impossible', ['error' => $e->getMessage()]);
             }
@@ -339,7 +341,7 @@ class PracticeController extends Controller
             ->whereNull('center_id')->whereNull('lesson_id')
             ->whereNull('node_id')->whereNull('mock_exam_id')
             ->expliqueDansLaLangueDe(Exercise::langueDExplicationDe(auth()->user()))
-            ->meilleurDAbord($niveau)->first();
+            ->meilleurDAbord($niveau, $palier)->first();
 
         if (! $exercice) {
             return redirect()->route('practice.exam', $exam->id)
@@ -369,6 +371,8 @@ class PracticeController extends Controller
     {
         $user = auth()->user();
         $difficulty = $this->niveauPratique($user) ?? 'B1';
+        // Plus exigeant a mesure qu'il reussit, dans son niveau.
+        $palier = app(\App\Services\Content\PalierDeDifficulte::class)->pour($user, $difficulty);
         $exerciseType->loadMissing('section');
         abort_unless($exerciseType->section?->exam_id === $exam->id, 404);
 
@@ -442,7 +446,7 @@ class PracticeController extends Controller
 
         // Le meilleur contenu d'abord, au hasard dans chaque groupe : l'ordre
         // de la requete est garde par le filtre des exercices conformes.
-        $inedits = $pool()->whereNotIn('id', $alreadyDone)->meilleurDAbord($difficulty);
+        $inedits = $pool()->whereNotIn('id', $alreadyDone)->meilleurDAbord($difficulty, $palier);
 
         // 1. Un exercice de la bonne partie, au bon format, qu'il n'a pas fait.
         $exercise = $conformes($deLaPartie(clone $inedits)->get())->first();
@@ -471,7 +475,7 @@ class PracticeController extends Controller
                 // reponse — au telc, les trois Horverstehen sont en vrai/faux —
                 // et l'apprenant recevait pour « Teil 2 » un exercice
                 // indistinguable du « Teil 1 ».
-                $exercise = $generator->generate($exerciseType, $exam, $difficulty, null, $partieDemandee);
+                $exercise = $generator->generate($exerciseType, $exam, $difficulty, null, $partieDemandee, null, null, $palier);
             } catch (\Throwable $e) {
                 \Illuminate\Support\Facades\Log::warning('drillByType generation failed, falling back', ['error' => $e->getMessage()]);
             }

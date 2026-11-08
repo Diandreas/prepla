@@ -36,7 +36,7 @@ class ExerciseGeneratorService
      *         un theme, des consignes libres, un nombre de questions. Tout est
      *         facultatif ; sans demande, rien ne change pour les autres appels.
      */
-    public function generate(ExerciseType $exerciseType, Exam $exam, string $difficulty = 'B1', ?array $lessonContext = null, ?array $partieExamen = null, ?string $faiblesse = null, ?array $demandeDuCentre = null): Exercise
+    public function generate(ExerciseType $exerciseType, Exam $exam, string $difficulty = 'B1', ?array $lessonContext = null, ?array $partieExamen = null, ?string $faiblesse = null, ?array $demandeDuCentre = null, ?int $palier = null): Exercise
     {
         $exam->loadMissing('language');
         $language = $exam->language?->name ?? 'English';
@@ -61,7 +61,7 @@ class ExerciseGeneratorService
 
         $itemsRequis = (int) ($partieExamen['items'] ?? 0) ?: null;
 
-        $prompt = $this->buildPrompt($exerciseType, $exam, $difficulty, $language, $languageNative, $lessonContext, $partieExamen, $faiblesse, $demandeDuCentre);
+        $prompt = $this->buildPrompt($exerciseType, $exam, $difficulty, $language, $languageNative, $lessonContext, $partieExamen, $faiblesse, $demandeDuCentre, $palier);
 
         // Ce que l'exercice doit respecter une fois ecrit, et pas seulement ce
         // qu'on demande : les libelles du vrai/faux de CETTE epreuve, la langue
@@ -211,6 +211,11 @@ class ExerciseGeneratorService
             $contenu = $data['content'];
             if (is_array($contenu) && $this->exigeUneExplication($exerciseType->component_key)) {
                 $contenu['explanation_language'] = $langueDesExplications;
+            }
+            // Le palier vise reste note : le vivier est partage, et c'est ce qui
+            // permet de servir un exercice plus exigeant a qui reussit tout.
+            if (is_array($contenu) && $palier !== null) {
+                $contenu['palier'] = $palier;
             }
 
             return Exercise::create([
@@ -1396,7 +1401,7 @@ class ExerciseGeneratorService
         ];
     }
 
-    private function buildPrompt(ExerciseType $exerciseType, Exam $exam, string $difficulty, string $language, string $languageNative, ?array $lessonContext = null, ?array $partieExamen = null, ?string $faiblesse = null, ?array $demandeDuCentre = null): string
+    private function buildPrompt(ExerciseType $exerciseType, Exam $exam, string $difficulty, string $language, string $languageNative, ?array $lessonContext = null, ?array $partieExamen = null, ?string $faiblesse = null, ?array $demandeDuCentre = null, ?int $palier = null): string
     {
         $componentKey = $exerciseType->component_key;
         $skillType = $exerciseType->section?->skill_type ?? 'reading';
@@ -1701,7 +1706,10 @@ TARGET THIS WEAKNESS: the learner keeps getting «{$faiblesse}» wrong. "
             $directiveDuCentre .= "\n\nTEACHER'S NOTES — follow them unless they contradict the format, the level or the JSON structure required here: «{$demandeDuCentre['consignes']}»";
         }
 
-        $levelGuard = "\n\nLEVEL: Keep vocabulary, grammar and topics appropriate for CEFR {$difficulty}. Do not use structures or rare vocabulary clearly above {$difficulty}.";
+        $levelGuard = "\n\nLEVEL: Keep vocabulary, grammar and topics appropriate for CEFR {$difficulty}. Do not use structures or rare vocabulary clearly above {$difficulty}."
+            // La difficulte a l'interieur du niveau, selon les derniers resultats
+            // de l'apprenant (voir PalierDeDifficulte).
+            .($palier !== null ? \App\Services\Content\PalierDeDifficulte::consigne($palier, $difficulty) : '');
 
         // LE NOMBRE D'ITEMS DE L'EPREUVE REMPLACE CELUI DU GABARIT.
         //

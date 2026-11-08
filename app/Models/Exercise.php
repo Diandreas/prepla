@@ -403,7 +403,7 @@ class Exercise extends Model
      * environ 200). Elle passe donc apres l'IA a partir du B1, et reste avant
      * elle jusqu'au A2, ou elle est relue et suffisamment longue pour le niveau.
      */
-    public function scopeMeilleurDAbord(\Illuminate\Database\Eloquent\Builder $query, ?string $niveau = null): \Illuminate\Database\Eloquent\Builder
+    public function scopeMeilleurDAbord(\Illuminate\Database\Eloquent\Builder $query, ?string $niveau = null, ?int $palier = null): \Illuminate\Database\Eloquent\Builder
     {
         $grammaire = $query->getQuery()->getGrammar();
         $source = $grammaire->wrap($this->qualifyColumn('content').'->source');
@@ -411,6 +411,23 @@ class Exercise extends Model
 
         $debutant = $niveau === null || in_array($niveau, ['A0', 'A1', 'A2'], true);
         [$serie, $manuel, $ia] = $debutant ? [1, 2, 3] : [3, 1, 2];
+
+        // LA DIFFICULTE DANS LE NIVEAU (voir PalierDeDifficulte). Les epreuves
+        // verifiees restent en tete ; ensuite, l'exercice le plus proche du palier
+        // de l'apprenant passe avant les autres. Le palier d'un exercice est celui
+        // qu'il porte, sinon celui que disent les resultats de tous ceux qui l'ont
+        // fait : reussi par presque tous, il est facile ; souvent rate, il est dur.
+        if ($palier !== null) {
+            $sonPalier = $grammaire->wrap($this->qualifyColumn('content').'->palier');
+            $id = $grammaire->wrap($this->qualifyColumn('id'));
+            $reussite = "(SELECT AVG(a.accuracy_percent) FROM user_exercise_attempts a WHERE a.exercise_id = {$id})";
+            $query->orderByRaw("CASE WHEN {$source} = ? THEN 0 ELSE 1 END", ['epreuve-verifiee'])
+                ->orderByRaw(
+                    "ABS(COALESCE({$sonPalier}, CASE WHEN {$reussite} IS NULL THEN 2"
+                    ." WHEN {$reussite} >= 80 THEN 1 WHEN {$reussite} >= 55 THEN 2 ELSE 3 END) - ?)",
+                    [$palier]
+                );
+        }
 
         return $query
             ->orderByRaw(

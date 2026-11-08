@@ -16,7 +16,10 @@ use Illuminate\Support\Facades\Http;
  * Quand ce service est saturé (429) ou en panne, le parcours doit rester praticable —
  * sinon l'inscription débouche sur une impasse, ce qui est arrivé en production.
  */
-afterEach(fn () => File::deleteDirectory(storage_path('app/lessons/testlingua_via_franais')));
+afterEach(function () {
+    File::deleteDirectory(storage_path('app/lessons/testlingua_via_franais'));
+    File::deleteDirectory(storage_path('app/lessons/v2-progression/testlingua_via_franais'));
+});
 
 function prepareExam(): Exam
 {

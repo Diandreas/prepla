@@ -398,7 +398,10 @@ class NodeStartController extends Controller
             ->expliqueDansLaLangueDe(Exercise::langueDExplicationDe(auth()->user()))
             ->whereNotIn('id', $excludeIds)
             ->with(['exerciseType', 'exam.language'])
-            ->meilleurDAbord($level ?? $node->level)
+            // Plus exigeant a mesure qu'il reussit, dans son niveau.
+            ->meilleurDAbord($level ?? $node->level, auth()->user() && ($level ?? $node->level)
+                ? app(\App\Services\Content\PalierDeDifficulte::class)->pour(auth()->user(), $level ?? $node->level)
+                : null)
             ->limit($limit)
             ->get();
     }

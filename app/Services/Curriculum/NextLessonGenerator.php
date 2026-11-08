@@ -223,6 +223,10 @@ class NextLessonGenerator
             'previous_lessons' => $previousLessons,
             'completed_objectives' => $completedObjectives,
             'level' => $skeleton->levelForObjective($skeleton->current_objective_index, $user->profile->current_level),
+            // Sa place dans le parcours : la lecon 30 sur 35 ne s'ecrit pas comme la
+            // premiere (voir PalierDeDifficulte::consigneDeLecon).
+            'position' => (int) $skeleton->current_objective_index,
+            'total' => count($skeleton->objectives ?? []),
             'native_language' => $user->profile->native_language ?? 'Français',
             'language' => $user->profile->targetExam->language->name ?? 'English',
             'exam_name' => $user->profile->targetExam->name ?? 'Language Exam',
@@ -243,7 +247,7 @@ class NextLessonGenerator
         // HYBRID CACHING LOGIC
         // Cache key includes native_language so a French speaker doesn't get an English-explained lesson
         if (! $isConsolidation && ! $hasErrors) {
-            $cachePath = storage_path("app/lessons/{$langKey}_via_{$nativeKey}/{$level}/{$concept}.json");
+            $cachePath = storage_path("app/lessons/v2-progression/{$langKey}_via_{$nativeKey}/{$level}/{$concept}.json");
 
             if (File::exists($cachePath)) {
                 $cachedJson = File::get($cachePath);
@@ -299,6 +303,11 @@ class NextLessonGenerator
             $quizLang = $context['language'];
         }
 
+        // Plus exigeante a mesure que l'apprenant avance dans le niveau.
+        $progression = \App\Services\Content\PalierDeDifficulte::consigneDeLecon(
+            (int) ($context['position'] ?? 0), (int) ($context['total'] ?? 0), $upperLevel
+        );
+
         $prompt = <<<PROMPT
 You are a {$context['language']} teacher for a {$context['level']} student whose native language is {$context['native_language']}.
 The student is preparing for: {$context['exam_name']}.
@@ -306,7 +315,7 @@ The student is preparing for: {$context['exam_name']}.
 Current learning objective: {$objective['title']}
 Concept: {$objective['concept']}
 
-{$languagePolicy}
+{$languagePolicy}{$progression}
 
 {$errorsText}
 {$previousText}
@@ -383,7 +392,7 @@ PROMPT;
 
         // SAVE CACHE: If this was a standard lesson generation, save it to the static library
         if (! $isConsolidation && ! $hasErrors) {
-            $cacheDir = storage_path("app/lessons/{$langKey}_via_{$nativeKey}/{$level}");
+            $cacheDir = storage_path("app/lessons/v2-progression/{$langKey}_via_{$nativeKey}/{$level}");
             if (! File::exists($cacheDir)) {
                 File::makeDirectory($cacheDir, 0755, true);
             }
