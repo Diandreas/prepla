@@ -51,6 +51,8 @@ export function AppSidebar() {
     if (role === 'super_admin') {
         mainNavItems = [
             { title: 'Centres', url: '/admin/centers', icon: () => <SidebarIcon name="layout-grid" /> },
+            // Comptes payes par Orange Money / MTN MoMo, a activer a la main.
+            { title: 'Activations', url: '/admin/activations', icon: () => <SidebarIcon name="sparkles" /> },
             ...(menus?.releves
                 ? [{ title: 'Relevés', url: '/admin/releves', icon: () => <SidebarIcon name="statistics" /> }]
                 : []),

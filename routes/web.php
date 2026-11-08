@@ -318,6 +318,7 @@ Route::middleware(['auth', EnsureSuperAdmin::class])
 
         // Sous-domaines et domaines propres d'un centre (lot B).
         require __DIR__.'/admin-domaines.php';
+        require __DIR__.'/admin-activations.php';
     });
 
 // Staff du centre (center_admin + teacher). Le middleware injecte le centre courant.

@@ -66,7 +66,14 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'premium_until' => 'datetime',
         ];
+    }
+
+    /** Acces paye par Mobile Money et ouvert a la main, encore en cours. */
+    public function aUnAccesMobileMoney(): bool
+    {
+        return $this->premium_until !== null && now()->lt($this->premium_until);
     }
 
     /**
@@ -84,6 +91,11 @@ class User extends Authenticatable
         $trialEndsAt = $this->profile?->trial_ends_at;
 
         if ($trialEndsAt && now()->lt($trialEndsAt)) {
+            return true;
+        }
+
+        // Paye par Orange Money ou MTN MoMo, active par l'equipe.
+        if ($this->aUnAccesMobileMoney()) {
             return true;
         }
 

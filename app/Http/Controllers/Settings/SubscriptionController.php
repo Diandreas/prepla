@@ -59,7 +59,17 @@ class SubscriptionController extends Controller
         }
 
         return Inertia::render('settings/subscription', [
-            'currentPlan'       => ($isSubscribed || $onTrial) ? 'premium' : 'free',
+            'currentPlan'       => ($isSubscribed || $onTrial || $user->aUnAccesMobileMoney()) ? 'premium' : 'free',
+            // Payer par Orange Money ou MTN MoMo, puis envoyer la capture sur
+            // WhatsApp : l'equipe active le compte a la main (admin/activations).
+            'mobileMoney'       => [
+                'orange' => config('prepla.mobile_money.orange'),
+                'mtn' => config('prepla.mobile_money.mtn'),
+                'whatsapp' => config('prepla.mobile_money.whatsapp'),
+                'prix' => config('prepla.mobile_money.prix'),
+                'email' => $user->email,
+            ],
+            'premiumUntil'      => $user->aUnAccesMobileMoney() ? $user->premium_until->toIso8601String() : null,
             'stripeEnabled'     => filled(config('cashier.key'))
                 && filled(config('cashier.secret'))
                 && filled(config('services.stripe.prices.monthly'))

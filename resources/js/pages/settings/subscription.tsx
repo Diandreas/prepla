@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useEffect, useState } from 'react';
+import PaiementMobileMoney, { type MobileMoney } from '@/components/paiement-mobile-money';
 
 interface Plan {
     id: string;
@@ -35,6 +36,9 @@ interface Props {
     cancelAtPeriodEnd: boolean;
     renewsAt: number | null;
     plans: { monthly: Plan; annual: Plan };
+    mobileMoney?: MobileMoney;
+    /** Fin de l'acces paye par Mobile Money, s'il est en cours. */
+    premiumUntil?: string | null;
 }
 
 interface InvoiceItem {
@@ -45,7 +49,7 @@ interface InvoiceItem {
     pdf_url: string | null;
 }
 
-export default function Subscription({ currentPlan, stripeEnabled, isSubscribed, onTrial, trialDaysLeft, cancelAtPeriodEnd, renewsAt, plans }: Props) {
+export default function Subscription({ currentPlan, stripeEnabled, isSubscribed, onTrial, trialDaysLeft, cancelAtPeriodEnd, renewsAt, plans, mobileMoney, premiumUntil }: Props) {
     // Un apprenant renvoyé ici par la limite gratuite arrivait sur une page de
     // paiement sans la moindre explication : le message du serveur n'était pas lu.
     const flash = usePage().props.flash as { error?: string } | undefined;
@@ -163,6 +167,19 @@ export default function Subscription({ currentPlan, stripeEnabled, isSubscribed,
                         <p className="text-xs text-amber-700 mt-0.5">Abonnez-vous maintenant pour continuer après la fin de l'essai</p>
                     </div>
                 )}
+
+                {/* Acces paye par Mobile Money, active par l'equipe */}
+                {premiumUntil && (
+                    <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-center dark:border-emerald-900/50 dark:bg-emerald-950/30">
+                        <p className="text-sm font-bold text-emerald-800 dark:text-emerald-200">
+                            ✓ PrePla Plus actif jusqu'au {new Date(premiumUntil).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        </p>
+                        <p className="mt-0.5 text-xs text-emerald-700 dark:text-emerald-300">Payé par Mobile Money. Pour prolonger, paie à nouveau ci-dessous : les jours restants sont conservés.</p>
+                    </div>
+                )}
+
+                {/* Paiement le plus simple au Cameroun : Orange Money ou MTN MoMo */}
+                {mobileMoney && !isPremium && <PaiementMobileMoney mobileMoney={mobileMoney} />}
 
                 {/* Plan Premium — toujours affiché en premier */}
                 <Card className={`relative border-2 shadow-xl transition-all ${hasAccess ? 'border-amber-400 ring-1 ring-amber-400' : 'border-border hover:border-amber-400/50'}`}>

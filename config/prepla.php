@@ -23,4 +23,20 @@ return [
 
     ],
 
+    /*
+     * Paiement par Mobile Money, active a la main : l'apprenant paie, envoie la
+     * capture sur WhatsApp, et l'equipe ouvre son acces depuis /admin/activations.
+     * Les prix se changent dans le .env, sans redeployer.
+     */
+    'mobile_money' => [
+        'orange' => env('MOBILE_MONEY_ORANGE', '693427913'),
+        'mtn' => env('MOBILE_MONEY_MTN', '683735889'),
+        // Numero WhatsApp au format international, sans « + » (lien wa.me).
+        'whatsapp' => env('MOBILE_MONEY_WHATSAPP', '237693427913'),
+        'prix' => [
+            'mensuel' => (int) env('MOBILE_MONEY_PRIX_MENSUEL', 5000),
+            'annuel' => (int) env('MOBILE_MONEY_PRIX_ANNUEL', 45000),
+        ],
+    ],
+
 ];
