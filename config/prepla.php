@@ -35,7 +35,7 @@ return [
         'whatsapp' => env('MOBILE_MONEY_WHATSAPP', '237693427913'),
         'prix' => [
             'mensuel' => (int) env('MOBILE_MONEY_PRIX_MENSUEL', 6500),
-            'annuel' => (int) env('MOBILE_MONEY_PRIX_ANNUEL', 45000),
+            'annuel' => (int) env('MOBILE_MONEY_PRIX_ANNUEL', 60000),
         ],
     ],
 
