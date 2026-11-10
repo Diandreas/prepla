@@ -30,14 +30,14 @@ test('le super administrateur active un mois avec l e-mail, et l acces s ouvre',
     expect($awa->hasPremiumAccess())->toBeFalse();
 
     $this->actingAs($admin)->post(route('admin.activations.store'), [
-        'email' => 'awa@exemple.cm', 'formule' => 'mensuel', 'moyen' => 'orange', 'montant' => 5000, 'reference' => 'OM123',
+        'email' => 'awa@exemple.cm', 'formule' => 'mensuel', 'moyen' => 'orange', 'montant' => 6500, 'reference' => 'OM123',
     ])->assertRedirect(route('admin.activations.index', ['email' => 'awa@exemple.cm']));
 
     $awa->refresh();
     expect($awa->hasPremiumAccess())->toBeTrue()
         ->and($awa->premium_until->diffInDays(now()->addDays(30), true))->toBeLessThan(1)
         ->and(ActivationManuelle::sole()->only(['email', 'formule', 'jours', 'moyen', 'montant', 'reference', 'activated_by']))
-        ->toBe(['email' => 'awa@exemple.cm', 'formule' => 'mensuel', 'jours' => 30, 'moyen' => 'orange', 'montant' => 5000, 'reference' => 'OM123', 'activated_by' => $admin->id]);
+        ->toBe(['email' => 'awa@exemple.cm', 'formule' => 'mensuel', 'jours' => 30, 'moyen' => 'orange', 'montant' => 6500, 'reference' => 'OM123', 'activated_by' => $admin->id]);
 });
 
 test('un acces en cours est prolonge, pas ecrase', function () {
@@ -96,6 +96,6 @@ test('la page d abonnement donne les numeros, le prix en FCFA et l e-mail pour W
             ->where('mobileMoney.mtn', '683735889')
             ->where('mobileMoney.whatsapp', '237693427913')
             ->where('mobileMoney.email', 'awa@exemple.cm')
-            ->where('mobileMoney.prix.mensuel', 5000)
+            ->where('mobileMoney.prix.mensuel', 6500)
             ->where('premiumUntil', null));
 });

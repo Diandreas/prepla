@@ -34,7 +34,7 @@ return [
         // Numero WhatsApp au format international, sans « + » (lien wa.me).
         'whatsapp' => env('MOBILE_MONEY_WHATSAPP', '237693427913'),
         'prix' => [
-            'mensuel' => (int) env('MOBILE_MONEY_PRIX_MENSUEL', 5000),
+            'mensuel' => (int) env('MOBILE_MONEY_PRIX_MENSUEL', 6500),
             'annuel' => (int) env('MOBILE_MONEY_PRIX_ANNUEL', 45000),
         ],
     ],
