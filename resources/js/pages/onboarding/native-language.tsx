@@ -5,6 +5,8 @@ import { useEffect, useState } from 'react';
 
 interface Props {
     currentNativeLanguage: string | null;
+    /** Renseignee quand la langue maternelle cochee est celle de l'examen choisi. */
+    langueDeLExamen?: string | null;
 }
 
 const OXFORD = '#1A2B48';
@@ -25,7 +27,7 @@ function FlagComponent({ code }: { code: string }) {
     return <Flag style={{ width: 28, borderRadius: 3, display: 'block' }} />;
 }
 
-export default function NativeLanguage({ currentNativeLanguage }: Props) {
+export default function NativeLanguage({ currentNativeLanguage, langueDeLExamen }: Props) {
     const [selected, setSelected] = useState<string | null>(currentNativeLanguage ?? null);
     const [submitting, setSubmitting] = useState(false);
     const [mounted, setMounted] = useState(false);
@@ -35,7 +37,10 @@ export default function NativeLanguage({ currentNativeLanguage }: Props) {
     function handleSubmit() {
         if (!selected || submitting) return;
         setSubmitting(true);
-        router.post(route('onboarding.native-language.store'), { native_language: selected });
+        router.post(
+            route('onboarding.native-language.store'),
+            langueDeLExamen ? { native_language: selected, verifier: 1 } : { native_language: selected },
+        );
     }
 
     return (
@@ -50,6 +55,14 @@ export default function NativeLanguage({ currentNativeLanguage }: Props) {
                         Cela nous aide à personnaliser ton test de niveau et ton parcours
                     </p>
                 </div>
+
+                {langueDeLExamen && (
+                    <div role="alert" className="rounded-2xl border-2 border-amber-300 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">
+                        Tu as indiqué {langueDeLExamen === 'English' ? "l'anglais" : langueDeLExamen === 'Allemand' ? "l'allemand" : 'le français'} comme
+                        langue maternelle, et ton examen est dans cette même langue. Vérifie ton choix : tes leçons seront expliquées et
+                        traduites dans ta langue maternelle.
+                    </div>
+                )}
 
                 {/* Language grid */}
                 <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">

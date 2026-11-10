@@ -26,10 +26,15 @@ class OnboardingController extends Controller
 
     // ─── Étape 1 : Langue maternelle ────────────────────────────────────────
 
-    public function nativeLanguage(): Response
+    public function nativeLanguage(Request $request): Response
     {
+        $profile = auth()->user()->profile;
+
         return Inertia::render('onboarding/native-language', [
-            'currentNativeLanguage' => auth()->user()->profile?->native_language,
+            'currentNativeLanguage' => $profile?->native_language,
+            // Renvoye ici par storeExam : la langue maternelle cochee est celle
+            // de l'examen choisi. On le dit, et on laisse corriger.
+            'langueDeLExamen' => $request->boolean('verifier') ? $profile?->targetExam?->language?->name : null,
         ]);
     }
 
@@ -58,6 +63,12 @@ class OnboardingController extends Controller
         // classe, et sa prochaine mission de ses devoirs.
         if (app(\App\Services\Center\ParcoursEleveDeCentre::class)->appartenance($request->user())) {
             return redirect()->route('dashboard');
+        }
+
+        // Retour de la verification : l'examen est deja choisi, on ne le redemande
+        // pas. Confirmer la meme langue reste permis, sans boucle.
+        if ($request->boolean('verifier') && $profile->target_exam_id) {
+            return redirect()->route('onboarding.goal');
         }
 
         return redirect()->route('onboarding.exam');
@@ -91,10 +102,20 @@ class OnboardingController extends Controller
             'exam_id' => ['required', 'exists:exams,id', new \App\Rules\ExamenDuCentre($request->user()->center())],
         ]);
 
-        UserProfile::updateOrCreate(
+        $profile = UserProfile::updateOrCreate(
             ['user_id' => $request->user()->id],
             ['target_exam_id' => $validated['exam_id']]
         );
+
+        // Langue maternelle = langue de l'examen : presque toujours une erreur de
+        // saisie (des francophones ont coche « English » avant de choisir le
+        // TOEFL). Leurs lecons traduisaient alors le vocabulaire dans une autre
+        // langue, l'espagnol. On redemande une fois, sans bloquer.
+        $examLanguage = \App\Models\Exam::with('language')->find($validated['exam_id'])?->language?->name;
+        if ($examLanguage && $profile->native_language
+            && mb_strtolower($examLanguage) === mb_strtolower($profile->native_language)) {
+            return redirect()->route('onboarding.native-language', ['verifier' => 1]);
+        }
 
         return redirect()->route('onboarding.goal');
     }
