@@ -607,7 +607,9 @@ class ExerciseScoringService
         // autant dans les statistiques du centre qu'une copie parfaite.
         $credit = $correct;
         foreach ($feedback as $item) {
-            if (isset($item['band_score']) && empty($item['technical_failure'])) {
+            // Redaction (note du correcteur) ou oral evalue (points couverts) : note graduee.
+            $graduee = isset($item['band_score']) || isset($item['covered_points']);
+            if ($graduee && isset($item['accuracy']) && empty($item['technical_failure'])) {
                 $credit += max(0, min(1, (float) ($item['accuracy'] ?? 0) / 100)) - (! empty($item['correct']) ? 1 : 0);
             }
         }

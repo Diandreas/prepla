@@ -112,3 +112,22 @@ test('une redaction compte pour sa note dans la precision, pas pour reussie', fu
         ->and($result['feedback'][0]['correct'])->toBeTrue()
         ->and($result['feedback'][0]['corrections'])->toHaveCount(1);
 });
+
+test('une prise de parole compte pour sa note dans la precision', function () {
+    $eval = Mockery::mock(MistralEvaluationService::class);
+    $eval->shouldReceive('evaluateSpeaking')->once()->andReturn([
+        'isCorrect' => true,
+        'accuracy' => 70,
+        'explanation' => 'Il manque la fin.',
+        'covered_points' => ['Le changement'],
+        'missing_points' => ['Comment tu t es adapte'],
+    ]);
+    $service = new ExerciseScoringService($eval, Mockery::mock(WritingCorrectorService::class), Mockery::mock(DeepgramSttService::class));
+    $oral = selfEvaluatedExercise('speaking-recorder');
+    $oral->setRelation('exam', null);
+
+    $result = $service->score($oral, ['q1' => 'I moved to Yaounde to start university and I felt lonely.']);
+
+    expect($result['accuracy'])->toBe(70.0)
+        ->and($result['feedback'][0]['missing_points'])->toBe(['Comment tu t es adapte']);
+});

@@ -132,6 +132,49 @@ function CorrectionRedaction({ item }: { item: { band_score?: number; sub_scores
     );
 }
 
+/**
+ * La correction d'une prise de parole : points abordes ou oublies, reponse
+ * modele, tendances. Enregistree avec la tentative, elle n'etait pas montree.
+ */
+function CorrectionOrale({ item }: { item: { accuracy?: number; covered_points?: string[]; missing_points?: string[]; model_answer?: string; diagnostic?: Array<{ observation?: string }> } }) {
+    const tendances = (item.diagnostic ?? []).map((d) => d.observation).filter(Boolean) as string[];
+
+    return (
+        <div className="mt-3 space-y-3">
+            <div className="rounded-xl border border-border bg-card p-3">
+                <div className="flex items-baseline justify-between gap-2">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Ta prise de parole</p>
+                    {typeof item.accuracy === 'number' && <p className="text-xl font-black tabular-nums text-foreground">{Math.round(item.accuracy)} %</p>}
+                </div>
+                <ul className="mt-2 space-y-1.5 text-[13px]">
+                    {(item.covered_points ?? []).map((p, k) => (
+                        <li key={`c${k}`} className="flex gap-2"><span className="font-black text-emerald-600">✓</span><span className="text-foreground">{p}</span></li>
+                    ))}
+                    {(item.missing_points ?? []).map((p, k) => (
+                        <li key={`m${k}`} className="flex gap-2"><span className="font-black text-red-600">✗</span><span className="text-foreground">{p} <span className="text-xs text-red-600">— oublié</span></span></li>
+                    ))}
+                </ul>
+            </div>
+
+            {item.model_answer && (
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 dark:border-emerald-900 dark:bg-emerald-950/30">
+                    <p className="mb-1 text-[10px] font-black uppercase tracking-widest text-emerald-800 dark:text-emerald-300">Exemple de réponse</p>
+                    <p className="break-words text-[13px] italic leading-snug text-foreground">{item.model_answer}</p>
+                </div>
+            )}
+
+            {tendances.length > 0 && (
+                <div className="rounded-xl border border-border bg-card p-3">
+                    <p className="mb-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">L'analyse de l'IA</p>
+                    <ul className="list-disc space-y-1 pl-4 text-xs text-muted-foreground">
+                        {tendances.slice(0, 3).map((t, k) => <li key={k}>{t}</li>)}
+                    </ul>
+                </div>
+            )}
+        </div>
+    );
+}
+
 export default function ExerciseResult({ attempt, nodeProgress }: Props) {
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
@@ -197,6 +240,10 @@ export default function ExerciseResult({ attempt, nodeProgress }: Props) {
         sub_scores?: Record<string, number>;
         corrections?: Array<{ original?: string; corrected?: string; explanation?: string; category?: string }>;
         diagnostic?: Array<{ dimension?: string; observation?: string; severity?: string }>;
+        transcription?: string | null;
+        covered_points?: string[];
+        missing_points?: string[];
+        model_answer?: string;
     }>;
     const questions = exercise?.questions ?? [];
 
@@ -345,8 +392,11 @@ export default function ExerciseResult({ attempt, nodeProgress }: Props) {
                                                 {question?.text ?? question?.prompt ?? `Question ${i + 1}`}
                                             </p>
                                             <p className="break-words text-xs text-muted-foreground">
-                                                Ta réponse : {givenAnswer || 'Aucune réponse'}
+                                                {item.transcription
+                                                    ? <>Ce que l'IA a entendu : <span className="italic text-foreground">« {item.transcription} »</span></>
+                                                    : <>Ta réponse : {givenAnswer || 'Aucune réponse'}</>}
                                             </p>
+                                            {(item.covered_points?.length || item.missing_points?.length) ? <CorrectionOrale item={item} /> : null}
                                             {!item.correct && expectedAnswer.length > 0 && (
                                                 <div className="mt-2 flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/50 p-2">
                                                     <p className="min-w-0 break-words text-[13px] text-foreground">
