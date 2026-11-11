@@ -57,6 +57,81 @@ interface Props {
 const SKY = '#4A90E2';
 const GOLD = '#F5A623';
 
+const CRITERES: Record<string, string> = {
+    task_achievement: 'Réponse à la consigne',
+    task_response: 'Réponse à la consigne',
+    coherence_cohesion: 'Cohérence',
+    lexical_resource: 'Vocabulaire',
+    grammar_accuracy: 'Grammaire',
+    grammatical_range_accuracy: 'Grammaire',
+};
+
+/**
+ * La correction d'une redaction : note, criteres, fautes corrigees, tendances.
+ * Le correcteur la produisait deja et elle etait enregistree avec la tentative,
+ * mais cette page n'en montrait que le commentaire general.
+ */
+function CorrectionRedaction({ item }: { item: { band_score?: number; sub_scores?: Record<string, number>; corrections?: Array<{ original?: string; corrected?: string; explanation?: string }>; diagnostic?: Array<{ observation?: string }> } }) {
+    const criteres = Object.entries(item.sub_scores ?? {}).filter(([, v]) => typeof v === 'number');
+    const corrections = (item.corrections ?? []).filter((c) => c.original && c.corrected);
+    const tendances = (item.diagnostic ?? []).map((d) => d.observation).filter(Boolean) as string[];
+
+    return (
+        <div className="mt-3 space-y-3">
+            <div className="rounded-xl border border-border bg-card p-3">
+                <div className="flex items-baseline justify-between gap-2">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Note de ta rédaction</p>
+                    <p className="text-xl font-black tabular-nums text-foreground">
+                        {Number(item.band_score).toFixed(1).replace('.', ',')}
+                        <span className="text-sm font-bold text-muted-foreground"> / 9</span>
+                    </p>
+                </div>
+                {criteres.length > 0 && (
+                    <div className="mt-2 space-y-1.5">
+                        {criteres.map(([cle, note]) => (
+                            <div key={cle}>
+                                <div className="flex justify-between text-xs">
+                                    <span className="font-semibold text-foreground">{CRITERES[cle] ?? cle.replace(/_/g, ' ')}</span>
+                                    <span className="tabular-nums text-muted-foreground">{String(note).replace('.', ',')} / 9</span>
+                                </div>
+                                <div className="mt-0.5 h-1.5 rounded-full bg-muted">
+                                    <div className="h-full rounded-full bg-sky-500" style={{ width: `${Math.max(0, Math.min(100, (note / 9) * 100))}%` }} />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {corrections.length > 0 && (
+                <div className="rounded-xl border border-border bg-card p-3">
+                    <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                        {corrections.length} correction{corrections.length > 1 ? 's' : ''}
+                    </p>
+                    <ul className="space-y-2.5">
+                        {corrections.map((c, k) => (
+                            <li key={k} className="text-[13px] leading-snug">
+                                <p className="break-words text-red-700 line-through decoration-red-400/70 dark:text-red-300">{c.original}</p>
+                                <p className="break-words font-semibold text-emerald-700 dark:text-emerald-300">{c.corrected}</p>
+                                {c.explanation && <p className="mt-0.5 break-words text-xs text-muted-foreground">{c.explanation}</p>}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+
+            {tendances.length > 0 && (
+                <div className="rounded-xl border border-border bg-card p-3">
+                    <p className="mb-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground">À travailler</p>
+                    <ul className="list-disc space-y-1 pl-4 text-xs text-muted-foreground">
+                        {tendances.slice(0, 3).map((t, k) => <li key={k}>{t}</li>)}
+                    </ul>
+                </div>
+            )}
+        </div>
+    );
+}
+
 export default function ExerciseResult({ attempt, nodeProgress }: Props) {
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
@@ -117,6 +192,11 @@ export default function ExerciseResult({ attempt, nodeProgress }: Props) {
         correct: boolean;
         correct_answer: unknown;
         explanation?: string;
+        accuracy?: number;
+        band_score?: number;
+        sub_scores?: Record<string, number>;
+        corrections?: Array<{ original?: string; corrected?: string; explanation?: string; category?: string }>;
+        diagnostic?: Array<{ dimension?: string; observation?: string; severity?: string }>;
     }>;
     const questions = exercise?.questions ?? [];
 
@@ -284,6 +364,7 @@ export default function ExerciseResult({ attempt, nodeProgress }: Props) {
                                                     </button>
                                                 </div>
                                             )}
+                                            {typeof item.band_score === 'number' && <CorrectionRedaction item={item} />}
                                             {item.explanation && (
                                                 <div className="mt-3 rounded-xl border border-dashed border-border bg-card/80 p-3 sm:p-4">
                                                     <div className="flex items-center justify-between mb-2">

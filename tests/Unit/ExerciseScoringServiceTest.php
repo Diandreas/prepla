@@ -87,3 +87,28 @@ test('new component schemas are registered and accept their generated payloads',
         expect($ok, "{$componentKey}: {$error}")->toBeTrue();
     }
 });
+
+test('une redaction compte pour sa note dans la precision, pas pour reussie', function () {
+    $correcteur = Mockery::mock(WritingCorrectorService::class);
+    $correcteur->shouldReceive('correct')->once()->andReturn([
+        'score' => 6.8,
+        'band_scores' => ['task_achievement' => 8, 'grammar_accuracy' => 6],
+        'corrections' => [['original' => 'les documents qui manque', 'corrected' => 'les documents qui manquent', 'explanation' => 'Accord du verbe.']],
+        'feedback' => 'Bon courriel.',
+    ]);
+    $service = new ExerciseScoringService(
+        Mockery::mock(MistralEvaluationService::class),
+        $correcteur,
+        Mockery::mock(DeepgramSttService::class),
+    );
+
+    $redaction = selfEvaluatedExercise('essay-editor');
+    $redaction->setRelation('exam', null);
+    $redaction->setRelation('examSection', null);
+    $result = $service->score($redaction, ['q1' => str_repeat('Un courriel complet. ', 20)]);
+
+    // 6,8 / 9 : environ 76 %, et non 100 % parce que la copie « passe ».
+    expect($result['accuracy'])->toBe(75.56)
+        ->and($result['feedback'][0]['correct'])->toBeTrue()
+        ->and($result['feedback'][0]['corrections'])->toHaveCount(1);
+});

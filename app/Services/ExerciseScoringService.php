@@ -602,7 +602,16 @@ class ExerciseScoringService
         // the student's fault, so they shouldn't lower accuracy/XP like a real
         // mistake would (see getTextToEvaluate's $technicalFailure param).
         $scorableTotal = max($total - $technicalFailures, 0);
-        $accuracyPercent = $scorableTotal > 0 ? round(($correct / $scorableTotal) * 100, 2) : 0;
+        // Une redaction notee par le correcteur compte pour sa note, pas pour
+        // « reussie ». Une copie a 6,8/9 affichait 100 % de precision et pesait
+        // autant dans les statistiques du centre qu'une copie parfaite.
+        $credit = $correct;
+        foreach ($feedback as $item) {
+            if (isset($item['band_score']) && empty($item['technical_failure'])) {
+                $credit += max(0, min(1, (float) ($item['accuracy'] ?? 0) / 100)) - (! empty($item['correct']) ? 1 : 0);
+            }
+        }
+        $accuracyPercent = $scorableTotal > 0 ? round((max(0, $credit) / $scorableTotal) * 100, 2) : 0;
         $xpReward = $exercise->xp_reward ?? ($total * 10);
         $xpEarned = (int) round(($accuracyPercent / 100) * $xpReward);
 
