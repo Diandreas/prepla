@@ -8,7 +8,12 @@ use Illuminate\Support\Facades\Log;
 
 class DeepgramSttService
 {
-    public function transcribe(UploadedFile $file, ?string $lang = null): ?string
+    /**
+     * @param  string[]  $motsAttendus  Mots que l'on s'attend a entendre (PrePla Kids : le
+     *                                  mot a dire). Deepgram oriente sa transcription vers
+     *                                  eux ; un mot isole d'enfant devenait « Doc » pour « Dog ».
+     */
+    public function transcribe(UploadedFile $file, ?string $lang = null, array $motsAttendus = []): ?string
     {
         // IMPORTANT: read the key via config(), NOT env(). With config caching
         // enabled in prod (php artisan config:cache), env() returns null → STT
@@ -50,6 +55,10 @@ class DeepgramSttService
             }
 
             $queryString = http_build_query($queryParams);
+            // Un parametre « keywords » par mot (format de Deepgram : mot:intensite).
+            foreach (array_slice(array_filter($motsAttendus), 0, 10) as $mot) {
+                $queryString .= '&keywords='.rawurlencode($mot.':3');
+            }
 
             $mime = $file->getMimeType() ?: 'application/octet-stream';
             $response = Http::withHeaders([

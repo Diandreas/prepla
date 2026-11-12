@@ -65,8 +65,9 @@ test('les mots sont dans la langue apprise, avec la traduction dans la langue d 
     expect(KidsProgres::mots('animaux', 'german', 'fr')[0])->toMatchArray(['image' => '🐶', 'mot' => 'der Hund', 'aide' => 'le chien'])
         ->and(KidsProgres::mots('animaux', 'french', 'fr')[0]['aide'])->toBeNull()
         ->and(KidsProgres::mots('animaux', 'french', 'en')[0])->toMatchArray(['image' => '🐶', 'mot' => 'le chien', 'aide' => 'dog'])
-        // Sans illustration deposee, l'emoji suffit.
-        ->and(KidsProgres::mots('ecole', 'english')[3]['fichier'])->toBeNull()
+        // L'illustration deposee est servie en WebP ; sans elle, l'emoji suffit.
+        ->and(KidsProgres::mots('ecole', 'english')[3]['fichier'])->toBe('/illustrations/prepla-kids/mots/ecole/school-bag.webp')
+        ->and(KidsProgres::fichier('mots/inconnu/rien'))->toBeNull()
         ->and(KidsProgres::cle('school bag'))->toBe('school-bag')
         ->and(KidsProgres::cle('T-shirt'))->toBe('t-shirt');
 });
@@ -138,4 +139,67 @@ test('chaque theme a huit mots, une image et trois langues', function () {
         }
         expect(array_unique(array_column($theme['mots'], 1)))->toHaveCount(8, "mots anglais en double dans {$slug}");
     }
+});
+
+test('la prononciation est jugee avec indulgence : sans article, dans une phrase, avec un petit accent', function () {
+    expect(KidsProgres::prononciationJuste('Dog.', 'dog', 'english'))->toBeTrue()
+        ->and(KidsProgres::prononciationJuste("it's a dog", 'dog', 'english'))->toBeTrue()
+        ->and(KidsProgres::prononciationJuste('chien', 'le chien', 'french'))->toBeTrue()
+        ->and(KidsProgres::prononciationJuste("L'oiseau !", "l'oiseau", 'french'))->toBeTrue()
+        ->and(KidsProgres::prononciationJuste('Hund', 'der Hund', 'german'))->toBeTrue()
+        ->and(KidsProgres::prononciationJuste('elefant', 'elephant', 'english'))->toBeTrue()
+        // La transcription ecrit les nombres en chiffres.
+        ->and(KidsProgres::prononciationJuste('3', 'three', 'english'))->toBeTrue()
+        ->and(KidsProgres::prononciationJuste('7', 'sieben', 'german'))->toBeTrue()
+        // Un autre mot n'est pas le bon.
+        ->and(KidsProgres::prononciationJuste('cat', 'dog', 'english'))->toBeFalse()
+        ->and(KidsProgres::prononciationJuste('', 'dog', 'english'))->toBeFalse()
+        ->and(KidsProgres::prononciationJuste('die Katze', 'der Hund', 'german'))->toBeFalse();
+});
+
+test('dis-le : le mot dit au micro est transcrit dans la langue apprise et compare', function () {
+    $parent = kidsParent();
+    $lina = kidsEnfant($parent, ['langue' => 'german']);
+    $stt = Mockery::mock(App\Services\AI\DeepgramSttService::class);
+    $stt->shouldReceive('transcribe')->once()->withArgs(fn ($f, $lang) => $lang === 'german')->andReturn('Der Hund.');
+    $stt->shouldReceive('transcribe')->once()->andReturn('Katze');
+    app()->instance(App\Services\AI\DeepgramSttService::class, $stt);
+    $this->actingAs($parent)->post(route('kids.jouer', $lina));
+    $audio = Illuminate\Http\UploadedFile::fake()->create('mot.webm', 20, 'audio/webm');
+
+    // Le chien est le premier mot des animaux.
+    $this->post(route('kids.dis'), ['theme' => 'animaux', 'index' => 0, 'audio' => $audio], ['Accept' => 'application/json'])
+        ->assertOk()->assertJson(['juste' => true, 'panne' => false, 'entendu' => 'Der Hund.']);
+    $this->post(route('kids.dis'), ['theme' => 'animaux', 'index' => 0, 'audio' => $audio], ['Accept' => 'application/json'])
+        ->assertJson(['juste' => false, 'entendu' => 'Katze']);
+});
+
+test('dis-le : une panne de la transcription n est pas une erreur de l enfant', function () {
+    $parent = kidsParent();
+    $lina = kidsEnfant($parent);
+    $stt = Mockery::mock(App\Services\AI\DeepgramSttService::class);
+    $stt->shouldReceive('transcribe')->andReturn(null);
+    app()->instance(App\Services\AI\DeepgramSttService::class, $stt);
+    $this->actingAs($parent)->post(route('kids.jouer', $lina));
+
+    $this->post(route('kids.dis'), ['theme' => 'animaux', 'index' => 1, 'audio' => Illuminate\Http\UploadedFile::fake()->create('mot.webm', 20)], ['Accept' => 'application/json'])
+        ->assertJson(['juste' => null, 'panne' => true]);
+
+    // Et sans enfant choisi, rien.
+    $this->post(route('kids.quitter'));
+    $this->post(route('kids.dis'), ['theme' => 'animaux', 'index' => 1, 'audio' => Illuminate\Http\UploadedFile::fake()->create('mot.webm', 20)], ['Accept' => 'application/json'])
+        ->assertForbidden();
+});
+
+test('dis-le : quand rien n est entendu, l essai ne compte pas', function () {
+    $parent = kidsParent();
+    $lina = kidsEnfant($parent);
+    $stt = Mockery::mock(App\Services\AI\DeepgramSttService::class);
+    // Le mot attendu est donne a la transcription, sans son article.
+    $stt->shouldReceive('transcribe')->once()->withArgs(fn ($f, $lang, $mots) => $lang === 'english' && $mots === ['cat'])->andReturn('');
+    app()->instance(App\Services\AI\DeepgramSttService::class, $stt);
+    $this->actingAs($parent)->post(route('kids.jouer', $lina));
+
+    $this->post(route('kids.dis'), ['theme' => 'animaux', 'index' => 1, 'audio' => Illuminate\Http\UploadedFile::fake()->create('mot.webm', 20)], ['Accept' => 'application/json'])
+        ->assertJson(['juste' => null, 'panne' => false, 'silence' => true]);
 });

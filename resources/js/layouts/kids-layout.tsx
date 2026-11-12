@@ -53,6 +53,9 @@ export const TXT = {
         paires: "Retourne les cartes et trouve les paires : l'image et son mot", decouvre: 'Touche la carte pour entendre le mot',
         reecouter: 'Réécouter', suivantMot: 'Suivant', fini: "J'ai fini !", verrouEtoiles: 'Gagne des étoiles au thème d’avant pour ouvrir celui-ci',
         verrouPlus: 'Demande à tes parents de débloquer ce thème', choisis: 'Choisis un jeu', mots: 'Les mots du thème', essais: 'essais',
+        dis: 'Écoute bien, puis dis le mot au micro', appuie: 'Appuie et parle', jecoute: "Je t'écoute…", reflechis: 'Je réfléchis…',
+        reessaie: 'Essaie encore !', entendu: "J'ai entendu", passer: 'Passer', onContinue: 'On continue !',
+        micro: "Le micro ne marche pas. Demande à un adulte de l'autoriser, ou passe ce jeu.", panne: "Oups, je n'ai pas pu t'écouter. Réessaie !", silence: "Je n'ai rien entendu. Parle plus fort, tout près du micro !",
     },
     en: {
         parents: 'Parents', bonjour: 'Hello', etoiles: 'stars', jours: 'days in a row', retour: 'Back', carte: 'My map',
@@ -62,6 +65,9 @@ export const TXT = {
         paires: 'Turn the cards and find the pairs: the picture and its word', decouvre: 'Tap the card to hear the word',
         reecouter: 'Listen again', suivantMot: 'Next', fini: "I'm done!", verrouEtoiles: 'Win stars in the previous topic to open this one',
         verrouPlus: 'Ask your parents to unlock this topic', choisis: 'Choose a game', mots: 'Words in this topic', essais: 'tries',
+        dis: 'Listen carefully, then say the word into the microphone', appuie: 'Tap and speak', jecoute: "I'm listening…", reflechis: 'Thinking…',
+        reessaie: 'Try again!', entendu: 'I heard', passer: 'Skip', onContinue: "Let's go on!",
+        micro: "The microphone isn't working. Ask a grown-up to allow it, or skip this game.", panne: "Oops, I couldn't hear you. Try again!", silence: "I didn't hear anything. Speak louder, close to the microphone!",
     },
 };
 

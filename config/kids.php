@@ -186,11 +186,13 @@ return [
     ],
 
     // Les jeux d'un theme, dans l'ordre. « lis » demande de savoir lire : il
-    // vient apres les deux jeux d'ecoute.
+    // vient apres les deux jeux d'ecoute ; « dis », le plus difficile, en dernier.
     'activites' => [
         'decouvrir' => ['fr' => 'Découvre', 'en' => 'Discover', 'icone' => '👀'],
         'ecoute' => ['fr' => 'Écoute et touche', 'en' => 'Listen and tap', 'icone' => '👂'],
         'lis' => ['fr' => 'Lis et trouve', 'en' => 'Read and find', 'icone' => '📖'],
         'paires' => ['fr' => 'Memory', 'en' => 'Memory', 'icone' => '🃏'],
+        // L'enfant dit le mot au micro ; la transcription est comparee au mot attendu.
+        'dis' => ['fr' => 'Dis-le !', 'en' => 'Say it!', 'icone' => '🎤'],
     ],
 ];

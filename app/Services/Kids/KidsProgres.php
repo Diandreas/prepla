@@ -64,6 +64,61 @@ class KidsProgres
             : null;
     }
 
+    /** Les articles, retires avant de comparer : l'enfant peut dire « chien » pour « le chien ». */
+    private const ARTICLES = ['the', 'a', 'an', 'le', 'la', 'les', 'l', 'un', 'une', 'der', 'die', 'das', 'ein', 'eine'];
+
+    /** La transcription ecrit les nombres en chiffres (« 3 ») : on les remet en mots. */
+    private const CHIFFRES = [
+        'english' => ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'],
+        'french' => ['un', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf', 'dix'],
+        'german' => ['eins', 'zwei', 'drei', 'vier', 'fünf', 'sechs', 'sieben', 'acht', 'neun', 'zehn'],
+    ];
+
+    private static function normaliserMot(string $s, string $langue): string
+    {
+        $s = mb_strtolower($s);
+        $s = preg_replace_callback('/\b(10|[1-9])\b/', fn ($m) => self::CHIFFRES[$langue][(int) $m[1] - 1] ?? $m[1], $s);
+        // « l'oiseau » -> « l oiseau » ; les accents restent, Deepgram les ecrit.
+        $s = preg_replace("/[^\p{L}\p{N}]+/u", ' ', $s);
+        $mots = array_filter(explode(' ', $s), fn ($m) => $m !== '' && ! in_array($m, self::ARTICLES, true));
+
+        return implode(' ', $mots);
+    }
+
+    /**
+     * L'enfant a-t-il dit le mot ? Indulgent, c'est un enfant qui apprend :
+     * l'article ne compte pas, le mot peut etre dans une phrase (« it's a dog »),
+     * et une petite difference de prononciation passe (75 % de ressemblance).
+     */
+    public static function prononciationJuste(string $entendu, string $attendu, string $langue): bool
+    {
+        $cible = self::normaliserMot($attendu, $langue);
+        $dit = self::normaliserMot($entendu, $langue);
+        if ($cible === '' || $dit === '') {
+            return false;
+        }
+        if ($dit === $cible || str_contains(" {$dit} ", " {$cible} ")) {
+            return true;
+        }
+
+        // Compare la cible a chaque groupe de mots de meme longueur dans ce qui a ete dit.
+        $n = count(explode(' ', $cible));
+        $mots = explode(' ', $dit);
+        for ($i = 0; $i + $n <= count($mots); $i++) {
+            $morceau = implode(' ', array_slice($mots, $i, $n));
+            similar_text($morceau, $cible, $pourcent);
+            if ($pourcent >= 75) {
+                return true;
+            }
+            // En anglais, meme son a l'oreille : « doc » et « dog », « elefant » et « elephant ».
+            if ($langue === 'english' && strlen($cible) >= 3 && metaphone($morceau) === metaphone($cible)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /** Etoiles a partir d'un score sur 100. */
     public static function etoiles(int $score): int
     {

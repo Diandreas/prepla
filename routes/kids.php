@@ -27,4 +27,6 @@ Route::middleware('auth')->prefix('kids')->name('kids.')->group(function () {
     // La voix des mots : le meme service que l'application, hors du questionnaire
     // adulte qu'un parent de PrePla Kids n'a pas a remplir. Fichiers mis en cache.
     Route::post('voix', [TtsController::class, 'speak'])->middleware('throttle:120,1')->name('voix');
+    // « Dis-le ! » : la transcription d'un mot dit au micro.
+    Route::post('dis', [KidsController::class, 'dis'])->middleware('throttle:40,1')->name('dis');
 });

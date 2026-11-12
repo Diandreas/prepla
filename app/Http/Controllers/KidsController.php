@@ -174,6 +174,43 @@ class KidsController extends Controller
         return response()->json(KidsProgres::enregistrer($enfant, $data['theme'], $data['activite'], $data['score'], (int) ($data['duree'] ?? 0), $data['mots_rates'] ?? []));
     }
 
+    /**
+     * « Dis-le ! » : l'enfant dit un mot au micro. Le serveur transcrit dans la
+     * langue apprise et dit si c'est le bon mot. Une panne de la transcription
+     * n'est jamais comptee comme une erreur de l'enfant.
+     */
+    public function dis(Request $request, \App\Services\AI\DeepgramSttService $stt): JsonResponse
+    {
+        $enfant = $this->enfant($request);
+        abort_unless($enfant, 403);
+        $data = $request->validate([
+            'theme' => ['required', Rule::in(array_keys(KidsProgres::themes()))],
+            'index' => ['required', 'integer', 'min:0', 'max:20'],
+            'audio' => ['required', 'file', 'max:3072'],
+        ]);
+        abort_unless(KidsProgres::themeOuvert($enfant, $data['theme'], $request->user()), 403);
+        $mot = KidsProgres::mots($data['theme'], $enfant->langue)[$data['index']] ?? null;
+        abort_unless($mot, 422);
+
+        // Les mots du mot attendu, sans article : Deepgram oriente sa transcription vers eux.
+        $attendus = array_values(array_filter(preg_split("/[\s']+/u", $mot['mot']), fn ($m) => mb_strlen($m) > 2 && ! in_array(mb_strtolower($m), ['the', 'les', 'une', 'der', 'die', 'das', 'ein', 'eine'], true)));
+        $entendu = $stt->transcribe($request->file('audio'), $enfant->langue, $attendus);
+        if ($entendu === null) {
+            return response()->json(['juste' => null, 'panne' => true, 'silence' => false, 'entendu' => '']);
+        }
+        // Rien entendu : l'enfant n'a pas parle, ou trop loin du micro. Pas un essai rate.
+        if (trim($entendu) === '') {
+            return response()->json(['juste' => null, 'panne' => false, 'silence' => true, 'entendu' => '']);
+        }
+
+        return response()->json([
+            'juste' => KidsProgres::prononciationJuste($entendu, $mot['mot'], $enfant->langue),
+            'panne' => false,
+            'silence' => false,
+            'entendu' => trim($entendu),
+        ]);
+    }
+
     private function enfant(Request $request): ?KidsEnfant
     {
         $id = $request->session()->get(self::SESSION);

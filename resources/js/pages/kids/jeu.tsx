@@ -4,10 +4,10 @@ import KidsLayout, { type ProfilEnfant, RENARD, Renard, TXT, Visuel } from '@/la
 import { getCachedTtsUrl, normalizeTtsLang, rememberTtsUrl } from '@/lib/tts-cache';
 
 interface Mot { image: string; fichier?: string | null; mot: string; aide: string | null }
-type Activite = 'decouvrir' | 'ecoute' | 'lis' | 'paires';
+type Activite = 'decouvrir' | 'ecoute' | 'lis' | 'paires' | 'dis';
 interface Fin { etoiles: number; gagnees: number; total: number; serie: number }
 
-const ORDRE: Activite[] = ['decouvrir', 'ecoute', 'lis', 'paires'];
+const ORDRE: Activite[] = ['decouvrir', 'ecoute', 'lis', 'paires', 'dis'];
 
 function melanger<T>(liste: T[]): T[] {
     const a = [...liste];
@@ -187,6 +187,198 @@ function Quiz({ mots, dire, t, lecture, onFin }: { mots: Mot[]; dire: (s: string
     );
 }
 
+// ---------------------------------------------------------------- Dis-le !
+/** Le format que ce navigateur sait enregistrer : webm sur Android et ordinateur, mp4 sur iPhone. */
+function formatAudio(): string | undefined {
+    if (typeof MediaRecorder === 'undefined') return undefined;
+    return ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg'].find((f) => MediaRecorder.isTypeSupported(f));
+}
+
+/** Enregistre environ 2,5 s (un mot d'enfant), ou moins si l'enfant touche a nouveau le micro. */
+function useMicro() {
+    const rec = useRef<MediaRecorder | null>(null);
+    const [actif, setActif] = useState(false);
+    const arreter = useCallback(() => {
+        if (rec.current?.state === 'recording') rec.current.stop();
+    }, []);
+    const enregistrer = useCallback(async (): Promise<Blob | null> => {
+        const flux = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const type = formatAudio();
+        const r = type ? new MediaRecorder(flux, { mimeType: type }) : new MediaRecorder(flux);
+        const morceaux: Blob[] = [];
+        rec.current = r;
+        return new Promise((resolve) => {
+            r.ondataavailable = (e) => {
+                if (e.data.size > 0) morceaux.push(e.data);
+            };
+            r.onstop = () => {
+                flux.getTracks().forEach((p) => p.stop());
+                setActif(false);
+                resolve(morceaux.length ? new Blob(morceaux, { type: r.mimeType || type || 'audio/webm' }) : null);
+            };
+            r.start(100);
+            setActif(true);
+            setTimeout(() => {
+                if (r.state === 'recording') r.stop();
+            }, 2500);
+        });
+    }, []);
+    return { actif, enregistrer, arreter };
+}
+
+type EtatDis = 'pret' | 'ecoute' | 'envoi' | 'juste' | 'faux' | 'panne' | 'silence';
+
+/**
+ * Dis-le ! : six mots du theme. L'enfant entend le mot, appuie sur le micro et le
+ * dit ; le serveur transcrit et compare. Trois essais par mot, puis on continue.
+ * Une panne d'ecoute n'est jamais comptee comme une erreur de l'enfant.
+ */
+function Dis({ mots, dire, t, theme, onFin }: { mots: Mot[]; dire: (s: string) => void; t: typeof TXT.fr; theme: string; onFin: (score: number, rates: string[]) => void }) {
+    const tours = useMemo(() => melanger(mots.map((m, index) => ({ ...m, index }))).slice(0, 6), [mots]);
+    const [i, setI] = useState(0);
+    const [essai, setEssai] = useState(0);
+    const [reussis, setReussis] = useState(0);
+    const [rates, setRates] = useState<string[]>([]);
+    const [etat, setEtat] = useState<EtatDis>('pret');
+    const [entendu, setEntendu] = useState('');
+    const [microKo, setMicroKo] = useState(false);
+    const micro = useMicro();
+    const tour = tours[i];
+
+    useEffect(() => {
+        dire(tour.mot);
+        setEssai(0);
+        setEtat('pret');
+        setEntendu('');
+    }, [i]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const suivant = (ok: boolean, motRate?: string) => {
+        const nbOk = reussis + (ok ? 1 : 0);
+        const listeRates = motRate ? [...rates, motRate] : rates;
+        setReussis(nbOk);
+        setRates(listeRates);
+        setTimeout(() => {
+            if (i < tours.length - 1) setI(i + 1);
+            else onFin(Math.round((nbOk / tours.length) * 100), listeRates);
+        }, ok ? 1100 : 1600);
+    };
+
+    const parler = async () => {
+        if (micro.actif) {
+            micro.arreter();
+            return;
+        }
+        if (etat === 'envoi' || etat === 'juste') return;
+        let audio: Blob | null = null;
+        try {
+            setEtat('ecoute');
+            audio = await micro.enregistrer();
+        } catch {
+            setMicroKo(true);
+            setEtat('pret');
+            return;
+        }
+        if (!audio) {
+            setEtat('panne');
+            return;
+        }
+        setEtat('envoi');
+        const corps = new FormData();
+        corps.append('theme', theme);
+        corps.append('index', String(tour.index));
+        corps.append('audio', audio, audio.type.includes('mp4') ? 'mot.mp4' : 'mot.webm');
+        try {
+            const res = await fetch(route('kids.dis'), {
+                method: 'POST',
+                body: corps,
+                headers: { Accept: 'application/json', 'X-XSRF-TOKEN': csrf(), 'X-Requested-With': 'XMLHttpRequest' },
+            });
+            const r: { juste: boolean | null; panne: boolean; silence?: boolean; entendu: string } = await res.json();
+            setEntendu(r.entendu ?? '');
+            if (r.silence) {
+                setEtat('silence');
+                return;
+            }
+            if (r.panne || r.juste === null) {
+                setEtat('panne');
+                return;
+            }
+            if (r.juste) {
+                son(true);
+                setEtat('juste');
+                suivant(true);
+                return;
+            }
+            son(false);
+            const n = essai + 1;
+            setEssai(n);
+            setEtat('faux');
+            if (n >= 3) {
+                dire(tour.mot);
+                suivant(false, tour.mot);
+            }
+        } catch {
+            setEtat('panne');
+        }
+    };
+
+    if (microKo) {
+        return (
+            <div className="mx-auto max-w-md space-y-4 rounded-[2rem] bg-white p-6 text-center shadow-lg">
+                <p className="text-6xl">🎤</p>
+                <p className="text-lg font-bold text-slate-700">{t.micro}</p>
+                <button type="button" onClick={() => setMicroKo(false)} className="h-12 w-full rounded-2xl bg-sky-500 font-black text-white">{t.reessaie}</button>
+                <button type="button" onClick={() => onFin(0, [])} className="font-bold text-slate-500">{t.passer}</button>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-5 text-center">
+            <p className="text-lg font-bold text-slate-600">{t.dis}</p>
+            <div className="h-3 overflow-hidden rounded-full bg-white">
+                <div className="h-full rounded-full bg-emerald-400 transition-all" style={{ width: `${(i / tours.length) * 100}%` }} />
+            </div>
+            <button
+                type="button"
+                onClick={() => dire(tour.mot)}
+                className={`mx-auto flex w-full max-w-xs flex-col items-center gap-2 rounded-[2.5rem] bg-white p-6 shadow-xl transition ${etat === 'juste' ? 'ring-8 ring-emerald-400' : ''} ${etat === 'faux' ? 'animate-[shake_0.4s] ring-8 ring-rose-300' : ''}`}
+            >
+                <Visuel image={tour.image} fichier={tour.fichier} className="h-36 w-36" texte="text-[7rem]" />
+                <span className="text-3xl font-black">{tour.mot}</span>
+                <span className="text-sm font-bold text-sky-600">🔊 {t.reecouter}</span>
+            </button>
+
+            <button
+                type="button"
+                onClick={parler}
+                disabled={etat === 'envoi' || etat === 'juste'}
+                aria-label={t.appuie}
+                className={`mx-auto flex h-28 w-28 items-center justify-center rounded-full text-6xl text-white shadow-[0_6px_0_0_rgba(0,0,0,0.2)] transition active:translate-y-1 active:shadow-none disabled:opacity-60 ${micro.actif ? 'animate-pulse bg-rose-500' : 'bg-emerald-500'}`}
+            >
+                {etat === 'envoi' ? '⏳' : etat === 'juste' ? '🎉' : '🎤'}
+            </button>
+            <div className="min-h-[3.5rem] text-lg font-black">
+                {etat === 'pret' && <p className="text-slate-600">{t.appuie}</p>}
+                {etat === 'ecoute' && <p className="text-rose-600">{t.jecoute}</p>}
+                {etat === 'envoi' && <p className="text-slate-500">{t.reflechis}</p>}
+                {etat === 'juste' && <p className="text-emerald-600">{t.bravo}</p>}
+                {etat === 'faux' && (
+                    <p className="text-rose-600">
+                        {essai >= 3 ? t.onContinue : t.reessaie}
+                        {entendu && <span className="block text-sm font-semibold text-slate-500">{t.entendu} : « {entendu} »</span>}
+                    </p>
+                )}
+                {etat === 'panne' && <p className="text-amber-600">{t.panne}</p>}
+                {etat === 'silence' && <p className="text-amber-600">{t.silence}</p>}
+            </div>
+            {etat === 'faux' && essai < 3 && (
+                <button type="button" onClick={() => suivant(false, tour.mot)} className="text-sm font-bold text-slate-400">{t.passer}</button>
+            )}
+        </div>
+    );
+}
+
 // ---------------------------------------------------------------- Memory
 function Paires({ mots, dire, t, onFin }: { mots: Mot[]; dire: (s: string) => void; t: typeof TXT.fr; onFin: (score: number, rates: string[]) => void }) {
     const choisis = useMemo(() => melanger(mots).slice(0, 6), [mots]);
@@ -301,6 +493,7 @@ export default function Jeu({ enfant, theme, activite, mots, tts }: {
                     {activite === 'ecoute' && <Quiz mots={mots} dire={dire} t={t} lecture={false} onFin={terminer} />}
                     {activite === 'lis' && <Quiz mots={mots} dire={dire} t={t} lecture onFin={terminer} />}
                     {activite === 'paires' && <Paires mots={mots} dire={dire} t={t} onFin={terminer} />}
+                    {activite === 'dis' && <Dis mots={mots} dire={dire} t={t} theme={theme.slug} onFin={terminer} />}
                 </div>
             )}
         </KidsLayout>
