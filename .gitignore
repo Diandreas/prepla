@@ -67,3 +67,4 @@ yarn-error.log
 # PrePla Kids : les PNG generes sont les sources, seuls les WebP optimises sont publies.
 /public/illustrations/prepla-kids/**/*.png
 /public/illustrations/prepla-kids/generation-manifest.json
+/public/illustrations/prepla-kids/README.md
