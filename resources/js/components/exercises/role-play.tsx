@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAudioRecorder } from '@/hooks/use-audio-recorder';
 import { useTts } from '@/hooks/use-tts';
 import { prefetchTts } from '@/lib/tts-cache';
+import { nomFichierAudio } from '@/lib/format-audio';
 
 // Read the freshest CSRF token (cookie tracks the live session).
 function csrfToken(): string {
@@ -116,7 +117,7 @@ export function RolePlay({ question, onAnswer, selectedAnswer, disabled, lang = 
         setEvaluatingTurn(currentTurn);
         try {
             const fd = new FormData();
-            fd.append('audio', audioBlob, `turn-${currentTurn}.webm`);
+            fd.append('audio', audioBlob, nomFichierAudio(`turn-${currentTurn}`, audioBlob));
             fd.append('prompt', turns[currentTurn]?.prompt ?? '');
             fd.append('lang', lang);
             const res = await fetch(route('api.exercise.evaluate-turn'), {

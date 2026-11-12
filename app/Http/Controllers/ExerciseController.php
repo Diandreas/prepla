@@ -506,10 +506,11 @@ class ExerciseController extends Controller
         ]);
 
         // When "answer" is an uploaded file (speaking questions), it was
-        // previously accepted with no mime/size check at all.
+        // previously accepted with no mime/size check at all. mp4 : l'iPhone
+        // enregistre en AAC dans un conteneur mp4, refuse jusqu'ici.
         if ($request->hasFile('answer')) {
             $request->validate([
-                'answer' => 'file|mimes:mp3,wav,webm,ogg,m4a,mpga|max:20480',
+                'answer' => 'file|mimes:mp3,wav,webm,ogg,m4a,mp4,aac,mpga|max:20480',
             ]);
         }
 
@@ -550,7 +551,7 @@ class ExerciseController extends Controller
             // No mime/size limit previously — any authenticated user could
             // post an arbitrarily large/typed file straight through to
             // Deepgram, wasting bandwidth/memory and STT API spend.
-            'audio' => 'required|file|mimes:mp3,wav,webm,ogg,m4a,mpga|max:20480',
+            'audio' => 'required|file|mimes:mp3,wav,webm,ogg,m4a,mp4,aac,mpga|max:20480',
             'prompt' => 'nullable|string',
             'lang' => 'nullable|string',
         ]);

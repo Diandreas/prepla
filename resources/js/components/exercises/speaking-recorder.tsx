@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAudioRecorder } from '@/hooks/use-audio-recorder';
 import { useTts } from '@/hooks/use-tts';
 import { illustrationUrl } from '@/lib/illustration';
+import { nomFichierAudio } from '@/lib/format-audio';
 
 interface SpeakingRecorderProps {
     question: {
@@ -97,7 +98,7 @@ export function SpeakingRecorder({ question, onAnswer, selectedAnswer, disabled,
     useEffect(() => {
         if (audioBlob && phase === 'done' && audioBlob !== selectedAnswer) {
             // Naming the blob helps Laravel treat it as a file with extension
-            const file = new File([audioBlob], `recording-${question.id}.webm`, { type: 'audio/webm' });
+            const file = new File([audioBlob], nomFichierAudio(`recording-${question.id}`, audioBlob), { type: audioBlob.type || 'audio/webm' });
             onAnswer(question.id, file);
         }
     }, [audioBlob, phase, question.id, onAnswer, selectedAnswer]);

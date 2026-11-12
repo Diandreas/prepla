@@ -59,6 +59,7 @@ import { ListenChooseResponse } from '@/components/exercises/listen-choose-respo
 import { GuidedWriting } from '@/components/exercises/guided-writing';
 import { ExerciseTimer } from '@/components/exercises/exercise-timer';
 import { AiChatFeedback } from '@/components/exercises/ai-chat-feedback';
+import { nomFichierAudio } from '@/lib/format-audio';
 
 interface ExerciseContent {
     passage?: string;
@@ -966,7 +967,7 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
                 formData.append('question_id', String(question.id));
                 
                 if (currentAnswer instanceof Blob) {
-                    formData.append('answer', currentAnswer, 'recording.webm');
+                    formData.append('answer', currentAnswer, currentAnswer instanceof File ? currentAnswer.name : nomFichierAudio('recording', currentAnswer));
                 } else {
                     formData.append('answer', String(currentAnswer));
                 }

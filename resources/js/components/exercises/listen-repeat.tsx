@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAudioRecorder } from '@/hooks/use-audio-recorder';
 import { useTts } from '@/hooks/use-tts';
+import { nomFichierAudio } from '@/lib/format-audio';
 
 function csrfToken(): string {
     const cookie = document.cookie.split('; ').find(c => c.startsWith('XSRF-TOKEN='));
@@ -50,7 +51,7 @@ export function ListenRepeat({ question, onAnswer, selectedAnswer, disabled, lan
         setEvaluationFailed(false);
         try {
             const fd = new FormData();
-            fd.append('audio', audioBlob, `repeat-${question.id}.webm`);
+            fd.append('audio', audioBlob, nomFichierAudio(`repeat-${question.id}`, audioBlob));
             fd.append('prompt', `Repeat exactly this sentence: "${target}". Score how faithfully it was repeated.`);
             fd.append('lang', lang);
             const res = await fetch(route('api.exercise.evaluate-turn'), {

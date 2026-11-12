@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
+import { formatEnregistrement } from '@/lib/format-audio';
 
 interface UseAudioRecorderReturn {
     isRecording: boolean;
@@ -25,19 +26,23 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
             setAudioBlob(null);
             chunksRef.current = [];
 
+            if (typeof MediaRecorder === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+                setError("Ce navigateur ne sait pas enregistrer le micro. Mets-le à jour, ou essaie avec Chrome ou Safari.");
+                return;
+            }
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const mediaRecorder = new MediaRecorder(stream, {
-                mimeType: MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
-                    ? 'audio/webm;codecs=opus'
-                    : 'audio/webm',
-            });
+            // Le format que CE navigateur sait faire : webm sur Chrome et Android, mp4 sur
+            // Safari et iPhone. Imposer le webm faisait echouer tout enregistrement sur iPhone.
+            const format = formatEnregistrement();
+            const mediaRecorder = format ? new MediaRecorder(stream, { mimeType: format }) : new MediaRecorder(stream);
 
             mediaRecorder.ondataavailable = (e) => {
                 if (e.data.size > 0) chunksRef.current.push(e.data);
             };
 
             mediaRecorder.onstop = () => {
-                const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+                // Le vrai type de l'enregistrement : le serveur et Deepgram en ont besoin.
+                const blob = new Blob(chunksRef.current, { type: mediaRecorder.mimeType || format || 'audio/webm' });
                 const url = URL.createObjectURL(blob);
                 setAudioBlob(blob);
                 setAudioUrl(url);

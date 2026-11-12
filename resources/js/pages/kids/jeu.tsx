@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import KidsLayout, { type ProfilEnfant, RENARD, Renard, TXT, Visuel } from '@/layouts/kids-layout';
+import { formatEnregistrement, nomFichierAudio } from '@/lib/format-audio';
 import { getCachedTtsUrl, normalizeTtsLang, rememberTtsUrl } from '@/lib/tts-cache';
 
 interface Mot { image: string; fichier?: string | null; mot: string; aide: string | null }
@@ -188,12 +189,6 @@ function Quiz({ mots, dire, t, lecture, onFin }: { mots: Mot[]; dire: (s: string
 }
 
 // ---------------------------------------------------------------- Dis-le !
-/** Le format que ce navigateur sait enregistrer : webm sur Android et ordinateur, mp4 sur iPhone. */
-function formatAudio(): string | undefined {
-    if (typeof MediaRecorder === 'undefined') return undefined;
-    return ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg'].find((f) => MediaRecorder.isTypeSupported(f));
-}
-
 /** Enregistre environ 2,5 s (un mot d'enfant), ou moins si l'enfant touche a nouveau le micro. */
 function useMicro() {
     const rec = useRef<MediaRecorder | null>(null);
@@ -203,7 +198,7 @@ function useMicro() {
     }, []);
     const enregistrer = useCallback(async (): Promise<Blob | null> => {
         const flux = await navigator.mediaDevices.getUserMedia({ audio: true });
-        const type = formatAudio();
+        const type = formatEnregistrement();
         const r = type ? new MediaRecorder(flux, { mimeType: type }) : new MediaRecorder(flux);
         const morceaux: Blob[] = [];
         rec.current = r;
@@ -286,7 +281,7 @@ function Dis({ mots, dire, t, theme, onFin }: { mots: Mot[]; dire: (s: string) =
         const corps = new FormData();
         corps.append('theme', theme);
         corps.append('index', String(tour.index));
-        corps.append('audio', audio, audio.type.includes('mp4') ? 'mot.mp4' : 'mot.webm');
+        corps.append('audio', audio, nomFichierAudio('mot', audio));
         try {
             const res = await fetch(route('kids.dis'), {
                 method: 'POST',
