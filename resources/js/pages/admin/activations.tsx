@@ -14,6 +14,7 @@ interface Compte {
     premium_until: string | null;
     acces_actif: boolean;
     abonne_stripe: boolean;
+    delegue: { nom: string; code: string; reduction: number; taux: number } | null;
 }
 
 interface Activation {
@@ -62,6 +63,7 @@ export default function Activations({
         moyen: 'orange',
         montant: String(prix.mensuel),
         reference: '',
+        code_delegue: '',
     });
 
     function chercher(e: React.FormEvent) {
@@ -137,6 +139,17 @@ export default function Activations({
                                 {compte.premium_until && <> · Mobile Money jusqu'au {date(compte.premium_until)}</>}
                                 {compte.abonne_stripe && <> · abonné par carte</>}
                             </p>
+                            {compte.delegue ? (
+                                <p className="mt-1 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                                    Amené par {compte.delegue.nom} (code {compte.delegue.code}) · −{compte.delegue.reduction} % pour l'élève · {compte.delegue.taux} % pour le délégué
+                                </p>
+                            ) : (
+                                <div className="mt-2 max-w-xs">
+                                    <label htmlFor="code_delegue" className="text-xs text-muted-foreground">Code délégué envoyé avec la capture (facultatif)</label>
+                                    <input id="code_delegue" value={form.data.code_delegue} onChange={(e) => form.setData('code_delegue', e.target.value.toUpperCase())} placeholder="ex. MARIE" className={champ} />
+                                    {form.errors.code_delegue && <p className="mt-1 text-xs text-rose-500">{form.errors.code_delegue}</p>}
+                                </div>
+                            )}
                         </CardHeader>
                         <CardContent>
                             <form onSubmit={activer} className="space-y-4">

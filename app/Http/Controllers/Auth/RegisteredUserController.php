@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ConsumedTrial;
 use App\Models\User;
 use App\Models\UserProfile;
+use App\Services\Billing\Delegues;
 use App\Services\Center\Parrainage;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -53,6 +54,7 @@ class RegisteredUserController extends Controller
 
         // Arrive par le lien d'un centre (/r/{code}) : le compte lui est rattache.
         Parrainage::rattacher($user, $request);
+        Delegues::rattacherALInscription($user, $request);
 
         // Without this check, a user could delete their account (self-service,
         // password-confirmation only) and re-register with the same email to

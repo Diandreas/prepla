@@ -5,7 +5,9 @@ namespace App\Http\Controllers\SuperAdmin;
 use App\Http\Controllers\Controller;
 use App\Models\ActivationManuelle;
 use App\Models\User;
+use App\Models\Delegue;
 use App\Services\Billing\ActivationMobileMoney;
+use App\Services\Billing\Delegues;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -33,9 +35,11 @@ class ActivationController extends Controller
                 'premium_until' => $compte->premium_until?->toIso8601String(),
                 'acces_actif' => $compte->hasPremiumAccess(),
                 'abonne_stripe' => $compte->subscribed('default'),
+                // Son delegue : le prix qu'il paie, et a qui revient la commission.
+                'delegue' => ($d = Delegues::delegueActif($compte)) ? ['nom' => $d->nom, 'code' => $d->code, 'reduction' => $d->reduction, 'taux' => $d->taux] : null,
             ] : null,
             'formules' => ActivationMobileMoney::FORMULES,
-            'prix' => config('prepla.mobile_money.prix'),
+            'prix' => $compte ? Delegues::prix($compte) : config('prepla.mobile_money.prix'),
             'activations' => ActivationManuelle::with('auteur:id,name')->latest('id')->take(30)->get()
                 ->map(fn (ActivationManuelle $a) => [
                     'id' => $a->id,
@@ -62,11 +66,22 @@ class ActivationController extends Controller
             'moyen' => ['required', Rule::in(['orange', 'mtn', 'autre'])],
             'montant' => ['nullable', 'integer', 'min:0', 'max:10000000'],
             'reference' => ['nullable', 'string', 'max:120'],
+            'code_delegue' => ['nullable', 'string', 'max:30'],
         ]);
 
         $compte = User::where('email', trim($data['email']))->first();
         if (! $compte) {
             return back()->withErrors(['email' => "Aucun compte avec l'e-mail « {$data['email']} ». Vérifie l'orthographe, ou demande à la personne de s'inscrire d'abord."]);
+        }
+
+        // Le code envoye avec la capture : rattache le compte AVANT l'activation,
+        // pour que ce paiement rapporte deja sa commission.
+        if (filled($data['code_delegue'] ?? null)) {
+            $delegue = Delegue::parCode($data['code_delegue']);
+            if (! $delegue) {
+                return back()->withErrors(['code_delegue' => "Le code « {$data['code_delegue']} » ne correspond à aucun délégué actif."]);
+            }
+            Delegues::rattacher($compte, $delegue);
         }
 
         $activation = $service->activer($compte, $request->user(), $data['formule'], isset($data['jours']) ? (int) $data['jours'] : null,

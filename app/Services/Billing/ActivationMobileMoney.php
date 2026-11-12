@@ -27,7 +27,7 @@ class ActivationMobileMoney
 
             $compte->forceFill(['premium_until' => $fin])->save();
 
-            return ActivationManuelle::create([
+            $activation = ActivationManuelle::create([
                 'user_id' => $compte->id,
                 'activated_by' => $auteur->id,
                 'email' => $compte->email,
@@ -39,6 +39,11 @@ class ActivationMobileMoney
                 'debut' => $debut,
                 'fin' => $fin,
             ]);
+
+            // Le delegue qui a amene ce compte touche sa part de chaque paiement.
+            Delegues::enregistrerCommission($activation);
+
+            return $activation;
         });
     }
 
@@ -59,6 +64,7 @@ class ActivationMobileMoney
                 $compte->forceFill(['premium_until' => $recule->lte(now()) ? null : $recule])->save();
             }
             $activation->update(['annulee_le' => now()]);
+            Delegues::annulerCommission($activation);
         });
     }
 }

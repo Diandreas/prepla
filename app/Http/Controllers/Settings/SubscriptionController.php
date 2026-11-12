@@ -66,8 +66,11 @@ class SubscriptionController extends Controller
                 'orange' => config('prepla.mobile_money.orange'),
                 'mtn' => config('prepla.mobile_money.mtn'),
                 'whatsapp' => config('prepla.mobile_money.whatsapp'),
-                'prix' => config('prepla.mobile_money.prix'),
+                // Reduits du pourcentage du code delegue, s'il y en a un.
+                'prix' => \App\Services\Billing\Delegues::prix($user),
+                'prixPlein' => config('prepla.mobile_money.prix'),
                 'email' => $user->email,
+                'code' => ($d = \App\Services\Billing\Delegues::delegueActif($user)) ? ['code' => $d->code, 'reduction' => $d->reduction] : null,
             ],
             'premiumUntil'      => $user->aUnAccesMobileMoney() ? $user->premium_until->toIso8601String() : null,
             'stripeEnabled'     => filled(config('cashier.key'))

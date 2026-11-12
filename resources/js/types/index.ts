@@ -74,6 +74,8 @@ export interface MenusDisponibles {
     parrainage?: boolean;
     /** L'accueil « Paramètres du centre » (center.parametres). */
     parametres?: boolean;
+    /** Le compte connecte est delegue : il a un code promo a suivre. */
+    monCode?: boolean;
 }
 
 export interface User {

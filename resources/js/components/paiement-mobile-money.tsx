@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useForm } from '@inertiajs/react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 export interface MobileMoney {
@@ -6,7 +7,11 @@ export interface MobileMoney {
     mtn: string;
     whatsapp: string;
     prix: { mensuel: number; annuel: number };
+    /** Les prix sans reduction, pour barrer l'ancien prix quand un code s'applique. */
+    prixPlein?: { mensuel: number; annuel: number };
     email: string;
+    /** Le code delegue rattache au compte, s'il y en a un. */
+    code?: { code: string; reduction: number } | null;
 }
 
 /** « 693427913 » -> « 693 42 79 13 », comme on le lit au Cameroun. */
@@ -26,6 +31,13 @@ export default function PaiementMobileMoney({ mobileMoney }: { mobileMoney: Mobi
     const [moyen, setMoyen] = useState<'orange' | 'mtn'>('orange');
     const [copie, setCopie] = useState<string | null>(null);
     const montant = mobileMoney.prix[formule];
+    const code = mobileMoney.code ?? null;
+    const plein = mobileMoney.prixPlein;
+    const form = useForm({ code: '' });
+    const appliquer = (e: React.FormEvent) => {
+        e.preventDefault();
+        form.post(route('delegue.appliquer'), { preserveScroll: true, onSuccess: () => form.reset() });
+    };
     const destinataire = moyen === 'orange' ? mobileMoney.orange : mobileMoney.mtn;
 
     const message = [
@@ -33,6 +45,7 @@ export default function PaiementMobileMoney({ mobileMoney }: { mobileMoney: Mobi
         `Formule : ${formule === 'mensuel' ? '1 mois' : '1 an'} (${fcfa(montant)})`,
         `Paiement : ${moyen === 'orange' ? 'Orange Money' : 'MTN MoMo'}`,
         `E-mail de mon compte : ${mobileMoney.email}`,
+        ...(code ? [`Code promo : ${code.code}`] : []),
         'Voici la capture du paiement :',
     ].join('\n');
     const lienWhatsapp = `https://wa.me/${mobileMoney.whatsapp}?text=${encodeURIComponent(message)}`;
@@ -59,14 +72,38 @@ export default function PaiementMobileMoney({ mobileMoney }: { mobileMoney: Mobi
             <CardContent className="space-y-5">
                 <div className="flex gap-2">
                     <button type="button" aria-pressed={formule === 'mensuel'} onClick={() => setFormule('mensuel')} className={choix(formule === 'mensuel')}>
+                        {code && plein && plein.mensuel !== mobileMoney.prix.mensuel && <div className="text-xs text-muted-foreground line-through">{fcfa(plein.mensuel)}</div>}
                         <div className="text-xl font-black text-amber-600">{fcfa(mobileMoney.prix.mensuel)}</div>
                         <div className="text-xs text-muted-foreground">1 mois</div>
                     </button>
                     <button type="button" aria-pressed={formule === 'annuel'} onClick={() => setFormule('annuel')} className={choix(formule === 'annuel')}>
+                        {code && plein && plein.annuel !== mobileMoney.prix.annuel && <div className="text-xs text-muted-foreground line-through">{fcfa(plein.annuel)}</div>}
                         <div className="text-xl font-black text-amber-600">{fcfa(mobileMoney.prix.annuel)}</div>
                         <div className="text-xs text-muted-foreground">1 an</div>
                     </button>
                 </div>
+
+                {code ? (
+                    <p className="rounded-xl bg-emerald-50 px-3 py-2 text-center text-sm font-semibold text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300">
+                        Code {code.code} appliqué{code.reduction > 0 ? ` : −${code.reduction} %` : ''}
+                    </p>
+                ) : (
+                    <form onSubmit={appliquer} className="space-y-1">
+                        <div className="flex gap-2">
+                            <input
+                                value={form.data.code}
+                                onChange={(e) => form.setData('code', e.target.value.toUpperCase())}
+                                placeholder="Code promo (facultatif)"
+                                aria-label="Code promo"
+                                className="h-11 min-w-0 flex-1 rounded-xl border border-border bg-background px-3 text-sm font-semibold uppercase tracking-wide"
+                            />
+                            <button type="submit" disabled={!form.data.code || form.processing} className="h-11 rounded-xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-40">
+                                Appliquer
+                            </button>
+                        </div>
+                        {form.errors.code && <p className="text-xs text-red-600">{form.errors.code}</p>}
+                    </form>
+                )}
 
                 <ol className="space-y-4 text-sm">
                     <li className="flex gap-3">

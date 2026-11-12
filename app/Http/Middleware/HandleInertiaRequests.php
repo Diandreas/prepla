@@ -118,6 +118,8 @@ class HandleInertiaRequests extends Middleware
                 'parrainage' => Route::has('center.parrainage.index'),
                 // L'accueil des parametres du centre, qui rassemble les reglages ci-dessus.
                 'parametres' => Route::has('center.parametres'),
+                // « Mon code » : seulement pour qui est delegue (son compte porte un code).
+                'monCode' => $user !== null && \App\Models\Delegue::where('user_id', $user->id)->exists(),
             ],
             'vapidPublicKey' => config('webpush.vapid.public_key'),
             'flash' => [

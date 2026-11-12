@@ -53,6 +53,8 @@ export function AppSidebar() {
             { title: 'Centres', url: '/admin/centers', icon: () => <SidebarIcon name="layout-grid" /> },
             // Comptes payes par Orange Money / MTN MoMo, a activer a la main.
             { title: 'Activations', url: '/admin/activations', icon: () => <SidebarIcon name="sparkles" /> },
+            // Codes promo des delegues : inscrits, paiements, commissions a verser.
+            { title: 'Délégués', url: '/admin/delegues', icon: () => <SidebarIcon name="share" /> },
             ...(menus?.releves
                 ? [{ title: 'Relevés', url: '/admin/releves', icon: () => <SidebarIcon name="statistics" /> }]
                 : []),
@@ -90,7 +92,7 @@ export function AppSidebar() {
                         ? [{ title: 'Accès vendus', url: '/center/acces', icon: () => <SidebarIcon name="tasks" /> }]
                         : []),
                     ...(centerRole === 'center_admin' && menus?.parrainage
-                        ? [{ title: 'Parrainage', url: '/center/parrainage', icon: () => <SidebarIcon name="users" /> }]
+                        ? [{ title: 'Parrainage', url: '/center/parrainage', icon: () => <SidebarIcon name="share" /> }]
                         : []),
                 ]),
         ];
@@ -117,6 +119,8 @@ export function AppSidebar() {
             // Rejoindre la classe de son professeur avec un code n'etait propose
             // nulle part : l'ecran existait, aucun chemin n'y conduisait.
             { title: t('sidebar.join_class', 'Rejoindre une classe'), url: '/join', icon: () => <SidebarIcon name="layout-grid" /> },
+            // Un delegue suit ici ses inscrits et ses gains.
+            ...(menus?.monCode ? [{ title: 'Mon code promo', url: '/mon-code', icon: () => <SidebarIcon name="share" /> }] : []),
         ];
     }
 

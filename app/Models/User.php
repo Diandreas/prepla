@@ -67,6 +67,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'premium_until' => 'datetime',
+            'delegue_at' => 'datetime',
         ];
     }
 
