@@ -75,6 +75,12 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
+        // Un parent venu de PrePla Kids va a l'espace parent, pas au questionnaire
+        // des adultes (langue maternelle, examen vise) qui ne le concerne pas.
+        if ($request->session()->pull('kids_parent')) {
+            return to_route('kids.parents');
+        }
+
         return to_route('onboarding.native-language');
     }
 }

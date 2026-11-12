@@ -88,6 +88,11 @@ class GoogleController extends Controller
 
         Auth::login($user, true);
 
+        // Parent venu de PrePla Kids : l'espace parent, sans le questionnaire adulte.
+        if (session()->pull('kids_parent')) {
+            return redirect()->route('kids.parents');
+        }
+
         // New users (no profile or onboarding not done) → onboarding
         // Sauf l'eleve d'un centre : sa classe lui donne son objectif.
         if (!$user->profile?->onboarding_completed_at

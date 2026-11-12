@@ -119,6 +119,8 @@ export function AppSidebar() {
             // Rejoindre la classe de son professeur avec un code n'etait propose
             // nulle part : l'ecran existait, aucun chemin n'y conduisait.
             { title: t('sidebar.join_class', 'Rejoindre une classe'), url: '/join', icon: () => <SidebarIcon name="layout-grid" /> },
+            // PrePla Kids : un parent fait jouer ses enfants (6-12 ans).
+            ...(!eleveDeCentre ? [{ title: 'PrePla Kids', url: '/kids', icon: () => <SidebarIcon name="star" /> }] : []),
             // Un delegue suit ici ses inscrits et ses gains.
             ...(menus?.monCode ? [{ title: 'Mon code promo', url: '/mon-code', icon: () => <SidebarIcon name="share" /> }] : []),
         ];

@@ -397,6 +397,7 @@ Route::middleware(['auth', EnsureCenterStaff::class])
 // Parrainage : le lien d'un centre s'ouvre sans compte, il mene a l'inscription.
 require __DIR__.'/parrainage.php';
 require __DIR__.'/delegues.php';
+require __DIR__.'/kids.php';
 
 // Adresse d'un centre : page d'un compte qui suit un autre etablissement (lot B).
 require __DIR__.'/centre-domaines.php';
