@@ -22,13 +22,13 @@ export function Visuel({ image, fichier, className = 'h-24 w-24', texte = 'text-
 }
 
 /**
- * Le renard dans une pose (bravo, encore, ecoute, carte...) : /kids/renard/{pose}.webp.
+ * Le renard dans une pose (bravo, encore, ecoute, carte...) : /illustrations/prepla-kids/renard/{pose}.webp.
  * Tant que la pose n'a pas ete dessinee, c'est le renard qui salue.
  */
 export function Renard({ pose, className }: { pose: string; className?: string }) {
     return (
         <img
-            src={`/kids/renard/${pose}.webp`}
+            src={`/illustrations/prepla-kids/renard/${pose}.webp`}
             alt=""
             className={className}
             onError={(e) => { if (!e.currentTarget.src.endsWith(RENARD)) e.currentTarget.src = RENARD; }}

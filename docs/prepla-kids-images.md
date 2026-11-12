@@ -8,7 +8,8 @@ Tant qu'une image manque, l'application montre un émoji à la place : vous pouv
 2. Pour chaque image, écrivez : `Image suivante : <ce que l'image montre>` en reprenant la colonne de droite des tableaux.
 3. Envoyez l'image du **renard qui salue** (`public/illustrations/prepla-guide/welcome.png`) au début de la conversation, en disant : « Garde exactement ce personnage pour les poses du renard. »
 4. Téléchargez chaque image en **PNG à fond transparent**, et donnez-lui **exactement** le nom de la colonne « Fichier ».
-5. Rangez-les dans un dossier avec la même organisation (`renard/`, `themes/`, `mots/animaux/`...), puis envoyez-moi le dossier ou un lot : je les optimise et je les mets en ligne.
+5. Enregistrez-les dans **`E:\project\prepla\public\illustrations\prepla-kids\`**, avec les sous-dossiers `renard\`, `themes\` et `mots\<thème>\` (par exemple `motsnimaux\dog.png`).
+6. Lancez `python scripts/optimiser-images-kids.py` depuis `E:\project\prepla` : il fabrique à côté de chaque PNG une version WebP légère (512 px, environ 40 Ko), la seule que l'application envoie aux téléphones. Les PNG restent chez vous et ne vont pas dans git.
 
 **Vérifiez chaque image avant de l'envoyer.** Il ne doit y avoir **aucun texte, lettre ni chiffre écrit** dedans. Pour les nombres, comptez les objets. L'objet doit être seul, bien centré, et entier, sans bord coupé.
 

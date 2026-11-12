@@ -63,3 +63,7 @@ yarn-error.log
 
 # Profils de navigateur générés lors des sessions de QA visuelle (lourd, local uniquement)
 /qa_*/
+
+# PrePla Kids : les PNG generes sont les sources, seuls les WebP optimises sont publies.
+/public/illustrations/prepla-kids/**/*.png
+/public/illustrations/prepla-kids/generation-manifest.json

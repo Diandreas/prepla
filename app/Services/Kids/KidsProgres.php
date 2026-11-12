@@ -51,19 +51,17 @@ class KidsProgres
     }
 
     /**
-     * Une illustration de public/kids/{chemin}.webp (ou .png), si elle existe.
+     * Une illustration de public/illustrations/prepla-kids/{chemin}.webp, si elle
+     * existe (les PNG sources, trop lourds pour un telephone, ne sont pas servis :
+     * scripts/optimiser-images-kids.py en fait des WebP de 512 px).
      * Les images arrivent au fur et a mesure : tant qu'il en manque une,
      * l'ecran garde l'emoji, sans trou ni image cassee.
      */
     public static function fichier(string $chemin): ?string
     {
-        foreach (['webp', 'png'] as $ext) {
-            if (is_file(public_path("kids/{$chemin}.{$ext}"))) {
-                return "/kids/{$chemin}.{$ext}";
-            }
-        }
-
-        return null;
+        return is_file(public_path("illustrations/prepla-kids/{$chemin}.webp"))
+            ? "/illustrations/prepla-kids/{$chemin}.webp"
+            : null;
     }
 
     /** Etoiles a partir d'un score sur 100. */
