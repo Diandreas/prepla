@@ -92,6 +92,9 @@ class GoogleController extends Controller
         if (session()->pull('kids_parent')) {
             return redirect()->route('kids.parents');
         }
+        if (session()->pull('apres_inscription') === 'subscription.index') {
+            return redirect()->route('subscription.index');
+        }
 
         // New users (no profile or onboarding not done) → onboarding
         // Sauf l'eleve d'un centre : sa classe lui donne son objectif.

@@ -31,6 +31,8 @@ class DelegueController extends Controller
                 'salle' => $d->salle,
                 'taux' => $d->taux,
                 'reduction' => $d->reduction,
+                'prix_mensuel' => $d->prix_mensuel,
+                'prix_barre' => $d->prix_barre,
                 'actif' => $d->actif,
                 'email' => $d->user?->email,
                 'lien' => route('delegue.lien', $d->code),
@@ -89,6 +91,9 @@ class DelegueController extends Controller
             'salle' => ['nullable', 'string', 'max:160'],
             'taux' => ['required', 'integer', 'min:0', 'max:100'],
             'reduction' => ['required', 'integer', 'min:0', 'max:90'],
+            // Offre a prix fixe (QR code) : le prix du mois, et le prix affiche barre.
+            'prix_mensuel' => ['nullable', 'integer', 'min:0', 'max:1000000'],
+            'prix_barre' => ['nullable', 'integer', 'min:0', 'max:1000000'],
             'actif' => ['boolean'],
             'email' => ['nullable', 'email', Rule::exists('users', 'email')],
         ], [
@@ -103,6 +108,9 @@ class DelegueController extends Controller
     private function avecCompte(Request $request): array
     {
         $data = $request->only(['nom', 'telephone', 'code', 'salle', 'taux', 'reduction']);
+        foreach (['prix_mensuel', 'prix_barre'] as $champ) {
+            $data[$champ] = filled($request->input($champ)) ? (int) $request->input($champ) : null;
+        }
         $data['actif'] = $request->boolean('actif', true);
         $email = trim((string) $request->input('email'));
         $data['user_id'] = $email !== '' ? User::where('email', $email)->value('id') : null;

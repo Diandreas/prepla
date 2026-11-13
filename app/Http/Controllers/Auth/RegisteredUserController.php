@@ -80,6 +80,10 @@ class RegisteredUserController extends Controller
         if ($request->session()->pull('kids_parent')) {
             return to_route('kids.parents');
         }
+        // Venu par le QR code d'une offre : droit a la page de paiement, au prix de l'offre.
+        if ($request->session()->pull('apres_inscription') === 'subscription.index') {
+            return to_route('subscription.index');
+        }
 
         return to_route('onboarding.native-language');
     }

@@ -68,7 +68,7 @@ class SubscriptionController extends Controller
                 'whatsapp' => config('prepla.mobile_money.whatsapp'),
                 // Reduits du pourcentage du code delegue, s'il y en a un.
                 'prix' => \App\Services\Billing\Delegues::prix($user),
-                'prixPlein' => config('prepla.mobile_money.prix'),
+                'prixPlein' => \App\Services\Billing\Delegues::prixBarres($user),
                 'email' => $user->email,
                 'code' => ($d = \App\Services\Billing\Delegues::delegueActif($user)) ? ['code' => $d->code, 'reduction' => $d->reduction] : null,
             ],

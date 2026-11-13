@@ -32,6 +32,8 @@ interface Delegue {
     salle: string | null;
     taux: number;
     reduction: number;
+    prix_mensuel: number | null;
+    prix_barre: number | null;
     actif: boolean;
     email: string | null;
     lien: string;
@@ -43,8 +45,8 @@ const champ = 'w-full rounded-lg border border-border bg-background px-3 py-2 te
 const fcfa = (n: number) => `${n.toLocaleString('fr-FR')} FCFA`;
 const date = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : '—');
 
-type Donnees = { nom: string; telephone: string; code: string; salle: string; taux: string; reduction: string; actif: boolean; email: string };
-const vide: Donnees = { nom: '', telephone: '', code: '', salle: '', taux: '20', reduction: '10', actif: true, email: '' };
+type Donnees = { nom: string; telephone: string; code: string; salle: string; taux: string; reduction: string; prix_mensuel: string; prix_barre: string; actif: boolean; email: string };
+const vide: Donnees = { nom: '', telephone: '', code: '', salle: '', taux: '20', reduction: '10', prix_mensuel: '', prix_barre: '', actif: true, email: '' };
 
 function Formulaire({ initial, onFini, delegue }: { initial: Donnees; onFini: () => void; delegue?: Delegue }) {
     const form = useForm<Donnees>(initial);
@@ -76,6 +78,8 @@ function Formulaire({ initial, onFini, delegue }: { initial: Donnees; onFini: ()
             {ligne('taux', 'Commission du délégué (%)', { type: 'number', min: 0, max: 100, required: true })}
             {ligne('reduction', "Réduction pour l'étudiant (%)", { type: 'number', min: 0, max: 90, required: true })}
             {ligne('email', 'E-mail de son compte PrePla (facultatif)', { type: 'email', placeholder: 'pour sa page « Mon code »' })}
+            {ligne('prix_mensuel', 'Prix du mois imposé, FCFA (facultatif)', { type: 'number', min: 0, placeholder: 'ex. 5000 pour une offre' })}
+            {ligne('prix_barre', 'Prix barré affiché, FCFA (facultatif)', { type: 'number', min: 0, placeholder: 'ex. 7500' })}
             <div className="flex items-end gap-3">
                 <label className="flex items-center gap-2 text-sm">
                     <input type="checkbox" checked={form.data.actif} onChange={(e) => form.setData('actif', e.target.checked)} /> Actif
@@ -159,7 +163,7 @@ export default function Delegues({ delegues, totaux }: { delegues: Delegue[]; to
                                                 {!d.actif && <Badge variant="outline">Inactif</Badge>}
                                             </div>
                                             <p className="text-xs text-muted-foreground">
-                                                {[d.salle, d.telephone, d.email].filter(Boolean).join(' · ') || '—'} · {d.taux} % pour lui · −{d.reduction} % pour l'étudiant
+                                                {[d.salle, d.telephone, d.email].filter(Boolean).join(' · ') || '—'} · {d.taux} % pour lui · {d.prix_mensuel ? <>mois à {fcfa(d.prix_mensuel)}{d.prix_barre ? <> au lieu de {fcfa(d.prix_barre)}</> : null}</> : <>−{d.reduction} % pour l'étudiant</>}
                                             </p>
                                             <button type="button" onClick={() => copier(d.lien)} className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
                                                 <Copy className="h-3 w-3" /> {copie === d.lien ? 'Lien copié' : d.lien}
@@ -194,7 +198,7 @@ export default function Delegues({ delegues, totaux }: { delegues: Delegue[]; to
                                             <Formulaire
                                                 delegue={d}
                                                 onFini={() => setEdition(null)}
-                                                initial={{ nom: d.nom, telephone: d.telephone ?? '', code: d.code, salle: d.salle ?? '', taux: String(d.taux), reduction: String(d.reduction), actif: d.actif, email: d.email ?? '' }}
+                                                initial={{ nom: d.nom, telephone: d.telephone ?? '', code: d.code, salle: d.salle ?? '', taux: String(d.taux), reduction: String(d.reduction), prix_mensuel: d.prix_mensuel ? String(d.prix_mensuel) : '', prix_barre: d.prix_barre ? String(d.prix_barre) : '', actif: d.actif, email: d.email ?? '' }}
                                             />
                                         </div>
                                     )}

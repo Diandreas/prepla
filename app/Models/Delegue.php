@@ -15,14 +15,14 @@ class Delegue extends Model
 {
     protected $table = 'delegues';
 
-    protected $fillable = ['user_id', 'nom', 'telephone', 'code', 'salle', 'taux', 'reduction', 'actif'];
+    protected $fillable = ['user_id', 'nom', 'telephone', 'code', 'salle', 'taux', 'reduction', 'prix_mensuel', 'prix_barre', 'actif'];
 
     /** Les valeurs par defaut de la table, connues du modele des sa creation. */
     protected $attributes = ['taux' => 20, 'reduction' => 10, 'actif' => true];
 
     protected function casts(): array
     {
-        return ['actif' => 'boolean', 'taux' => 'integer', 'reduction' => 'integer'];
+        return ['actif' => 'boolean', 'taux' => 'integer', 'reduction' => 'integer', 'prix_mensuel' => 'integer', 'prix_barre' => 'integer'];
     }
 
     /** « marie-20 », « Marie 20 » -> « MARIE20 ». Lettres et chiffres, 3 a 20. */

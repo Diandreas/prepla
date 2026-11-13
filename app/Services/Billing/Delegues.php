@@ -55,13 +55,35 @@ class Delegues
         return true;
     }
 
-    /** Les prix Mobile Money de ce compte : reduits si son delegue en donne une. */
+    /**
+     * Les prix Mobile Money de ce compte : reduits si son code en donne une. Un
+     * code d'offre peut aussi imposer le prix du mois (QR code a 5 000 FCFA).
+     */
     public static function prix(User $user): array
     {
         $prix = config('prepla.mobile_money.prix');
         $delegue = self::delegueActif($user);
+        if (! $delegue) {
+            return $prix;
+        }
+        $reduits = array_map(fn ($p) => $delegue->prixReduit((int) $p), $prix);
+        if ($delegue->prix_mensuel) {
+            $reduits['mensuel'] = $delegue->prix_mensuel;
+        }
 
-        return $delegue ? array_map(fn ($p) => $delegue->prixReduit((int) $p), $prix) : $prix;
+        return $reduits;
+    }
+
+    /** Le prix affiche barre a cote : le prix normal, ou celui que l'offre annonce. */
+    public static function prixBarres(User $user): array
+    {
+        $prix = config('prepla.mobile_money.prix');
+        $delegue = self::delegueActif($user);
+        if ($delegue?->prix_barre) {
+            $prix['mensuel'] = $delegue->prix_barre;
+        }
+
+        return $prix;
     }
 
     public static function delegueActif(User $user): ?Delegue

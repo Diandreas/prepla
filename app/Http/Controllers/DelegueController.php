@@ -25,6 +25,10 @@ class DelegueController extends Controller
         if ($code) {
             Delegues::memoriser($request, $code);
         }
+        // Lien d'une offre (QR code) : apres l'inscription, directement au paiement.
+        if ($request->boolean('abonnement')) {
+            $request->session()->put('apres_inscription', 'subscription.index');
+        }
 
         // Deja connecte : le code s'applique tout de suite, sur la page d'abonnement.
         if ($request->user() && ($delegue = Delegue::parCode($code))) {

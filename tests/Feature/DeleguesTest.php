@@ -158,3 +158,29 @@ test('un delegue cree sans preciser actif l est par defaut', function () {
     expect(App\Services\Billing\Delegues::rattacher(dlEtudiant(), $d))->toBeTrue()
         ->and($d->taux)->toBe(20)->and($d->reduction)->toBe(10);
 });
+
+test('le QR code d une offre mene de l inscription au paiement, a 5 000 FCFA au lieu de 7 500', function () {
+    config(['prepla.mobile_money.prix' => ['mensuel' => 6500, 'annuel' => 60000]]);
+    dlDelegue(['nom' => 'Offre QR', 'code' => 'PREPLA5000', 'taux' => 0, 'reduction' => 0, 'prix_mensuel' => 5000, 'prix_barre' => 7500]);
+
+    $this->get(route('delegue.lien', 'PREPLA5000').'?abonnement=1')->assertRedirect(route('register'));
+    $this->post(route('register'), [
+        'name' => 'Jules Mba', 'email' => 'jules@exemple.test', 'phone' => '+237 6 55 44 33 22',
+        'password' => 'motdepasse-solide', 'password_confirmation' => 'motdepasse-solide',
+    ])->assertRedirect(route('subscription.index'));
+
+    $this->get(route('subscription.index'))->assertInertia(fn (Assert $p) => $p
+        ->where('mobileMoney.prix.mensuel', 5000)
+        ->where('mobileMoney.prixPlein.mensuel', 7500)
+        // L'annuel reste au prix normal : l'offre porte sur le mois.
+        ->where('mobileMoney.prix.annuel', 60000)
+        ->where('mobileMoney.code.code', 'PREPLA5000'));
+});
+
+test('sans offre, le prix barre reste le prix normal', function () {
+    config(['prepla.mobile_money.prix' => ['mensuel' => 6500, 'annuel' => 60000]]);
+    $paul = dlEtudiant();
+
+    expect(App\Services\Billing\Delegues::prixBarres($paul)['mensuel'])->toBe(6500)
+        ->and(App\Services\Billing\Delegues::prix($paul)['mensuel'])->toBe(6500);
+});
