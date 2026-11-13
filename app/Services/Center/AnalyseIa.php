@@ -282,7 +282,7 @@ class AnalyseIa
                 }
 
                 try {
-                    $donnees = $this->decoder($this->mistral->chat($this->messages($type, $faits)));
+                    $donnees = $this->decoder($this->mistral->chat($this->messages($type, $faits, $centre->langueAnalyses())));
                     if ($donnees !== null) {
                         $contenu = match ($type) {
                             'eleve' => $this->nettoyerEleve($donnees, $repli),
@@ -357,7 +357,11 @@ class AnalyseIa
             'centre' => $this->signatureCentre($centre),
         };
 
-        return hash('sha256', (string) json_encode(['v' => 2] + $donnees));
+        // En anglais, une autre empreinte : changer de langue refait les analyses.
+        // Les centres en francais gardent la leur, rien n'est refait chez eux.
+        $langue = $centre->langueAnalyses() === 'en' ? ['langue' => 'en'] : [];
+
+        return hash('sha256', (string) json_encode(['v' => 2] + $langue + $donnees));
     }
 
     /** @return array<string, mixed> */
@@ -910,7 +914,7 @@ class AnalyseIa
      * @param  array<string, mixed>  $faits
      * @return list<array{role: string, content: string}>
      */
-    private function messages(string $type, array $faits): array
+    private function messages(string $type, array $faits, string $langue = 'fr'): array
     {
         $format = match ($type) {
             'eleve' => '{"probleme":{"titre":"...","explication":"...","preuve":"..."},"levier":{"titre":"...","actions":["...","..."]},"point_fort":"...","risque":{"niveau":"faible|moyen|eleve","raison":"..."},"prochain_devoir":{"competence":"...","format":"...","pourquoi":"..."}}',
@@ -924,6 +928,12 @@ class AnalyseIa
             'centre' => 'du centre entier : exactement 3 constats et 3 leviers, et les classes qui décrochent (désignées par leur « ref »)',
         };
 
+        // La langue de redaction : celle choisie par le centre. Les cles du JSON
+        // et les valeurs du risque (faible|moyen|eleve) ne changent pas.
+        $redaction = $langue === 'en'
+            ? 'Write every text value in ENGLISH (British English), in a professional and caring tone, with short sentences and no jargon. Keep the JSON keys and the risk values (faible|moyen|eleve) exactly as given.'
+            : 'Français, ton professionnel et bienveillant, phrases courtes, sans jargon.';
+
         $systeme = <<<TXT
         Tu es conseiller pédagogique dans un centre de langues qui prépare aux examens officiels (Goethe-Zertifikat, telc, TCF, TEF, DELF, IELTS...). Tu fais l'analyse {$sujet}, pour un enseignant ou le responsable du centre.
 
@@ -932,7 +942,7 @@ class AnalyseIa
         2. Les réussites sont des pourcentages de bonnes réponses ; « evolution_points_14_jours » compare les 14 derniers jours aux 14 jours précédents.
         3. Les actions sont concrètes et faisables cette semaine par l'enseignant : type d'exercice à donner, format de l'épreuve visée, durée.
         4. Risque : « eleve » si l'élève (ou la classe) décroche ou ne travaille plus, « moyen » si les résultats ou la régularité sont fragiles, « faible » sinon.
-        5. Français, ton professionnel et bienveillant, phrases courtes, sans jargon. Pas de markdown.
+        5. {$redaction} Pas de markdown.
         6. Réponds UNIQUEMENT par un objet JSON de cette forme exacte :
         {$format}
         TXT;

@@ -497,3 +497,23 @@ test('la commande retente une analyse faite par regles et peut tout forcer', fun
         ->expectsOutputToContain('appels IA nécessaires : 3')
         ->assertSuccessful();
 });
+
+test('le centre peut faire rediger ses analyses en anglais, par son responsable seul', function () {
+    $c = aiaCentre();
+    aiaEleveActif($c);
+    expect($c['centre']->langueAnalyses())->toBe('fr');
+    $empreinteFr = app(App\Services\Center\AnalyseIa::class)->empreinteDe($c['centre'], 'eleve', $c['eleve']);
+
+    $this->actingAs($c['prof'])->patch(route('center.personnalisation.langue-analyses'), ['langue_analyses' => 'en'])->assertForbidden();
+    $this->actingAs($c['responsable'])->patch(route('center.personnalisation.langue-analyses'), ['langue_analyses' => 'en'])->assertRedirect();
+    $centre = $c['centre']->fresh();
+    expect($centre->langueAnalyses())->toBe('en')
+        // Changer de langue refait les analyses : l'empreinte n'est plus la meme.
+        ->and(app(App\Services\Center\AnalyseIa::class)->empreinteDe($centre, 'eleve', $c['eleve']))->not->toBe($empreinteFr);
+
+    $capture = null;
+    aiaMistral(aiaReponseValide(), 1, $capture);
+    $this->actingAs($c['responsable'])->postJson(route('center.analyses.eleve', $c['eleve']))->assertOk();
+    expect(collect($capture)->pluck('content')->implode("\n"))->toContain('Write every text value in ENGLISH')
+        ->not->toContain('Français, ton professionnel');
+});

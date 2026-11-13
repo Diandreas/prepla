@@ -52,4 +52,21 @@ trait AContenuEleves
         $this->settings = $settings;
         $this->save();
     }
+
+    /**
+     * La langue des analyses IA du centre : 'fr' (par defaut) ou 'en', pour un
+     * centre anglophone ou une demonstration en anglais.
+     */
+    public function langueAnalyses(): string
+    {
+        return (($this->settings ?? [])['langue_analyses'] ?? 'fr') === 'en' ? 'en' : 'fr';
+    }
+
+    public function choisirLangueAnalyses(string $langue): void
+    {
+        $settings = $this->settings ?? [];
+        $settings['langue_analyses'] = $langue === 'en' ? 'en' : 'fr';
+        $this->settings = $settings;
+        $this->save();
+    }
 }

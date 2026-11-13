@@ -76,6 +76,7 @@ class PersonnalisationController extends Controller
             'logoKoMax' => self::LOGO_KO_MAX,
             // « Contenu proposé aux élèves » : 'libre' ou 'centre' (ContenuElevesController).
             'contenuEleves' => $centre->contenuEleves(),
+            'langueAnalyses' => $centre->langueAnalyses(),
         ]);
     }
 

@@ -28,3 +28,6 @@ Route::delete('personnalisation/logo', [PersonnalisationController::class, 'dest
 // « Contenu proposé aux élèves » : devoirs + entrainement PrePla, ou devoirs seuls.
 Route::patch('personnalisation/contenu-eleves', \App\Http\Controllers\Center\ContenuElevesController::class)
     ->name('personnalisation.contenu-eleves');
+// La langue des analyses IA (francais ou anglais).
+Route::patch('personnalisation/langue-analyses', \App\Http\Controllers\Center\LangueAnalysesController::class)
+    ->name('personnalisation.langue-analyses');

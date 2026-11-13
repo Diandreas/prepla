@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { contraste, couleurLisible, estHexa, texteSur } from '@/lib/marque-centre.js';
 import ReglageContenuEleves, { type ContenuEleves } from '@/components/reglage-contenu-eleves';
+import ReglageLangueAnalyses from '@/components/reglage-langue-analyses';
 
 interface Centre {
     id: number;
@@ -103,6 +104,7 @@ export default function Personnalisation({
     contrasteMinimal,
     logoKoMax,
     contenuEleves,
+    langueAnalyses,
 }: {
     centre: Centre;
     examens: GroupeDExamens[];
@@ -111,6 +113,7 @@ export default function Personnalisation({
     contrasteMinimal: number;
     logoKoMax: number;
     contenuEleves?: ContenuEleves;
+    langueAnalyses?: 'fr' | 'en';
 }) {
     const tous = examens.flatMap((g) => g.examens.map((e) => e.id));
 
@@ -340,6 +343,7 @@ export default function Personnalisation({
 
                 {/* Réglage à part : il s'enregistre seul, sans renvoyer la marque ni les examens. */}
                 <ReglageContenuEleves valeur={contenuEleves ?? 'libre'} />
+                <ReglageLangueAnalyses valeur={langueAnalyses ?? 'fr'} />
             </div>
         </AppLayout>
     );
