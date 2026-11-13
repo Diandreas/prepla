@@ -4,6 +4,7 @@ import { composantDuLecteur } from '@/components/exercises/exercise-player';
 import { ExerciseErrorBoundary } from '@/components/exercises/exercise-error-boundary';
 import { SpeakButton } from '@/components/exercises/speak-button';
 import { Button } from '@/components/ui/button';
+import { useT } from '@/lib/i18n/traduire';
 
 /**
  * L'exercice tel que l'eleve le verra : chaque question est affichee par le
@@ -19,6 +20,7 @@ export function Apercu({ componentKey, skillType, content, questions, lang, titr
     lang: string;
     titreDuType: string;
 }) {
+    const { t } = useT();
     const [index, setIndex] = useState(0);
     const [reponses, setReponses] = useState<Record<string, unknown>>({});
     const [correction, setCorrection] = useState(false);
@@ -46,7 +48,7 @@ export function Apercu({ componentKey, skillType, content, questions, lang, titr
     if (!question) {
         return (
             <div className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-                L’aperçu apparaîtra dès la première question écrite.
+                {t('L’aperçu apparaîtra dès la première question écrite.')}
             </div>
         );
     }
@@ -55,22 +57,22 @@ export function Apercu({ componentKey, skillType, content, questions, lang, titr
         setReponses({});
         setCorrection(false);
         setIndex(0);
-        setTour((t) => t + 1);
+        setTour((n) => n + 1);
     }
 
     return (
-        <div className="space-y-4" aria-label="Aperçu élève">
+        <div className="space-y-4" aria-label={t('Aperçu élève')}>
             <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="min-w-0">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Ce que verra l’élève</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t('Ce que verra l’élève')}</p>
                     <p className="truncate text-base font-bold">{titre}</p>
                 </div>
                 <div className="flex gap-1">
                     <Button type="button" variant="outline" size="sm" onClick={() => setCorrection((c) => !c)} aria-pressed={correction}>
                         {correction ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
-                        {correction ? 'Masquer la correction' : 'Voir la correction'}
+                        {correction ? t('Masquer la correction') : t('Voir la correction')}
                     </Button>
-                    <Button type="button" variant="ghost" size="sm" onClick={recommencer} aria-label="Recommencer l’aperçu">
+                    <Button type="button" variant="ghost" size="sm" onClick={recommencer} aria-label={t('Recommencer l’aperçu')}>
                         <RotateCcw className="h-4 w-4" aria-hidden="true" />
                     </Button>
                 </div>
@@ -88,12 +90,12 @@ export function Apercu({ componentKey, skillType, content, questions, lang, titr
                 {son !== '' && componentKey !== 'dictation' && <audio src={son} controls className="mb-4 w-full" />}
                 {son === '' && ecoute && texteAEcouter !== '' && (
                     <div className="mb-4 flex min-h-14 items-center gap-3 rounded-2xl border-[1.5px] border-primary/40 bg-primary/5 px-4 py-2">
-                        <SpeakButton text={texteAEcouter} lang={lang} label="Écouter l’enregistrement" />
+                        <SpeakButton text={texteAEcouter} lang={lang} label={t('Écouter l’enregistrement')} />
                     </div>
                 )}
                 {son === '' && ecoute && texteAEcouter === '' && (
                     <p className="mb-4 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">
-                        Aucun son pour l’instant : ajoutez un enregistrement ou le texte que la voix de synthèse lira.
+                        {t('Aucun son pour l’instant : ajoutez un enregistrement ou le texte que la voix de synthèse lira.')}
                     </p>
                 )}
 
@@ -110,17 +112,17 @@ export function Apercu({ componentKey, skillType, content, questions, lang, titr
                 </ExerciseErrorBoundary>
 
                 {correction && typeof question.explanation === 'string' && question.explanation.trim() !== '' && (
-                    <p className="mt-4 rounded-xl bg-muted/60 px-3 py-2 text-sm"><span className="font-semibold">Explication : </span>{question.explanation}</p>
+                    <p className="mt-4 rounded-xl bg-muted/60 px-3 py-2 text-sm"><span className="font-semibold">{t('Explication : ')}</span>{question.explanation}</p>
                 )}
             </div>
 
             <div className="flex items-center justify-between gap-2">
                 <Button type="button" variant="outline" size="sm" disabled={index === 0} onClick={() => setIndex((i) => i - 1)}>
-                    <ChevronLeft className="h-4 w-4" aria-hidden="true" /> Précédente
+                    <ChevronLeft className="h-4 w-4" aria-hidden="true" /> {t('Précédente')}
                 </Button>
-                <span className="text-sm text-muted-foreground" aria-live="polite">Question {index + 1} sur {liste.length}</span>
+                <span className="text-sm text-muted-foreground" aria-live="polite">{t('Question {n} sur {total}', { n: index + 1, total: liste.length })}</span>
                 <Button type="button" variant="outline" size="sm" disabled={index >= liste.length - 1} onClick={() => setIndex((i) => i + 1)}>
-                    Suivante <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                    {t('Suivante')} <ChevronRight className="h-4 w-4" aria-hidden="true" />
                 </Button>
             </div>
         </div>

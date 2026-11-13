@@ -7,6 +7,8 @@ import type { Marque, MenusDisponibles, SharedData } from '@/types';
 import { useAppearance } from '@/hooks/use-appearance';
 import { useState, useEffect, useRef } from 'react';
 import i18n from '@/lib/i18n/i18n';
+import ChoixLangue from '@/components/choix-langue';
+import { useT } from '@/lib/i18n/traduire';
 
 const GOLD = '#F5A623';
 
@@ -33,6 +35,7 @@ const PAGE_TITLE_KEYS: [string, string][] = [
     ['/center/students', 'students'],
     ['/center/exercises', 'content'],
     ['/center/assignments', 'assignments'],
+    ['/center/equipe', 'team'],
     ['/center/parametres', 'center_settings'],
     ['/center/personnalisation', 'center_settings'],
     ['/center/acces', 'center_settings'],
@@ -104,6 +107,7 @@ function ThemeToggleButton() {
 
 export function AppSidebarHeader() {
     const { t } = useTranslation();
+    const { t: tc } = useT();
     const { toggleSidebar } = useSidebar();
     const page = usePage<SharedData & { userProfile?: any }>();
     const { userProfile, isPremium, freeExercisesUsedToday, freeExercisesLimit } = page.props;
@@ -224,8 +228,8 @@ export function AppSidebarHeader() {
                 {voitParametresDuCentre && (
                     <Link
                         href="/center/parametres"
-                        aria-label="Paramètres du centre"
-                        title="Paramètres du centre"
+                        aria-label={tc('Paramètres du centre')}
+                        title={tc('Paramètres du centre')}
                         aria-current={surLesParametres ? 'page' : undefined}
                         className={`flex h-[34px] items-center gap-1.5 rounded-full border px-2.5 text-xs font-semibold transition-colors sm:px-3 ${
                             surLesParametres
@@ -234,9 +238,10 @@ export function AppSidebarHeader() {
                         }`}
                     >
                         <Settings className="h-4 w-4 shrink-0" aria-hidden="true" />
-                        <span className="hidden sm:inline">Paramètres du centre</span>
+                        <span className="hidden sm:inline">{tc('Paramètres du centre')}</span>
                     </Link>
                 )}
+                <ChoixLangue />
                 <ThemeToggleButton />
             </div>
         </header>

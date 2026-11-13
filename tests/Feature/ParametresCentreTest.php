@@ -191,7 +191,7 @@ test('l\'entree « Paramètres du centre » est reservee au responsable dans le 
     $entete = file_get_contents(resource_path('js/components/app-sidebar-header.tsx'));
 
     expect($menu)->toContain("centerRole === 'center_admin' && menus?.parametres")
-        ->and($menu)->toContain("title: 'Paramètres du centre',")
+        ->and($menu)->toContain("title: tc('Paramètres du centre'),")
         ->and($menu)->toContain("url: '/center/parametres',")
         ->and($entete)->toContain("centerRole === 'center_admin' && !!menus?.parametres")
         ->and($entete)->toContain('href="/center/parametres"');
@@ -226,9 +226,10 @@ test('« Mon compte » ne remplace « Paramètres » que pour l\'equipe, pas pou
 test('la page Identité et examens a son propre titre, distinct de l\'accueil des parametres', function () {
     $perso = file_get_contents(resource_path('js/pages/center/personnalisation.tsx'));
 
-    expect($perso)->toContain('<h1 className="text-2xl font-bold tracking-tight">Identité et examens</h1>')
-        ->and($perso)->toContain('<Head title={`Identité et examens — ${centre.name}`} />')
-        ->and($perso)->not->toContain('<h1 className="text-2xl font-bold tracking-tight">Paramètres du centre</h1>');
+    // Les textes passent par t() (interface en francais ou en anglais).
+    expect($perso)->toContain("<h1 className=\"text-2xl font-bold tracking-tight\">{t('Identité et examens')}</h1>")
+        ->and($perso)->toContain("<Head title={t('Identité et examens — {nom}', { nom: centre.name })} />")
+        ->and($perso)->not->toContain("<h1 className=\"text-2xl font-bold tracking-tight\">{t('Paramètres du centre')}</h1>");
 });
 
 test('l\'entree « Paramètres du centre » reste en surbrillance sur chaque page de reglage', function () {
@@ -264,5 +265,5 @@ test('sans commission ce mois-ci, la carte Parrainage ne montre pas un « 0 » s
     $page = file_get_contents(resource_path('js/pages/center/parametres.tsx'));
 
     expect($page)->not->toMatch("/totaux\.length === 0\s*\?\s*'0'/")
-        ->and($page)->toContain("? 'Aucun pour l’instant'");
+        ->and($page)->toContain("? t('Aucun pour l’instant')");
 });

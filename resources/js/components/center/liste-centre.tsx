@@ -2,6 +2,7 @@ import { Link, router } from '@inertiajs/react';
 import { ChevronRight } from 'lucide-react';
 import { DataTable, type Column } from '@/components/ui/data-table';
 import { Drapeau } from '@/components/center/barre-classement';
+import { useT } from '@/lib/i18n/traduire';
 
 /**
  * Les briques communes des listes du centre (classes, eleves, devoirs) : en-tete
@@ -104,6 +105,7 @@ export function AvatarInitiales({ nom, taille = 'md', className = '' }: { nom: s
 
 /** Plusieurs personnes : les avatars se chevauchent, les noms suivent. */
 export function PileAvatars({ noms, vide = '—', max = 3 }: { noms: string[]; vide?: React.ReactNode; max?: number }) {
+    const { t } = useT();
     if (noms.length === 0) return <span className="text-sm text-muted-foreground">{vide}</span>;
     const visibles = noms.slice(0, max);
     return (
@@ -118,7 +120,11 @@ export function PileAvatars({ noms, vide = '—', max = 3 }: { noms: string[]; v
                     </span>
                 )}
             </span>
-            <span className="min-w-0 text-sm leading-snug">{noms.length === 1 ? noms[0] : `${noms[0]} et ${noms.length - 1} autre${noms.length > 2 ? 's' : ''}`}</span>
+            <span className="min-w-0 text-sm leading-snug">{noms.length === 1
+                    ? noms[0]
+                    : noms.length > 2
+                      ? t('{nom} et {n} autres', { nom: noms[0], n: noms.length - 1 })
+                      : t('{nom} et {n} autre', { nom: noms[0], n: noms.length - 1 })}</span>
         </span>
     );
 }
@@ -179,6 +185,7 @@ export function BadgeStatut({ libelle, ton }: { libelle: string; ton: Ton }) {
 
 /** Avancement d'une classe : ceux qui ont fini, puis ceux qui ont commence. */
 export function BarreProgression({ finis, commences = 0, total, legende }: { finis: number; commences?: number; total: number; legende?: React.ReactNode }) {
+    const { t } = useT();
     const pFini = total ? Math.min(100, (100 * finis) / total) : 0;
     const pCommence = total ? Math.min(100 - pFini, (100 * commences) / total) : 0;
     return (
@@ -189,7 +196,7 @@ export function BarreProgression({ finis, commences = 0, total, legende }: { fin
                 aria-valuemin={0}
                 aria-valuemax={total}
                 aria-valuenow={finis}
-                aria-label={`${finis} sur ${total} ont fini`}
+                aria-label={t('{finis} sur {total} ont fini', { finis, total })}
             >
                 <span className="h-full bg-emerald-500 transition-all" style={{ width: `${pFini}%` }} />
                 <span className="h-full bg-emerald-500/35 transition-all" style={{ width: `${pCommence}%` }} />
@@ -244,8 +251,9 @@ export function ListeAdaptative<T>({
     carte: (row: T) => React.ReactNode;
     empty?: React.ReactNode;
 }) {
+    const { t } = useT();
     if (rows.length === 0) {
-        return <div className="rounded-xl border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">{empty ?? 'Aucune donnée.'}</div>;
+        return <div className="rounded-xl border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">{empty ?? t('Aucune donnée.')}</div>;
     }
     return (
         <>

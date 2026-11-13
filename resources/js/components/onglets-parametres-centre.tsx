@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import { ArrowLeft, Gift, KeyRound, LayoutGrid, Palette } from 'lucide-react';
 import type { MenusDisponibles } from '@/types';
+import { useT } from '@/lib/i18n/traduire';
 
 type Onglet = { titre: string; url: string; icone: typeof Palette; present: boolean };
 
@@ -10,6 +11,7 @@ type Onglet = { titre: string; url: string; icone: typeof Palette; present: bool
  * n'apparait que si sa route existe cote serveur (prop partagee menus).
  */
 export default function OngletsParametresCentre() {
+    const { t } = useT();
     const page = usePage();
     const props = page.props as { menus?: MenusDisponibles; auth?: { center?: { formule?: string } | null } };
     const menus = props.menus;
@@ -18,10 +20,10 @@ export default function OngletsParametresCentre() {
     const url = (page.url ?? '').split('?')[0];
 
     const onglets: Onglet[] = [
-        { titre: "Vue d'ensemble", url: '/center/parametres', icone: LayoutGrid, present: !!menus?.parametres },
-        { titre: 'Identité et examens', url: '/center/personnalisation', icone: Palette, present: !!menus?.personnalisation },
-        { titre: 'Accès vendus', url: '/center/acces', icone: KeyRound, present: !!menus?.acces && enRevente },
-        { titre: 'Parrainage', url: '/center/parrainage', icone: Gift, present: !!menus?.parrainage },
+        { titre: t("Vue d'ensemble"), url: '/center/parametres', icone: LayoutGrid, present: !!menus?.parametres },
+        { titre: t('Identité et examens'), url: '/center/personnalisation', icone: Palette, present: !!menus?.personnalisation },
+        { titre: t('Accès vendus'), url: '/center/acces', icone: KeyRound, present: !!menus?.acces && enRevente },
+        { titre: t('Parrainage'), url: '/center/parrainage', icone: Gift, present: !!menus?.parrainage },
     ];
     const visibles = onglets.filter((o) => o.present);
 
@@ -31,14 +33,14 @@ export default function OngletsParametresCentre() {
     const surLAccueil = url === '/center/parametres';
 
     return (
-        <nav aria-label="Paramètres du centre" className="space-y-2">
+        <nav aria-label={t('Paramètres du centre')} className="space-y-2">
             {!surLAccueil && (
                 <Link
                     href="/center/parametres"
                     className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground"
                 >
                     <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
-                    Paramètres du centre
+                    {t('Paramètres du centre')}
                 </Link>
             )}
             {/* Defilement horizontal sur telephone plutot qu'un debordement de la page. */}

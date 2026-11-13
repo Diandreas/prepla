@@ -4,6 +4,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useT } from '@/lib/i18n/traduire';
 import { dateHeure, duree, ilYA } from '@/lib/suivi';
 import TableauDeClasse from '@/components/center/tableau-de-classe';
 
@@ -50,6 +51,7 @@ export default function ClassShow({
     parcoursEtapes?: number;
     contenuCentre?: boolean;
 }) {
+    const { t } = useT();
     const page = usePage().props as any;
     const { flash } = page;
     // Archiver est reserve au responsable de l'espace : le bouton etait aussi
@@ -84,7 +86,7 @@ export default function ClassShow({
     }
 
     function archiveClass() {
-        if (confirm(`Archiver « ${classroom.name} » ? Les élèves n'y auront plus accès. L'historique des devoirs et des tentatives est conservé.`)) {
+        if (confirm(t("Archiver « {nom} » ? Les élèves n'y auront plus accès. L'historique des devoirs et des tentatives est conservé.", { nom: classroom.name }))) {
             router.delete(route('center.classes.archive', classroom.id));
         }
     }
@@ -96,26 +98,26 @@ export default function ClassShow({
                 <div className="flex items-start justify-between gap-3">
                     <div>
                         <Link href={route('center.classes.index')} className="text-sm text-muted-foreground hover:text-foreground">
-                            ← Classes
+                            ← {t('Classes')}
                         </Link>
                         <h1 className="mt-1 text-2xl font-bold tracking-tight">{classroom.name}</h1>
                         <p className="text-sm text-muted-foreground">
-                            {classroom.level ?? 'Niveau libre'} · {classroom.exam ?? 'Examen par défaut'}
+                            {classroom.level ?? t('Niveau libre')} · {classroom.exam ?? t('Examen par défaut')}
                         </p>
                         {(classroom.room || classroom.schedule) && (
                             <p className="mt-0.5 flex flex-wrap gap-x-3 text-sm text-muted-foreground">
-                                {classroom.room && <span>Salle : <span className="font-medium text-foreground">{classroom.room}</span></span>}
-                                {classroom.schedule && <span>Horaire : <span className="font-medium text-foreground">{classroom.schedule}</span></span>}
+                                {classroom.room && <span>{t('Salle :')} <span className="font-medium text-foreground">{classroom.room}</span></span>}
+                                {classroom.schedule && <span>{t('Horaire :')} <span className="font-medium text-foreground">{classroom.schedule}</span></span>}
                             </p>
                         )}
                     </div>
                     <div className="flex shrink-0 items-center gap-1">
                         <Button variant="ghost" onClick={() => setEditing((open) => !open)} aria-expanded={editing}>
-                            {editing ? 'Annuler' : 'Modifier'}
+                            {editing ? t('Annuler') : t('Modifier')}
                         </Button>
                         {peutArchiver && (
                             <Button variant="ghost" className="text-rose-500 hover:text-rose-600" onClick={archiveClass}>
-                                Archiver
+                                {t('Archiver')}
                             </Button>
                         )}
                     </div>
@@ -124,12 +126,12 @@ export default function ClassShow({
                 {editing && (
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-base">Modifier la classe</CardTitle>
+                            <CardTitle className="text-base">{t('Modifier la classe')}</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <form onSubmit={saveClass} className="space-y-4">
                                 <div className="grid gap-2">
-                                    <label htmlFor="class-edit-name" className="text-sm font-semibold">Nom</label>
+                                    <label htmlFor="class-edit-name" className="text-sm font-semibold">{t('Nom')}</label>
                                     <input
                                         id="class-edit-name"
                                         className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
@@ -141,7 +143,7 @@ export default function ClassShow({
 
                                 <div className="grid gap-4 sm:grid-cols-[7rem_1fr]">
                                     <div className="grid gap-2">
-                                        <label htmlFor="class-edit-level" className="text-sm font-semibold">Niveau</label>
+                                        <label htmlFor="class-edit-level" className="text-sm font-semibold">{t('Niveau')}</label>
                                         <input
                                             id="class-edit-level"
                                             placeholder="A2"
@@ -152,14 +154,14 @@ export default function ClassShow({
                                         />
                                     </div>
                                     <div className="grid gap-2">
-                                        <label htmlFor="class-edit-exam" className="text-sm font-semibold">Examen</label>
+                                        <label htmlFor="class-edit-exam" className="text-sm font-semibold">{t('Examen')}</label>
                                         <select
                                             id="class-edit-exam"
                                             className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                                             value={edit.data.exam_id}
                                             onChange={(event) => edit.setData('exam_id', event.target.value)}
                                         >
-                                            <option value="">Examen par défaut de l'espace</option>
+                                            <option value="">{t("Examen par défaut de l'espace")}</option>
                                             {exams.map((exam) => (
                                                 <option key={exam.id} value={exam.id}>
                                                     {exam.language ? `${exam.language} — ${exam.name}` : exam.name}
@@ -171,10 +173,10 @@ export default function ClassShow({
 
                                 <div className="grid gap-4 sm:grid-cols-[12rem_1fr]">
                                     <div className="grid gap-2">
-                                        <label htmlFor="class-edit-room" className="text-sm font-semibold">Salle</label>
+                                        <label htmlFor="class-edit-room" className="text-sm font-semibold">{t('Salle')}</label>
                                         <input
                                             id="class-edit-room"
-                                            placeholder="Salle 2"
+                                            placeholder={t('Salle 2')}
                                             maxLength={60}
                                             className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                                             value={edit.data.room}
@@ -183,10 +185,10 @@ export default function ClassShow({
                                         {edit.errors.room && <p className="text-xs text-rose-500">{edit.errors.room}</p>}
                                     </div>
                                     <div className="grid gap-2">
-                                        <label htmlFor="class-edit-schedule" className="text-sm font-semibold">Horaire</label>
+                                        <label htmlFor="class-edit-schedule" className="text-sm font-semibold">{t('Horaire')}</label>
                                         <input
                                             id="class-edit-schedule"
-                                            placeholder="Lun et mer 17 h – 19 h"
+                                            placeholder={t('Lun et mer 17 h – 19 h')}
                                             maxLength={120}
                                             className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                                             value={edit.data.schedule}
@@ -197,7 +199,7 @@ export default function ClassShow({
                                 </div>
 
                                 <Button type="submit" disabled={edit.processing || !edit.data.name.trim()}>
-                                    {edit.processing ? 'Enregistrement…' : 'Enregistrer'}
+                                    {edit.processing ? t('Enregistrement…') : t('Enregistrer')}
                                 </Button>
                             </form>
                         </CardContent>
@@ -212,35 +214,35 @@ export default function ClassShow({
 
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-base">Code d'invitation</CardTitle>
+                        <CardTitle className="text-base">{t("Code d'invitation")}</CardTitle>
                     </CardHeader>
                     <CardContent className="flex items-center justify-between gap-3">
                         <div>
                             <code className="rounded bg-muted px-3 py-1.5 text-lg font-bold tracking-widest">{classroom.invite_code}</code>
-                            <p className="mt-1 text-xs text-muted-foreground">Vos élèves saisissent ce code sur /join pour rejoindre la classe.</p>
+                            <p className="mt-1 text-xs text-muted-foreground">{t('Vos élèves saisissent ce code sur /join pour rejoindre la classe.')}</p>
                         </div>
-                        <Button variant="outline" onClick={regenerate}>Régénérer</Button>
+                        <Button variant="outline" onClick={regenerate}>{t('Régénérer')}</Button>
                     </CardContent>
                 </Card>
 
                 {/* Le parcours que le centre construit pour la classe : sa page à lui. */}
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-base">Parcours de la classe</CardTitle>
+                        <CardTitle className="text-base">{t('Parcours de la classe')}</CardTitle>
                     </CardHeader>
                     <CardContent className="flex flex-wrap items-center justify-between gap-3">
                         <div className="min-w-0 text-sm">
                             <p className="font-medium">
-                                {parcoursEtapes === 0 ? 'Aucune étape pour le moment' : `${parcoursEtapes} étape${parcoursEtapes > 1 ? 's' : ''}`}
+                                {parcoursEtapes === 0 ? t('Aucune étape pour le moment') : parcoursEtapes > 1 ? t('{n} étapes', { n: parcoursEtapes }) : t('{n} étape', { n: parcoursEtapes })}
                             </p>
                             <p className="mt-0.5 text-xs text-muted-foreground">
                                 {contenuCentre
-                                    ? 'Vos élèves suivent ce parcours, en plus de leurs devoirs.'
-                                    : 'Votre espace utilise le parcours PrePla par défaut : vos élèves ne voient ce parcours que si vous passez au « Parcours créé par le centre ».'}
+                                    ? t('Vos élèves suivent ce parcours, en plus de leurs devoirs.')
+                                    : t('Votre espace utilise le parcours PrePla par défaut : vos élèves ne voient ce parcours que si vous passez au « Parcours créé par le centre ».')}
                             </p>
                         </div>
                         <Link href={route('center.classes.parcours', classroom.id)}>
-                            <Button variant="outline">{parcoursEtapes === 0 ? 'Créer le parcours' : 'Gérer le parcours'}</Button>
+                            <Button variant="outline">{parcoursEtapes === 0 ? t('Créer le parcours') : t('Gérer le parcours')}</Button>
                         </Link>
                     </CardContent>
                 </Card>
@@ -250,11 +252,11 @@ export default function ClassShow({
 
                 {stats.common_weaknesses.length > 0 && (
                     <Card>
-                        <CardHeader><CardTitle className="text-base">Faiblesses communes de la classe</CardTitle></CardHeader>
+                        <CardHeader><CardTitle className="text-base">{t('Faiblesses communes de la classe')}</CardTitle></CardHeader>
                         <CardContent className="space-y-2">
                             {stats.common_weaknesses.map((w, i) => (
                                 <div key={i} className="flex items-center justify-between rounded-lg border border-border p-2.5 text-sm">
-                                    <span>{w.libelle}</span>
+                                    <span>{w.libelle.split(' · ').map((morceau) => t(morceau)).join(' · ')}</span>
                                     <Badge variant="secondary">{w.count}</Badge>
                                 </div>
                             ))}
@@ -264,12 +266,12 @@ export default function ClassShow({
 
                 {stats.dropouts.length > 0 && (
                     <Card>
-                        <CardHeader><CardTitle className="text-base">À relancer ({stats.dropouts.length})</CardTitle></CardHeader>
+                        <CardHeader><CardTitle className="text-base">{t('À relancer ({n})', { n: stats.dropouts.length })}</CardTitle></CardHeader>
                         <CardContent className="space-y-2">
                             {stats.dropouts.map((d) => (
                                 <div key={d.user_id} className="flex items-center justify-between rounded-lg border border-border p-2.5 text-sm">
                                     <Link href={route('center.students.show', d.user_id)} className="font-medium hover:underline">{d.name}</Link>
-                                    <span className="text-xs text-muted-foreground">{d.attempts === 0 ? 'Aucune activité' : 'Inactif ≥ 7 j'}</span>
+                                    <span className="text-xs text-muted-foreground">{d.attempts === 0 ? t('Aucune activité') : t('Inactif ≥ 7 j')}</span>
                                 </div>
                             ))}
                         </CardContent>
@@ -278,19 +280,19 @@ export default function ClassShow({
 
                 <div className="flex flex-wrap justify-end gap-2">
                     <Button asChild variant="outline">
-                        <Link href={route('center.classes.vocabulaire', classroom.id)}>Vocabulaire de la classe</Link>
+                        <Link href={route('center.classes.vocabulaire', classroom.id)}>{t('Vocabulaire de la classe')}</Link>
                     </Button>
                     <a href={route('center.classes.export', classroom.id)}>
-                        <Button variant="outline">Exporter en CSV</Button>
+                        <Button variant="outline">{t('Exporter en CSV')}</Button>
                     </a>
                 </div>
 
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-base">Élèves ({students.length})</CardTitle>
+                        <CardTitle className="text-base">{t('Élèves ({n})', { n: students.length })}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                        {students.length === 0 && <p className="text-sm text-muted-foreground">Aucun élève n'a encore rejoint cette classe.</p>}
+                        {students.length === 0 && <p className="text-sm text-muted-foreground">{t("Aucun élève n'a encore rejoint cette classe.")}</p>}
                         {students.map((s) => {
                             // Le suivi de chaque eleve etait deja calcule et envoye ;
                             // la liste n'en montrait que le nom.
@@ -303,14 +305,14 @@ export default function ClassShow({
                                     </Link>
                                     {suivi && (
                                         <div className="flex items-center gap-4 text-xs text-muted-foreground tabular-nums">
-                                            <span title={dateHeure(suivi.last_active)}>{suivi.last_active ? `Actif ${ilYA(suivi.last_active)}` : 'Jamais actif'}</span>
-                                            <span title="Exercices réalisés">{suivi.attempts} ex.</span>
-                                            <span title="Temps de travail total">{duree(suivi.temps_total_secondes)}</span>
-                                            {suivi.avg_accuracy !== null && <span title="Réussite moyenne">{Math.round(suivi.avg_accuracy)}%</span>}
+                                            <span title={dateHeure(suivi.last_active)}>{suivi.last_active ? t('Actif {quand}', { quand: ilYA(suivi.last_active) }) : t('Jamais actif')}</span>
+                                            <span title={t('Exercices réalisés')}>{t('{n} ex.', { n: suivi.attempts })}</span>
+                                            <span title={t('Temps de travail total')}>{duree(suivi.temps_total_secondes)}</span>
+                                            {suivi.avg_accuracy !== null && <span title={t('Réussite moyenne')}>{Math.round(suivi.avg_accuracy)}%</span>}
                                         </div>
                                     )}
                                     <button onClick={() => removeStudent(s.id)} className="shrink-0 text-xs text-rose-500 hover:underline">
-                                        Retirer
+                                        {t('Retirer')}
                                     </button>
                                 </div>
                             );

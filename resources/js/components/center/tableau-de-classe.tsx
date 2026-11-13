@@ -5,12 +5,12 @@ import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useT } from '@/lib/i18n/traduire';
 import { duree, ilYA } from '@/lib/suivi';
 import {
     cheminCourbe,
     ecartPoints,
     initiales,
-    libelleSemaine,
     pointsCourbe,
     prenom,
     variation,
@@ -80,6 +80,7 @@ function couleurReussite(p: number | null): string {
 }
 
 function Tendance({ v, titre }: { v: Variation | null; titre?: string }) {
+    const { t } = useT();
     if (!v) return null;
     const Icone = v.sens === 'hausse' ? TrendingUp : v.sens === 'baisse' ? TrendingDown : null;
     return (
@@ -93,7 +94,7 @@ function Tendance({ v, titre }: { v: Variation | null; titre?: string }) {
             )}
         >
             {Icone && <Icone className="h-3 w-3" aria-hidden />}
-            {v.texte}
+            {t(v.texte)}
         </span>
     );
 }
@@ -121,8 +122,9 @@ function Kpi({ icone: Icone, libelle, valeur, detail, tendance }: {
 }
 
 function ChoixPeriode({ valeur, onChange }: { valeur: Periode; onChange: (p: Periode) => void }) {
+    const { t } = useT();
     return (
-        <div role="tablist" aria-label="Période" className="inline-flex max-w-full rounded-lg border border-border bg-muted/50 p-0.5 text-xs">
+        <div role="tablist" aria-label={t('Période')} className="inline-flex max-w-full rounded-lg border border-border bg-muted/50 p-0.5 text-xs">
             {PERIODES.map((p) => (
                 <button
                     key={p.cle}
@@ -135,7 +137,7 @@ function ChoixPeriode({ valeur, onChange }: { valeur: Periode; onChange: (p: Per
                         valeur === p.cle ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
                     )}
                 >
-                    {p.libelle}
+                    {t(p.libelle)}
                 </button>
             ))}
         </div>
@@ -157,6 +159,13 @@ function Avatar({ nom, rang, taille = 'md' }: { nom: string; rang: number | null
 }
 
 function Courbe({ semaines }: { semaines: Semaine[] }) {
+    const { t, locale } = useT();
+    // « 29 oct. » ; la derniere semaine s'appelle « Cette sem. ».
+    const libelleSemaine = (debutIso: string, derniereSemaine: boolean) => {
+        if (derniereSemaine) return t('Cette sem.');
+        const d = new Date(debutIso);
+        return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString(locale, { day: 'numeric', month: 'short' });
+    };
     const max = Math.max(1, ...semaines.map((s) => s.exercices));
     const points = pointsCourbe(semaines.map((s) => s.precision), 100, 100, 100);
     const derniere = semaines.length - 1;
@@ -164,8 +173,8 @@ function Courbe({ semaines }: { semaines: Semaine[] }) {
     return (
         <div>
             <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-primary/70" />Exercices faits</span>
-                <span className="inline-flex items-center gap-1.5"><span className="h-0.5 w-4 rounded bg-emerald-500" />Précision moyenne</span>
+                <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-primary/70" />{t('Exercices faits')}</span>
+                <span className="inline-flex items-center gap-1.5"><span className="h-0.5 w-4 rounded bg-emerald-500" />{t('Précision moyenne')}</span>
             </div>
             <div className="relative h-40">
                 {/* Lignes de repere : 0, 50 et 100 % de precision. */}
@@ -181,7 +190,7 @@ function Courbe({ semaines }: { semaines: Semaine[] }) {
                             <div
                                 className={cn('w-full max-w-10 rounded-t-md', i === derniere ? 'bg-primary' : 'bg-primary/40')}
                                 style={{ height: `${Math.max(s.exercices ? 4 : 0, (s.exercices / max) * 80)}%` }}
-                                title={`${s.exercices} exercice${s.exercices > 1 ? 's' : ''} · ${s.actifs} élève${s.actifs > 1 ? 's' : ''} actif${s.actifs > 1 ? 's' : ''}`}
+                                title={`${s.exercices > 1 ? t('{n} exercices', { n: s.exercices }) : t('{n} exercice', { n: s.exercices })} · ${s.actifs > 1 ? t('{n} élèves actifs', { n: s.actifs }) : t('{n} élève actif', { n: s.actifs })}`}
                             />
                         </div>
                     ))}
@@ -205,7 +214,7 @@ function Courbe({ semaines }: { semaines: Semaine[] }) {
                                 key={i}
                                 className="absolute h-2.5 w-2.5 -translate-x-1/2 translate-y-1/2 rounded-full border-2 border-card bg-emerald-500"
                                 style={{ left: `${((i + 0.5) / semaines.length) * 100}%`, bottom: `${100 - p.y}%` }}
-                                title={`${semaines[i].precision} % de précision`}
+                                title={t('{n} % de précision', { n: semaines[i].precision })}
                             />
                         ),
                     )}
@@ -223,6 +232,7 @@ function Courbe({ semaines }: { semaines: Semaine[] }) {
 }
 
 function Podium({ eleves }: { eleves: LigneClassement[] }) {
+    const { t } = useT();
     // 2e, 1er, 3e : le premier au centre, plus haut.
     const ordre = [eleves[1], eleves[0], eleves[2]];
     const hauteurs = ['h-14', 'h-20', 'h-10'];
@@ -240,7 +250,7 @@ function Podium({ eleves }: { eleves: LigneClassement[] }) {
                             <span
                                 className="absolute -bottom-1.5 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-card text-[11px] font-bold text-white"
                                 style={{ background: medaille.fond }}
-                                aria-label={`Médaille ${medaille.nom.toLowerCase()}`}
+                                aria-label={t('Médaille {nom}', { nom: t(medaille.nom).toLowerCase() })}
                             >
                                 {e.rang}
                             </span>
@@ -261,8 +271,9 @@ function Podium({ eleves }: { eleves: LigneClassement[] }) {
 }
 
 function Squelette() {
+    const { t } = useT();
     return (
-        <div className="space-y-5" aria-busy="true" aria-label="Chargement du tableau de la classe">
+        <div className="space-y-5" aria-busy="true" aria-label={t('Chargement du tableau de la classe')}>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-[6.5rem] rounded-xl" />)}
             </div>
@@ -274,6 +285,7 @@ function Squelette() {
 }
 
 export default function TableauDeClasse({ classroomId }: { classroomId: number }) {
+    const { t } = useT();
     const [donnees, setDonnees] = useState<Tableau | null>(null);
     const [erreur, setErreur] = useState(false);
     const [periode, setPeriode] = useState<Periode>('semaine');
@@ -292,8 +304,8 @@ export default function TableauDeClasse({ classroomId }: { classroomId: number }
         return (
             <Card>
                 <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4 text-sm">
-                    <span className="text-muted-foreground">Le tableau de la classe n’a pas pu être chargé.</span>
-                    <Button variant="outline" size="sm" onClick={charger}><RefreshCw className="mr-1.5 h-3.5 w-3.5" />Réessayer</Button>
+                    <span className="text-muted-foreground">{t('Le tableau de la classe n’a pas pu être chargé.')}</span>
+                    <Button variant="outline" size="sm" onClick={charger}><RefreshCw className="mr-1.5 h-3.5 w-3.5" />{t('Réessayer')}</Button>
                 </CardContent>
             </Card>
         );
@@ -303,7 +315,7 @@ export default function TableauDeClasse({ classroomId }: { classroomId: number }
     const { kpis, semaines } = donnees;
     const classement = donnees.classement[periode];
     const competences = donnees.competences[periode];
-    const detailPeriode = PERIODES.find((p) => p.cle === periode)!.detail;
+    const detailPeriode = t(PERIODES.find((p) => p.cle === periode)!.detail);
     const actifsDuClassement = classement.eleves.filter((e) => e.exercices > 0);
     const podium = actifsDuClassement.slice(0, 3);
     const devoirs = kpis.devoirs;
@@ -313,52 +325,57 @@ export default function TableauDeClasse({ classroomId }: { classroomId: number }
     return (
         <div className="space-y-5">
             {/* Chiffres de la semaine */}
-            <section aria-label="Chiffres de la semaine" className="space-y-3">
+            <section aria-label={t('Chiffres de la semaine')} className="space-y-3">
                 <div className="flex items-baseline justify-between gap-3">
-                    <h2 className="text-base font-semibold">Cette semaine</h2>
-                    <span className="text-xs text-muted-foreground">7 derniers jours, comparés aux 7 d’avant</span>
+                    <h2 className="text-base font-semibold">{t('Cette semaine')}</h2>
+                    <span className="text-xs text-muted-foreground">{t('7 derniers jours, comparés aux 7 d’avant')}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                     <Kpi
                         icone={Users}
-                        libelle="Élèves actifs"
+                        libelle={t('Élèves actifs')}
                         valeur={<>{kpis.eleves_actifs}<span className="text-base font-medium text-muted-foreground"> / {kpis.eleves_total}</span></>}
-                        detail={kpis.eleves_total > 0 ? `${Math.round((kpis.eleves_actifs / kpis.eleves_total) * 100)} % de la classe` : 'Aucun élève'}
+                        detail={kpis.eleves_total > 0 ? t('{n} % de la classe', { n: Math.round((kpis.eleves_actifs / kpis.eleves_total) * 100) }) : t('Aucun élève')}
                     />
                     <Kpi
                         icone={ListChecks}
-                        libelle="Exercices faits"
+                        libelle={t('Exercices faits')}
                         valeur={kpis.exercices}
-                        tendance={<Tendance v={variation(kpis.exercices, kpis.exercices_avant)} titre={`${kpis.exercices_avant} la semaine précédente`} />}
-                        detail="vs sem. préc."
+                        tendance={<Tendance v={variation(kpis.exercices, kpis.exercices_avant)} titre={t('{n} la semaine précédente', { n: kpis.exercices_avant })} />}
+                        detail={t('vs sem. préc.')}
                     />
                     <Kpi
                         icone={Clock}
-                        libelle="Temps de travail"
+                        libelle={t('Temps de travail')}
                         valeur={duree(kpis.temps_secondes)}
-                        tendance={<Tendance v={variation(kpis.temps_secondes, kpis.temps_avant_secondes)} titre={`${duree(kpis.temps_avant_secondes)} la semaine précédente`} />}
-                        detail="vs sem. préc."
+                        tendance={<Tendance v={variation(kpis.temps_secondes, kpis.temps_avant_secondes)} titre={t('{n} la semaine précédente', { n: duree(kpis.temps_avant_secondes) })} />}
+                        detail={t('vs sem. préc.')}
                     />
                     <Kpi
                         icone={Target}
-                        libelle="Précision moyenne"
+                        libelle={t('Précision moyenne')}
                         valeur={kpis.precision !== null ? `${Math.round(kpis.precision)} %` : '—'}
-                        tendance={<Tendance v={ecartPoints(ecartPrecision)} titre="Écart en points avec la semaine précédente" />}
-                        detail={kpis.precision === null ? 'Pas d’exercice noté' : 'vs sem. préc.'}
+                        tendance={<Tendance v={ecartPoints(ecartPrecision)} titre={t('Écart en points avec la semaine précédente')} />}
+                        detail={kpis.precision === null ? t('Pas d’exercice noté') : t('vs sem. préc.')}
                     />
                 </div>
                 {devoirs && (
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-border bg-card p-3.5 text-sm">
                         <span className="inline-flex items-center gap-1.5 font-medium">
                             <ClipboardCheck className="h-4 w-4 text-muted-foreground" aria-hidden />
-                            Devoirs rendus à temps
+                            {t('Devoirs rendus à temps')}
                         </span>
                         <div className="h-2 min-w-24 flex-1 overflow-hidden rounded-full bg-muted">
                             <div className={cn('h-full rounded-full', couleurReussite(tauxDevoirs))} style={{ width: `${tauxDevoirs ?? 0}%` }} />
                         </div>
                         <span className="tabular-nums">
                             <span className="font-semibold">{tauxDevoirs !== null ? `${tauxDevoirs} %` : '—'}</span>
-                            <span className="text-muted-foreground"> · {devoirs.rendus} / {devoirs.attendus} sur {devoirs.devoirs} devoir{devoirs.devoirs > 1 ? 's' : ''} échu{devoirs.devoirs > 1 ? 's' : ''}</span>
+                            <span className="text-muted-foreground">
+                                {' · '}
+                                {devoirs.devoirs > 1
+                                    ? t('{rendus} / {attendus} sur {n} devoirs échus', { rendus: devoirs.rendus, attendus: devoirs.attendus, n: devoirs.devoirs })
+                                    : t('{rendus} / {attendus} sur {n} devoir échu', { rendus: devoirs.rendus, attendus: devoirs.attendus, n: devoirs.devoirs })}
+                            </span>
                         </span>
                     </div>
                 )}
@@ -367,11 +384,11 @@ export default function TableauDeClasse({ classroomId }: { classroomId: number }
             {/* Activite des six dernieres semaines */}
             <Card>
                 <CardHeader className="pb-2">
-                    <CardTitle className="text-base">Activité des 6 dernières semaines</CardTitle>
+                    <CardTitle className="text-base">{t('Activité des 6 dernières semaines')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     {semaines.every((s) => s.exercices === 0) ? (
-                        <p className="py-6 text-center text-sm text-muted-foreground">Aucun exercice fait par la classe ces six dernières semaines.</p>
+                        <p className="py-6 text-center text-sm text-muted-foreground">{t('Aucun exercice fait par la classe ces six dernières semaines.')}</p>
                     ) : (
                         <Courbe semaines={semaines} />
                     )}
@@ -381,17 +398,17 @@ export default function TableauDeClasse({ classroomId }: { classroomId: number }
             {/* Reussite par competence */}
             <Card>
                 <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 space-y-0 pb-3">
-                    <CardTitle className="text-base">Réussite par compétence</CardTitle>
+                    <CardTitle className="text-base">{t('Réussite par compétence')}</CardTitle>
                     <ChoixPeriode valeur={periode} onChange={setPeriode} />
                 </CardHeader>
                 <CardContent>
                     {competences.length === 0 ? (
-                        <p className="py-4 text-center text-sm text-muted-foreground">Aucun exercice noté sur cette période ({detailPeriode}).</p>
+                        <p className="py-4 text-center text-sm text-muted-foreground">{t('Aucun exercice noté sur cette période ({detail}).', { detail: detailPeriode })}</p>
                     ) : (
                         <ul className="space-y-3">
                             {competences.map((c) => (
                                 <li key={c.cle} className="grid grid-cols-[minmax(0,8.5rem)_1fr_auto] items-center gap-3 text-sm sm:grid-cols-[11rem_1fr_auto]">
-                                    <span className="truncate font-medium" title={c.libelle}>{c.libelle}</span>
+                                    <span className="truncate font-medium" title={t(c.libelle)}>{t(c.libelle)}</span>
                                     <div className="h-2.5 overflow-hidden rounded-full bg-muted">
                                         <div className={cn('h-full rounded-full', couleurReussite(c.precision))} style={{ width: `${Math.max(2, c.precision)}%` }} />
                                     </div>
@@ -412,31 +429,31 @@ export default function TableauDeClasse({ classroomId }: { classroomId: number }
                     <div>
                         <CardTitle className="flex items-center gap-2 text-base">
                             <Trophy className="h-4 w-4 text-amber-500" aria-hidden />
-                            Classement de la classe
+                            {t('Classement de la classe')}
                         </CardTitle>
-                        <p className="mt-0.5 text-xs text-muted-foreground">XP gagnés en exercices · {detailPeriode}</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">{t('XP gagnés en exercices · {detail}', { detail: detailPeriode })}</p>
                     </div>
                     <ChoixPeriode valeur={periode} onChange={setPeriode} />
                 </CardHeader>
                 <CardContent className="space-y-5">
                     {classement.eleves.length === 0 ? (
-                        <p className="py-4 text-center text-sm text-muted-foreground">Aucun élève n’a encore rejoint cette classe.</p>
+                        <p className="py-4 text-center text-sm text-muted-foreground">{t('Aucun élève n’a encore rejoint cette classe.')}</p>
                     ) : (
                         <>
                             {podium.length > 0 ? (
                                 <Podium eleves={podium} />
                             ) : (
-                                <p className="py-2 text-center text-sm text-muted-foreground">Personne n’a encore fait d’exercice sur cette période.</p>
+                                <p className="py-2 text-center text-sm text-muted-foreground">{t('Personne n’a encore fait d’exercice sur cette période.')}</p>
                             )}
 
                             <div className="overflow-hidden rounded-xl border border-border">
                                 <div className="hidden grid-cols-[2.5rem_minmax(0,1fr)_4.5rem_4rem_6.5rem_3.5rem] gap-2 border-b border-border bg-muted/40 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground sm:grid">
-                                    <span>Rang</span>
-                                    <span>Élève</span>
+                                    <span>{t('Rang')}</span>
+                                    <span>{t('Élève')}</span>
                                     <span className="text-right">XP</span>
-                                    <span className="text-right">Exerc.</span>
-                                    <span className="text-right">Précision</span>
-                                    <span className="text-right">Série</span>
+                                    <span className="text-right">{t('Exerc.')}</span>
+                                    <span className="text-right">{t('Précision')}</span>
+                                    <span className="text-right">{t('Série')}</span>
                                 </div>
                                 <ol className="divide-y divide-border">
                                     {classement.eleves.map((e) => {
@@ -463,24 +480,24 @@ export default function TableauDeClasse({ classroomId }: { classroomId: number }
                                                         </Link>
                                                         <div className="flex flex-wrap items-center gap-1 pt-0.5">
                                                             {regulier && (
-                                                                <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-sky-700 dark:text-sky-300" title={`${e.jours_actifs} jours d’activité sur la période`}>
-                                                                    <CalendarCheck className="h-3 w-3" aria-hidden />Plus régulier
+                                                                <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-sky-700 dark:text-sky-300" title={t('{n} jours d’activité sur la période', { n: e.jours_actifs })}>
+                                                                    <CalendarCheck className="h-3 w-3" aria-hidden />{t('Plus régulier')}
                                                                 </span>
                                                             )}
                                                             {progresse && (
                                                                 <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">
-                                                                    <TrendingUp className="h-3 w-3" aria-hidden />Meilleure progression
+                                                                    <TrendingUp className="h-3 w-3" aria-hidden />{t('Meilleure progression')}
                                                                 </span>
                                                             )}
                                                             {/* Sur telephone, les colonnes se lisent ici. */}
                                                             <span className="text-xs text-muted-foreground sm:hidden">
                                                                 {actif
-                                                                    ? `${e.exercices} ex. · ${e.precision !== null ? `${Math.round(e.precision)} %` : '—'}${e.serie > 0 ? ` · ${e.serie} j` : ''}`
-                                                                    : e.derniere_activite ? `Dernière activité ${ilYA(e.derniere_activite)}` : 'Jamais venu'}
+                                                                    ? `${t('{n} ex.', { n: e.exercices })} · ${e.precision !== null ? `${Math.round(e.precision)} %` : '—'}${e.serie > 0 ? ` · ${t('{n} j', { n: e.serie })}` : ''}`
+                                                                    : e.derniere_activite ? t('Dernière activité {quand}', { quand: ilYA(e.derniere_activite) }) : t('Jamais venu')}
                                                             </span>
                                                             {!actif && (
                                                                 <span className="hidden text-xs text-muted-foreground sm:inline">
-                                                                    {e.derniere_activite ? `Dernière activité ${ilYA(e.derniere_activite)}` : 'Jamais venu'}
+                                                                    {e.derniere_activite ? t('Dernière activité {quand}', { quand: ilYA(e.derniere_activite) }) : t('Jamais venu')}
                                                                 </span>
                                                             )}
                                                         </div>
@@ -492,9 +509,9 @@ export default function TableauDeClasse({ classroomId }: { classroomId: number }
                                                 <span className="hidden text-right tabular-nums sm:block">{e.exercices}</span>
                                                 <span className="hidden flex-col items-end gap-0.5 tabular-nums sm:flex">
                                                     <span>{e.precision !== null ? `${Math.round(e.precision)} %` : '—'}</span>
-                                                    {ecart && ecart.sens !== 'stable' && <Tendance v={ecart} titre="Écart avec la période précédente" />}
+                                                    {ecart && ecart.sens !== 'stable' && <Tendance v={ecart} titre={t('Écart avec la période précédente')} />}
                                                 </span>
-                                                <span className="hidden items-center justify-end gap-0.5 tabular-nums sm:flex" title="Jours d’affilée">
+                                                <span className="hidden items-center justify-end gap-0.5 tabular-nums sm:flex" title={t('Jours d’affilée')}>
                                                     {e.serie > 0 ? (<><Flame className="h-3.5 w-3.5 text-orange-500" aria-hidden />{e.serie}</>) : '—'}
                                                 </span>
                                             </li>

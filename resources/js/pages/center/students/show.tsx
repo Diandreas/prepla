@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Download } from 'lucide-react';
+import { useT } from '@/lib/i18n/traduire';
 import { competence, dateHeure, duree, ilYA } from '@/lib/suivi';
 import { ecartPoints } from '@/lib/tableau-de-classe';
 import {
@@ -40,8 +41,6 @@ const STATUTS: Record<StatutDevoir, { libelle: string; classe: string }> = {
     en_retard: { libelle: 'En retard', classe: 'bg-rose-500/10 text-rose-700 dark:text-rose-400' },
     a_faire: { libelle: 'À faire', classe: 'bg-muted text-muted-foreground' },
 };
-
-const FORMAT_ECHEANCE = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' });
 
 interface Student { id: number; name: string; email: string; level: string | null; classes: string[] }
 interface Jour { date: string; exercices: number; minutes: number }
@@ -126,6 +125,14 @@ export default function StudentShow({
     profil: Observation[];
     statistiques?: StatistiquesEleve | null;
 }) {
+    const { t, locale } = useT();
+    const formatEcheance = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' });
+    // Les libelles fixes du serveur (competences, categories de fautes « Grammaire · accords ») se traduisent morceau par morceau.
+    const comp = (slug: string | null) => {
+        const libelle = competence(slug);
+        return libelle ? t(libelle) : libelle;
+    };
+    const libelleFaute = (libelle: string) => libelle.split(' · ').map((morceau) => t(morceau)).join(' · ');
     const plusActif = Math.max(1, ...resume.activite_30_jours.map((j) => j.exercices));
     const st = statistiques;
     const saPrecision = precisionPonderee(st?.semaines);
@@ -141,23 +148,23 @@ export default function StudentShow({
                 <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                         <Link href={route('center.students.index')} className="text-sm text-muted-foreground hover:text-foreground">
-                            ← Élèves
+                            ← {t('Élèves')}
                         </Link>
                         <h1 className="mt-1 text-2xl font-bold tracking-tight">{student.name}</h1>
                         <p className="text-sm text-muted-foreground">
-                            {student.email} · Niveau {student.level ?? '—'}
+                            {student.email} · {t('Niveau {niveau}', { niveau: student.level ?? '—' })}
                             {student.classes.length > 0 && <> · {student.classes.join(', ')}</>}
                         </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
                         <Button asChild variant="outline" size="sm">
                             <Link href={route('center.students.vocabulaire', student.id)}>
-                                <BookOpen className="mr-1.5 h-4 w-4" /> Vocabulaire
+                                <BookOpen className="mr-1.5 h-4 w-4" /> {t('Vocabulaire')}
                             </Link>
                         </Button>
                         <Button asChild variant="outline" size="sm">
                             <a href={route('center.students.export', student.id)}>
-                                <Download className="mr-1.5 h-4 w-4" /> Exporter l'historique
+                                <Download className="mr-1.5 h-4 w-4" /> {t("Exporter l'historique")}
                             </a>
                         </Button>
                     </div>
@@ -171,50 +178,50 @@ export default function StudentShow({
                         <CardContent className="p-4">
                             <p className="text-lg font-bold leading-tight">{ilYA(resume.derniere_activite)}</p>
                             <p className="mt-0.5 text-xs text-muted-foreground">{dateHeure(resume.derniere_activite)}</p>
-                            <p className="mt-1 text-sm text-muted-foreground">Dernière activité</p>
+                            <p className="mt-1 text-sm text-muted-foreground">{t('Dernière activité')}</p>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardContent className="p-4">
                             <p className="text-2xl font-bold">{duree(resume.temps_total_secondes)}</p>
-                            <p className="text-sm text-muted-foreground">Temps de travail total</p>
+                            <p className="text-sm text-muted-foreground">{t('Temps de travail total')}</p>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardContent className="p-4">
                             <p className="text-2xl font-bold">{resume.tentatives}</p>
                             <p className="text-sm text-muted-foreground">
-                                Exercices réalisés
-                                {resume.precision_moyenne !== null && <> · {resume.precision_moyenne}% de réussite</>}
+                                {t('Exercices réalisés')}
+                                {resume.precision_moyenne !== null && <> · {t('{n}% de réussite', { n: resume.precision_moyenne })}</>}
                             </p>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardContent className="p-4">
                             <p className="text-2xl font-bold">{resume.jours_actifs_30}<span className="text-base font-medium text-muted-foreground"> / 30</span></p>
-                            <p className="text-sm text-muted-foreground">Jours actifs ce mois-ci</p>
+                            <p className="text-sm text-muted-foreground">{t('Jours actifs ce mois-ci')}</p>
                         </CardContent>
                     </Card>
                 </div>
 
                 <Card>
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-base">Activité des 30 derniers jours</CardTitle>
+                        <CardTitle className="text-base">{t('Activité des 30 derniers jours')}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="flex h-20 items-end gap-[3px]" role="img" aria-label="Exercices réalisés par jour sur les 30 derniers jours">
+                        <div className="flex h-20 items-end gap-[3px]" role="img" aria-label={t('Exercices réalisés par jour sur les 30 derniers jours')}>
                             {resume.activite_30_jours.map((j) => (
                                 <div
                                     key={j.date}
                                     className={`flex-1 rounded-t-sm ${j.exercices > 0 ? 'bg-primary' : 'bg-muted'}`}
                                     style={{ height: j.exercices > 0 ? `${Math.max(12, (j.exercices / plusActif) * 100)}%` : '6%' }}
-                                    title={`${new Date(j.date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })} — ${j.exercices} exercice${j.exercices > 1 ? 's' : ''}, ${j.minutes} min`}
+                                    title={`${new Date(j.date + 'T12:00:00').toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' })} — ${j.exercices > 1 ? t('{n} exercices', { n: j.exercices }) : t('{n} exercice', { n: j.exercices })}, ${t('{n} min', { n: j.minutes })}`}
                                 />
                             ))}
                         </div>
                         <div className="mt-1.5 flex justify-between text-xs text-muted-foreground">
-                            <span>il y a 30 jours</span>
-                            <span>aujourd'hui</span>
+                            <span>{t('il y a 30 jours')}</span>
+                            <span>{t("aujourd'hui")}</span>
                         </div>
                     </CardContent>
                 </Card>
@@ -222,9 +229,9 @@ export default function StudentShow({
                 {st && (
                     <Card>
                         <CardHeader className="pb-2">
-                            <CardTitle className="text-base">Progression sur 8 semaines</CardTitle>
+                            <CardTitle className="text-base">{t('Progression sur 8 semaines')}</CardTitle>
                             <p className="text-xs text-muted-foreground">
-                                Sa précision chaque semaine{st.semaines_classe ? ', comparée à la moyenne de sa classe' : ''}.
+                                {st.semaines_classe ? t('Sa précision chaque semaine, comparée à la moyenne de sa classe.') : t('Sa précision chaque semaine.')}
                             </p>
                         </CardHeader>
                         <CardContent className="space-y-3">
@@ -232,12 +239,12 @@ export default function StudentShow({
                                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
                                     <span>
                                         <span className="text-2xl font-bold tabular-nums">{Math.round(saPrecision)} %</span>
-                                        <span className="text-muted-foreground"> de réussite sur {sesExercices} exercice{sesExercices > 1 ? 's' : ''}</span>
+                                        <span className="text-muted-foreground"> {sesExercices > 1 ? t('de réussite sur {n} exercices', { n: sesExercices }) : t('de réussite sur {n} exercice', { n: sesExercices })}</span>
                                     </span>
                                     {precisionClasse !== null && (
                                         <span className="inline-flex items-center gap-1.5 text-muted-foreground">
-                                            classe : {Math.round(precisionClasse)} %
-                                            <Tendance v={ecartPoints(saPrecision - precisionClasse)} titre="Écart avec la moyenne de la classe" />
+                                            {t('classe : {n} %', { n: Math.round(precisionClasse) })}
+                                            <Tendance v={ecartPoints(saPrecision - precisionClasse)} titre={t('Écart avec la moyenne de la classe')} />
                                         </span>
                                     )}
                                 </div>
@@ -251,8 +258,8 @@ export default function StudentShow({
                     <div className="grid gap-5 md:grid-cols-2">
                         <Card>
                             <CardHeader className="pb-2">
-                                <CardTitle className="text-base">Réussite par compétence</CardTitle>
-                                <p className="text-xs text-muted-foreground">Depuis le début.</p>
+                                <CardTitle className="text-base">{t('Réussite par compétence')}</CardTitle>
+                                <p className="text-xs text-muted-foreground">{t('Depuis le début.')}</p>
                             </CardHeader>
                             <CardContent>
                                 <BarresCompetences competences={st.competences} />
@@ -260,8 +267,8 @@ export default function StudentShow({
                         </Card>
                         <Card>
                             <CardHeader className="pb-2">
-                                <CardTitle className="text-base">Régularité</CardTitle>
-                                <p className="text-xs text-muted-foreground">Un carré par jour sur 8 semaines, à l’heure du centre.</p>
+                                <CardTitle className="text-base">{t('Régularité')}</CardTitle>
+                                <p className="text-xs text-muted-foreground">{t('Un carré par jour sur 8 semaines, à l’heure du centre.')}</p>
                             </CardHeader>
                             <CardContent>
                                 <CalendrierRegularite jours={st.calendrier} />
@@ -269,7 +276,7 @@ export default function StudentShow({
                         </Card>
                         <Card>
                             <CardHeader className="pb-2">
-                                <CardTitle className="text-base">Temps de travail par semaine</CardTitle>
+                                <CardTitle className="text-base">{t('Temps de travail par semaine')}</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <BarresMinutes semaines={st.semaines} />
@@ -277,19 +284,19 @@ export default function StudentShow({
                         </Card>
                         <Card>
                             <CardHeader className="pb-2">
-                                <CardTitle className="text-base">Devoirs</CardTitle>
-                                <p className="text-xs text-muted-foreground">Ceux de ses classes, publiés.</p>
+                                <CardTitle className="text-base">{t('Devoirs')}</CardTitle>
+                                <p className="text-xs text-muted-foreground">{t('Ceux de ses classes, publiés.')}</p>
                             </CardHeader>
                             <CardContent className="space-y-3">
                                 {!devoirs || devoirsTotal === 0 ? (
-                                    <p className="text-sm text-muted-foreground">Aucun devoir donné pour le moment.</p>
+                                    <p className="text-sm text-muted-foreground">{t('Aucun devoir donné pour le moment.')}</p>
                                 ) : (
                                     <>
                                         <div className="grid grid-cols-2 gap-2 text-center">
                                             {(Object.keys(STATUTS) as StatutDevoir[]).map((cle) => (
                                                 <div key={cle} className={`rounded-lg px-2 py-2 ${STATUTS[cle].classe}`}>
                                                     <p className="text-xl font-bold tabular-nums">{devoirs[cle]}</p>
-                                                    <p className="text-xs">{STATUTS[cle].libelle}</p>
+                                                    <p className="text-xs">{t(STATUTS[cle].libelle)}</p>
                                                 </div>
                                             ))}
                                         </div>
@@ -298,8 +305,8 @@ export default function StudentShow({
                                                 <li key={d.id} className="flex items-center justify-between gap-2 text-sm">
                                                     <span className="min-w-0 truncate">{d.titre}</span>
                                                     <span className="flex shrink-0 items-center gap-2 text-xs">
-                                                        {d.echeance && <span className="text-muted-foreground">{FORMAT_ECHEANCE.format(new Date(d.echeance))}</span>}
-                                                        <span className={`rounded-full px-1.5 py-0.5 font-medium ${STATUTS[d.statut].classe}`}>{STATUTS[d.statut].libelle}</span>
+                                                        {d.echeance && <span className="text-muted-foreground">{formatEcheance.format(new Date(d.echeance))}</span>}
+                                                        <span className={`rounded-full px-1.5 py-0.5 font-medium ${STATUTS[d.statut].classe}`}>{t(STATUTS[d.statut].libelle)}</span>
                                                     </span>
                                                 </li>
                                             ))}
@@ -313,11 +320,11 @@ export default function StudentShow({
 
                 <Card>
                     <CardHeader className="flex-row items-baseline justify-between space-y-0 pb-2">
-                        <CardTitle className="text-base">Historique</CardTitle>
-                        <span className="text-xs text-muted-foreground">{historique.total} exercice{historique.total > 1 ? 's' : ''}</span>
+                        <CardTitle className="text-base">{t('Historique')}</CardTitle>
+                        <span className="text-xs text-muted-foreground">{historique.total > 1 ? t('{n} exercices', { n: historique.total }) : t('{n} exercice', { n: historique.total })}</span>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                        {historique.data.length === 0 && <p className="text-sm text-muted-foreground">Aucun exercice réalisé pour le moment.</p>}
+                        {historique.data.length === 0 && <p className="text-sm text-muted-foreground">{t('Aucun exercice réalisé pour le moment.')}</p>}
                         {historique.data.map((l) => (
                             <Link
                                 key={l.id}
@@ -328,11 +335,11 @@ export default function StudentShow({
                                 <div className="min-w-0 flex-1">
                                     <p className="truncate font-medium">{l.exercice}</p>
                                     <p className="truncate text-xs text-muted-foreground">
-                                        {[l.examen, l.niveau, l.partie, competence(l.competence)].filter(Boolean).join(' · ')}
+                                        {[l.examen, l.niveau, l.partie, comp(l.competence)].filter(Boolean).join(' · ')}
                                     </p>
                                 </div>
                                 <div className="flex items-center gap-4 tabular-nums">
-                                    <span className="text-xs text-muted-foreground" title="Temps passé">{duree(l.temps_secondes)}</span>
+                                    <span className="text-xs text-muted-foreground" title={t('Temps passé')}>{duree(l.temps_secondes)}</span>
                                     {l.total !== null && (
                                         <span className="text-xs text-muted-foreground">{l.justes}/{l.total}</span>
                                     )}
@@ -346,11 +353,11 @@ export default function StudentShow({
                         {historique.last_page > 1 && (
                             <div className="flex items-center justify-between pt-2 text-sm">
                                 {historique.prev_page_url ? (
-                                    <Link href={historique.prev_page_url} preserveScroll className="text-primary hover:underline">← Plus récents</Link>
+                                    <Link href={historique.prev_page_url} preserveScroll className="text-primary hover:underline">{t('← Plus récents')}</Link>
                                 ) : <span />}
-                                <span className="text-muted-foreground">Page {historique.current_page} / {historique.last_page}</span>
+                                <span className="text-muted-foreground">{t('Page {page} / {total}', { page: historique.current_page, total: historique.last_page })}</span>
                                 {historique.next_page_url ? (
-                                    <Link href={historique.next_page_url} preserveScroll className="text-primary hover:underline">Plus anciens →</Link>
+                                    <Link href={historique.next_page_url} preserveScroll className="text-primary hover:underline">{t('Plus anciens →')}</Link>
                                 ) : <span />}
                             </div>
                         )}
@@ -359,15 +366,15 @@ export default function StudentShow({
 
                 <Card>
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-base">Profil à l'écrit et à l'oral</CardTitle>
+                        <CardTitle className="text-base">{t("Profil à l'écrit et à l'oral")}</CardTitle>
                         <p className="text-xs text-muted-foreground">
-                            Les tendances de fond relevées par l'IA dans ses rédactions et ses prises de parole, preuve à l'appui.
+                            {t("Les tendances de fond relevées par l'IA dans ses rédactions et ses prises de parole, preuve à l'appui.")}
                         </p>
                     </CardHeader>
                     <CardContent className="space-y-2">
                         {profil.length === 0 && (
                             <p className="text-sm text-muted-foreground">
-                                Pas encore de rédaction ni de prise de parole analysée. C'est là que les faiblesses profondes se révèlent.
+                                {t("Pas encore de rédaction ni de prise de parole analysée. C'est là que les faiblesses profondes se révèlent.")}
                             </p>
                         )}
                         {profil.map((o, i) => {
@@ -375,9 +382,9 @@ export default function StudentShow({
                             return (
                                 <div key={i} className={`rounded-lg border p-3 text-sm ${g.classe}`}>
                                     <div className="flex flex-wrap items-baseline justify-between gap-2">
-                                        <span className="font-medium">{o.dimension}</span>
+                                        <span className="font-medium">{t(o.dimension)}</span>
                                         <span className="text-xs text-muted-foreground">
-                                            {g.libelle} · {competence(o.competence)} ·{' '}
+                                            {t(g.libelle)} · {comp(o.competence)} ·{' '}
                                             <Link href={route('center.students.attempt', { user: student.id, attempt: o.tentative })} className="underline-offset-2 hover:underline">
                                                 {dateHeure(o.date)}
                                             </Link>
@@ -392,21 +399,21 @@ export default function StudentShow({
 
                 <Card>
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-base">Faiblesses à travailler</CardTitle>
-                        <p className="text-xs text-muted-foreground">Chaque faiblesse avec les dernières fautes où elle est apparue.</p>
+                        <CardTitle className="text-base">{t('Faiblesses à travailler')}</CardTitle>
+                        <p className="text-xs text-muted-foreground">{t('Chaque faiblesse avec les dernières fautes où elle est apparue.')}</p>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                        {faiblesses.length === 0 && <p className="text-sm text-muted-foreground">Aucune faiblesse récurrente détectée.</p>}
+                        {faiblesses.length === 0 && <p className="text-sm text-muted-foreground">{t('Aucune faiblesse récurrente détectée.')}</p>}
                         {faiblesses.map((f, i) => (
                             <details key={i} className="group rounded-lg border border-border text-sm">
                                 <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-2.5">
                                     <span>
-                                        <span className="font-medium">{f.libelle}</span>
+                                        <span className="font-medium">{libelleFaute(f.libelle)}</span>
                                         {f.competences.length > 0 && (
-                                            <span className="text-muted-foreground"> · {f.competences.map((c) => competence(c)).join(', ')}</span>
+                                            <span className="text-muted-foreground"> · {f.competences.map((c) => comp(c)).join(', ')}</span>
                                         )}
                                     </span>
-                                    <Badge variant="secondary">{f.nombre} faute{f.nombre > 1 ? 's' : ''}</Badge>
+                                    <Badge variant="secondary">{f.nombre > 1 ? t('{n} fautes', { n: f.nombre }) : t('{n} faute', { n: f.nombre })}</Badge>
                                 </summary>
                                 <ul className="space-y-2 border-t px-3 py-2.5">
                                     {f.exemples.map((e, j) => (

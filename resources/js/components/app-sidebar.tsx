@@ -7,6 +7,7 @@ import { type Marque, type MenusDisponibles, type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useT } from '@/lib/i18n/traduire';
 import AppLogo from './app-logo';
 import { CentreCourant } from './centre-courant';
 
@@ -26,6 +27,8 @@ function SidebarIcon({ name }: { name: string }) {
 
 export function AppSidebar() {
     const { t } = useTranslation();
+    // Menu de l'equipe d'un centre : la phrase francaise sert de cle (locales/en-centre).
+    const { t: tc } = useT();
     const page = usePage();
     const { auth } = page.props as any;
     const role: string | undefined = auth?.role;
@@ -61,23 +64,23 @@ export function AppSidebar() {
         ];
     } else if (centerRole === 'center_admin' || centerRole === 'teacher') {
         mainNavItems = [
-            { title: 'Tableau de bord', url: '/center', icon: () => <SidebarIcon name="home" /> },
-            { title: 'Classes', url: '/center/classes', icon: () => <SidebarIcon name="layout-grid" /> },
-            { title: 'Élèves', url: '/center/students', icon: () => <SidebarIcon name="profile" /> },
+            { title: tc('Tableau de bord'), url: '/center', icon: () => <SidebarIcon name="home" /> },
+            { title: tc('Classes'), url: '/center/classes', icon: () => <SidebarIcon name="layout-grid" /> },
+            { title: tc('Élèves'), url: '/center/students', icon: () => <SidebarIcon name="profile" /> },
             // L'equipe du centre — qui enseigne quelles classes, et l'invitation
             // d'un collegue — pour son responsable, comme l'autorisation.
             ...(centerRole === 'center_admin'
-                ? [{ title: 'Équipe', url: '/center/equipe', icon: () => <SidebarIcon name="profile" /> }]
+                ? [{ title: tc('Équipe'), url: '/center/equipe', icon: () => <SidebarIcon name="profile" /> }]
                 : []),
-            { title: 'Contenu', url: '/center/exercises', icon: () => <SidebarIcon name="puzzle" /> },
-            { title: 'Devoirs', url: '/center/assignments', icon: () => <SidebarIcon name="tasks" /> },
+            { title: tc('Contenu'), url: '/center/exercises', icon: () => <SidebarIcon name="puzzle" /> },
+            { title: tc('Devoirs'), url: '/center/assignments', icon: () => <SidebarIcon name="tasks" /> },
             // Les reglages du centre (marque, examens, adresse, formule, acces
             // vendus, parrainage) sous une seule entree : le responsable ne
             // trouvait pas « les parametres de son centre » parmi trois entrees
             // separees. Sans la page d'accueil, on garde les entrees d'avant.
             ...(centerRole === 'center_admin' && menus?.parametres
                 ? [{
-                    title: 'Paramètres du centre',
+                    title: tc('Paramètres du centre'),
                     url: '/center/parametres',
                     icon: () => <SidebarIcon name="settings" />,
                     // Les pages de reglage ont leur propre adresse : l'entree reste
@@ -86,13 +89,13 @@ export function AppSidebar() {
                 }]
                 : [
                     ...(centerRole === 'center_admin' && menus?.personnalisation
-                        ? [{ title: 'Personnalisation', url: '/center/personnalisation', icon: () => <SidebarIcon name="settings" /> }]
+                        ? [{ title: tc('Personnalisation'), url: '/center/personnalisation', icon: () => <SidebarIcon name="settings" /> }]
                         : []),
                     ...(centerRole === 'center_admin' && menus?.acces
-                        ? [{ title: 'Accès vendus', url: '/center/acces', icon: () => <SidebarIcon name="tasks" /> }]
+                        ? [{ title: tc('Accès vendus'), url: '/center/acces', icon: () => <SidebarIcon name="tasks" /> }]
                         : []),
                     ...(centerRole === 'center_admin' && menus?.parrainage
-                        ? [{ title: 'Parrainage', url: '/center/parrainage', icon: () => <SidebarIcon name="share" /> }]
+                        ? [{ title: tc('Parrainage'), url: '/center/parrainage', icon: () => <SidebarIcon name="share" /> }]
                         : []),
                 ]),
         ];
@@ -141,7 +144,7 @@ export function AppSidebar() {
         // sans ce lien, il devait se creer un second compte.
         ...(centerRole === 'center_admin'
             ? [{
-                title: 'Ouvrir un autre espace',
+                title: tc('Ouvrir un autre espace'),
                 url: '/enseigner',
                 icon: () => <SidebarIcon name="layout-grid" />,
             }]
@@ -158,7 +161,7 @@ export function AppSidebar() {
             // menu principal, ecrit en francais comme le reste du menu equipe.
             // Un apprenant de centre (role student) garde le libelle traduit.
             title: centerRole === 'center_admin' || centerRole === 'teacher'
-                ? 'Mon compte'
+                ? tc('Mon compte')
                 : t('sidebar.settings', 'Paramètres'),
             url: '/settings/profile',
             icon: () => <SidebarIcon name="settings" />,

@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { contraste, couleurLisible, estHexa, texteSur } from '@/lib/marque-centre.js';
 import ReglageContenuEleves, { type ContenuEleves } from '@/components/reglage-contenu-eleves';
 import ReglageLangueAnalyses from '@/components/reglage-langue-analyses';
+import { useT } from '@/lib/i18n/traduire';
 
 interface Centre {
     id: number;
@@ -44,6 +45,9 @@ function ChampCouleur({
     erreur?: string;
     onChange: (v: string | null) => void;
 }) {
+    const { t, langue } = useT();
+    // Separateur decimal : virgule en francais, point en anglais.
+    const decimal = (n: string) => (langue === 'en' ? n : n.replace('.', ','));
     const affichee = valeur ?? parDefaut;
     const valide = estHexa(affichee);
     const rapport = valide ? contraste(affichee, '#FFFFFF') : 0;
@@ -55,7 +59,7 @@ function ChampCouleur({
             <div className="flex flex-wrap items-center gap-2">
                 <input
                     type="color"
-                    aria-label={`${libelle} : choisir dans la palette`}
+                    aria-label={t('{libelle} : choisir dans la palette', { libelle })}
                     className="h-9 w-12 cursor-pointer rounded-md border bg-background p-1"
                     value={valide ? affichee.toLowerCase() : '#000000'}
                     onChange={(e) => onChange(e.target.value.toUpperCase())}
@@ -73,20 +77,20 @@ function ChampCouleur({
                 />
                 {valeur !== null && (
                     <Button type="button" variant="ghost" size="sm" onClick={() => onChange(null)}>
-                        Couleur PrePla
+                        {t('Couleur PrePla')}
                     </Button>
                 )}
             </div>
             <p className="text-xs text-muted-foreground">{aide}</p>
             {valide ? (
                 <p className={`text-xs ${lisible ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                    Contraste sur fond blanc : {rapport.toFixed(1).replace('.', ',')}:1
-                    {lisible ? ' — lisible.' : ` — trop clair (minimum ${String(minimum).replace('.', ',')}:1). Choisissez une teinte plus foncée.`}
+                    {t('Contraste sur fond blanc : {rapport}:1', { rapport: decimal(rapport.toFixed(1)) })}
+                    {lisible ? t(' — lisible.') : t(' — trop clair (minimum {minimum}:1). Choisissez une teinte plus foncée.', { minimum: decimal(String(minimum)) })}
                 </p>
             ) : (
-                <p className="text-xs text-rose-600 dark:text-rose-400">Format attendu : #RRGGBB.</p>
+                <p className="text-xs text-rose-600 dark:text-rose-400">{t('Format attendu : #RRGGBB.')}</p>
             )}
-            <InputError message={erreur} />
+            <InputError message={erreur ? t(erreur) : erreur} />
         </div>
     );
 }
@@ -115,6 +119,7 @@ export default function Personnalisation({
     contenuEleves?: ContenuEleves;
     langueAnalyses?: 'fr' | 'en';
 }) {
+    const { t } = useT();
     const tous = examens.flatMap((g) => g.examens.map((e) => e.id));
 
     const form = useForm<{
@@ -175,22 +180,22 @@ export default function Personnalisation({
 
     return (
         <AppLayout>
-            <Head title={`Identité et examens — ${centre.name}`} />
+            <Head title={t('Identité et examens — {nom}', { nom: centre.name })} />
             <div className="mx-auto w-full max-w-4xl space-y-5 p-4 md:p-6">
                 <OngletsParametresCentre />
                 <div>
                     <p className="text-sm text-muted-foreground">{centre.name}</p>
-                    <h1 className="text-2xl font-bold tracking-tight">Identité et examens</h1>
+                    <h1 className="text-2xl font-bold tracking-tight">{t('Identité et examens')}</h1>
                     <p className="mt-1 text-sm text-muted-foreground">
-                        Vos élèves et votre équipe voient votre nom, votre logo et vos couleurs dans l'application.
+                        {t("Vos élèves et votre équipe voient votre nom, votre logo et vos couleurs dans l'application.")}
                     </p>
                 </div>
 
                 {/* Aperçu de l'en-tête, avec les valeurs en cours de saisie */}
                 <Card>
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-base">Aperçu</CardTitle>
-                        <p className="text-xs text-muted-foreground">Ce que verront vos élèves en haut du menu. Rien n'est appliqué avant d'enregistrer.</p>
+                        <CardTitle className="text-base">{t('Aperçu')}</CardTitle>
+                        <p className="text-xs text-muted-foreground">{t("Ce que verront vos élèves en haut du menu. Rien n'est appliqué avant d'enregistrer.")}</p>
                     </CardHeader>
                     <CardContent>
                         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-background p-3">
@@ -208,7 +213,7 @@ export default function Personnalisation({
                                 className="rounded-md px-3 py-1.5 text-sm font-semibold"
                                 style={{ background: primaire, color: texteSur(primaire) }}
                             >
-                                Commencer l'exercice
+                                {t("Commencer l'exercice")}
                             </span>
                         </div>
                     </CardContent>
@@ -216,15 +221,15 @@ export default function Personnalisation({
 
                 <Card>
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-base">Logo</CardTitle>
-                        <p className="text-xs text-muted-foreground">Image PNG, JPG ou WebP, 1 Mo au plus. De préférence carrée, sur fond clair. Le SVG n'est pas accepté.</p>
+                        <CardTitle className="text-base">{t('Logo')}</CardTitle>
+                        <p className="text-xs text-muted-foreground">{t("Image PNG, JPG ou WebP, 1 Mo au plus. De préférence carrée, sur fond clair. Le SVG n'est pas accepté.")}</p>
                     </CardHeader>
                     <CardContent className="flex flex-wrap items-center gap-3">
                         <div className="flex size-16 items-center justify-center overflow-hidden rounded-lg border bg-white">
                             {centre.logo_url ? (
-                                <img src={centre.logo_url} alt={`Logo actuel de ${nomApercu}`} className="h-14 w-14 object-contain" />
+                                <img src={centre.logo_url} alt={t('Logo actuel de {nom}', { nom: nomApercu })} className="h-14 w-14 object-contain" />
                             ) : (
-                                <span className="text-xs text-muted-foreground">Aucun</span>
+                                <span className="text-xs text-muted-foreground">{t('Aucun')}</span>
                             )}
                         </div>
                         <input
@@ -235,25 +240,25 @@ export default function Personnalisation({
                             onChange={(e) => envoyerLogo(e.target.files?.[0])}
                         />
                         <Button type="button" size="sm" disabled={envoiLogo} onClick={() => champFichier.current?.click()}>
-                            {envoiLogo ? 'Envoi…' : centre.logo_url ? 'Remplacer le logo' : 'Ajouter un logo'}
+                            {envoiLogo ? t('Envoi…') : centre.logo_url ? t('Remplacer le logo') : t('Ajouter un logo')}
                         </Button>
                         {centre.logo_url && (
                             <Button type="button" variant="outline" size="sm" disabled={envoiLogo} onClick={retirerLogo}>
-                                Retirer
+                                {t('Retirer')}
                             </Button>
                         )}
-                        <InputError message={erreurLogo} className="w-full" />
+                        <InputError message={erreurLogo ? t(erreurLogo) : erreurLogo} className="w-full" />
                     </CardContent>
                 </Card>
 
                 <form onSubmit={enregistrer} className="space-y-5">
                     <Card>
                         <CardHeader className="pb-2">
-                            <CardTitle className="text-base">Nom et couleurs</CardTitle>
+                            <CardTitle className="text-base">{t('Nom et couleurs')}</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-5">
                             <div className="space-y-1.5">
-                                <Label htmlFor="display_name">Nom affiché</Label>
+                                <Label htmlFor="display_name">{t('Nom affiché')}</Label>
                                 <Input
                                     id="display_name"
                                     maxLength={80}
@@ -261,15 +266,15 @@ export default function Personnalisation({
                                     placeholder={centre.name}
                                     onChange={(e) => form.setData('display_name', e.target.value)}
                                 />
-                                <p className="text-xs text-muted-foreground">Laissé vide, c'est le nom du centre qui s'affiche : « {centre.name} ».</p>
+                                <p className="text-xs text-muted-foreground">{t("Laissé vide, c'est le nom du centre qui s'affiche : « {nom} ».", { nom: centre.name })}</p>
                                 <InputError message={form.errors.display_name} />
                             </div>
 
                             <div className="grid gap-5 md:grid-cols-2">
                                 <ChampCouleur
                                     id="brand_primary"
-                                    libelle="Couleur principale"
-                                    aide="Boutons, liens et éléments actifs."
+                                    libelle={t('Couleur principale')}
+                                    aide={t('Boutons, liens et éléments actifs.')}
                                     valeur={form.data.brand_primary}
                                     parDefaut={defauts.primaire}
                                     minimum={contrasteMinimal}
@@ -278,8 +283,8 @@ export default function Personnalisation({
                                 />
                                 <ChampCouleur
                                     id="brand_accent"
-                                    libelle="Couleur d'accent"
-                                    aide="Le nom du centre dans le menu."
+                                    libelle={t("Couleur d'accent")}
+                                    aide={t('Le nom du centre dans le menu.')}
                                     valeur={form.data.brand_accent}
                                     parDefaut={defauts.accent}
                                     minimum={contrasteMinimal}
@@ -295,10 +300,10 @@ export default function Personnalisation({
                                     className="mt-0.5"
                                 />
                                 <span className="text-sm">
-                                    <span className="font-medium">Masquer la marque PrePla</span>
+                                    <span className="font-medium">{t('Masquer la marque PrePla')}</span>
                                     <span className="block text-xs text-muted-foreground">
-                                        Votre nom remplace « PrePla » dans le logo, le titre des pages et les avis de devoirs envoyés à vos élèves.
-                                        L'offre d'abonnement PrePla Plus ne leur est plus présentée.
+                                        {t('Votre nom remplace « PrePla » dans le logo, le titre des pages et les avis de devoirs envoyés à vos élèves.')}
+                                        {' '}{t("L'offre d'abonnement PrePla Plus ne leur est plus présentée.")}
                                     </span>
                                 </span>
                             </label>
@@ -307,15 +312,15 @@ export default function Personnalisation({
 
                     <Card id="examens" className="scroll-mt-20">
                         <CardHeader className="pb-2">
-                            <CardTitle className="text-base">Examens proposés</CardTitle>
+                            <CardTitle className="text-base">{t('Examens proposés')}</CardTitle>
                             <p className="text-xs text-muted-foreground">
-                                Seuls les examens cochés apparaissent à vos élèves et à votre équipe. Chaque examen garde sa propre structure.
+                                {t('Seuls les examens cochés apparaissent à vos élèves et à votre équipe. Chaque examen garde sa propre structure.')}
                             </p>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             {examens.map((g) => (
                                 <fieldset key={g.langue} className="space-y-2">
-                                    <legend className="text-sm font-semibold">{g.langue}</legend>
+                                    <legend className="text-sm font-semibold">{t(g.langue)}</legend>
                                     <div className="grid gap-2 sm:grid-cols-2">
                                         {g.examens.map((ex) => (
                                             <label key={ex.id} className="flex cursor-pointer items-center gap-2.5 rounded-md border px-3 py-2 text-sm hover:bg-muted/40">
@@ -329,14 +334,17 @@ export default function Personnalisation({
                                     </div>
                                 </fieldset>
                             ))}
-                            <InputError message={form.errors.examens ?? Object.entries(form.errors).find(([k]) => k.startsWith('examens.'))?.[1]} />
+                            {(() => {
+                                const erreurExamens = form.errors.examens ?? Object.entries(form.errors).find(([k]) => k.startsWith('examens.'))?.[1];
+                                return <InputError message={erreurExamens ? t(erreurExamens) : erreurExamens} />;
+                            })()}
                         </CardContent>
                     </Card>
 
                     <div className="flex items-center justify-end gap-3">
-                        {form.recentlySuccessful && <span className="text-sm text-emerald-600 dark:text-emerald-400">Enregistré.</span>}
+                        {form.recentlySuccessful && <span className="text-sm text-emerald-600 dark:text-emerald-400">{t('Enregistré.')}</span>}
                         <Button type="submit" disabled={form.processing}>
-                            {form.processing ? 'Enregistrement…' : 'Enregistrer'}
+                            {form.processing ? t('Enregistrement…') : t('Enregistrer')}
                         </Button>
                     </div>
                 </form>

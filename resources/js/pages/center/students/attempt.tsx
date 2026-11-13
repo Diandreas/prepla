@@ -2,6 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Check, Minus, X } from 'lucide-react';
+import { useT } from '@/lib/i18n/traduire';
 import { competence, dateHeure, duree } from '@/lib/suivi';
 
 interface Production {
@@ -38,21 +39,24 @@ const GRAVITE: Record<string, string> = {
  * faute. C'est ce qu'un enseignant lit pour savoir quoi travailler.
  */
 function CorrectionDeProduction({ p }: { p: Production }) {
+    const { t } = useT();
+    // « Grammaire · accords » : chaque morceau est un libelle fixe du serveur.
+    const libelleFaute = (libelle: string) => libelle.split(' · ').map((morceau) => t(morceau)).join(' · ');
     return (
         <div className="mt-3 space-y-3 border-t pt-3">
             {p.transcription && (
                 <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Ce qu'il a dit (transcription)</p>
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t("Ce qu'il a dit (transcription)")}</p>
                     <p className="mt-1 whitespace-pre-wrap rounded-md bg-muted/50 p-2.5 italic">{p.transcription}</p>
                 </div>
             )}
 
             {(p.note !== null || p.criteres.length > 0) && (
                 <div className="flex flex-wrap gap-2">
-                    {p.note !== null && <span className="rounded-md border px-2 py-1 text-xs font-medium">Note globale {p.note.toFixed(1)} / 9</span>}
+                    {p.note !== null && <span className="rounded-md border px-2 py-1 text-xs font-medium">{t('Note globale {note} / 9', { note: p.note.toFixed(1) })}</span>}
                     {p.criteres.map((c) => (
                         <span key={c.critere} className="rounded-md border px-2 py-1 text-xs text-muted-foreground">
-                            {c.critere} {c.note.toFixed(1)}
+                            {t(c.critere)} {c.note.toFixed(1)}
                         </span>
                     ))}
                 </div>
@@ -60,10 +64,10 @@ function CorrectionDeProduction({ p }: { p: Production }) {
 
             {p.diagnostic.length > 0 && (
                 <div className="space-y-1.5">
-                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Tendances de fond</p>
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t('Tendances de fond')}</p>
                     {p.diagnostic.map((d, i) => (
                         <div key={i} className={`rounded-md border p-2.5 ${GRAVITE[d.gravite] ?? GRAVITE.minor}`}>
-                            <span className="font-medium">{d.dimension}</span> — {d.observation}
+                            <span className="font-medium">{t(d.dimension)}</span> — {d.observation}
                         </div>
                     ))}
                 </div>
@@ -73,7 +77,7 @@ function CorrectionDeProduction({ p }: { p: Production }) {
                 <div className="grid gap-2 sm:grid-cols-2">
                     {p.points_couverts.length > 0 && (
                         <div>
-                            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Points traités</p>
+                            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t('Points traités')}</p>
                             <ul className="mt-1 list-inside list-disc text-emerald-700 dark:text-emerald-400">
                                 {p.points_couverts.map((x, i) => <li key={i}>{x}</li>)}
                             </ul>
@@ -81,7 +85,7 @@ function CorrectionDeProduction({ p }: { p: Production }) {
                     )}
                     {p.points_manquants.length > 0 && (
                         <div>
-                            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Points manquants</p>
+                            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{t('Points manquants')}</p>
                             <ul className="mt-1 list-inside list-disc text-rose-700 dark:text-rose-400">
                                 {p.points_manquants.map((x, i) => <li key={i}>{x}</li>)}
                             </ul>
@@ -93,7 +97,7 @@ function CorrectionDeProduction({ p }: { p: Production }) {
             {p.corrections.length > 0 && (
                 <div className="space-y-1.5">
                     <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                        Fautes relevées ({p.corrections.length})
+                        {t('Fautes relevées ({n})', { n: p.corrections.length })}
                     </p>
                     {p.corrections.map((c, i) => (
                         <div key={i} className="rounded-md border p-2.5">
@@ -101,7 +105,7 @@ function CorrectionDeProduction({ p }: { p: Production }) {
                                 <span className="text-rose-600 line-through decoration-rose-300 dark:text-rose-400">{c.avant}</span>
                                 {' → '}
                                 <span className="font-medium text-emerald-700 dark:text-emerald-400">{c.apres}</span>
-                                <span className="ml-2 text-xs text-muted-foreground">{c.categorie}</span>
+                                <span className="ml-2 text-xs text-muted-foreground">{libelleFaute(c.categorie)}</span>
                             </p>
                             {c.explication && <p className="mt-0.5 text-xs text-muted-foreground">{c.explication}</p>}
                         </div>
@@ -161,6 +165,8 @@ function lisible(valeur: unknown, options: unknown[]): string {
  * enseignant regarde pour comprendre une erreur, et ce qu'il montre a un parent.
  */
 export default function TentativeShow({ student, tentative }: { student: { id: number; name: string }; tentative: Tentative }) {
+    const { t } = useT();
+    const libelleCompetence = competence(tentative.competence);
     return (
         <AppLayout>
             <Head title={`${student.name} — ${tentative.exercice}`} />
@@ -171,20 +177,20 @@ export default function TentativeShow({ student, tentative }: { student: { id: n
                     </Link>
                     <h1 className="mt-1 text-xl font-bold tracking-tight">{tentative.exercice}</h1>
                     <p className="text-sm text-muted-foreground">
-                        {[tentative.examen, tentative.niveau, tentative.partie, competence(tentative.competence)].filter(Boolean).join(' · ')}
+                        {[tentative.examen, tentative.niveau, tentative.partie, libelleCompetence ? t(libelleCompetence) : libelleCompetence].filter(Boolean).join(' · ')}
                     </p>
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-3">
-                    <Card><CardContent className="p-4"><p className="font-semibold">{dateHeure(tentative.date)}</p><p className="text-sm text-muted-foreground">Fait le</p></CardContent></Card>
-                    <Card><CardContent className="p-4"><p className="font-semibold">{duree(tentative.temps_secondes)}</p><p className="text-sm text-muted-foreground">Temps passé</p></CardContent></Card>
+                    <Card><CardContent className="p-4"><p className="font-semibold">{dateHeure(tentative.date)}</p><p className="text-sm text-muted-foreground">{t('Fait le')}</p></CardContent></Card>
+                    <Card><CardContent className="p-4"><p className="font-semibold">{duree(tentative.temps_secondes)}</p><p className="text-sm text-muted-foreground">{t('Temps passé')}</p></CardContent></Card>
                     <Card>
                         <CardContent className="p-4">
                             <p className="font-semibold">
                                 {tentative.total !== null ? `${tentative.justes} / ${tentative.total}` : '—'}
                                 {tentative.precision !== null && <span className="text-muted-foreground"> · {Math.round(tentative.precision)}%</span>}
                             </p>
-                            <p className="text-sm text-muted-foreground">Résultat</p>
+                            <p className="text-sm text-muted-foreground">{t('Résultat')}</p>
                         </CardContent>
                     </Card>
                 </div>
@@ -195,7 +201,7 @@ export default function TentativeShow({ student, tentative }: { student: { id: n
                             {tentative.consigne && <p className="italic text-muted-foreground">{tentative.consigne}</p>}
                             {tentative.texte && (
                                 <details>
-                                    <summary className="cursor-pointer font-medium text-primary">Voir le texte de l'exercice</summary>
+                                    <summary className="cursor-pointer font-medium text-primary">{t("Voir le texte de l'exercice")}</summary>
                                     <p className="mt-2 whitespace-pre-wrap leading-relaxed">{tentative.texte}</p>
                                 </details>
                             )}
@@ -207,10 +213,10 @@ export default function TentativeShow({ student, tentative }: { student: { id: n
                     {tentative.questions.length === 0 && (
                         <p className="text-sm text-muted-foreground">
                             {tentative.contenu_prive
-                                ? 'Exercice privé d’un autre centre, fait avant que l’apprenant ne rejoigne le vôtre : seuls la date, le résultat et le temps passé sont visibles.'
+                                ? t('Exercice privé d’un autre centre, fait avant que l’apprenant ne rejoigne le vôtre : seuls la date, le résultat et le temps passé sont visibles.')
                                 : tentative.exercice_disponible
-                                  ? 'Aucune réponse n’a été enregistrée pour cette tentative.'
-                                  : 'Cet exercice a été retiré depuis : le détail des questions n’est plus disponible.'}
+                                  ? t('Aucune réponse n’a été enregistrée pour cette tentative.')
+                                  : t('Cet exercice a été retiré depuis : le détail des questions n’est plus disponible.')}
                         </p>
                     )}
                     {tentative.questions.map((q, i) => {
@@ -223,7 +229,7 @@ export default function TentativeShow({ student, tentative }: { student: { id: n
                                 <div className="flex items-start gap-3">
                                     <span
                                         className={`mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white ${etat === 'juste' ? 'bg-emerald-500' : etat === 'faux' ? 'bg-rose-500' : 'bg-muted-foreground'}`}
-                                        aria-label={etat === 'juste' ? 'Juste' : etat === 'faux' ? 'Faux' : 'Non corrigé'}
+                                        aria-label={etat === 'juste' ? t('Juste') : etat === 'faux' ? t('Faux') : t('Non corrigé')}
                                     >
                                         {etat === 'juste' ? <Check className="h-4 w-4" /> : etat === 'faux' ? <X className="h-4 w-4" /> : <Minus className="h-4 w-4" />}
                                     </span>
@@ -234,13 +240,13 @@ export default function TentativeShow({ student, tentative }: { student: { id: n
                                                 la transcription, plus bas, la remplace. */}
                                             {!q.production?.transcription && (
                                                 <div className="flex flex-wrap gap-x-2">
-                                                    <dt className="text-muted-foreground">Sa réponse :</dt>
+                                                    <dt className="text-muted-foreground">{t('Sa réponse :')}</dt>
                                                     <dd className="whitespace-pre-wrap">{lisible(q.reponse, q.options)}</dd>
                                                 </div>
                                             )}
                                             {etat === 'faux' && q.bonne_reponse !== null && (
                                                 <div className="flex flex-wrap gap-x-2">
-                                                    <dt className="text-muted-foreground">Bonne réponse :</dt>
+                                                    <dt className="text-muted-foreground">{t('Bonne réponse :')}</dt>
                                                     <dd className="font-medium text-emerald-700 dark:text-emerald-400">{lisible(q.bonne_reponse, q.options)}</dd>
                                                 </div>
                                             )}

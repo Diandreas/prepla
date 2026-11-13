@@ -1,6 +1,10 @@
 import { Link } from '@inertiajs/react';
 import { Crown, Flame } from 'lucide-react';
 import { initiales } from '@/components/center/liste-centre';
+import { useT } from '@/lib/i18n/traduire';
+
+/** L'infobulle d'une medaille, par rang (1 a 3). */
+const TITRES_MEDAILLE = ["1er — médaille d'or", "2e — médaille d'argent", "3e — médaille d'bronze"];
 
 /**
  * Un podium or / argent / bronze, dans l'esprit de /leaderboard : le premier
@@ -33,13 +37,14 @@ export function medaille(rang: number | undefined) {
 
 /** Une petite pastille de rang : medaille pour le podium, numero ensuite. */
 export function PastilleRang({ rang }: { rang: number | undefined }) {
+    const { t } = useT();
     if (!rang) return <span className="inline-flex h-7 w-7 items-center justify-center text-xs text-muted-foreground">—</span>;
     const m = medaille(rang);
     return m ? (
         <span
             className="inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-black text-white"
             style={{ background: m.fond, boxShadow: `0 2px 0 0 ${m.ombre}` }}
-            title={`${rang}${rang === 1 ? 'er' : 'e'} — médaille d'${m.nom}`}
+            title={t(TITRES_MEDAILLE[rang - 1])}
         >
             {rang}
         </span>
@@ -51,8 +56,9 @@ export function PastilleRang({ rang }: { rang: number | undefined }) {
 const HAUTEURS = ['h-24 sm:h-28', 'h-16 sm:h-20', 'h-12 sm:h-14'];
 
 export function Podium({ marches, vide }: { marches: MarcheDePodium[]; vide?: React.ReactNode }) {
+    const { t } = useT();
     if (marches.length === 0) {
-        return <p className="py-8 text-center text-sm text-muted-foreground">{vide ?? 'Personne au classement pour cette période.'}</p>;
+        return <p className="py-8 text-center text-sm text-muted-foreground">{vide ?? t('Personne au classement pour cette période.')}</p>;
     }
     // Deuxieme, premier, troisieme : le premier au centre.
     const ordre = [marches[1], marches[0], marches[2]];
@@ -87,7 +93,7 @@ export function Podium({ marches, vide }: { marches: MarcheDePodium[]; vide?: Re
                         {m.detail && <span className="text-center text-[11px] leading-tight text-muted-foreground">{m.detail}</span>}
                         {!!m.serie && m.serie > 0 && (
                             <span className="mt-1 inline-flex items-center gap-0.5 text-xs font-semibold text-orange-600 dark:text-orange-400">
-                                <Flame className="h-3.5 w-3.5" /> {m.serie} j
+                                <Flame className="h-3.5 w-3.5" /> {t('{n} j', { n: m.serie })}
                             </span>
                         )}
                         <span

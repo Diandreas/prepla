@@ -2,6 +2,7 @@ import { useForm } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useT } from '@/lib/i18n/traduire';
 
 export type ContenuEleves = 'libre' | 'centre';
 
@@ -24,6 +25,7 @@ const CHOIX: { valeur: ContenuEleves; titre: string; detail: string }[] = [
  * Envoyé à part du formulaire de personnalisation.
  */
 export default function ReglageContenuEleves({ valeur }: { valeur: ContenuEleves }) {
+    const { t } = useT();
     const form = useForm<{ contenu_eleves: ContenuEleves }>({ contenu_eleves: valeur });
 
     function enregistrer(e: React.FormEvent) {
@@ -34,17 +36,15 @@ export default function ReglageContenuEleves({ valeur }: { valeur: ContenuEleves
     return (
         <Card id="contenu-eleves" className="scroll-mt-20">
             <CardHeader className="pb-2">
-                <CardTitle className="text-base">Parcours des élèves</CardTitle>
+                <CardTitle className="text-base">{t('Parcours des élèves')}</CardTitle>
                 <p className="text-xs text-muted-foreground">
-                    Vous pouvez garder le parcours PrePla par défaut ou créer le parcours vous-mêmes. Dans les deux cas, l'accueil de vos élèves leur montre
-                    d'abord leur devoir en retard ou leur prochain devoir, et leur examen et leur niveau viennent de leur classe : ils n'ont pas d'objectif à
-                    choisir eux-mêmes.
+                    {t("Vous pouvez garder le parcours PrePla par défaut ou créer le parcours vous-mêmes. Dans les deux cas, l'accueil de vos élèves leur montre d'abord leur devoir en retard ou leur prochain devoir, et leur examen et leur niveau viennent de leur classe : ils n'ont pas d'objectif à choisir eux-mêmes.")}
                 </p>
             </CardHeader>
             <CardContent>
                 <form onSubmit={enregistrer} className="space-y-3">
                     <fieldset className="space-y-2">
-                        <legend className="sr-only">Parcours des élèves</legend>
+                        <legend className="sr-only">{t('Parcours des élèves')}</legend>
                         {CHOIX.map((c) => (
                             <label
                                 key={c.valeur}
@@ -60,19 +60,19 @@ export default function ReglageContenuEleves({ valeur }: { valeur: ContenuEleves
                                 />
                                 <span className="text-sm">
                                     <span className="font-medium">
-                                        {c.titre}
-                                        {c.valeur === 'libre' && <span className="ml-1.5 text-xs font-normal text-muted-foreground">(par défaut)</span>}
+                                        {t(c.titre)}
+                                        {c.valeur === 'libre' && <span className="ml-1.5 text-xs font-normal text-muted-foreground">{t('(par défaut)')}</span>}
                                     </span>
-                                    <span className="block text-xs text-muted-foreground">{c.detail}</span>
+                                    <span className="block text-xs text-muted-foreground">{t(c.detail)}</span>
                                 </span>
                             </label>
                         ))}
                     </fieldset>
-                    <InputError message={form.errors.contenu_eleves} />
+                    <InputError message={form.errors.contenu_eleves ? t(form.errors.contenu_eleves) : form.errors.contenu_eleves} />
                     <div className="flex items-center justify-end gap-3">
-                        {form.recentlySuccessful && <span className="text-sm text-emerald-600 dark:text-emerald-400">Enregistré.</span>}
+                        {form.recentlySuccessful && <span className="text-sm text-emerald-600 dark:text-emerald-400">{t('Enregistré.')}</span>}
                         <Button type="submit" size="sm" disabled={form.processing || form.data.contenu_eleves === valeur}>
-                            {form.processing ? 'Enregistrement…' : 'Enregistrer ce choix'}
+                            {form.processing ? t('Enregistrement…') : t('Enregistrer ce choix')}
                         </Button>
                     </div>
                 </form>

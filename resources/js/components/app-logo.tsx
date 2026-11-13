@@ -1,5 +1,6 @@
 import { usePage } from '@inertiajs/react';
 import type { Marque } from '@/types';
+import { useT } from '@/lib/i18n/traduire';
 
 /** Les initiales d'un nom de centre, quand il n'a pas (encore) de logo. */
 function initiales(nom: string): string {
@@ -27,6 +28,7 @@ export function LogoDeCentre({
     texteSurPrimaire?: string;
     accent?: string;
 }) {
+    const { t } = useT();
     return (
         <>
             <div className="flex aspect-square size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white ring-1 ring-black/5">
@@ -47,7 +49,7 @@ export function LogoDeCentre({
                     {nom}
                 </span>
                 {/* En marque blanche, PrePla n'apparait plus du tout. */}
-                {!masquerPrepla && <span className="truncate text-[0.65rem] text-muted-foreground">avec PrePla</span>}
+                {!masquerPrepla && <span className="truncate text-[0.65rem] text-muted-foreground">{t('avec PrePla')}</span>}
             </div>
         </>
     );

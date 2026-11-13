@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { dateHeure } from '@/lib/suivi';
+import { useT, type Vars } from '@/lib/i18n/traduire';
 
 /**
  * La carte « Analyse IA » : le probleme principal, le levier de progression et
@@ -56,6 +56,30 @@ const RISQUES: Record<Risque, { libelle: string; classe: string }> = {
     eleve: { libelle: 'Risque élevé', classe: 'border-rose-300 bg-rose-50 text-rose-800 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-300' },
 };
 
+type T = (fr: string, vars?: Vars) => string;
+
+/** Les messages du serveur sont des phrases fixes (parfois avec un nombre) : on les traduit ici. */
+function traduireMessage(message: string, t: T): string {
+    let m = message.match(/^L’analyse a déjà été actualisée récemment\. Nouvel essai possible dans (\d+) min\.$/);
+    if (m) return t('L’analyse a déjà été actualisée récemment. Nouvel essai possible dans {n} min.', { n: m[1] });
+    m = message.match(/^Pas encore assez de données : (\d+) exercices? réalisés?\. Il en faut au moins (\d+) pour une analyse fiable\.$/);
+    if (m) {
+        return Number(m[1]) > 1
+            ? t('Pas encore assez de données : {n} exercices réalisés. Il en faut au moins {min} pour une analyse fiable.', { n: m[1], min: m[2] })
+            : t('Pas encore assez de données : {n} exercice réalisé. Il en faut au moins {min} pour une analyse fiable.', { n: m[1], min: m[2] });
+    }
+    return t(message);
+}
+
+/** « 12 oct. 2026, 18:42 » (ou en anglais) a l'heure locale. */
+function dateHeure(iso: string | null, locale: string): string {
+    if (!iso) return '—';
+    const date = new Date(iso);
+    return Number.isNaN(date.getTime())
+        ? '—'
+        : new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(date);
+}
+
 const INDISPONIBLE: Analyse = {
     sujet: 'eleve',
     etat: 'indisponible',
@@ -68,6 +92,7 @@ const INDISPONIBLE: Analyse = {
 };
 
 export default function AnalyseIa({ sujet, url, className = '' }: { sujet: Sujet; url: string; className?: string }) {
+    const { t, locale } = useT();
     const [analyse, setAnalyse] = useState<Analyse | null>(null);
     const [enCours, setEnCours] = useState(false);
     const [avis, setAvis] = useState<string | null>(null);
@@ -146,14 +171,14 @@ export default function AnalyseIa({ sujet, url, className = '' }: { sujet: Sujet
             <CardHeader className="flex-row flex-wrap items-center justify-between gap-2 space-y-0 border-b border-border bg-primary/5 pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
                     <Sparkles className="h-4 w-4 text-primary" aria-hidden />
-                    Analyse IA
+                    {t('Analyse IA')}
                     <span className="text-sm font-normal text-muted-foreground">
-                        · {sujet === 'eleve' ? 'élève' : sujet === 'classe' ? 'classe' : 'centre'}
+                        · {sujet === 'eleve' ? t('élève') : sujet === 'classe' ? t('classe') : t('centre')}
                     </span>
                 </CardTitle>
                 {risque && (
                     <span className={`rounded-full border px-2.5 py-0.5 text-xs font-medium ${risque.classe}`} title={(contenu as Commun).risque.raison}>
-                        {risque.libelle}
+                        {t(risque.libelle)}
                     </span>
                 )}
             </CardHeader>
@@ -164,7 +189,7 @@ export default function AnalyseIa({ sujet, url, className = '' }: { sujet: Sujet
                 {analyse && analyse.etat !== 'pret' && analyse.etat !== 'a_generer' && (
                     <p className="flex items-start gap-2 text-sm text-muted-foreground">
                         <CalendarClock className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-                        <span>{analyse.message}</span>
+                        <span>{analyse.message ? traduireMessage(analyse.message, t) : analyse.message}</span>
                     </p>
                 )}
 
@@ -174,29 +199,32 @@ export default function AnalyseIa({ sujet, url, className = '' }: { sujet: Sujet
                 {analyse && analyse.etat === 'pret' && (
                     <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
                         <p className="text-xs text-muted-foreground">
-                            {analyse.source === 'ia' ? 'Analyse IA' : 'Analyse automatique (sans IA)'} · générée le {dateHeure(analyse.generee_le)}
+                            {analyse.source === 'ia'
+                                ? t('Analyse IA · générée le {date}', { date: dateHeure(analyse.generee_le, locale) })
+                                : t('Analyse automatique (sans IA) · générée le {date}', { date: dateHeure(analyse.generee_le, locale) })}
                         </p>
                         <Button
                             variant="ghost"
                             size="sm"
                             onClick={actualiser}
                             disabled={enCours || bloque}
-                            title={bloque ? `Nouvelle actualisation possible dans ${Math.ceil(analyse.actualisable_dans / 60)} min` : 'Refaire l’analyse avec les dernières données'}
+                            title={bloque ? t('Nouvelle actualisation possible dans {n} min', { n: Math.ceil(analyse.actualisable_dans / 60) }) : t('Refaire l’analyse avec les dernières données')}
                         >
                             <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${enCours ? 'animate-spin' : ''}`} aria-hidden />
-                            {enCours ? 'Analyse en cours…' : 'Actualiser'}
+                            {enCours ? t('Analyse en cours…') : t('Actualiser')}
                         </Button>
                     </div>
                 )}
-                {avis && <p className="text-xs text-amber-700 dark:text-amber-400">{avis}</p>}
+                {avis && <p className="text-xs text-amber-700 dark:text-amber-400">{traduireMessage(avis, t)}</p>}
             </CardContent>
         </Card>
     );
 }
 
 function Squelette() {
+    const { t } = useT();
     return (
-        <div className="space-y-3" aria-busy="true" aria-label="Analyse en cours de chargement">
+        <div className="space-y-3" aria-busy="true" aria-label={t('Analyse en cours de chargement')}>
             <Skeleton className="h-20 w-full" />
             <Skeleton className="h-4 w-2/3" />
             <Skeleton className="h-4 w-1/2" />
@@ -209,20 +237,21 @@ function Squelette() {
 }
 
 function VueCommune({ contenu }: { contenu: Commun }) {
+    const { t } = useT();
     return (
         <>
             <section className="rounded-lg border border-rose-200 bg-rose-50/70 p-3 dark:border-rose-900/70 dark:bg-rose-950/25">
                 <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-rose-700 dark:text-rose-400">
-                    <AlertTriangle className="h-3.5 w-3.5" aria-hidden /> Problème principal
+                    <AlertTriangle className="h-3.5 w-3.5" aria-hidden /> {t('Problème principal')}
                 </p>
                 <p className="mt-1 break-words font-semibold">{contenu.probleme.titre}</p>
                 {contenu.probleme.explication && <p className="mt-1 break-words text-sm">{contenu.probleme.explication}</p>}
-                {contenu.probleme.preuve && <p className="mt-1.5 break-words text-xs text-muted-foreground">Preuve : {contenu.probleme.preuve}</p>}
+                {contenu.probleme.preuve && <p className="mt-1.5 break-words text-xs text-muted-foreground">{t('Preuve : {preuve}', { preuve: contenu.probleme.preuve })}</p>}
             </section>
 
             <section>
                 <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
-                    <TrendingUp className="h-3.5 w-3.5" aria-hidden /> Levier de progression
+                    <TrendingUp className="h-3.5 w-3.5" aria-hidden /> {t('Levier de progression')}
                 </p>
                 <p className="mt-1 break-words font-semibold">{contenu.levier.titre}</p>
                 <ol className="mt-2 space-y-1.5">
@@ -240,13 +269,13 @@ function VueCommune({ contenu }: { contenu: Commun }) {
             <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-lg border border-border p-3">
                     <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                        <Star className="h-3.5 w-3.5" aria-hidden /> Point fort
+                        <Star className="h-3.5 w-3.5" aria-hidden /> {t('Point fort')}
                     </p>
                     <p className="mt-1 break-words text-sm">{contenu.point_fort}</p>
                 </div>
                 <div className="rounded-lg border border-border p-3">
                     <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                        <Target className="h-3.5 w-3.5" aria-hidden /> Prochain devoir conseillé
+                        <Target className="h-3.5 w-3.5" aria-hidden /> {t('Prochain devoir conseillé')}
                     </p>
                     <p className="mt-1 break-words text-sm font-medium">
                         {contenu.prochain_devoir.competence} · {contenu.prochain_devoir.format}
@@ -256,12 +285,12 @@ function VueCommune({ contenu }: { contenu: Commun }) {
             </div>
 
             <p className="break-words text-xs text-muted-foreground">
-                <span className="font-medium text-foreground">Risque :</span> {contenu.risque.raison}
+                <span className="font-medium text-foreground">{t('Risque :')}</span> {contenu.risque.raison}
             </p>
 
             {contenu.eleves_a_surveiller && contenu.eleves_a_surveiller.length > 0 && (
                 <section>
-                    <p className="text-xs font-medium text-muted-foreground">Élèves à surveiller</p>
+                    <p className="text-xs font-medium text-muted-foreground">{t('Élèves à surveiller')}</p>
                     <ul className="mt-1.5 divide-y divide-border rounded-lg border border-border">
                         {contenu.eleves_a_surveiller.map((e) => (
                             <li key={e.id} className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 p-2.5 text-sm">
@@ -279,12 +308,13 @@ function VueCommune({ contenu }: { contenu: Commun }) {
 }
 
 function VueCentre({ contenu }: { contenu: DuCentre }) {
+    const { t } = useT();
     return (
         <>
             <div className="grid gap-4 md:grid-cols-2">
                 <section>
                     <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-rose-700 dark:text-rose-400">
-                        <AlertTriangle className="h-3.5 w-3.5" aria-hidden /> Constats
+                        <AlertTriangle className="h-3.5 w-3.5" aria-hidden /> {t('Constats')}
                     </p>
                     <ul className="mt-2 space-y-2">
                         {contenu.constats.map((c, i) => (
@@ -297,7 +327,7 @@ function VueCentre({ contenu }: { contenu: DuCentre }) {
                 </section>
                 <section>
                     <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
-                        <Lightbulb className="h-3.5 w-3.5" aria-hidden /> Leviers
+                        <Lightbulb className="h-3.5 w-3.5" aria-hidden /> {t('Leviers')}
                     </p>
                     <ul className="mt-2 space-y-2">
                         {contenu.leviers.map((l, i) => (
@@ -312,14 +342,14 @@ function VueCentre({ contenu }: { contenu: DuCentre }) {
 
             <div className="rounded-lg border border-border p-3">
                 <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                    <Star className="h-3.5 w-3.5" aria-hidden /> Point fort
+                    <Star className="h-3.5 w-3.5" aria-hidden /> {t('Point fort')}
                 </p>
                 <p className="mt-1 break-words text-sm">{contenu.point_fort}</p>
             </div>
 
             {contenu.classes_qui_decrochent.length > 0 && (
                 <section>
-                    <p className="text-xs font-medium text-muted-foreground">Classes qui décrochent</p>
+                    <p className="text-xs font-medium text-muted-foreground">{t('Classes qui décrochent')}</p>
                     <ul className="mt-1.5 divide-y divide-border rounded-lg border border-border">
                         {contenu.classes_qui_decrochent.map((c) => (
                             <li key={c.id} className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 p-2.5 text-sm">

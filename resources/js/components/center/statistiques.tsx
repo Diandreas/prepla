@@ -1,5 +1,7 @@
 import { TrendingDown, TrendingUp, type LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { useT, traduire } from '@/lib/i18n/traduire';
+import { ilYA } from '@/lib/suivi';
 import { cheminCourbe, libelleSemaine, pointsCourbe, type Variation } from '@/lib/tableau-de-classe';
 import { cn } from '@/lib/utils';
 
@@ -13,6 +15,29 @@ export interface SemaineStat { debut: string; fin: string; exercices: number; pr
 export interface CompetenceStat { cle: string; libelle: string; exercices: number; precision: number }
 export interface JourCalendrier { date: string; exercices: number; minutes: number; futur: boolean }
 
+/** « il y a 3 jours » (ilYA), dans la langue de l'interface. */
+export function ilYALangue(iso: string | null, langue: string): string {
+    if (langue !== 'en') return ilYA(iso);
+    if (!iso) return traduire('Jamais', langue);
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) return '—';
+    const debut = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    const relatif = new Intl.RelativeTimeFormat('en-GB', { numeric: 'auto' });
+    const jours = Math.round((debut(date) - debut(new Date())) / 86_400_000);
+    if (jours > -31) return relatif.format(jours, 'day');
+    const mois = Math.round(jours / 30);
+    if (mois > -12) return relatif.format(mois, 'month');
+    return relatif.format(Math.round(mois / 12), 'year');
+}
+
+/** Le libelle d'une semaine (libelleSemaine), dans la langue de l'interface. */
+function libelleSemaineLangue(debutIso: string, derniere: boolean, langue: string, locale: string): string {
+    if (derniere) return traduire('Cette sem.', langue);
+    if (langue !== 'en') return libelleSemaine(debutIso, false);
+    const d = new Date(debutIso);
+    return Number.isNaN(d.getTime()) ? '' : new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' }).format(d);
+}
+
 export function couleurReussite(p: number | null): string {
     if (p === null) return 'bg-muted-foreground/40';
     if (p >= 75) return 'bg-emerald-500';
@@ -21,6 +46,7 @@ export function couleurReussite(p: number | null): string {
 }
 
 export function Tendance({ v, titre }: { v: Variation | null; titre?: string }) {
+    const { t } = useT();
     if (!v) return null;
     const Icone = v.sens === 'hausse' ? TrendingUp : v.sens === 'baisse' ? TrendingDown : null;
     return (
@@ -34,7 +60,7 @@ export function Tendance({ v, titre }: { v: Variation | null; titre?: string }) 
             )}
         >
             {Icone && <Icone className="h-3 w-3" aria-hidden />}
-            {v.texte}
+            {t(v.texte)}
         </span>
     );
 }
@@ -88,6 +114,7 @@ export function CourbeSemaines({ semaines, comparaison = null, barres = 'exercic
     barres?: 'exercices' | 'minutes' | null;
     libelleComparaison?: string;
 }) {
+    const { t, langue, locale } = useT();
     const n = semaines.length;
     const pas = L / Math.max(1, n);
     const valeurs = barres ? semaines.map((s) => s[barres]) : [];
@@ -101,15 +128,15 @@ export function CourbeSemaines({ semaines, comparaison = null, barres = 'exercic
     return (
         <div>
             <div className="mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                {barres && <Legende couleur="bg-primary/60" trait="barre">{barres === 'minutes' ? 'Minutes de travail' : 'Exercices faits'}</Legende>}
-                <Legende couleur="border-emerald-500">Précision moyenne</Legende>
-                {autre && <Legende couleur="border-sky-500" trait="pointille">{libelleComparaison}</Legende>}
+                {barres && <Legende couleur="bg-primary/60" trait="barre">{barres === 'minutes' ? t('Minutes de travail') : t('Exercices faits')}</Legende>}
+                <Legende couleur="border-emerald-500">{t('Précision moyenne')}</Legende>
+                {autre && <Legende couleur="border-sky-500" trait="pointille">{t(libelleComparaison)}</Legende>}
             </div>
             {vide ? (
-                <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">Aucun exercice sur les huit dernières semaines.</p>
+                <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">{t('Aucun exercice sur les huit dernières semaines.')}</p>
             ) : (
                 <>
-                    <svg viewBox={`0 -8 ${L} ${H + 16}`} className="h-auto w-full overflow-visible" role="img" aria-label="Activité et précision sur huit semaines">
+                    <svg viewBox={`0 -8 ${L} ${H + 16}`} className="h-auto w-full overflow-visible" role="img" aria-label={t('Activité et précision sur huit semaines')}>
                         {[0, 50, 100].map((g) => (
                             <g key={g}>
                                 <line x1={0} x2={L} y1={H - (g / 100) * H} y2={H - (g / 100) * H} className="stroke-border" strokeDasharray="3 3" />
@@ -128,7 +155,7 @@ export function CourbeSemaines({ semaines, comparaison = null, barres = 'exercic
                                     rx={3}
                                     className={i === n - 1 ? 'fill-primary' : 'fill-primary/40'}
                                 >
-                                    <title>{`${s.exercices} exercice${s.exercices > 1 ? 's' : ''} · ${s.minutes} min${s.precision !== null ? ` · ${s.precision} %` : ''}`}</title>
+                                    <title>{`${s.exercices > 1 ? t('{n} exercices', { n: s.exercices }) : t('{n} exercice', { n: s.exercices })} · ${t('{n} min', { n: s.minutes })}${s.precision !== null ? ` · ${s.precision} %` : ''}`}</title>
                                 </rect>
                             );
                         })}
@@ -136,14 +163,14 @@ export function CourbeSemaines({ semaines, comparaison = null, barres = 'exercic
                         <path d={cheminCourbe(courbe)} fill="none" className="stroke-emerald-500" strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
                         {courbe.map((p, i) => p.y === null ? null : (
                             <circle key={i} cx={p.x} cy={p.y} r={3.5} className="fill-emerald-500 stroke-card" strokeWidth={1.5}>
-                                <title>{`${semaines[i].precision} % de précision`}</title>
+                                <title>{t('{p} % de précision', { p: semaines[i].precision })}</title>
                             </circle>
                         ))}
                     </svg>
                     <div className="mt-1 flex">
                         {semaines.map((s, i) => (
                             <span key={s.debut} className={cn('flex-1 truncate text-center text-[10px] sm:text-xs', i === n - 1 ? 'font-semibold text-foreground' : 'text-muted-foreground')}>
-                                {libelleSemaine(s.debut, i === n - 1)}
+                                {libelleSemaineLangue(s.debut, i === n - 1, langue, locale)}
                             </span>
                         ))}
                     </div>
@@ -155,19 +182,20 @@ export function CourbeSemaines({ semaines, comparaison = null, barres = 'exercic
 
 /** Le temps de travail de chaque semaine, en barres simples. */
 export function BarresMinutes({ semaines }: { semaines: SemaineStat[] }) {
+    const { t, langue, locale } = useT();
     const max = Math.max(1, ...semaines.map((s) => s.minutes));
     const n = semaines.length;
     const total = semaines.reduce((t, s) => t + s.minutes, 0);
     return (
         <div>
-            <div className="flex h-28 items-end gap-1.5" role="img" aria-label="Minutes de travail par semaine">
+            <div className="flex h-28 items-end gap-1.5" role="img" aria-label={t('Minutes de travail par semaine')}>
                 {semaines.map((s, i) => (
                     <div key={s.debut} className="flex h-full flex-1 flex-col items-center justify-end gap-1">
                         <span className="text-[10px] tabular-nums text-muted-foreground">{s.minutes || ''}</span>
                         <div
                             className={cn('w-full max-w-8 rounded-t-md', i === n - 1 ? 'bg-primary' : 'bg-primary/40')}
                             style={{ height: `${s.minutes ? Math.max(6, (s.minutes / max) * 75) : 2}%` }}
-                            title={`${s.minutes} min · ${s.exercices} exercice${s.exercices > 1 ? 's' : ''}`}
+                            title={`${t('{n} min', { n: s.minutes })} · ${s.exercices > 1 ? t('{n} exercices', { n: s.exercices }) : t('{n} exercice', { n: s.exercices })}`}
                         />
                     </div>
                 ))}
@@ -175,12 +203,12 @@ export function BarresMinutes({ semaines }: { semaines: SemaineStat[] }) {
             <div className="mt-1 flex gap-1.5">
                 {semaines.map((s, i) => (
                     <span key={s.debut} className={cn('flex-1 truncate text-center text-[10px] sm:text-xs', i === n - 1 ? 'font-semibold text-foreground' : 'text-muted-foreground')}>
-                        {libelleSemaine(s.debut, i === n - 1)}
+                        {libelleSemaineLangue(s.debut, i === n - 1, langue, locale)}
                     </span>
                 ))}
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
-                En minutes. Moyenne : <span className="font-medium text-foreground">{Math.round(total / Math.max(1, n))} min</span> par semaine.
+                {t('En minutes. Moyenne :')} <span className="font-medium text-foreground">{t('{n} min', { n: Math.round(total / Math.max(1, n)) })}</span> {t('par semaine.')}
             </p>
         </div>
     );
@@ -201,15 +229,16 @@ export function precisionPonderee(semaines: SemaineStat[] | null | undefined): n
 
 /** La reussite par competence : une barre par competence, coloree selon le taux. */
 export function BarresCompetences({ competences, vide = 'Pas encore d’exercice noté.' }: { competences: CompetenceStat[]; vide?: string }) {
-    if (competences.length === 0) return <p className="text-sm text-muted-foreground">{vide}</p>;
+    const { t } = useT();
+    if (competences.length === 0) return <p className="text-sm text-muted-foreground">{t(vide)}</p>;
     return (
         <ul className="space-y-2.5">
             {competences.map((c) => (
                 <li key={c.cle} className="text-sm">
                     <div className="flex items-baseline justify-between gap-2">
-                        <span className="min-w-0 truncate font-medium">{c.libelle}</span>
+                        <span className="min-w-0 truncate font-medium">{t(c.libelle)}</span>
                         <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
-                            <span className="font-semibold text-foreground">{Math.round(c.precision)} %</span> · {c.exercices} exercice{c.exercices > 1 ? 's' : ''}
+                            <span className="font-semibold text-foreground">{Math.round(c.precision)} %</span> · {c.exercices > 1 ? t('{n} exercices', { n: c.exercices }) : t('{n} exercice', { n: c.exercices })}
                         </span>
                     </div>
                     <div className="mt-1 h-2 overflow-hidden rounded-full bg-muted">
@@ -223,36 +252,37 @@ export function BarresCompetences({ competences, vide = 'Pas encore d’exercice
 
 /** Exercices par jour de la semaine, lundi d'abord, et le creneau le plus frequent. */
 export function HistogrammeJours({ jours, pic }: { jours: { jour: string; exercices: number }[]; pic: { debut: number; fin: number; part: number } | null }) {
+    const { t, langue } = useT();
     const max = Math.max(1, ...jours.map((j) => j.exercices));
     const meilleur = jours.reduce((a, b) => (b.exercices > a.exercices ? b : a), jours[0]);
-    if (!pic) return <p className="text-sm text-muted-foreground">Pas encore assez d’activité pour voir quand vos élèves travaillent.</p>;
+    if (!pic) return <p className="text-sm text-muted-foreground">{t('Pas encore assez d’activité pour voir quand vos élèves travaillent.')}</p>;
     return (
         <div>
-            <div className="flex h-24 items-end gap-1.5" role="img" aria-label="Exercices par jour de la semaine">
+            <div className="flex h-24 items-end gap-1.5" role="img" aria-label={t('Exercices par jour de la semaine')}>
                 {jours.map((j) => (
                     <div key={j.jour} className="flex h-full flex-1 flex-col items-center justify-end gap-1">
                         <span className="text-[10px] tabular-nums text-muted-foreground">{j.exercices || ''}</span>
                         <div
                             className={cn('w-full max-w-8 rounded-t-md', j === meilleur ? 'bg-primary' : 'bg-primary/35')}
                             style={{ height: `${j.exercices ? Math.max(6, (j.exercices / max) * 75) : 2}%` }}
-                            title={`${j.jour} : ${j.exercices} exercice${j.exercices > 1 ? 's' : ''}`}
+                            title={`${t(j.jour)} : ${j.exercices > 1 ? t('{n} exercices', { n: j.exercices }) : t('{n} exercice', { n: j.exercices })}`}
                         />
                     </div>
                 ))}
             </div>
             <div className="mt-1 flex gap-1.5">
-                {jours.map((j) => <span key={j.jour} className="flex-1 text-center text-[10px] text-muted-foreground sm:text-xs">{j.jour.slice(0, 3)}</span>)}
+                {jours.map((j) => <span key={j.jour} className="flex-1 text-center text-[10px] text-muted-foreground sm:text-xs">{t(j.jour).slice(0, 3)}</span>)}
             </div>
             <p className="mt-3 text-sm text-muted-foreground">
-                Jour le plus travaillé : <span className="font-medium text-foreground">{meilleur.jour.toLowerCase()}</span>. Créneau le plus fréquent :{' '}
-                <span className="font-medium text-foreground">{pic.debut} h – {pic.fin} h</span> ({pic.part} % des exercices).
+                {t('Jour le plus travaillé :')} <span className="font-medium text-foreground">{langue === 'en' ? t(meilleur.jour) : meilleur.jour.toLowerCase()}</span>. {t('Créneau le plus fréquent :')}{' '}
+                <span className="font-medium text-foreground">{t('{debut} h – {fin} h', { debut: pic.debut, fin: pic.fin })}</span> {t('({part} % des exercices).', { part: pic.part })}
             </p>
         </div>
     );
 }
 
-const FORMAT_JOUR = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
 const INITIALES = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+const INITIALES_EN = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 function intensite(n: number): string {
     if (n === 0) return 'bg-muted';
@@ -263,6 +293,8 @@ function intensite(n: number): string {
 
 /** Un carre par jour, une colonne par semaine (du lundi au dimanche), sur huit semaines. */
 export function CalendrierRegularite({ jours }: { jours: JourCalendrier[] }) {
+    const { t, langue, locale } = useT();
+    const FORMAT_JOUR = new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long' });
     const semaines: JourCalendrier[][] = [];
     for (let i = 0; i < jours.length; i += 7) semaines.push(jours.slice(i, i + 7));
     const actifs = jours.filter((j) => j.exercices > 0).length;
@@ -272,16 +304,16 @@ export function CalendrierRegularite({ jours }: { jours: JourCalendrier[] }) {
         <div>
             <div className="flex gap-1.5">
                 <div className="grid grid-rows-7 gap-1 pr-0.5 text-[10px] leading-none text-muted-foreground" aria-hidden>
-                    {INITIALES.map((l, i) => <span key={i} className="flex h-5 items-center sm:h-6">{l}</span>)}
+                    {(langue === 'en' ? INITIALES_EN : INITIALES).map((l, i) => <span key={i} className="flex h-5 items-center sm:h-6">{l}</span>)}
                 </div>
-                <div className="grid flex-1 gap-1" style={{ gridTemplateColumns: `repeat(${semaines.length}, minmax(0, 1fr))` }} role="img" aria-label={`${actifs} jours actifs sur ${passes}`}>
+                <div className="grid flex-1 gap-1" style={{ gridTemplateColumns: `repeat(${semaines.length}, minmax(0, 1fr))` }} role="img" aria-label={t('{actifs} jours actifs sur {passes}', { actifs, passes })}>
                     {semaines.map((s, k) => (
                         <div key={k} className="grid grid-rows-7 gap-1">
                             {s.map((j) => (
                                 <span
                                     key={j.date}
                                     className={cn('h-5 rounded-[4px] sm:h-6', j.futur ? 'border border-dashed border-border bg-transparent' : intensite(j.exercices))}
-                                    title={j.futur ? undefined : `${FORMAT_JOUR.format(new Date(j.date + 'T12:00:00'))} : ${j.exercices ? `${j.exercices} exercice${j.exercices > 1 ? 's' : ''}, ${j.minutes} min` : 'aucun exercice'}`}
+                                    title={j.futur ? undefined : `${FORMAT_JOUR.format(new Date(j.date + 'T12:00:00'))} : ${j.exercices ? `${j.exercices > 1 ? t('{n} exercices', { n: j.exercices }) : t('{n} exercice', { n: j.exercices })}, ${t('{n} min', { n: j.minutes })}` : t('aucun exercice')}`}
                                 />
                             ))}
                         </div>
@@ -289,11 +321,11 @@ export function CalendrierRegularite({ jours }: { jours: JourCalendrier[] }) {
                 </div>
             </div>
             <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-                <span><span className="font-semibold text-foreground">{actifs}</span> jour{actifs > 1 ? 's' : ''} actif{actifs > 1 ? 's' : ''} sur {passes}</span>
+                <span><span className="font-semibold text-foreground">{actifs}</span> {actifs > 1 ? t('jours actifs sur {passes}', { passes }) : t('jour actif sur {passes}', { passes })}</span>
                 <span className="inline-flex items-center gap-1">
-                    Moins
+                    {t('Moins')}
                     {[0, 1, 2, 4].map((n) => <span key={n} className={cn('h-3 w-3 rounded-[3px]', intensite(n))} />)}
-                    Plus
+                    {t('Plus')}
                 </span>
             </div>
         </div>

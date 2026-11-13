@@ -1,6 +1,7 @@
 import { useForm } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useT } from '@/lib/i18n/traduire';
 
 type Langue = 'fr' | 'en';
 
@@ -9,6 +10,7 @@ type Langue = 'fr' | 'en';
  * du centre. Envoye a part du formulaire de personnalisation.
  */
 export default function ReglageLangueAnalyses({ valeur }: { valeur: Langue }) {
+    const { t } = useT();
     const form = useForm<{ langue_analyses: Langue }>({ langue_analyses: valeur });
 
     function enregistrer(e: React.FormEvent) {
@@ -19,10 +21,9 @@ export default function ReglageLangueAnalyses({ valeur }: { valeur: Langue }) {
     return (
         <Card id="langue-analyses" className="scroll-mt-20">
             <CardHeader className="pb-2">
-                <CardTitle className="text-base">Langue des analyses IA</CardTitle>
+                <CardTitle className="text-base">{t('Langue des analyses IA')}</CardTitle>
                 <p className="text-xs text-muted-foreground">
-                    La langue dans laquelle l'IA rédige le problème principal, le levier de progression et les conseils de chaque élève, de chaque classe et du
-                    centre. Les analyses se mettent à jour à la prochaine ouverture de chaque fiche.
+                    {t("La langue dans laquelle l'IA rédige le problème principal, le levier de progression et les conseils de chaque élève, de chaque classe et du centre. Les analyses se mettent à jour à la prochaine ouverture de chaque fiche.")}
                 </p>
             </CardHeader>
             <CardContent>
@@ -44,7 +45,7 @@ export default function ReglageLangueAnalyses({ valeur }: { valeur: Langue }) {
                         </label>
                     ))}
                     <Button type="submit" size="sm" disabled={form.processing || form.data.langue_analyses === valeur} className="ml-auto">
-                        Enregistrer
+                        {t('Enregistrer')}
                     </Button>
                 </form>
             </CardContent>

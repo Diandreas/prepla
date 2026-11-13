@@ -11,6 +11,8 @@ Route::middleware('auth')->group(function () {
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::patch('settings/profile/learning', [ProfileController::class, 'updateLearning'])->name('profile.update_learning');
+    // Le bouton FR / EN de l'en-tete : la langue seule.
+    Route::patch('settings/langue', \App\Http\Controllers\Settings\LangueInterfaceController::class)->name('langue.interface');
     Route::delete('settings/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::get('settings/password', [PasswordController::class, 'edit'])->name('password.edit');

@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { ImageIcon, Music, Trash2, Upload, X } from 'lucide-react';
 import { useId, useRef, useState } from 'react';
+import { useT } from '@/lib/i18n/traduire';
 import { cn } from '@/lib/utils';
 
 /**
@@ -14,6 +15,7 @@ export function ZoneMedia({ type, value, onChange, aide }: {
     onChange: (url: string) => void;
     aide?: string;
 }) {
+    const { t } = useT();
     const [envoi, setEnvoi] = useState(false);
     const [survol, setSurvol] = useState(false);
     const [erreur, setErreur] = useState<string | null>(null);
@@ -22,12 +24,12 @@ export function ZoneMedia({ type, value, onChange, aide }: {
     const [envoyeId, setEnvoyeId] = useState<number | null>(null);
     const champ = useRef<HTMLInputElement>(null);
     const id = useId();
-    const nom = type === 'image' ? 'Image' : 'Enregistrement audio';
+    const nom = type === 'image' ? t('Image') : t('Enregistrement audio');
 
     async function envoyer(fichier: File) {
         const attendu = type === 'image' ? 'image/' : 'audio/';
         if (!fichier.type.startsWith(attendu)) {
-            setErreur(type === 'image' ? 'Ce fichier n’est pas une image (JPG, PNG ou WebP).' : 'Ce fichier n’est pas un son (MP3, WAV, OGG, M4A).');
+            setErreur(type === 'image' ? t('Ce fichier n’est pas une image (JPG, PNG ou WebP).') : t('Ce fichier n’est pas un son (MP3, WAV, OGG, M4A).'));
             return;
         }
         setEnvoi(true);
@@ -41,7 +43,7 @@ export function ZoneMedia({ type, value, onChange, aide }: {
             setEnvoyeId(res.data.id ?? null);
         } catch (e: unknown) {
             const r = (e as { response?: { data?: { message?: string } } })?.response;
-            setErreur(r?.data?.message ?? 'L’envoi a échoué. Vérifiez votre connexion et la taille du fichier (5 Mo pour une image, 20 Mo pour un son).');
+            setErreur(r?.data?.message ?? t('L’envoi a échoué. Vérifiez votre connexion et la taille du fichier (5 Mo pour une image, 20 Mo pour un son).'));
         } finally {
             setEnvoi(false);
         }
@@ -58,33 +60,33 @@ export function ZoneMedia({ type, value, onChange, aide }: {
             detacher();
             return;
         }
-        if (!confirm('Supprimer définitivement ce fichier de la médiathèque du centre ?')) return;
+        if (!confirm(t('Supprimer définitivement ce fichier de la médiathèque du centre ?'))) return;
         try {
             await axios.delete(route('center.media.destroy', envoyeId));
             detacher();
         } catch (e: unknown) {
             const r = (e as { response?: { data?: { message?: string } } })?.response;
-            setErreur(r?.data?.message ?? 'Suppression impossible.');
+            setErreur(r?.data?.message ?? t('Suppression impossible.'));
         }
     }
 
     return (
         <div>
-            <p id={`${id}-titre`} className="text-sm font-medium">{nom} <span className="font-normal text-muted-foreground">(facultatif)</span></p>
+            <p id={`${id}-titre`} className="text-sm font-medium">{nom} <span className="font-normal text-muted-foreground">{t('(facultatif)')}</span></p>
             {aide && <p className="mt-0.5 text-xs text-muted-foreground">{aide}</p>}
 
             {value ? (
                 <div className="mt-2 rounded-xl border border-border bg-muted/30 p-3">
                     {type === 'image'
-                        ? <img src={value} alt="Image de l’exercice" className="max-h-48 w-auto rounded-lg object-contain" />
+                        ? <img src={value} alt={t('Image de l’exercice')} className="max-h-48 w-auto rounded-lg object-contain" />
                         : <audio src={value} controls className="w-full" />}
                     <div className="mt-2 flex flex-wrap gap-2">
                         <button type="button" onClick={detacher} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                            <X className="h-3.5 w-3.5" aria-hidden="true" /> Retirer de l’exercice
+                            <X className="h-3.5 w-3.5" aria-hidden="true" /> {t('Retirer de l’exercice')}
                         </button>
                         {envoyeId && (
                             <button type="button" onClick={supprimer} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-rose-400 dark:hover:bg-rose-950/40">
-                                <Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> Supprimer le fichier
+                                <Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> {t('Supprimer le fichier')}
                             </button>
                         )}
                     </div>
@@ -115,10 +117,10 @@ export function ZoneMedia({ type, value, onChange, aide }: {
                         : <Music className="h-6 w-6 text-muted-foreground" aria-hidden="true" />}
                     <span className="inline-flex items-center gap-1.5 text-sm font-semibold">
                         <Upload className="h-4 w-4" aria-hidden="true" />
-                        {envoi ? 'Envoi en cours…' : 'Glissez un fichier ici ou cliquez pour choisir'}
+                        {envoi ? t('Envoi en cours…') : t('Glissez un fichier ici ou cliquez pour choisir')}
                     </span>
                     <span id={`${id}-consigne`} className="text-xs text-muted-foreground">
-                        {type === 'image' ? 'JPG, PNG ou WebP, 5 Mo au plus' : 'MP3, WAV, OGG ou M4A, 20 Mo au plus'}
+                        {type === 'image' ? t('JPG, PNG ou WebP, 5 Mo au plus') : t('MP3, WAV, OGG ou M4A, 20 Mo au plus')}
                     </span>
                 </button>
             )}

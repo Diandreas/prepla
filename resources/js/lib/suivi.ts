@@ -6,19 +6,18 @@
  * Douala, sans que le serveur ait a la deviner.
  */
 
-const FORMAT_DATE_HEURE = new Intl.DateTimeFormat('fr-FR', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-});
+import i18n from '@/lib/i18n/i18n';
+
+/** La langue de l'interface au moment de l'affichage : les ecrans suivent le bouton FR / EN. */
+const anglais = () => (i18n.language ?? '').toLowerCase().startsWith('en');
+const locale = () => (anglais() ? 'en-GB' : 'fr-FR');
+const OPTIONS_DATE_HEURE: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' };
 
 /** « 12 oct. 2026, 18:42 » a l'heure locale. */
 export function dateHeure(iso: string | null): string {
     if (!iso) return '—';
     const date = new Date(iso);
-    return Number.isNaN(date.getTime()) ? '—' : FORMAT_DATE_HEURE.format(date);
+    return Number.isNaN(date.getTime()) ? '—' : new Intl.DateTimeFormat(locale(), OPTIONS_DATE_HEURE).format(date);
 }
 
 /** « 3 h 20 », « 12 min », « 45 s ». */
@@ -32,13 +31,13 @@ export function duree(secondes: number): string {
     return reste ? `${heures} h ${String(reste).padStart(2, '0')}` : `${heures} h`;
 }
 
-const RELATIF = new Intl.RelativeTimeFormat('fr-FR', { numeric: 'auto' });
 
 /** « aujourd'hui », « hier », « il y a 5 jours », « il y a 3 mois ». */
 export function ilYA(iso: string | null): string {
-    if (!iso) return 'Jamais';
+    if (!iso) return anglais() ? 'Never' : 'Jamais';
     const date = new Date(iso);
     if (Number.isNaN(date.getTime())) return '—';
+    const RELATIF = new Intl.RelativeTimeFormat(locale(), { numeric: 'auto' });
 
     const jours = Math.round((startOfDay(date) - startOfDay(new Date())) / 86_400_000);
     if (jours > -31) return RELATIF.format(jours, 'day');

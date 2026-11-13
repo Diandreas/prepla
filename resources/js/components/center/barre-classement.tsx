@@ -3,6 +3,7 @@ import { AT, CH, DE, FR, GB } from 'country-flag-icons/react/3x2';
 import { Search, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ecrireEtat, entreeHistorique, lireEtat, type Option } from '@/lib/classement-centre';
+import { useT } from '@/lib/i18n/traduire';
 
 /**
  * La barre d'outils des listes du centre (classes, eleves) : recherche,
@@ -90,13 +91,14 @@ export function BarreClassement({
     onReinitialiser: () => void;
     actions?: React.ReactNode;
 }) {
+    const { t } = useT();
     const actif = recherche !== '' || regroupement !== '' || filtres.some((f) => valeurs[f.nom]);
 
     return (
         <div className="space-y-2 rounded-xl border border-border bg-card p-3">
             <div className="flex flex-wrap items-center gap-2">
                 <label className="relative min-w-0 flex-1 basis-56">
-                    <span className="sr-only">Rechercher</span>
+                    <span className="sr-only">{t('Rechercher')}</span>
                     <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <input
                         type="search"
@@ -107,13 +109,13 @@ export function BarreClassement({
                     />
                 </label>
                 <label className="flex min-w-0 items-center gap-2 text-sm">
-                    <span className="shrink-0 text-muted-foreground">Regrouper par</span>
+                    <span className="shrink-0 text-muted-foreground">{t('Regrouper par')}</span>
                     <select
                         value={regroupement}
                         onChange={(e) => onRegroupement(e.target.value)}
                         className={`${champ} ${regroupement ? 'border-primary' : 'border-border'}`}
                     >
-                        <option value="">Aucun</option>
+                        <option value="">{t('Aucun')}</option>
                         {regroupements.map((r) => (
                             <option key={r.cle} value={r.cle}>
                                 {r.libelle}
@@ -153,7 +155,7 @@ export function BarreClassement({
                         onClick={onReinitialiser}
                         className="col-span-2 inline-flex h-9 items-center justify-center gap-1 rounded-lg px-2.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
                     >
-                        <X className="h-4 w-4" /> Tout effacer
+                        <X className="h-4 w-4" /> {t('Tout effacer')}
                     </button>
                 )}
             </div>

@@ -7,13 +7,15 @@ import { type Column } from '@/components/ui/data-table';
 import { BarreClassement, Drapeau, EnTeteGroupe, useVueDansAdresse } from '@/components/center/barre-classement';
 import { AvatarInitiales, BadgeNiveau, BadgeStatut as Pastille, CarteKpi, EnTetePage, EtatVide, ListeAdaptative, type Ton } from '@/components/center/liste-centre';
 import { PastilleRang, Podium } from '@/components/center/podium';
+import { ilYALangue } from '@/components/center/statistiques';
+import { useT } from '@/lib/i18n/traduire';
 import {
     compterStatuts,
     activiteCoherente,
     filtrer,
     optionsDe,
-    pluriel,
     regrouper,
+    SANS,
     STATUTS,
     versCsv,
     type Critere,
@@ -31,7 +33,7 @@ import {
     type Periode,
     type StatsPeriode,
 } from '@/lib/podium-centre';
-import { dateHeure, ilYA } from '@/lib/suivi';
+import { dateHeure } from '@/lib/suivi';
 
 interface Langue { cle: string; nom: string; drapeau: string | null }
 interface ClasseEleve { id: number; name: string; room: string | null; level: string | null; langue: Langue | null }
@@ -83,7 +85,8 @@ const ORDRE_STATUTS: Statut[] = ['a_relancer', 'jamais', 'actif'];
 const TON_STATUT: Record<Statut, Ton> = { actif: 'succes', a_relancer: 'alerte', jamais: 'neutre' };
 
 function BadgeStatut({ statut }: { statut: Statut }) {
-    return <Pastille libelle={STATUTS[statut]} ton={TON_STATUT[statut]} />;
+    const { t } = useT();
+    return <Pastille libelle={t(STATUTS[statut])} ton={TON_STATUT[statut]} />;
 }
 
 /** La precision, avec une jauge coloree : verte a 70 % et plus, bleue a 50 %, ambre en dessous. */
@@ -101,14 +104,15 @@ function Precision({ valeur }: { valeur: number | null }) {
 }
 
 function Serie({ jours }: { jours: number }) {
+    const { t } = useT();
     if (!jours) return <span className="text-muted-foreground">—</span>;
     const feu = jours >= SEUIL_EN_FEU;
     return (
         <span
             className={`inline-flex items-center gap-1 whitespace-nowrap text-sm font-semibold tabular-nums ${feu ? 'text-orange-600 dark:text-orange-400' : ''}`}
-            title={`${pluriel(jours, 'jour')} d'affilée`}
+            title={Math.abs(jours) > 1 ? t("{n} jours d'affilée", { n: jours }) : t("{n} jour d'affilée", { n: jours })}
         >
-            <Flame className={`h-4 w-4 ${feu ? 'fill-orange-500/30' : 'text-muted-foreground'}`} /> {jours} j
+            <Flame className={`h-4 w-4 ${feu ? 'fill-orange-500/30' : 'text-muted-foreground'}`} /> {t('{n} j', { n: jours })}
         </span>
     );
 }
@@ -120,18 +124,27 @@ const STYLE_DISTINCTION: Record<Distinction, { icone: React.ComponentType<{ clas
 };
 
 function BadgeDistinction({ cle }: { cle: Distinction }) {
+    const { t } = useT();
     const { icone: Icone, classe } = STYLE_DISTINCTION[cle];
     return (
         <span className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-1.5 py-0.5 text-[11px] font-semibold ${classe}`}>
-            <Icone className="h-3 w-3" /> {DISTINCTIONS[cle]}
+            <Icone className="h-3 w-3" /> {t(DISTINCTIONS[cle])}
         </span>
     );
 }
 
-const part = (n: number, total: number) => (total ? `${Math.round((100 * n) / total)} % des élèves` : undefined);
+const part = (n: number, total: number, t: ReturnType<typeof useT>['t']) => (total ? t('{p} % des élèves', { p: Math.round((100 * n) / total) }) : undefined);
 
 export default function StudentsIndex({ students, joursAvantRelance = 7 }: { students: StudentRow[]; joursAvantRelance?: number }) {
+    const { t, langue } = useT();
     const { etat, poser, reinitialiser } = useVueDansAdresse(VUE);
+    // Pluriels : « 1 élève », « 3 élèves » — une phrase par forme, pour l'anglais.
+    const nbEleves = (n: number) => (Math.abs(n) > 1 ? t('{n} élèves', { n }) : t('{n} élève', { n }));
+    const nbExercices = (n: number) => (Math.abs(n) > 1 ? t('{n} exercices', { n }) : t('{n} exercice', { n }));
+    const nbActifs = (n: number) => (Math.abs(n) > 1 ? t('{n} actifs', { n }) : t('{n} actif', { n }));
+    // Les libelles fixes (langue, statut, « Sans … ») se traduisent ; les noms de classe, de salle et les niveaux restent tels quels.
+    const libelleCritere = (nom: string, e: { cle: string | number; libelle: string }) =>
+        nom === 'langue' || nom === 'statut' || e.cle === SANS ? t(e.libelle) : e.libelle;
     const champsRecherche = (s: StudentRow) => [s.name, s.email];
     const periode: Periode = etat.periode in PERIODES ? (etat.periode as Periode) : 'semaine';
 
@@ -182,15 +195,15 @@ export default function StudentsIndex({ students, joursAvantRelance = 7 }: { stu
 
     function exporter() {
         const entetes = [
-            'Élève', 'E-mail', 'Classe(s)', 'Salle(s)', 'Langue(s)', 'Niveau', 'Examen visé', 'Exercices faits', 'Score moyen (%)',
-            `Rang (${PERIODES[periode]})`, `XP (${PERIODES[periode]})`, 'Série (jours)', 'Dernière activité', 'Statut',
+            t('Élève'), t('E-mail'), t('Classe(s)'), t('Salle(s)'), t('Langue(s)'), t('Niveau'), t('Examen visé'), t('Exercices faits'), t('Score moyen (%)'),
+            t('Rang ({periode})', { periode: t(PERIODES[periode]) }), t('XP ({periode})', { periode: t(PERIODES[periode]) }), t('Série (jours)'), t('Dernière activité'), t('Statut'),
         ];
         const lignes = filtres.map((s) => [
             s.name,
             s.email,
             s.classes.map((c) => c.name).join(', '),
             unique(s.classes.map((c) => c.room).filter(Boolean)).join(', '),
-            s.langues.map((l) => l.nom).join(', '),
+            s.langues.map((l) => t(l.nom)).join(', '),
             s.niveaux.join(', '),
             s.examen_vise ?? '',
             s.exercices,
@@ -198,8 +211,8 @@ export default function StudentsIndex({ students, joursAvantRelance = 7 }: { stu
             rangs[s.id] ?? '',
             s.periodes[periode].xp,
             s.serie,
-            s.derniere_activite ? dateHeure(s.derniere_activite) : 'Jamais',
-            STATUTS[s.statut],
+            s.derniere_activite ? dateHeure(s.derniere_activite) : t('Jamais'),
+            t(STATUTS[s.statut]),
         ]);
         const fichier = new Blob([versCsv(entetes, lignes)], { type: 'text/csv;charset=utf-8' });
         const lien = document.createElement('a');
@@ -216,7 +229,7 @@ export default function StudentsIndex({ students, joursAvantRelance = 7 }: { stu
         // Regroupe par classe : l'eleve figure dans chacun de ses groupes, et le dit.
         if (groupeChoisi === 'classe' && groupeCourant) {
             const autres = s.classes.filter((c) => String(c.id) !== groupeCourant);
-            return autres.length ? <span className="text-xs text-muted-foreground">Aussi : {autres.map((c) => c.name).join(', ')}</span> : null;
+            return autres.length ? <span className="text-xs text-muted-foreground">{t('Aussi : {classes}', { classes: autres.map((c) => c.name).join(', ') })}</span> : null;
         }
         const salles = unique(s.classes.map((c) => c.room).filter(Boolean));
         return (
@@ -229,11 +242,11 @@ export default function StudentsIndex({ students, joursAvantRelance = 7 }: { stu
 
     const niveauDe = (s: StudentRow) =>
         s.niveaux.length ? (
-            <span className="flex flex-wrap items-center gap-1" title={s.niveau_du_profil ? "Niveau déclaré par l'élève (aucun niveau de classe)" : undefined}>
+            <span className="flex flex-wrap items-center gap-1" title={s.niveau_du_profil ? t("Niveau déclaré par l'élève (aucun niveau de classe)") : undefined}>
                 {s.niveaux.map((n) => (
                     <BadgeNiveau key={n} niveau={n} />
                 ))}
-                {s.niveau_du_profil && <span className="text-xs text-muted-foreground">déclaré</span>}
+                {s.niveau_du_profil && <span className="text-xs text-muted-foreground">{t('déclaré')}</span>}
             </span>
         ) : (
             <span className="text-muted-foreground">—</span>
@@ -244,21 +257,27 @@ export default function StudentsIndex({ students, joursAvantRelance = 7 }: { stu
             <span className="inline-flex items-center gap-1 font-bold tabular-nums text-amber-600 dark:text-amber-400">
                 <Zap className="h-3.5 w-3.5 fill-current" /> {s.periodes[periode].xp}
             </span>
-            <span className="block text-xs text-muted-foreground">{pluriel(s.periodes[periode].exercices, 'exercice')}</span>
+            <span className="block text-xs text-muted-foreground">{nbExercices(s.periodes[periode].exercices)}</span>
         </span>
     );
 
+    // La date relative dans la langue de l'interface ; « il y a plus de N jours » traduit aussi.
+    const activite = (iso: string, statut: Statut) => {
+        const texte = activiteCoherente(iso, statut, joursAvantRelance, (d: string | null) => ilYALangue(d, langue));
+        return texte === `il y a plus de ${joursAvantRelance} jours` ? t('il y a plus de {n} jours', { n: joursAvantRelance }) : texte;
+    };
+
     const activiteDe = (s: StudentRow) => (
         <span className="whitespace-nowrap" title={dateHeure(s.derniere_activite)}>
-            {s.derniere_activite ? activiteCoherente(s.derniere_activite, s.statut, joursAvantRelance, ilYA) : 'Jamais'}
+            {s.derniere_activite ? activite(s.derniere_activite, s.statut) : t('Jamais')}
         </span>
     );
 
     const columns = (groupeCourant: string | null): Column<StudentRow>[] => [
-        { key: 'rang', header: 'Rang', cell: (s) => <PastilleRang rang={rangs[s.id]} />, sortValue: (s) => rangs[s.id] ?? 1e9, className: 'w-14' },
+        { key: 'rang', header: t('Rang'), cell: (s) => <PastilleRang rang={rangs[s.id]} />, sortValue: (s) => rangs[s.id] ?? 1e9, className: 'w-14' },
         {
             key: 'name',
-            header: 'Élève',
+            header: t('Élève'),
             cell: (s) => (
                 <span className="flex min-w-[13rem] items-center gap-3">
                     <AvatarInitiales nom={s.name} />
@@ -277,17 +296,17 @@ export default function StudentsIndex({ students, joursAvantRelance = 7 }: { stu
             ),
             sortValue: (s) => s.name,
         },
-        { key: 'classes', header: 'Classe(s)', cell: (s) => classesDe(s, groupeCourant), sortValue: (s) => s.classes.map((c) => c.name).join(', ') },
+        { key: 'classes', header: t('Classe(s)'), cell: (s) => classesDe(s, groupeCourant), sortValue: (s) => s.classes.map((c) => c.name).join(', ') },
         {
             key: 'langues',
-            header: 'Langue · niveau',
+            header: t('Langue · niveau'),
             cell: (s) => (
                 <span className="block space-y-1">
                     {s.langues.length > 0 && (
                         <span className="flex flex-wrap gap-x-2 gap-y-0.5">
                             {s.langues.map((l) => (
                                 <span key={l.cle} className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm">
-                                    <Drapeau emoji={l.drapeau} /> {l.nom}
+                                    <Drapeau emoji={l.drapeau} /> {t(l.nom)}
                                 </span>
                             ))}
                         </span>
@@ -298,10 +317,10 @@ export default function StudentsIndex({ students, joursAvantRelance = 7 }: { stu
             sortValue: (s) => `${s.langues.map((l) => l.nom).join(', ')} ${s.niveaux.join(',')}`,
         },
         { key: 'xp', header: 'XP', cell: xpDe, sortValue: (s) => -s.periodes[periode].xp },
-        { key: 'serie', header: 'Série', cell: (s) => <Serie jours={s.serie} />, sortValue: (s) => -s.serie },
-        { key: 'precision', header: 'Précision', cell: (s) => <Precision valeur={s.periodes[periode].precision} />, sortValue: (s) => -(s.periodes[periode].precision ?? -1) },
-        { key: 'derniere_activite', header: 'Dernière activité', cell: activiteDe, sortValue: (s) => s.derniere_activite ?? '' },
-        { key: 'statut', header: 'Statut', cell: (s) => <BadgeStatut statut={s.statut} />, sortValue: (s) => ORDRE_STATUTS.indexOf(s.statut) },
+        { key: 'serie', header: t('Série'), cell: (s) => <Serie jours={s.serie} />, sortValue: (s) => -s.serie },
+        { key: 'precision', header: t('Précision'), cell: (s) => <Precision valeur={s.periodes[periode].precision} />, sortValue: (s) => -(s.periodes[periode].precision ?? -1) },
+        { key: 'derniere_activite', header: t('Dernière activité'), cell: activiteDe, sortValue: (s) => s.derniere_activite ?? '' },
+        { key: 'statut', header: t('Statut'), cell: (s) => <BadgeStatut statut={s.statut} />, sortValue: (s) => ORDRE_STATUTS.indexOf(s.statut) },
     ];
 
     const carte = (groupeCourant: string | null) => (s: StudentRow) => (
@@ -339,17 +358,17 @@ export default function StudentsIndex({ students, joursAvantRelance = 7 }: { stu
                     {xpDe(s)}
                 </div>
                 <div>
-                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Série</p>
+                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{t('Série')}</p>
                     <Serie jours={s.serie} />
                 </div>
                 <div className="min-w-0">
-                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Précision</p>
+                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{t('Précision')}</p>
                     <Precision valeur={s.periodes[periode].precision} />
                 </div>
             </div>
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
                 {niveauDe(s)}
-                <span>Dernière activité : {activiteDe(s)}</span>
+                <span>{t('Dernière activité :')} {activiteDe(s)}</span>
             </div>
         </div>
     );
@@ -367,15 +386,15 @@ export default function StudentsIndex({ students, joursAvantRelance = 7 }: { stu
 
     const videFiltre = (
         <>
-            Aucun élève ne correspond à ces critères.{' '}
+            {t('Aucun élève ne correspond à ces critères.')}{' '}
             <button type="button" onClick={reinitialiser} className="font-medium text-primary hover:underline">
-                Tout effacer
+                {t('Tout effacer')}
             </button>
         </>
     );
 
     const sousTitre = students.length
-        ? [pluriel(compte.total, 'élève'), pluriel(compte.actif, 'actif'), compte.a_relancer ? `${compte.a_relancer} à relancer` : null].filter(Boolean).join(' · ')
+        ? [nbEleves(compte.total), nbActifs(compte.actif), compte.a_relancer ? t('{n} à relancer', { n: compte.a_relancer }) : null].filter(Boolean).join(' · ')
         : undefined;
 
     const regulier = quiA('regulier');
@@ -383,15 +402,15 @@ export default function StudentsIndex({ students, joursAvantRelance = 7 }: { stu
 
     return (
         <AppLayout>
-            <Head title="Élèves" />
+            <Head title={t('Élèves')} />
             <div className="mx-auto w-full max-w-6xl space-y-5 p-4 md:p-6">
                 <EnTetePage
-                    titre="Élèves"
+                    titre={t('Élèves')}
                     sousTitre={sousTitre}
                     actions={
                         students.length > 0 && (
                             <Button type="button" variant="outline" onClick={exporter} disabled={filtres.length === 0}>
-                                <Download className="mr-1.5 h-4 w-4" /> Exporter (CSV)
+                                <Download className="mr-1.5 h-4 w-4" /> {t('Exporter (CSV)')}
                             </Button>
                         )
                     }
@@ -400,41 +419,41 @@ export default function StudentsIndex({ students, joursAvantRelance = 7 }: { stu
                 {students.length === 0 ? (
                     <EtatVide
                         icone={GraduationCap}
-                        titre="Aucun élève pour l'instant"
-                        texte="Partagez le code d'invitation d'une classe : vos élèves s'inscrivent en quelques secondes et apparaissent ici, avec leur suivi et leur classement."
+                        titre={t("Aucun élève pour l'instant")}
+                        texte={t("Partagez le code d'invitation d'une classe : vos élèves s'inscrivent en quelques secondes et apparaissent ici, avec leur suivi et leur classement.")}
                         action={
                             <Button asChild>
-                                <Link href={route('center.classes.index')}>Voir les codes de mes classes</Link>
+                                <Link href={route('center.classes.index')}>{t('Voir les codes de mes classes')}</Link>
                             </Button>
                         }
                     />
                 ) : (
                     <>
                         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-                            <CarteKpi icone={GraduationCap} ton="primaire" libelle="Élèves" valeur={compte.total} actif={etat.statut === ''} onClick={() => poser('statut', '')} />
+                            <CarteKpi icone={GraduationCap} ton="primaire" libelle={t('Élèves')} valeur={compte.total} actif={etat.statut === ''} onClick={() => poser('statut', '')} />
                             <CarteKpi
                                 icone={UserCheck}
                                 ton="succes"
-                                libelle="Actifs"
+                                libelle={t('Actifs')}
                                 valeur={compte.actif}
-                                detail={part(compte.actif, compte.total)}
+                                detail={part(compte.actif, compte.total, t)}
                                 actif={etat.statut === 'actif'}
                                 onClick={() => filtrerStatut('actif')}
                             />
                             <CarteKpi
                                 icone={BellRing}
                                 ton={compte.a_relancer ? 'alerte' : 'neutre'}
-                                libelle="À relancer"
+                                libelle={t('À relancer')}
                                 valeur={compte.a_relancer}
-                                detail={`Rien depuis ${joursAvantRelance} jours`}
+                                detail={t('Rien depuis {n} jours', { n: joursAvantRelance })}
                                 actif={etat.statut === 'a_relancer'}
                                 onClick={() => filtrerStatut('a_relancer')}
                             />
                             <CarteKpi
                                 icone={MoonStar}
-                                libelle="Jamais venus"
+                                libelle={t('Jamais venus')}
                                 valeur={compte.jamais}
-                                detail={part(compte.jamais, compte.total)}
+                                detail={part(compte.jamais, compte.total, t)}
                                 actif={etat.statut === 'jamais'}
                                 onClick={() => filtrerStatut('jamais')}
                             />
@@ -447,13 +466,13 @@ export default function StudentsIndex({ students, joursAvantRelance = 7 }: { stu
                                         <Trophy className="h-5 w-5" />
                                     </span>
                                     <div>
-                                        <h2 className="font-bold leading-tight">Classement</h2>
+                                        <h2 className="font-bold leading-tight">{t('Classement')}</h2>
                                         <p className="text-xs text-muted-foreground">
-                                            Par XP gagnés · {filtreActif || etat.statut ? `${pluriel(filtres.length, 'élève')} du filtre actif` : 'tout le centre'}
+                                            {t('Par XP gagnés')} · {filtreActif || etat.statut ? t('{eleves} du filtre actif', { eleves: nbEleves(filtres.length) }) : t('tout le centre')}
                                         </p>
                                     </div>
                                 </div>
-                                <div role="radiogroup" aria-label="Période du classement" className="inline-flex rounded-lg border border-border bg-background p-0.5">
+                                <div role="radiogroup" aria-label={t('Période du classement')} className="inline-flex rounded-lg border border-border bg-background p-0.5">
                                     {(Object.keys(PERIODES) as Periode[]).map((p) => (
                                         <button
                                             key={p}
@@ -465,7 +484,7 @@ export default function StudentsIndex({ students, joursAvantRelance = 7 }: { stu
                                                 periode === p ? 'bg-primary text-primary-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
                                             }`}
                                         >
-                                            {PERIODES[p]}
+                                            {t(PERIODES[p])}
                                         </button>
                                     ))}
                                 </div>
@@ -476,8 +495,8 @@ export default function StudentsIndex({ students, joursAvantRelance = 7 }: { stu
                                         id: eleve.id,
                                         nom: eleve.name,
                                         rang,
-                                        valeur: `${xp} XP`,
-                                        detail: [pluriel(eleve.periodes[periode].exercices, 'exercice'), eleve.periodes[periode].precision !== null ? `${eleve.periodes[periode].precision} %` : null]
+                                        valeur: t('{n} XP', { n: xp }),
+                                        detail: [nbExercices(eleve.periodes[periode].exercices), eleve.periodes[periode].precision !== null ? `${eleve.periodes[periode].precision} %` : null]
                                             .filter(Boolean)
                                             .join(' · '),
                                         serie: eleve.serie,
@@ -485,16 +504,16 @@ export default function StudentsIndex({ students, joursAvantRelance = 7 }: { stu
                                     }))}
                                     vide={
                                         periode === 'semaine'
-                                            ? "Personne n'a encore gagné d'XP cette semaine. Le podium se remplit dès les premiers exercices."
-                                            : "Personne n'a encore gagné d'XP sur cette période."
+                                            ? t("Personne n'a encore gagné d'XP cette semaine. Le podium se remplit dès les premiers exercices.")
+                                            : t("Personne n'a encore gagné d'XP sur cette période.")
                                     }
                                 />
                                 <ul className="space-y-2 text-sm">
                                     <li className="flex items-center gap-2.5 rounded-lg border border-border p-2.5">
                                         <Flame className="h-5 w-5 shrink-0 text-orange-500" />
                                         <span className="min-w-0">
-                                            <span className="block font-semibold">{enFeu ? pluriel(enFeu, 'élève') : 'Personne'} en feu</span>
-                                            <span className="block text-xs text-muted-foreground">Série de {SEUIL_EN_FEU} jours ou plus</span>
+                                            <span className="block font-semibold">{enFeu ? t('{eleves} en feu', { eleves: nbEleves(enFeu) }) : t('Personne en feu')}</span>
+                                            <span className="block text-xs text-muted-foreground">{t('Série de {n} jours ou plus', { n: SEUIL_EN_FEU })}</span>
                                         </span>
                                     </li>
                                     <li className="flex items-center gap-2.5 rounded-lg border border-border p-2.5">
@@ -502,7 +521,10 @@ export default function StudentsIndex({ students, joursAvantRelance = 7 }: { stu
                                         <span className="min-w-0">
                                             <span className="block font-semibold">{regulier ? regulier.name : '—'}</span>
                                             <span className="block text-xs text-muted-foreground">
-                                                Plus régulier{regulier ? ` · ${pluriel(regulier.jours_actifs, 'jour')} actifs sur 30` : ''}
+                                                {t('Plus régulier')}
+                                                {regulier
+                                                    ? ` · ${Math.abs(regulier.jours_actifs) > 1 ? t('{n} jours actifs sur 30', { n: regulier.jours_actifs }) : t('{n} jour actif sur 30', { n: regulier.jours_actifs })}`
+                                                    : ''}
                                             </span>
                                         </span>
                                     </li>
@@ -511,7 +533,8 @@ export default function StudentsIndex({ students, joursAvantRelance = 7 }: { stu
                                         <span className="min-w-0">
                                             <span className="block font-semibold">{progres ? progres.name : '—'}</span>
                                             <span className="block text-xs text-muted-foreground">
-                                                Meilleure progression{progres ? ` · +${progres.progression} pts de précision en 14 jours` : ''}
+                                                {t('Meilleure progression')}
+                                                {progres ? ` · ${t('+{n} pts de précision en 14 jours', { n: progres.progression })}` : ''}
                                             </span>
                                         </span>
                                     </li>
@@ -522,16 +545,19 @@ export default function StudentsIndex({ students, joursAvantRelance = 7 }: { stu
                         <BarreClassement
                             recherche={etat.q}
                             onRecherche={(v) => poser('q', v)}
-                            placeholder="Rechercher un nom ou un e-mail…"
+                            placeholder={t('Rechercher un nom ou un e-mail…')}
                             filtres={FILTRES.map((nom) => ({
                                 nom,
-                                libelle: CRITERES[nom].libelle,
-                                tous: TOUS[nom],
-                                options: optionsDe(students, CRITERES[nom].etiquettes, { mode: CRITERES[nom].mode, libelleSans: CRITERES[nom].sans }),
+                                libelle: t(CRITERES[nom].libelle),
+                                tous: t(TOUS[nom]),
+                                options: optionsDe(students, CRITERES[nom].etiquettes, { mode: CRITERES[nom].mode, libelleSans: CRITERES[nom].sans }).map((o) => ({
+                                    ...o,
+                                    libelle: libelleCritere(nom, o),
+                                })),
                             }))}
                             valeurs={etat}
                             onFiltre={(nom, v) => poser(nom as (typeof VUE)[number], v)}
-                            regroupements={REGROUPEMENTS.map((cle) => ({ cle, libelle: CRITERES[cle].libelle }))}
+                            regroupements={REGROUPEMENTS.map((cle) => ({ cle, libelle: t(CRITERES[cle].libelle) }))}
                             regroupement={groupeChoisi}
                             onRegroupement={(v) => poser('groupe', v)}
                             onReinitialiser={reinitialiser}
@@ -539,7 +565,7 @@ export default function StudentsIndex({ students, joursAvantRelance = 7 }: { stu
 
                         {filtres.length !== students.length && filtres.length > 0 && (
                             <p className="px-1 text-xs text-muted-foreground">
-                                {pluriel(filtres.length, 'élève')} sur {students.length} · l'export reprend cette liste
+                                {t("{eleves} sur {total} · l'export reprend cette liste", { eleves: nbEleves(filtres.length), total: students.length })}
                             </p>
                         )}
 
@@ -547,21 +573,21 @@ export default function StudentsIndex({ students, joursAvantRelance = 7 }: { stu
                             <div className="space-y-6">
                                 {['classe', 'salle', 'langue', 'niveau'].includes(groupeChoisi) && (
                                     <p className="px-1 text-xs text-muted-foreground">
-                                        Un élève inscrit dans plusieurs classes apparaît dans chacun de ses groupes.
+                                        {t('Un élève inscrit dans plusieurs classes apparaît dans chacun de ses groupes.')}
                                     </p>
                                 )}
                                 {groupes.map((g) => {
                                     const c = compterStatuts(g.lignes);
                                     const langue = groupeChoisi === 'langue' ? g.lignes[0]?.langues.find((l) => l.cle === g.cle) : undefined;
-                                    const details = [pluriel(g.lignes.length, 'élève')];
+                                    const details = [nbEleves(g.lignes.length)];
                                     if (groupeChoisi !== 'statut') {
-                                        if (c.actif) details.push(pluriel(c.actif, 'actif'));
-                                        if (c.a_relancer) details.push(`${c.a_relancer} à relancer`);
-                                        if (c.jamais) details.push(`${c.jamais} jamais venu${c.jamais > 1 ? 's' : ''}`);
+                                        if (c.actif) details.push(nbActifs(c.actif));
+                                        if (c.a_relancer) details.push(t('{n} à relancer', { n: c.a_relancer }));
+                                        if (c.jamais) details.push(c.jamais > 1 ? t('{n} jamais venus', { n: c.jamais }) : t('{n} jamais venu', { n: c.jamais }));
                                     }
                                     return (
                                         <section key={g.cle} className="space-y-2">
-                                            <EnTeteGroupe titre={g.libelle} icone={langue ? <Drapeau emoji={langue.drapeau} /> : undefined} details={details} />
+                                            <EnTeteGroupe titre={libelleCritere(groupeChoisi, g)} icone={langue ? <Drapeau emoji={langue.drapeau} /> : undefined} details={details} />
                                             {tableau(g.lignes, null, g.cle)}
                                         </section>
                                     );

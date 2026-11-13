@@ -6,8 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { type Column } from '@/components/ui/data-table';
 import { BarreClassement, Drapeau, EnTeteGroupe, useVueDansAdresse } from '@/components/center/barre-classement';
 import { BadgeLangue, BadgeNiveau, CarteKpi, EnTetePage, EtatVide, ListeAdaptative, PileAvatars } from '@/components/center/liste-centre';
-import { elevesDistincts, filtrer, optionsDe, pluriel, regrouper, SANS, type Critere, type ModeTri } from '@/lib/classement-centre';
+import { elevesDistincts, filtrer, optionsDe, regrouper, SANS, type Critere, type ModeTri } from '@/lib/classement-centre';
 import { useMemo, useState } from 'react';
+import { useT } from '@/lib/i18n/traduire';
 
 interface Langue { cle: string; nom: string; drapeau: string | null }
 interface ClassroomRow {
@@ -25,25 +26,35 @@ interface ClassroomRow {
 }
 interface Exam { id: number; name: string }
 
+type T = ReturnType<typeof useT>['t'];
+
+/** « 1 classe », « 3 classes » : la phrase entiere passe par t, l'anglais choisit son ordre. */
+function compte(t: T, n: number, singulier: string, plurielFr: string) {
+    return t(Math.abs(n) > 1 ? plurielFr : singulier, { n });
+}
+
 /** Ce qu'on peut filtrer ou regrouper, et comment le lire sur une classe. */
-const CRITERES: Record<string, { libelle: string; sans: string; mode?: ModeTri; etiquettes: Critere<ClassroomRow> }> = {
-    langue: { libelle: 'Langue', sans: 'Sans langue', etiquettes: (c) => (c.langue ? [{ cle: c.langue.cle, libelle: c.langue.nom }] : []) },
-    niveau: { libelle: 'Niveau', sans: 'Sans niveau', mode: 'niveau', etiquettes: (c) => (c.level ? [{ cle: c.level, libelle: c.level }] : []) },
-    salle: { libelle: 'Salle', sans: 'Sans salle', etiquettes: (c) => (c.room ? [{ cle: c.room, libelle: c.room }] : []) },
-    examen: { libelle: 'Examen', sans: 'Examen par défaut', etiquettes: (c) => (c.exam ? [{ cle: c.exam, libelle: c.exam }] : []) },
-    enseignant: { libelle: 'Enseignant', sans: 'Sans enseignant', etiquettes: (c) => c.teachers.map((t) => ({ cle: t.id, libelle: t.name })) },
-};
+function criteres(t: T): Record<string, { libelle: string; sans: string; mode?: ModeTri; etiquettes: Critere<ClassroomRow> }> {
+    return {
+        langue: { libelle: t('Langue'), sans: t('Sans langue'), etiquettes: (c) => (c.langue ? [{ cle: c.langue.cle, libelle: t(c.langue.nom) }] : []) },
+        niveau: { libelle: t('Niveau'), sans: t('Sans niveau'), mode: 'niveau', etiquettes: (c) => (c.level ? [{ cle: c.level, libelle: c.level }] : []) },
+        salle: { libelle: t('Salle'), sans: t('Sans salle'), etiquettes: (c) => (c.room ? [{ cle: c.room, libelle: c.room }] : []) },
+        examen: { libelle: t('Examen'), sans: t('Examen par défaut'), etiquettes: (c) => (c.exam ? [{ cle: c.exam, libelle: c.exam }] : []) },
+        enseignant: { libelle: t('Enseignant'), sans: t('Sans enseignant'), etiquettes: (c) => c.teachers.map((p) => ({ cle: p.id, libelle: p.name })) },
+    };
+}
 const FILTRES = ['langue', 'niveau', 'salle', 'enseignant'] as const;
 const REGROUPEMENTS = ['langue', 'niveau', 'salle', 'examen'] as const;
 const VUE = ['q', 'groupe', ...FILTRES] as const;
 
 /** Le code d'invitation, copiable d'un clic sans ouvrir la classe. */
 function CodeInvitation({ code }: { code: string }) {
+    const { t } = useT();
     const [copie, setCopie] = useState(false);
     return (
         <button
             type="button"
-            title="Copier le code d'invitation"
+            title={t("Copier le code d'invitation")}
             onClick={(e) => {
                 // Dans une ligne ou une carte cliquable : copier n'ouvre pas la classe.
                 e.preventDefault();
@@ -60,7 +71,7 @@ function CodeInvitation({ code }: { code: string }) {
         >
             {code}
             {copie ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5 text-muted-foreground" />}
-            <span className="sr-only">{copie ? 'Code copié' : 'Copier'}</span>
+            <span className="sr-only">{copie ? t('Code copié') : t('Copier')}</span>
         </button>
     );
 }
@@ -84,8 +95,6 @@ function SalleHoraire({ c }: { c: ClassroomRow }) {
     );
 }
 
-const sansEnseignantTexte = <span className="text-sm text-amber-700 dark:text-amber-400">Aucun enseignant</span>;
-
 export default function ClassesIndex({
     classrooms,
     exams,
@@ -97,6 +106,9 @@ export default function ClassesIndex({
     seatsAvailable: number;
     enseignants?: { id: number; name: string; role: string }[];
 }) {
+    const { t } = useT();
+    const CRITERES = useMemo(() => criteres(t), [t]);
+    const sansEnseignantTexte = <span className="text-sm text-amber-700 dark:text-amber-400">{t('Aucun enseignant')}</span>;
     const [showForm, setShowForm] = useState(false);
     const form = useForm<{ name: string; level: string; room: string; schedule: string; exam_id: string; teacher_ids: number[] }>({ name: '', level: '', room: '', schedule: '', exam_id: '', teacher_ids: [] });
     const { etat, poser, reinitialiser } = useVueDansAdresse(VUE);
@@ -116,11 +128,11 @@ export default function ClassesIndex({
         () =>
             filtrer(classrooms, {
                 recherche: etat.q,
-                champsRecherche: (c) => [c.name, c.room, c.schedule, c.exam, c.langue?.nom, c.invite_code, ...c.teachers.map((t) => t.name)],
+                champsRecherche: (c) => [c.name, c.room, c.schedule, c.exam, c.langue?.nom, c.invite_code, ...c.teachers.map((p) => p.name)],
                 criteres: CRITERES,
                 filtres: Object.fromEntries(FILTRES.map((f) => [f, etat[f]])),
             }),
-        [classrooms, etat],
+        [classrooms, etat, CRITERES],
     );
 
     const critereGroupe = (REGROUPEMENTS as readonly string[]).includes(etat.groupe) ? CRITERES[etat.groupe] : null;
@@ -135,7 +147,7 @@ export default function ClassesIndex({
     const columns: Column<ClassroomRow>[] = [
         {
             key: 'name',
-            header: 'Classe',
+            header: t('Classe'),
             cell: (c) => (
                 <span className="block min-w-[11rem] space-y-1">
                     <span className="block font-semibold">{c.name}</span>
@@ -145,11 +157,11 @@ export default function ClassesIndex({
         },
         {
             key: 'langue',
-            header: 'Langue · niveau',
+            header: t('Langue · niveau'),
             cell: (c) =>
                 c.langue || c.level ? (
                     <span className="flex flex-wrap items-center gap-1">
-                        <BadgeLangue langue={c.langue} />
+                        <BadgeLangue langue={c.langue && { ...c.langue, nom: t(c.langue.nom) }} />
                         <BadgeNiveau niveau={c.level} />
                     </span>
                 ) : (
@@ -157,16 +169,16 @@ export default function ClassesIndex({
                 ),
             sortValue: (c) => `${c.langue?.nom ?? ''} ${c.level ?? ''}`,
         },
-        { key: 'exam', header: 'Examen', cell: (c) => c.exam ?? <span className="text-muted-foreground">Par défaut</span>, sortValue: (c) => c.exam ?? '' },
+        { key: 'exam', header: t('Examen'), cell: (c) => c.exam ?? <span className="text-muted-foreground">{t('Par défaut')}</span>, sortValue: (c) => c.exam ?? '' },
         {
             key: 'teachers',
-            header: 'Enseignants',
-            cell: (c) => <PileAvatars noms={c.teachers.map((t) => t.name)} vide={sansEnseignantTexte} />,
-            sortValue: (c) => c.teachers.map((t) => t.name).join(', '),
+            header: t('Enseignants'),
+            cell: (c) => <PileAvatars noms={c.teachers.map((p) => p.name)} vide={sansEnseignantTexte} />,
+            sortValue: (c) => c.teachers.map((p) => p.name).join(', '),
         },
         {
             key: 'students_count',
-            header: 'Élèves',
+            header: t('Élèves'),
             cell: (c) => (
                 <span className="inline-flex items-center gap-1.5 font-semibold tabular-nums">
                     <Users className="h-4 w-4 text-muted-foreground" /> {c.students_count}
@@ -174,7 +186,7 @@ export default function ClassesIndex({
             ),
             sortValue: (c) => c.students_count,
         },
-        { key: 'invite_code', header: "Code d'invitation", cell: (c) => <CodeInvitation code={c.invite_code} /> },
+        { key: 'invite_code', header: t("Code d'invitation"), cell: (c) => <CodeInvitation code={c.invite_code} /> },
     ];
 
     const carte = (c: ClassroomRow) => (
@@ -186,13 +198,13 @@ export default function ClassesIndex({
                 </span>
             </div>
             <div className="flex flex-wrap items-center gap-1">
-                <BadgeLangue langue={c.langue} />
+                <BadgeLangue langue={c.langue && { ...c.langue, nom: t(c.langue.nom) }} />
                 <BadgeNiveau niveau={c.level} />
                 {c.exam && <span className="text-xs text-muted-foreground">· {c.exam}</span>}
             </div>
             <SalleHoraire c={c} />
             <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                <PileAvatars noms={c.teachers.map((t) => t.name)} vide={sansEnseignantTexte} />
+                <PileAvatars noms={c.teachers.map((p) => p.name)} vide={sansEnseignantTexte} />
                 <CodeInvitation code={c.invite_code} />
             </div>
         </div>
@@ -207,24 +219,24 @@ export default function ClassesIndex({
 
     const videFiltre = (
         <>
-            Aucune classe ne correspond à ces critères.{' '}
+            {t('Aucune classe ne correspond à ces critères.')}{' '}
             <button type="button" onClick={reinitialiser} className="font-medium text-primary hover:underline">
-                Tout effacer
+                {t('Tout effacer')}
             </button>
         </>
     );
 
     return (
         <AppLayout>
-            <Head title="Classes" />
+            <Head title={t('Classes')} />
             <div className="mx-auto w-full max-w-6xl space-y-5 p-4 md:p-6">
                 <EnTetePage
-                    titre="Classes"
-                    sousTitre={`${pluriel(classrooms.length, 'classe')} · ${pluriel(elevesTotal, 'élève')} · ${pluriel(seatsAvailable, 'siège disponible', 'sièges disponibles')}`}
+                    titre={t('Classes')}
+                    sousTitre={`${compte(t, classrooms.length, '{n} classe', '{n} classes')} · ${compte(t, elevesTotal, '{n} élève', '{n} élèves')} · ${compte(t, seatsAvailable, '{n} siège disponible', '{n} sièges disponibles')}`}
                     actions={
                         <Button onClick={() => setShowForm((s) => !s)} variant={showForm ? 'outline' : 'default'}>
                             {showForm ? <X className="mr-1.5 h-4 w-4" /> : <Plus className="mr-1.5 h-4 w-4" />}
-                            {showForm ? 'Annuler' : 'Nouvelle classe'}
+                            {showForm ? t('Annuler') : t('Nouvelle classe')}
                         </Button>
                     }
                 />
@@ -232,20 +244,20 @@ export default function ClassesIndex({
                 {showForm && (
                     <Card className="border-primary/30">
                         <CardHeader>
-                            <CardTitle className="text-base">Créer une classe</CardTitle>
+                            <CardTitle className="text-base">{t('Créer une classe')}</CardTitle>
                             <p className="text-sm text-muted-foreground">
-                                Un code d'invitation est créé avec la classe : partagez-le à vos élèves pour qu'ils la rejoignent.
+                                {t("Un code d'invitation est créé avec la classe : partagez-le à vos élèves pour qu'ils la rejoignent.")}
                             </p>
                         </CardHeader>
                         <CardContent>
                             <form onSubmit={submit} className="grid gap-4 sm:grid-cols-3">
                                 <div className="sm:col-span-1">
-                                    <label className="text-sm font-medium" htmlFor="classe-nom">Nom</label>
+                                    <label className="text-sm font-medium" htmlFor="classe-nom">{t('Nom')}</label>
                                     <input id="classe-nom" className={inputClass} value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
                                     {form.errors.name && <p className="mt-1 text-xs text-rose-500">{form.errors.name}</p>}
                                 </div>
                                 <div>
-                                    <label className="text-sm font-medium" htmlFor="classe-niveau">Niveau</label>
+                                    <label className="text-sm font-medium" htmlFor="classe-niveau">{t('Niveau')}</label>
                                     <select id="classe-niveau" className={inputClass} value={form.data.level} onChange={(e) => form.setData('level', e.target.value)}>
                                         <option value="">—</option>
                                         {['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((l) => (
@@ -254,9 +266,9 @@ export default function ClassesIndex({
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="text-sm font-medium" htmlFor="classe-examen">Examen</label>
+                                    <label className="text-sm font-medium" htmlFor="classe-examen">{t('Examen')}</label>
                                     <select id="classe-examen" className={inputClass} value={form.data.exam_id} onChange={(e) => form.setData('exam_id', e.target.value)}>
-                                        <option value="">Défaut du centre</option>
+                                        <option value="">{t('Défaut du centre')}</option>
                                         {exams.map((ex) => (
                                             <option key={ex.id} value={ex.id}>{ex.name}</option>
                                         ))}
@@ -264,11 +276,11 @@ export default function ClassesIndex({
                                     {form.errors.exam_id && <p className="mt-1 text-xs text-rose-500">{form.errors.exam_id}</p>}
                                 </div>
                                 <div>
-                                    <label className="text-sm font-medium" htmlFor="classe-salle">Salle</label>
+                                    <label className="text-sm font-medium" htmlFor="classe-salle">{t('Salle')}</label>
                                     <input
                                         id="classe-salle"
                                         className={inputClass}
-                                        placeholder="Salle 2"
+                                        placeholder={t('Salle 2')}
                                         maxLength={60}
                                         value={form.data.room}
                                         onChange={(e) => form.setData('room', e.target.value)}
@@ -276,11 +288,11 @@ export default function ClassesIndex({
                                     {form.errors.room && <p className="mt-1 text-xs text-rose-500">{form.errors.room}</p>}
                                 </div>
                                 <div className="sm:col-span-2">
-                                    <label className="text-sm font-medium" htmlFor="classe-horaire">Horaire</label>
+                                    <label className="text-sm font-medium" htmlFor="classe-horaire">{t('Horaire')}</label>
                                     <input
                                         id="classe-horaire"
                                         className={inputClass}
-                                        placeholder="Lun et mer 17 h – 19 h"
+                                        placeholder={t('Lun et mer 17 h – 19 h')}
                                         maxLength={120}
                                         value={form.data.schedule}
                                         onChange={(e) => form.setData('schedule', e.target.value)}
@@ -289,20 +301,20 @@ export default function ClassesIndex({
                                 </div>
                                 {enseignants.length > 0 && (
                                     <fieldset className="sm:col-span-3">
-                                        <legend className="text-sm font-medium">Enseignant(s) de la classe</legend>
-                                        <p className="text-xs text-muted-foreground">Un enseignant peut tenir plusieurs classes. Sans choix, la classe vous est attribuée.</p>
+                                        <legend className="text-sm font-medium">{t('Enseignant(s) de la classe')}</legend>
+                                        <p className="text-xs text-muted-foreground">{t('Un enseignant peut tenir plusieurs classes. Sans choix, la classe vous est attribuée.')}</p>
                                         <div className="mt-2 flex flex-wrap gap-2">
-                                            {enseignants.map((t) => {
-                                                const actif = form.data.teacher_ids.includes(t.id);
+                                            {enseignants.map((p) => {
+                                                const actif = form.data.teacher_ids.includes(p.id);
                                                 return (
                                                     <button
-                                                        key={t.id}
+                                                        key={p.id}
                                                         type="button"
                                                         aria-pressed={actif}
-                                                        onClick={() => form.setData('teacher_ids', actif ? form.data.teacher_ids.filter((x) => x !== t.id) : [...form.data.teacher_ids, t.id])}
+                                                        onClick={() => form.setData('teacher_ids', actif ? form.data.teacher_ids.filter((x) => x !== p.id) : [...form.data.teacher_ids, p.id])}
                                                         className={`rounded-full border px-3 py-1.5 text-sm font-medium transition ${actif ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-background hover:border-primary/50'}`}
                                                     >
-                                                        {actif ? '✓ ' : ''}{t.name}{t.role === 'center_admin' ? ' (responsable)' : ''}
+                                                        {actif ? '✓ ' : ''}{p.name}{p.role === 'center_admin' ? t(' (responsable)') : ''}
                                                     </button>
                                                 );
                                             })}
@@ -310,9 +322,9 @@ export default function ClassesIndex({
                                     </fieldset>
                                 )}
                                 <div className="flex gap-2 sm:col-span-3">
-                                    <Button type="submit" disabled={form.processing}>{form.processing ? 'Création…' : 'Créer la classe'}</Button>
+                                    <Button type="submit" disabled={form.processing}>{form.processing ? t('Création…') : t('Créer la classe')}</Button>
                                     <Button type="button" variant="ghost" onClick={() => setShowForm(false)}>
-                                        Annuler
+                                        {t('Annuler')}
                                     </Button>
                                 </div>
                             </form>
@@ -324,11 +336,11 @@ export default function ClassesIndex({
                     !showForm && (
                         <EtatVide
                             icone={School}
-                            titre="Aucune classe pour l'instant"
-                            texte="Créez votre première classe : vous obtenez un code d'invitation à partager, et vos élèves la rejoignent en quelques secondes."
+                            titre={t("Aucune classe pour l'instant")}
+                            texte={t("Créez votre première classe : vous obtenez un code d'invitation à partager, et vos élèves la rejoignent en quelques secondes.")}
                             action={
                                 <Button onClick={() => setShowForm(true)}>
-                                    <Plus className="mr-1.5 h-4 w-4" /> Créer ma première classe
+                                    <Plus className="mr-1.5 h-4 w-4" /> {t('Créer ma première classe')}
                                 </Button>
                             }
                         />
@@ -336,15 +348,15 @@ export default function ClassesIndex({
                 ) : (
                     <>
                         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-                            <CarteKpi icone={School} ton="primaire" libelle="Classes" valeur={classrooms.length} />
-                            <CarteKpi icone={Users} ton="succes" libelle="Élèves inscrits" valeur={elevesTotal} detail="Comptés une fois chacun" />
-                            <CarteKpi icone={Armchair} ton={seatsAvailable > 0 ? 'neutre' : 'alerte'} libelle="Sièges disponibles" valeur={seatsAvailable} />
+                            <CarteKpi icone={School} ton="primaire" libelle={t('Classes')} valeur={classrooms.length} />
+                            <CarteKpi icone={Users} ton="succes" libelle={t('Élèves inscrits')} valeur={elevesTotal} detail={t('Comptés une fois chacun')} />
+                            <CarteKpi icone={Armchair} ton={seatsAvailable > 0 ? 'neutre' : 'alerte'} libelle={t('Sièges disponibles')} valeur={seatsAvailable} />
                             <CarteKpi
                                 icone={UserX}
                                 ton={sansEnseignant ? 'alerte' : 'neutre'}
-                                libelle="Sans enseignant"
+                                libelle={t('Sans enseignant')}
                                 valeur={sansEnseignant}
-                                detail={sansEnseignant ? 'Cliquez pour les afficher' : 'Toutes ont un enseignant'}
+                                detail={sansEnseignant ? t('Cliquez pour les afficher') : t('Toutes ont un enseignant')}
                                 actif={etat.enseignant === SANS}
                                 onClick={sansEnseignant ? () => poser('enseignant', etat.enseignant === SANS ? '' : SANS) : undefined}
                             />
@@ -353,11 +365,11 @@ export default function ClassesIndex({
                         <BarreClassement
                             recherche={etat.q}
                             onRecherche={(v) => poser('q', v)}
-                            placeholder="Rechercher une classe, une salle, un enseignant…"
+                            placeholder={t('Rechercher une classe, une salle, un enseignant…')}
                             filtres={FILTRES.map((nom) => ({
                                 nom,
                                 libelle: CRITERES[nom].libelle,
-                                tous: { langue: 'Toutes les langues', niveau: 'Tous les niveaux', salle: 'Toutes les salles', enseignant: 'Tous les enseignants' }[nom],
+                                tous: { langue: t('Toutes les langues'), niveau: t('Tous les niveaux'), salle: t('Toutes les salles'), enseignant: t('Tous les enseignants') }[nom],
                                 options: optionsDe(classrooms, CRITERES[nom].etiquettes, { mode: CRITERES[nom].mode, libelleSans: CRITERES[nom].sans }),
                             }))}
                             valeurs={etat}
@@ -370,7 +382,7 @@ export default function ClassesIndex({
 
                         {filtrees.length !== classrooms.length && filtrees.length > 0 && (
                             <p className="px-1 text-xs text-muted-foreground">
-                                {pluriel(filtrees.length, 'classe')} sur {classrooms.length}
+                                {t(Math.abs(filtrees.length) > 1 ? '{n} classes sur {total}' : '{n} classe sur {total}', { n: filtrees.length, total: classrooms.length })}
                             </p>
                         )}
 
@@ -385,7 +397,7 @@ export default function ClassesIndex({
                                             <EnTeteGroupe
                                                 titre={g.libelle}
                                                 icone={etat.groupe === 'langue' && premiere?.langue ? <Drapeau emoji={premiere.langue.drapeau} /> : undefined}
-                                                details={[pluriel(g.lignes.length, 'classe'), pluriel(eleves, 'élève')]}
+                                                details={[compte(t, g.lignes.length, '{n} classe', '{n} classes'), compte(t, eleves, '{n} élève', '{n} élèves')]}
                                             />
                                             {tableau(g.lignes, null)}
                                         </section>

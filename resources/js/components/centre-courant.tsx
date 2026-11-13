@@ -1,5 +1,6 @@
 import { router, usePage } from '@inertiajs/react';
 import { Building2 } from 'lucide-react';
+import { useT } from '@/lib/i18n/traduire';
 
 interface CentreGere { id: number; name: string; role: string }
 
@@ -11,6 +12,7 @@ interface CentreGere { id: number; name: string; role: string }
  * lequel elle se trouvait, et n'avait aucun moyen d'atteindre le second.
  */
 export function CentreCourant() {
+    const { t } = useT();
     const { auth } = usePage().props as unknown as {
         auth?: { center?: { id: number; name: string; role: string } | null; centres?: CentreGere[] };
     };
@@ -24,7 +26,7 @@ export function CentreCourant() {
     return (
         <div className="mx-2 mb-1 rounded-lg border bg-muted/40 px-2.5 py-2 group-data-[collapsible=icon]:hidden">
             <p className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                <Building2 className="h-3.5 w-3.5" /> {centres.length > 1 ? 'Centre' : 'Mon centre'}
+                <Building2 className="h-3.5 w-3.5" /> {centres.length > 1 ? t('Centre') : t('Mon centre')}
             </p>
             {centres.length > 1 ? (
                 <select

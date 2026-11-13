@@ -18,6 +18,7 @@ import {
     stockageDuNavigateur,
     type LigneExercice,
 } from '@/lib/createur-exercices';
+import { useT } from '@/lib/i18n/traduire';
 import { cn } from '@/lib/utils';
 
 interface Classroom { id: number; name: string; exam_id: number | null; level: string | null }
@@ -34,6 +35,8 @@ type Formulaire = {
 };
 
 export default function AssignmentCreate({ classrooms, exercises, preselection = [] }: { classrooms: Classroom[]; exercises: LigneExercice[]; preselection?: number[] }) {
+    const { t } = useT();
+    const nomExercice = (e: LigneExercice) => (String(e.titre ?? '').trim() !== '' ? libelleExercice(e) : t(libelleExercice(e)));
     const page = usePage();
     const compte = (page.props as { auth?: { user?: { id?: number } | null } }).auth?.user?.id ?? null;
     const cle = cleDuDevoirEnCours(compte);
@@ -130,37 +133,37 @@ export default function AssignmentCreate({ classrooms, exercises, preselection =
 
     return (
         <AppLayout>
-            <Head title="Nouveau devoir" />
+            <Head title={t('Nouveau devoir')} />
             <div className="mx-auto w-full max-w-3xl space-y-5 p-4 md:p-6">
                 <div>
-                    <Link href={route('center.assignments.index')} className="text-sm text-muted-foreground hover:text-foreground">← Devoirs</Link>
-                    <h1 className="mt-1 text-2xl font-bold tracking-tight">Nouveau devoir</h1>
+                    <Link href={route('center.assignments.index')} className="text-sm text-muted-foreground hover:text-foreground">{t('← Devoirs')}</Link>
+                    <h1 className="mt-1 text-2xl font-bold tracking-tight">{t('Nouveau devoir')}</h1>
                 </div>
 
                 <form onSubmit={submit} className="space-y-5">
                     <Card>
-                        <CardHeader><CardTitle className="text-base">Détails</CardTitle></CardHeader>
+                        <CardHeader><CardTitle className="text-base">{t('Détails')}</CardTitle></CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid gap-4 sm:grid-cols-2">
                                 <div>
-                                    <label htmlFor="classe" className="text-sm font-medium">Classe</label>
+                                    <label htmlFor="classe" className="text-sm font-medium">{t('Classe')}</label>
                                     <select id="classe" className={input} value={form.data.classroom_id} onChange={(e) => form.setData('classroom_id', e.target.value)}>
                                         {classrooms.map((c) => (<option key={c.id} value={c.id}>{c.name}{c.level ? ` · ${c.level}` : ''}</option>))}
                                     </select>
                                     {form.errors.classroom_id && <p className="mt-1 text-xs text-rose-500">{form.errors.classroom_id}</p>}
                                 </div>
                                 <div>
-                                    <label htmlFor="echeance" className="text-sm font-medium">Échéance (facultatif)</label>
+                                    <label htmlFor="echeance" className="text-sm font-medium">{t('Échéance (facultatif)')}</label>
                                     <input id="echeance" type="date" className={input} value={form.data.due_at} onChange={(e) => form.setData('due_at', e.target.value)} />
                                 </div>
                             </div>
                             <div>
-                                <label htmlFor="titre" className="text-sm font-medium">Titre</label>
-                                <input id="titre" className={input} value={form.data.title} onChange={(e) => form.setData('title', e.target.value)} placeholder="Ex. : Révisions Lesen Teil 2" />
+                                <label htmlFor="titre" className="text-sm font-medium">{t('Titre')}</label>
+                                <input id="titre" className={input} value={form.data.title} onChange={(e) => form.setData('title', e.target.value)} placeholder={t('Ex. : Révisions Lesen Teil 2')} />
                                 {form.errors.title && <p className="mt-1 text-xs text-rose-500">{form.errors.title}</p>}
                             </div>
                             <div>
-                                <label htmlFor="consigne" className="text-sm font-medium">Consigne (facultatif)</label>
+                                <label htmlFor="consigne" className="text-sm font-medium">{t('Consigne (facultatif)')}</label>
                                 <textarea id="consigne" className={`min-h-[60px] ${input}`} value={form.data.instructions} onChange={(e) => form.setData('instructions', e.target.value)} />
                             </div>
                         </CardContent>
@@ -169,23 +172,23 @@ export default function AssignmentCreate({ classrooms, exercises, preselection =
                     <Card>
                         <CardHeader className="space-y-3">
                             <div className="flex flex-wrap items-center justify-between gap-2">
-                                <CardTitle className="text-base">Exercices ({form.data.exercise_ids.length} sélectionné{form.data.exercise_ids.length > 1 ? 's' : ''})</CardTitle>
+                                <CardTitle className="text-base">{form.data.exercise_ids.length > 1 ? t('Exercices ({n} sélectionnés)', { n: form.data.exercise_ids.length }) : t('Exercices ({n} sélectionné)', { n: form.data.exercise_ids.length })}</CardTitle>
                                 <Button type="button" variant="outline" size="sm" onClick={creerUnExercice}>
-                                    <Plus className="h-4 w-4" aria-hidden="true" /> Créer un exercice
+                                    <Plus className="h-4 w-4" aria-hidden="true" /> {t('Créer un exercice')}
                                 </Button>
                             </div>
                             {coches.length > 0 && (
-                                <ul className="flex flex-wrap gap-1.5" aria-label="Exercices choisis">
+                                <ul className="flex flex-wrap gap-1.5" aria-label={t('Exercices choisis')}>
                                     {coches.map((e) => (
                                         <li key={e.id}>
-                                            <button type="button" onClick={() => toggleExercise(e)} className="inline-flex max-w-[16rem] items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/20" aria-label={`Retirer « ${libelleExercice(e)} »`}>
-                                                <span className="truncate">{libelleExercice(e)}</span> ×
+                                            <button type="button" onClick={() => toggleExercise(e)} className="inline-flex max-w-[16rem] items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/20" aria-label={t('Retirer « {nom} »', { nom: nomExercice(e) })}>
+                                                <span className="truncate">{nomExercice(e)}</span> ×
                                             </button>
                                         </li>
                                     ))}
                                 </ul>
                             )}
-                            <div className="flex gap-1 rounded-xl bg-muted p-1" role="tablist" aria-label="Origine des exercices">
+                            <div className="flex gap-1 rounded-xl bg-muted p-1" role="tablist" aria-label={t('Origine des exercices')}>
                                 {([['centre', 'Exercices du centre', Sparkles], ['prepla', 'Banque PrePla', Library]] as const).map(([cleOnglet, nom, Icone]) => (
                                     <button
                                         key={cleOnglet}
@@ -195,22 +198,22 @@ export default function AssignmentCreate({ classrooms, exercises, preselection =
                                         onClick={() => { setOnglet(cleOnglet); setNiveau(''); setCompetence(''); }}
                                         className={cn('inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-lg text-sm font-semibold transition-colors', onglet === cleOnglet ? 'bg-background shadow-sm' : 'text-muted-foreground hover:text-foreground')}
                                     >
-                                        <Icone className="h-4 w-4" aria-hidden="true" /> {nom}
+                                        <Icone className="h-4 w-4" aria-hidden="true" /> {t(nom)}
                                     </button>
                                 ))}
                             </div>
                             <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
                                 <label className="relative block">
-                                    <span className="sr-only">Rechercher</span>
+                                    <span className="sr-only">{t('Rechercher')}</span>
                                     <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-                                    <input type="search" className={cn(filtre, 'w-full pl-9')} placeholder="Rechercher un exercice…" value={recherche} onChange={(e) => setRecherche(e.target.value)} />
+                                    <input type="search" className={cn(filtre, 'w-full pl-9')} placeholder={t('Rechercher un exercice…')} value={recherche} onChange={(e) => setRecherche(e.target.value)} />
                                 </label>
-                                <select aria-label="Filtrer par compétence" className={filtre} value={competence} onChange={(e) => setCompetence(e.target.value)}>
-                                    <option value="">Toutes les compétences</option>
-                                    {competences.map((c) => <option key={c.cle} value={c.cle}>{c.nom}</option>)}
+                                <select aria-label={t('Filtrer par compétence')} className={filtre} value={competence} onChange={(e) => setCompetence(e.target.value)}>
+                                    <option value="">{t('Toutes les compétences')}</option>
+                                    {competences.map((c) => <option key={c.cle} value={c.cle}>{t(c.nom)}</option>)}
                                 </select>
-                                <select aria-label="Filtrer par niveau" className={filtre} value={niveau} onChange={(e) => setNiveau(e.target.value)}>
-                                    <option value="">Tous les niveaux</option>
+                                <select aria-label={t('Filtrer par niveau')} className={filtre} value={niveau} onChange={(e) => setNiveau(e.target.value)}>
+                                    <option value="">{t('Tous les niveaux')}</option>
                                     {niveaux.map((n) => <option key={n} value={n}>{n}</option>)}
                                 </select>
                             </div>
@@ -218,18 +221,20 @@ export default function AssignmentCreate({ classrooms, exercises, preselection =
                         <CardContent className="space-y-2" role="tabpanel">
                             {onglet === 'prepla' && (
                                 <p className="text-xs text-muted-foreground">
-                                    Exercices PrePla de l’examen de la classe{classe?.level ? `, niveau ${classe.level}` : ''}. Ils restent dans la banque : vos élèves les font comme les vôtres.
+                                    {classe?.level
+                                        ? t('Exercices PrePla de l’examen de la classe, niveau {niveau}. Ils restent dans la banque : vos élèves les font comme les vôtres.', { niveau: classe.level })
+                                        : t('Exercices PrePla de l’examen de la classe. Ils restent dans la banque : vos élèves les font comme les vôtres.')}
                                 </p>
                             )}
-                            {onglet === 'prepla' && vivierEtat === 'charge' && <p className="text-sm text-muted-foreground" aria-live="polite">Chargement de la banque…</p>}
-                            {onglet === 'prepla' && vivierEtat === 'erreur' && <p role="alert" className="text-sm text-rose-600 dark:text-rose-400">La banque n’a pas pu être chargée. Réessayez dans un instant.</p>}
+                            {onglet === 'prepla' && vivierEtat === 'charge' && <p className="text-sm text-muted-foreground" aria-live="polite">{t('Chargement de la banque…')}</p>}
+                            {onglet === 'prepla' && vivierEtat === 'erreur' && <p role="alert" className="text-sm text-rose-600 dark:text-rose-400">{t('La banque n’a pas pu être chargée. Réessayez dans un instant.')}</p>}
                             {onglet === 'centre' && exercises.length === 0 && (
-                                <p className="text-sm text-muted-foreground">Votre centre n’a pas encore d’exercice. Créez-en un, ou piochez dans la banque PrePla.</p>
+                                <p className="text-sm text-muted-foreground">{t('Votre centre n’a pas encore d’exercice. Créez-en un, ou piochez dans la banque PrePla.')}</p>
                             )}
                             {onglet === 'prepla' && vivierEtat === 'pret' && vivier.length === 0 && (
-                                <p className="text-sm text-muted-foreground">Aucun exercice PrePla pour l’examen et le niveau de cette classe.</p>
+                                <p className="text-sm text-muted-foreground">{t('Aucun exercice PrePla pour l’examen et le niveau de cette classe.')}</p>
                             )}
-                            {liste.length > 0 && visibles.length === 0 && <p className="text-sm text-muted-foreground">Aucun exercice ne correspond à ces filtres.</p>}
+                            {liste.length > 0 && visibles.length === 0 && <p className="text-sm text-muted-foreground">{t('Aucun exercice ne correspond à ces filtres.')}</p>}
                             <ul className="space-y-2">
                                 {visibles.map((ex) => {
                                     const choisi = form.data.exercise_ids.includes(ex.id);
@@ -238,12 +243,12 @@ export default function AssignmentCreate({ classrooms, exercises, preselection =
                                             <label className={cn('flex cursor-pointer items-start gap-3 rounded-xl border-[1.5px] p-3 text-sm transition-colors', choisi ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/40')}>
                                                 <input type="checkbox" className="mt-0.5 h-5 w-5 shrink-0 accent-primary" checked={choisi} onChange={() => toggleExercise(ex)} />
                                                 <span className="min-w-0 flex-1">
-                                                    <span className="block font-semibold">{libelleExercice(ex)}</span>
+                                                    <span className="block font-semibold">{nomExercice(ex)}</span>
                                                     <span className="mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
-                                                        <span>{libelleDuType({ slug: ex.type_slug, component_key: ex.component_key, name: ex.type })}</span>
-                                                        <span>· {competenceDe(ex.skill_type).nom}</span>
+                                                        <span>{t(libelleDuType({ slug: ex.type_slug, component_key: ex.component_key, name: ex.type }))}</span>
+                                                        <span>· {t(competenceDe(ex.skill_type).nom)}</span>
                                                         {ex.difficulty && <span>· {ex.difficulty}</span>}
-                                                        <span>· {ex.questions_count} question{(ex.questions_count ?? 0) > 1 ? 's' : ''}</span>
+                                                        <span>· {(ex.questions_count ?? 0) > 1 ? t('{n} questions', { n: ex.questions_count }) : t('{n} question', { n: ex.questions_count })}</span>
                                                     </span>
                                                 </span>
                                                 {choisi && <Check className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />}
@@ -258,7 +263,7 @@ export default function AssignmentCreate({ classrooms, exercises, preselection =
 
                     <div className="sticky bottom-0 z-10 -mx-4 border-t border-border bg-background/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
                         <Button type="submit" className="w-full sm:w-auto" disabled={form.processing || form.data.exercise_ids.length === 0}>
-                            {form.processing ? 'Création…' : 'Créer le devoir'}
+                            {form.processing ? t('Création…') : t('Créer le devoir')}
                         </Button>
                     </div>
                 </form>

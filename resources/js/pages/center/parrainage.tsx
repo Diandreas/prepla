@@ -7,14 +7,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Check, Copy } from 'lucide-react';
 import { formaterMontant } from '@/lib/montant-stripe';
+import { useT } from '@/lib/i18n/traduire';
 
 interface Total { devise: string; encaisse: number; commission: number }
 interface Ligne { id: number; type: 'charge' | 'remboursement'; encaisse: number; commission: number; devise: string; date: string | null }
 
 /** « 2026-11 » -> « novembre 2026 ». */
-function moisEnClair(periode: string): string {
+function moisEnClair(periode: string, locale: string): string {
     const [annee, mois] = periode.split('-').map(Number);
-    return new Date(annee, mois - 1, 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+    return new Date(annee, mois - 1, 1).toLocaleDateString(locale, { month: 'long', year: 'numeric' });
 }
 
 /**
@@ -40,6 +41,7 @@ export default function Parrainage({
     totaux: Total[];
     lignes: Ligne[];
 }) {
+    const { t, locale } = useT();
     const [copie, setCopie] = useState(false);
 
     async function copier() {
@@ -53,33 +55,32 @@ export default function Parrainage({
 
     return (
         <AppLayout>
-            <Head title={`Parrainage — ${centre.name}`} />
+            <Head title={t('Parrainage — {nom}', { nom: centre.name })} />
             <div className="mx-auto w-full max-w-4xl space-y-5 p-4 md:p-6">
                 <OngletsParametresCentre />
                 <div>
                     <p className="text-sm text-muted-foreground">{centre.name}</p>
-                    <h1 className="text-2xl font-bold tracking-tight">Parrainage</h1>
+                    <h1 className="text-2xl font-bold tracking-tight">{t('Parrainage')}</h1>
                     <p className="mt-1 text-sm text-muted-foreground">
-                        Partagez ce lien. Chaque personne qui crée son compte en le suivant vous est rattachée,
-                        et vous recevez {taux} % de chacun de ses paiements d'abonnement, tant qu'elle reste abonnée.
+                        {t("Partagez ce lien. Chaque personne qui crée son compte en le suivant vous est rattachée, et vous recevez {taux} % de chacun de ses paiements d'abonnement, tant qu'elle reste abonnée.", { taux })}
                     </p>
                 </div>
 
                 <Card>
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-base">Votre lien de parrainage</CardTitle>
+                        <CardTitle className="text-base">{t('Votre lien de parrainage')}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
                         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                             <code className="min-w-0 flex-1 break-all rounded-md border bg-muted/40 px-3 py-2 text-sm">{lien}</code>
                             <Button type="button" size="sm" variant="outline" onClick={copier}>
                                 {copie ? <Check className="mr-1.5 h-4 w-4" /> : <Copy className="mr-1.5 h-4 w-4" />}
-                                {copie ? 'Copié' : 'Copier le lien'}
+                                {copie ? t('Copié') : t('Copier le lien')}
                             </Button>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                            Code du centre : <span className="font-mono font-medium tracking-wider">{code}</span>. Seuls les
-                            nouveaux comptes sont rattachés ; un membre de votre équipe ne peut pas l'être.
+                            {t('Code du centre :')} <span className="font-mono font-medium tracking-wider">{code}</span>
+                            {t(". Seuls les nouveaux comptes sont rattachés ; un membre de votre équipe ne peut pas l'être.")}
                         </p>
                     </CardContent>
                 </Card>
@@ -87,7 +88,7 @@ export default function Parrainage({
                 <div className="grid gap-4 sm:grid-cols-2">
                     <Card>
                         <CardHeader className="pb-1">
-                            <p className="text-sm text-muted-foreground">Comptes parrainés</p>
+                            <p className="text-sm text-muted-foreground">{t('Comptes parrainés')}</p>
                         </CardHeader>
                         <CardContent>
                             <p className="text-3xl font-bold tabular-nums">{comptesParraines}</p>
@@ -95,7 +96,7 @@ export default function Parrainage({
                     </Card>
                     <Card>
                         <CardHeader className="pb-1">
-                            <p className="text-sm text-muted-foreground">Commissions de {moisEnClair(periode)}</p>
+                            <p className="text-sm text-muted-foreground">{t('Commissions de {mois}', { mois: moisEnClair(periode, locale) })}</p>
                         </CardHeader>
                         <CardContent>
                             {totaux.length === 0 ? (
@@ -113,24 +114,24 @@ export default function Parrainage({
 
                 <Card>
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-base">Détail du mois</CardTitle>
+                        <CardTitle className="text-base">{t('Détail du mois')}</CardTitle>
                         <p className="text-xs text-muted-foreground">
-                            Le montant dû est arrêté sur le relevé mensuel. Un remboursement fait une ligne négative.
+                            {t('Le montant dû est arrêté sur le relevé mensuel. Un remboursement fait une ligne négative.')}
                         </p>
                     </CardHeader>
                     <CardContent className="space-y-2">
                         {lignes.length === 0 ? (
-                            <p className="text-sm text-muted-foreground">Aucun paiement parrainé ce mois-ci.</p>
+                            <p className="text-sm text-muted-foreground">{t('Aucun paiement parrainé ce mois-ci.')}</p>
                         ) : (
                             lignes.map((l) => (
                                 <div key={l.id} className="flex flex-wrap items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm">
                                     <span className="flex items-center gap-2">
                                         <Badge variant={l.type === 'charge' ? 'default' : 'secondary'}>
-                                            {l.type === 'charge' ? 'Paiement' : 'Remboursement'}
+                                            {l.type === 'charge' ? t('Paiement') : t('Remboursement')}
                                         </Badge>
                                         {l.date && (
                                             <span className="text-muted-foreground">
-                                                {new Date(l.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}
+                                                {new Date(l.date).toLocaleDateString(locale, { day: 'numeric', month: 'long' })}
                                             </span>
                                         )}
                                     </span>
