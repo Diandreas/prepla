@@ -30,7 +30,14 @@ class Exercise extends Model
         'xp_reward',
         'is_ai_generated',
         'catalog_key',
+        'center_status',
+        'copied_from_id',
     ];
+
+    /** Statuts d'un exercice du centre dans sa banque de sujets. */
+    public const STATUT_BROUILLON = 'brouillon';
+
+    public const STATUT_VALIDE = 'valide';
 
     protected function casts(): array
     {

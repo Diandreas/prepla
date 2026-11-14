@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { BookOpen, ClipboardList, Headphones, Mic, PenLine, Play, Plus, Puzzle, Search, Sparkles, Target, Trash2, Trophy } from 'lucide-react';
+import { BookOpen, ClipboardList, Copy, Headphones, Library, Mic, Music, PenLine, Play, Plus, Puzzle, Search, Sparkles, Target, Trash2, Trophy } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
@@ -13,6 +13,7 @@ import {
 } from '@/lib/createur-exercices';
 import { useT } from '@/lib/i18n/traduire';
 import { cn } from '@/lib/utils';
+import { CatalogueAdapter } from '@/components/createur-exercices/catalogue-adapter';
 
 interface ExerciseRow extends LigneExercice {
     updated_at?: string | null;
@@ -20,6 +21,9 @@ interface ExerciseRow extends LigneExercice {
     joue?: number;
     eleves?: number;
     reussite?: number | null;
+    /** Banque de sujets : brouillon ou valide. */
+    statut?: 'brouillon' | 'valide' | null;
+    exercise_type_id?: number | null;
 }
 
 type Tri = 'recents' | 'joues' | 'difficiles';
@@ -65,19 +69,32 @@ export default function ExercisesIndex({ exercises, exams }: { exercises: Exerci
     const [examen, setExamen] = useState('');
     const [niveau, setNiveau] = useState('');
     const [competence, setCompetence] = useState('');
+    const [typeFiltre, setTypeFiltre] = useState('');
+    const [statut, setStatut] = useState('');
+    // Les parties / types presents dans la banque, pour ne proposer que des filtres utiles.
+    const typesPresents = useMemo(() => {
+        const vus = new Map<string, string>();
+        for (const e of exercises) {
+            const cle = String(e.type_slug ?? e.component_key ?? '');
+            if (cle !== '' && !vus.has(cle)) vus.set(cle, libelleDuType({ slug: e.type_slug, component_key: e.component_key, name: e.type }));
+        }
+        return [...vus.entries()].map(([cle, nom]) => ({ cle, nom }));
+    }, [exercises]);
 
     const { niveaux, competences } = useMemo(() => optionsDeFiltre(exercises), [exercises]);
     const examensPresents = useMemo(() => exams.filter((e) => exercises.some((x) => x.exam_id === e.id)), [exams, exercises]);
     const [tri, setTri] = useState<Tri>('recents');
     const visibles = useMemo(() => {
-        const liste = filtrerExercices(exercises, { recherche, examen, niveau, competence });
+        const liste = filtrerExercices(exercises, { recherche, examen, niveau, competence })
+            .filter((e) => typeFiltre === '' || String(e.type_slug ?? e.component_key ?? '') === typeFiltre)
+            .filter((e) => statut === '' || (e.statut ?? 'valide') === statut);
         if (tri === 'joues') return [...liste].sort((a, b) => (b.joue ?? 0) - (a.joue ?? 0));
         if (tri === 'difficiles') {
             const cle = (e: ExerciseRow) => ((e.joue ?? 0) >= MIN_POUR_DIFFICULTE && e.reussite != null ? e.reussite : 1000 - (e.joue ?? 0));
             return [...liste].sort((a, b) => cle(a) - cle(b));
         }
         return liste;
-    }, [exercises, recherche, examen, niveau, competence, tri]);
+    }, [exercises, recherche, examen, niveau, competence, typeFiltre, statut, tri]);
 
     // Les chiffres du haut, sur tout le contenu du centre (pas les filtres).
     const chiffres = useMemo(() => {
@@ -89,7 +106,7 @@ export default function ExercisesIndex({ exercises, exams }: { exercises: Exerci
             .sort((a, b) => (a.reussite ?? 0) - (b.reussite ?? 0))[0];
         return { ia, parties, plusJoues: joues.slice(0, 3), jamais: exercises.length - joues.length, difficile };
     }, [exercises]);
-    const filtresActifs = recherche !== '' || examen !== '' || niveau !== '' || competence !== '';
+    const filtresActifs = recherche !== '' || examen !== '' || niveau !== '' || competence !== '' || typeFiltre !== '' || statut !== '';
 
     // Creer et modifier etaient possibles, retirer ne l'etait pas : un brouillon
     // rate restait dans la liste pour toujours.
@@ -97,6 +114,18 @@ export default function ExercisesIndex({ exercises, exams }: { exercises: Exerci
         if (!confirm(t('Supprimer « {nom} » ? Il reste conservé s’il est déjà donné en devoir ou déjà travaillé par un élève.', { nom: nomExercice(exercise) }))) return;
         router.delete(route('center.exercises.destroy', exercise.id), { preserveScroll: true });
     }
+
+    // La copie part en brouillon et s'ouvre aussitot dans l'editeur.
+    function dupliquer(exercise: { id: number }) {
+        router.post(route('center.exercises.dupliquer', exercise.id));
+    }
+
+    function basculerStatut(exercise: ExerciseRow) {
+        const suivant = (exercise.statut ?? 'valide') === 'valide' ? 'brouillon' : 'valide';
+        router.patch(route('center.exercises.statut', exercise.id), { statut: suivant }, { preserveScroll: true });
+    }
+
+    const [catalogueOuvert, setCatalogueOuvert] = useState(false);
 
     return (
         <AppLayout>
@@ -107,12 +136,22 @@ export default function ExercisesIndex({ exercises, exams }: { exercises: Exerci
                         <h1 className="text-2xl font-bold tracking-tight">{t('Contenu')}</h1>
                         <p className="text-sm text-muted-foreground">{t('Les exercices de votre centre, prêts à donner en devoir à vos classes.')}</p>
                     </div>
-                    {exercises.length > 0 && (
-                        <Button asChild>
-                            <Link href={route('center.exercises.create')}><Plus className="h-4 w-4" aria-hidden="true" /> {t('Créer un exercice')}</Link>
+                    <div className="flex flex-wrap gap-2">
+                        <Button asChild variant="outline">
+                            <Link href={route('center.media.page')}><Music className="h-4 w-4" aria-hidden="true" /> {t('Médiathèque')}</Link>
                         </Button>
-                    )}
+                        <Button type="button" variant="outline" onClick={() => setCatalogueOuvert((o) => !o)} aria-expanded={catalogueOuvert}>
+                            <Library className="h-4 w-4" aria-hidden="true" /> {t('Copier depuis le catalogue PrePla')}
+                        </Button>
+                        {exercises.length > 0 && (
+                            <Button asChild>
+                                <Link href={route('center.exercises.create')}><Plus className="h-4 w-4" aria-hidden="true" /> {t('Créer un exercice')}</Link>
+                            </Button>
+                        )}
+                    </div>
                 </div>
+
+                {catalogueOuvert && <CatalogueAdapter exams={exams} onDupliquer={dupliquer} />}
 
                 {exercises.length === 0 ? (
                     <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-border bg-card px-6 py-12 text-center">
@@ -180,7 +219,7 @@ export default function ExercisesIndex({ exercises, exams }: { exercises: Exerci
                             </div>
                         </section>
 
-                        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_auto_auto_auto_auto]" role="search">
+                        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_auto_auto_auto] xl:grid-cols-[minmax(0,1fr)_auto_auto_auto_auto_auto_auto]" role="search">
                             <label className="relative block">
                                 <span className="sr-only">{t('Rechercher un exercice')}</span>
                                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
@@ -198,6 +237,15 @@ export default function ExercisesIndex({ exercises, exams }: { exercises: Exerci
                                 <option value="">{t('Toutes les compétences')}</option>
                                 {competences.map((c) => <option key={c.cle} value={c.cle}>{t(c.nom)}</option>)}
                             </select>
+                            <select aria-label={t('Filtrer par partie ou type')} className={filtre} value={typeFiltre} onChange={(e) => setTypeFiltre(e.target.value)}>
+                                <option value="">{t('Toutes les parties')}</option>
+                                {typesPresents.map((x) => <option key={x.cle} value={x.cle}>{t(x.nom)}</option>)}
+                            </select>
+                            <select aria-label={t('Filtrer par statut')} className={filtre} value={statut} onChange={(e) => setStatut(e.target.value)}>
+                                <option value="">{t('Tous les statuts')}</option>
+                                <option value="brouillon">{t('Brouillons')}</option>
+                                <option value="valide">{t('Validés')}</option>
+                            </select>
                             <select aria-label={t('Trier les exercices')} className={filtre} value={tri} onChange={(e) => setTri(e.target.value as Tri)}>
                                 <option value="recents">{t('Plus récents')}</option>
                                 <option value="joues">{t('Plus joués')}</option>
@@ -210,7 +258,7 @@ export default function ExercisesIndex({ exercises, exams }: { exercises: Exerci
                                 ? (visibles.length > 1 ? t('{n} exercices sur {total}', { n: visibles.length, total: exercises.length }) : t('{n} exercice sur {total}', { n: visibles.length, total: exercises.length }))
                                 : (visibles.length > 1 ? t('{n} exercices', { n: visibles.length }) : t('{n} exercice', { n: visibles.length }))}
                             {filtresActifs && (
-                                <button type="button" className="ml-2 font-semibold text-primary hover:underline" onClick={() => { setRecherche(''); setExamen(''); setNiveau(''); setCompetence(''); }}>
+                                <button type="button" className="ml-2 font-semibold text-primary hover:underline" onClick={() => { setRecherche(''); setExamen(''); setNiveau(''); setCompetence(''); setTypeFiltre(''); setStatut(''); }}>
                                     {t('Effacer les filtres')}
                                 </button>
                             )}
@@ -230,11 +278,19 @@ export default function ExercisesIndex({ exercises, exams }: { exercises: Exerci
                                                 <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                                                     <Icone className="h-4 w-4" aria-hidden="true" /> {t(comp.nom)}
                                                 </span>
+                                                <span className="ml-auto flex shrink-0 gap-1">
+                                                <span className={cn(
+                                                    'rounded-full px-2 py-0.5 text-[11px] font-semibold',
+                                                    (e.statut ?? 'valide') === 'brouillon' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-200' : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-200',
+                                                )}>
+                                                    {(e.statut ?? 'valide') === 'brouillon' ? t('Brouillon') : t('Validé')}
+                                                </span>
                                                 <span className={cn(
                                                     'shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold',
                                                     e.is_ai_generated ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground',
                                                 )}>
                                                     {e.is_ai_generated ? t('IA') : t('Manuel')}
+                                                </span>
                                                 </span>
                                             </div>
                                             <Link href={route('center.exercises.edit', e.id)} className="mt-2 line-clamp-2 font-semibold after:absolute after:inset-0 after:rounded-2xl focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-ring">
@@ -259,8 +315,24 @@ export default function ExercisesIndex({ exercises, exams }: { exercises: Exerci
                                                 <span className="text-muted-foreground">{(e.questions_count ?? 0) > 1 ? t('{n} questions', { n: e.questions_count }) : t('{n} question', { n: e.questions_count })}</span>
                                                 <button
                                                     type="button"
+                                                    onClick={() => basculerStatut(e)}
+                                                    className="relative z-10 ml-auto inline-flex min-h-9 items-center rounded-lg px-2 font-semibold text-primary hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                                >
+                                                    {(e.statut ?? 'valide') === 'brouillon' ? t('Valider') : t('Repasser en brouillon')}
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => dupliquer(e)}
+                                                    className="relative z-10 inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                                    aria-label={t('Dupliquer « {nom} »', { nom: nomExercice(e) })}
+                                                    title={t('Dupliquer')}
+                                                >
+                                                    <Copy className="h-4 w-4" aria-hidden="true" />
+                                                </button>
+                                                <button
+                                                    type="button"
                                                     onClick={() => remove(e)}
-                                                    className="relative z-10 ml-auto inline-flex h-9 w-9 items-center justify-center rounded-lg text-rose-500 hover:bg-rose-50 hover:text-rose-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:bg-rose-950/40"
+                                                    className="relative z-10 inline-flex h-9 w-9 items-center justify-center rounded-lg text-rose-500 hover:bg-rose-50 hover:text-rose-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:bg-rose-950/40"
                                                     aria-label={t('Supprimer « {nom} »', { nom: nomExercice(e) })}
                                                 >
                                                     <Trash2 className="h-4 w-4" aria-hidden="true" />

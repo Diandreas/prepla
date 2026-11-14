@@ -2,6 +2,7 @@ import axios from 'axios';
 import { ImageIcon, Music, Trash2, Upload, X } from 'lucide-react';
 import { useId, useRef, useState } from 'react';
 import { useT } from '@/lib/i18n/traduire';
+import { envoyerAudio, estUnAudio, messageErreur, nomDePiste, SOURCES_PROPOSEES, type FicheMedia } from '@/lib/mediatheque';
 import { cn } from '@/lib/utils';
 
 /**
@@ -26,8 +27,46 @@ export function ZoneMedia({ type, value, onChange, aide }: {
     const id = useId();
     const nom = type === 'image' ? t('Image') : t('Enregistrement audio');
 
+    // Audio : nom de piste, source et droits, certification. Sans eux le
+    // serveur refuse l'envoi (un sujet sous licence doit dire d'ou il vient).
+    const [titre, setTitre] = useState('');
+    const [source, setSource] = useState('');
+    const [certifie, setCertifie] = useState(false);
+    const [bibliotheque, setBibliotheque] = useState<FicheMedia[] | null>(null);
+
+    async function ouvrirBibliotheque() {
+        try {
+            const res = await axios.get(route('center.media.index'), { params: { type: 'audio' } });
+            setBibliotheque(res.data.media ?? []);
+        } catch {
+            setErreur(t('Impossible de charger la médiathèque.'));
+        }
+    }
+
     async function envoyer(fichier: File) {
-        const attendu = type === 'image' ? 'image/' : 'audio/';
+        if (type === 'audio') {
+            if (!estUnAudio(fichier)) {
+                setErreur(t('Ce fichier n’est pas un son (MP3, M4A, MP4, AAC, WAV, OGG, WebM).'));
+                return;
+            }
+            if (source.trim() === '' || !certifie) {
+                setErreur(t('Indiquez la source et les droits, puis cochez la case de certification, avant d’envoyer le son.'));
+                return;
+            }
+            setEnvoi(true);
+            setErreur(null);
+            try {
+                const fiche = await envoyerAudio(fichier, { title: titre.trim() || nomDePiste(fichier), source_rights: source.trim(), rights_certified: true });
+                onChange(fiche.url);
+                setEnvoyeId(fiche.id);
+            } catch (e: unknown) {
+                setErreur(messageErreur(e) ?? t('L’envoi a échoué. Vérifiez votre connexion et la taille du fichier (100 Mo au plus pour un son).'));
+            } finally {
+                setEnvoi(false);
+            }
+            return;
+        }
+        const attendu = 'image/';
         if (!fichier.type.startsWith(attendu)) {
             setErreur(type === 'image' ? t('Ce fichier n’est pas une image (JPG, PNG ou WebP).') : t('Ce fichier n’est pas un son (MP3, WAV, OGG, M4A).'));
             return;
@@ -92,6 +131,58 @@ export function ZoneMedia({ type, value, onChange, aide }: {
                     </div>
                 </div>
             ) : (
+                <>
+                {type === 'audio' && (
+                    <div className="mt-2 space-y-2 rounded-xl border border-border p-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <button type="button" onClick={ouvrirBibliotheque} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border px-2.5 text-xs font-semibold hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                                <Music className="h-3.5 w-3.5" aria-hidden="true" /> {t('Choisir dans la médiathèque')}
+                            </button>
+                            <a href={route('center.media.page')} className="text-xs font-semibold text-primary hover:underline">{t('Envoyer plusieurs pistes')}</a>
+                        </div>
+                        {bibliotheque && (
+                            bibliotheque.length === 0
+                                ? <p className="text-xs text-muted-foreground">{t('Aucun audio pour l’instant.')}</p>
+                                : (
+                                    <select
+                                        aria-label={t('Choisir un audio de la médiathèque')}
+                                        className="min-h-11 w-full rounded-lg border border-border bg-background px-3 text-base sm:text-sm"
+                                        defaultValue=""
+                                        onChange={(e) => { if (e.target.value) { onChange(e.target.value); setEnvoyeId(null); } }}
+                                    >
+                                        <option value="">{t('— Choisir une piste —')}</option>
+                                        {bibliotheque.map((m) => <option key={m.id} value={m.url}>{m.title}{m.source_rights ? ` · ${m.source_rights}` : ''}</option>)}
+                                    </select>
+                                )
+                        )}
+                        <p className="text-xs font-medium text-muted-foreground">{t('Ou envoyez un nouveau fichier :')}</p>
+                        <input
+                            aria-label={t('Nom de la piste')}
+                            className="min-h-11 w-full rounded-lg border border-border bg-background px-3 text-base sm:text-sm"
+                            placeholder={t('Nom de la piste (ex. TCF CO piste 12)')}
+                            maxLength={160}
+                            value={titre}
+                            onChange={(e) => setTitre(e.target.value)}
+                        />
+                        <input
+                            aria-label={t('Source et droits')}
+                            list={`${id}-sources`}
+                            className="min-h-11 w-full rounded-lg border border-border bg-background px-3 text-base sm:text-sm"
+                            placeholder={t('Source et droits (obligatoire)')}
+                            maxLength={255}
+                            required
+                            value={source}
+                            onChange={(e) => setSource(e.target.value)}
+                        />
+                        <datalist id={`${id}-sources`}>
+                            {SOURCES_PROPOSEES.map((s) => <option key={s} value={t(s)} />)}
+                        </datalist>
+                        <label className="flex items-start gap-2 text-xs">
+                            <input type="checkbox" className="mt-0.5 h-4 w-4 shrink-0" checked={certifie} onChange={(e) => setCertifie(e.target.checked)} />
+                            <span>{t('Je certifie avoir les droits de diffuser ce fichier à mes élèves.')}</span>
+                        </label>
+                    </div>
+                )}
                 <button
                     type="button"
                     aria-labelledby={`${id}-titre`}
@@ -120,9 +211,10 @@ export function ZoneMedia({ type, value, onChange, aide }: {
                         {envoi ? t('Envoi en cours…') : t('Glissez un fichier ici ou cliquez pour choisir')}
                     </span>
                     <span id={`${id}-consigne`} className="text-xs text-muted-foreground">
-                        {type === 'image' ? t('JPG, PNG ou WebP, 5 Mo au plus') : t('MP3, WAV, OGG ou M4A, 20 Mo au plus')}
+                        {type === 'image' ? t('JPG, PNG ou WebP, 5 Mo au plus') : t('MP3, M4A, MP4, AAC, WAV, OGG ou WebM, 100 Mo au plus')}
                     </span>
                 </button>
+                </>
             )}
             <input
                 ref={champ}
@@ -130,7 +222,7 @@ export function ZoneMedia({ type, value, onChange, aide }: {
                 className="sr-only"
                 tabIndex={-1}
                 aria-hidden="true"
-                accept={type === 'image' ? 'image/jpeg,image/png,image/webp' : 'audio/*'}
+                accept={type === 'image' ? 'image/jpeg,image/png,image/webp' : 'audio/*,.mp3,.m4a,.mp4,.aac,.wav,.ogg,.webm'}
                 onChange={(e) => {
                     const f = e.target.files?.[0];
                     if (f) envoyer(f);

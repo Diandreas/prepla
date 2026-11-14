@@ -357,6 +357,8 @@ Route::middleware(['auth', EnsureCenterStaff::class])
         // Médiathèque (upload images / audio en local)
         Route::get('media', [MediaController::class, 'index'])->name('media.index');
         Route::post('media', [MediaController::class, 'store'])->name('media.store');
+        Route::get('mediatheque', [MediaController::class, 'page'])->name('media.page');
+        Route::patch('media/{medium}', [MediaController::class, 'update'])->name('media.update');
         Route::delete('media/{medium}', [MediaController::class, 'destroy'])->name('media.destroy');
 
         // Builder de contenu (manuel + IA assistée)
@@ -366,6 +368,11 @@ Route::middleware(['auth', EnsureCenterStaff::class])
         Route::post('exercises', [ExerciseBuilderController::class, 'store'])->name('exercises.store');
         Route::get('exercises/{exercise}/edit', [ExerciseBuilderController::class, 'edit'])->name('exercises.edit');
         Route::patch('exercises/{exercise}', [ExerciseBuilderController::class, 'update'])->name('exercises.update');
+        // Banque de sujets : statut brouillon / valide, copie d'un exercice du
+        // centre ou du catalogue PrePla pour l'adapter.
+        Route::get('exercises-catalogue', [ExerciseBuilderController::class, 'catalogue'])->name('exercises.catalogue');
+        Route::patch('exercises/{exercise}/statut', [ExerciseBuilderController::class, 'statut'])->name('exercises.statut');
+        Route::post('exercises/{exercise}/dupliquer', [ExerciseBuilderController::class, 'dupliquer'])->name('exercises.dupliquer');
         // Un brouillon rate restait dans la liste pour toujours : on peut desormais
         // le retirer, sauf s'il a deja ete donne en devoir ou travaille.
         Route::delete('exercises/{exercise}', [ExerciseBuilderController::class, 'destroy'])->name('exercises.destroy');
