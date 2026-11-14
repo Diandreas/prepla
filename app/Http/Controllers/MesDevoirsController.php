@@ -53,7 +53,7 @@ class MesDevoirsController extends Controller
 
         $assignment->load('items');
         $ids = $assignment->items->where('itemable_type', Exercise::class)->pluck('itemable_id');
-        $exercices = Exercise::whereIn('id', $ids)->with('exerciseType:id,name,slug,component_key')->get(['id', 'exercise_type_id'])->keyBy('id');
+        $exercices = Exercise::whereIn('id', $ids)->horsBrouillon()->with('exerciseType:id,name,slug,component_key')->get(['id', 'exercise_type_id'])->keyBy('id');
         $faits = \App\Models\UserExerciseAttempt::where('user_id', $user->id)
             ->whereIn('exercise_id', $ids)
             ->where('created_at', '>=', $assignment->published_at)

@@ -37,7 +37,7 @@ function taille(octets?: number | null): string {
     return octets > 1024 * 1024 ? `${(octets / 1024 / 1024).toFixed(1)} Mo` : `${Math.max(1, Math.round(octets / 1024))} Ko`;
 }
 
-export default function Mediatheque({ media, limites }: { media: FicheMedia[]; limites: { audio_mo: number; image_mo: number } }) {
+export default function Mediatheque({ media, limites }: { media: FicheMedia[]; limites: { audio_mo: number; image_mo: number; serveur_mo?: number | null } }) {
     const { t } = useT();
     const id = useId();
     const entree = useRef<HTMLInputElement>(null);
@@ -54,6 +54,8 @@ export default function Mediatheque({ media, limites }: { media: FicheMedia[]; l
         for (const f of Array.from(fichiers)) {
             if (!estUnAudio(f)) {
                 refuses.push(t('{nom} n’est pas un son.', { nom: f.name }));
+            } else if (limites.serveur_mo && limites.serveur_mo < limites.audio_mo && f.size > limites.serveur_mo * 1024 * 1024) {
+                refuses.push(t('{nom} dépasse la limite actuelle du serveur ({mo} Mo). Compressez-le ou contactez PrePla.', { nom: f.name, mo: limites.serveur_mo }));
             } else if (f.size > limites.audio_mo * 1024 * 1024) {
                 refuses.push(t('{nom} dépasse {mo} Mo.', { nom: f.name, mo: limites.audio_mo }));
             } else {

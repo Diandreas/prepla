@@ -26,6 +26,46 @@ class MediaController extends Controller
      */
     public const AUDIO_FORMATS = 'mp3,mpga,m4a,mp4,aac,adts,wav,ogg,oga,webm,weba';
 
+    /**
+     * La limite reelle du serveur, en octets : la plus petite de
+     * upload_max_filesize et post_max_size. Si elle est sous 100 Mo, PHP
+     * refuse le fichier avant Laravel ; on le dit clairement au centre.
+     */
+    public static function limiteServeurOctets(): int
+    {
+        $tailles = array_filter([
+            self::enOctets((string) ini_get('upload_max_filesize')),
+            self::enOctets((string) ini_get('post_max_size')),
+        ], fn (int $o) => $o > 0);
+
+        return $tailles === [] ? PHP_INT_MAX : min($tailles);
+    }
+
+    /** « 110M », « 2G », « 512K » ou un nombre d'octets. */
+    public static function enOctets(string $valeur): int
+    {
+        $valeur = trim($valeur);
+        if ($valeur === '') {
+            return 0;
+        }
+        $nombre = (int) $valeur;
+
+        return match (strtolower(substr($valeur, -1))) {
+            'g' => $nombre * 1024 ** 3,
+            'm' => $nombre * 1024 ** 2,
+            'k' => $nombre * 1024,
+            default => $nombre,
+        };
+    }
+
+    /** Message affiche quand le fichier depasse la limite du serveur. */
+    public static function messageLimiteServeur(): string
+    {
+        $mo = intdiv(self::limiteServeurOctets(), 1024 * 1024);
+
+        return "Ce fichier dépasse la limite actuelle du serveur ({$mo} Mo). Compressez-le (MP3 en 128 kbit/s par exemple) ou contactez PrePla.";
+    }
+
     public function index(Request $request)
     {
         /** @var LanguageCenter $center */
@@ -50,7 +90,8 @@ class MediaController extends Controller
         return Inertia::render('center/media', [
             'media' => CenterMedia::where('center_id', $center->id)->latest()->get()
                 ->map(fn (CenterMedia $m) => $m->fiche()),
-            'limites' => ['audio_mo' => intdiv(self::AUDIO_MAX_KO, 1024), 'image_mo' => intdiv(self::IMAGE_MAX_KO, 1024)],
+            'limites' => ['audio_mo' => intdiv(self::AUDIO_MAX_KO, 1024), 'image_mo' => intdiv(self::IMAGE_MAX_KO, 1024),
+                'serveur_mo' => self::limiteServeurOctets() === PHP_INT_MAX ? null : intdiv(self::limiteServeurOctets(), 1024 * 1024)],
         ]);
     }
 
@@ -69,9 +110,11 @@ class MediaController extends Controller
             'source_rights' => 'required_if:type,audio|nullable|string|max:255',
             'rights_certified' => 'required_if:type,audio|accepted_if:type,audio',
         ], [
+            'audio.uploaded' => self::messageLimiteServeur(),
+            'image.uploaded' => self::messageLimiteServeur(),
             'source_rights.required_if' => 'Indiquez la source et les droits de ce fichier.',
-            'rights_certified.required_if' => 'Cochez la case : vous certifiez avoir les droits de diffuser ce fichier Ã  vos Ã©lÃ¨ves.',
-            'rights_certified.accepted_if' => 'Cochez la case : vous certifiez avoir les droits de diffuser ce fichier Ã  vos Ã©lÃ¨ves.',
+            'rights_certified.required_if' => 'Cochez la case : vous certifiez avoir les droits de diffuser ce fichier à vos élèves.',
+            'rights_certified.accepted_if' => 'Cochez la case : vous certifiez avoir les droits de diffuser ce fichier à vos élèves.',
         ]);
 
         $file = $request->file($validated['type']);

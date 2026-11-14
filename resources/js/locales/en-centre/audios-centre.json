@@ -72,5 +72,6 @@
   "Impossible de charger le catalogue.": "Could not load the catalogue.",
   "Chargement…": "Loading…",
   "Aucun exercice du catalogue pour ces filtres.": "No catalogue exercise matches these filters.",
-  "Copier et adapter": "Copy and adapt"
+  "Copier et adapter": "Copy and adapt",
+  "{nom} dépasse la limite actuelle du serveur ({mo} Mo). Compressez-le ou contactez PrePla.": "{nom} exceeds the current server limit ({mo} MB). Compress it or contact PrePla."
 }

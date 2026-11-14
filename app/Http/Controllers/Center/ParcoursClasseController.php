@@ -94,7 +94,7 @@ class ParcoursClasseController extends Controller
             ->get()
             ->map(fn (Exercise $e) => $this->exercice($e, $dejaPris));
 
-        $duCentre = Exercise::where('center_id', $classroom->center_id)
+        $duCentre = Exercise::where('center_id', $classroom->center_id)->horsBrouillon()
             ->with('exerciseType:id,name,skill_type')
             ->latest()
             ->limit(200)

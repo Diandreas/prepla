@@ -597,6 +597,22 @@ class Exercise extends Model
         return $query->whereNull($this->qualifyColumn('content').'->'.self::CLE_RETRAIT);
     }
 
+    /**
+     * Les exercices qu'un eleve peut recevoir : un brouillon du centre reste
+     * dans le createur, ni devoir, ni parcours, ni examen blanc.
+     */
+    public function scopeHorsBrouillon($query)
+    {
+        $col = $this->qualifyColumn('center_status');
+
+        return $query->where(fn ($q) => $q->whereNull($col)->orWhere($col, '!=', self::STATUT_BROUILLON));
+    }
+
+    public function estBrouillon(): bool
+    {
+        return $this->center_status === self::STATUT_BROUILLON;
+    }
+
     /** Tous les exercices, retires compris : pour prepla:nettoyer-vivier et ses tests. */
     public function scopeAvecLesRetires($query)
     {
