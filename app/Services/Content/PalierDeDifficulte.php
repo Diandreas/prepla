@@ -113,4 +113,24 @@ class PalierDeDifficulte
             default => "\n\nPROGRESSION: this is lesson {$etape} of {$total} at {$niveau}, at the start of the level. Keep it simple and guided, but the quiz must still check understanding, not just copying a word shown in the lesson.",
         };
     }
+
+    /**
+     * La tranche de la lecon dans son niveau, avec les memes bornes que
+     * consigneDeLecon : elle sert de cle au cache des lecons, puisqu'une lecon de
+     * debut et une lecon de fin de niveau ne sont pas ecrites pareil.
+     */
+    public static function trancheDeLecon(int $position, int $total): string
+    {
+        if ($total < 2) {
+            return 'unique';
+        }
+
+        $avancement = $position / ($total - 1);
+
+        return match (true) {
+            $avancement >= 0.66 => 'fin',
+            $avancement >= 0.33 => 'milieu',
+            default => 'debut',
+        };
+    }
 }

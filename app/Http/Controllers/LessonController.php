@@ -168,7 +168,7 @@ class LessonController extends Controller
         $accuracy = count($quiz) > 0 ? round(($correctCount / count($quiz)) * 100) : null;
 
         // Record outcome for curriculum adaptation. Pass the explicit quiz verdict
-        // ($passed, 2/3 threshold) so the practice phase opens for any passing score,
+        // ($passed, 3 sur 4 : Lesson::bonnesReponsesRequises) so the practice phase opens for any passing score,
         // matching the "Pratiquer ce concept" CTA the UI shows on success.
         $path = CurriculumSkeleton::where('user_id', $user->id)->first();
         $isCurrent = $path && $path->current_objective_index === (int) $lesson->skeleton_objective_index

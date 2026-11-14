@@ -39,7 +39,7 @@ test('une erreur ne peut pas etre declaree revisee par un autre compte', functio
     ]);
 
     $this->actingAs($intruder)
-        ->postJson(route('errors.submit-review', $error), ['correct' => true])
+        ->postJson(route('errors.submit-review', $error), ['answer' => 'ging'])
         ->assertForbidden();
 
     $error->refresh();
@@ -64,7 +64,8 @@ test('le proprietaire revise normalement son erreur', function () {
     ]);
 
     $this->actingAs($owner)
-        ->postJson(route('errors.submit-review', $error), ['correct' => true])
+        ->withSession([\App\Services\ErrorReviewItems::SESSION => [$error->id => ['exercise_id' => null, 'question_id' => '']]])
+        ->postJson(route('errors.submit-review', $error), ['answer' => 'ging'])
         ->assertOk()
         ->assertJsonPath('success', true);
 

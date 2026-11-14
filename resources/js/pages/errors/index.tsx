@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
 
@@ -10,8 +11,8 @@ interface UserError {
     skill_type: string;
     prompt: string;
     user_answer: string;
-    correct_answer: string;
     explanation: string | null;
+    correct_answer?: string | null;
     mastered: boolean;
     review_count: number;
     next_review_at: string | null;
@@ -60,6 +61,7 @@ const skillIcons: Record<string, string> = {
 };
 
 export default function ErrorsIndex({ errors, errorsBySkill, comprehensionBySkill = {}, dueForReviewCount }: Props) {
+    const { t } = useTranslation();
     const totalErrors = errors.total;
 
     return (
@@ -199,8 +201,12 @@ export default function ErrorsIndex({ errors, errorsBySkill, comprehensionBySkil
                                             <p className="text-sm font-medium text-red-700 line-clamp-2">{error.user_answer}</p>
                                         </div>
                                         <div className="p-3 rounded-xl" style={{ background: '#f0fdf4' }}>
-                                            <p className="text-xs font-bold uppercase tracking-wide mb-1" style={{ color: GREEN }}>Bonne réponse</p>
-                                            <p className="text-sm font-medium text-green-700 line-clamp-2">{error.correct_answer}</p>
+                                            <p className="text-xs font-bold uppercase tracking-wide mb-1" style={{ color: GREEN }}>{t('errors.correct_answer', 'Bonne réponse')}</p>
+                                            {/* La solution n'est plus envoyee avant la revision : la lire ici
+                                                gacherait le rappel. Elle s'affiche apres la reponse. */}
+                                            <p className="text-sm font-medium text-green-700 line-clamp-2">
+                                                {error.mastered && error.correct_answer ? error.correct_answer : t('errors.to_recall', 'À retrouver pendant la révision')}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
