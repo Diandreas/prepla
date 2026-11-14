@@ -1,6 +1,7 @@
 import { ArtIcon } from '@/components/art-icon';
 import { Renard } from '@/components/renard';
 import { XpEnvol } from '@/components/xp-envol';
+import { envolerXpVersCompteur } from '@/lib/xp-vers-compteur';
 import { normalizeOptions } from '@/components/exercises/normalize-options';
 import { normalizeTtsLang } from '@/lib/tts-cache';
 import type { ExerciseAttempt } from '@/types';
@@ -181,6 +182,14 @@ export default function ExerciseResult({ attempt, nodeProgress }: Props) {
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
 
+    // A la fin de l'exercice, le gain monte de la carte « XP gagnes » vers le
+    // compteur d'XP de l'en-tete, une seule fois.
+    const carteXp = useRef<HTMLDivElement | null>(null);
+    useEffect(() => {
+        const id = window.setTimeout(() => envolerXpVersCompteur(carteXp.current, Number(attempt.xp_earned ?? 0)), 450);
+        return () => window.clearTimeout(id);
+    }, [attempt.id, attempt.xp_earned]);
+
     const [playingTts, setPlayingTts] = useState<string | null>(null);
     const [ttsError, setTtsError] = useState<string | null>(null);
     const ttsBusy = useRef(false);
@@ -341,7 +350,7 @@ export default function ExerciseResult({ attempt, nodeProgress }: Props) {
                         </div>
                         <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Précision</p>
                     </div>
-                    <div className="duo-card relative flex flex-col items-center justify-center gap-1 p-3 sm:p-5">
+                    <div ref={carteXp} className="duo-card relative flex flex-col items-center justify-center gap-1 p-3 sm:p-5">
                         <XpEnvol xp={Number(attempt.xp_earned ?? 0)} />
                         <div className="flex items-center gap-1 text-2xl font-black text-amber-700 dark:text-amber-300 sm:text-3xl">
                             <ArtIcon name="zap" size={28} tone="amber" className="hidden sm:inline-flex" />

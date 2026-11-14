@@ -1023,16 +1023,19 @@
    .duo-press. */
 .appui:not(:disabled):active { transform: scale(0.97); }
 
-/* Mouvement reduit : on coupe toutes les animations decoratives d'un coup.
-   Les changements d'etat restent (couleurs, icones, textes) : seul le
-   mouvement disparait. */
+/* Mouvement reduit : on coupe seulement les animations decoratives (rebond,
+   secousse, confettis, entree du renard, envol d'XP). Les indicateurs de
+   chargement (animate-spin) et les barres de progression continuent de
+   tourner : ils disent a l'eleve que quelque chose se passe. Les changements
+   d'etat restent (couleurs, icones, textes). */
 @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-        animation-duration: 1ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 1ms !important;
-        scroll-behavior: auto !important;
+    .coche-pop, .xp-envol, .renard-entree, .confetti-piece, .answer-shake, .answer-pop, .value-bump,
+    .animate-bounce, .animate-bounce-soft, .animate-wiggle, .animate-celebrate, .animate-confetti-pop,
+    .animate-float, .animate-sparkle, .animate-tilt-in {
+        animation: none !important;
     }
-    .coche-pop, .xp-envol, .renard-entree, .appui:active { animation: none !important; transform: none !important; }
-    .xp-envol { opacity: 0; }
+    .coche-pop, .renard-entree, .appui:active { transform: none !important; }
+    .xp-envol, .confetti-piece { opacity: 0; }
+    .xp-vers-compteur { display: none !important; }
+    html { scroll-behavior: auto !important; }
 }

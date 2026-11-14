@@ -7,9 +7,10 @@ import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { playSound } from '@/hooks/use-sound';
+import { jouerSonReponse, memoriserSonReponse, sonReponseActif } from '@/lib/bip-reponse';
 import { getCachedTtsUrl, rememberTtsUrl, prefetchExercisesAudio } from '@/lib/tts-cache';
 import { evaluateAnswer, expectedAnswerText, isBlankAnswer, isSkippedAnswer, needsServerEvaluation, optionList } from '@/lib/scoring';
-import { AlertCircle, BookOpen, Check, ChevronDown, ChevronRight, Headphones, Info, Loader2, MessageSquare, Mic, PenLine, Play, Plus, Puzzle, Search, Volume1, Volume2, X } from 'lucide-react';
+import { AlertCircle, BookOpen, Check, ChevronDown, ChevronRight, Headphones, Info, Loader2, MessageSquare, Mic, PenLine, Play, Plus, Puzzle, Search, Volume1, Volume2, VolumeX, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Read the freshest CSRF token. The XSRF-TOKEN cookie tracks the live session,
@@ -579,6 +580,14 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
     const [isReviewMode, setIsReviewMode] = useState(false);
     const [answers, setAnswers] = useState<Record<string, FormDataConvertible>>({});
     const [isChecked, setIsChecked] = useState(false);
+    // Son court de bonne / mauvaise reponse, coupable et memorise.
+    const [sonActif, setSonActif] = useState(() => sonReponseActif());
+    const basculerSon = () => {
+        const suivant = !sonActif;
+        setSonActif(suivant);
+        memoriserSonReponse(suivant);
+        if (suivant) jouerSonReponse(true);
+    };
     const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
     // Question passee faute d'avoir pu etre presentee : ni juste, ni fausse.
     const [skipped, setSkipped] = useState(false);
@@ -951,7 +960,7 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
             const sc = parseInt(String(currentAnswer).split(':')[1] ?? '0', 10) || 0;
             setIsCorrect(sc >= 50);
             setIsChecked(true);
-            playSound(sc >= 50 ? 'correct' : 'incorrect');
+            jouerSonReponse(sc >= 50);
             return;
         }
 
@@ -1012,7 +1021,7 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
 
         setIsCorrect(isRight);
         setIsChecked(true);
-        playSound(isRight ? 'correct' : 'incorrect');
+        jouerSonReponse(isRight);
 
         if (!isRight) {
             // Most exercises ship their own explanation: show it at once instead of
@@ -1363,6 +1372,17 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
                                 onExpire={handleTimeExpire}
                             />
                         </div>
+                        <button
+                            type="button"
+                            onClick={basculerSon}
+                            aria-pressed={sonActif}
+                            data-bouton-son
+                            title={sonActif ? 'Couper le son des réponses' : 'Activer le son des réponses'}
+                            aria-label={sonActif ? 'Couper le son des réponses' : 'Activer le son des réponses'}
+                            className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                            {sonActif ? <Volume2 className="h-5 w-5" aria-hidden="true" /> : <VolumeX className="h-5 w-5" aria-hidden="true" />}
+                        </button>
                         <ArcTimer
                             seconds={timerSeconds}
                             limit={TIME_PER_QUESTION}
