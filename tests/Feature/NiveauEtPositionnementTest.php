@@ -87,26 +87,25 @@ test('le test de secours est ecrit dans la langue visee', function () {
     $francais = $methode->invoke($service, 'Français', 'DELF');
 
     // Un candidat allemand ne doit pas voir « I ___ a student ».
-    expect($allemand['section_a'][0]['sentence'])->toContain('Ich')
+    expect($allemand['section_a'][1]['sentence'])->toContain('Ich')
         ->and($allemand['section_b']['passage'])->not->toContain('Technology has')
         ->and($allemand['section_c']['prompt'])->toContain('Wörter');
 
-    expect($francais['section_a'][0]['sentence'])->toContain('Je')
+    expect($francais['section_a'][1]['sentence'])->toContain('Je')
         ->and($francais['section_c']['prompt'])->toContain('mots');
 });
 
-test('le test de secours couvre les six paliers, du A1 au C1', function () {
+test('le test de secours couvre tous les paliers, du A0 au C2', function () {
     $service = app(PlacementTestService::class);
     $methode = new ReflectionMethod($service, 'getFallbackFullTest');
     $methode->setAccessible(true);
 
     foreach (['Anglais', 'Français', 'Allemand'] as $langue) {
         $test = $methode->invoke($service, $langue, 'Examen');
-        $niveaux = array_unique(array_column($test['section_a'], 'level'));
-        sort($niveaux);
+        $niveaux = array_values(array_unique(array_column($test['section_a'], 'level')));
 
-        expect($niveaux)->toBe(['A1', 'A2', 'B1', 'B2', 'C1'], "langue : {$langue}");
-        expect($test['section_a'])->toHaveCount(8, "langue : {$langue}");
+        expect($niveaux)->toBe(['A0', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'], "langue : {$langue}");
+        expect($test['section_a'])->toHaveCount(10, "langue : {$langue}");
     }
 });
 

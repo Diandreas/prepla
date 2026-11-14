@@ -15,6 +15,18 @@ class LevelAdvancementService
     /** Précision moyenne exigée sur les dernières séances pour monter d'un cran. */
     public const ADVANCE_THRESHOLD = 70;
 
+    /** Séances de compréhension (lecture, écoute, grammaire...) exigées au niveau. */
+    public const MIN_RECEPTION = 5;
+
+    /** Productions écrites, et orales, exigées au niveau courant. */
+    public const MIN_PRODUCTION = 2;
+
+    /**
+     * Moyenne exigée sur chaque production. Plus basse que la réception : une
+     * rédaction notée 60 % au bon niveau est déjà une vraie réussite.
+     */
+    public const PRODUCTION_THRESHOLD = 60;
+
     /**
      * Monte l'apprenant d'un niveau quand il a bouclé tout son niveau courant.
      *
@@ -23,8 +35,11 @@ class LevelAdvancementService
      * test de positionnement. Un apprenant pouvait finir un parcours entier, des
      * pronoms de base à la fluidité avancée, en restant marqué A1.
      *
-     * Règle retenue : tous les objectifs de son niveau sont terminés, et ses
-     * dernières séances tiennent la moyenne exigée.
+     * Règle retenue : tous les objectifs de son niveau sont terminés, et le
+     * bilan du niveau (voir bilanDuNiveau) est complet : la compréhension tient
+     * la moyenne, ET l'écrit ET l'oral ont été pratiqués au niveau avec un seuil
+     * minimal. Une simple moyenne laissait monter quelqu'un qui n'avait jamais
+     * écrit ni parlé à ce niveau.
      */
     public function assessAfterObjective(int $userId, CurriculumSkeleton $skeleton): ?string
     {
@@ -57,22 +72,8 @@ class LevelAdvancementService
             return null;
         }
 
-        // Seules comptent les séances faites à ce niveau et sur cet examen. La moyenne
-        // portait sur les vingt dernières séances, toutes difficultés confondues : les
-        // exercices d'un niveau inférieur — le repêchage du parcours en sert quand il
-        // n'en trouve aucun au bon niveau, et l'espace hors ligne en propose aussi —
-        // la tiraient vers le haut. On promouvait alors quelqu'un sur des exercices
-        // plus faciles que son niveau, exactement ce que la règle veut éviter.
-        $recent = UserExerciseAttempt::where('user_id', $userId)
-            ->whereHas('exercise', fn ($query) => $query
-                ->where('difficulty', $currentLevel)
-                ->where('exam_id', $skeleton->exam_id))
-            ->orderByDesc('created_at')
-            ->limit(20)
-            ->pluck('accuracy_percent');
-
-        // Trop peu de séances pour juger : on ne promeut pas sur un coup de chance.
-        if ($recent->count() < 5 || $recent->avg() < self::ADVANCE_THRESHOLD) {
+        $bilan = $this->bilanDuNiveau($userId, $skeleton->exam_id, $currentLevel);
+        if (!$bilan['pret']) {
             return null;
         }
 
@@ -83,9 +84,11 @@ class LevelAdvancementService
             'previous_level' => $currentLevel,
             'assessment_type' => 'curriculum',
             'score_details' => [
-                'average_accuracy' => round($recent->avg(), 1),
+                'average_accuracy' => $bilan['reception']['moyenne'],
                 'threshold' => self::ADVANCE_THRESHOLD,
-                'sessions_considered' => $recent->count(),
+                'sessions_considered' => $bilan['reception']['seances'],
+                'writing' => $bilan['ecrit'],
+                'speaking' => $bilan['oral'],
             ],
             'assessed_at' => now(),
         ]);
@@ -93,6 +96,79 @@ class LevelAdvancementService
         $profile->update(['current_level' => $nextLevel]);
 
         return $nextLevel;
+    }
+
+    /**
+     * Ce que l'apprenant a montré à son niveau, compétence par compétence, et
+     * ce qui lui manque encore pour monter (phrases prêtes à afficher).
+     *
+     * Seules comptent les séances faites à ce niveau et sur cet examen : les
+     * exercices d'un niveau inférieur (repêchage du parcours, espace hors ligne)
+     * tiraient la moyenne vers le haut et faisaient monter sur du plus facile.
+     *
+     * @return array{pret: bool, reception: array, ecrit: array, oral: array, manques: list<string>}
+     */
+    public function bilanDuNiveau(int $userId, int $examId, string $level): array
+    {
+        $seances = UserExerciseAttempt::query()
+            ->where('user_exercise_attempts.user_id', $userId)
+            ->join('exercises', 'exercises.id', '=', 'user_exercise_attempts.exercise_id')
+            ->leftJoin('exercise_types', 'exercise_types.id', '=', 'exercises.exercise_type_id')
+            ->where('exercises.difficulty', $level)
+            ->where('exercises.exam_id', $examId)
+            ->orderByDesc('user_exercise_attempts.created_at')
+            ->orderByDesc('user_exercise_attempts.id')
+            ->get(['user_exercise_attempts.accuracy_percent', 'exercise_types.skill_type']);
+
+        // Lecture, ecoute, grammaire, vocabulaire : tout ce qui n'est pas une
+        // production compte comme de la reception.
+        $parFamille = $seances->groupBy(fn ($s) => match ($s->skill_type) {
+            'writing' => 'ecrit',
+            'speaking' => 'oral',
+            default => 'reception',
+        });
+
+        $resume = function (string $famille, int $minimum, int $seuil, int $fenetre) use ($parFamille): array {
+            $notes = ($parFamille[$famille] ?? collect())->take($fenetre)->pluck('accuracy_percent');
+            $moyenne = $notes->isEmpty() ? null : round((float) $notes->avg(), 1);
+
+            return [
+                'seances' => $notes->count(),
+                'moyenne' => $moyenne,
+                'minimum' => $minimum,
+                'seuil' => $seuil,
+                'ok' => $notes->count() >= $minimum && $moyenne !== null && $moyenne >= $seuil,
+            ];
+        };
+
+        $reception = $resume('reception', self::MIN_RECEPTION, self::ADVANCE_THRESHOLD, 20);
+        $ecrit = $resume('ecrit', self::MIN_PRODUCTION, self::PRODUCTION_THRESHOLD, 10);
+        $oral = $resume('oral', self::MIN_PRODUCTION, self::PRODUCTION_THRESHOLD, 10);
+
+        $manques = [];
+        foreach ([
+            [$reception, 'exercices de compréhension'],
+            [$ecrit, 'productions écrites'],
+            [$oral, 'productions orales'],
+        ] as [$partie, $nom]) {
+            if ($partie['ok']) {
+                continue;
+            }
+            if ($partie['seances'] < $partie['minimum']) {
+                $reste = $partie['minimum'] - $partie['seances'];
+                $manques[] = "Encore {$reste} {$nom} au niveau {$level} (minimum {$partie['minimum']}).";
+            } else {
+                $manques[] = "Tes {$nom} au niveau {$level} sont à {$partie['moyenne']} % en moyenne : il faut {$partie['seuil']} %.";
+            }
+        }
+
+        return [
+            'pret' => $manques === [],
+            'reception' => $reception,
+            'ecrit' => $ecrit,
+            'oral' => $oral,
+            'manques' => $manques,
+        ];
     }
 
     public function assessAfterBossNode(int $userId, int $examId, float $score): ?string

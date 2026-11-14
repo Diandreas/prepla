@@ -55,6 +55,34 @@ function learnerWithPath(array $statuses, ?array $levels = null): array
     return [$user, $skeleton, $exam, $exercise->id];
 }
 
+/**
+ * Des productions ecrites et orales reussies au niveau donne : la promotion
+ * les exige en plus de la comprehension.
+ */
+function ajouterProductions(int $userId, Exam $exam, string $niveau, int $nombre = 2, int $precision = 75, array $competences = ['writing', 'speaking']): void
+{
+    foreach ($competences as $competence) {
+        $section = ExamSection::firstOrCreate(
+            ['exam_id' => $exam->id, 'slug' => $competence],
+            ['name' => ucfirst($competence), 'skill_type' => $competence],
+        );
+        $type = ExerciseType::firstOrCreate(
+            ['section_id' => $section->id, 'slug' => $competence.'-task'],
+            ['name' => $competence, 'skill_type' => $competence, 'component_key' => $competence === 'writing' ? 'essay' : 'speaking'],
+        );
+        $exercice = Exercise::create([
+            'exam_id' => $exam->id, 'exercise_type_id' => $type->id, 'exam_section_id' => $section->id,
+            'difficulty' => $niveau, 'content' => [], 'questions' => [],
+        ]);
+        foreach (range(1, $nombre) as $ignored) {
+            UserExerciseAttempt::create([
+                'user_id' => $userId, 'exercise_id' => $exercice->id,
+                'answers' => [], 'score' => 1, 'accuracy_percent' => $precision,
+            ]);
+        }
+    }
+}
+
 test('un parcours sans niveaux se voit attribuer une progression, pas du A1 partout', function () {
     [$user, $skeleton] = learnerWithPath(array_fill(0, 30, 'pending'));
 
@@ -88,6 +116,9 @@ test('finir tous les objectifs de son niveau fait monter d un cran', function ()
             'score' => 3, 'accuracy_percent' => 85, 'time_spent' => 60, 'xp_earned' => 10, 'feedback' => [],
         ]);
     }
+
+    // L'ecrit et l'oral doivent aussi avoir ete pratiques au niveau.
+    ajouterProductions($user->id, $exam, 'A1');
 
     $promoted = app(LevelAdvancementService::class)->assessAfterObjective($user->id, $skeleton);
 
@@ -159,5 +190,62 @@ test('des exercices plus faciles ne font pas monter de niveau', function () {
         ]);
     }
 
+    ajouterProductions($user->id, $exam, 'B1');
+
     expect(app(LevelAdvancementService::class)->assessAfterObjective($user->id, $skeleton->fresh()))->toBe('B2');
+});
+
+test('sans ecrit ni oral au niveau, pas de promotion, et le bilan dit ce qui manque', function () {
+    // Une simple moyenne de QCM faisait monter quelqu'un qui n'avait jamais
+    // ecrit ni parle a son niveau.
+    [$user, $skeleton, $exam, $exerciseId] = learnerWithPath(['done', 'done'], ['A1', 'A1']);
+
+    foreach (range(1, 6) as $ignored) {
+        UserExerciseAttempt::create([
+            'user_id' => $user->id, 'exercise_id' => $exerciseId, 'answers' => [],
+            'score' => 3, 'accuracy_percent' => 95,
+        ]);
+    }
+    ajouterProductions($user->id, $exam, 'A1', 1, 80, ['writing']);
+
+    $service = app(LevelAdvancementService::class);
+    expect($service->assessAfterObjective($user->id, $skeleton))->toBeNull()
+        ->and($user->profile->fresh()->current_level)->toBe('A1');
+
+    $bilan = $service->bilanDuNiveau($user->id, $exam->id, 'A1');
+    expect($bilan['pret'])->toBeFalse()
+        ->and($bilan['reception']['ok'])->toBeTrue()
+        ->and($bilan['ecrit']['seances'])->toBe(1)
+        ->and($bilan['oral']['seances'])->toBe(0)
+        ->and($bilan['manques'])->toHaveCount(2)
+        ->and($bilan['manques'][0])->toContain('productions écrites')
+        ->and($bilan['manques'][1])->toContain('productions orales');
+});
+
+test('des productions trop faibles bloquent la promotion, des productions au seuil la donnent', function () {
+    [$user, $skeleton, $exam, $exerciseId] = learnerWithPath(['done'], ['A1']);
+
+    foreach (range(1, 5) as $ignored) {
+        UserExerciseAttempt::create([
+            'user_id' => $user->id, 'exercise_id' => $exerciseId, 'answers' => [],
+            'score' => 3, 'accuracy_percent' => 80,
+        ]);
+    }
+    ajouterProductions($user->id, $exam, 'A1', 2, 75, ['writing']);
+    ajouterProductions($user->id, $exam, 'A1', 2, 40, ['speaking']);
+
+    $service = app(LevelAdvancementService::class);
+    expect($service->assessAfterObjective($user->id, $skeleton))->toBeNull();
+    expect($service->bilanDuNiveau($user->id, $exam->id, 'A1')['manques'][0])
+        ->toContain('productions orales')->toContain('60 %');
+
+    // Des prises de parole reussies, plus recentes : la moyenne passe le seuil.
+    $this->travel(1)->minutes();
+    ajouterProductions($user->id, $exam, 'A1', 4, 90, ['speaking']);
+
+    expect($service->assessAfterObjective($user->id, $skeleton->fresh()))->toBe('A2');
+    $details = LevelAssessment::where('user_id', $user->id)->value('score_details');
+    $details = is_string($details) ? json_decode($details, true) : $details;
+    expect($details['writing']['ok'])->toBeTrue()
+        ->and($details['speaking']['ok'])->toBeTrue();
 });
