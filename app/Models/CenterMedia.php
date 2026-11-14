@@ -18,7 +18,31 @@ class CenterMedia extends Model
         'original_name',
         'mime',
         'size',
+        'title',
+        'source_rights',
+        'rights_certified_at',
     ];
+
+    protected function casts(): array
+    {
+        return ['rights_certified_at' => 'datetime'];
+    }
+
+    /** Ce que la mediatheque renvoie au navigateur pour un fichier. */
+    public function fiche(): array
+    {
+        return [
+            'id' => $this->id,
+            'type' => $this->type,
+            'url' => $this->url,
+            'name' => $this->original_name,
+            'title' => $this->title ?: $this->original_name,
+            'source_rights' => $this->source_rights,
+            'rights_certified_at' => $this->rights_certified_at?->toIso8601String(),
+            'size' => $this->size,
+            'created_at' => $this->created_at?->toIso8601String(),
+        ];
+    }
 
     public function center(): BelongsTo
     {

@@ -62,6 +62,9 @@ class FicheExercice
             'questions_count' => is_array($exercice->questions) ? count($exercice->questions) : 0,
             'is_ai_generated' => (bool) $exercice->is_ai_generated,
             'source' => $exercice->center_id ? 'centre' : 'prepla',
+            // Banque de sujets du centre : brouillon ou valide (null au catalogue).
+            'statut' => $exercice->center_id ? ($exercice->center_status ?? Exercise::STATUT_VALIDE) : null,
+            'exercise_type_id' => $exercice->exercise_type_id,
             'updated_at' => $exercice->updated_at?->toIso8601String(),
         ];
     }

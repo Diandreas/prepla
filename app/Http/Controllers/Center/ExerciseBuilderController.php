@@ -97,6 +97,7 @@ class ExerciseBuilderController extends Controller
                     'content' => $exercise->content,
                     'questions' => $exercise->questions,
                     'is_ai_generated' => (bool) $exercise->is_ai_generated,
+                    'center_status' => $exercise->center_status ?? Exercise::STATUT_VALIDE,
                 ],
             ],
         ));
@@ -215,6 +216,8 @@ class ExerciseBuilderController extends Controller
             'questions' => $data['questions'],
             'difficulty' => $data['difficulty'],
             'is_ai_generated' => $data['is_ai_generated'],
+            // Sans precision, un exercice enregistre est pret a servir.
+            'center_status' => $data['center_status'] ?? Exercise::STATUT_VALIDE,
         ]);
 
         // Cree depuis la page d'un devoir : il y entre aussitot.
@@ -245,13 +248,14 @@ class ExerciseBuilderController extends Controller
         $this->authorize('update', $exercise);
         $data = $this->validatePayload($request, $exercise);
 
-        $exercise->update([
+        $exercise->update(array_filter([
             'exercise_type_id' => $data['exercise_type_id'],
             'exam_id' => $data['exam_id'],
             'content' => $data['content'],
             'questions' => $data['questions'],
             'difficulty' => $data['difficulty'],
-        ]);
+            'center_status' => $data['center_status'] ?? null,
+        ], fn ($v) => $v !== null));
 
         if ($request->input('retour') === self::RETOUR_DEVOIR) {
             return redirect()->route('center.assignments.create', ['exercice' => $exercise->id])
@@ -332,6 +336,9 @@ class ExerciseBuilderController extends Controller
             'content' => 'nullable|array',
             'questions' => 'required|array|min:1',
             'is_ai_generated' => 'boolean',
+            'center_status' => 'nullable|in:'.Exercise::STATUT_BROUILLON.','.Exercise::STATUT_VALIDE,
+            // Nombre d'ecoutes de l'audio du centre : 1, 2, ou 0 pour illimite.
+            'content.max_ecoutes' => 'nullable|integer|in:0,1,2',
         ]);
 
         $type = ExerciseType::findOrFail($validated['exercise_type_id']);
@@ -349,20 +356,55 @@ class ExerciseBuilderController extends Controller
 
         // Media safety: any image_url/audio_url referenced must belong to THIS
         // center's media library (never an arbitrary external URL).
-        $this->assertMediaBelongsToCenter($center, $validated['content'] ?? [], $questions);
+        $this->assertMediaBelongsToCenter($center, $validated['content'] ?? [], $questions, $existant);
+
+        $content = $validated['content'] ?? [];
+        if (array_key_exists('max_ecoutes', $content)) {
+            $content['max_ecoutes'] = $content['max_ecoutes'] === null ? null : (int) $content['max_ecoutes'];
+        }
 
         return [
+            'center_status' => $validated['center_status'] ?? null,
             'exercise_type_id' => (int) $validated['exercise_type_id'],
             'exam_id' => (int) $validated['exam_id'],
             'difficulty' => $validated['difficulty'],
-            'content' => $validated['content'] ?? [],
+            'content' => $content,
             'questions' => $questions,
             'is_ai_generated' => (bool) ($validated['is_ai_generated'] ?? false),
         ];
     }
 
-    protected function assertMediaBelongsToCenter(LanguageCenter $center, array $content, array $questions): void
+    /** @return list<string> Les adresses d'images et de sons d'un contenu et de ses questions. */
+    protected function urlsMedia(array $content, array $questions): array
     {
+        $urls = [];
+        foreach (array_merge([$content], $questions) as $bloc) {
+            foreach (['image_url', 'audio_url'] as $k) {
+                if (is_array($bloc) && ! empty($bloc[$k]) && is_string($bloc[$k])) {
+                    $urls[] = $bloc[$k];
+                }
+            }
+        }
+
+        return $urls;
+    }
+
+    protected function assertMediaBelongsToCenter(LanguageCenter $center, array $content, array $questions, ?Exercise $existant = null): void
+    {
+        // Une copie d'un exercice du catalogue PrePla garde ses sons d'origine :
+        // ils ne sont pas dans la mediatheque du centre mais restent permis.
+        $permis = [];
+        if ($existant?->copied_from_id) {
+            $origine = Exercise::whereNull('center_id')->find($existant->copied_from_id);
+            if ($origine) {
+                $permis = $this->urlsMedia((array) $origine->content, (array) $origine->questions);
+            }
+        }
+        $content = array_filter($content, fn ($v, $k) => ! in_array($k, ['image_url', 'audio_url'], true) || ! in_array($v, $permis, true), ARRAY_FILTER_USE_BOTH);
+        $questions = array_map(fn ($q) => is_array($q)
+            ? array_filter($q, fn ($v, $k) => ! in_array($k, ['image_url', 'audio_url'], true) || ! in_array($v, $permis, true), ARRAY_FILTER_USE_BOTH)
+            : $q, $questions);
+
         $urls = [];
         foreach (['image_url', 'audio_url'] as $k) {
             if (! empty($content[$k])) {
@@ -390,6 +432,95 @@ class ExerciseBuilderController extends Controller
                 "Un média référencé n'appartient pas à votre centre.");
         }
     }
+    /**
+     * Les exercices du catalogue PrePla pour un examen du centre, a copier pour
+     * les adapter. Jamais ceux d'un autre centre ni les exercices prives d'un
+     * apprenant (lecon personnelle).
+     */
+    public function catalogue(Request $request): JsonResponse
+    {
+        /** @var LanguageCenter $center */
+        $center = $request->attributes->get('center');
+
+        $validated = $request->validate([
+            'exam_id' => ['required', 'integer', 'exists:exams,id', new ExamenDuCentre($center)],
+            'difficulty' => 'nullable|in:A1,A2,B1,B2,C1,C2',
+            'exercise_type_id' => 'nullable|integer',
+        ]);
+
+        $lignes = Exercise::whereNull('center_id')
+            ->whereNull('lesson_id')
+            ->where('exam_id', $validated['exam_id'])
+            ->when($validated['difficulty'] ?? null, fn ($q, $n) => $q->where('difficulty', $n))
+            ->when($validated['exercise_type_id'] ?? null, fn ($q, $t) => $q->where('exercise_type_id', $t))
+            ->with(FicheExercice::RELATIONS)
+            ->latest('id')
+            ->limit(60)
+            ->get()
+            ->map(fn (Exercise $e) => FicheExercice::ligne($e));
+
+        return response()->json(['exercises' => $lignes]);
+    }
+
+    /** Passe un exercice du centre en brouillon ou en valide. */
+    public function statut(Request $request, Exercise $exercise)
+    {
+        $this->authorize('update', $exercise);
+        $validated = $request->validate([
+            'statut' => 'required|in:'.Exercise::STATUT_BROUILLON.','.Exercise::STATUT_VALIDE,
+        ]);
+
+        $exercise->update(['center_status' => $validated['statut']]);
+
+        return back()->with('success', $validated['statut'] === Exercise::STATUT_VALIDE
+            ? 'Exercice validé.'
+            : 'Exercice repassé en brouillon.');
+    }
+
+    /**
+     * Copie un exercice du centre, ou un exercice du catalogue PrePla, dans la
+     * banque du centre. La copie part en brouillon : on l'adapte, puis on la
+     * valide. L'original n'est jamais modifie.
+     */
+    public function dupliquer(Request $request, Exercise $exercise)
+    {
+        /** @var LanguageCenter $center */
+        $center = $request->attributes->get('center');
+        $this->authorize('create', Exercise::class);
+
+        if ($exercise->center_id !== null) {
+            abort_unless($exercise->center_id === $center->id, 403);
+        } else {
+            // Catalogue : ni une lecon privee, ni un examen que le centre ne propose pas.
+            abort_if($exercise->lesson_id !== null, 403);
+            abort_unless(Exam::proposables($center)->whereKey($exercise->exam_id)->exists(), 403);
+        }
+
+        $content = is_array($exercise->content) ? $exercise->content : [];
+        if (! empty($content['title']) && is_string($content['title'])) {
+            $content['title'] = mb_substr($content['title'].' (copie)', 0, 200);
+        }
+
+        $copie = Exercise::create([
+            'exercise_type_id' => $exercise->exercise_type_id,
+            'exam_id' => $exercise->exam_id,
+            'exam_section_id' => $exercise->exam_section_id,
+            'center_id' => $center->id,
+            'creator_id' => $request->user()->id,
+            'content' => $content,
+            'questions' => $exercise->questions,
+            'difficulty' => $exercise->difficulty,
+            'is_ai_generated' => (bool) $exercise->is_ai_generated,
+            'center_status' => Exercise::STATUT_BROUILLON,
+            // L'original du catalogue, pour garder ses sons ; une copie d'une
+            // copie du centre remonte a la meme origine.
+            'copied_from_id' => $exercise->center_id === null ? $exercise->id : $exercise->copied_from_id,
+        ]);
+
+        return redirect()->route('center.exercises.edit', $copie->id)
+            ->with('success', 'Copie créée en brouillon : adaptez-la puis validez-la.');
+    }
+
     /**
      * Retire un exercice du centre.
      *

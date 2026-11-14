@@ -1301,14 +1301,23 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
     const avecPassage = !avecEcoute && !!activePassage;
     const competence = COMPETENCES[activeSkillType];
     const enLecture = playingTts === 'passage';
-    const ecoutesRestantes = Math.max(0, 2 - listenCount);
+    // Un centre regle le nombre d'ecoutes de SA piste (1, 2, ou 0 = illimite) ;
+    // sinon deux ecoutes, comme a l'examen.
+    const maxReglage = Number(exercise?.content?.max_ecoutes);
+    const maxEcoutes = exercise?.content?.audio_url && [0, 1, 2].includes(maxReglage) && exercise?.content?.max_ecoutes !== null && exercise?.content?.max_ecoutes !== undefined
+        ? (maxReglage === 0 ? Infinity : maxReglage)
+        : 2;
+    const limiteAtteinte = listenCount >= maxEcoutes;
+    const ecoutesRestantes = Math.max(0, maxEcoutes - listenCount);
     const libelleEcoute = enLecture
         ? 'Lecture en cours…'
         : listenCount === 0
             ? 'Écouter l’enregistrement'
-            : listenCount >= 2
+            : limiteAtteinte
                 ? 'Limite d’écoutes atteinte'
-                : `Réécouter (${ecoutesRestantes} restante${ecoutesRestantes > 1 ? 's' : ''})`;
+                : maxEcoutes === Infinity
+                    ? 'Réécouter'
+                    : `Réécouter (${ecoutesRestantes} restante${ecoutesRestantes > 1 ? 's' : ''})`;
 
     const totalAffiche = isReviewMode ? reviewQueue.length : totalQuestionsInSession;
     const rangAffiche = isReviewMode ? currentQuestionIndex + 1 : Math.min(overallProgressCount + 1, totalQuestionsInSession);
@@ -1455,11 +1464,11 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                if (listenCount >= 2 || playingTts === 'passage') return;
+                                                if (limiteAtteinte || playingTts === 'passage') return;
                                                 setListenCount(c => c + 1);
                                                 playListening(listeningAudioUrl, listeningAudioText);
                                             }}
-                                            disabled={listenCount >= 2 && playingTts !== 'passage'}
+                                            disabled={limiteAtteinte && playingTts !== 'passage'}
                                             aria-label={libelleEcoute}
                                             aria-busy={enLecture}
                                             className="flex min-h-16 w-full items-center gap-4 rounded-2xl border-[1.5px] border-primary/40 bg-primary/5 px-4 py-3 text-left transition-colors enabled:hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60"
@@ -1470,7 +1479,9 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
                                             <span className="min-w-0 flex-1">
                                                 <span className="block text-base font-semibold text-foreground">{libelleEcoute}</span>
                                                 <span className="mt-0.5 block text-[0.8125rem] text-muted-foreground">
-                                                    Écoute {Math.min(listenCount, 2)}/2 · puis réponds à la question
+                                                    {maxEcoutes === Infinity
+                                                        ? <>Écoutes illimitées · puis réponds à la question</>
+                                                        : <>Écoute {Math.min(listenCount, maxEcoutes)}/{maxEcoutes} · puis réponds à la question</>}
                                                 </span>
                                             </span>
                                             <Headphones aria-hidden="true" className="hidden h-5 w-5 shrink-0 text-muted-foreground sm:block" />

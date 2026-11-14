@@ -598,6 +598,20 @@ export default function ExerciseBuilder({ exerciseTypes, exams, defaultExamId, c
                                         {(schema?.media.includes('audio') && ecoute) && (
                                             <ZoneMedia type="audio" value={content.audio_url} onChange={(url) => { setContent({ ...content, audio_url: url }); changer(); }} aide={t('Un enregistrement remplace la voix de synthèse.')} />
                                         )}
+                                        {/* Comme a l'examen : l'eleve n'ecoute la piste du centre qu'un nombre de fois choisi. */}
+                                        {ecoute && content.audio_url && (
+                                            <label className="block text-sm font-medium">{t('Nombre d’écoutes autorisées')}
+                                                <select
+                                                    className={`mt-1 ${champ}`}
+                                                    value={String(content.max_ecoutes ?? 2)}
+                                                    onChange={(e) => { setContent({ ...content, max_ecoutes: Number(e.target.value) }); changer(); }}
+                                                >
+                                                    <option value="1">{t('Une seule écoute')}</option>
+                                                    <option value="2">{t('Deux écoutes')}</option>
+                                                    <option value="0">{t('Illimité')}</option>
+                                                </select>
+                                            </label>
+                                        )}
                                         {schema?.media.includes('image') && (
                                             <ZoneMedia type="image" value={content.image_url} onChange={(url) => { setContent({ ...content, image_url: url }); changer(); }} />
                                         )}
