@@ -58,7 +58,7 @@ class ParcoursDeClasse
         $examen = $this->examen($classe);
 
         return Exercise::query()->where(function (Builder $q) use ($classe, $examen) {
-            $q->where('center_id', $classe->center_id)
+            $q->where(fn (Builder $centre) => $centre->where('center_id', $classe->center_id)->horsBrouillon())
                 ->orWhere(fn (Builder $vivier) => $this->vivier($vivier, $examen));
         });
     }

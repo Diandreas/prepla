@@ -22,6 +22,11 @@ class ExercisePolicy
                 return true;
             }
 
+            // Un brouillon reste chez le personnel du centre.
+            if ($exercise->estBrouillon()) {
+                return false;
+            }
+
             $classes = $user->classrooms()->pluck('classrooms.id');
 
             // Une etape du parcours construit par le centre pour l'une de ses classes.
