@@ -55,6 +55,8 @@ interface Props {
     exam: ExamRecord & { sections: ExamSection[] };
     exercises: Exercise[];
     totalExamsTime: number; // in minutes
+    // Examen blanc d'un centre : la copie part vers sa propre adresse.
+    submitUrl?: string;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- each renderer declares its own question and answer shape
@@ -171,7 +173,7 @@ function ExamGlobalBanner({ totalMinutes, started, onExpire }: { totalMinutes: n
     );
 }
 
-export default function ExamSimulator({ exam, exercises, totalExamsTime }: Props) {
+export default function ExamSimulator({ exam, exercises, totalExamsTime, submitUrl }: Props) {
     const { t } = useTranslation();
     const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -223,7 +225,7 @@ export default function ExamSimulator({ exam, exercises, totalExamsTime }: Props
         }
         setSubmitError(null);
         setSubmitting(true);
-        router.post(route('practice.simulate.store', exam.id), {
+        router.post(submitUrl ?? route('practice.simulate.store', exam.id), {
             answers_by_exercise: answersByExercise,
             time_spent: timeSpent,
         }, {
@@ -233,7 +235,7 @@ export default function ExamSimulator({ exam, exercises, totalExamsTime }: Props
                 setSubmitError('Aucune réponse n’a pu être envoyée. Réponds à au moins une question, puis réessaie.');
             },
         });
-    }, [answers, exam.id, timeSpent]);
+    }, [answers, exam.id, timeSpent, submitUrl]);
 
     const handleExamExpire = useCallback(() => {
         setExamExpired(true);
