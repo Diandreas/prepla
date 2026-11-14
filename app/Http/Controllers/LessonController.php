@@ -177,6 +177,12 @@ class LessonController extends Controller
             ? $this->planner->recordLessonOutcome($user, $accuracy, $accuracy === null ? null : $passed)
             : 'review';
 
+        // Seuil de Doherty : la lecon suivante se prepare des maintenant, apres la
+        // reponse, pour qu'elle s'ouvre sans attente au clic suivant.
+        if ($isCurrent) {
+            app(\App\Services\Curriculum\NextLessonPrefetcher::class)->schedule($user);
+        }
+
         // Actually perform the skip the 'skip_ahead' signal promises — previously
         // this outcome only changed the message shown to the user, with no real
         // effect on the skeleton, so a fast learner never actually advanced faster.

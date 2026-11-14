@@ -21,6 +21,14 @@ return [
          */
         'verification_aveugle' => (bool) env('PREPLA_VERIFICATION_AVEUGLE', true),
 
+        /*
+         * Prepare la lecon suivante juste apres la reponse HTTP, quand une lecon ou
+         * une pratique se termine : l'ouverture de la lecon suivante devient
+         * instantanee (seuil de Doherty). Les tests la coupent (phpunit.xml)
+         * pour ne pas appeler l'IA, et la rallument la ou ils la verifient.
+         */
+        'prefetch_lecon_suivante' => (bool) env('PREPLA_PREFETCH_LECON', true),
+
     ],
 
     /*

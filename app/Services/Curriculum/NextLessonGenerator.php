@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\UserError;
 use App\Services\AI\MistralService;
 use App\Services\LevelAdvancementService;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 
@@ -33,7 +34,53 @@ class NextLessonGenerator
      * Generate the next lesson for a user.
      * This is called JIT when the user clicks "Next Lesson".
      */
-    public function generate(User $user): ?Lesson
+    public function generate(User $user, bool $lockHeld = false): ?Lesson
+    {
+        // Le verrou est celui de la pre-generation (NextLessonPrefetcher) : un seul
+        // chemin a la fois ecrit la lecon d'un apprenant. Sans lui, un clic sur
+        // « Lecon suivante » pendant la pre-generation payait un second appel a
+        // l'IA et creait une seconde lecon pour le meme objectif.
+        if ($lockHeld) {
+            return $this->generateUnlocked($user);
+        }
+
+        $key = NextLessonPrefetcher::lockKey($user->id);
+        $deadline = microtime(true) + (float) config('prepla.generation.attente_verrou_lecon', 8);
+        $pauseUs = (int) config('prepla.generation.pause_verrou_lecon_ms', 250) * 1000;
+
+        while (! Cache::add($key, now()->timestamp, NextLessonPrefetcher::LOCK_SECONDS)) {
+            // Une autre requete ecrit la lecon : on attend qu'elle ait fini, puis on
+            // relit ce qu'elle a cree au lieu d'en generer une seconde.
+            if (microtime(true) >= $deadline) {
+                return $this->lessonAlreadyWritten($user);
+            }
+            usleep(max(1000, $pauseUs));
+        }
+
+        try {
+            return $this->generateUnlocked($user);
+        } finally {
+            Cache::forget($key);
+        }
+    }
+
+    /**
+     * La lecon deja ecrite pour l'objectif courant, sans rien generer.
+     */
+    public function lessonAlreadyWritten(User $user): ?Lesson
+    {
+        $skeleton = CurriculumSkeleton::where('user_id', $user->id)->first();
+        if (! $skeleton) {
+            return null;
+        }
+
+        return Lesson::where('user_id', $user->id)
+            ->where('skeleton_objective_index', $skeleton->current_objective_index)
+            ->latest('id')
+            ->first();
+    }
+
+    private function generateUnlocked(User $user): ?Lesson
     {
         $profile = $user->profile?->load('targetExam.language');
         if (! $profile || ! $profile->targetExam) {

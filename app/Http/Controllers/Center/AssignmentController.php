@@ -123,7 +123,14 @@ class AssignmentController extends Controller
             ->whereKey($demandes)
             ->pluck('id');
 
+        // Venu de la fiche d'un eleve (« Donner un devoir ») : sa classe arrive deja
+        // choisie. Seulement une classe que ce membre de l'equipe encadre.
+        $permises = collect($this->classroomIdsFor($request->user(), $center))->map(fn ($id) => (int) $id);
+        $classeDemandee = (int) $request->query('classe', 0);
+        $classeDemandee = $permises->contains($classeDemandee) ? $classeDemandee : null;
+
         return Inertia::render('center/assignments/create', [
+            'classeDemandee' => $classeDemandee,
             // Meme regle a la creation : proposer une classe qu'il n'encadre pas
             // menait a un refus apres coup, apres avoir choisi ses exercices.
             'classrooms' => $center->classrooms()

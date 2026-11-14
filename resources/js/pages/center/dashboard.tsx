@@ -2,7 +2,7 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CalendarCheck, ClipboardList, Clock, ListChecks, Plus, Target, TrendingDown, TrendingUp, UserPlus, Users } from 'lucide-react';
+import { CalendarCheck, ChevronDown, ClipboardList, Clock, ListChecks, Plus, Target, TrendingDown, TrendingUp, UserPlus, Users } from 'lucide-react';
 import { dateHeure, duree } from '@/lib/suivi';
 import { Drapeau } from '@/components/center/barre-classement';
 import { activiteCoherente } from '@/lib/classement-centre';
@@ -133,6 +133,26 @@ function etat(derniere: string | null, t: ReturnType<typeof useT>['t'], langue: 
 }
 
 /**
+ * Section repliee « Voir le detail » (balise details native : clavier et lecteur
+ * d'ecran gratuits, aucun etat React). Le tableau de bord montrait une quinzaine
+ * de blocs d'un coup : trop de choix pour un coup d'oeil (loi de Hick).
+ */
+function Detail({ titre, resume, children }: { titre: string; resume?: string; children: React.ReactNode }) {
+    return (
+        <details className="group rounded-xl border border-border bg-card">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm font-semibold hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <span>
+                    {titre}
+                    {resume && <span className="block text-xs font-normal text-muted-foreground">{resume}</span>}
+                </span>
+                <ChevronDown className="h-4 w-4 shrink-0 transition-transform group-open:rotate-180" aria-hidden />
+            </summary>
+            <div className="space-y-5 px-4 pb-4">{children}</div>
+        </details>
+    );
+}
+
+/**
  * Le point de depart d'un responsable ou d'un enseignant : la semaine a-t-elle
  * ete travaillee, quelle classe decroche, qui relancer — et les gestes courants
  * a portee de main. Il ne donnait que trois chiffres.
@@ -205,7 +225,7 @@ export default function CenterDashboard({
                             <h2 className="text-base font-semibold">{t('Cette semaine')}</h2>
                             <span className="text-xs text-muted-foreground">{t('7 derniers jours, comparés aux 7 d’avant')}</span>
                         </div>
-                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+                        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
                             <Link href={route('center.students.index')} className="block min-w-0 rounded-xl transition hover:opacity-90">
                                 <Kpi
                                     icone={Users}
@@ -221,13 +241,6 @@ export default function CenterDashboard({
                                 valeur={courante.exercices}
                                 tendance={<Tendance v={variation(courante.exercices, precedente?.exercices ?? 0)} />}
                                 detail={precedente ? t('avant : {valeur}', { valeur: precedente.exercices }) : undefined}
-                            />
-                            <Kpi
-                                icone={Clock}
-                                libelle={t('Temps de travail')}
-                                valeur={duree(courante.minutes * 60)}
-                                tendance={<Tendance v={variation(courante.minutes, precedente?.minutes ?? 0)} />}
-                                detail={precedente ? t('avant : {valeur}', { valeur: duree(precedente.minutes * 60) }) : undefined}
                             />
                             <Kpi
                                 icone={Target}
@@ -252,102 +265,8 @@ export default function CenterDashboard({
                     </div>
                 )}
 
-                <div className={`grid grid-cols-2 gap-3 ${responsable && actifs_mois ? 'lg:grid-cols-3' : ''}`}>
-                    <Stat label={t('Classes')} value={center.classrooms_count} href={route('center.classes.index')} />
-                    <Stat
-                        label={t('Places occupées')}
-                        value={`${center.seats_used} / ${center.seats_limit}`}
-                        detail={t('{n} restantes', { n: Math.max(0, center.seats_limit - center.seats_used) })}
-                    />
-                    {responsable && actifs_mois && (
-                        <Card className="col-span-2 lg:col-span-1">
-                            <CardContent className="p-4">
-                                <div className="flex items-baseline justify-between gap-2">
-                                    <p className="text-2xl font-bold tabular-nums">{actifs_mois.eleves}</p>
-                                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
-                                        {t('Palier {palier}', { palier: actifs_mois.palier === 'reseau' ? t('réseau') : actifs_mois.palier })}
-                                    </span>
-                                </div>
-                                <p className="text-sm text-muted-foreground">{t('Élèves actifs ce mois-ci')}</p>
-                                {actifs_mois.plafond ? (
-                                    <>
-                                        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-                                            <div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, (actifs_mois.eleves / actifs_mois.plafond) * 100)}%` }} />
-                                        </div>
-                                        <p className="mt-1 text-xs text-muted-foreground">
-                                            {t('{n} avant le plafond du palier ({plafond})', { n: Math.max(0, actifs_mois.plafond - actifs_mois.eleves), plafond: actifs_mois.plafond })}
-                                        </p>
-                                    </>
-                                ) : null}
-                            </CardContent>
-                        </Card>
-                    )}
-                </div>
-
-                {s && (
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-base">{t('Activité sur 8 semaines')}</CardTitle>
-                            <p className="text-xs text-muted-foreground">{t('Exercices faits chaque semaine, et la précision moyenne de vos élèves.')}</p>
-                        </CardHeader>
-                        <CardContent>
-                            <CourbeSemaines semaines={s.semaines} />
-                        </CardContent>
-                    </Card>
-                )}
-
-                {s && (
-                    <div className="grid gap-5 md:grid-cols-2">
-                        <Card>
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-base">{t('Réussite par compétence')}</CardTitle>
-                                <p className="text-xs text-muted-foreground">{t('Sur les 8 dernières semaines.')}</p>
-                            </CardHeader>
-                            <CardContent>
-                                <BarresCompetences competences={s.competences} />
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-base">{t('Quand vos élèves travaillent')}</CardTitle>
-                                <p className="text-xs text-muted-foreground">{t('Exercices par jour de la semaine, à l’heure du centre, sur 8 semaines.')}</p>
-                            </CardHeader>
-                            <CardContent>
-                                <HistogrammeJours jours={s.rythme.jours} pic={s.rythme.pic} />
-                            </CardContent>
-                        </Card>
-                    </div>
-                )}
-
-                {s && (s.classes_actives.length > 0 || s.classes_decrochent.length > 0) && (
-                    <div className="grid gap-5 md:grid-cols-2">
-                        <Card>
-                            <CardHeader className="pb-2">
-                                <CardTitle className="flex items-center gap-1.5 text-base">
-                                    <TrendingUp className="h-4 w-4 text-emerald-500" aria-hidden /> {t('Classes les plus actives')}
-                                </CardTitle>
-                                <p className="text-xs text-muted-foreground">{t('Le plus d’exercices par élève cette semaine.')}</p>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                                {s.classes_actives.length === 0 && <p className="text-sm text-muted-foreground">{t('Aucune classe n’a travaillé cette semaine.')}</p>}
-                                {s.classes_actives.map((k) => <LigneClasse key={k.id} k={k} />)}
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className="pb-2">
-                                <CardTitle className="flex items-center gap-1.5 text-base">
-                                    <TrendingDown className="h-4 w-4 text-rose-500" aria-hidden /> {t('Classes qui décrochent')}
-                                </CardTitle>
-                                <p className="text-xs text-muted-foreground">{t('Au moins un tiers d’exercices en moins que la semaine d’avant.')}</p>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                                {s.classes_decrochent.length === 0 && <p className="text-sm text-muted-foreground">{t('Aucune classe en baisse : bonne nouvelle.')}</p>}
-                                {s.classes_decrochent.map((k) => <LigneClasse key={k.id} k={k} decroche />)}
-                            </CardContent>
-                        </Card>
-                    </div>
-                )}
-
+                {/* Loi de Hick / Miller : en haut, seulement les 4 chiffres cles et ce qui
+                    demande un geste (eleves a relancer, classes). Le reste est replie. */}
                 {a_relancer.length > 0 && (
                     <Card className="border-amber-300/70 dark:border-amber-900">
                         <CardHeader className="pb-2">
@@ -367,19 +286,6 @@ export default function CenterDashboard({
                                     </span>
                                 </Link>
                             ))}
-                        </CardContent>
-                    </Card>
-                )}
-
-                {(repartition.langues.length > 0 || repartition.niveaux.length > 0) && (
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-base">{t('Répartition')}</CardTitle>
-                            <p className="text-xs text-muted-foreground">{t('Par langue et par niveau. Cliquez une ligne pour voir ces élèves.')}</p>
-                        </CardHeader>
-                        <CardContent className="grid gap-5 sm:grid-cols-2">
-                            <Colonne titre={t('Par langue')} filtre="langue" lignes={repartition.langues} />
-                            <Colonne titre={t('Par niveau')} filtre="niveau" lignes={repartition.niveaux} />
                         </CardContent>
                     </Card>
                 )}
@@ -420,6 +326,129 @@ export default function CenterDashboard({
                         })}
                     </CardContent>
                 </Card>
+
+                <Detail titre={t("Voir le détail")} resume={t("Temps de travail, places, activité sur 8 semaines, compétences, répartition")}>
+                        {s && courante && (
+                            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                                    <Kpi
+                                        icone={Clock}
+                                        libelle={t('Temps de travail')}
+                                        valeur={duree(courante.minutes * 60)}
+                                        tendance={<Tendance v={variation(courante.minutes, precedente?.minutes ?? 0)} />}
+                                        detail={precedente ? t('avant : {valeur}', { valeur: duree(precedente.minutes * 60) }) : undefined}
+                                    />
+                            </div>
+                        )}
+
+                    <div className={`grid grid-cols-2 gap-3 ${responsable && actifs_mois ? 'lg:grid-cols-3' : ''}`}>
+                        <Stat label={t('Classes')} value={center.classrooms_count} href={route('center.classes.index')} />
+                        <Stat
+                            label={t('Places occupées')}
+                            value={`${center.seats_used} / ${center.seats_limit}`}
+                            detail={t('{n} restantes', { n: Math.max(0, center.seats_limit - center.seats_used) })}
+                        />
+                        {responsable && actifs_mois && (
+                            <Card className="col-span-2 lg:col-span-1">
+                                <CardContent className="p-4">
+                                    <div className="flex items-baseline justify-between gap-2">
+                                        <p className="text-2xl font-bold tabular-nums">{actifs_mois.eleves}</p>
+                                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+                                            {t('Palier {palier}', { palier: actifs_mois.palier === 'reseau' ? t('réseau') : actifs_mois.palier })}
+                                        </span>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground">{t('Élèves actifs ce mois-ci')}</p>
+                                    {actifs_mois.plafond ? (
+                                        <>
+                                            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+                                                <div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, (actifs_mois.eleves / actifs_mois.plafond) * 100)}%` }} />
+                                            </div>
+                                            <p className="mt-1 text-xs text-muted-foreground">
+                                                {t('{n} avant le plafond du palier ({plafond})', { n: Math.max(0, actifs_mois.plafond - actifs_mois.eleves), plafond: actifs_mois.plafond })}
+                                            </p>
+                                        </>
+                                    ) : null}
+                                </CardContent>
+                            </Card>
+                        )}
+                    </div>
+
+                    {s && (
+                        <Card>
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-base">{t('Activité sur 8 semaines')}</CardTitle>
+                                <p className="text-xs text-muted-foreground">{t('Exercices faits chaque semaine, et la précision moyenne de vos élèves.')}</p>
+                            </CardHeader>
+                            <CardContent>
+                                <CourbeSemaines semaines={s.semaines} />
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {s && (
+                        <div className="grid gap-5 md:grid-cols-2">
+                            <Card>
+                                <CardHeader className="pb-2">
+                                    <CardTitle className="text-base">{t('Réussite par compétence')}</CardTitle>
+                                    <p className="text-xs text-muted-foreground">{t('Sur les 8 dernières semaines.')}</p>
+                                </CardHeader>
+                                <CardContent>
+                                    <BarresCompetences competences={s.competences} />
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader className="pb-2">
+                                    <CardTitle className="text-base">{t('Quand vos élèves travaillent')}</CardTitle>
+                                    <p className="text-xs text-muted-foreground">{t('Exercices par jour de la semaine, à l’heure du centre, sur 8 semaines.')}</p>
+                                </CardHeader>
+                                <CardContent>
+                                    <HistogrammeJours jours={s.rythme.jours} pic={s.rythme.pic} />
+                                </CardContent>
+                            </Card>
+                        </div>
+                    )}
+
+                    {s && (s.classes_actives.length > 0 || s.classes_decrochent.length > 0) && (
+                        <div className="grid gap-5 md:grid-cols-2">
+                            <Card>
+                                <CardHeader className="pb-2">
+                                    <CardTitle className="flex items-center gap-1.5 text-base">
+                                        <TrendingUp className="h-4 w-4 text-emerald-500" aria-hidden /> {t('Classes les plus actives')}
+                                    </CardTitle>
+                                    <p className="text-xs text-muted-foreground">{t('Le plus d’exercices par élève cette semaine.')}</p>
+                                </CardHeader>
+                                <CardContent className="space-y-2">
+                                    {s.classes_actives.length === 0 && <p className="text-sm text-muted-foreground">{t('Aucune classe n’a travaillé cette semaine.')}</p>}
+                                    {s.classes_actives.map((k) => <LigneClasse key={k.id} k={k} />)}
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader className="pb-2">
+                                    <CardTitle className="flex items-center gap-1.5 text-base">
+                                        <TrendingDown className="h-4 w-4 text-rose-500" aria-hidden /> {t('Classes qui décrochent')}
+                                    </CardTitle>
+                                    <p className="text-xs text-muted-foreground">{t('Au moins un tiers d’exercices en moins que la semaine d’avant.')}</p>
+                                </CardHeader>
+                                <CardContent className="space-y-2">
+                                    {s.classes_decrochent.length === 0 && <p className="text-sm text-muted-foreground">{t('Aucune classe en baisse : bonne nouvelle.')}</p>}
+                                    {s.classes_decrochent.map((k) => <LigneClasse key={k.id} k={k} decroche />)}
+                                </CardContent>
+                            </Card>
+                        </div>
+                    )}
+
+                    {(repartition.langues.length > 0 || repartition.niveaux.length > 0) && (
+                        <Card>
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-base">{t('Répartition')}</CardTitle>
+                                <p className="text-xs text-muted-foreground">{t('Par langue et par niveau. Cliquez une ligne pour voir ces élèves.')}</p>
+                            </CardHeader>
+                            <CardContent className="grid gap-5 sm:grid-cols-2">
+                                <Colonne titre={t('Par langue')} filtre="langue" lignes={repartition.langues} />
+                                <Colonne titre={t('Par niveau')} filtre="niveau" lignes={repartition.niveaux} />
+                            </CardContent>
+                        </Card>
+                    )}
+                </Detail>
             </div>
         </AppLayout>
     );

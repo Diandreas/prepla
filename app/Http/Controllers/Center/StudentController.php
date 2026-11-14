@@ -58,6 +58,10 @@ class StudentController extends Controller
                 'email' => $user->email,
                 'level' => $user->profile?->current_level,
                 'classes' => $user->classrooms()->where('center_id', $center->id)->pluck('name'),
+                // Actions rapides de la fiche : « Donner un devoir » a sa classe, et
+                // « Relancer sur WhatsApp » quand on a son numero.
+                'classe_ids' => $user->classrooms()->where('center_id', $center->id)->whereNull('classrooms.archived_at')->pluck('classrooms.id'),
+                'phone' => $user->phone,
             ],
             'resume' => $suivi->resume($user, $suivi->fuseau($center)),
             'historique' => $suivi->historique($user),

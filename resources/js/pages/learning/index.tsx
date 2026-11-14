@@ -1,6 +1,7 @@
 import { Illustration } from '@/components/illustration';
 import { Head, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
+import { useAttenteLeconSuivante } from "@/components/generation-en-cours";
 import { useEffect, useState } from 'react';
 
 function Icon({ name, size = 20, style }: { name: string; size?: number; style?: React.CSSProperties }) {
@@ -102,6 +103,8 @@ function getCategoryLabel(cat: string): string {
 
 export default function LearningIndex({ lessons, skeleton, errorStats }: Props) {
     const [mounted, setMounted] = useState(false);
+    // Seuil de Doherty : squelette et etapes pendant que la lecon suivante se genere.
+    const { demarrer: attendreLecon, attente: attenteLecon } = useAttenteLeconSuivante();
     useEffect(() => setMounted(true), []);
 
     const stagger = (i: number) => ({
@@ -113,6 +116,7 @@ export default function LearningIndex({ lessons, skeleton, errorStats }: Props) 
     return (
         <AppLayout>
             <Head title="Mon Parcours" />
+            {attenteLecon}
             <div className="mx-auto max-w-2xl px-4 py-8">
                 {/* Header */}
                 <div className="mb-8" style={stagger(0)}>
@@ -128,6 +132,7 @@ export default function LearningIndex({ lessons, skeleton, errorStats }: Props) 
                 <div className="mb-6" style={stagger(1)}>
                     <Link
                         href="/lessons/next"
+                                    onClick={attendreLecon}
                         className="duo-press group relative block overflow-hidden rounded-2xl p-6 text-white"
                         style={{
                             background: `linear-gradient(135deg, ${SKY}, #3478c8)`,
