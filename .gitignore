@@ -68,3 +68,14 @@ yarn-error.log
 /public/illustrations/prepla-kids/**/*.png
 /public/illustrations/prepla-kids/generation-manifest.json
 /public/illustrations/prepla-kids/README.md
+
+# Illustrations adultes : PNG sources hors git, seuls les WebP sont publies.
+/public/illustrations/prepla-guide/*.png
+!/public/illustrations/prepla-guide/welcome.png
+/public/illustrations/etats/*.png
+/public/illustrations/competences/*.png
+/public/illustrations/onboarding/*.png
+/public/illustrations/abonnement/*.png
+/public/illustrations/centre/*.png
+/public/illustrations/badges/*.png
+/public/illustrations/ADULTES-POUR-CLAUDE.md
