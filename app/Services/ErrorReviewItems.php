@@ -53,7 +53,9 @@ class ErrorReviewItems
             ];
         }
 
-        session()->forget(self::SESSION . '.' . $error->id);
+        // Rien dans le vivier : on repose l'erreur elle-meme, mais on note quand
+        // meme qu'elle a ete posee, pour n'accepter qu'une correction.
+        session()->put(self::SESSION . '.' . $error->id, ['exercise_id' => null, 'question_id' => '']);
 
         return ['prompt' => (string) $error->question_text, 'options' => [], 'variant' => false];
     }
@@ -63,9 +65,9 @@ class ErrorReviewItems
      *
      * @return array{expected: string, explanation: ?string}
      */
-    public function attendu(UserError $error): array
+    public function attendu(UserError $error, ?array $pose = null): array
     {
-        $pose = session()->get(self::SESSION . '.' . $error->id);
+        $pose ??= session()->get(self::SESSION . '.' . $error->id);
         if (is_array($pose)) {
             $exercise = Exercise::find($pose['exercise_id'] ?? 0);
             $question = $exercise ? $this->trouverQuestion($exercise, (string) ($pose['question_id'] ?? '')) : null;
@@ -86,7 +88,18 @@ class ErrorReviewItems
     }
 
     /**
-     * Meme regle que recallEstJuste cote page : la chaine complete, la meme sans
+     * Consomme la question posee pour cette erreur : une seule correction par
+     * question posee. Null si rien n'a ete pose (rejeu, autre onglet, session expiree).
+     */
+    public function consommer(UserError $error): ?array
+    {
+        $pose = session()->pull(self::SESSION . '.' . $error->id);
+
+        return is_array($pose) ? $pose : null;
+    }
+
+    /**
+     * Meme regle que l'ancienne recallEstJuste cote page : la chaine complete, la meme sans
      * son prefixe de lettre « C) », et la lettre seule pour les anciennes erreurs.
      */
     public static function estJuste(string $saisie, string $attendu): bool
@@ -162,6 +175,8 @@ class ErrorReviewItems
             return null;
         }
 
+        $niveau = $origine?->difficulty;
+
         $typeIds = ExerciseType::where('slug', $error->exercise_type_slug)->pluck('id');
         if ($typeIds->isEmpty()) {
             return null;
@@ -171,6 +186,7 @@ class ErrorReviewItems
         Exercise::where('exam_id', $examId)
             ->whereIn('exercise_type_id', $typeIds)
             ->whereNull('center_id')
+            ->when($niveau, fn ($q) => $q->where('difficulty', $niveau))
             ->inRandomOrder()
             ->limit(20)
             ->get()
@@ -187,7 +203,7 @@ class ErrorReviewItems
                         continue;
                     }
                     // Une reponse longue est une production libre, pas un mot a retrouver.
-                    if (str_word_count($attendu) > 4 && Exercise::optionList($question['options'] ?? []) === []) {
+                    if (count(preg_split('/\s+/u', trim($attendu), -1, PREG_SPLIT_NO_EMPTY)) > 4 && Exercise::optionList($question['options'] ?? []) === []) {
                         continue;
                     }
                     if (!isset($question['id'])) {

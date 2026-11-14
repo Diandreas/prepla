@@ -333,5 +333,9 @@
     "footer_contact_call": "Call us",
     "footer_copyright": "© {{year}} PrePla. All rights reserved.",
     "footer_independance": "PrePla is independent of the exam boards: it issues no certificate and sells no exam registration."
+  },
+  "errors": {
+    "correct_answer": "Correct answer",
+    "to_recall": "To recall during review"
   }
 }

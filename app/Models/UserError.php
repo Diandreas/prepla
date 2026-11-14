@@ -125,11 +125,12 @@ class UserError extends Model
         return [$skill, null];
     }
 
-    public function scopeConcept($query, $userId)
+    public function scopeConcept($query, $userId, bool $avecMaitrisees = false)
     {
         // Exclude reading/listening (comprehension of a one-off passage) — those
         // can't be re-posed. Keep genuine concept skills or concept-style components.
-        return $query->where('user_id', $userId)->where('mastered', false)
+        return $query->where('user_id', $userId)
+            ->when(!$avecMaitrisees, fn ($q) => $q->where('mastered', false))
             ->whereNotIn('skill_type', ['reading', 'listening'])
             ->where(function ($q) {
                 $q->whereIn('exercise_type_slug', self::CONCEPT_SLUGS)

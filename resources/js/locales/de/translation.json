@@ -332,5 +332,9 @@
     "footer_contact_call": "Direkt anrufen",
     "footer_copyright": "© {{year}} PrePla. Alle Rechte vorbehalten.",
     "footer_independance": "PrePla ist unabhängig von den Prüfungsstellen: Es stellt keine Zertifikate aus und verkauft keine Prüfungsanmeldungen."
+  },
+  "errors": {
+    "correct_answer": "Richtige Antwort",
+    "to_recall": "In der Wiederholung wiederfinden"
   }
 }
