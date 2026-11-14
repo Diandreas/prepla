@@ -277,7 +277,7 @@ export default function Dashboard() {
 
             {/* Élève d'un centre : sa mission est son prochain devoir (nextAction),
                 la liste de ses devoirs suit juste dessous. */}
-            {nextAction && <DailyMission action={nextAction} reviewCount={wordReviewCount ?? 0} name={auth.user?.name} level={profile?.current_level ?? undefined} />}
+            {nextAction && <DailyMission action={nextAction} reviewCount={wordReviewCount ?? 0} name={auth.user?.name} level={profile?.current_level ?? undefined} serie={profile?.serie_effective ?? 0} />}
             {centerMode && (centerAssignments ?? []).length > 0 && (
                 <CenterAssignmentsBanner assignments={centerAssignments ?? []} />
             )}

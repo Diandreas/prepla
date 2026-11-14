@@ -1,3 +1,4 @@
+import { Illustration } from '@/components/illustration';
 import { Head } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import type { LeaderboardEntry } from '@/types';
@@ -131,9 +132,12 @@ export default function Leaderboard({ entries, currentUserId }: Props) {
                     </div>
 
                     {entries.length === 0 ? (
-                        <p className="py-10 text-center text-sm font-bold text-muted-foreground">
-                            Aucune entrée pour l'instant. Complétez des exercices pour gagner des XP !
-                        </p>
+                        <div className="space-y-3 py-10 text-center">
+                            <Illustration src="/illustrations/etats/classement-vide.webp" alt="Un podium encore vide" size={150} />
+                            <p className="text-sm font-bold text-muted-foreground">
+                                Aucune entrée pour l'instant. Complétez des exercices pour gagner des XP !
+                            </p>
+                        </div>
                     ) : (
                         <div className="divide-y divide-gray-100">
                             {entries.map((entry, i) => (

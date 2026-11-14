@@ -1,3 +1,4 @@
+import { Illustration } from '@/components/illustration';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
@@ -105,9 +106,14 @@ export default function VocabularyIndex({ words, dueCount }: Props) {
                 {/* Words grid */}
                 {filtered.length === 0 ? (
                     <div className="text-center py-20 space-y-4">
-                        <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto">
-                            <Icon name="vocabulary" size={32} className="opacity-30" />
-                        </div>
+                        {search ? (
+                            <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto">
+                                <Icon name="vocabulary" size={32} className="opacity-30" />
+                            </div>
+                        ) : (
+                            // Carnet vraiment vide (pas une recherche sans resultat) : l'illustration.
+                            <Illustration src="/illustrations/etats/carnet-vide.webp" alt="Un carnet de mots encore vide" size={160} />
+                        )}
                         <p className="text-slate-400 font-medium">
                             {search ? t('vocabulary.no_results', 'Aucun mot trouvé.') : t('vocabulary.empty', 'Aucun mot sauvegardé. Commencez à pratiquer !')}
                         </p>

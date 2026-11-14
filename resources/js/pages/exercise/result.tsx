@@ -1,4 +1,6 @@
 import { ArtIcon } from '@/components/art-icon';
+import { Renard } from '@/components/renard';
+import { XpEnvol } from '@/components/xp-envol';
 import { normalizeOptions } from '@/components/exercises/normalize-options';
 import { normalizeTtsLang } from '@/lib/tts-cache';
 import type { ExerciseAttempt } from '@/types';
@@ -269,7 +271,7 @@ export default function ExerciseResult({ attempt, nodeProgress }: Props) {
                 {/* Header */}
                 <div className="rounded-3xl border border-border bg-card px-5 py-7 text-center" style={stagger(0)}>
                     <div className="mb-4 flex justify-center">
-                        <ArtIcon name={isSuccess ? 'trophy' : 'review'} size={88} tone={isSuccess ? 'amber' : 'blue'} />
+                        <Renard pose={isSuccess ? 'bravo' : 'encourage'} size={112} />
                     </div>
                     <h1 className="text-3xl font-black tracking-tight text-foreground">
                         {isSuccess ? 'Excellent !' : 'Exercice terminé !'}
@@ -339,7 +341,8 @@ export default function ExerciseResult({ attempt, nodeProgress }: Props) {
                         </div>
                         <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Précision</p>
                     </div>
-                    <div className="duo-card flex flex-col items-center justify-center gap-1 p-3 sm:p-5">
+                    <div className="duo-card relative flex flex-col items-center justify-center gap-1 p-3 sm:p-5">
+                        <XpEnvol xp={Number(attempt.xp_earned ?? 0)} />
                         <div className="flex items-center gap-1 text-2xl font-black text-amber-700 dark:text-amber-300 sm:text-3xl">
                             <ArtIcon name="zap" size={28} tone="amber" className="hidden sm:inline-flex" />
                             {attempt.xp_earned}

@@ -1,3 +1,4 @@
+import { Illustration } from '@/components/illustration';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
 
@@ -106,9 +107,7 @@ export default function ErrorsIndex({ errors, errorsBySkill, comprehensionBySkil
                 {/* Empty state */}
                 {totalErrors === 0 && (
                     <div className="text-center py-20 space-y-4">
-                        <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto" style={{ background: '#f0fdf4' }}>
-                            <Icon name="check-circle" size={40} style={{ }} />
-                        </div>
+                        <Illustration src="/illustrations/etats/zero-erreur.webp" alt="Un carnet d’erreurs vide, le renard est content" size={160} />
                         <h2 className="text-xl font-black" style={{ color: OXFORD }}>Aucune erreur !</h2>
                         <p className="text-sm text-muted-foreground">Continuez à pratiquer pour identifier vos points à améliorer.</p>
                         <Link href="/practice" className="inline-block mt-4 rounded-2xl px-6 py-2.5 text-sm font-black text-white" style={{ background: `linear-gradient(135deg, ${SKY}, #3478c8)` }}>

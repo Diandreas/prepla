@@ -1680,15 +1680,14 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
                         {isChecked && (
                             <div className="flex items-center gap-3 animate-in fade-in slide-in-from-bottom-1 duration-200 motion-reduce:animate-none">
                                 {etat === 'juste' ? (
-                                    // Light "win" GIF on a correct answer (the big trophy is
-                                    // reserved for end-of-session results).
-                                    <img
-                                        src="/animation/star.gif"
-                                        alt=""
-                                        width={44}
-                                        height={44}
-                                        className="shrink-0 object-contain animate-in zoom-in-50 duration-300 motion-reduce:animate-none"
-                                    />
+                                    // Une coche qui rebondit (squash & stretch, 250 ms) : le
+                                    // grand renard est garde pour la fin de seance.
+                                    <span
+                                        aria-hidden="true"
+                                        className="coche-pop flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white"
+                                    >
+                                        <Check className="h-6 w-6" strokeWidth={3} />
+                                    </span>
                                 ) : (
                                     <span
                                         aria-hidden="true"
