@@ -187,7 +187,14 @@ class ParcoursEleveDeCentre
             ->whereIn('exercise_id', $tousLesExercices)
             ->get(['exercise_id', 'created_at']);
 
-        return $devoirs->map(function (Assignment $a) use ($classes, $tentatives) {
+        // Les examens blancs du centre donnes en devoir : rendu = un passage
+        // enregistre apres la publication.
+        $examensBlancs = $devoirs->flatMap(fn (Assignment $a) => $this->examensBlancs($a))->unique()->values();
+        $passages = $examensBlancs->isEmpty() ? collect() : \App\Models\MockExamPassage::where('user_id', $user->id)
+            ->whereIn('mock_exam_id', $examensBlancs)
+            ->get(['mock_exam_id', 'created_at']);
+
+        return $devoirs->map(function (Assignment $a) use ($classes, $tentatives, $passages) {
             $exercices = $this->exercices($a);
             // Fait = tente APRES la publication du devoir, comme le voit l'enseignant
             // (AssignmentProgressService).
@@ -195,8 +202,13 @@ class ParcoursEleveDeCentre
                 ->filter(fn ($t) => $t->created_at >= $a->published_at)
                 ->pluck('exercise_id')->map(fn ($id) => (int) $id)->unique();
             $faitsIci = $exercices->filter(fn ($id) => $faits->contains($id));
-            $total = $exercices->count();
-            $termine = $total > 0 && $faitsIci->count() >= $total;
+            $blancs = $this->examensBlancs($a);
+            $blancsRendus = $passages->filter(fn ($p) => $p->created_at >= $a->published_at)
+                ->pluck('mock_exam_id')->map(fn ($id) => (int) $id)->unique();
+            $blancsFaits = $blancs->filter(fn ($id) => $blancsRendus->contains($id));
+            $total = $exercices->count() + $blancs->count();
+            $faitsTotal = $faitsIci->count() + $blancsFaits->count();
+            $termine = $total > 0 && $faitsTotal >= $total;
 
             return [
                 'id' => $a->id,
@@ -208,11 +220,23 @@ class ParcoursEleveDeCentre
                 // Un devoir rendu n'est plus en retard, meme apres son echeance.
                 'overdue' => ! $termine && $a->isOverdue(),
                 'total' => $total,
-                'done' => $faitsIci->count(),
+                'done' => $faitsTotal,
                 'termine' => $termine,
                 'next_exercise_id' => $exercices->first(fn ($id) => ! $faits->contains($id)),
+                // L'examen blanc a passer, s'il reste a rendre.
+                'examen_blanc_id' => $blancs->first(fn ($id) => ! $blancsRendus->contains($id)),
             ];
         })->values();
+    }
+
+    /** @return Collection<int, int> les examens blancs du centre portes par ce devoir. */
+    private function examensBlancs(Assignment $devoir): Collection
+    {
+        return $devoir->items
+            ->where('itemable_type', \App\Models\MockExam::class)
+            ->pluck('itemable_id')
+            ->map(fn ($id) => (int) $id)
+            ->values();
     }
 
     /** @return Collection<int, int> les exercices du devoir, dans leur ordre. */

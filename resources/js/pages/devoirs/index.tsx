@@ -15,6 +15,8 @@ export interface DevoirDeLEleve {
     done: number;
     termine: boolean;
     next_exercise_id: number | null;
+    // Examen blanc du centre encore a rendre.
+    examen_blanc_id?: number | null;
 }
 
 /** Une ligne de devoir : titre, classe, échéance, progression. */

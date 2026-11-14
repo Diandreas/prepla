@@ -74,6 +74,7 @@ export function AppSidebar() {
                 : []),
             { title: tc('Contenu'), url: '/center/exercises', icon: () => <SidebarIcon name="puzzle" /> },
             { title: tc('Devoirs'), url: '/center/assignments', icon: () => <SidebarIcon name="tasks" /> },
+            { title: tc('Examens blancs'), url: '/center/examens-blancs', icon: () => <SidebarIcon name="tasks" /> },
             // Les reglages du centre (marque, examens, adresse, formule, acces
             // vendus, parrainage) sous une seule entree : le responsable ne
             // trouvait pas « les parametres de son centre » parmi trois entrees
