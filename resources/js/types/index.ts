@@ -101,6 +101,7 @@ export interface UserProfile {
     streak_current: number;
     /** La série réellement en cours : zéro si le dernier jour travaillé est antérieur à hier. */
     serie_effective?: number;
+    serie_perdue?: boolean;
     streak_last_date: string | null;
     onboarding_completed_at: string | null;
     trial_ends_at: string | null;

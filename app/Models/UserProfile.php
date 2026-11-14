@@ -15,7 +15,7 @@ class UserProfile extends Model
      * sans elle, le bandeau lirait `streak_current` et afficherait une série
      * morte depuis des semaines.
      */
-    protected $appends = ['serie_effective'];
+    protected $appends = ['serie_effective', 'serie_perdue'];
 
     protected $fillable = [
         'user_id',
@@ -71,6 +71,20 @@ class UserProfile extends Model
     public function getSerieEffectiveAttribute(): int
     {
         return $this->serieEffective();
+    }
+
+    public function getSeriePerdueAttribute(): bool
+    {
+        return $this->seriePerdue();
+    }
+
+    /**
+     * Une serie existait (streak_current > 0) mais l'eleve a saute plus d'un
+     * jour : elle est retombee a zero. Le renard console au lieu d'accueillir.
+     */
+    public function seriePerdue(): bool
+    {
+        return (int) $this->streak_current > 0 && $this->serieEffective() === 0;
     }
 
     public function serieEffective(): int

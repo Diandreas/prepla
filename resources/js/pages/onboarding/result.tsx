@@ -2,6 +2,7 @@ import { router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import OnboardingLayout from '@/layouts/onboarding-layout';
 import PushNotificationToggle from '@/components/push-notification-toggle';
+import { Renard } from '@/components/renard';
 import { useEffect, useState } from 'react';
 import * as Flags from 'country-flag-icons/react/3x2';
 import type { UserProfile } from '@/types';
@@ -275,13 +276,8 @@ export default function Result({ profile, exam, program: initialProgram }: Props
                 {/* AI program loader — shown while the personalized program is generated */}
                 {loadingProgram && (
                     <div className="rounded-2xl border border-primary/25 bg-primary/5 p-6 text-center" style={stagger(2)}>
-                        <img
-                            src="/animation/loading.gif"
-                            alt=""
-                            width={64}
-                            height={64}
-                            className="mx-auto mb-3"
-                        />
+                        {/* Le renard reflechit pendant que l'IA prepare le programme. */}
+                        <Renard pose="reflechit" size={96} decoratif className="mb-3" />
                         <p className="text-sm font-semibold text-primary">
                             Préparation de ton programme personnalisé…
                         </p>

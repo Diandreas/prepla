@@ -1,3 +1,4 @@
+import { Renard } from '@/components/renard';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAudioRecorder } from '@/hooks/use-audio-recorder';
 import { useTts } from '@/hooks/use-tts';
@@ -217,6 +218,8 @@ export function SpeakingRecorder({ question, onAnswer, selectedAnswer, disabled,
                 {/* Microphone indicator */}
                 {phase === 'recording' && isRecording && (
                     <div className="flex items-center gap-2">
+                        {/* Le renard tend l'oreille pendant que l'eleve parle. */}
+                        <Renard pose="ecoute" size={56} decoratif className="mx-0 h-14 w-14" />
                         <div className="h-3 w-3 animate-pulse rounded-full bg-red-500" />
                         <span className="text-sm font-medium text-red-500">Enregistrement en cours</span>
                     </div>

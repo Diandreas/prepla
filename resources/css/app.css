@@ -691,14 +691,18 @@
         60% { transform: translateX(-5px); }
         80% { transform: translateX(5px); }
     }
-    .answer-shake { animation: answer-shake 0.4s cubic-bezier(.36,.07,.19,.97); }
+    /* Secousse breve : 250 ms, le temps de dire « non » sans punir. */
+    .answer-shake { animation: answer-shake var(--duree-lente) var(--courbe-secousse); }
 
+    /* Squash & stretch : la carte s'ecrase un peu puis s'etire avant de se
+       reposer. Assez net pour se sentir, assez court pour ne pas gener. */
     @keyframes answer-pop {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.04); }
-        100% { transform: scale(1); }
+        0% { transform: scale(1, 1); }
+        30% { transform: scale(1.04, 0.96); }
+        60% { transform: scale(0.98, 1.03); }
+        100% { transform: scale(1, 1); }
     }
-    .answer-pop { animation: answer-pop 0.35s ease; }
+    .answer-pop { animation: answer-pop var(--duree-lente) var(--courbe-rebond); }
 
     /* Count-up / value bump when a number changes (XP, streak) */
     @keyframes value-bump {
@@ -972,4 +976,66 @@
     40% { transform: translateX(10px); }
     60% { transform: translateX(-6px); }
     80% { transform: translateX(6px); }
+}
+
+/* ── Systeme de mouvement commun ─────────────────────────────────────────
+   Trois durees seulement (150 / 200 / 250 ms) : un retour vif se sent
+   immediat, au-dela il donne l'impression d'attendre. Deux courbes : la
+   standard (sortie douce) pour ce qui bouge, le rebond pour ce qui felicite. */
+:root {
+    --duree-rapide: 150ms;
+    --duree-normale: 200ms;
+    --duree-lente: 250ms;
+    --courbe-standard: cubic-bezier(0.2, 0, 0, 1);
+    --courbe-rebond: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --courbe-secousse: cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+/* La coche de la bonne reponse : anticipation (elle se tasse) puis rebond. */
+@keyframes coche-pop {
+    0% { transform: scale(0.4, 0.4); opacity: 0; }
+    45% { transform: scale(1.18, 0.88); opacity: 1; }
+    70% { transform: scale(0.94, 1.08); }
+    100% { transform: scale(1, 1); }
+}
+.coche-pop { animation: coche-pop var(--duree-lente) var(--courbe-rebond) both; }
+
+/* « +N XP » qui monte vers le compteur puis s'efface (follow-through). */
+@keyframes xp-envol {
+    0% { transform: translateY(8px) scale(0.9); opacity: 0; }
+    25% { transform: translateY(0) scale(1.1); opacity: 1; }
+    100% { transform: translateY(-36px) scale(1); opacity: 0; }
+}
+.xp-envol { animation: xp-envol 900ms var(--courbe-standard) forwards; pointer-events: none; }
+
+/* Entree du renard : pose a pose, il saute, s'ecrase en touchant le sol, se redresse. */
+@keyframes renard-entree {
+    0% { transform: translateY(16px) scale(0.92, 1.06); opacity: 0; }
+    40% { transform: translateY(-10px) scale(0.96, 1.05); opacity: 1; }
+    65% { transform: translateY(0) scale(1.06, 0.94); }
+    85% { transform: translateY(-2px) scale(0.99, 1.01); }
+    100% { transform: translateY(0) scale(1, 1); }
+}
+.renard-entree { animation: renard-entree 600ms var(--courbe-standard) both; transform-origin: 50% 100%; }
+
+/* Anticipation uniforme : le bouton commun (components/ui/button) porte
+   .appui et s'enfonce un peu sous le doigt ; les choix d'exercice ont deja
+   .duo-press. */
+.appui:not(:disabled):active { transform: scale(0.97); }
+
+/* Mouvement reduit : on coupe seulement les animations decoratives (rebond,
+   secousse, confettis, entree du renard, envol d'XP). Les indicateurs de
+   chargement (animate-spin) et les barres de progression continuent de
+   tourner : ils disent a l'eleve que quelque chose se passe. Les changements
+   d'etat restent (couleurs, icones, textes). */
+@media (prefers-reduced-motion: reduce) {
+    .coche-pop, .xp-envol, .renard-entree, .confetti-piece, .answer-shake, .answer-pop, .value-bump,
+    .animate-bounce, .animate-bounce-soft, .animate-wiggle, .animate-celebrate, .animate-confetti-pop,
+    .animate-float, .animate-sparkle, .animate-tilt-in {
+        animation: none !important;
+    }
+    .coche-pop, .renard-entree, .appui:active { transform: none !important; }
+    .xp-envol, .confetti-piece { opacity: 0; }
+    .xp-vers-compteur { display: none !important; }
+    html { scroll-behavior: auto !important; }
 }

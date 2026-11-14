@@ -219,7 +219,7 @@ export function AppSidebarHeader() {
                             {streak}
                         </span>
                         <span className="h-3 w-px bg-border" />
-                        <span className={`flex items-center gap-1 text-xs font-black tabular-nums ${xpBump ? 'value-bump' : ''}`} style={{ color: GOLD }}>
+                        <span data-compteur-xp className={`flex items-center gap-1 text-xs font-black tabular-nums ${xpBump ? 'value-bump' : ''}`} style={{ color: GOLD }}>
                             <CustomIcon name="trophy" className="h-3.5 w-3.5" style={{ }} />
                             {xp}
                         </span>

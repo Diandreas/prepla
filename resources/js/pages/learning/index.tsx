@@ -1,3 +1,4 @@
+import { Illustration } from '@/components/illustration';
 import { Head, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { useEffect, useState } from 'react';
@@ -289,7 +290,7 @@ export default function LearningIndex({ lessons, skeleton, errorStats }: Props) 
                     </div>
                     {lessons.data.length === 0 ? (
                         <div className="py-12 text-center">
-                            <p className="text-4xl mb-3"></p>
+                            <Illustration src="/illustrations/etats/premiere-lecon.webp" alt="Le renard ouvre un livre pour ta première leçon" size={150} className="mb-3" />
                             <p className="text-sm font-bold text-muted-foreground">
                                 Aucune leçon encore. Clique sur "Prochaine leçon" pour commencer !
                             </p>

@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { useState } from 'react';
 import { LearningModePicker } from './learning-mode-picker';
+import { Renard } from './renard';
 import { ArrowRight, BookOpen, Headphones, Loader2, Sparkles, RotateCcw } from 'lucide-react';
 
 export interface JourneyAction {
@@ -13,7 +14,7 @@ export interface JourneyAction {
     /** Pour l'élève d'un centre au parcours créé par le centre : l'étape suivante (kind « etape »). */
     etape?: { classe: string | null; numero: number; total: number; competence: string | null; libelle: string };
 }
-export function DailyMission({ action, name, level }: { action: JourneyAction; reviewCount: number; name?: string; level?: string }) {
+export function DailyMission({ action, name, level, serie = 0, seriePerdue = false }: { action: JourneyAction; reviewCount: number; name?: string; level?: string; serie?: number; seriePerdue?: boolean }) {
     const missionLabel = action.kind === 'exam' ? 'Ton prochain palier' : action.kind === 'remedial' ? 'Un point à consolider' : action.kind === 'practice' ? 'À toi de jouer'
         : action.kind === 'devoir' ? 'Ton prochain devoir' : action.kind === 'devoirs_finis' ? 'Tes devoirs' : action.kind === 'sans_classe' ? 'Ton centre' : action.kind === 'entrainement' ? 'En attendant ton prochain devoir'
         : action.kind === 'etape' ? 'Ton parcours' : action.kind === 'parcours_fini' ? 'Ton parcours' : 'Ta prochaine mission';
@@ -81,7 +82,7 @@ export function DailyMission({ action, name, level }: { action: JourneyAction; r
                     </Link>
                     {preparing && <p className="mt-2 text-xs text-blue-100/85">Tes exercices sont en cours d’écriture, cela peut prendre une trentaine de secondes.</p>}
                 </div>
-                <div className="relative shrink-0"><div aria-hidden="true" className="absolute inset-3 rounded-full bg-blue-300/10 blur-xl" /><img src="/illustrations/prepla-guide/welcome.png" width="160" height="160" alt="" className="relative h-24 w-16 object-contain min-[400px]:w-20 sm:h-36 sm:w-32" /></div>
+                <div className="relative shrink-0"><div aria-hidden="true" className="absolute inset-3 rounded-full bg-blue-300/10 blur-xl" />{/* Une serie en cours : le renard la fete. Retombee a zero : il console. Sinon, il accueille. */}<Renard pose={serie > 0 ? 'serie' : seriePerdue ? 'serie-perdue' : 'welcome'} size={160} decoratif className="relative h-24 w-16 min-[400px]:w-20 sm:h-36 sm:w-32" /></div>
             </div>
         </div>
     </section>;

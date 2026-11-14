@@ -1,5 +1,6 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
+import { Renard } from '@/components/renard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -154,6 +155,7 @@ export default function Subscription({ currentPlan, stripeEnabled, isSubscribed,
                 {/* Confirmation de paiement au retour de Stripe Checkout */}
                 {showSuccess && (
                     <div className="rounded-2xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-center">
+                        <Renard pose="merci" size={120} decoratif className="mb-2 h-24 w-24" />
                         <p className="text-sm font-bold text-emerald-800">✓ Paiement réussi — bienvenue dans PrePla Plus !</p>
                     </div>
                 )}

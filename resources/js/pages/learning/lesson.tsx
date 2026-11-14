@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { ConfettiBurst } from '@/components/confetti-burst';
+import { Renard } from '@/components/renard';
 import { playSound } from '@/hooks/use-sound';
 import { LearningScene } from '@/components/learning-scene';
 import { LessonWords, type LessonWord } from '@/components/lesson-words';
@@ -663,10 +664,8 @@ export default function LessonPage({ lesson, skeleton, lessonWords = [] }: Props
                                     : `0 4px 0 0 #962d22`,
                             }}
                         >
-                            {quizResults.passed && (
-                                <img src="/animation/winner.gif" alt="" width={120} height={120} className="mx-auto mb-2 drop-shadow-lg" />
-                            )}
-                            <p className="text-[10px] font-black uppercase tracking-widest opacity-80">
+                            {/* Le renard reagit au resultat : fete si reussi, encourage sinon. */}
+                            <Renard pose={quizResults.passed ? 'lecon-finie' : 'encourage'} size={120} className="mb-2" />                            <p className="text-[10px] font-black uppercase tracking-widest opacity-80">
                                 {quizResults.passed ? 'Réussi' : 'À retravailler'}
                             </p>
                             <p className="text-3xl font-black mt-1">{quizResults.accuracy}%</p>
