@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { coerceOption, collection } from '@/components/exercises/normalize-options';
 import AppLayout from '@/layouts/app-layout';
+import { useAttenteLeconSuivante } from "@/components/generation-en-cours";
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
@@ -121,6 +122,8 @@ function splitIntoSections(md: string): { title: string | null; content: string 
 export default function LessonPage({ lesson, skeleton, lessonWords = [] }: Props) {
     const { t } = useTranslation();
     const [mounted, setMounted] = useState(false);
+    // Seuil de Doherty : squelette et etapes pendant que la lecon suivante se genere.
+    const { demarrer: attendreLecon, attente: attenteLecon } = useAttenteLeconSuivante();
     const [phase, setPhase] = useState<Phase>('lesson');
     const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
     const [quizResults, setQuizResults] = useState<any>(null);
@@ -366,6 +369,7 @@ export default function LessonPage({ lesson, skeleton, lessonWords = [] }: Props
     return (
         <AppLayout focusMode>
             <Head title={lesson.title} />
+            {attenteLecon}
             <div className="learning-canvas mx-auto max-w-2xl px-3 py-4 sm:px-4 sm:py-8">
                 {/* Header back link */}
                 <div className="mb-4" style={stagger(0)}>
@@ -559,6 +563,7 @@ export default function LessonPage({ lesson, skeleton, lessonWords = [] }: Props
                             ) : (
                                 <Link
                                     href="/lessons/next"
+                                    onClick={attendreLecon}
                                     className="group rounded-2xl px-8 py-3.5 text-sm font-black text-white transition-all hover:scale-[1.02]"
                                     style={{
                                         background: `linear-gradient(135deg, ${SKY}, #3478c8)`,
@@ -727,6 +732,7 @@ export default function LessonPage({ lesson, skeleton, lessonWords = [] }: Props
                                 <>
                                     <Link
                                         href="/lessons/next"
+                                    onClick={attendreLecon}
                                         className="w-full rounded-2xl px-8 py-4 text-center text-sm font-black text-white transition-all hover:scale-[1.02]"
                                         style={{
                                             background: `linear-gradient(135deg, ${SKY}, #3478c8)`,

@@ -335,6 +335,9 @@ class ExerciseController extends Controller
                 if ($sessionAccuracy >= $MASTERY_THRESHOLD) {
                     $skeleton->completePractice($practiceIndex);
 
+                    // L'objectif avance : on prepare deja la lecon suivante (apres la reponse).
+                    app(\App\Services\Curriculum\NextLessonPrefetcher::class)->schedule($user);
+
                     // La montee de niveau ne se joue plus ici : chaque palier se termine
                     // par son examen, et c'est lui qui promeut. Promouvoir des la derniere
                     // pratique validee rendait l'epreuve sans objet — l'apprenant y

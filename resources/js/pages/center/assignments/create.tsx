@@ -34,7 +34,7 @@ type Formulaire = {
     exercise_ids: number[];
 };
 
-export default function AssignmentCreate({ classrooms, exercises, preselection = [] }: { classrooms: Classroom[]; exercises: LigneExercice[]; preselection?: number[] }) {
+export default function AssignmentCreate({ classrooms, exercises, preselection = [], classeDemandee = null }: { classrooms: Classroom[]; exercises: LigneExercice[]; preselection?: number[]; classeDemandee?: number | null }) {
     const { t } = useT();
     const nomExercice = (e: LigneExercice) => (String(e.titre ?? '').trim() !== '' ? libelleExercice(e) : t(libelleExercice(e)));
     const page = usePage();
@@ -42,7 +42,10 @@ export default function AssignmentCreate({ classrooms, exercises, preselection =
     const cle = cleDuDevoirEnCours(compte);
 
     const form = useForm<Formulaire>({
-        classroom_id: classrooms[0]?.id ? String(classrooms[0].id) : '',
+        // Venu de la fiche d'un eleve : sa classe est deja choisie.
+        classroom_id: classeDemandee && classrooms.some((c) => c.id === classeDemandee)
+            ? String(classeDemandee)
+            : classrooms[0]?.id ? String(classrooms[0].id) : '',
         title: '',
         instructions: '',
         due_at: '',

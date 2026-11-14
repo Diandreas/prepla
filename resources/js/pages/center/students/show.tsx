@@ -4,7 +4,8 @@ import AnalyseIa from '@/components/center/analyse-ia';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Download } from 'lucide-react';
+import { BookOpen, ClipboardList, Download, MessageCircle } from 'lucide-react';
+import { lienWhatsApp } from '@/lib/whatsapp-eleve';
 import { useT } from '@/lib/i18n/traduire';
 import { competence, dateHeure, duree, ilYA } from '@/lib/suivi';
 import { ecartPoints } from '@/lib/tableau-de-classe';
@@ -42,7 +43,7 @@ const STATUTS: Record<StatutDevoir, { libelle: string; classe: string }> = {
     a_faire: { libelle: 'À faire', classe: 'bg-muted text-muted-foreground' },
 };
 
-interface Student { id: number; name: string; email: string; level: string | null; classes: string[] }
+interface Student { id: number; name: string; email: string; level: string | null; classes: string[]; classe_ids?: number[]; phone?: string | null }
 interface Jour { date: string; exercices: number; minutes: number }
 
 interface Exemple { contexte: string | null; reponse: string | null; correction: string | null; explication: string | null; competence: string | null }
@@ -126,6 +127,11 @@ export default function StudentShow({
     statistiques?: StatistiquesEleve | null;
 }) {
     const { t, locale } = useT();
+    // Actions rapides en un clic : le devoir arrive avec sa classe deja choisie, la
+    // relance WhatsApp avec un message deja ecrit (l'enseignant peut le modifier).
+    const premiereClasse = student.classe_ids?.[0] ?? null;
+    const lienDevoir = premiereClasse ? route('center.assignments.create', { classe: premiereClasse }) : route('center.assignments.create');
+    const whatsapp = lienWhatsApp(student.phone, t("Bonjour {nom}, on ne t'a pas vu sur PrePla depuis quelques jours. Une petite séance aujourd'hui ?", { nom: student.name.split(' ')[0] }));
     const formatEcheance = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' });
     // Les libelles fixes du serveur (competences, categories de fautes « Grammaire · accords ») se traduisent morceau par morceau.
     const comp = (slug: string | null) => {
@@ -157,6 +163,18 @@ export default function StudentShow({
                         </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
+                        <Button asChild size="sm">
+                            <Link href={lienDevoir}>
+                                <ClipboardList className="mr-1.5 h-4 w-4" /> {t('Donner un devoir')}
+                            </Link>
+                        </Button>
+                        {whatsapp && (
+                            <Button asChild variant="outline" size="sm">
+                                <a href={whatsapp} target="_blank" rel="noopener noreferrer">
+                                    <MessageCircle className="mr-1.5 h-4 w-4" /> {t('Relancer sur WhatsApp')}
+                                </a>
+                            </Button>
+                        )}
                         <Button asChild variant="outline" size="sm">
                             <Link href={route('center.students.vocabulaire', student.id)}>
                                 <BookOpen className="mr-1.5 h-4 w-4" /> {t('Vocabulaire')}

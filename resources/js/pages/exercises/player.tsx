@@ -1,4 +1,5 @@
 import AppLayout from '@/layouts/app-layout';
+import { ETAPES_ECRIT, ETAPES_ORAL, ETAPES_SESSION, GenerationEnCours } from '@/components/generation-en-cours';
 import { coerceOption, collection } from '@/components/exercises/normalize-options';
 import { assessmentAnswers } from '@/lib/session-answers.js';
 import type { FormDataConvertible } from '@inertiajs/core';
@@ -1329,6 +1330,17 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
     return (
         <AppLayout focusMode>
             <Head title={`${node.title} - PrePla`} />
+
+            {/* Seuil de Doherty : la correction d un ecrit ou d un oral par l IA prend
+                plusieurs secondes. Un squelette et des etapes qui avancent remplacent
+                la simple roue du bouton. */}
+            <GenerationEnCours
+                actif={isVerifying && (activeSkillType === 'writing' || activeSkillType === 'speaking')}
+                etapes={activeSkillType === 'speaking' ? ETAPES_ORAL : ETAPES_ECRIT}
+                titre='Correction en cours'
+                pleinEcran
+            />
+            <GenerationEnCours actif={submitting} etapes={ETAPES_SESSION} titre='Bilan de ta séance' pleinEcran />
 
             {/* Hauteur d'ecran en style en ligne : `.learning-canvas` (CSS hors couche,
                 `min-height: 100%`) l'emporte sur `min-h-screen`. `palette-lecteur` : le
