@@ -71,16 +71,52 @@ const CRITERES: Record<string, string> = {
  * Le correcteur la produisait deja et elle etait enregistree avec la tentative,
  * mais cette page n'en montrait que le commentaire general.
  */
-function CorrectionRedaction({ item }: { item: { band_score?: number; sub_scores?: Record<string, number>; corrections?: Array<{ original?: string; corrected?: string; explanation?: string }>; diagnostic?: Array<{ observation?: string }> } }) {
+interface GrilleOfficielle {
+    examen: string;
+    affichage: string;
+    commentaire?: string | null;
+    mention: string;
+    criteres?: Array<{ nom: string; valeur: string }>;
+}
+
+/**
+ * La note dans l'echelle de l'examen vise (sur 25 au DELF, bande IELTS...).
+ * Toujours presentee comme une estimation : ce n'est pas une note officielle.
+ */
+function NoteOfficielle({ grille }: { grille: GrilleOfficielle }) {
+    return (
+        <div className="rounded-xl border border-sky-200 bg-sky-50/60 p-3 dark:border-sky-900 dark:bg-sky-950/30">
+            <div className="flex items-baseline justify-between gap-2">
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Échelle {grille.examen}</p>
+                <p className="text-xl font-black tabular-nums text-foreground">{grille.affichage}</p>
+            </div>
+            {(grille.criteres ?? []).length > 0 && (
+                <ul className="mt-2 space-y-1 text-xs">
+                    {(grille.criteres ?? []).map((c) => (
+                        <li key={c.nom} className="flex justify-between gap-2">
+                            <span className="font-semibold text-foreground">{c.nom}</span>
+                            <span className="shrink-0 tabular-nums text-muted-foreground">{c.valeur}</span>
+                        </li>
+                    ))}
+                </ul>
+            )}
+            {grille.commentaire && <p className="mt-2 text-xs text-muted-foreground">{grille.commentaire}</p>}
+            <p className="mt-2 text-[11px] font-semibold text-amber-700 dark:text-amber-300">{grille.mention}</p>
+        </div>
+    );
+}
+
+function CorrectionRedaction({ item }: { item: { band_score?: number; sub_scores?: Record<string, number>; grille_officielle?: GrilleOfficielle | null; corrections?: Array<{ original?: string; corrected?: string; explanation?: string }>; diagnostic?: Array<{ observation?: string }> } }) {
     const criteres = Object.entries(item.sub_scores ?? {}).filter(([, v]) => typeof v === 'number');
     const corrections = (item.corrections ?? []).filter((c) => c.original && c.corrected);
     const tendances = (item.diagnostic ?? []).map((d) => d.observation).filter(Boolean) as string[];
 
     return (
         <div className="mt-3 space-y-3">
+            {item.grille_officielle && <NoteOfficielle grille={item.grille_officielle} />}
             <div className="rounded-xl border border-border bg-card p-3">
                 <div className="flex items-baseline justify-between gap-2">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Note de ta rédaction</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Note d'entraînement</p>
                     <p className="text-xl font-black tabular-nums text-foreground">
                         {Number(item.band_score).toFixed(1).replace('.', ',')}
                         <span className="text-sm font-bold text-muted-foreground"> / 9</span>

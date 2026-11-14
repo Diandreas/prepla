@@ -263,6 +263,9 @@ class ExerciseScoringService
                         'accuracy' => $accuracy,
                         'band_score' => $aiResult['score'] ?? 0,
                         'sub_scores' => $aiResult['band_scores'] ?? [],
+                        // La note estimee dans l'echelle de l'examen vise ; accuracy
+                        // reste en % pour les statistiques.
+                        'grille_officielle' => $panne ? null : ($aiResult['grille_officielle'] ?? null),
                         'corrections' => CorrectionsDeProduction::nettoyer($aiResult['corrections'] ?? []),
                         // Les tendances de fond — vocabulaire repetitif, phrases sans
                         // subordonnees, registre inadapte — qu'aucune correction isolee
