@@ -119,7 +119,7 @@ class AssignmentController extends Controller
         // Revenu du createur d'exercices : l'exercice tout juste cree arrive
         // deja coche. On ne coche que ce qui appartient au centre.
         $demandes = array_values(array_filter(array_map('intval', explode(',', (string) $request->query('exercice', '')))));
-        $preselection = $demandes === [] ? collect() : Exercise::where('center_id', $center->id)
+        $preselection = $demandes === [] ? collect() : Exercise::where('center_id', $center->id)->horsBrouillon()
             ->whereKey($demandes)
             ->pluck('id');
 
@@ -132,7 +132,7 @@ class AssignmentController extends Controller
                 ->get(['id', 'name', 'exam_id', 'level']),
             // Un titre lisible, le type et le niveau : « Multiple Choice #12 »
             // ne disait pas de quel exercice il s'agissait.
-            'exercises' => Exercise::where('center_id', $center->id)
+            'exercises' => Exercise::where('center_id', $center->id)->horsBrouillon()
                 ->with(FicheExercice::RELATIONS)
                 ->latest()
                 ->get()
@@ -235,9 +235,17 @@ class AssignmentController extends Controller
     {
         $demandes = collect($demandes)->map(fn ($id) => (int) $id)->filter()->unique()->values();
 
-        $duCentre = Exercise::where('center_id', $classroom->center_id)->whereKey($demandes->all())->pluck('id');
+        $duCentre = Exercise::where('center_id', $classroom->center_id)->horsBrouillon()->whereKey($demandes->all())->pluck('id');
         $duVivier = $this->vivierDe($classroom)->whereKey($demandes->all())->pluck('id');
         $permis = $duCentre->merge($duVivier)->map(fn ($id) => (int) $id)->unique()->all();
+
+        $brouillons = Exercise::whereKey($demandes->all())->where('center_id', $classroom->center_id)
+            ->where('center_status', Exercise::STATUT_BROUILLON)->exists();
+        if ($brouillons) {
+            throw ValidationException::withMessages([
+                'exercise_ids' => "Un exercice choisi est encore en brouillon : validez-le avant de le donner à une classe.",
+            ]);
+        }
 
         if ($demandes->isEmpty() || count($permis) !== $demandes->count()) {
             throw ValidationException::withMessages([
@@ -340,7 +348,7 @@ class AssignmentController extends Controller
             'exercises' => $exercices->map(fn (Exercise $e) => FicheExercice::ligne($e))->values(),
             // Ce qu'on peut encore y ajouter : les exercices du centre.
             'centerExercises' => $peutModifier
-                ? Exercise::where('center_id', $assignment->classroom?->center_id)
+                ? Exercise::where('center_id', $assignment->classroom?->center_id)->horsBrouillon()
                     ->with(FicheExercice::RELATIONS)->latest()->get()
                     ->map(fn (Exercise $e) => FicheExercice::ligne($e))
                 : [],

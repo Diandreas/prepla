@@ -51,5 +51,14 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        // Envoi plus gros que post_max_size : PHP vide la requete. On renvoie
+        // un message lisible plutot qu'une page 413 nue.
+        $exceptions->render(function (\Illuminate\Http\Exceptions\PostTooLargeException $e, \Illuminate\Http\Request $request) {
+            $message = \App\Http\Controllers\Center\MediaController::messageLimiteServeur();
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $message, 'errors' => ['fichier' => [$message]]], 413);
+            }
+
+            return back()->withErrors(['fichier' => $message]);
+        });
     })->create();

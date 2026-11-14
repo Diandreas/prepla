@@ -30,7 +30,14 @@ class Exercise extends Model
         'xp_reward',
         'is_ai_generated',
         'catalog_key',
+        'center_status',
+        'copied_from_id',
     ];
+
+    /** Statuts d'un exercice du centre dans sa banque de sujets. */
+    public const STATUT_BROUILLON = 'brouillon';
+
+    public const STATUT_VALIDE = 'valide';
 
     protected function casts(): array
     {
@@ -588,6 +595,22 @@ class Exercise extends Model
     public function scopeEnService($query)
     {
         return $query->whereNull($this->qualifyColumn('content').'->'.self::CLE_RETRAIT);
+    }
+
+    /**
+     * Les exercices qu'un eleve peut recevoir : un brouillon du centre reste
+     * dans le createur, ni devoir, ni parcours, ni examen blanc.
+     */
+    public function scopeHorsBrouillon($query)
+    {
+        $col = $this->qualifyColumn('center_status');
+
+        return $query->where(fn ($q) => $q->whereNull($col)->orWhere($col, '!=', self::STATUT_BROUILLON));
+    }
+
+    public function estBrouillon(): bool
+    {
+        return $this->center_status === self::STATUT_BROUILLON;
     }
 
     /** Tous les exercices, retires compris : pour prepla:nettoyer-vivier et ses tests. */
