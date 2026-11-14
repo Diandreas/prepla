@@ -71,7 +71,8 @@ class NextLessonPrefetcher
         try {
             $user = User::find($userId);
             if ($user) {
-                $this->generator->generate($user);
+                // Le verrou est deja pose par schedule() : ne pas le reprendre.
+                $this->generator->generate($user, lockHeld: true);
             }
         } catch (Throwable $e) {
             Log::warning('Pre-generation de la lecon suivante echouee', [
