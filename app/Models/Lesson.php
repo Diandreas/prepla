@@ -197,13 +197,17 @@ class Lesson extends Model
     }
 
     /**
-     * Helper to verify if the user passed the comprehension quiz.
+     * Le quiz de lecon est-il reussi ?
+     *
+     * Un quiz vide etait compte reussi : rien n'avait ete verifie, et la lecon
+     * validait quand meme l'objectif. Il ne l'est plus (le controleur le traite a
+     * part, comme « non evalue »).
      */
     public function isComprehensionPassed(array $answers): bool
     {
         $quiz = $this->comprehension_quiz ?? [];
         if (empty($quiz)) {
-            return true;
+            return false;
         }
 
         $correct = 0;
@@ -214,6 +218,25 @@ class Lesson extends Model
             }
         }
 
-        return $correct >= (count($quiz) * 0.66); // 2/3 threshold
+        return $correct >= static::bonnesReponsesRequises(count($quiz));
+    }
+
+    /**
+     * Seuil explicite : 3 bonnes reponses sur 4, soit 75 %. L'ancien seuil (66 %)
+     * etait implicite et ne se lisait qu'en calculant ; on l'ecrit en nombre de
+     * bonnes reponses.
+     * Sous 4 questions, 75 % exigerait un sans-faute : on tolere une erreur
+     * (toutes sauf une), avec au moins 1 bonne reponse.
+     */
+    public static function bonnesReponsesRequises(int $nombreDeQuestions): int
+    {
+        if ($nombreDeQuestions <= 0) {
+            return 1;
+        }
+        if ($nombreDeQuestions < 4) {
+            return max(1, $nombreDeQuestions - 1);
+        }
+
+        return (int) ceil($nombreDeQuestions * 0.75);
     }
 }

@@ -10,7 +10,6 @@ interface UserError {
     skill_type: string;
     prompt: string;
     user_answer: string;
-    correct_answer: string;
     explanation: string | null;
     mastered: boolean;
     review_count: number;
@@ -200,7 +199,9 @@ export default function ErrorsIndex({ errors, errorsBySkill, comprehensionBySkil
                                         </div>
                                         <div className="p-3 rounded-xl" style={{ background: '#f0fdf4' }}>
                                             <p className="text-xs font-bold uppercase tracking-wide mb-1" style={{ color: GREEN }}>Bonne réponse</p>
-                                            <p className="text-sm font-medium text-green-700 line-clamp-2">{error.correct_answer}</p>
+                                            {/* La solution n'est plus envoyee avant la revision : la lire ici
+                                                gacherait le rappel. Elle s'affiche apres la reponse. */}
+                                            <p className="text-sm font-medium text-green-700 line-clamp-2">À retrouver pendant la révision</p>
                                         </div>
                                     </div>
                                 </div>

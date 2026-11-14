@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ExerciseType;
 use App\Models\UserError;
 use App\Services\AI\ExerciseGeneratorService;
+use App\Services\ErrorReviewItems;
 use App\Services\ErrorSpacedRepetitionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -39,7 +40,8 @@ class ErrorReviewController extends Controller
             'skill_type' => $e->skill_type,
             'prompt' => $e->question_text,
             'user_answer' => $e->user_answer,
-            'correct_answer' => $e->correct_answer,
+            // Plus de reponse attendue ici : la page de revision la reposerait avec
+            // la solution deja dans le navigateur. La correction vient apres la reponse.
             'explanation' => $e->explanation,
             'mastered' => $e->mastered,
             'review_count' => $e->reviewed_count ?? 0,
@@ -85,7 +87,7 @@ class ErrorReviewController extends Controller
     // GET /errors/practice - personalized error review session.
     // Only CONCEPT errors are re-practised here (grammar/vocab/writing…): re-testing
     // a comprehension question would just make the learner memorise that one passage.
-    public function practice(Request $request)
+    public function practice(Request $request, ErrorReviewItems $items)
     {
         $user = $request->user();
         $skillType = $request->query('skill');
@@ -111,17 +113,29 @@ class ErrorReviewController extends Controller
         }
 
         return Inertia::render('errors/practice', [
-            'errors' => $dueErrors->map(fn ($e) => [
-                'id' => $e->id,
-                'skill_type' => $e->skill_type,
-                'prompt' => $e->question_text,
-                'user_answer' => $e->user_answer,
-                'correct_answer' => $e->correct_answer,
-                'explanation' => $e->explanation,
-                'mastered' => $e->mastered,
-                'review_count' => $e->reviewed_count,
-                'created_at' => $e->created_at,
-            ])->values(),
+            // La reponse attendue ne part PAS au navigateur : le serveur corrige
+            // dans submitReview. On dit seulement s'il y a quelque chose a retrouver
+            // (une redaction n'a pas de reponse attendue : elle est montree en lecture).
+            'errors' => $dueErrors->map(function ($e) use ($items, $user) {
+                $rappel = trim((string) $e->correct_answer) !== '';
+                $item = $rappel ? $items->pose($e, $user) : ['prompt' => $e->question_text, 'options' => [], 'variant' => false];
+
+                return [
+                    'id' => $e->id,
+                    'skill_type' => $e->skill_type,
+                    'prompt' => $item['prompt'],
+                    'options' => $item['options'],
+                    'variant' => $item['variant'],
+                    'recall' => $rappel,
+                    'user_answer' => $e->user_answer,
+                    // L'explication d'une redaction est montree sans rappel ; pour
+                    // le reste elle arrive avec la correction.
+                    'explanation' => $rappel ? null : $e->explanation,
+                    'mastered' => $e->mastered,
+                    'review_count' => $e->reviewed_count,
+                    'created_at' => $e->created_at,
+                ];
+            })->values(),
         ]);
     }
 
@@ -204,7 +218,7 @@ class ErrorReviewController extends Controller
     }
 
     // POST /errors/{error}/review - mark as reviewed with SM-2
-    public function submitReview(Request $request, UserError $error)
+    public function submitReview(Request $request, UserError $error, ErrorReviewItems $items)
     {
         // Sans cette garde, n'importe quel compte pouvait déclarer révisée l'erreur
         // d'un autre apprenant, en énumérant les identifiants : l'algorithme repoussait
@@ -213,15 +227,29 @@ class ErrorReviewController extends Controller
         // vérifiaient déjà le propriétaire ; ce point d'écriture ne le faisait pas.
         abort_unless($error->user_id === $request->user()->id, 403);
 
+        // La page envoie la REPONSE, plus un « juste/faux » qu'elle calculait
+        // elle-meme : c'est le serveur qui corrige, contre la question vraiment posee.
         $validated = $request->validate([
-            'correct' => 'required|boolean',
+            'answer' => 'required|string|max:1000',
         ]);
 
+        $attendu = $items->attendu($error);
+        if (trim($attendu['expected']) === '') {
+            return response()->json(['message' => "Cette erreur n'a pas de reponse a retrouver."], 422);
+        }
+
+        $juste = ErrorReviewItems::estJuste($validated['answer'], $attendu['expected']);
+
         // Pilier 3: Use SM-2 scheduling instead of simple counter
-        $this->sm2->schedule($error, $validated['correct']);
+        $this->sm2->schedule($error, $juste);
+        // Une question corrigee ne se rejoue pas contre une autre reponse.
+        session()->forget(ErrorReviewItems::SESSION . '.' . $error->id);
 
         return response()->json([
             'success' => true,
+            'correct' => $juste,
+            'correct_answer' => $attendu['expected'],
+            'explanation' => $attendu['explanation'],
             'mastered' => $error->mastered,
             'next_review_at' => $error->next_review_at?->format('Y-m-d H:i'),
             'interval_days' => $error->interval_days,
