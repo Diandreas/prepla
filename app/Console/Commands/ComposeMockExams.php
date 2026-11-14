@@ -36,7 +36,7 @@ class ComposeMockExams extends Command
      */
     private function anciennesIntactes(int $examId, string $niveau)
     {
-        return MockExam::whereHas('blueprint', fn ($q) => $q->where('exam_id', $examId)->where('level', $niveau))
+        return MockExam::catalogue()->whereHas('blueprint', fn ($q) => $q->where('exam_id', $examId)->where('level', $niveau))
             ->get()
             ->reject(function (MockExam $epreuve) {
                 $ids = $epreuve->exercises()->pluck('id');
@@ -93,11 +93,11 @@ class ComposeMockExams extends Command
         foreach ($examens as $exam) {
             foreach ($this->declinaisons($exam) as $variante) {
                 $refaire = (bool) $this->option('refaire');
-                $avant = MockExam::whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id)->where('variant', $variante))
+                $avant = MockExam::catalogue()->whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id)->where('variant', $variante))
                     ->where('is_published', true)->whereHas('exercises')->exists();
 
                 $anciennes = $refaire
-                    ? MockExam::whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id)->where('variant', $variante))->get()
+                    ? MockExam::catalogue()->whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id)->where('variant', $variante))->get()
                         ->filter(fn ($m) => ! UserExerciseAttempt::whereIn('exercise_id', $m->exercises()->pluck('id'))->exists())
                     : collect();
 
@@ -117,7 +117,7 @@ class ComposeMockExams extends Command
 
                 $anciennes = $refaire ? $this->anciennesIntactes($exam->id, $niveau) : collect();
 
-                $avant = MockExam::whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id)->where('level', $niveau))
+                $avant = MockExam::catalogue()->whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id)->where('level', $niveau))
                     ->where('is_published', true)->whereHas('exercises')->exists();
 
                 // On compose D'ABORD, on efface ENSUITE. Dans l'autre sens, une

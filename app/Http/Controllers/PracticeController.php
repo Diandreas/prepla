@@ -239,7 +239,7 @@ class PracticeController extends Controller
             'levelIsOfficial' => $duNiveau->isNotEmpty(),
             'learnerLevel' => $niveau,
             'canSimulate' => ! in_array($niveau, ['A0', 'A1', 'A2'], true)
-                || MockExam::where('is_published', true)->whereHas('exercises')
+                || MockExam::catalogue()->where('is_published', true)->whereHas('exercises')
                     ->whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id)->where('level', $niveau))->exists(),
         ]);
     }
@@ -572,7 +572,7 @@ class PracticeController extends Controller
         // Les epreuves blanches etaient ecrites a la main, presque toutes sans niveau :
         // un debutant etait renvoye sans rien. On en compose une a son niveau avec ce
         // qui existe deja, et on ne refuse que s'il n'y a vraiment pas de quoi.
-        if ($isBeginner && ! MockExam::where('is_published', true)->whereHas('exercises')
+        if ($isBeginner && ! MockExam::catalogue()->where('is_published', true)->whereHas('exercises')
             ->whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id)->where('level', $level))->exists()) {
             $composee = app(\App\Services\Content\MockExamComposer::class)->pour($exam, $level);
 
@@ -586,7 +586,7 @@ class PracticeController extends Controller
         // Try to load a specific mock exam, or pick a random one for this exam
         $mockExamId = $request->query('mock_exam_id');
 
-        $mockExam = MockExam::whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id))
+        $mockExam = MockExam::catalogue()->whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id))
             ->whereHas('blueprint', fn ($q) => $q->where(fn ($levels) => $levels->whereNull('level')->orWhereIn('level', $allowedLevels)))
             ->when($isBeginner, fn ($q) => $q->whereHas('blueprint', fn ($blueprint) => $blueprint->where('level', $level))->whereHas('exercises'))
             ->where('is_published', true)
@@ -630,7 +630,7 @@ class PracticeController extends Controller
         }
 
         // List available mock exams for this exam (for the selector UI)
-        $availableMockExams = MockExam::whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id))
+        $availableMockExams = MockExam::catalogue()->whereHas('blueprint', fn ($q) => $q->where('exam_id', $exam->id))
             ->whereHas('blueprint', fn ($q) => $q->where(fn ($levels) => $levels->whereNull('level')->orWhereIn('level', $allowedLevels)))
             ->when($isBeginner, fn ($q) => $q->whereHas('blueprint', fn ($blueprint) => $blueprint->where('level', $level))->whereHas('exercises'))
             ->where('is_published', true)

@@ -16,4 +16,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', EnsureOnboardingComplete::class])->group(function () {
     Route::get('devoirs', [MesDevoirsController::class, 'index'])->name('devoirs.index');
     Route::get('devoirs/{assignment}', [MesDevoirsController::class, 'show'])->whereNumber('assignment')->name('devoirs.show');
+    // L'examen blanc compose par le centre, donne en devoir.
+    Route::get('examens-blancs/{mockExam}', [\App\Http\Controllers\ExamenBlancEleveController::class, 'show'])->whereNumber('mockExam')->name('examens-blancs.show');
+    Route::post('examens-blancs/{mockExam}', [\App\Http\Controllers\ExamenBlancEleveController::class, 'store'])->whereNumber('mockExam')->name('examens-blancs.store');
 });

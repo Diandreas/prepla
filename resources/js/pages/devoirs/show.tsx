@@ -43,6 +43,14 @@ export default function Devoir({ devoir, exercices }: { devoir: DevoirDeLEleve; 
                         <p className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-emerald-600">
                             <CheckCircle2 size={18} aria-hidden="true" /> Devoir terminé. Bravo !
                         </p>
+                    ) : devoir.examen_blanc_id ? (
+                        // Un vrai lien de page : le lecteur d'examen blanc se charge en entier.
+                        <a
+                            href={`/examens-blancs/${devoir.examen_blanc_id}`}
+                            className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground hover:opacity-90"
+                        >
+                            Passer l’examen blanc <ArrowRight size={16} aria-hidden="true" />
+                        </a>
                     ) : devoir.next_exercise_id ? (
                         <Link
                             href={route('exercise.show', devoir.next_exercise_id)}

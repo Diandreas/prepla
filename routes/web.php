@@ -392,6 +392,8 @@ Route::middleware(['auth', EnsureCenterStaff::class])
         require __DIR__.'/centre-createur.php';
         // Tableau de bord d'une classe (JSON) : droits dans TableauClasseController.
         require __DIR__.'/centre-tableau-classe.php';
+        // Examens blancs composes par le centre : droits dans ExamenBlancController.
+        require __DIR__.'/centre-examens-blancs.php';
     });
 
 // Parrainage : le lien d'un centre s'ouvre sans compte, il mene a l'inscription.
