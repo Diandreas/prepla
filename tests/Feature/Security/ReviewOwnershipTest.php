@@ -64,6 +64,7 @@ test('le proprietaire revise normalement son erreur', function () {
     ]);
 
     $this->actingAs($owner)
+        ->withSession([\App\Services\ErrorReviewItems::SESSION => [$error->id => ['exercise_id' => null, 'question_id' => '']]])
         ->postJson(route('errors.submit-review', $error), ['answer' => 'ging'])
         ->assertOk()
         ->assertJsonPath('success', true);

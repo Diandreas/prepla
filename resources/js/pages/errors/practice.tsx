@@ -2,35 +2,11 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
-import { isAnswerCorrect, normalizeAnswer } from '@/lib/scoring';
+import { isAnswerCorrect } from '@/lib/scoring';
 import { BlankSentence } from '@/components/blank-sentence';
 
 function Icon({ name, size = 20, className, style }: { name: string; size?: number; className?: string; style?: React.CSSProperties }) {
     return <img src={`/icons/${name}.png`} alt="" width={size} height={size} className={className} style={{ objectFit: 'contain', ...style }} />;
-}
-
-/**
- * Une erreur est enregistree avec sa reponse attendue EN CLAIR : « C) Am Sonntag »
- * pour un QCM. La comparaison accepte donc la chaine complete, la meme sans son
- * prefixe de lettre, et la lettre seule — les erreurs deja en base gardent la
- * lettre nue, il faut continuer a crediter celui qui la tape.
- *
- * Elle passe aussi par normalizeAnswer : une apostrophe de clavier mobile (’) etait
- * comptee fausse alors que la correction de seance, elle, l'accepte depuis toujours.
- */
-export function recallEstJuste(saisie: string, attendu: string | null | undefined): boolean {
-    const voulu = (attendu ?? '').trim();
-    const donne = normalizeAnswer(saisie);
-    if (donne === '' || voulu === '') return false;
-
-    const formes = new Set([normalizeAnswer(voulu)]);
-    const prefixe = voulu.match(/^([A-Za-z])\)\s*(.+)$/);
-    if (prefixe) {
-        formes.add(normalizeAnswer(prefixe[2]));
-        formes.add(normalizeAnswer(prefixe[1]));
-    }
-
-    return formes.has(donne);
 }
 
 interface UserError {
@@ -258,9 +234,9 @@ export default function ErrorsPractice({ errors }: Props) {
                                            la position du bon choix. On envoie le TEXTE du
                                            choix, la lettre ne voudrait plus rien dire. */
                                         <div className="grid gap-2">
-                                            {error.options.map((option) => (
+                                            {error.options.map((option, index) => (
                                                 <button
-                                                    key={option}
+                                                    key={`${index}-${option}`}
                                                     onClick={() => attemptRecall(error, option)}
                                                     disabled={loading === error.id}
                                                     className="text-left rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold hover:border-blue-300 disabled:opacity-60 dark:bg-slate-900"
@@ -352,7 +328,7 @@ export default function ErrorsPractice({ errors }: Props) {
                                                         const letter = String.fromCharCode(65 + index);
                                                         return (
                                                             <button
-                                                                key={option}
+                                                                key={`${index}-${option}`}
                                                                 onClick={() => checkFresh(error.id, fresh[error.id]!, letter)}
                                                                 disabled={freshVerdict[error.id] !== null && freshVerdict[error.id] !== undefined}
                                                                 className="text-left rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold hover:border-indigo-300 disabled:opacity-60 dark:bg-slate-900"

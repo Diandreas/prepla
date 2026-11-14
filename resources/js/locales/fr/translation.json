@@ -333,5 +333,9 @@
     "footer_contact_call": "Appel direct",
     "footer_copyright": "© {{year}} PrePla. Tous droits réservés.",
     "footer_independance": "PrePla est indépendant des organismes d’examen : il ne délivre aucun diplôme et ne vend pas d’inscription."
+  },
+  "errors": {
+    "correct_answer": "Bonne réponse",
+    "to_recall": "À retrouver pendant la révision"
   }
 }

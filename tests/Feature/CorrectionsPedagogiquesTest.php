@@ -72,7 +72,7 @@ test('la revision n envoie pas la bonne reponse avant la reponse', function () {
             ->where('errors.0.explanation', null));
 
     $this->actingAs($monde['user'])->get(route('errors.index'))
-        ->assertInertia(fn (AssertableInertia $page) => $page->missing('errors.data.0.correct_answer'));
+        ->assertInertia(fn (AssertableInertia $page) => $page->where('errors.data.0.correct_answer', null));
 });
 
 test('le serveur corrige la reponse et renvoie alors la correction', function () {
@@ -88,10 +88,74 @@ test('le serveur corrige la reponse et renvoie alors la correction', function ()
         ->assertJsonPath('correct_answer', 'ging')
         ->assertJsonPath('explanation', 'Passe.');
 
+    // Rejeu avec la reponse lue : refuse, et rien n'est replanifie.
+    $apres = $erreur->fresh();
+    $this->actingAs($monde['user'])
+        ->postJson(route('errors.submit-review', $erreur), ['answer' => '  GING '])
+        ->assertStatus(409)
+        ->assertJsonPath('message', fn ($m) => str_contains($m, 'Recharge la question'));
+    expect($erreur->fresh()->reviewed_count)->toBe($apres->reviewed_count)
+        ->and($erreur->fresh()->last_reviewed_at?->timestamp)->toBe($apres->last_reviewed_at?->timestamp);
+
+    // La question reposee se corrige de nouveau, une fois.
+    $this->actingAs($monde['user'])->get(route('errors.practice'));
     $this->actingAs($monde['user'])
         ->postJson(route('errors.submit-review', $erreur), ['answer' => '  GING '])
         ->assertOk()
         ->assertJsonPath('correct', true);
+});
+
+test('sans question posee (autre onglet, session expiree), la correction est refusee', function () {
+    $monde = revisionMonde();
+    $erreur = revisionErreur($monde['user'], null);
+
+    $this->actingAs($monde['user'])
+        ->postJson(route('errors.submit-review', $erreur), ['answer' => 'ging'])
+        ->assertStatus(409);
+
+    expect($erreur->fresh()->reviewed_count)->toBe(0)
+        ->and($erreur->fresh()->last_reviewed_at)->toBeNull();
+});
+
+test('la liste remontre la bonne reponse des seules erreurs maitrisees', function () {
+    $monde = revisionMonde();
+    $erreur = revisionErreur($monde['user'], null);
+    $erreur->update(['mastered' => true]);
+
+    $this->actingAs($monde['user'])->get(route('errors.index'))
+        ->assertInertia(fn (AssertableInertia $page) => $page->where('errors.data.0.correct_answer', 'ging'));
+});
+
+test('la variante reste au niveau de l exercice d origine', function () {
+    $monde = revisionMonde();
+    $origine = revisionExercice($monde, 1, 'Ich ___ Lina.', ['heisse', 'bin Montag'], 'A');
+    $autre = revisionExercice($monde, 2, 'Wir ___ gestern gegangen.', ['sind', 'haben'], 'A');
+    $autre->update(['difficulty' => 'B2']);
+    revisionErreur($monde['user'], $origine, 'A) heisse');
+
+    foreach (range(1, 4) as $ignored) {
+        $this->actingAs($monde['user'])->get(route('errors.practice'))
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('errors.0.variant', false)
+                ->where('errors.0.prompt', 'Ich ___ Lina.'));
+    }
+});
+
+test('une reponse libre se compte en mots unicode, accents compris', function () {
+    $monde = revisionMonde();
+    $origine = revisionExercice($monde, 1, 'Ich ___ Lina.', ['heisse', 'bin Montag'], 'A');
+    // 5 mots accentues sans choix : production libre, jamais reposee comme variante.
+    Exercise::create([
+        'exam_id' => $monde['exam']->id, 'exercise_type_id' => $monde['type']->id, 'exam_section_id' => $monde['section']->id,
+        'node_id' => $monde['node']->id, 'order_in_node' => 2, 'difficulty' => 'A1', 'content' => [],
+        'questions' => [['id' => 'q1', 'type' => 'gap', 'text' => 'Schreib ___', 'options' => [], 'correct_answer' => 'Größe Übung über ähnliche Ödnis']],
+    ]);
+    revisionErreur($monde['user'], $origine, 'A) heisse');
+
+    foreach (range(1, 4) as $ignored) {
+        $this->actingAs($monde['user'])->get(route('errors.practice'))
+            ->assertInertia(fn (AssertableInertia $page) => $page->where('errors.0.prompt', 'Ich ___ Lina.'));
+    }
 });
 
 test('la page ne peut plus se declarer juste toute seule', function () {

@@ -30,7 +30,10 @@ class ErrorReviewController extends Controller
         // ones the learner can actually re-practise. Comprehension errors (reading/
         // listening on a one-off passage) can't be re-posed, so they feed the
         // diagnostic stats below but never appear as practisable items.
-        $errors = UserError::concept($user->id)
+        // Les erreurs maitrisees restent listees (apres les autres) : c'est la
+        // seulement que leur bonne reponse est reaffichee.
+        $errors = UserError::concept($user->id, true)
+            ->orderBy('mastered')
             ->orderByDesc('created_at')
             ->paginate(20);
         // Normalise field names for the frontend (reviewed_count → review_count,
@@ -43,6 +46,8 @@ class ErrorReviewController extends Controller
             // Plus de reponse attendue ici : la page de revision la reposerait avec
             // la solution deja dans le navigateur. La correction vient apres la reponse.
             'explanation' => $e->explanation,
+            // Une erreur maitrisee n'a plus de rappel a gacher : on remontre la solution.
+            'correct_answer' => $e->mastered ? $e->correct_answer : null,
             'mastered' => $e->mastered,
             'review_count' => $e->reviewed_count ?? 0,
             'next_review_at' => $e->next_review_at,
@@ -233,7 +238,14 @@ class ErrorReviewController extends Controller
             'answer' => 'required|string|max:1000',
         ]);
 
-        $attendu = $items->attendu($error);
+        // Une seule correction par question posee : sinon une premiere reponse
+        // quelconque renvoyait la solution, et la seconde, juste, comptait.
+        $pose = $items->consommer($error);
+        if ($pose === null) {
+            return response()->json(['message' => 'Cette question a deja ete corrigee. Recharge la question pour la refaire.'], 409);
+        }
+
+        $attendu = $items->attendu($error, $pose);
         if (trim($attendu['expected']) === '') {
             return response()->json(['message' => "Cette erreur n'a pas de reponse a retrouver."], 422);
         }
@@ -242,8 +254,6 @@ class ErrorReviewController extends Controller
 
         // Pilier 3: Use SM-2 scheduling instead of simple counter
         $this->sm2->schedule($error, $juste);
-        // Une question corrigee ne se rejoue pas contre une autre reponse.
-        session()->forget(ErrorReviewItems::SESSION . '.' . $error->id);
 
         return response()->json([
             'success' => true,
