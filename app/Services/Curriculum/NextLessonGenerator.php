@@ -230,7 +230,30 @@ class NextLessonGenerator
             'native_language' => $user->profile->native_language ?? 'Français',
             'language' => $user->profile->targetExam->language->name ?? 'English',
             'exam_name' => $user->profile->targetExam->name ?? 'Language Exam',
+            // Cle du cache : deux examens ne partagent pas leurs lecons.
+            'exam_slug' => $user->profile->targetExam->slug ?? null,
         ];
+    }
+
+    /**
+     * Le dossier du cache des lecons pour ce contexte.
+     *
+     * La cle ne portait que la langue, la langue maternelle et le niveau : un
+     * apprenant TCF et un apprenant DELF recevaient la meme lecon, ecrite pour
+     * l'examen du premier venu (le prompt nomme l'examen), et la lecon de debut de
+     * niveau resservait en fin de niveau. On y ajoute l'examen vise et la tranche.
+     */
+    public static function dossierDuCache(array $context): string
+    {
+        $langKey = strtolower($context['language'] ?? 'english');
+        $nativeKey = strtolower(preg_replace('/[^a-z]/i', '', $context['native_language'] ?? ''));
+        $level = strtolower($context['level'] ?? 'a1');
+        $examen = preg_replace('/[^a-z0-9_-]/', '', strtolower((string) ($context['exam_slug'] ?? ''))) ?: 'sans-examen';
+        $tranche = \App\Services\Content\PalierDeDifficulte::trancheDeLecon(
+            (int) ($context['position'] ?? 0), (int) ($context['total'] ?? 0)
+        );
+
+        return storage_path("app/lessons/v2-progression/{$langKey}_via_{$nativeKey}/{$examen}/{$level}/{$tranche}");
     }
 
     /**
@@ -247,7 +270,7 @@ class NextLessonGenerator
         // HYBRID CACHING LOGIC
         // Cache key includes native_language so a French speaker doesn't get an English-explained lesson
         if (! $isConsolidation && ! $hasErrors) {
-            $cachePath = storage_path("app/lessons/v2-progression/{$langKey}_via_{$nativeKey}/{$level}/{$concept}.json");
+            $cachePath = self::dossierDuCache($context)."/{$concept}.json";
 
             if (File::exists($cachePath)) {
                 $cachedJson = File::get($cachePath);
@@ -392,7 +415,7 @@ PROMPT;
 
         // SAVE CACHE: If this was a standard lesson generation, save it to the static library
         if (! $isConsolidation && ! $hasErrors) {
-            $cacheDir = storage_path("app/lessons/v2-progression/{$langKey}_via_{$nativeKey}/{$level}");
+            $cacheDir = self::dossierDuCache($context);
             if (! File::exists($cacheDir)) {
                 File::makeDirectory($cacheDir, 0755, true);
             }

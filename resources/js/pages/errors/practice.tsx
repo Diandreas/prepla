@@ -37,8 +37,13 @@ interface UserError {
     id: number;
     skill_type: string;
     prompt: string;
+    // Le choix melange par le serveur, vide pour une reponse a taper.
+    options: string[];
+    // Une autre question du meme type, prise dans le vivier.
+    variant: boolean;
+    // false : redaction sans reponse attendue, montree en lecture.
+    recall: boolean;
     user_answer: string;
-    correct_answer: string;
     explanation: string | null;
     mastered: boolean;
     review_count: number;
@@ -83,6 +88,9 @@ export default function ErrorsPractice({ errors }: Props) {
     const [typed, setTyped] = useState<Record<number, string>>({});
     const [revealed, setRevealed] = useState<Record<number, boolean>>({});
     const [wasCorrect, setWasCorrect] = useState<Record<number, boolean>>({});
+    // La correction n'arrive qu'APRES la reponse, envoyee par le serveur.
+    const [correction, setCorrection] = useState<Record<number, { answer: string; explanation: string | null }>>({});
+    const [recallError, setRecallError] = useState<Record<number, boolean>>({});
     // Un exercice neuf sur le meme concept : reposer la phrase apprend la phrase,
     // pas la regle. Etat par erreur, car chaque carte a le sien.
     const [fresh, setFresh] = useState<Record<number, FreshQuestion | null>>({});
@@ -121,29 +129,32 @@ export default function ErrorsPractice({ errors }: Props) {
         setFreshVerdict(prev => ({ ...prev, [errorId]: isAnswerCorrect(question, answer) }));
     };
 
-    const sm2Schedule = async (error: UserError, correct: boolean) => {
-        const xsrf = document.cookie.split('; ').find(c => c.startsWith('XSRF-TOKEN='));
-        const token = xsrf ? decodeURIComponent(xsrf.split('=')[1]) : '';
-        await fetch(`/errors/${error.id}/review`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': token, 'X-Requested-With': 'XMLHttpRequest' },
-            body: JSON.stringify({ correct }),
-        });
-    };
-
-    // Step 1: learner submits their recall attempt → grade it, reveal solution,
-    // and feed SM-2 with the real result (no more self-assessment).
-    const attemptRecall = async (error: UserError) => {
-        const ans = (typed[error.id] ?? '').trim();
-        if (!ans) return;
+    // La page envoie la reponse ; le serveur corrige et renvoie alors la solution.
+    // Avant, la solution etait deja dans la page et le serveur croyait le verdict.
+    const attemptRecall = async (error: UserError, given?: string) => {
+        const ans = (given ?? typed[error.id] ?? '').trim();
+        if (!ans || loading === error.id) return;
+        setTyped(prev => ({ ...prev, [error.id]: ans }));
         setLoading(error.id);
-        const ok = recallEstJuste(ans, error.correct_answer);
-        setWasCorrect(prev => ({ ...prev, [error.id]: ok }));
-        setRevealed(prev => ({ ...prev, [error.id]: true }));
+        setRecallError(prev => ({ ...prev, [error.id]: false }));
         try {
-            await sm2Schedule(error, ok);
-        } catch { /* non-blocking */ }
-        finally { setLoading(null); }
+            const xsrf = document.cookie.split('; ').find(c => c.startsWith('XSRF-TOKEN='));
+            const token = xsrf ? decodeURIComponent(xsrf.split('=')[1]) : '';
+            const res = await fetch(route('errors.submit-review', error.id), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': token, 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' },
+                body: JSON.stringify({ answer: ans }),
+            });
+            if (!res.ok) throw new Error('review');
+            const data = await res.json();
+            setWasCorrect(prev => ({ ...prev, [error.id]: !!data.correct }));
+            setCorrection(prev => ({ ...prev, [error.id]: { answer: String(data.correct_answer ?? ''), explanation: data.explanation ?? null } }));
+            setRevealed(prev => ({ ...prev, [error.id]: true }));
+        } catch {
+            setRecallError(prev => ({ ...prev, [error.id]: true }));
+        } finally {
+            setLoading(null);
+        }
     };
 
     // Step 2: after seeing the solution, move the card out of the pending list.
@@ -202,14 +213,14 @@ export default function ErrorsPractice({ errors }: Props) {
                                 Sauf pour une redaction sans reponse attendue : il n'y a
                                 aucun rappel, donc la consigne doit etre la des le depart,
                                 sinon la carte ne montre qu'une reponse sans sa question. */}
-                            {error.prompt && (revealed[error.id] || !(error.correct_answer ?? '').trim()) && (
+                            {error.prompt && (revealed[error.id] || !error.recall || error.options.length > 0) && (
                                 <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
                                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-1">{t('errors.question', 'Question')}</p>
                                     <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{error.prompt}</p>
                                 </div>
                             )}
 
-                            {!(error.correct_answer ?? '').trim() ? (
+                            {!error.recall ? (
                                 /* Une redaction corrigee par l'IA n'a pas de reponse
                                    attendue : demander de la retaper la comptait fausse a
                                    chaque revision, pour toujours. On montre ce qui a
@@ -242,21 +253,46 @@ export default function ErrorsPractice({ errors }: Props) {
                                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">
                                         {t('errors.try_again', 'Réessaie de répondre')}
                                     </p>
-                                    <BlankSentence
-                                        text={error.prompt ?? ''}
-                                        value={typed[error.id] ?? ''}
-                                        onChange={(value) => setTyped(prev => ({ ...prev, [error.id]: value }))}
-                                        onSubmit={() => attemptRecall(error)}
-                                        placeholder={t('errors.your_recall', 'Ta réponse…')}
-                                    />
-                                    <button
-                                        onClick={() => attemptRecall(error)}
-                                        disabled={loading === error.id || !(typed[error.id] ?? '').trim()}
-                                        className="duo-press w-full py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm disabled:opacity-40"
-                                        style={{ boxShadow: '0 4px 0 0 #1e4fa0' }}
-                                    >
-                                        {loading === error.id ? '...' : t('errors.check', 'Vérifier')}
-                                    </button>
+                                    {error.options.length > 0 ? (
+                                        /* Les choix arrivent melanges : on ne retient pas
+                                           la position du bon choix. On envoie le TEXTE du
+                                           choix, la lettre ne voudrait plus rien dire. */
+                                        <div className="grid gap-2">
+                                            {error.options.map((option) => (
+                                                <button
+                                                    key={option}
+                                                    onClick={() => attemptRecall(error, option)}
+                                                    disabled={loading === error.id}
+                                                    className="text-left rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold hover:border-blue-300 disabled:opacity-60 dark:bg-slate-900"
+                                                >
+                                                    {option}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <BlankSentence
+                                                text={error.prompt ?? ''}
+                                                value={typed[error.id] ?? ''}
+                                                onChange={(value) => setTyped(prev => ({ ...prev, [error.id]: value }))}
+                                                onSubmit={() => attemptRecall(error)}
+                                                placeholder={t('errors.your_recall', 'Ta réponse…')}
+                                            />
+                                            <button
+                                                onClick={() => attemptRecall(error)}
+                                                disabled={loading === error.id || !(typed[error.id] ?? '').trim()}
+                                                className="duo-press w-full py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm disabled:opacity-40"
+                                                style={{ boxShadow: '0 4px 0 0 #1e4fa0' }}
+                                            >
+                                                {loading === error.id ? '...' : t('errors.check', 'Vérifier')}
+                                            </button>
+                                        </>
+                                    )}
+                                    {recallError[error.id] && (
+                                        <p role="alert" className="text-sm font-medium text-amber-700 dark:text-amber-300">
+                                            {t('errors.check_failed', "La correction n'a pas pu être faite. Réessaie.")}
+                                        </p>
+                                    )}
                                 </>
                             ) : (
                                 <>
@@ -274,17 +310,17 @@ export default function ErrorsPractice({ errors }: Props) {
                                         </div>
                                         <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-100 dark:border-green-800/30">
                                             <p className="text-xs font-bold text-green-400 uppercase tracking-wide mb-1">{t('errors.correct_answer', 'Bonne réponse')}</p>
-                                            <p className="text-sm text-green-700 dark:text-green-300 font-medium">{error.correct_answer}</p>
+                                            <p className="text-sm text-green-700 dark:text-green-300 font-medium">{correction[error.id]?.answer}</p>
                                         </div>
                                     </div>
 
-                                    {error.explanation && (
+                                    {correction[error.id]?.explanation && (
                                         <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800/30">
                                             <p className="text-xs font-bold text-indigo-400 uppercase tracking-wide mb-1 flex items-center gap-1">
                                                 <Icon name="sparkles" size={11} />
                                                 {t('errors.explanation', 'Explication')}
                                             </p>
-                                            <p className="text-sm text-indigo-700 dark:text-indigo-300 leading-relaxed">{error.explanation}</p>
+                                            <p className="text-sm text-indigo-700 dark:text-indigo-300 leading-relaxed">{correction[error.id]?.explanation}</p>
                                         </div>
                                     )}
 
@@ -394,7 +430,7 @@ export default function ErrorsPractice({ errors }: Props) {
                         {done.map((error) => (
                             <div key={error.id} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700 opacity-60 flex items-center gap-3">
                                 <Icon name="check-circle" size={18} style={{ }} />
-                                <p className="text-sm font-medium text-slate-600 dark:text-slate-400 truncate">{error.correct_answer}</p>
+                                <p className="text-sm font-medium text-slate-600 dark:text-slate-400 truncate">{correction[error.id]?.answer || error.prompt}</p>
                             </div>
                         ))}
                     </div>

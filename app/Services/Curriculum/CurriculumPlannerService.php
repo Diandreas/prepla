@@ -398,7 +398,7 @@ class CurriculumPlannerService
             return 'not_assessed';
         }
 
-        // "Passed" is decided by the lesson quiz (2/3 threshold, see
+        // "Passed" is decided by the lesson quiz (3 out of 4, see
         // Lesson::isComprehensionPassed). The UI shows the "Practice this concept"
         // CTA for any passing score, so the skeleton MUST move the objective into
         // its practice phase for any passing score too — otherwise the practice
@@ -406,7 +406,8 @@ class CurriculumPlannerService
         // gets stuck. Fall back to the 60% band only when the caller didn't pass
         // an explicit verdict (legacy callers). 60% aligns with the practice
         // mastery threshold (was 80%, too punishing).
-        $isPass = $passed ?? ($accuracyPercent >= 60);
+        // Repli aligne sur le quiz de lecon : 75 %, soit 3 bonnes reponses sur 4.
+        $isPass = $passed ?? ($accuracyPercent >= 75);
 
         if ($isPass) {
             // Success
