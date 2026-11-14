@@ -2,6 +2,7 @@ import { router } from '@inertiajs/react';
 import OnboardingLayout from '@/layouts/onboarding-layout';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { ExamWithLanguage } from '@/types';
+import { useTts } from '@/hooks/use-tts';
 
 // ─── Components ──────────────────────────────────────────────────────────────
 function Icon({ name, size = 20, className, style }: { name: string; size?: number; className?: string; style?: React.CSSProperties }) {
@@ -17,6 +18,9 @@ interface MCQQuestion {
     sentence?: string;
     options: string[];
     correct_answer: string;
+    // Comprehension orale : le texte lu a voix haute (jamais affiche)
+    audio_text?: string;
+    skill?: 'reading' | 'listening';
 }
 
 interface SectionBData {
@@ -271,11 +275,13 @@ function MCQBlock({
 // ─── Level badge ──────────────────────────────────────────────────────────────
 
 const levelColors: Record<string, string> = {
+    A0: 'bg-slate-100 text-slate-700 border-slate-200',
     A1: 'bg-emerald-100 text-emerald-700 border-emerald-200',
     A2: 'bg-green-100 text-green-700 border-green-200',
     B1: 'bg-blue-100 text-blue-700 border-blue-200',
     B2: 'bg-indigo-100 text-indigo-700 border-indigo-200',
     C1: 'bg-purple-100 text-purple-700 border-purple-200',
+    C2: 'bg-fuchsia-100 text-fuchsia-700 border-fuchsia-200',
 };
 
 // ─── Section progress mini-bar ────────────────────────────────────────────────
@@ -316,6 +322,7 @@ export default function PlacementTest({ exam, sectionA, sectionB, sectionC }: Pr
     const [essayRemaining, setEssayRemaining] = useState(300);
     const [visible, setVisible] = useState(true);
     const submittingRef = useRef(false);
+    const { speak, stop, isSpeaking } = useTts();
 
     // Current question depends on section
     const currentQuestions = section === 'A' || section === 'transition_B'
@@ -507,8 +514,14 @@ export default function PlacementTest({ exam, sectionA, sectionB, sectionC }: Pr
 
     // Sections A & B — MCQ
     const isSectionA = section === 'A';
-    const qTimer = isSectionA ? 20 : 45;
-    const sectionLabel = isSectionA ? 'Section A — Grammaire & Vocabulaire' : 'Section B — Compréhension Écrite';
+    const ecoute = section === 'B' && !!question?.audio_text;
+    // L'ecoute laisse le temps d'entendre le message deux fois
+    const qTimer = isSectionA ? 20 : ecoute ? 75 : 45;
+    const sectionLabel = isSectionA
+        ? 'Section A — Grammaire & Vocabulaire'
+        : ecoute
+        ? 'Section B — Compréhension Orale'
+        : 'Section B — Compréhension Écrite';
     const totalInSection = currentQuestions.length;
     const progress = ((currentQ) / totalInSection) * 100;
 
@@ -554,7 +567,24 @@ export default function PlacementTest({ exam, sectionA, sectionB, sectionC }: Pr
                 </div>
 
                 {/* Reading passage for Section B */}
-                {section === 'B' && (
+                {ecoute && question?.audio_text && (
+                    <div className="flex items-center justify-between gap-3 rounded-2xl border bg-muted/30 p-5 text-sm">
+                        <div>
+                            <p className="text-foreground text-[10px] font-black uppercase tracking-wider mb-1" style={{ opacity: 0.6 }}>Message à écouter</p>
+                            <p className="text-xs text-muted-foreground">Écoute le message, puis réponds. Tu peux le réécouter.</p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => (isSpeaking ? stop() : speak(question.audio_text ?? '', exam?.language?.slug ?? 'en'))}
+                            className="shrink-0 rounded-xl px-4 py-2.5 text-sm font-black text-white"
+                            style={{ background: `linear-gradient(135deg, ${SKY}, #3478c8)` }}
+                        >
+                            {isSpeaking ? 'Arrêter' : 'Écouter'}
+                        </button>
+                    </div>
+                )}
+
+                {section === 'B' && !ecoute && (
                     <div className="rounded-2xl border bg-muted/30 p-5 text-sm leading-relaxed max-h-48 overflow-y-auto">
                         <p className="text-foreground text-[10px] font-black uppercase tracking-wider mb-2" style={{ opacity: 0.6 }}>Texte à lire</p>
                         <p>{sectionB.passage}</p>

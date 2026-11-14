@@ -299,10 +299,21 @@ PROMPT;
         return $levels[$level] ?? 'B1';
     }
 
-    // ─── Nouveau test complet 3 sections ────────────────────────────────────
+    // ─── Test complet : grammaire, comprehension ecrite et orale, redaction ──
+
+    /** Les paliers mesures, du debutant complet (A0, pre-A1) au C2. */
+    public const PALIERS = ['A0', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
     /**
-     * Génère le test complet en UN seul appel Mistral (sections A + B + C).
+     * Genere le test complet en UN seul appel Mistral.
+     *
+     * Format rendu au front d'onboarding (memes cles qu'avant) :
+     *  - section_a : QCM de grammaire et vocabulaire, du A0 au C2 ;
+     *  - section_b : { passage, questions } ou les questions de comprehension
+     *    ORALE portent un champ audio_text (lu a voix haute, comme dans les
+     *    exercices d'ecoute) et skill = listening ; les autres sont de la
+     *    comprehension ecrite sur le passage (skill = reading) ;
+     *  - section_c : { prompt } le sujet de redaction.
      */
     public function generateFullTest(
         string $language,
@@ -317,51 +328,48 @@ The student's native language is {$nativeLanguage} — do not test skills obviou
 Return a single valid JSON object with this exact structure (no extra text):
 {
   "section_a": [
-    {"id":"a1","level":"A1","text":"Question in French","sentence":"sentence in {$language} (or empty string)","options":["A","B","C","D"],"correct_answer":"A"},
-    {"id":"a2","level":"A1","text":"...","sentence":"...","options":["A","B","C","D"],"correct_answer":"B"},
-    {"id":"a3","level":"A2","text":"...","sentence":"...","options":["A","B","C","D"],"correct_answer":"C"},
-    {"id":"a4","level":"A2","text":"...","sentence":"...","options":["A","B","C","D"],"correct_answer":"A"},
-    {"id":"a5","level":"B1","text":"...","sentence":"...","options":["A","B","C","D"],"correct_answer":"D"},
-    {"id":"a6","level":"B1","text":"...","sentence":"...","options":["A","B","C","D"],"correct_answer":"B"},
-    {"id":"a7","level":"B2","text":"...","sentence":"...","options":["A","B","C","D"],"correct_answer":"A"},
-    {"id":"a8","level":"C1","text":"...","sentence":"...","options":["A","B","C","D"],"correct_answer":"D"}
+    {"id":"a1","level":"A0","text":"Question in French","sentence":"sentence in {$language} (or empty string)","options":["A","B","C","D"],"correct_answer":"A"}
   ],
   "section_b": {
-    "passage": "A 80-120 word authentic passage in {$language} on any topic",
+    "passage": "A 80-120 word authentic passage in {$language}",
     "questions": [
-      {"id":"b1","level":"B1","text":"Question about the passage in French","options":["A","B","C","D"],"correct_answer":"B"},
-      {"id":"b2","level":"B2","text":"...","options":["A","B","C","D"],"correct_answer":"A"},
-      {"id":"b3","level":"C1","text":"...","options":["A","B","C","D"],"correct_answer":"C"}
+      {"id":"b1","level":"A2","text":"Question about the passage","options":["A","B","C","D"],"correct_answer":"B"}
+    ]
+  },
+  "listening": {
+    "audio_text": "A 50-90 word spoken dialogue or message in {$language}, to be read aloud by text-to-speech",
+    "questions": [
+      {"id":"l1","level":"A1","text":"Question about what is heard","options":["A","B","C","D"],"correct_answer":"C"}
     ]
   },
   "section_c": {
-    "prompt": "One clear writing instruction in French for a short essay or paragraph (2-3 sentences max), adapted to {$examName}"
+    "prompt": "One clear writing instruction for a short essay (2-3 sentences max), adapted to {$examName}"
   }
 }
 
 Rules:
-- section_a: 8 grammar/vocabulary MCQ — TWO EACH at levels A1 and A2 (so a single
-  slip doesn't flip the whole placement verdict), one each at B1 B2 C1, options
-  are full text strings (NOT letters), correct_answer is the letter "A","B","C"
-  or "D" matching the correct option index (A=first, B=second...)
-- section_b: 3 reading comprehension MCQ about the passage, options are full text strings, correct_answer is letter
-- section_c: one essay prompt suited to {$examName} level
-- All instructions (text, prompt) in French; language content in {$language}
+- section_a: EXACTLY 10 grammar/vocabulary MCQ at these levels, in this order:
+  A0, A1, A1, A2, A2, B1, B1, B2, C1, C2 (A0 = absolute beginner: a number,
+  a greeting, a very common word).
+- section_b: 3 reading comprehension MCQ about the passage, at levels A2, B1, B2.
+- listening: 3 listening MCQ at levels A1, A2, B1. They must be answerable ONLY
+  by listening to audio_text; never copy the answer into the question.
+- options are full text strings (NOT letters); correct_answer is the letter
+  "A","B","C" or "D" matching the correct option (A=first, B=second...).
+  Vary the position of the correct answer.
+- Language content in {$language}; instructions may be in {$language} or French.
 - Return ONLY the JSON, no markdown, no explanation
 PROMPT;
 
-        // Up to 2 attempts, same pattern as ExerciseGeneratorService: retry the
-        // whole batch once if questions are structurally broken (duplicate/empty
-        // options, correct_answer pointing outside the options array) rather than
-        // trusting Mistral's output as-is — this pipeline previously had NO
-        // validation at all, unlike ExerciseGeneratorService.
+        // Deux essais au plus : on refait tout le lot quand les questions sont
+        // cassees (options vides ou en double, bonne reponse hors des options)
+        // plutot que de croire l'IA sur parole.
         for ($attempt = 0; $attempt < 2; $attempt++) {
             $content = $this->mistral->chat([['role' => 'user', 'content' => $prompt]]);
             if (!$content) {
                 continue;
             }
 
-            // Strip markdown code fences if present
             $clean = preg_replace('/^```(?:json)?\s*/m', '', $content);
             $clean = preg_replace('/```\s*$/m', '', $clean);
             $decoded = json_decode(trim($clean), true);
@@ -382,12 +390,22 @@ PROMPT;
             $validA = $this->dropInvalidQuestions($decoded['section_a']);
             $validB = $this->dropInvalidQuestions($decoded['section_b']['questions']);
             if (count($validA) < 6 || count($validB) < 2) {
-                continue; // too many broken questions dropped — retry the whole batch
+                continue; // trop de questions cassees : on refait tout le lot
             }
-            $decoded['section_a'] = $validA;
-            $decoded['section_b']['questions'] = $validB;
 
-            return $decoded;
+            $lecture = array_map(fn ($q) => array_merge($q, ['skill' => 'reading']), $validB);
+
+            return [
+                'section_a' => $this->normaliserNiveaux($validA),
+                'section_b' => [
+                    'passage' => $decoded['section_b']['passage'],
+                    'questions' => array_merge(
+                        $this->normaliserNiveaux($lecture),
+                        $this->ecouteValideOuSecours($decoded['listening'] ?? null, $language),
+                    ),
+                ],
+                'section_c' => $decoded['section_c'],
+            ];
         }
 
         Log::warning('PlacementTestService: generateFullTest AI failed, using fallback', [
@@ -395,6 +413,51 @@ PROMPT;
         ]);
 
         return $this->getFallbackFullTest($language, $examName);
+    }
+
+    /**
+     * L'ecoute proposee par l'IA si elle tient debout, sinon celle de secours.
+     *
+     * Une ecoute sans texte a lire, ou trop courte pour porter des questions,
+     * ne mesure rien : on garde quand meme l'oral dans le test, avec les items
+     * fixes de la langue visee.
+     */
+    private function ecouteValideOuSecours(mixed $ecoute, string $language): array
+    {
+        $texte = is_array($ecoute) && is_string($ecoute['audio_text'] ?? null) ? trim($ecoute['audio_text']) : '';
+        $questions = is_array($ecoute) && is_array($ecoute['questions'] ?? null)
+            ? $this->dropInvalidQuestions($ecoute['questions'])
+            : [];
+
+        if (count(preg_split('/\s+/u', $texte, -1, PREG_SPLIT_NO_EMPTY)) < 20 || count($questions) < 2) {
+            return $this->ecouteDeSecours($language);
+        }
+
+        $sortie = [];
+        foreach ($questions as $i => $q) {
+            $sortie[] = array_merge($q, [
+                'id' => 'l'.($i + 1),
+                'skill' => 'listening',
+                'audio_text' => $texte,
+            ]);
+        }
+
+        return $this->normaliserNiveaux($sortie);
+    }
+
+    /** Un niveau inconnu (« pre-A1 », vide...) est ramene a un palier connu. */
+    private function normaliserNiveaux(array $questions): array
+    {
+        return array_map(function ($q) {
+            $niveau = strtoupper(trim((string) ($q['level'] ?? '')));
+            $q['level'] = match (true) {
+                in_array($niveau, self::PALIERS, true) => $niveau,
+                $niveau === '' || str_contains($niveau, 'PRE') => 'A0',
+                default => 'B1',
+            };
+
+            return $q;
+        }, $questions);
     }
 
     /**
@@ -406,6 +469,9 @@ PROMPT;
     private function dropInvalidQuestions(array $questions): array
     {
         return array_values(array_filter($questions, function ($q) {
+            if (!is_array($q)) {
+                return false;
+            }
             $opts = $q['options'] ?? null;
             if (!is_array($opts) || count($opts) < 2) {
                 return false;
@@ -427,68 +493,66 @@ PROMPT;
     }
 
     /**
-     * Évalue le niveau de départ : A0, A1, ou B1.
+     * Evalue le niveau de depart, de A0 a C2.
      *
-     * Le placement ne mesure PAS le niveau final CEFR — il détermine uniquement
-     * d'où l'utilisateur doit commencer dans le programme :
-     *   A0 = débutant complet (jamais étudié la langue)
-     *   A1 = quelques bases, peut suivre le programme depuis A1
-     *   B1 = intermédiaire, peut sauter les modules A1/A2
+     * On monte palier par palier : un palier est acquis quand au moins la moitie
+     * de ses questions (grammaire, lecture et ecoute confondues) sont justes, et
+     * on s'arrete au premier palier rate. Un candidat qui devine juste au C1
+     * mais rate le B1 reste donc au A2 : mieux vaut demarrer trop bas que trop
+     * haut.
      *
-     * Seuils volontairement stricts : mieux vaut démarrer trop bas que trop haut.
+     * La redaction confirme les niveaux hauts : une copie vide ou tres courte ne
+     * permet pas de demarrer au B1 ou au-dessus, quel que soit le QCM.
      */
     public function evaluateFullLevel(array $questions, array $answers, string $essayText): string
     {
-        // 1. Compter les bonnes réponses sur les questions de niveau A1/A2 seulement
-        //    (Les questions B2/C1 du test servent à disqualifier les faux-B1, pas à attribuer un niveau élevé)
-        $totalQuestions = count($questions);
-        $correctA1A2 = 0;
-        $correctB1   = 0;
-        $totalA1A2   = 0;
-        $totalB1     = 0;
+        $justes = array_fill_keys(self::PALIERS, 0);
+        $totaux = array_fill_keys(self::PALIERS, 0);
 
         foreach ($questions as $q) {
-            $level   = $q['level'] ?? 'B1';
-            $given   = strtoupper(trim($answers[$q['id']] ?? ''));
-            $correct = strtoupper(trim($q['correct_answer'] ?? $q['correct'] ?? ''));
-            $isCorrect = ($given === $correct && $given !== '');
+            if (!is_array($q) || !isset($q['id'])) {
+                continue;
+            }
+            $level = strtoupper((string) ($q['level'] ?? 'B1'));
+            if (!isset($totaux[$level])) {
+                $level = 'B1';
+            }
+            $given = strtoupper(trim((string) ($answers[$q['id']] ?? '')));
+            $correct = strtoupper(trim((string) ($q['correct_answer'] ?? $q['correct'] ?? '')));
 
-            if (in_array($level, ['A1', 'A2'])) {
-                $totalA1A2++;
-                if ($isCorrect) $correctA1A2++;
-            } elseif ($level === 'B1') {
-                $totalB1++;
-                if ($isCorrect) $correctB1++;
+            $totaux[$level]++;
+            if ($given !== '' && $given === $correct) {
+                $justes[$level]++;
             }
         }
 
-        // 2. Décision — seuils stricts
-        //    B1 : doit maîtriser les questions A1/A2 ET au moins la moitié des B1
-        $a1a2Rate = $totalA1A2 > 0 ? $correctA1A2 / $totalA1A2 : 0;
-        $b1Rate   = $totalB1   > 0 ? $correctB1   / $totalB1   : 0;
-
-        if ($a1a2Rate >= 0.75 && $b1Rate >= 0.5) {
-            $startLevel = 'B1';
-        } elseif ($a1a2Rate >= 0.5) {
-            $startLevel = 'A1';
-        } else {
-            $startLevel = 'A0';
-        }
-
-        // 3. Essay : uniquement pour confirmer B1 (pas pour monter au-dessus).
-        //    A BLANK essay is treated the SAME as a too-short one — previously an
-        //    empty essay (zero effort) kept the B1 verdict while a short-but-correct
-        //    essay (e.g. 35 words) got demoted, rewarding skipping the essay over
-        //    attempting it honestly.
-        if ($startLevel === 'B1') {
-            $words = preg_split('/\s+/', trim($essayText), -1, PREG_SPLIT_NO_EMPTY);
-            // Moins de 40 mots (y compris 0 = essai vide) = l'utilisateur ne maîtrise pas assez → on redescend à A1
-            if (count($words) < 40) {
-                $startLevel = 'A1';
+        $niveau = 'A0';
+        foreach (self::PALIERS as $palier) {
+            if ($totaux[$palier] === 0) {
+                // Palier absent du test (ancien test sans A0 ni C2) : il ne
+                // bloque pas la montee, mais il ne la donne pas non plus.
+                continue;
             }
+            if ($justes[$palier] / $totaux[$palier] < 0.5) {
+                break;
+            }
+            // Reussir le A0 seul ne fait pas un A1 : on reste au depart.
+            $niveau = $palier;
         }
 
-        return $startLevel;
+        $mots = count(preg_split('/\s+/u', trim($essayText), -1, PREG_SPLIT_NO_EMPTY));
+        $rang = array_search($niveau, self::PALIERS, true);
+
+        // Moins de 40 mots (copie vide comprise) : pas plus haut que A2.
+        if ($mots < 40 && $rang > array_search('A2', self::PALIERS, true)) {
+            return 'A2';
+        }
+        // Moins de 80 mots : pas plus haut que B1.
+        if ($mots < 80 && $rang > array_search('B1', self::PALIERS, true)) {
+            return 'B1';
+        }
+
+        return $niveau;
     }
 
     /**
@@ -499,11 +563,12 @@ PROMPT;
      * servait de l'anglais a tout le monde, et un candidat telc Deutsch
      * repartait avec un niveau d'allemand mesure sur sa grammaire anglaise.
      *
-     * Les trois langues servies par la plateforme ont donc chacune le sien. Pour
-     * toute autre, on ne devine pas : voir estServable().
+     * Dix items par langue, du A0 au C2. Pour toute autre langue, on ne devine
+     * pas : voir estServable().
      */
     private const REPLIS = [
         'english' => [
+            ['A0', 'three', ['2', '3', '4', '5'], 'B', 'Quel chiffre correspond à ce mot ?'],
             ['A1', 'I ___ a student.', ['am', 'is', 'are', 'be'], 'A'],
             ['A1', 'This is ___ book.', ['I', 'my', 'me', 'mine'], 'B'],
             ['A2', 'She ___ to school every day.', ['go', 'goes', 'going', 'gone'], 'B'],
@@ -512,8 +577,10 @@ PROMPT;
             ['B1', 'The meeting was ___ because of the storm.', ['cancelled', 'cancelling', 'cancel', 'cancels'], 'A'],
             ['B2', 'Not only ___ the test, but she also won a prize.', ['she passed', 'did she pass', 'she did pass', 'passed she'], 'B'],
             ['C1', 'Had I known about the meeting, I ___ attended.', ['would have', 'will have', 'would', 'should'], 'A'],
+            ['C2', 'Scarcely ___ the house when it began to rain.', ['we had left', 'had we left', 'did we leave', 'we left'], 'B'],
         ],
         'french' => [
+            ['A0', 'trois', ['2', '3', '4', '5'], 'B', 'Quel chiffre correspond à ce mot ?'],
             ['A1', 'Je ___ étudiant.', ['suis', 'es', 'est', 'être'], 'A'],
             ['A1', "C'est ___ livre.", ['je', 'mon', 'moi', 'le mien'], 'B'],
             ['A2', 'Elle ___ à l\'école tous les jours.', ['va', 'vas', 'aller', 'allé'], 'A'],
@@ -522,8 +589,10 @@ PROMPT;
             ['B1', 'La réunion a été ___ à cause de la tempête.', ['annulée', 'annulant', 'annuler', 'annule'], 'A'],
             ['B2', "Il faut que tu ___ avant la fin de la semaine.", ['viens', 'viendras', 'viennes', 'venir'], 'C'],
             ['C1', "___ que je sois fatigué, je terminerai ce travail.", ['Bien', 'Malgré', 'Quoique', 'Pourtant'], 'C'],
+            ['C2', "Il eût fallu qu'il ___ plus tôt.", ['vient', 'vînt', 'viendrait', 'venait'], 'B'],
         ],
         'german' => [
+            ['A0', 'drei', ['2', '3', '4', '5'], 'B', 'Quel chiffre correspond à ce mot ?'],
             ['A1', 'Ich ___ Student.', ['bin', 'bist', 'ist', 'sein'], 'A'],
             ['A1', 'Das ist ___ Buch.', ['ich', 'mein', 'mir', 'meiner'], 'B'],
             ['A2', 'Sie ___ jeden Tag zur Schule.', ['geht', 'gehst', 'gehen', 'gegangen'], 'A'],
@@ -532,17 +601,49 @@ PROMPT;
             ['B1', 'Das Treffen wurde wegen des Sturms ___.', ['abgesagt', 'absagen', 'absagend', 'abgesagen'], 'A'],
             ['B2', 'Nicht nur ___ sie die Prüfung, sondern sie gewann auch einen Preis.', ['sie bestand', 'bestand sie', 'sie hat bestanden', 'bestehen sie'], 'B'],
             ['C1', 'Hätte ich von dem Treffen gewusst, ___ ich teilgenommen.', ['hätte', 'würde', 'wäre', 'sollte'], 'A'],
+            ['C2', 'Ungeachtet ___ Einwände wurde das Projekt genehmigt.', ['dem', 'den', 'der', 'die'], 'C'],
         ],
     ];
 
-    /** Les textes de la section de lecture, dans la langue visee. */
+    /** Le texte de la comprehension ecrite et ses questions, dans la langue visee. */
     private const PASSAGES = [
-        'english' => ['Technology has changed how people work. Remote tools let colleagues work together from different cities, but they also blur the line between work and private life. Many companies now set rules so that messages sent in the evening do not have to be answered before the next morning.',
-            'What is the text mainly about?', ['Cooking', 'How technology changes work', 'Air travel', 'Professional sport']],
-        'french' => ['La technologie a changé la façon de travailler. Les outils à distance permettent à des collègues de travailler ensemble depuis des villes différentes, mais ils brouillent aussi la frontière entre le travail et la vie privée. Beaucoup d\'entreprises fixent désormais des règles pour qu\'un message envoyé le soir n\'ait pas à recevoir de réponse avant le lendemain.',
-            'Quel est le sujet principal du texte ?', ['La cuisine', 'La technologie et le travail', 'Les voyages en avion', 'Le sport professionnel']],
-        'german' => ['Die Technik hat die Arbeit verändert. Mit digitalen Werkzeugen arbeiten Kolleginnen und Kollegen aus verschiedenen Städten zusammen, doch die Grenze zwischen Beruf und Privatleben verschwimmt dabei. Viele Firmen vereinbaren deshalb Regeln: Eine Nachricht am Abend muss erst am nächsten Morgen beantwortet werden.',
-            'Worum geht es im Text vor allem?', ['Ums Kochen', 'Um Technik und Arbeit', 'Um Flugreisen', 'Um Profisport']],
+        'english' => ['Technology has changed how people work. Remote tools let colleagues work together from different cities, but they also blur the line between work and private life. Many companies now set rules so that messages sent in the evening do not have to be answered before the next morning.', [
+            ['A2', 'What is the text mainly about?', ['Cooking', 'How technology changes work', 'Air travel', 'Professional sport'], 'B'],
+            ['B1', 'What do many companies do?', ['They ban remote tools', 'They close offices at night', 'They set rules for evening messages', 'They pay for overtime'], 'C'],
+            ['B2', 'Which problem does the text mention?', ['The tools are too expensive', 'Work and private life are harder to separate', 'Colleagues live too far away', 'Messages get lost'], 'B'],
+        ]],
+        'french' => ['La technologie a changé la façon de travailler. Les outils à distance permettent à des collègues de travailler ensemble depuis des villes différentes, mais ils brouillent aussi la frontière entre le travail et la vie privée. Beaucoup d\'entreprises fixent désormais des règles pour qu\'un message envoyé le soir n\'ait pas à recevoir de réponse avant le lendemain.', [
+            ['A2', 'Quel est le sujet principal du texte ?', ['La cuisine', 'La technologie et le travail', 'Les voyages en avion', 'Le sport professionnel'], 'B'],
+            ['B1', 'Que font beaucoup d\'entreprises ?', ['Elles interdisent le travail à distance', 'Elles ferment les bureaux le soir', 'Elles fixent des règles pour les messages du soir', 'Elles paient les heures supplémentaires'], 'C'],
+            ['B2', 'Quel problème le texte mentionne-t-il ?', ['Les outils coûtent trop cher', 'La frontière entre travail et vie privée devient floue', 'Les collègues habitent trop loin', 'Les messages se perdent'], 'B'],
+        ]],
+        'german' => ['Die Technik hat die Arbeit verändert. Mit digitalen Werkzeugen arbeiten Kolleginnen und Kollegen aus verschiedenen Städten zusammen, doch die Grenze zwischen Beruf und Privatleben verschwimmt dabei. Viele Firmen vereinbaren deshalb Regeln: Eine Nachricht am Abend muss erst am nächsten Morgen beantwortet werden.', [
+            ['A2', 'Worum geht es im Text vor allem?', ['Ums Kochen', 'Um Technik und Arbeit', 'Um Flugreisen', 'Um Profisport'], 'B'],
+            ['B1', 'Was machen viele Firmen?', ['Sie verbieten digitale Werkzeuge', 'Sie schließen abends die Büros', 'Sie vereinbaren Regeln für Nachrichten am Abend', 'Sie bezahlen Überstunden'], 'C'],
+            ['B2', 'Welches Problem nennt der Text?', ['Die Werkzeuge sind zu teuer', 'Beruf und Privatleben sind schwerer zu trennen', 'Die Kollegen wohnen zu weit weg', 'Nachrichten gehen verloren'], 'B'],
+        ]],
+    ];
+
+    /**
+     * La comprehension orale de secours : un message lu a voix haute (champ
+     * audio_text, le meme que celui des exercices d'ecoute) et trois questions.
+     */
+    private const ECOUTES = [
+        'english' => ["Hi Tom, it's Sarah. I'm sorry, I can't come to the cinema tonight because I have to work late. Can we go on Saturday instead? The film starts at seven, so let's meet at half past six in front of the cinema.", [
+            ['A1', 'Who is calling?', ['Tom', 'Sarah', 'The cinema', 'A colleague'], 'B'],
+            ['A2', 'When does the film start?', ['At six', 'At half past six', 'At seven', 'At eight'], 'C'],
+            ['B1', "Why can't Sarah come tonight?", ['She is ill', 'She has to work late', 'She has no money', 'She has already seen the film'], 'B'],
+        ]],
+        'french' => ["Salut Tom, c'est Sarah. Désolée, je ne peux pas venir au cinéma ce soir parce que je dois travailler tard. On peut y aller samedi à la place ? Le film commence à sept heures, alors retrouvons-nous à six heures et demie devant le cinéma.", [
+            ['A1', 'Qui appelle ?', ['Tom', 'Sarah', 'Le cinéma', 'Une collègue'], 'B'],
+            ['A2', 'À quelle heure commence le film ?', ['À six heures', 'À six heures et demie', 'À sept heures', 'À huit heures'], 'C'],
+            ['B1', 'Pourquoi Sarah ne peut-elle pas venir ce soir ?', ['Elle est malade', 'Elle doit travailler tard', "Elle n'a pas d'argent", 'Elle a déjà vu le film'], 'B'],
+        ]],
+        'german' => ['Hallo Tom, hier ist Sarah. Tut mir leid, ich kann heute Abend nicht ins Kino kommen, weil ich lange arbeiten muss. Können wir stattdessen am Samstag gehen? Der Film beginnt um sieben Uhr, also treffen wir uns um halb sieben vor dem Kino.', [
+            ['A1', 'Wer ruft an?', ['Tom', 'Sarah', 'Das Kino', 'Eine Kollegin'], 'B'],
+            ['A2', 'Wann beginnt der Film?', ['Um sechs Uhr', 'Um halb sieben', 'Um sieben Uhr', 'Um acht Uhr'], 'C'],
+            ['B1', 'Warum kann Sarah heute Abend nicht kommen?', ['Sie ist krank', 'Sie muss lange arbeiten', 'Sie hat kein Geld', 'Sie hat den Film schon gesehen'], 'B'],
+        ]],
     ];
 
     /** Les consignes de redaction, dans la langue visee. */
@@ -573,18 +674,51 @@ PROMPT;
         };
     }
 
+    private function ecouteDeSecours(string $language): array
+    {
+        [$texte, $items] = self::ECOUTES[$this->cle($language) ?: 'english'];
+
+        $questions = [];
+        foreach ($items as $rang => [$niveau, $question, $choix, $bonne]) {
+            $questions[] = [
+                'id' => 'l'.($rang + 1),
+                'level' => $niveau,
+                'skill' => 'listening',
+                'text' => $question,
+                'audio_text' => $texte,
+                'options' => $choix,
+                'correct_answer' => $bonne,
+            ];
+        }
+
+        return $questions;
+    }
+
     private function getFallbackFullTest(string $language, string $examName): array
     {
         $cle = $this->cle($language) ?: 'english';
-        [$passage, $questionTexte, $options] = self::PASSAGES[$cle];
+        [$passage, $itemsLecture] = self::PASSAGES[$cle];
 
         $sectionA = [];
-        foreach (self::REPLIS[$cle] as $rang => [$niveau, $phrase, $choix, $bonne]) {
+        foreach (self::REPLIS[$cle] as $rang => $item) {
+            [$niveau, $phrase, $choix, $bonne] = $item;
             $sectionA[] = [
                 'id' => 'a'.($rang + 1),
                 'level' => $niveau,
-                'text' => 'Choisissez la bonne réponse :',
+                'text' => $item[4] ?? 'Choisissez la bonne réponse :',
                 'sentence' => $phrase,
+                'options' => $choix,
+                'correct_answer' => $bonne,
+            ];
+        }
+
+        $lecture = [];
+        foreach ($itemsLecture as $rang => [$niveau, $question, $choix, $bonne]) {
+            $lecture[] = [
+                'id' => 'b'.($rang + 1),
+                'level' => $niveau,
+                'skill' => 'reading',
+                'text' => $question,
                 'options' => $choix,
                 'correct_answer' => $bonne,
             ];
@@ -594,10 +728,7 @@ PROMPT;
             'section_a' => $sectionA,
             'section_b' => [
                 'passage' => $passage,
-                'questions' => [
-                    ['id' => 'b1', 'level' => 'B1', 'text' => $questionTexte,
-                        'options' => $options, 'correct_answer' => 'B'],
-                ],
+                'questions' => array_merge($lecture, $this->ecouteDeSecours($language)),
             ],
             'section_c' => ['prompt' => self::SUJETS[$cle]],
         ];

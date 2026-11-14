@@ -192,7 +192,7 @@ class OnboardingController extends Controller
         }
 
         $nativeLanguage = $profile->native_language ?? 'Français';
-        $cacheKey = "placement_v2_{$exam->id}_{$profile->user_id}";
+        $cacheKey = "placement_v3_{$exam->id}_{$profile->user_id}";
 
         $testData = Cache::remember($cacheKey, 1800, function () use ($language, $exam, $nativeLanguage) {
             return $this->placementTest->generateFullTest(
@@ -344,7 +344,7 @@ class OnboardingController extends Controller
 
         // Clear caches
         Cache::forget("placement_questions_{$profile->target_exam_id}_{$request->user()->id}");
-        Cache::forget("placement_v2_{$profile->target_exam_id}_{$request->user()->id}");
+        Cache::forget("placement_v3_{$profile->target_exam_id}_{$request->user()->id}");
         Cache::forget("placement_answers_{$request->user()->id}");
 
         return redirect()->route('dashboard');

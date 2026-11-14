@@ -114,6 +114,14 @@ Output your evaluation as a JSON object with the following structure:
                 // Une faute rendue en objet faisait tomber toute la correction :
                 // la note, la tentative, et la page du correcteur.
                 $data['corrections'] = CorrectionsDeProduction::nettoyer($data['corrections'] ?? []);
+                // La note dans l'echelle de l'examen vise (sur 25 au DELF, en
+                // bande a l'IELTS...). Le score 0-9 reste la reference pour les
+                // statistiques ; ceci n'est qu'une estimation affichee.
+                $data['grille_officielle'] = GrilleOfficielleEcrit::calculer(
+                    $examType,
+                    $data['score'] ?? 0,
+                    is_array($data['band_scores'] ?? null) ? $data['band_scores'] : [],
+                );
 
                 return $data;
             }
