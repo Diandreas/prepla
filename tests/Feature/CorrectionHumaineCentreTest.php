@@ -201,3 +201,48 @@ it('montre a l eleve la note de l enseignant et son commentaire sur la page de r
             ->where('correctionEnseignant.enseignant', $c['prof1']->name)
             ->missing('attempt.audios'));
 });
+
+it('garde separees les corrections de deux centres pour un eleve inscrit dans les deux', function () {
+    $c = correctionCentre();
+    $t = ($c['tentative'])($c['awa'], $c['ecrit']);
+
+    // Awa est aussi eleve du centre concurrent, dans une classe de ce centre.
+    $autre = LanguageCenter::where('slug', 'concurrent')->firstOrFail();
+    $autre->members()->attach($c['awa']->id, ['role' => 'student', 'joined_at' => now()]);
+    $classeAutre = $autre->classrooms()->create(['name' => 'Soir', 'invite_code' => Classroom::generateInviteCode()]);
+    $classeAutre->members()->attach($c['awa']->id, ['role_in_class' => 'student']);
+
+    $this->actingAs($c['prof1'])->post(route('center.corrections.store', $t), [
+        'sous_notes' => ['task_achievement' => 9, 'coherence_cohesion' => 9, 'lexical_resource' => 9, 'grammar_accuracy' => 9],
+        'commentaire' => 'Commentaire du centre A.',
+    ])->assertRedirect();
+
+    // B voit toujours la production a corriger, sans la correction de A.
+    $this->actingAs($c['adminAutre'])->get(route('center.corrections.index'))
+        ->assertInertia(fn (Assert $p) => $p->has('productions', 1)->where('productions.0.note_enseignant', null));
+    $this->actingAs($c['adminAutre'])->get(route('center.corrections.index', ['vue' => 'revues']))
+        ->assertInertia(fn (Assert $p) => $p->has('productions', 0));
+    $this->actingAs($c['adminAutre'])->get(route('center.corrections.show', $t))
+        ->assertOk()
+        ->assertInertia(fn (Assert $p) => $p->where('production.correction', null));
+
+    // B corrige a son tour : la correction de A reste intacte.
+    $this->actingAs($c['adminAutre'])->post(route('center.corrections.store', $t), [
+        'sous_notes' => ['task_achievement' => 4.5, 'coherence_cohesion' => 4.5, 'lexical_resource' => 4.5, 'grammar_accuracy' => 4.5],
+        'commentaire' => 'Commentaire du centre B.',
+    ])->assertRedirect();
+
+    expect(CorrectionEnseignant::where('attempt_id', $t->id)->count())->toBe(2);
+    $deA = CorrectionEnseignant::where('attempt_id', $t->id)->where('center_id', $c['centre']->id)->firstOrFail();
+    expect($deA->teacher_id)->toBe($c['prof1']->id)
+        ->and($deA->commentaire)->toBe('Commentaire du centre A.')
+        ->and($deA->grille['affichage'])->toBe('25 / 25');
+
+    // Chaque centre ne voit que la sienne.
+    $this->actingAs($c['prof1'])->get(route('center.corrections.show', $t))
+        ->assertInertia(fn (Assert $p) => $p->where('production.correction.commentaire', 'Commentaire du centre A.'));
+    $this->actingAs($c['adminAutre'])->get(route('center.corrections.show', $t))
+        ->assertInertia(fn (Assert $p) => $p->where('production.correction.commentaire', 'Commentaire du centre B.'));
+    $this->actingAs($c['prof1'])->get(route('center.corrections.index', ['vue' => 'revues']))
+        ->assertInertia(fn (Assert $p) => $p->where('productions.0.note_enseignant', '25 / 25'));
+});

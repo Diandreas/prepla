@@ -21,7 +21,7 @@ return new class extends Migration
 
         Schema::create('corrections_enseignant', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('attempt_id')->unique()->constrained('user_exercise_attempts')->cascadeOnDelete();
+            $table->foreignId('attempt_id')->constrained('user_exercise_attempts')->cascadeOnDelete();
             $table->foreignId('center_id')->constrained('language_centers')->cascadeOnDelete();
             $table->foreignId('teacher_id')->nullable()->constrained('users')->nullOnDelete();
             // Les quatre dimensions communes, sur 9 (comme la correction IA).
@@ -32,6 +32,9 @@ return new class extends Migration
             $table->text('commentaire')->nullable();
             $table->timestamps();
 
+            // Un eleve inscrit dans deux centres peut etre corrige par chacun :
+            // une correction par centre, jamais ecrasee par l'autre.
+            $table->unique(['attempt_id', 'center_id']);
             $table->index(['center_id', 'created_at']);
         });
     }

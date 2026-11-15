@@ -948,8 +948,9 @@ class ExerciseController extends Controller
         return Inertia::render('exercise/result', [
             'attempt' => $attempt,
             'nodeProgress' => $nodeProgress,
-            // La note de l'enseignant du centre prime sur celle de l'IA.
-            'correctionEnseignant' => $attempt->correctionEnseignant()->with('teacher:id,name')->first()?->pourEleve(),
+            // La note de l'enseignant du centre prime sur celle de l'IA (la plus
+            // recente si l'eleve est suivi par deux centres).
+            'correctionEnseignant' => $attempt->correctionEnseignant()->with('teacher:id,name')->latest('updated_at')->latest('id')->first()?->pourEleve(),
         ]);
     }
 

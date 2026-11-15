@@ -115,10 +115,11 @@ class CorrectionHumaine
         $requete = $this->productions(UserExerciseAttempt::query()->whereIn('user_id', $eleves));
         $requete = $revues
             ? $requete->whereHas('correctionEnseignant', fn ($q) => $q->where('center_id', $centre->id))
-            : $requete->whereDoesntHave('correctionEnseignant');
+            : $requete->whereDoesntHave('correctionEnseignant', fn ($q) => $q->where('center_id', $centre->id));
 
         return $requete
-            ->with(['user:id,name', 'exercise.exerciseType.section', 'exercise.exam:id,name', 'correctionEnseignant'])
+            ->with(['user:id,name', 'exercise.exerciseType.section', 'exercise.exam:id,name',
+                'correctionEnseignant' => fn ($q) => $q->where('center_id', $centre->id)])
             ->latest('id')
             ->limit(100)
             ->get()
@@ -154,9 +155,9 @@ class CorrectionHumaine
     }
 
     /** Le detail d'une production, pour la page de correction. */
-    public function detail(UserExerciseAttempt $t): array
+    public function detail(LanguageCenter $centre, UserExerciseAttempt $t): array
     {
-        $t->loadMissing(['user:id,name', 'exercise.exerciseType.section', 'exercise.exam:id,name', 'correctionEnseignant.teacher:id,name']);
+        $t->loadMissing(['user:id,name', 'exercise.exerciseType.section', 'exercise.exam:id,name']);
         $questions = collect($t->exercise?->questions ?? [])
             ->mapWithKeys(fn ($q, $i) => [(string) ($q['id'] ?? $i) => $q]);
         $reponses = $t->answers ?? [];
@@ -182,7 +183,8 @@ class CorrectionHumaine
             ];
         })->values()->all();
 
-        $correction = $t->correctionEnseignant;
+        // Seule la correction de CE centre : jamais celle d'un autre centre.
+        $correction = $t->correctionEnseignant()->where('center_id', $centre->id)->with('teacher:id,name')->first();
 
         return [
             'id' => $t->id,
@@ -223,9 +225,8 @@ class CorrectionHumaine
         }
 
         return CorrectionEnseignant::updateOrCreate(
-            ['attempt_id' => $t->id],
+            ['attempt_id' => $t->id, 'center_id' => $centre->id],
             [
-                'center_id' => $centre->id,
                 'teacher_id' => $membre->id,
                 'sous_notes' => $dims,
                 'note' => $note,

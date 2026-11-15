@@ -38,10 +38,10 @@ class CorrectionController extends Controller
 
     public function show(Request $request, UserExerciseAttempt $attempt): Response
     {
-        $this->verifier($request, $attempt);
+        $centre = $this->verifier($request, $attempt);
 
         return Inertia::render('center/corrections/show', [
-            'production' => $this->corrections->detail($attempt),
+            'production' => $this->corrections->detail($centre, $attempt),
             'dimensions' => CorrectionHumaine::DIMENSIONS,
         ]);
     }
