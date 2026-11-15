@@ -1,6 +1,21 @@
 # PrePla — reprise du travail (pour n'importe quel Claude en CLI)
 
-Dernière mise à jour : 2026-11-15. Lis ce fichier en entier avant d'agir.
+Dernière mise à jour : 2026-11-15 (soir). Lis ce fichier en entier avant d'agir.
+
+## État au démarrage (vérifié le 2026-11-15 au soir)
+- Tout le travail est fusionné dans `main` et poussé sur GitHub. Le dossier `E:\project\prepla` est à jour avec `origin/main`. Travaille ici, sur `main`.
+- La prod tourne sur le commit `c41a4c5`. Les commits suivants ne touchent que cette fiche : il n'y a rien à redéployer.
+- Les clés `GOOGLE_DRIVE_*` ne sont PAS encore dans le `.env` du VPS. Drive et Live class restent donc invisibles. Pour vérifier : `grep -c '^GOOGLE_DRIVE_CLIENT_ID=.\+' .env` sur le VPS (0 = pas posées).
+- Le propriétaire doit faire la partie Google Cloud (section plus bas). Quand il dit « c'est posé » : `php artisan config:cache` sur le VPS, puis les tests réels de l'étape 5.
+- Les dossiers de `.claude/worktrees/` sont d'anciennes sessions, déjà fusionnées. N'y travaille pas. Ne les supprime pas sans avoir vérifié avec `git branch --no-merged main`.
+- `.claude/settings.local.json` est suivi par git alors qu'il ne devrait pas l'être. Avant un `git pull` : `git stash push -- .claude/settings.local.json`, puis `pull`, puis `stash pop`. Ne commite jamais ce fichier.
+- `robocopy` renvoie le code 1 quand la copie a RÉUSSI (des fichiers ont été copiés). Ce n'est pas une erreur : seuls les codes 8 et plus en sont.
+
+### Ordre conseillé pour la suite
+1. Si les clés Google sont posées : tester Drive, Picker et Meet avec un vrai compte.
+2. Vérifier dans un navigateur (démo locale) les écrans listés dans « À vérifier dans un navigateur ».
+3. Corriger les petits bugs de « Reste à faire » : A0 et examens blancs, `str_word_count` avec les accents, traduction de la page achievements.
+4. Demander au propriétaire quand retirer l'ancien éditeur de parcours.
 
 ## Le projet
 - PrePla : préparation aux examens de langue (TCF, TEF, DELF, IELTS, Goethe, telc…) : apprenants adultes, espace centre (écoles), PrePla Kids.
