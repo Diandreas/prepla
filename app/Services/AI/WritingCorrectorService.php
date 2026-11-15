@@ -105,7 +105,7 @@ Output your evaluation as a JSON object with the following structure:
             ['role' => 'user', 'content' => $text]
         ]);
 
-        $wordCount = str_word_count($text);
+        $wordCount = \App\Models\Exercise::nombreDeMots($text);
 
         if ($response) {
             $data = json_decode($response, true);

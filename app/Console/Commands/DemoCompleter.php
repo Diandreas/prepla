@@ -1099,7 +1099,7 @@ class DemoCompleter extends Command
             if (! in_array($competence, ['writing', 'speaking'], true) || ! empty($t->feedback)) {
                 continue;
             }
-            $texte = collect((array) $t->answers)->first(fn ($r) => is_string($r) && mb_strlen(trim($r)) >= 40 && str_word_count($r) >= 8);
+            $texte = collect((array) $t->answers)->first(fn ($r) => is_string($r) && mb_strlen(trim($r)) >= 40 && \App\Models\Exercise::nombreDeMots($r) >= 8);
             if (! $texte) {
                 continue;
             }

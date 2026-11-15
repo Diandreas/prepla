@@ -184,7 +184,7 @@ class ExerciseScoringService
             // words) can't be exact-matched → evaluate with AI. Detect by length of
             // the expected answer (>4 words ⇒ open response).
             if ($questionType === 'short-answer' && is_string($correctAnswer)
-                && str_word_count(trim($correctAnswer)) > 4) {
+                && \App\Models\Exercise::nombreDeMots($correctAnswer) > 4) {
                 // Une reponse identique a celle attendue n'a pas besoin d'etre soumise
                 // au modele : l'exercice est genere AVEC sa correction, et faire juger
                 // une evidence coute du quota, ajoute une attente, et expose la
