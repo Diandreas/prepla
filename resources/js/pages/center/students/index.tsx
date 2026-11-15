@@ -1,5 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
-import { BellRing, CalendarCheck, Download, Flame, GraduationCap, MoonStar, TrendingUp, Trophy, UserCheck, Zap } from 'lucide-react';
+import { BellRing, CalendarCheck, Download, Flame, GraduationCap, MoonStar, TrendingUp, Trophy, Upload, UserCheck, Zap } from 'lucide-react';
 import { useMemo } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
@@ -408,11 +408,18 @@ export default function StudentsIndex({ students, joursAvantRelance = 7 }: { stu
                     titre={t('Élèves')}
                     sousTitre={sousTitre}
                     actions={
-                        students.length > 0 && (
-                            <Button type="button" variant="outline" onClick={exporter} disabled={filtres.length === 0}>
-                                <Download className="mr-1.5 h-4 w-4" /> {t('Exporter (CSV)')}
+                        <>
+                            <Button asChild variant="outline">
+                                <Link href={route('center.import.page')}>
+                                    <Upload className="mr-1.5 h-4 w-4" /> {t('Importer des élèves (CSV)')}
+                                </Link>
                             </Button>
-                        )
+                            {students.length > 0 && (
+                                <Button type="button" variant="outline" onClick={exporter} disabled={filtres.length === 0}>
+                                    <Download className="mr-1.5 h-4 w-4" /> {t('Exporter (CSV)')}
+                                </Button>
+                            )}
+                        </>
                     }
                 />
 

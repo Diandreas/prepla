@@ -401,6 +401,8 @@ Route::middleware(['auth', EnsureCenterStaff::class])
         require __DIR__.'/centre-tableau-classe.php';
         // Examens blancs composes par le centre : droits dans ExamenBlancController.
         require __DIR__.'/centre-examens-blancs.php';
+        // Import en masse (eleves, QCM) : droits dans ImportController.
+        require __DIR__.'/centre-imports.php';
     });
 
 // Parrainage : le lien d'un centre s'ouvre sans compte, il mene a l'inscription.
