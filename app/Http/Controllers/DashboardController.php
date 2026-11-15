@@ -10,6 +10,7 @@ use App\Models\UserExerciseAttempt;
 use App\Models\UserLearningProgress;
 use App\Services\Center\ParcoursEleveDeCentre;
 use App\Services\LearningJourneyService;
+use App\Services\LevelAdvancementService;
 use App\Services\PersonalLexiconService;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -296,6 +297,10 @@ class DashboardController extends Controller
             'curriculum' => $centreSeul ? null : $curriculumData,
             'nextLesson' => $centreSeul ? null : $nextLesson,
             'errorDiagnostic' => $errorDiagnostic,
+            // Ce qui est acquis au niveau, et ce qui manque pour monter.
+            'bilanNiveau' => ($examId && ! $centreSeul && $profile?->current_level && $profile->current_level !== 'TEST')
+                ? app(LevelAdvancementService::class)->bilanDuNiveau($user->id, (int) $examId, $profile->current_level)
+                : null,
             'dueErrorsCount' => $dueErrorsCount,
             'nextAction' => app(LearningJourneyService::class)->nextAction($user),
             'wordReviewCount' => app(PersonalLexiconService::class)->due($user)->count(),

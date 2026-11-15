@@ -337,5 +337,28 @@
   "errors": {
     "correct_answer": "Bonne réponse",
     "to_recall": "À retrouver pendant la révision"
+  },
+  "bilan": {
+    "titre": "Pour passer {{niveau}}",
+    "intro": "Voici ce que tu as montré au niveau {{niveau}}, et ce qu'il te manque pour passer {{suivant}}.",
+    "intro_a0": "Tu débutes : réussis des exercices A1 de lecture et d'écoute pour passer A1.",
+    "pret": "Tout est acquis : tu passeras {{niveau}} à la fin de ton objectif en cours.",
+    "ok": "acquis",
+    "a_faire": "à travailler",
+    "pas_exige": "Pas encore demandé à ton niveau, mais chaque essai t'aide.",
+    "rien_encore": "Aucun exercice fait à ce niveau pour l'instant.",
+    "acquis_one": "{{count}} exercice, {{moyenne}} % de réussite : c'est bon.",
+    "acquis_other": "{{count}} exercices, {{moyenne}} % de réussite : c'est bon.",
+    "reste_one": "Encore {{count}} exercice à faire à ce niveau.",
+    "reste_other": "Encore {{count}} exercices à faire à ce niveau.",
+    "reste_comprehension_one": "Encore {{count}} exercice de lecture ou d'écoute à faire.",
+    "reste_comprehension_other": "Encore {{count}} exercices de lecture ou d'écoute à faire.",
+    "sous_seuil": "Tu es à {{moyenne}} % en moyenne : il faut {{seuil}} %.",
+    "competence": {
+      "lecture": "Lecture",
+      "ecoute": "Écoute",
+      "ecrit": "Écrit",
+      "oral": "Oral"
+    }
   }
 }

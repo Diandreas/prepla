@@ -7,6 +7,7 @@ import { LoadingAnimation } from '@/components/loading-animation';
 import { ArtIcon } from '@/components/art-icon';
 import { DailyMission, MissionExtras, type JourneyAction } from '@/components/daily-mission';
 import type { SharedData, UserProfile } from '@/types';
+import { BilanNiveauCarte, type BilanNiveau } from '@/components/bilan-niveau';
 
 function Icon({ name, size = 20, style, className }: { name: string; size?: number; style?: React.CSSProperties; className?: string }) {
     return <img src={`/icons/${name}.png`} alt="" width={size} height={size} className={className} style={{ objectFit: 'contain', ...style }} />;
@@ -83,6 +84,7 @@ interface PageProps {
     centerAssignments?: CenterAssignment[];
     /** Élève d'un centre qui ne propose que ses devoirs : pas d'entraînement libre PrePla. */
     contenuCentre?: boolean;
+    bilanNiveau?: BilanNiveau | null;
 }
 
 /* ─── Brand colors ─── */
@@ -225,7 +227,7 @@ function CenterAssignmentsBanner({ assignments }: { assignments: CenterAssignmen
 
 export default function Dashboard() {
     const { t } = useTranslation();
-    const { auth, profile, chapters, stats, curriculum, nextLesson, errorDiagnostic, dueErrorsCount, centerMode, centerAssignments, contenuCentre, nextAction, wordReviewCount, aujourdhui } = usePage<SharedData & PageProps>().props;
+    const { auth, profile, chapters, stats, curriculum, nextLesson, errorDiagnostic, dueErrorsCount, centerMode, centerAssignments, contenuCentre, nextAction, wordReviewCount, aujourdhui, bilanNiveau } = usePage<SharedData & PageProps>().props;
 
     const [loadingNode, setLoadingNode] = useState<{ id: string | number; title: string } | null>(null);
 
@@ -316,6 +318,8 @@ export default function Dashboard() {
                 .step-card-active { box-shadow: 0 2px 16px rgba(74,144,226,0.12); }
                 @media (prefers-reduced-motion: reduce) { .chapter-hero-img { animation: none; } }
             `}</style>
+
+            {bilanNiveau && <div className="px-4"><BilanNiveauCarte bilan={bilanNiveau} /></div>}
 
             <div className="mx-auto max-w-lg lg:max-w-5xl px-4 py-4 lg:grid lg:grid-cols-3 lg:gap-6 lg:items-start">
 

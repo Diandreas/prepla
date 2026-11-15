@@ -336,5 +336,28 @@
   "errors": {
     "correct_answer": "Richtige Antwort",
     "to_recall": "In der Wiederholung wiederfinden"
+  },
+  "bilan": {
+    "titre": "Auf dem Weg zu {{niveau}}",
+    "intro": "Das hast du auf Niveau {{niveau}} gezeigt, und das fehlt dir noch für {{suivant}}.",
+    "intro_a0": "Du fängst an: Schaffe A1-Übungen zum Lesen und Hören, um A1 zu erreichen.",
+    "pret": "Alles erreicht: Du kommst auf {{niveau}}, sobald dein aktuelles Ziel abgeschlossen ist.",
+    "ok": "erreicht",
+    "a_faire": "üben",
+    "pas_exige": "Auf deinem Niveau noch nicht verlangt, aber jeder Versuch hilft.",
+    "rien_encore": "Auf diesem Niveau noch keine Übung gemacht.",
+    "acquis_one": "{{count}} Übung, {{moyenne}} % Erfolg: passt.",
+    "acquis_other": "{{count}} Übungen, {{moyenne}} % Erfolg: passt.",
+    "reste_one": "Noch {{count}} Übung auf diesem Niveau.",
+    "reste_other": "Noch {{count}} Übungen auf diesem Niveau.",
+    "reste_comprehension_one": "Noch {{count}} Lese- oder Hörübung.",
+    "reste_comprehension_other": "Noch {{count}} Lese- oder Hörübungen.",
+    "sous_seuil": "Dein Schnitt liegt bei {{moyenne}} %: nötig sind {{seuil}} %.",
+    "competence": {
+      "lecture": "Lesen",
+      "ecoute": "Hören",
+      "ecrit": "Schreiben",
+      "oral": "Sprechen"
+    }
   }
 }

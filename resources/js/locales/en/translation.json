@@ -337,5 +337,28 @@
   "errors": {
     "correct_answer": "Correct answer",
     "to_recall": "To recall during review"
+  },
+  "bilan": {
+    "titre": "To reach {{niveau}}",
+    "intro": "Here is what you have shown at level {{niveau}}, and what you still need to reach {{suivant}}.",
+    "intro_a0": "You are just starting: pass A1 reading and listening exercises to reach A1.",
+    "pret": "Everything is in place: you will reach {{niveau}} when your current goal is done.",
+    "ok": "done",
+    "a_faire": "to work on",
+    "pas_exige": "Not required yet at your level, but every try helps.",
+    "rien_encore": "No exercise done at this level yet.",
+    "acquis_one": "{{count}} exercise, {{moyenne}}% success: you're there.",
+    "acquis_other": "{{count}} exercises, {{moyenne}}% success: you're there.",
+    "reste_one": "{{count}} more exercise to do at this level.",
+    "reste_other": "{{count}} more exercises to do at this level.",
+    "reste_comprehension_one": "{{count}} more reading or listening exercise to do.",
+    "reste_comprehension_other": "{{count}} more reading or listening exercises to do.",
+    "sous_seuil": "Your average is {{moyenne}}%: you need {{seuil}}%.",
+    "competence": {
+      "lecture": "Reading",
+      "ecoute": "Listening",
+      "ecrit": "Writing",
+      "oral": "Speaking"
+    }
   }
 }
