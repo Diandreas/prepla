@@ -112,6 +112,12 @@ export default function ClassShow({
                         )}
                     </div>
                     <div className="flex shrink-0 items-center gap-1">
+                        {/* Live class : en premier, bien visible (Google Meet). */}
+                        {page.menus?.live && (
+                            <Button asChild className="bg-rose-600 text-white hover:bg-rose-700">
+                                <Link href={route('center.lives.index', { classe: classroom.id, nouveau: 1 })}>● {t('Live class')}</Link>
+                            </Button>
+                        )}
                         <Button variant="ghost" onClick={() => setEditing((open) => !open)} aria-expanded={editing}>
                             {editing ? t('Annuler') : t('Modifier')}
                         </Button>

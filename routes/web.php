@@ -401,6 +401,8 @@ Route::middleware(['auth', EnsureCenterStaff::class])
         require __DIR__.'/centre-tableau-classe.php';
         // Examens blancs composes par le centre : droits dans ExamenBlancController.
         require __DIR__.'/centre-examens-blancs.php';
+        // Live class (Google Meet) : droits dans Center\LiveController.
+        require __DIR__.'/centre-live.php';
     });
 
 // Parrainage : le lien d'un centre s'ouvre sans compte, il mene a l'inscription.
@@ -421,6 +423,8 @@ Route::middleware('auth')->group(function () {
 require __DIR__.'/eleve-devoirs.php';
 // Élève d'un centre — le parcours construit par son centre.
 require __DIR__.'/eleve-parcours.php';
+// La salle d'un live (eleves de la classe, equipe qui anime).
+require __DIR__.'/live.php';
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

@@ -1,5 +1,6 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
+import BandeauLive from '@/components/live/bandeau-live';
 import * as Flags from 'country-flag-icons/react/3x2';
 import { useEffect, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -274,6 +275,9 @@ export default function Dashboard() {
     return (
         <AppLayout>
             <Head title="Accueil" />
+
+            {/* Live class : « Live en cours — Rejoindre », ou le prochain live de ses classes. */}
+            {centerMode && <BandeauLive className="mx-auto w-full max-w-3xl px-4 pt-4" />}
 
             {/* Élève d'un centre : sa mission est son prochain devoir (nextAction),
                 la liste de ses devoirs suit juste dessous. */}

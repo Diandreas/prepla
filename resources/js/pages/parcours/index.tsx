@@ -1,5 +1,6 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
+import BandeauLive from '@/components/live/bandeau-live';
 import { ArrowRight, CheckCircle2, Circle, Lock } from 'lucide-react';
 
 interface EtapeDeLEleve {
@@ -35,6 +36,9 @@ export default function MonParcours({ classe, parcours, devoirsEnAttente }: { cl
                         {classe ? `Préparé par ton centre pour ta classe « ${classe} ».` : 'Préparé par ton centre pour ta classe.'}
                     </p>
                 </div>
+
+                {/* Les lives de sa classe : en cours, ou le prochain. */}
+                <BandeauLive />
 
                 {flash?.success && (
                     <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300">

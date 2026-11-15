@@ -80,4 +80,16 @@ return [
         'redirect'      => env('GOOGLE_REDIRECT_URI', env('APP_URL') . '/auth/google/callback'),
     ],
 
+    // Live class (Google Meet REST API v2). Meme application OAuth que Google
+    // Drive : GOOGLE_MEET_* si on veut l'ecrire a part, sinon GOOGLE_DRIVE_*.
+    // Sans identifiants, le module est masque. Voir docs/live-class-google-meet.md.
+    'google_meet' => [
+        'client_id' => env('GOOGLE_MEET_CLIENT_ID', env('GOOGLE_DRIVE_CLIENT_ID')),
+        'client_secret' => env('GOOGLE_MEET_CLIENT_SECRET', env('GOOGLE_DRIVE_CLIENT_SECRET')),
+        'redirect' => env('GOOGLE_MEET_REDIRECT_URI', env('APP_URL').'/center/google/retour'),
+        // OPEN : qui a le lien entre sans « frapper » ; TRUSTED : les comptes du
+        // domaine Workspace et les invites entrent, les autres demandent.
+        'access_type' => env('GOOGLE_MEET_ACCESS_TYPE', 'OPEN'),
+    ],
+
 ];
