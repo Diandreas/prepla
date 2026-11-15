@@ -7,6 +7,7 @@ import { normalizeTtsLang } from '@/lib/tts-cache';
 import type { ExerciseAttempt } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 // The AI sometimes returns `explanation` as an object ({concept,evidence,hint})
 // instead of a string. Rendering/`.replace()` on it crashed the page
@@ -52,9 +53,50 @@ interface NodeProgress {
     completed: boolean;
 }
 
+interface CorrectionEnseignant {
+    note: number;
+    grille: { affichage?: string; criteres?: Array<{ nom: string; valeur: string }> } | null;
+    commentaire: string | null;
+    enseignant: string | null;
+}
+
 interface Props {
     attempt: ExerciseAttempt;
     nodeProgress?: NodeProgress | null;
+    correctionEnseignant?: CorrectionEnseignant | null;
+}
+
+/** La note et le commentaire de l'enseignant du centre : ils priment sur l'IA. */
+function NoteEnseignant({ correction }: { correction: CorrectionEnseignant }) {
+    const { t } = useTranslation();
+    return (
+        <div className="duo-card space-y-2 border-emerald-300 p-4 dark:border-emerald-800" data-testid="note-enseignant">
+            <div className="flex items-baseline justify-between gap-2">
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                    {correction.enseignant
+                        ? t('correction_enseignant.titre_nomme', { nom: correction.enseignant })
+                        : t('correction_enseignant.titre')}
+                </p>
+                <p className="text-2xl font-black tabular-nums text-emerald-700 dark:text-emerald-300">
+                    {correction.grille?.affichage ?? `${Math.round((correction.note / 9) * 100)} / 100`}
+                </p>
+            </div>
+            {(correction.grille?.criteres ?? []).length > 0 && (
+                <ul className="grid gap-1 text-xs sm:grid-cols-2">
+                    {(correction.grille?.criteres ?? []).map((c) => (
+                        <li key={c.nom} className="flex justify-between gap-2">
+                            <span className="text-muted-foreground">{c.nom}</span>
+                            <span className="font-bold tabular-nums">{c.valeur}</span>
+                        </li>
+                    ))}
+                </ul>
+            )}
+            {correction.commentaire && (
+                <p className="whitespace-pre-line rounded-lg bg-emerald-50 p-3 text-sm dark:bg-emerald-950/30">{correction.commentaire}</p>
+            )}
+            <p className="text-[11px] text-muted-foreground">{t('correction_enseignant.prime')}</p>
+        </div>
+    );
 }
 
 const SKY = '#4A90E2';
@@ -214,7 +256,8 @@ function CorrectionOrale({ item }: { item: { accuracy?: number; covered_points?:
     );
 }
 
-export default function ExerciseResult({ attempt, nodeProgress }: Props) {
+export default function ExerciseResult({ attempt, nodeProgress, correctionEnseignant }: Props) {
+    const { t } = useTranslation();
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
 
@@ -378,13 +421,19 @@ export default function ExerciseResult({ attempt, nodeProgress }: Props) {
                     </div>
                 )}
 
+                {correctionEnseignant && <NoteEnseignant correction={correctionEnseignant} />}
+
                 {/* Score cards */}
                 <div className="grid gap-3 grid-cols-3" style={stagger(2)}>
                     <div className="duo-card flex flex-col items-center justify-center gap-1 p-3 sm:p-5">
                         <div className="text-2xl font-black text-sky-700 dark:text-sky-300 sm:text-3xl">
-                            {Number(attempt.accuracy_percent ?? 0).toFixed(0)}%
+                            {correctionEnseignant
+                                ? (correctionEnseignant.grille?.affichage ?? `${Math.round((correctionEnseignant.note / 9) * 100)} / 100`)
+                                : `${Number(attempt.accuracy_percent ?? 0).toFixed(0)}%`}
                         </div>
-                        <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Précision</p>
+                        <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                            {correctionEnseignant ? t('correction_enseignant.carte') : 'Précision'}
+                        </p>
                     </div>
                     <div ref={carteXp} className="duo-card relative flex flex-col items-center justify-center gap-1 p-3 sm:p-5">
                         <XpEnvol xp={Number(attempt.xp_earned ?? 0)} />

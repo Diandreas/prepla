@@ -362,5 +362,11 @@
       "ecrit": "Écrit",
       "oral": "Oral"
     }
+  },
+  "correction_enseignant": {
+    "titre": "Note de ton enseignant",
+    "titre_nomme": "Note de {{nom}}",
+    "prime": "Cette note, donnée par ton enseignant, remplace celle de la correction automatique.",
+    "carte": "Note enseignant"
   }
 }

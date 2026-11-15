@@ -361,5 +361,11 @@
       "ecrit": "Schreiben",
       "oral": "Sprechen"
     }
+  },
+  "correction_enseignant": {
+    "titre": "Note deiner Lehrkraft",
+    "titre_nomme": "Note von {{nom}}",
+    "prime": "Diese Note deiner Lehrkraft ersetzt die automatische Bewertung.",
+    "carte": "Lehrkraft-Note"
   }
 }

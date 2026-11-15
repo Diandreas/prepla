@@ -362,5 +362,11 @@
       "ecrit": "Writing",
       "oral": "Speaking"
     }
+  },
+  "correction_enseignant": {
+    "titre": "Your teacher's mark",
+    "titre_nomme": "Mark from {{nom}}",
+    "prime": "This mark, given by your teacher, replaces the automatic one.",
+    "carte": "Teacher mark"
   }
 }
