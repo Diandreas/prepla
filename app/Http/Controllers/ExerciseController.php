@@ -192,6 +192,7 @@ class ExerciseController extends Controller
                     'time_spent' => round($timeSpent / max(1, count($exercises))),
                     'xp_earned' => $result['xp'],
                     'feedback' => $result['feedback'],
+                    'audios' => \App\Services\Center\CorrectionHumaine::conserverAudios($user->id, $exerciseAnswers),
                 ]);
 
                 // Ce que la correction apprend sur l'apprenant : ses fautes retenues,
@@ -853,6 +854,7 @@ class ExerciseController extends Controller
             'time_spent' => $validated['time_spent'],
             'xp_earned' => $result['xp'],
             'feedback' => $result['feedback'],
+            'audios' => \App\Services\Center\CorrectionHumaine::conserverAudios($user->id, $validated['answers']),
         ]);
 
         // Ce chemin — entrainement, epreuves — n'enregistrait aucune faiblesse :
@@ -946,6 +948,8 @@ class ExerciseController extends Controller
         return Inertia::render('exercise/result', [
             'attempt' => $attempt,
             'nodeProgress' => $nodeProgress,
+            // La note de l'enseignant du centre prime sur celle de l'IA.
+            'correctionEnseignant' => $attempt->correctionEnseignant()->with('teacher:id,name')->first()?->pourEleve(),
         ]);
     }
 

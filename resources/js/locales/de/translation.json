@@ -336,5 +336,11 @@
   "errors": {
     "correct_answer": "Richtige Antwort",
     "to_recall": "In der Wiederholung wiederfinden"
+  },
+  "correction_enseignant": {
+    "titre": "Note deiner Lehrkraft",
+    "titre_nomme": "Note von {{nom}}",
+    "prime": "Diese Note deiner Lehrkraft ersetzt die automatische Bewertung.",
+    "carte": "Lehrkraft-Note"
   }
 }
