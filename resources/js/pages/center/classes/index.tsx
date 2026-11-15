@@ -336,6 +336,7 @@ export default function ClassesIndex({
                     !showForm && (
                         <EtatVide
                             icone={School}
+                            illustration="/illustrations/centre/premiere-classe.webp"
                             titre={t("Aucune classe pour l'instant")}
                             texte={t("Créez votre première classe : vous obtenez un code d'invitation à partager, et vos élèves la rejoignent en quelques secondes.")}
                             action={

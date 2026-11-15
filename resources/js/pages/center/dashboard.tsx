@@ -1,3 +1,4 @@
+import { Illustration } from '@/components/illustration';
 import { Head, Link, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -429,7 +430,12 @@ export default function CenterDashboard({
                                     <p className="text-xs text-muted-foreground">{t('Au moins un tiers d’exercices en moins que la semaine d’avant.')}</p>
                                 </CardHeader>
                                 <CardContent className="space-y-2">
-                                    {s.classes_decrochent.length === 0 && <p className="text-sm text-muted-foreground">{t('Aucune classe en baisse : bonne nouvelle.')}</p>}
+                                    {s.classes_decrochent.length === 0 && (
+                                        <div className="flex items-center gap-3">
+                                            <Illustration src="/illustrations/centre/tout-va-bien.webp" alt="" size={64} className="mx-0 shrink-0" />
+                                            <p className="text-sm text-muted-foreground">{t('Aucune classe en baisse : bonne nouvelle.')}</p>
+                                        </div>
+                                    )}
                                     {s.classes_decrochent.map((k) => <LigneClasse key={k.id} k={k} decroche />)}
                                 </CardContent>
                             </Card>

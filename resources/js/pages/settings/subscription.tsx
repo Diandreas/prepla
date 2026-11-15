@@ -1,5 +1,6 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
+import { Illustration } from '@/components/illustration';
 import { Renard } from '@/components/renard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -142,6 +143,7 @@ export default function Subscription({ currentPlan, stripeEnabled, isSubscribed,
                 </div>
 
                 <div className="text-center space-y-2">
+                    <Illustration src="/illustrations/abonnement/premium.webp" alt="" size={120} />
                     <h1 className="text-3xl font-black tracking-tight">Votre abonnement</h1>
                     <p className="text-muted-foreground">Boostez votre préparation et réussissez votre examen</p>
                 </div>

@@ -1,4 +1,5 @@
 import { ArtIcon } from '@/components/art-icon';
+import { Illustration } from '@/components/illustration';
 import AppLayout from '@/layouts/app-layout';
 import type { ExamRecord, ExamSection, SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
@@ -53,6 +54,14 @@ interface ExamPart {
     /** Pourquoi cette partie ne s'ouvre pas encore, le cas échéant. */
     raison?: string | null;
 }
+
+// La scène du renard pour chaque compétence (la grammaire n'en a pas : elle garde son icône).
+const skillScenes: Record<string, string> = {
+    reading: '/illustrations/competences/lecture.webp',
+    listening: '/illustrations/competences/ecoute.webp',
+    writing: '/illustrations/competences/ecrit.webp',
+    speaking: '/illustrations/competences/oral.webp',
+};
 
 const skills: Record<string, { icon: string; tone: 'blue' | 'mint' | 'amber' | 'rose'; description: string }> = {
     reading: { icon: 'book', tone: 'blue', description: 'Comprends les textes, repère les idées essentielles.' },
@@ -305,7 +314,11 @@ export default function ExamDashboard({
                                     href={route('practice.section', [exam.id, section.id])}
                                     className="studio-card group border-border bg-card hover:border-primary/50 focus-visible:ring-ring flex gap-4 rounded-2xl border p-4 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none sm:p-5"
                                 >
-                                    <ArtIcon name={skill.icon} size={58} tone={skill.tone} />
+                                    {skillScenes[section.skill_type] ? (
+                                        <Illustration src={skillScenes[section.skill_type]} alt="" size={64} className="mx-0 h-16 w-16 shrink-0" />
+                                    ) : (
+                                        <ArtIcon name={skill.icon} size={58} tone={skill.tone} />
+                                    )}
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-start justify-between gap-2">
                                             <h3 className="text-foreground text-base font-extrabold">{section.name}</h3>
