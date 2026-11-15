@@ -73,8 +73,13 @@ test('la revision propose un exercice neuf sur le meme concept', function () {
     expect($question['prompt'])->toContain('Berlin')
         // Surtout pas la phrase d'origine : c'est tout l'objet du correctif.
         ->and($question['prompt'])->not->toContain('Fußball')
-        ->and($question['correct_answer'])->toBe('fuhren')
-        ->and($question['explanation'])->toContain('prétérit');
+        // La solution ne part plus avec la question : le serveur la donne apres la reponse.
+        ->and($question)->not->toHaveKey('correct_answer');
+
+    $this->postJson(route('errors.similar.check', $error), ['answer' => 'fuhren'])
+        ->assertOk()
+        ->assertJson(['correct' => true, 'correct_answer' => 'fuhren'])
+        ->assertJsonPath('explanation', fn ($e) => str_contains($e, 'prétérit'));
 });
 
 test('l erreur d un autre apprenant reste inaccessible', function () {

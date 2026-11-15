@@ -98,6 +98,38 @@ class ErrorReviewItems
         return is_array($pose) ? $pose : null;
     }
 
+    /** Cle de session qui retient l'exercice similaire pose pour chaque erreur. */
+    public const SESSION_SIMILAIRE = 'error_similar_items';
+
+    /**
+     * Retient la reponse attendue de l'exercice similaire pose : elle ne part
+     * pas au navigateur, la correction se fait cote serveur. Une lettre de QCM
+     * est rendue sous la forme « B) texte » pour accepter le texte comme la lettre.
+     */
+    public function retenirSimilaire(UserError $error, string $attendu, array $options, ?string $explication): void
+    {
+        $attendu = trim($attendu);
+        if ($options !== [] && preg_match('/^[A-Za-z]$/', $attendu)) {
+            $index = ord(strtoupper($attendu)) - 65;
+            if (isset($options[$index])) {
+                $attendu = strtoupper($attendu) . ') ' . $options[$index];
+            }
+        }
+
+        session()->put(self::SESSION_SIMILAIRE . '.' . $error->id, [
+            'expected' => $attendu,
+            'explanation' => $explication !== '' ? $explication : null,
+        ]);
+    }
+
+    /** Une seule correction par exercice similaire pose ; null en cas de rejeu. */
+    public function consommerSimilaire(UserError $error): ?array
+    {
+        $pose = session()->pull(self::SESSION_SIMILAIRE . '.' . $error->id);
+
+        return is_array($pose) && ($pose['expected'] ?? '') !== '' ? $pose : null;
+    }
+
     /**
      * Meme regle que l'ancienne recallEstJuste cote page : la chaine complete, la meme sans
      * son prefixe de lettre « C) », et la lettre seule pour les anciennes erreurs.

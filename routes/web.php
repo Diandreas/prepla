@@ -241,6 +241,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/{error}/review', [ErrorReviewController::class, 'submitReview'])->name('submit-review');
             // Un exercice neuf sur le concept raté, plutôt que la même phrase reposée.
             Route::post('/{error}/similar', [ErrorReviewController::class, 'similar'])->name('similar');
+            Route::post('/{error}/similar/check', [ErrorReviewController::class, 'checkSimilar'])->name('similar.check');
         });
 
         // Leaderboard

@@ -2,7 +2,6 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
-import { isAnswerCorrect } from '@/lib/scoring';
 import { BlankSentence } from '@/components/blank-sentence';
 
 function Icon({ name, size = 20, className, style }: { name: string; size?: number; className?: string; style?: React.CSSProperties }) {
@@ -48,8 +47,12 @@ interface FreshQuestion {
     type?: string;
     prompt: string;
     options: string[];
-    correct_answer: string;
-    explanation?: string;
+}
+
+// La solution n'arrive qu'apres la reponse, corrigee par le serveur.
+interface FreshCorrection {
+    answer: string;
+    explanation: string | null;
 }
 
 export default function ErrorsPractice({ errors }: Props) {
@@ -74,6 +77,8 @@ export default function ErrorsPractice({ errors }: Props) {
     const [freshVerdict, setFreshVerdict] = useState<Record<number, boolean | null>>({});
     const [freshLoading, setFreshLoading] = useState<number | null>(null);
     const [freshError, setFreshError] = useState<Record<number, string>>({});
+    const [freshCorrection, setFreshCorrection] = useState<Record<number, FreshCorrection | null>>({});
+    const [freshChecking, setFreshChecking] = useState<number | null>(null);
 
     const askSimilar = async (errorId: number) => {
         if (freshLoading === errorId) return;
@@ -93,6 +98,7 @@ export default function ErrorsPractice({ errors }: Props) {
             setFresh(prev => ({ ...prev, [errorId]: data.question }));
             setFreshAnswer(prev => ({ ...prev, [errorId]: '' }));
             setFreshVerdict(prev => ({ ...prev, [errorId]: null }));
+            setFreshCorrection(prev => ({ ...prev, [errorId]: null }));
         } catch (e) {
             setFreshError(prev => ({ ...prev, [errorId]: e instanceof Error ? e.message : "L'exercice n'a pas pu être écrit." }));
         } finally {
@@ -100,9 +106,30 @@ export default function ErrorsPractice({ errors }: Props) {
         }
     };
 
-    const checkFresh = (errorId: number, question: FreshQuestion, answer: string) => {
-        setFreshAnswer(prev => ({ ...prev, [errorId]: answer }));
-        setFreshVerdict(prev => ({ ...prev, [errorId]: isAnswerCorrect(question, answer) }));
+    // Le serveur corrige : la bonne reponse n'est plus dans la page avant la reponse.
+    const checkFresh = async (errorId: number, answer: string) => {
+        const ans = answer.trim();
+        if (!ans || freshChecking === errorId) return;
+        setFreshAnswer(prev => ({ ...prev, [errorId]: ans }));
+        setFreshChecking(errorId);
+        setFreshError(prev => ({ ...prev, [errorId]: '' }));
+        try {
+            const xsrf = document.cookie.split('; ').find(c => c.startsWith('XSRF-TOKEN='));
+            const token = xsrf ? decodeURIComponent(xsrf.split('=')[1]) : '';
+            const res = await fetch(route('errors.similar.check', errorId), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': token, 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' },
+                body: JSON.stringify({ answer: ans }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data?.message ?? 'check');
+            setFreshVerdict(prev => ({ ...prev, [errorId]: !!data.correct }));
+            setFreshCorrection(prev => ({ ...prev, [errorId]: { answer: String(data.correct_answer ?? ''), explanation: data.explanation ?? null } }));
+        } catch (e) {
+            setFreshError(prev => ({ ...prev, [errorId]: e instanceof Error && e.message !== 'check' ? e.message : t('errors.check_failed', "La correction n'a pas pu être faite. Réessaie.") }));
+        } finally {
+            setFreshChecking(null);
+        }
     };
 
     // La page envoie la reponse ; le serveur corrige et renvoie alors la solution.
@@ -316,7 +343,7 @@ export default function ErrorsPractice({ errors }: Props) {
                                                     text={fresh[error.id]!.prompt}
                                                     value={freshAnswer[error.id] ?? ''}
                                                     onChange={(value) => setFreshAnswer(prev => ({ ...prev, [error.id]: value }))}
-                                                    onSubmit={() => checkFresh(error.id, fresh[error.id]!, freshAnswer[error.id] ?? '')}
+                                                    onSubmit={() => checkFresh(error.id, freshAnswer[error.id] ?? '')}
                                                     disabled={freshVerdict[error.id] !== null && freshVerdict[error.id] !== undefined}
                                                     placeholder={t('errors.your_recall', 'Ta réponse…')}
                                                 />
@@ -329,8 +356,8 @@ export default function ErrorsPractice({ errors }: Props) {
                                                         return (
                                                             <button
                                                                 key={`${index}-${option}`}
-                                                                onClick={() => checkFresh(error.id, fresh[error.id]!, letter)}
-                                                                disabled={freshVerdict[error.id] !== null && freshVerdict[error.id] !== undefined}
+                                                                onClick={() => checkFresh(error.id, option)}
+                                                                disabled={freshChecking === error.id || (freshVerdict[error.id] !== null && freshVerdict[error.id] !== undefined)}
                                                                 className="text-left rounded-xl border-2 border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold hover:border-indigo-300 disabled:opacity-60 dark:bg-slate-900"
                                                             >
                                                                 <span className="text-indigo-400 font-black mr-2">{letter}</span>{option}
@@ -340,8 +367,8 @@ export default function ErrorsPractice({ errors }: Props) {
                                                 </div>
                                             ) : (
                                                 <button
-                                                    onClick={() => checkFresh(error.id, fresh[error.id]!, freshAnswer[error.id] ?? '')}
-                                                    disabled={!(freshAnswer[error.id] ?? '').trim() || (freshVerdict[error.id] !== null && freshVerdict[error.id] !== undefined)}
+                                                    onClick={() => checkFresh(error.id, freshAnswer[error.id] ?? '')}
+                                                    disabled={freshChecking === error.id || !(freshAnswer[error.id] ?? '').trim() || (freshVerdict[error.id] !== null && freshVerdict[error.id] !== undefined)}
                                                     className="duo-press w-full py-2.5 rounded-xl bg-indigo-600 text-white font-bold text-sm disabled:opacity-40"
                                                 >
                                                     {t('errors.check', 'Vérifier')}
@@ -353,10 +380,10 @@ export default function ErrorsPractice({ errors }: Props) {
                                                     <p className={`rounded-xl p-2.5 text-center font-black text-sm ${freshVerdict[error.id] ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
                                                         {freshVerdict[error.id]
                                                             ? t('errors.recall_ok', '✓ Bravo, tu as retenu !')
-                                                            : `${t('errors.correct_answer', 'Bonne réponse')} : ${fresh[error.id]!.correct_answer}`}
+                                                            : `${t('errors.correct_answer', 'Bonne réponse')} : ${freshCorrection[error.id]?.answer ?? ''}`}
                                                     </p>
-                                                    {fresh[error.id]!.explanation && (
-                                                        <p className="text-sm text-indigo-700 dark:text-indigo-300 leading-relaxed">{fresh[error.id]!.explanation}</p>
+                                                    {freshCorrection[error.id]?.explanation && (
+                                                        <p className="text-sm text-indigo-700 dark:text-indigo-300 leading-relaxed">{freshCorrection[error.id]?.explanation}</p>
                                                     )}
                                                     <button
                                                         onClick={() => askSimilar(error.id)}

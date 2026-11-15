@@ -152,7 +152,7 @@ class ErrorReviewController extends Controller
      * la même difficulté ailleurs. On génère donc un exercice du même type sur le même
      * concept, pour qu'il rencontre la difficulté autrement.
      */
-    public function similar(Request $request, UserError $error, ExerciseGeneratorService $generator)
+    public function similar(Request $request, UserError $error, ExerciseGeneratorService $generator, ErrorReviewItems $items)
     {
         abort_unless($error->user_id === $request->user()->id, 403);
 
@@ -219,7 +219,36 @@ class ErrorReviewController extends Controller
             ], 503);
         }
 
-        return response()->json(['question' => $question]);
+        // La reponse attendue reste cote serveur, comme pour la revision : elle
+        // partait au navigateur avant que l'apprenant ne reponde.
+        $items->retenirSimilaire($error, $question['correct_answer'], $question['options'], $question['explanation']);
+
+        return response()->json(['question' => [
+            'type' => $question['type'],
+            'prompt' => $question['prompt'],
+            'options' => $question['options'],
+        ]]);
+    }
+
+    // POST /errors/{error}/similar/check - corrige l'exercice similaire pose.
+    public function checkSimilar(Request $request, UserError $error, ErrorReviewItems $items)
+    {
+        abort_unless($error->user_id === $request->user()->id, 403);
+
+        $validated = $request->validate([
+            'answer' => 'required|string|max:1000',
+        ]);
+
+        $pose = $items->consommerSimilaire($error);
+        if ($pose === null) {
+            return response()->json(['message' => 'Cet exercice a deja ete corrige. Demande-en un autre.'], 409);
+        }
+
+        return response()->json([
+            'correct' => ErrorReviewItems::estJuste($validated['answer'], $pose['expected']),
+            'correct_answer' => $pose['expected'],
+            'explanation' => $pose['explanation'],
+        ]);
     }
 
     // POST /errors/{error}/review - mark as reviewed with SM-2
