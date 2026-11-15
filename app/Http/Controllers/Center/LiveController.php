@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Assignment;
 use App\Models\CenterGoogleAccount;
 use App\Models\Classroom;
+use App\Models\ClassroomPathStep;
 use App\Models\LanguageCenter;
 use App\Models\LiveSession;
 use App\Notifications\LiveClassNotification;
@@ -235,6 +236,7 @@ class LiveController extends Controller
                 'summary' => $live->summary,
                 'assignment_id' => $live->assignment_id,
                 'replay_published' => $live->replay_published,
+                'dans_le_parcours' => ClassroomPathStep::where('classroom_id', $live->classroom_id)->where('live_session_id', $live->id)->exists(),
                 'started_at' => $live->started_at?->toIso8601String(),
                 'ended_at' => $live->ended_at?->toIso8601String(),
                 'duree_reelle' => $live->started_at && $live->ended_at ? (int) $live->started_at->diffInMinutes($live->ended_at) : null,

@@ -435,7 +435,7 @@ class ParcoursEleveDeCentre
             'kind' => 'etape',
             'title' => $etape['titre'],
             'description' => $etape['consigne'] ?: 'La prochaine étape du parcours préparé par ton centre.',
-            'url' => route('exercise.show', $etape['exercise_id']),
+            'url' => $etape['url'],
             'etape' => [
                 'classe' => $classe->name,
                 'numero' => $etape['numero'],

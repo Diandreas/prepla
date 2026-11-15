@@ -7,7 +7,10 @@ interface EtapeDeLEleve {
     id: number;
     numero: number;
     total: number;
-    exercise_id: number;
+    kind: 'exercice' | 'replay';
+    exercise_id: number | null;
+    live_session_id: number | null;
+    url: string;
     titre: string;
     consigne: string | null;
     seuil_reussite: number | null;
@@ -116,8 +119,13 @@ export default function MonParcours({ classe, parcours, devoirsEnAttente }: { cl
                                     <li key={etape.id}>
                                         {etape.statut === 'a_venir' ? (
                                             <div className={classes}>{contenu}</div>
+                                        ) : etape.kind === 'replay' ? (
+                                            // Le replay part vers l'enregistrement (Drive, YouTube…) : lien classique, nouvel onglet.
+                                            <a href={etape.url} target="_blank" rel="noopener noreferrer" className={`${classes} transition hover:border-primary/40`}>
+                                                {contenu}
+                                            </a>
                                         ) : (
-                                            <Link href={route('exercise.show', etape.exercise_id)} className={`${classes} transition hover:border-primary/40`}>
+                                            <Link href={etape.url} className={`${classes} transition hover:border-primary/40`}>
                                                 {contenu}
                                             </Link>
                                         )}

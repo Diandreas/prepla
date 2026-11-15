@@ -1,4 +1,4 @@
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,6 +15,8 @@ interface Live {
     summary: string | null;
     assignment_id: number | null;
     replay_published: boolean;
+    /** Le replay est déjà une étape du parcours de la classe. */
+    dans_le_parcours: boolean;
     duree_reelle: number | null;
 }
 
@@ -32,7 +34,7 @@ export default function LiveBilan({
     devoirs: { id: number; title: string }[];
 }) {
     const { t, locale } = useT();
-    const { flash } = usePage().props as { flash?: { success?: string } };
+    const { flash, errors } = usePage().props as { flash?: { success?: string }; errors?: Record<string, string> };
     const form = useForm({
         recording_url: live.recording_url ?? '',
         summary: live.summary ?? '',
@@ -45,6 +47,10 @@ export default function LiveBilan({
         e.preventDefault();
         form.transform((d) => ({ ...d, assignment_id: d.assignment_id ? Number(d.assignment_id) : null, recording_url: d.recording_url || null }));
         form.patch(route('center.lives.update', live.id), { preserveScroll: true });
+    }
+
+    function ajouterAuParcours() {
+        router.post(route('center.classes.parcours.store', live.classe.id), { live_session_id: live.id }, { preserveScroll: true });
     }
 
     return (
@@ -104,6 +110,19 @@ export default function LiveBilan({
                             </label>
                             <Button type="submit" disabled={form.processing}>{t('Enregistrer')}</Button>
                         </form>
+                        <div className="mt-4 border-t border-border pt-3 text-sm">
+                            {live.dans_le_parcours ? (
+                                <p className="text-muted-foreground">
+                                    {t('Ce replay est une étape du parcours de la classe.')}{' '}
+                                    <Link href={route('center.classes.parcours', live.classe.id)} className="font-medium text-primary hover:underline">{t('Voir le parcours')}</Link>
+                                </p>
+                            ) : live.replay_published && live.recording_url ? (
+                                <Button type="button" variant="outline" onClick={ajouterAuParcours}>{t('Ajouter le replay au parcours de la classe')}</Button>
+                            ) : (
+                                <p className="text-muted-foreground">{t('Publiez le replay pour pouvoir l’ajouter au parcours de la classe.')}</p>
+                            )}
+                            {errors?.live_session_id && <p className="mt-1 text-xs text-rose-600">{errors.live_session_id}</p>}
+                        </div>
                     </CardContent>
                 </Card>
 

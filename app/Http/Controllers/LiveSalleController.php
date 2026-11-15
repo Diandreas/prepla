@@ -385,6 +385,25 @@ class LiveSalleController extends Controller
         return response()->json(['lives' => $lives]);
     }
 
+    /**
+     * Ouvrir le replay publie : l'eleve est compte comme l'ayant vu (etape
+     * « replay » du parcours), puis part vers le lien d'enregistrement.
+     */
+    public function replay(Request $request, LiveSession $live): RedirectResponse
+    {
+        $role = $this->role($request, $live);
+        $lien = trim((string) $live->recording_url);
+        abort_if($lien === '' || ($role === 'eleve' && (! $live->replay_published || $live->cancelled_at)), 404);
+
+        if ($role === 'eleve') {
+            $p = $this->participant($live, $request->user());
+            $p->replay_vu_at ??= now();
+            $p->save();
+        }
+
+        return redirect()->away($lien);
+    }
+
     public function ics(Request $request, LiveSession $live): Response
     {
         $this->role($request, $live);

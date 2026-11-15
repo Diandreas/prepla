@@ -18,6 +18,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [LiveSalleController::class, 'show'])->name('show');
         Route::get('etat', [LiveSalleController::class, 'etat'])->middleware('throttle:120,1')->name('etat');
         Route::get('rejoindre', [LiveSalleController::class, 'rejoindre'])->name('rejoindre');
+        Route::get('replay', [LiveSalleController::class, 'replay'])->name('replay');
         Route::get('calendrier.ics', [LiveSalleController::class, 'ics'])->name('ics');
 
         Route::middleware('throttle:60,1')->group(function () {

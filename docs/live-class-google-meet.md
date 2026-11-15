@@ -70,6 +70,14 @@ dans le menu, pas de bouton dans les classes, routes en 404, pas de bandeau él�
   nom ; à défaut, présence PrePla = a cliqué « Rejoindre » ou a interagi.
 - Bilan : lien d'enregistrement (récupéré ou collé), résumé, devoir à faire après,
   publication du replay pour les élèves de la classe.
+- Replay comme étape du parcours : une fois le replay publié (lien + case
+  cochée), le bilan propose « Ajouter le replay au parcours de la classe » ; la
+  page Parcours de la classe a aussi un onglet « Replays de live ». L'étape
+  (`classroom_path_steps.live_session_id`, `exercise_id` vide) mène l'élève vers
+  `/live/{id}/replay`, qui note `live_participants.replay_vu_at` puis renvoie
+  vers l'enregistrement. Elle est faite si l'élève a assisté au live (a cliqué
+  « Rejoindre ») ou ouvert le replay. Replay dépublié ou live annulé : l'étape
+  n'est plus servie aux élèves et elle est signalée côté centre.
 
 ## 4. Comptes Workspace ou Gmail gratuit
 
@@ -102,5 +110,5 @@ Conséquences pratiques :
 
 - Pas de websocket : l'interactivité a jusqu'à ~3 s de latence.
 - Le rapprochement de présence Google se fait par nom affiché.
-- Le replay est visible dans la salle du live et le bandeau ; il n'est pas encore
-  un bloc du parcours de classe (le parcours n'accepte que des exercices).
+- Le replay ne peut entrer que dans le parcours de SA classe (les élèves d'une
+  autre classe n'ont pas accès à la salle) ; la copie de parcours ne le reprend pas.
