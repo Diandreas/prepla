@@ -241,9 +241,15 @@ export default function ClassShow({
                                     : t('Votre espace utilise le parcours PrePla par défaut : vos élèves ne voient ce parcours que si vous passez au « Parcours créé par le centre ».')}
                             </p>
                         </div>
-                        <Link href={route('center.classes.parcours', classroom.id)}>
-                            <Button variant="outline">{parcoursEtapes === 0 ? t('Créer le parcours') : t('Gérer le parcours')}</Button>
-                        </Link>
+                        <div className="flex flex-wrap gap-2">
+                            <Link href={route('center.classes.parcours', classroom.id)}>
+                                <Button variant="outline">{parcoursEtapes === 0 ? t('Créer le parcours') : t('Gérer le parcours')}</Button>
+                            </Link>
+                            {/* Le createur complet : modules, seances, blocs video, audio, texte... */}
+                            <Link href={`/center/cours?classe=${classroom.id}`}>
+                                <Button>{t('Cours de la classe (modules, séances)')}</Button>
+                            </Link>
+                        </div>
                     </CardContent>
                 </Card>
 
