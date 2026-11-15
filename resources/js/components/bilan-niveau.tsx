@@ -5,6 +5,9 @@ interface Partie { seances: number; moyenne: number | null; minimum: number; seu
 
 export interface BilanNiveau {
     pret: boolean;
+    /** examen : seul l'examen de niveau fait monter ; comprehension : cas A0. */
+    regle: 'examen' | 'comprehension';
+    examen_seuil: number;
     niveau: string;
     niveau_suivant: string | null;
     competences: Record<'lecture' | 'ecoute' | 'ecrit' | 'oral', Competence>;
@@ -18,12 +21,16 @@ const ORDRE = ['lecture', 'ecoute', 'ecrit', 'oral'] as const;
 
 /**
  * Ce que l'apprenant a montre a son niveau, competence par competence, et ce
- * qui lui manque pour passer au suivant. Lecture et ecoute comptent ensemble
- * (la comprehension) dans la regle de passage.
+ * qui lui manque pour passer au suivant.
+ *
+ * Hors A0, seul l'examen de niveau (au moins 70 %) fait monter : les
+ * competences sont des reperes de preparation, et la carte le dit. Le A0, lui,
+ * passe A1 des que sa comprehension (lecture et ecoute ensemble) tient.
  */
 export function BilanNiveauCarte({ bilan }: { bilan: BilanNiveau }) {
     const { t } = useTranslation();
     if (!bilan.niveau_suivant) return null;
+    const grandDebutant = bilan.regle === 'comprehension';
 
     const phrase = (cle: (typeof ORDRE)[number]): { texte: string; ok: boolean } => {
         const c = bilan.competences[cle];
@@ -48,11 +55,11 @@ export function BilanNiveauCarte({ bilan }: { bilan: BilanNiveau }) {
         <section aria-label={t('bilan.titre', { niveau: bilan.niveau_suivant })} className="mx-auto mb-4 max-w-lg rounded-2xl border border-border/70 bg-card p-4 lg:max-w-5xl">
             <h2 className="text-base font-bold text-foreground">{t('bilan.titre', { niveau: bilan.niveau_suivant })}</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-                {bilan.pret
-                    ? t('bilan.pret', { niveau: bilan.niveau_suivant })
-                    : bilan.niveau === 'A0'
-                        ? t('bilan.intro_a0')
-                        : t('bilan.intro', { niveau: bilan.niveau, suivant: bilan.niveau_suivant })}
+                {grandDebutant
+                    ? bilan.pret
+                        ? t('bilan.pret_a0')
+                        : t('bilan.intro_a0', { minimum: bilan.reception.minimum, seuil: bilan.reception.seuil })
+                    : t(bilan.pret ? 'bilan.pret' : 'bilan.intro', { niveau: bilan.niveau, suivant: bilan.niveau_suivant, seuil: bilan.examen_seuil })}
             </p>
             <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {ORDRE.map((cle) => {
@@ -71,6 +78,7 @@ export function BilanNiveauCarte({ bilan }: { bilan: BilanNiveau }) {
                     );
                 })}
             </ul>
+            {!grandDebutant && <p className="mt-2 text-xs text-muted-foreground">{t('bilan.repere')}</p>}
         </section>
     );
 }

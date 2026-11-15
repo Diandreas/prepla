@@ -40,6 +40,10 @@ class LevelAdvancementService
      * la moyenne, ET l'écrit ET l'oral ont été pratiqués au niveau avec un seuil
      * minimal. Une simple moyenne laissait monter quelqu'un qui n'avait jamais
      * écrit ni parlé à ce niveau.
+     *
+     * Attention : aucune route n'appelle cette méthode. La promotion réelle
+     * passe par l'examen de palier (assessAfterBossNode) et, pour le A0, par
+     * promouvoirGrandDebutant à chaque séance enregistrée.
      */
     public function assessAfterObjective(int $userId, CurriculumSkeleton $skeleton): ?string
     {
@@ -58,12 +62,7 @@ class LevelAdvancementService
         // commence au A1. Il restait donc A0 pour toujours. Il passe A1 dès que
         // sa compréhension tient sur les exercices A1 qu'il fait.
         if ($currentLevel === 'A0') {
-            $bilan = $this->bilanDuNiveau($userId, $skeleton->exam_id, 'A0');
-            if (!$bilan['pret']) {
-                return null;
-            }
-
-            return $this->promouvoir($profile, $skeleton->exam_id, $currentLevel, $nextLevel, $bilan);
+            return $this->promouvoirGrandDebutant($userId, $skeleton->exam_id);
         }
 
         $objectives = $skeleton->objectives ?? [];
@@ -90,6 +89,41 @@ class LevelAdvancementService
         }
 
         return $this->promouvoir($profile, $skeleton->exam_id, $currentLevel, $nextLevel, $bilan);
+    }
+
+    /**
+     * Un grand débutant (A0) passe A1 dès que sa compréhension tient sur les
+     * exercices A1 qu'il fait. Appelé à chaque séance enregistrée : aucun
+     * objectif ni examen de palier n'est marqué A0, sans cela il restait A0.
+     */
+    public function promouvoirGrandDebutant(int $userId, int $examId): ?string
+    {
+        $profile = UserProfile::where('user_id', $userId)->first();
+        if (!$profile || $profile->current_level !== 'A0') {
+            return null;
+        }
+
+        $bilan = $this->bilanDuNiveau($userId, $examId, 'A0');
+        if (!$bilan['pret']) {
+            return null;
+        }
+
+        return $this->promouvoir($profile, $examId, 'A0', 'A1', $bilan);
+    }
+
+    /**
+     * L'examen de palier d'un niveau ne promeut que l'apprenant de ce niveau.
+     * Seule exception : l'examen A1 réussi par un A0, puisqu'il n'existe pas
+     * d'examen A0 et que son parcours commence au A1.
+     */
+    public static function examenPromeut(?string $niveauApprenant, ?string $niveauExamen): bool
+    {
+        if ($niveauApprenant === null || $niveauExamen === null) {
+            return false;
+        }
+
+        return $niveauApprenant === $niveauExamen
+            || ($niveauApprenant === 'A0' && $niveauExamen === 'A1');
     }
 
     private function promouvoir(UserProfile $profile, int $examId, string $currentLevel, string $nextLevel, array $bilan): string
@@ -204,7 +238,11 @@ class LevelAdvancementService
         }
 
         return [
+            // Hors A0, « pret » veut dire « prêt pour l'examen de niveau » : c'est
+            // l'examen, et lui seul, qui fait monter (voir assessAfterBossNode).
             'pret' => $manques === [],
+            'regle' => $grandDebutant ? 'comprehension' : 'examen',
+            'examen_seuil' => self::ADVANCE_THRESHOLD,
             'niveau' => $level,
             'niveau_suivant' => $this->getNextLevel($level),
             'competences' => $competences,
@@ -215,7 +253,12 @@ class LevelAdvancementService
         ];
     }
 
-    public function assessAfterBossNode(int $userId, int $examId, float $score): ?string
+    /**
+     * Seule vraie règle de passage hors A0 : l'examen de fin de palier réussi
+     * à ADVANCE_THRESHOLD au moins. $examLevel est le niveau de cet examen ;
+     * un A0 qui réussit l'examen A1 a validé le A1 et passe donc A2.
+     */
+    public function assessAfterBossNode(int $userId, int $examId, float $score, ?string $examLevel = null): ?string
     {
         $profile = UserProfile::where('user_id', $userId)->first();
         if (!$profile) {
@@ -229,7 +272,11 @@ class LevelAdvancementService
             return null;
         }
 
-        $nextLevel = $this->getNextLevel($currentLevel);
+        if ($examLevel !== null && !self::examenPromeut($currentLevel, $examLevel)) {
+            return null;
+        }
+
+        $nextLevel = $this->getNextLevel($examLevel ?? $currentLevel);
         if (!$nextLevel) {
             return null; // Already at C2
         }

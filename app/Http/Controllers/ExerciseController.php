@@ -274,8 +274,9 @@ class ExerciseController extends Controller
                 $progress?->update(['status' => 'in_progress', 'exercises_done' => 0]);
             } elseif ($accuracy >= LevelAdvancementService::ADVANCE_THRESHOLD) {
                 // An old A1 assessment must not promote an already-A2 learner again.
-                if ($user->profile?->fresh()?->current_level === $node->level) {
-                    $this->levelAdvancement->assessAfterBossNode($user->id, $node->exam_id, $accuracy);
+                // Un A0 n'a pas d'examen A0 : l'examen A1 reussi le fait aussi monter.
+                if (LevelAdvancementService::examenPromeut($user->profile?->fresh()?->current_level, $node->level)) {
+                    $this->levelAdvancement->assessAfterBossNode($user->id, $node->exam_id, $accuracy, (string) $node->level);
                 }
                 $skeleton?->completeLevelExam((string) $node->level);
                 $examPassed = true;
@@ -289,6 +290,12 @@ class ExerciseController extends Controller
                     ->insertRemedialBeforeExam($skeleton, (string) $node->level, $sessionCategories);
                 $progress?->update(['status' => 'in_progress', 'exercises_done' => 0]);
             }
+        }
+
+        // Un grand debutant (A0) n'a ni objectif ni examen A0 : il passe A1 des que
+        // sa comprehension tient sur les exercices A1 qu'il vient d'enregistrer.
+        if (! $isLevelExam && $exerciseCount > 0 && $user->profile?->fresh()?->current_level === 'A0') {
+            $this->levelAdvancement->promouvoirGrandDebutant($user->id, (int) $node->exam_id);
         }
 
         // Practice is validated at 60%; technical failures cannot validate mastery.
@@ -860,6 +867,11 @@ class ExerciseController extends Controller
         // desormais retenues exactement comme celles d'une seance de parcours.
         if ($user instanceof User) {
             $this->retenirLesErreurs($user, $exercise, $result['feedback'], $validated['answers']);
+        }
+
+        // Un A0 qui s'entraine sur des exercices A1 passe A1 des que sa comprehension tient.
+        if ($user instanceof User && $user->profile?->current_level === 'A0' && $exercise->exam_id) {
+            $this->levelAdvancement->promouvoirGrandDebutant($user->id, (int) $exercise->exam_id);
         }
 
         // Update user XP
