@@ -56,12 +56,18 @@ Nginx : `client_max_body_size 120m` est posé dans `/etc/nginx/sites-enabled/pre
 
 Pour toute nouvelle fusion : `git fetch && git merge origin/main`, puis `git push origin HEAD:main`. Ne PAS faire de rebase.
 
-## RESTE EN COURS
-Deux autres chantiers peuvent encore tourner ou être finis dans des worktrees (`git worktree list`, branches `worktree-wf_d1ed55f7-fd3-*`) :
-- **Créateur de parcours complet** : modules, séances et blocs (texte riche, vidéo, audio, audio avec texte, PDF, exercice, quiz, production écrite ou orale, vocabulaire, lien, live). Il gère aussi le déblocage, les dates, les brouillons, l'aperçu élève, la progression et le suivi par l'enseignant.
-- **Live class avec Google Meet** : un bouton « Live class » dans chaque classe, des lives planifiés ou récurrents, la main levée, les questions votées, les sondages, les réactions, le partage de ressources, le chat, les notes, la présence et le replay.
+## Aussi en prod (commit c41a4c5)
+- **Créateur de parcours complet** : modules, séances et 12 types de blocs, avec les pages `/center/cours` et `/mes-cours`. L'ancien parcours d'étapes existe toujours : il faudra décider quand le retirer.
+- **Live class Google Meet** : invisible sans clés Google. Le live utilise l'adresse de retour `/center/google/retour`, qui doit AUSSI être déclarée dans Google Cloud.
 
-Pour chacune de ces branches : la relire (sécurité, fuite entre centres, XSS, brouillon visible), corriger, la fusionner comme ci-dessus, puis déployer. Si elles n'existent pas ou sont vides, les refaire à partir de cette description.
+À vérifier dans un navigateur :
+- le glisser-déposer de l'éditeur ;
+- le texte riche ;
+- le micro ;
+- l'affichage des PDF ;
+- les vidéos YouTube et Drive intégrées.
+
+Les envois vidéo des parcours vont jusqu'à 500 Mo, mais nginx s'arrête à 120 Mo.
 
 ## Google Cloud (le propriétaire le fait lui-même)
 Il crée un projet sur https://console.cloud.google.com :
@@ -75,7 +81,7 @@ Il crée un projet sur https://console.cloud.google.com :
    Jusqu'à 100 testeurs en mode test. Ensuite, demander la vérification (Meet est un scope sensible).
 3. Identifiants :
    - ID client OAuth, de type Application Web, avec l'origine `https://prepla.mirlab.cloud` ;
-   - URI de redirection `https://prepla.mirlab.cloud/center/google/callback` (ajouter aussi l'URI du live si `docs/live-class-google-meet.md` en donne une autre) ;
+   - URIs de redirection `https://prepla.mirlab.cloud/center/google/callback` ET `https://prepla.mirlab.cloud/center/google/retour` (ajouter aussi l'URI du live si `docs/live-class-google-meet.md` en donne une autre) ;
    - une clé API, restreinte au référent `https://prepla.mirlab.cloud/*` et aux APIs Picker et Drive ;
    - l'App ID, c'est-à-dire le numéro du projet.
 4. Il met lui-même ces valeurs dans le `.env` du VPS (ne jamais lui demander de les coller dans le chat) :
