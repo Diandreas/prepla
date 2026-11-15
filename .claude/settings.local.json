@@ -15,7 +15,8 @@
       "mcp__Claude_Code_Remote__read_documentation",
       "Bash(git ls-remote *)",
       "Bash(git fetch *)",
-      "Bash(git rev-list *)"
+      "Bash(git rev-list *)",
+      "PowerShell(git *)"
     ]
   }
 }

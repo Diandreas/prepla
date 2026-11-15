@@ -4,14 +4,32 @@
     {
       "name": "prepla",
       "runtimeExecutable": "php",
-      "runtimeArgs": ["artisan", "serve", "--port=8000"],
+      "runtimeArgs": [
+        "artisan",
+        "serve",
+        "--port=8000"
+      ],
       "port": 8000
     },
     {
       "name": "vite",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 5173
+    },
+    {
+      "name": "prepla-demo",
+      "runtimeExecutable": "php",
+      "runtimeArgs": [
+        "artisan",
+        "serve",
+        "--port=8001",
+        "--env=demo"
+      ],
+      "port": 8001
     }
   ]
 }

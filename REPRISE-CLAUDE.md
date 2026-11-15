@@ -46,23 +46,17 @@ Nginx : `client_max_body_size 120m` est posé dans `/etc/nginx/sites-enabled/pre
 - Pré-génération de la leçon suivante, protégée par un verrou.
 - 32 illustrations adultes en WebP.
 
-## EN COURS au 2026-11-15 (pas encore en prod)
-Le worktree `E:\project\prepla\.claude\worktrees\magical-cannon-7662fc` (branche `claude/magical-cannon-7662fc`) est **au milieu d'une fusion**. Ces branches sont déjà fusionnées :
-- `worktree-wf_3cc9c818-4d4-1` : exercices similaires corrigés côté serveur ;
-- `-2` : bilan de niveau affiché à l'apprenant, et promotion A0 vers A1 réparée ;
-- `-3` : illustrations branchées partout ;
-- `-4` : correction humaine par l'enseignant, avec la page « À corriger » (conflit de traductions résolu).
+## Fait le 2026-11-15 et en prod (commit acdae63)
+- Exercices similaires corrigés côté serveur.
+- Bilan de niveau affiché à l'apprenant, et passage de A0 à A1 réparé.
+- Illustrations branchées.
+- Correction humaine par l'enseignant, avec la page « À corriger ».
+- Import CSV d'élèves et de QCM.
+- Google Drive par centre : invisible tant que les clés `GOOGLE_DRIVE_*` ne sont pas dans le `.env`.
 
-Fusion **en cours, avec un conflit dans `routes/web.php`** : `worktree-wf_3cc9c818-4d4-5` (import en masse d'élèves et de QCM en CSV) n'est pas encore fusionnée, et `worktree-wf_4fb399a0-983-1` (Google Drive par centre) est la fusion en cours.
+Pour toute nouvelle fusion : `git fetch && git merge origin/main`, puis `git push origin HEAD:main`. Ne PAS faire de rebase.
 
-À faire ensuite, dans l'ordre :
-1. Résoudre `routes/web.php` en gardant les routes des deux côtés, puis `git add` et `git commit`.
-2. `git merge worktree-wf_3cc9c818-4d4-5`, et résoudre les conflits s'il y en a.
-3. Vérifier que chaque migration du 2026_11_15 a un numéro unique.
-4. `npm run build`, puis la suite complète et `tsc`. Tout doit passer.
-5. `git fetch && git merge origin/main`, puis `git push origin HEAD:main`. Ne PAS faire de rebase : les fusions sont en désordre.
-6. Déployer (voir plus haut).
-
+## RESTE EN COURS
 Deux autres chantiers peuvent encore tourner ou être finis dans des worktrees (`git worktree list`, branches `worktree-wf_d1ed55f7-fd3-*`) :
 - **Créateur de parcours complet** : modules, séances et blocs (texte riche, vidéo, audio, audio avec texte, PDF, exercice, quiz, production écrite ou orale, vocabulaire, lien, live). Il gère aussi le déblocage, les dates, les brouillons, l'aperçu élève, la progression et le suivi par l'enseignant.
 - **Live class avec Google Meet** : un bouton « Live class » dans chaque classe, des lives planifiés ou récurrents, la main levée, les questions votées, les sondages, les réactions, le partage de ressources, le chat, les notes, la présence et le replay.
