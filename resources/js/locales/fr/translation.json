@@ -337,5 +337,30 @@
   "errors": {
     "correct_answer": "Bonne réponse",
     "to_recall": "À retrouver pendant la révision"
+  },
+  "bilan": {
+    "titre": "Pour passer {{niveau}}",
+    "intro": "Pour passer {{suivant}}, il faut réussir l'examen de niveau {{niveau}} avec au moins {{seuil}} %. Voici où tu en es pour t'y préparer.",
+    "intro_a0": "Tu débutes : tu passes A1 dès que tu as fait {{minimum}} exercices A1 de lecture ou d'écoute avec au moins {{seuil}} % de moyenne.",
+    "pret": "Tu es prêt : réussis l'examen de niveau {{niveau}} avec au moins {{seuil}} % pour passer {{suivant}}.",
+    "pret_a0": "Tout est acquis : tu passes A1 à ton prochain exercice.",
+    "repere": "Ces repères servent à te préparer : c'est l'examen de niveau qui décide du passage.",
+    "ok": "acquis",
+    "a_faire": "à travailler",
+    "pas_exige": "Pas encore demandé à ton niveau, mais chaque essai t'aide.",
+    "rien_encore": "Aucun exercice fait à ce niveau pour l'instant.",
+    "acquis_one": "{{count}} exercice, {{moyenne}} % de réussite : c'est bon.",
+    "acquis_other": "{{count}} exercices, {{moyenne}} % de réussite : c'est bon.",
+    "reste_one": "Encore {{count}} exercice à faire à ce niveau.",
+    "reste_other": "Encore {{count}} exercices à faire à ce niveau.",
+    "reste_comprehension_one": "Encore {{count}} exercice de lecture ou d'écoute à faire.",
+    "reste_comprehension_other": "Encore {{count}} exercices de lecture ou d'écoute à faire.",
+    "sous_seuil": "Tu es à {{moyenne}} % en moyenne : il faut {{seuil}} %.",
+    "competence": {
+      "lecture": "Lecture",
+      "ecoute": "Écoute",
+      "ecrit": "Écrit",
+      "oral": "Oral"
+    }
   }
 }
