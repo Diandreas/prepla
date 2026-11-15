@@ -1,7 +1,7 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import { ArrowRight, BookOpen, Check, Copy, Gift, Globe, KeyRound, Palette, Settings, Users, Wallet } from 'lucide-react';
+import { ArrowRight, BookOpen, Cloud, Check, Copy, Gift, Globe, KeyRound, Palette, Settings, Users, Wallet } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import { LogoDeCentre } from '@/components/app-logo';
 import OngletsParametresCentre from '@/components/onglets-parametres-centre';
@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { SUPPORT_WHATSAPP_URL } from '@/lib/contact';
 import { texteSur } from '@/lib/marque-centre.js';
 import { formaterMontant } from '@/lib/montant-stripe';
+import type { EtatDrive } from '@/lib/drive';
 import { useT } from '@/lib/i18n/traduire';
 
 type Formule = 'paliers' | 'revente' | 'libre_service';
@@ -51,6 +52,7 @@ interface Props {
         totaux: { devise: string; commission: number }[];
     } | null;
     equipe: { responsables: number; enseignants: number; classes: number; invitations: number };
+    drive?: EtatDrive | null;
 }
 
 const FORMULES: Record<Formule, { titre: string; texte: string }> = {
@@ -152,7 +154,7 @@ function Ligne({ libelle, children }: { libelle: string; children: ReactNode }) 
  * Les parametres du centre, pour son responsable : une carte par reglage, qui
  * resume l'etat actuel et mene a la page ou on le change.
  */
-export default function ParametresDuCentre({ centre, identite, examens, adresse, formule, acces, parrainage, equipe }: Props) {
+export default function ParametresDuCentre({ centre, identite, examens, adresse, formule, acces, parrainage, equipe, drive = null }: Props) {
     const { t, locale } = useT();
     const [copie, setCopie] = useState(false);
     const nombre = (n: number) => n.toLocaleString(locale);
@@ -412,11 +414,60 @@ export default function ParametresDuCentre({ centre, identite, examens, adresse,
                     </Carte>
                 </div>
 
+                {drive && <StockageDrive drive={drive} />}
+
                 <p className="text-center text-xs text-muted-foreground">
                     {t('Votre compte personnel (nom, mot de passe, langue) se règle dans')}{' '}
                     <Link href="/settings/profile" className="font-medium text-foreground underline underline-offset-2">{t('Mon compte')}</Link>.
                 </p>
             </div>
         </AppLayout>
+    );
+}
+
+/** Stockage Google Drive : les contenus lourds et les sauvegardes du centre vivent dans son Drive. */
+function StockageDrive({ drive }: { drive: EtatDrive }) {
+    const { t, locale } = useT();
+    const [occupe, setOccupe] = useState(false);
+    const date = (iso: string | null) => (iso ? new Date(iso).toLocaleString(locale, { dateStyle: 'long', timeStyle: 'short' }) : t('jamais'));
+    const action = (nom: string) => router.post(route(nom), {}, { preserveScroll: true, onStart: () => setOccupe(true), onFinish: () => setOccupe(false) });
+
+    return (
+        <section aria-labelledby="stockage-drive" className="space-y-3 rounded-2xl border border-border bg-card p-4 shadow-sm md:p-5">
+            <header className="flex items-start justify-between gap-2">
+                <div className="flex min-w-0 items-center gap-2.5">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"><Cloud className="h-5 w-5" aria-hidden="true" /></span>
+                    <h2 id="stockage-drive" className="truncate text-base font-bold tracking-tight">{t('Stockage Google Drive')}</h2>
+                </div>
+                {drive.connecte ? <EtatOk>{t('Connecté')}</EtatOk> : <EtatNeutre>{t('Non connecté')}</EtatNeutre>}
+            </header>
+            <p className="text-sm text-muted-foreground">
+                {t('Vos vidéos, audios et PDF sont rangés dans votre propre Google Drive, comme une sauvegarde WhatsApp : PrePla ne les garde pas. Vos contenus y sont sauvegardés chaque semaine.')}
+            </p>
+            {drive.connecte ? (
+                <div className="space-y-2 text-sm">
+                    <Ligne libelle={t('Compte')}>{drive.email ?? '—'}</Ligne>
+                    <Ligne libelle={t('Connecté le')}>{date(drive.connecte_le)}</Ligne>
+                    <Ligne libelle={t('Dernière sauvegarde')}>{date(drive.derniere_sauvegarde_le)}</Ligne>
+                    <div className="flex flex-wrap gap-2 pt-1">
+                        <button type="button" disabled={occupe} onClick={() => action('center.google.backup')} className="inline-flex min-h-11 items-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60">
+                            {t('Sauvegarder maintenant')}
+                        </button>
+                        <button
+                            type="button"
+                            disabled={occupe}
+                            onClick={() => { if (confirm(t('Déconnecter Google Drive ? Vos fichiers restent dans votre Drive, mais vos élèves ne pourront plus les lire dans PrePla.'))) action('center.google.disconnect'); }}
+                            className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 text-sm font-semibold hover:bg-muted disabled:opacity-60"
+                        >
+                            {t('Déconnecter')}
+                        </button>
+                    </div>
+                </div>
+            ) : (
+                <a href={route('center.google.connect')} className="inline-flex min-h-11 items-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
+                    {t('Connecter Google Drive')}
+                </a>
+            )}
+        </section>
     );
 }

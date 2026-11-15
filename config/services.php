@@ -80,4 +80,13 @@ return [
         'redirect'      => env('GOOGLE_REDIRECT_URI', env('APP_URL') . '/auth/google/callback'),
     ],
 
+    // Google Drive des centres (docs/google-drive-centres.md). Sans client_id et
+    // client_secret, la fonction est masquee partout.
+    'google_drive' => [
+        'client_id' => env('GOOGLE_DRIVE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_DRIVE_CLIENT_SECRET'),
+        'api_key' => env('GOOGLE_DRIVE_API_KEY'),
+        'app_id' => env('GOOGLE_DRIVE_APP_ID'),
+    ],
+
 ];

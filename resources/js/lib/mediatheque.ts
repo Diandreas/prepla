@@ -6,7 +6,8 @@ import axios from 'axios';
  */
 export interface FicheMedia {
     id: number;
-    type: 'image' | 'audio';
+    type: 'image' | 'audio' | 'video' | 'document';
+    provider?: 'local' | 'google_drive';
     url: string;
     name: string;
     title: string;

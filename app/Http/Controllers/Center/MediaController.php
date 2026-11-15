@@ -72,7 +72,7 @@ class MediaController extends Controller
         $center = $request->attributes->get('center');
 
         $query = CenterMedia::where('center_id', $center->id)->latest();
-        if (in_array($request->query('type'), ['image', 'audio'], true)) {
+        if (in_array($request->query('type'), ['image', 'audio', 'video', 'document'], true)) {
             $query->where('type', $request->query('type'));
         }
 
@@ -92,7 +92,30 @@ class MediaController extends Controller
                 ->map(fn (CenterMedia $m) => $m->fiche()),
             'limites' => ['audio_mo' => intdiv(self::AUDIO_MAX_KO, 1024), 'image_mo' => intdiv(self::IMAGE_MAX_KO, 1024),
                 'serveur_mo' => self::limiteServeurOctets() === PHP_INT_MAX ? null : intdiv(self::limiteServeurOctets(), 1024 * 1024)],
+            'drive' => self::etatDrive($request),
         ]);
+    }
+
+    /**
+     * L'etat du Google Drive du centre pour la page : null si PrePla n'a pas
+     * d'identifiants Google (fonction masquee), sinon connecte ou non.
+     */
+    public static function etatDrive(Request $request): ?array
+    {
+        if (! \App\Services\Center\GoogleDrive::estConfigure()) {
+            return null;
+        }
+        $center = $request->attributes->get('center');
+        $drive = \App\Models\CenterGoogleDrive::where('center_id', $center->id)->first();
+
+        return [
+            'connecte' => $drive !== null,
+            'email' => $drive?->email,
+            'connecte_le' => $drive?->connecte_le?->toIso8601String(),
+            'derniere_sauvegarde_le' => $drive?->derniere_sauvegarde_le?->toIso8601String(),
+            'peut_connecter' => $request->user()->centerRoleIs('center_admin'),
+            'picker' => filled(config('services.google_drive.api_key')),
+        ];
     }
 
     public function store(Request $request)
@@ -173,7 +196,10 @@ class MediaController extends Controller
         $center = $request->attributes->get('center');
         abort_unless($medium->center_id === $center->id, 403);
 
-        Storage::disk('public')->delete($medium->path);
+        // Un fichier du Drive reste dans le Drive du centre : on le retire seulement de la mediatheque.
+        if (! $medium->estSurDrive()) {
+            Storage::disk('public')->delete($medium->path);
+        }
         $medium->delete();
 
         return response()->json(['ok' => true]);
