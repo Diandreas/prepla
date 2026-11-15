@@ -15,6 +15,8 @@ class CenterMedia extends Model
         'uploaded_by',
         'type',
         'path',
+        'provider',
+        'drive_file_id',
         'original_name',
         'mime',
         'size',
@@ -34,6 +36,7 @@ class CenterMedia extends Model
         return [
             'id' => $this->id,
             'type' => $this->type,
+            'provider' => $this->provider ?? 'local',
             'url' => $this->url,
             'name' => $this->original_name,
             'title' => $this->title ?: $this->original_name,
@@ -54,9 +57,21 @@ class CenterMedia extends Model
         return $this->belongsTo(User::class, 'uploaded_by');
     }
 
-    /** Public URL served from storage/app/public via the storage symlink. */
+    public function estSurDrive(): bool
+    {
+        return $this->provider === 'google_drive';
+    }
+
+    /**
+     * Local : URL publique du disque « public ». Drive : la route PrePla qui
+     * verifie l'appartenance au centre avant de lire le fichier.
+     */
     public function getUrlAttribute(): string
     {
+        if ($this->estSurDrive()) {
+            return route('media.drive', $this->id, false);
+        }
+
         return Storage::disk('public')->url($this->path);
     }
 }

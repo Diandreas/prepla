@@ -404,7 +404,13 @@ Route::middleware(['auth', EnsureCenterStaff::class])
         require __DIR__.'/centre-examens-blancs.php';
         // Correction humaine des productions : droits dans CorrectionController.
         require __DIR__.'/centre-corrections.php';
+        // Google Drive du centre (stockage et sauvegardes) : droits dans GoogleDriveController.
+        require __DIR__.'/centre-google-drive.php';
     });
+
+// Lecture d'un media range dans le Drive d'un centre : membres du centre seulement.
+Route::get('media/drive/{medium}', App\Http\Controllers\MediaDriveController::class)
+    ->middleware('auth')->whereNumber('medium')->name('media.drive');
 
 // Parrainage : le lien d'un centre s'ouvre sans compte, il mene a l'inscription.
 require __DIR__.'/parrainage.php';

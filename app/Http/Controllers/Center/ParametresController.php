@@ -65,6 +65,8 @@ class ParametresController extends Controller
             ] : null,
             'parrainage' => Route::has('center.parrainage.index') ? $this->parrainage($centre) : null,
             'equipe' => $this->equipe($centre),
+            // Stockage Google Drive : null quand PrePla n'a pas d'identifiants Google.
+            'drive' => MediaController::etatDrive($request),
         ]);
     }
 

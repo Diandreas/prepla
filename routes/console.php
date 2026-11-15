@@ -19,3 +19,6 @@ Schedule::command(SendPracticeReminders::class)->dailyAt('18:00');
 // Les deux sont idempotentes : un mois deja calcule n'est pas recalcule sans demande.
 Schedule::command('centres:actifs')->monthlyOn(1, '02:00')->timezone('Africa/Douala');
 Schedule::command('centres:releves')->monthlyOn(1, '03:00')->timezone('Africa/Douala');
+
+// Sauvegarde des contenus de chaque centre dans SON Google Drive, chaque dimanche.
+Schedule::command('centres:sauvegarder-drive')->weeklyOn(0, '04:00')->timezone('Africa/Douala');

@@ -4,6 +4,8 @@ import { ArrowLeft, Check, Music, Pencil, Trash2, Upload, X } from 'lucide-react
 import { useId, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
+import { EncartConnecterDrive, PanneauDrive } from '@/components/centre/stockage-drive';
+import { envoyerVersDrive, type EtatDrive } from '@/lib/drive';
 import { useT } from '@/lib/i18n/traduire';
 import {
     envoyerAudio,
@@ -37,7 +39,9 @@ function taille(octets?: number | null): string {
     return octets > 1024 * 1024 ? `${(octets / 1024 / 1024).toFixed(1)} Mo` : `${Math.max(1, Math.round(octets / 1024))} Ko`;
 }
 
-export default function Mediatheque({ media, limites }: { media: FicheMedia[]; limites: { audio_mo: number; image_mo: number; serveur_mo?: number | null } }) {
+export default function Mediatheque({ media, limites, drive = null }: { media: FicheMedia[]; limites: { audio_mo: number; image_mo: number; serveur_mo?: number | null }; drive?: EtatDrive | null }) {
+    const surDrive = drive?.connecte === true;
+    const [autres, setAutres] = useState<FicheMedia[]>(media.filter((m) => m.type === 'video' || m.type === 'document'));
     const { t } = useT();
     const id = useId();
     const entree = useRef<HTMLInputElement>(null);
@@ -54,7 +58,7 @@ export default function Mediatheque({ media, limites }: { media: FicheMedia[]; l
         for (const f of Array.from(fichiers)) {
             if (!estUnAudio(f)) {
                 refuses.push(t('{nom} n’est pas un son.', { nom: f.name }));
-            } else if (limites.serveur_mo && limites.serveur_mo < limites.audio_mo && f.size > limites.serveur_mo * 1024 * 1024) {
+            } else if (!surDrive && limites.serveur_mo && limites.serveur_mo < limites.audio_mo && f.size > limites.serveur_mo * 1024 * 1024) {
                 refuses.push(t('{nom} dépasse la limite actuelle du serveur ({mo} Mo). Compressez-le ou contactez PrePla.', { nom: f.name, mo: limites.serveur_mo }));
             } else if (f.size > limites.audio_mo * 1024 * 1024) {
                 refuses.push(t('{nom} dépasse {mo} Mo.', { nom: f.name, mo: limites.audio_mo }));
@@ -87,7 +91,8 @@ export default function Mediatheque({ media, limites }: { media: FicheMedia[]; l
         for (const p of attente.filter((x) => x.etat === 'pret' || x.etat === 'erreur')) {
             majAttente(p.cle, { etat: 'envoi', progression: 0, erreur: undefined });
             try {
-                const fiche = await envoyerAudio(
+                // Drive connecte : la piste part directement dans le Drive du centre.
+                const fiche = await (surDrive ? envoyerVersDrive : envoyerAudio)(
                     p.fichier,
                     { title: p.titre.trim() || nomDePiste(p.fichier), source_rights: source.trim(), rights_certified: true },
                     (pc) => majAttente(p.cle, { progression: pc }),
@@ -125,6 +130,16 @@ export default function Mediatheque({ media, limites }: { media: FicheMedia[]; l
                     <h1 className="mt-1 text-2xl font-bold tracking-tight">{t('Médiathèque')}</h1>
                     <p className="text-sm text-muted-foreground">{t('Les audios d’examen de votre centre, à utiliser dans vos exercices d’écoute.')}</p>
                 </div>
+
+                {drive && !drive.connecte && <EncartConnecterDrive drive={drive} />}
+                {drive && drive.connecte && (
+                    <PanneauDrive
+                        drive={drive}
+                        fichiers={autres}
+                        onAjout={(f) => (f.type === 'audio' ? setListe((l) => [f, ...l.filter((x) => x.id !== f.id)]) : setAutres((l) => [f, ...l.filter((x) => x.id !== f.id)]))}
+                        onRetrait={(f) => setAutres((l) => l.filter((x) => x.id !== f.id))}
+                    />
+                )}
 
                 <section aria-labelledby={`${id}-envoi`} className="space-y-4 rounded-2xl border border-border bg-card p-4">
                     <h2 id={`${id}-envoi`} className="font-semibold">{t('Ajouter des audios')}</h2>
