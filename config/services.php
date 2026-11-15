@@ -82,18 +82,28 @@ return [
 
     // Google Drive des centres (docs/google-drive-centres.md). Sans client_id et
     // client_secret, la fonction est masquee partout.
+    // A defaut de GOOGLE_DRIVE_*, on reprend le client OAuth de la connexion
+    // Google (GOOGLE_CLIENT_*) : c'est le meme projet Google Cloud, il suffit d'y
+    // declarer les adresses de retour /center/google/callback et /center/google/retour.
+    // Sans api_key, le Picker est masque ; l'envoi vers le Drive marche quand meme.
     'google_drive' => [
-        'client_id' => env('GOOGLE_DRIVE_CLIENT_ID'),
-        'client_secret' => env('GOOGLE_DRIVE_CLIENT_SECRET'),
+        'client_id' => env('GOOGLE_DRIVE_CLIENT_ID', env('GOOGLE_CLIENT_ID')),
+        'client_secret' => env('GOOGLE_DRIVE_CLIENT_SECRET', env('GOOGLE_CLIENT_SECRET')),
         'api_key' => env('GOOGLE_DRIVE_API_KEY'),
-        'app_id' => env('GOOGLE_DRIVE_APP_ID'),
+        // L'App ID du Picker est le numero du projet : le debut de l'ID client
+        // (« 123456789-abc.apps.googleusercontent.com »).
+        'app_id' => env('GOOGLE_DRIVE_APP_ID', (function () {
+            $client = (string) env('GOOGLE_DRIVE_CLIENT_ID', env('GOOGLE_CLIENT_ID', ''));
+
+            return preg_match('/^(\d+)-/', $client, $m) ? $m[1] : null;
+        })()),
     ],
     // Live class (Google Meet REST API v2). Meme application OAuth que Google
     // Drive : GOOGLE_MEET_* si on veut l'ecrire a part, sinon GOOGLE_DRIVE_*.
     // Sans identifiants, le module est masque. Voir docs/live-class-google-meet.md.
     'google_meet' => [
-        'client_id' => env('GOOGLE_MEET_CLIENT_ID', env('GOOGLE_DRIVE_CLIENT_ID')),
-        'client_secret' => env('GOOGLE_MEET_CLIENT_SECRET', env('GOOGLE_DRIVE_CLIENT_SECRET')),
+        'client_id' => env('GOOGLE_MEET_CLIENT_ID', env('GOOGLE_DRIVE_CLIENT_ID', env('GOOGLE_CLIENT_ID'))),
+        'client_secret' => env('GOOGLE_MEET_CLIENT_SECRET', env('GOOGLE_DRIVE_CLIENT_SECRET', env('GOOGLE_CLIENT_SECRET'))),
         'redirect' => env('GOOGLE_MEET_REDIRECT_URI', env('APP_URL').'/center/google/retour'),
         // OPEN : qui a le lien entre sans « frapper » ; TRUSTED : les comptes du
         // domaine Workspace et les invites entrent, les autres demandent.
