@@ -47,5 +47,11 @@
   "Élève": "Learner",
   "Score global": "Overall score",
   "Temps": "Time",
-  "Rendu le": "Handed in on"
+  "Rendu le": "Handed in on",
+  "Examen blanc du {date}": "Mock exam of {date}",
+  "Partie libre (tous types)": "Free part (any type)",
+  "Ajouter un exercice existant": "Add an existing exercise",
+  "Type de l’épreuve officielle": "Type of the official paper",
+  "Autres types": "Other types",
+  "Créer un exercice": "Create an exercise"
 }

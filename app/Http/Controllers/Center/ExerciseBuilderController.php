@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Assignment;
 use App\Models\AssignmentItem;
 use App\Models\CenterMedia;
+use App\Models\CourseBlock;
+use App\Models\MockExam;
 use App\Models\Exam;
 use App\Models\Exercise;
 use App\Models\ExerciseType;
@@ -200,6 +202,10 @@ class ExerciseBuilderController extends Controller
 
         $data = $this->validatePayload($request);
 
+        // Cree depuis un examen blanc ou un bloc de parcours : la cible est
+        // verifiee AVANT de creer quoi que ce soit.
+        [$examenBlanc, $bloc] = $this->ciblesVerifiees($request, $data);
+
         // Le devoir a completer, verifie AVANT de creer quoi que ce soit.
         $devoir = null;
         if ($request->filled('assignment_id')) {
@@ -219,6 +225,28 @@ class ExerciseBuilderController extends Controller
             // Sans precision, un exercice enregistre est pret a servir.
             'center_status' => $data['center_status'] ?? Exercise::STATUT_VALIDE,
         ]);
+
+        // Cree depuis un examen blanc : il prend sa place dans la partie choisie.
+        if ($examenBlanc) {
+            $examenBlanc->items()->create([
+                'exercise_id' => $exercise->id,
+                'section_slug' => (string) $request->input('cible_section'),
+                'partie' => $request->input('cible_partie') ?: null,
+                'sort_order' => (int) $examenBlanc->items()->max('sort_order') + 1,
+            ]);
+
+            return redirect()->route('center.examens-blancs.edit', $examenBlanc->id)
+                ->with('success', 'Exercice créé et placé dans l’examen blanc.');
+        }
+
+        // Cree depuis un bloc « Exercice » d'un parcours : il remplit le bloc.
+        if ($bloc) {
+            $bloc->update(['contenu' => array_merge((array) $bloc->contenu, ['exercise_id' => $exercise->id])]);
+            $parcours = $bloc->session->module->path;
+
+            return redirect()->route('center.cours.edit', ['parcours' => $parcours->id, 'seance' => $bloc->course_session_id])
+                ->with('success', 'Exercice créé et ajouté au parcours.');
+        }
 
         // Cree depuis la page d'un devoir : il y entre aussitot.
         if ($devoir) {
@@ -313,11 +341,119 @@ class ExerciseBuilderController extends Controller
                 ->get(['id', 'name', 'exam_id', 'level']),
             'retour' => $request->query('retour') === self::RETOUR_DEVOIR ? self::RETOUR_DEVOIR : null,
             'devoir' => $devoir,
+            // Ouvert depuis un examen blanc ou un parcours : examen, niveau et
+            // type deja choisis (le centre peut tout changer), et le retour.
+            'prefill' => $this->prefill($request),
+            'cible' => $this->cible($request),
             'limiteIa' => [
                 'par_fenetre' => self::GENERATIONS_PAR_FENETRE,
                 'minutes' => intdiv(self::FENETRE_SECONDES, 60),
             ],
         ];
+    }
+
+    /** Examen, niveau et type proposes au depart (query string). */
+    private function prefill(Request $request): array
+    {
+        $niveau = $request->query('difficulty');
+
+        return [
+            'exam_id' => $request->integer('exam_id') ?: null,
+            'difficulty' => in_array($niveau, ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'], true) ? $niveau : null,
+            'exercise_type_id' => $request->integer('exercise_type_id') ?: null,
+        ];
+    }
+
+    /** L'examen blanc ou le bloc de parcours ou l'exercice ira, pour l'ecran. */
+    private function cible(Request $request): ?array
+    {
+        if ($request->filled('examen_blanc')) {
+            $mock = $this->examenBlancDuCentre($request, $request->query('examen_blanc'));
+
+            return [
+                'type' => 'examen-blanc',
+                'id' => $mock->id,
+                'titre' => $mock->title,
+                'exam_id' => $mock->blueprint?->exam_id,
+                'section' => (string) $request->query('section', ''),
+                'partie' => $request->query('partie'),
+                'lien' => route('center.examens-blancs.edit', $mock->id),
+            ];
+        }
+        if ($request->filled('bloc')) {
+            $bloc = $this->blocDuCentre($request, $request->query('bloc'));
+            $parcours = $bloc->session->module->path;
+
+            return [
+                'type' => 'cours',
+                'id' => $bloc->id,
+                'titre' => $parcours->titre,
+                'exam_id' => null,
+                'section' => null,
+                'partie' => null,
+                'lien' => route('center.cours.edit', ['parcours' => $parcours->id, 'seance' => $bloc->course_session_id]),
+            ];
+        }
+
+        return null;
+    }
+
+    /**
+     * Les cibles envoyees avec l'exercice, verifiees : du centre, modifiables,
+     * et compatibles avec l'exercice (meme examen ; pas de brouillon en parcours).
+     *
+     * @return array{0: ?MockExam, 1: ?CourseBlock}
+     */
+    private function ciblesVerifiees(Request $request, array $data): array
+    {
+        $examenBlanc = null;
+        $bloc = null;
+
+        if ($request->filled('cible_examen_blanc')) {
+            $request->validate(['cible_section' => 'required|string|max:100', 'cible_partie' => 'nullable|string|max:100']);
+            $examenBlanc = $this->examenBlancDuCentre($request, $request->input('cible_examen_blanc'));
+            $examId = (int) $examenBlanc->blueprint?->exam_id;
+            if ((int) $data['exam_id'] !== $examId) {
+                $nom = Exam::find($examId)?->name ?? 'son examen';
+                throw ValidationException::withMessages(['exam_id' => "Cet examen blanc porte sur {$nom} : l’exercice doit être de cet examen."]);
+            }
+        }
+
+        if ($request->filled('cible_bloc')) {
+            $bloc = $this->blocDuCentre($request, $request->input('cible_bloc'));
+            if (($data['center_status'] ?? Exercise::STATUT_VALIDE) === Exercise::STATUT_BROUILLON) {
+                throw ValidationException::withMessages(['center_status' => 'Un brouillon ne peut pas entrer dans un parcours : enregistrez l’exercice comme prêt.']);
+            }
+        }
+
+        return [$examenBlanc, $bloc];
+    }
+
+    /** Un examen blanc d'un autre centre, ou de PrePla, n'existe pas ici. */
+    private function examenBlancDuCentre(Request $request, $id): MockExam
+    {
+        /** @var LanguageCenter $center */
+        $center = $request->attributes->get('center');
+        $mock = MockExam::with('blueprint')->find((int) $id);
+        abort_unless($mock && $mock->center_id !== null && (int) $mock->center_id === (int) $center->id, 404);
+
+        return $mock;
+    }
+
+    /** Un bloc « Exercice » d'un parcours du centre, que l'utilisateur peut modifier. */
+    private function blocDuCentre(Request $request, $id): CourseBlock
+    {
+        /** @var LanguageCenter $center */
+        $center = $request->attributes->get('center');
+        $bloc = CourseBlock::with('session.module.path.classroom')->find((int) $id);
+        abort_unless($bloc && $bloc->type === 'exercice', 404);
+        $parcours = $bloc->session?->module?->path;
+        abort_unless($parcours && (int) $parcours->center_id === (int) $center->id, 404);
+        if ($parcours->classroom_id !== null) {
+            $this->authorize('update', $parcours->classroom);
+        }
+
+        return $bloc;
     }
 
     /** @return array{exercise_type_id:int,exam_id:int,difficulty:string,content:array,questions:array,is_ai_generated:bool} */

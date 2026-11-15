@@ -28,6 +28,9 @@ interface Props {
     banque: Exo[];
     types: { value: string; label: string }[];
     liveDisponible: boolean;
+    examParDefaut: number | null;
+    niveauParDefaut: string | null;
+    seanceInitiale: number | null;
 }
 
 type Glisse = { kind: 'module' | 'seance' | 'bloc'; id: number } | null;
@@ -43,11 +46,15 @@ function deplacerDans<T>(liste: T[], de: number, vers: number): T[] {
 }
 
 /** Le createur de parcours : modules, seances et blocs, enregistrement automatique. */
-export default function Editeur({ parcours: initial, classes, medias: mediasInitiaux, exercicesCentre, banque, types, liveDisponible }: Props) {
+export default function Editeur({ parcours: initial, classes, medias: mediasInitiaux, exercicesCentre, banque, types, liveDisponible, examParDefaut, niveauParDefaut, seanceInitiale }: Props) {
     const { t } = useT();
     const [p, setP] = useState<Parcours>(initial);
     const [medias, setMedias] = useState<Media[]>(mediasInitiaux);
-    const [choisie, setChoisie] = useState<number | null>(initial.modules[0]?.seances[0]?.id ?? null);
+    // Au retour du createur d'exercices, la seance d'ou l'on venait.
+    const [choisie, setChoisie] = useState<number | null>(
+        (seanceInitiale && initial.modules.some((m) => m.seances.some((s) => s.id === seanceInitiale)) ? seanceInitiale : null)
+            ?? initial.modules[0]?.seances[0]?.id ?? null,
+    );
     const [etat, setEtat] = useState<'ok' | 'en_cours' | 'erreur'>('ok');
     const [erreur, setErreur] = useState<string | null>(null);
     const minuteries = useRef<Record<string, number>>({});
@@ -109,6 +116,21 @@ export default function Editeur({ parcours: initial, classes, medias: mediasInit
             modules: x.modules.map((m) => ({ ...m, seances: m.seances.map((s) => ({ ...s, blocs: s.blocs.map((b) => (b.id === id ? { ...b, ...partiel } : b)) })) })),
         }));
         plusTard(`b-${id}-${Object.keys(partiel).join()}`, `/center/cours/blocs/${id}`, partiel);
+    };
+
+    /**
+     * Ouvre le createur d'exercices pour ce bloc : examen et niveau de la classe
+     * proposes, tout reste modifiable. On attend d'abord la fin des
+     * enregistrements automatiques, pour ne rien perdre en quittant la page.
+     */
+    const creerExercice = async (blocId: number) => {
+        for (let i = 0; i < 60 && (Object.keys(minuteries.current).length || enVol.current); i++) {
+            await new Promise((fin) => window.setTimeout(fin, 100));
+        }
+        const params = new URLSearchParams({ bloc: String(blocId) });
+        if (examParDefaut) params.set('exam_id', String(examParDefaut));
+        if (niveauParDefaut) params.set('difficulty', niveauParDefaut);
+        router.visit(`/center/exercises/create?${params.toString()}`);
     };
 
     const reordonner = (nouveau: Parcours) => {
@@ -303,6 +325,7 @@ export default function Editeur({ parcours: initial, classes, medias: mediasInit
                                 exercicesCentre={exercicesCentre}
                                 banque={banque}
                                 liveDisponible={liveDisponible}
+                                creerExercice={creerExercice}
                                 onSupprimee={() => {
                                     const o = ou(seance.id);
                                     const voisine = o?.module.seances[o.index - 1] ?? o?.module.seances[o.index + 1];
@@ -365,6 +388,7 @@ interface PropsSeance {
     exercicesCentre: Exo[];
     banque: Exo[];
     liveDisponible: boolean;
+    creerExercice: (blocId: number) => void;
     onSupprimee: () => void;
 }
 
@@ -490,7 +514,7 @@ function EditeurSeance(props: PropsSeance) {
     );
 }
 
-function EditeurBloc({ bloc: b, majBloc, medias, ajouterMedia, parcoursId, exercicesCentre, banque, liveDisponible }: PropsSeance & { bloc: Bloc }) {
+function EditeurBloc({ bloc: b, majBloc, medias, ajouterMedia, parcoursId, exercicesCentre, banque, liveDisponible, creerExercice }: PropsSeance & { bloc: Bloc }) {
     const { t } = useT();
     const c = b.contenu ?? {};
     const maj = (partiel: Record<string, unknown>) => majBloc(b.id, { contenu: { ...c, ...partiel } });
@@ -581,6 +605,14 @@ function EditeurBloc({ bloc: b, majBloc, medias, ajouterMedia, parcoursId, exerc
                     <Champ label={t('Seuil de réussite (%)')}>
                         <input type="number" min={1} max={100} className={champ} value={c.seuil ?? ''} onChange={(e) => maj({ seuil: nombre(e.target.value) })} />
                     </Champ>
+                    <div className="sm:col-span-2">
+                        <Button type="button" variant="outline" size="sm" onClick={() => creerExercice(b.id)}>
+                            {t('Créer un nouvel exercice')}
+                        </Button>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                            {t('Tous les formats d’examen, écrit à la main ou avec l’IA. Il remplira ce bloc dès son enregistrement.')}
+                        </p>
+                    </div>
                 </div>
             );
         case 'quiz':

@@ -425,5 +425,9 @@
     "Débat argumenté": "Debate",
     "L’élève débat et répond aux objections.": "The learner debates and responds to objections.",
     "Poser des questions": "Ask questions",
-    "L’élève pose des questions pour obtenir des informations.": "The learner asks questions to get information."
+    "L’élève pose des questions pour obtenir des informations.": "The learner asks questions to get information.",
+    "← Examen blanc « {titre} »": "← Mock exam “{titre}”",
+    "← Parcours « {titre} »": "← Course “{titre}”",
+    "Enregistrer et placer dans l’examen blanc": "Save and place in the mock exam",
+    "Enregistrer et ajouter au parcours": "Save and add to the course"
 }

@@ -97,6 +97,10 @@ class ExamenBlancController extends Controller
             return $mock;
         });
 
+        if ($vers = $this->versLeCreateur($mock, $donnees)) {
+            return $vers;
+        }
+
         return redirect()->route('center.examens-blancs.show', $mock->id)->with('success', 'Examen blanc enregistré.');
     }
 
@@ -121,6 +125,10 @@ class ExamenBlancController extends Controller
             $this->examens->enregistrerItems($mockExam, $center, $exam, $donnees['items'] ?? []);
             $this->publierSiDemande($mockExam, (bool) ($donnees['publier'] ?? $mockExam->is_published));
         });
+
+        if ($vers = $this->versLeCreateur($mockExam->fresh(), $donnees)) {
+            return $vers;
+        }
 
         return redirect()->route('center.examens-blancs.show', $mockExam->id)->with('success', 'Examen blanc mis à jour.');
     }
@@ -257,7 +265,31 @@ class ExamenBlancController extends Controller
             'items.*.section_slug' => 'required|string|max:100',
             'items.*.partie' => 'nullable|string|max:100',
             'publier' => 'nullable|boolean',
+            // « Creer un exercice » depuis une partie : on enregistre, puis on
+            // ouvre le createur regle sur cette partie.
+            'creer' => 'nullable|array',
+            'creer.section_slug' => 'required_with:creer|string|max:100',
+            'creer.partie' => 'nullable|string|max:100',
+            'creer.exercise_type_id' => 'nullable|integer',
         ]);
+    }
+
+    /** Apres l'enregistrement, le createur d'exercices regle sur la partie demandee. */
+    private function versLeCreateur(MockExam $mock, array $donnees): ?RedirectResponse
+    {
+        if (empty($donnees['creer'])) {
+            return null;
+        }
+        $mock->loadMissing('blueprint');
+
+        return redirect()->route('center.exercises.create', array_filter([
+            'examen_blanc' => $mock->id,
+            'section' => $donnees['creer']['section_slug'],
+            'partie' => $donnees['creer']['partie'] ?? null,
+            'exam_id' => $mock->blueprint?->exam_id,
+            'difficulty' => $mock->level,
+            'exercise_type_id' => $donnees['creer']['exercise_type_id'] ?? null,
+        ], fn ($v) => $v !== null && $v !== ''));
     }
 
     private function publierSiDemande(MockExam $mock, bool $publier): void

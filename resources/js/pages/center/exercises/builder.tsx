@@ -48,6 +48,10 @@ interface Props {
     retour: 'devoir' | null;
     devoir: { id: number; title: string; classroom_id: number } | null;
     limiteIa: { par_fenetre: number; minutes: number };
+    /** Examen, niveau et type proposes au depart (ouvert depuis un examen blanc ou un parcours). */
+    prefill?: { exam_id: number | null; difficulty: string | null; exercise_type_id: number | null };
+    /** Ou l'exercice ira a l'enregistrement : une partie d'examen blanc, ou un bloc de parcours. */
+    cible?: { type: 'examen-blanc' | 'cours'; id: number; titre: string; exam_id: number | null; section: string | null; partie: string | null; lien: string } | null;
     exercise?: {
         id: number;
         exercise_type_id: number;
@@ -79,19 +83,29 @@ const MESSAGES_IA = [
 
 type Origine = 'ia' | 'manuel' | null;
 
-export default function ExerciseBuilder({ exerciseTypes, exams, defaultExamId, classrooms, retour, devoir, limiteIa, exercise }: Props) {
+export default function ExerciseBuilder({ exerciseTypes, exams: tousLesExamens, defaultExamId, classrooms, retour, devoir, limiteIa, prefill, cible = null, exercise }: Props) {
     const { t } = useT();
     const editing = !!exercise;
     const page = usePage();
     const compte = (page.props as { auth?: { user?: { id?: number } | null } }).auth?.user?.id ?? null;
     const cle = cleDuBrouillon(compte);
 
-    const examInitial = exercise?.exam_id ?? (exams.some((e) => e.id === defaultExamId) ? defaultExamId : exams[0]?.id) ?? null;
-    const [etape, setEtape] = useState(editing ? 3 : 1);
+    // Un examen blanc porte sur un seul examen : l'exercice en est forcement.
+    const exams = useMemo(
+        () => (cible?.exam_id ? tousLesExamens.filter((e) => e.id === cible.exam_id) : tousLesExamens),
+        [tousLesExamens, cible?.exam_id],
+    );
+    const examPropose = prefill?.exam_id && exams.some((e) => e.id === prefill.exam_id) ? prefill.exam_id : null;
+    const examInitial = exercise?.exam_id ?? examPropose ?? (exams.some((e) => e.id === defaultExamId) ? defaultExamId : exams[0]?.id) ?? null;
+    // Ouvert depuis un examen blanc ou un parcours avec l'examen deja connu : on
+    // commence au choix du type (le type officiel de la partie est deja coche).
+    const [etape, setEtape] = useState(editing ? 3 : cible && examPropose ? 2 : 1);
     const [examId, setExamId] = useState<number | null>(examInitial);
-    const [difficulty, setDifficulty] = useState(exercise?.difficulty ?? 'B1');
+    const [difficulty, setDifficulty] = useState(exercise?.difficulty ?? prefill?.difficulty ?? 'B1');
     const [classroomId, setClassroomId] = useState<number | null>(null);
-    const [typeId, setTypeId] = useState<number | null>(exercise?.exercise_type_id ?? null);
+    const [typeId, setTypeId] = useState<number | null>(
+        exercise?.exercise_type_id ?? (prefill?.exercise_type_id && exerciseTypes.some((x) => x.id === prefill.exercise_type_id && x.exam_id === examInitial) ? prefill.exercise_type_id : null),
+    );
     const [content, setContent] = useState<Libre>(exercise?.content ?? {});
     const [questions, setQuestions] = useState<Libre[]>(exercise?.questions ?? []);
     const [origine, setOrigine] = useState<Origine>(editing ? (exercise?.is_ai_generated ? 'ia' : 'manuel') : null);
@@ -134,7 +148,8 @@ export default function ExerciseBuilder({ exerciseTypes, exams, defaultExamId, c
     const brouillonLu = useRef(false);
     useEffect(() => {
         brouillonLu.current = true;
-        if (editing) return;
+        // Un brouillon d'une autre session ne remplace pas l'examen et le type proposes.
+        if (editing || cible) return;
         const b = lireObjet(stockageDuNavigateur(), cle);
         if (!b || !brouillonUtile(b)) return;
         if (!exams.some((e) => e.id === b.examId)) return;
@@ -335,6 +350,10 @@ export default function ExerciseBuilder({ exerciseTypes, exams, defaultExamId, c
             is_ai_generated: origine === 'ia',
             retour: versDevoir || retour === 'devoir' ? 'devoir' : null,
             assignment_id: devoir?.id ?? null,
+            cible_examen_blanc: cible?.type === 'examen-blanc' ? cible.id : null,
+            cible_section: cible?.type === 'examen-blanc' ? cible.section : null,
+            cible_partie: cible?.type === 'examen-blanc' ? cible.partie : null,
+            cible_bloc: cible?.type === 'cours' ? cible.id : null,
         };
         const opts = {
             onSuccess: () => {
@@ -355,9 +374,17 @@ export default function ExerciseBuilder({ exerciseTypes, exams, defaultExamId, c
     }
 
     const titrePage = editing ? t('Modifier un exercice') : t('Créer un exercice');
-    const retourLien = devoir ? route('center.assignments.show', devoir.id) : retour === 'devoir' ? route('center.assignments.create') : route('center.exercises.index');
-    const retourTexte = devoir ? t('← Devoir « {titre} »', { titre: devoir.title }) : retour === 'devoir' ? t('← Retour au devoir') : t('← Contenu');
-    const libelleEnregistrer = devoir ? t('Enregistrer et ajouter au devoir') : retour === 'devoir' ? t('Enregistrer et revenir au devoir') : t('Enregistrer');
+    const retourLien = cible ? cible.lien : devoir ? route('center.assignments.show', devoir.id) : retour === 'devoir' ? route('center.assignments.create') : route('center.exercises.index');
+    const retourTexte = cible?.type === 'examen-blanc'
+        ? t('← Examen blanc « {titre} »', { titre: cible.titre })
+        : cible?.type === 'cours'
+            ? t('← Parcours « {titre} »', { titre: cible.titre })
+            : devoir ? t('← Devoir « {titre} »', { titre: devoir.title }) : retour === 'devoir' ? t('← Retour au devoir') : t('← Contenu');
+    const libelleEnregistrer = cible?.type === 'examen-blanc'
+        ? t('Enregistrer et placer dans l’examen blanc')
+        : cible?.type === 'cours'
+            ? t('Enregistrer et ajouter au parcours')
+            : devoir ? t('Enregistrer et ajouter au devoir') : retour === 'devoir' ? t('Enregistrer et revenir au devoir') : t('Enregistrer');
     // resumeACompleter(n), en phrase traduisible.
     const resume = aCompleter.length > 1 ? t('{n} questions à compléter', { n: aCompleter.length }) : aCompleter.length === 1 ? t('1 question à compléter') : '';
     const enEdition = family !== null && (questions.length > 0 || chemin === 'manuel');
@@ -700,7 +727,7 @@ export default function ExerciseBuilder({ exerciseTypes, exams, defaultExamId, c
                         {etape === 3 && enEdition && <Button type="button" onClick={() => aller(4)}>{t('Voir l’aperçu')} <ArrowRight className="h-4 w-4" aria-hidden="true" /></Button>}
                         {etape === 4 && (
                             <>
-                                {!devoir && retour !== 'devoir' && (
+                                {!devoir && !cible && retour !== 'devoir' && (
                                     <Button type="button" variant="outline" onClick={() => save(true)} disabled={saving}>{t('Enregistrer et donner en devoir')}</Button>
                                 )}
                                 <Button type="button" onClick={() => save(false)} disabled={saving}>{saving ? t('Enregistrement…') : libelleEnregistrer}</Button>
