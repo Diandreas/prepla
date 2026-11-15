@@ -406,6 +406,8 @@ Route::middleware(['auth', EnsureCenterStaff::class])
         require __DIR__.'/centre-corrections.php';
         // Google Drive du centre (stockage et sauvegardes) : droits dans GoogleDriveController.
         require __DIR__.'/centre-google-drive.php';
+        // Import en masse (eleves, QCM) : droits dans ImportController.
+        require __DIR__.'/centre-imports.php';
     });
 
 // Lecture d'un media range dans le Drive d'un centre : membres du centre seulement.

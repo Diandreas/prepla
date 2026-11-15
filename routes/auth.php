@@ -59,3 +59,8 @@ Route::middleware('auth')->group(function () {
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
 });
+
+// Invitation d'un eleve cree par import : lien signe (30 jours), sans session requise.
+Route::get('invitation/{user}/mot-de-passe/{v}', \App\Http\Controllers\Auth\InvitationMotDePasseController::class)
+    ->middleware(['signed:relative', 'throttle:10,1'])
+    ->name('invitation.mot-de-passe');

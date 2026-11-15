@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { BookOpen, ClipboardList, Copy, Headphones, Library, Mic, Music, PenLine, Play, Plus, Puzzle, Search, Sparkles, Target, Trash2, Trophy } from 'lucide-react';
+import { BookOpen, ClipboardList, Copy, Headphones, Library, Mic, Music, PenLine, Play, Plus, Puzzle, Search, Sparkles, Target, Trash2, Trophy, Upload } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
@@ -139,6 +139,9 @@ export default function ExercisesIndex({ exercises, exams }: { exercises: Exerci
                     <div className="flex flex-wrap gap-2">
                         <Button asChild variant="outline">
                             <Link href={route('center.media.page')}><Music className="h-4 w-4" aria-hidden="true" /> {t('Médiathèque')}</Link>
+                        </Button>
+                        <Button asChild variant="outline">
+                            <Link href={route('center.import.page')}><Upload className="h-4 w-4" aria-hidden="true" /> {t('Importer des QCM')}</Link>
                         </Button>
                         <Button type="button" variant="outline" onClick={() => setCatalogueOuvert((o) => !o)} aria-expanded={catalogueOuvert}>
                             <Library className="h-4 w-4" aria-hidden="true" /> {t('Copier depuis le catalogue PrePla')}
