@@ -410,6 +410,8 @@ Route::middleware(['auth', EnsureCenterStaff::class])
         require __DIR__.'/centre-google-drive.php';
         // Import en masse (eleves, QCM) : droits dans ImportController.
         require __DIR__.'/centre-imports.php';
+        // Live class (Google Meet) : droits dans Center\LiveController.
+        require __DIR__.'/centre-live.php';
     });
 
 // Lecture d'un media range dans le Drive d'un centre : membres du centre seulement.
@@ -436,6 +438,8 @@ require __DIR__.'/eleve-devoirs.php';
 require __DIR__.'/eleve-parcours.php';
 // Élève d'un centre — les cours (parcours modules/seances/blocs) de son centre.
 require __DIR__.'/eleve-cours.php';
+// La salle d'un live (eleves de la classe, equipe qui anime).
+require __DIR__.'/live.php';
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

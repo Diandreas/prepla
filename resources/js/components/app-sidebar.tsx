@@ -66,6 +66,7 @@ export function AppSidebar() {
         mainNavItems = [
             { title: tc('Tableau de bord'), url: '/center', icon: () => <SidebarIcon name="home" /> },
             { title: tc('Classes'), url: '/center/classes', icon: () => <SidebarIcon name="layout-grid" /> },
+            ...(menus?.live ? [{ title: tc('Live class'), url: '/center/lives', icon: () => <SidebarIcon name="video" /> }] : []),
             { title: tc('Élèves'), url: '/center/students', icon: () => <SidebarIcon name="profile" /> },
             // L'equipe du centre — qui enseigne quelles classes, et l'invitation
             // d'un collegue — pour son responsable, comme l'autorisation.

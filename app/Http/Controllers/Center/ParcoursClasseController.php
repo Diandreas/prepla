@@ -7,6 +7,7 @@ use App\Models\Classroom;
 use App\Models\ClassroomPathStep;
 use App\Models\Exercise;
 use App\Models\LanguageCenter;
+use App\Models\LiveSession;
 use App\Models\User;
 use App\Services\Center\ParcoursDeClasse;
 use Illuminate\Http\RedirectResponse;
@@ -17,9 +18,9 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Le parcours d'une classe, construit par le centre : une suite d'exercices
- * dans l'ordre, pris dans les exercices du centre ou dans la banque PrePla de
- * l'examen de la classe.
+ * Le parcours d'une classe, construit par le centre : une suite d'etapes dans
+ * l'ordre. Une etape est un exercice (du centre ou de la banque PrePla de
+ * l'examen de la classe) ou le replay publie d'un live de la classe.
  *
  * Droits : ceux de la modification de la classe (ClassroomPolicy::update) :
  * le responsable pour toutes les classes du centre, l'enseignant pour les
@@ -39,7 +40,8 @@ class ParcoursClasseController extends Controller
 
         $etapes = $this->parcours->etapes($classroom);
         $total = $etapes->count();
-        $dejaPris = $etapes->pluck('exercise_id')->map(fn ($id) => (int) $id)->all();
+        $dejaPris = $etapes->whereNotNull('exercise_id')->pluck('exercise_id')->map(fn ($id) => (int) $id)->all();
+        $replaysPris = $etapes->whereNotNull('live_session_id')->pluck('live_session_id')->map(fn ($id) => (int) $id)->all();
 
         // Les etapes que les eleves suivent vraiment : une etape prise dans le
         // vivier d'un ancien examen de la classe, ou dont l'exercice a ete
@@ -101,6 +103,22 @@ class ParcoursClasseController extends Controller
             ->get()
             ->map(fn (Exercise $e) => $this->exercice($e, $dejaPris));
 
+        // Les replays publies des lives de cette classe, a ajouter comme etape.
+        $replays = LiveSession::where('classroom_id', $classroom->id)
+            ->where('center_id', $classroom->center_id)
+            ->whereNull('cancelled_at')
+            ->where('replay_published', true)
+            ->whereNotNull('recording_url')
+            ->orderByDesc('starts_at')
+            ->limit(100)
+            ->get()
+            ->map(fn (LiveSession $l) => [
+                'id' => $l->id,
+                'titre' => $l->title,
+                'date' => $l->starts_at->toIso8601String(),
+                'deja_pris' => in_array($l->id, $replaysPris, true),
+            ]);
+
         // Copier le parcours d'une autre classe qu'il peut modifier.
         $autres = $centre->classrooms()
             ->whereNull('archived_at')
@@ -127,6 +145,7 @@ class ParcoursClasseController extends Controller
             'avancement' => $avancement,
             'banque' => $banque,
             'exercicesCentre' => $duCentre,
+            'replays' => $replays,
             'filtres' => $filtres,
             'competences' => collect(ParcoursDeClasse::COMPETENCES)->map(fn ($libelle, $cle) => ['value' => $cle, 'label' => $libelle])->values(),
             'autresClasses' => $autres,
@@ -138,8 +157,13 @@ class ParcoursClasseController extends Controller
         $this->authorize('update', $classroom);
 
         $valide = $request->validate($this->regles() + [
-            'exercise_id' => ['required', 'integer'],
+            'exercise_id' => ['required_without:live_session_id', 'prohibits:live_session_id', 'nullable', 'integer'],
+            'live_session_id' => ['required_without:exercise_id', 'nullable', 'integer'],
         ]);
+
+        if (! empty($valide['live_session_id'])) {
+            return $this->ajouterReplay($request, $classroom, (int) $valide['live_session_id'], $valide);
+        }
 
         // Jamais l'exercice prive d'un autre centre, ni hors de l'examen de la classe.
         if (! $this->parcours->peutAjouter($classroom, (int) $valide['exercise_id'])) {
@@ -164,12 +188,43 @@ class ParcoursClasseController extends Controller
         return back()->with('success', 'Étape ajoutée au parcours.');
     }
 
+    /**
+     * Le replay d'un live comme etape : seulement un live de CETTE classe
+     * (ses eleves seuls ont acces a la salle), replay publie avec son lien.
+     */
+    private function ajouterReplay(Request $request, Classroom $classroom, int $liveId, array $valide): RedirectResponse
+    {
+        $live = LiveSession::find($liveId);
+        if (! $this->parcours->replayJouable($classroom, $live)) {
+            return back()->withErrors(['live_session_id' => 'Ce replay ne peut pas entrer dans le parcours de cette classe : publiez d’abord le replay d’un live de la classe.']);
+        }
+        if ($classroom->pathSteps()->where('live_session_id', $live->id)->exists()) {
+            return back()->withErrors(['live_session_id' => 'Ce replay est déjà dans le parcours de cette classe.']);
+        }
+
+        $classroom->pathSteps()->create([
+            'position' => ((int) $classroom->pathSteps()->max('position')) + 1,
+            'live_session_id' => $live->id,
+            'titre' => $valide['titre'] ?? null,
+            'consigne' => $valide['consigne'] ?? null,
+            'seuil_reussite' => null,
+            'created_by' => $request->user()->id,
+        ]);
+
+        return back()->with('success', 'Replay ajouté au parcours.');
+    }
+
     public function update(Request $request, Classroom $classroom, ClassroomPathStep $etape): RedirectResponse
     {
         $this->authorize('update', $classroom);
         abort_unless($etape->classroom_id === $classroom->id, 404);
 
-        $etape->update($request->validate($this->regles()));
+        $donnees = $request->validate($this->regles());
+        // Un replay n'a pas de score : pas de seuil de reussite.
+        if ($etape->estUnReplay()) {
+            $donnees['seuil_reussite'] = null;
+        }
+        $etape->update($donnees);
 
         return back()->with('success', 'Étape modifiée.');
     }
@@ -229,8 +284,15 @@ class ParcoursClasseController extends Controller
         $doublons = 0;
         DB::transaction(function () use ($source, $classroom, $request, &$copiees, &$ecartees, &$doublons) {
             $position = (int) $classroom->pathSteps()->max('position');
-            $presents = $classroom->pathSteps()->pluck('exercise_id')->map(fn ($id) => (int) $id)->all();
+            $presents = $classroom->pathSteps()->whereNotNull('exercise_id')->pluck('exercise_id')->map(fn ($id) => (int) $id)->all();
             foreach ($source->pathSteps()->get() as $etape) {
+                // Le replay d'un live de l'autre classe : ses eleves a elle
+                // seuls ont acces a la salle, on ne le reprend pas.
+                if ($etape->estUnReplay()) {
+                    $ecartees++;
+
+                    continue;
+                }
                 // Deja dans le parcours (copie faite deux fois, exercices en
                 // commun) : on ne double pas l'etape.
                 if (in_array((int) $etape->exercise_id, $presents, true)) {
@@ -260,7 +322,7 @@ class ParcoursClasseController extends Controller
             ? 'Aucune étape copiée.'
             : "{$copiees} étape".($copiees > 1 ? 's copiées' : ' copiée')." depuis « {$source->name} ».";
         if ($ecartees > 0) {
-            $message .= " {$ecartees} écartée".($ecartees > 1 ? 's' : '').' : exercice d’un autre examen ou retiré.';
+            $message .= " {$ecartees} écartée".($ecartees > 1 ? 's' : '').' : exercice d’un autre examen ou retiré, ou replay d’un live de l’autre classe.';
         }
         if ($doublons > 0) {
             $message .= " {$doublons} déjà dans le parcours.";

@@ -5,6 +5,8 @@ namespace App\Services\Center;
 use App\Models\Classroom;
 use App\Models\ClassroomPathStep;
 use App\Models\Exercise;
+use App\Models\LiveParticipant;
+use App\Models\LiveSession;
 use App\Models\User;
 use App\Models\UserExerciseAttempt;
 use Illuminate\Database\Eloquent\Builder;
@@ -15,7 +17,8 @@ use Illuminate\Support\Collection;
  * centre », AContenuEleves).
  *
  * Une etape = un exercice, du centre ou du vivier PrePla de l'examen de la
- * classe. Jamais l'exercice prive d'un autre centre, ni un exercice de lecon,
+ * classe, ou le replay publie d'un live de cette meme classe (fait quand
+ * l'eleve a assiste au live ou ouvert le replay). Jamais l'exercice prive d'un autre centre, ni un exercice de lecon,
  * de noeud ou d'epreuve blanche : ceux-la appartiennent a quelqu'un d'autre.
  *
  * La progression n'a pas de table : une etape est faite quand l'eleve a tente
@@ -106,7 +109,7 @@ class ParcoursDeClasse
     /** Les etapes, dans l'ordre, avec leur exercice. */
     public function etapes(Classroom $classe): Collection
     {
-        return $classe->pathSteps()->with('exercise.exerciseType:id,name,skill_type')->get();
+        return $classe->pathSteps()->with(['exercise.exerciseType:id,name,skill_type', 'liveSession'])->get();
     }
 
     /**
@@ -117,14 +120,50 @@ class ParcoursDeClasse
     public function etapesJouables(Classroom $classe, ?Collection $etapes = null): Collection
     {
         $etapes ??= $this->etapes($classe);
-        $jouables = $this->jouables($classe, $etapes->pluck('exercise_id'));
+        $jouables = $this->jouables($classe, $etapes->whereNotNull('exercise_id')->pluck('exercise_id'));
 
-        return $etapes->filter(fn (ClassroomPathStep $e) => in_array((int) $e->exercise_id, $jouables, true))->values();
+        return $etapes->filter(fn (ClassroomPathStep $e) => $e->estUnReplay()
+            ? $this->replayJouable($classe, $e->liveSession)
+            : in_array((int) $e->exercise_id, $jouables, true))->values();
+    }
+
+    /**
+     * Le replay de ce live peut-il etre une etape du parcours de cette classe ?
+     * Seulement un live de la classe elle-meme (ses eleves seuls ont acces a la
+     * salle), non annule, dont le replay est publie avec un lien.
+     */
+    public function replayJouable(Classroom $classe, ?LiveSession $live): bool
+    {
+        return $live !== null
+            && $live->classroom_id === $classe->id
+            && $live->center_id === $classe->center_id
+            && $live->cancelled_at === null
+            && $live->replay_published
+            && trim((string) $live->recording_url) !== '';
     }
 
     /** Ce qu'on affiche d'une etape, cote centre comme cote eleve. */
     public function decrire(ClassroomPathStep $etape, int $numero, int $total): array
     {
+        if ($etape->estUnReplay()) {
+            return [
+                'id' => $etape->id,
+                'numero' => $numero,
+                'total' => $total,
+                'kind' => 'replay',
+                'exercise_id' => null,
+                'live_session_id' => $etape->live_session_id,
+                'url' => route('live.replay', $etape->live_session_id),
+                'titre' => $this->titre($etape),
+                'consigne' => $etape->consigne,
+                'seuil_reussite' => null,
+                'type' => 'Replay de live',
+                'competence' => null,
+                'niveau' => null,
+                'source' => 'centre',
+            ];
+        }
+
         $exercice = $etape->exercise;
         $competence = $exercice?->exerciseType?->skill_type;
 
@@ -132,7 +171,10 @@ class ParcoursDeClasse
             'id' => $etape->id,
             'numero' => $numero,
             'total' => $total,
+            'kind' => 'exercice',
             'exercise_id' => $etape->exercise_id,
+            'live_session_id' => null,
+            'url' => route('exercise.show', $etape->exercise_id),
             'titre' => $this->titre($etape),
             'consigne' => $etape->consigne,
             'seuil_reussite' => $etape->seuil_reussite,
@@ -145,6 +187,11 @@ class ParcoursDeClasse
 
     public function titre(ClassroomPathStep $etape): string
     {
+        if ($etape->estUnReplay()) {
+            return trim((string) $etape->titre) !== ''
+                ? $etape->titre
+                : 'Replay : '.($etape->liveSession?->title ?? 'live');
+        }
         $exercice = $etape->exercise;
 
         return trim((string) $etape->titre) !== ''
@@ -164,19 +211,33 @@ class ParcoursDeClasse
             return $eleves->mapWithKeys(fn ($id) => [$id => collect()]);
         }
 
+        // Les replays : faits si l'eleve a rejoint le live ou ouvert le replay.
+        $lives = $etapes->whereNotNull('live_session_id')->pluck('live_session_id')->unique();
+        $vus = $lives->isEmpty() ? collect() : LiveParticipant::query()
+            ->whereIn('live_session_id', $lives)
+            ->whereIn('user_id', $eleves)
+            ->where(fn ($q) => $q->whereNotNull('joined_at')->orWhereNotNull('replay_vu_at'))
+            ->get(['user_id', 'live_session_id'])
+            ->groupBy('user_id')
+            ->map(fn ($l) => $l->pluck('live_session_id')->map(fn ($id) => (int) $id));
+
         // Une seule requete : la meilleure reussite de chacun sur chaque exercice.
         $meilleures = UserExerciseAttempt::query()
             ->whereIn('user_id', $eleves)
-            ->whereIn('exercise_id', $etapes->pluck('exercise_id')->unique())
+            ->whereIn('exercise_id', $etapes->whereNotNull('exercise_id')->pluck('exercise_id')->unique())
             ->selectRaw('user_id, exercise_id, MAX(COALESCE(accuracy_percent, 0)) as meilleure')
             ->groupBy('user_id', 'exercise_id')
             ->get()
             ->groupBy('user_id');
 
-        return $eleves->mapWithKeys(function ($id) use ($etapes, $meilleures) {
+        return $eleves->mapWithKeys(function ($id) use ($etapes, $meilleures, $vus) {
             $siennes = ($meilleures->get($id) ?? collect())->keyBy(fn ($t) => (int) $t->exercise_id);
+            $replays = $vus->get($id) ?? collect();
 
-            return [$id => $etapes->filter(function (ClassroomPathStep $etape) use ($siennes) {
+            return [$id => $etapes->filter(function (ClassroomPathStep $etape) use ($siennes, $replays) {
+                if ($etape->estUnReplay()) {
+                    return $replays->contains((int) $etape->live_session_id);
+                }
                 $tentative = $siennes->get($etape->exercise_id);
 
                 return $tentative !== null

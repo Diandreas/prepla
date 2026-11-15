@@ -1,12 +1,16 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
+import BandeauLive from '@/components/live/bandeau-live';
 import { ArrowRight, CheckCircle2, Circle, Lock } from 'lucide-react';
 
 interface EtapeDeLEleve {
     id: number;
     numero: number;
     total: number;
-    exercise_id: number;
+    kind: 'exercice' | 'replay';
+    exercise_id: number | null;
+    live_session_id: number | null;
+    url: string;
     titre: string;
     consigne: string | null;
     seuil_reussite: number | null;
@@ -35,6 +39,9 @@ export default function MonParcours({ classe, parcours, devoirsEnAttente }: { cl
                         {classe ? `Préparé par ton centre pour ta classe « ${classe} ».` : 'Préparé par ton centre pour ta classe.'}
                     </p>
                 </div>
+
+                {/* Les lives de sa classe : en cours, ou le prochain. */}
+                <BandeauLive />
 
                 {flash?.success && (
                     <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300">
@@ -112,8 +119,13 @@ export default function MonParcours({ classe, parcours, devoirsEnAttente }: { cl
                                     <li key={etape.id}>
                                         {etape.statut === 'a_venir' ? (
                                             <div className={classes}>{contenu}</div>
+                                        ) : etape.kind === 'replay' ? (
+                                            // Le replay part vers l'enregistrement (Drive, YouTube…) : lien classique, nouvel onglet.
+                                            <a href={etape.url} target="_blank" rel="noopener noreferrer" className={`${classes} transition hover:border-primary/40`}>
+                                                {contenu}
+                                            </a>
                                         ) : (
-                                            <Link href={route('exercise.show', etape.exercise_id)} className={`${classes} transition hover:border-primary/40`}>
+                                            <Link href={etape.url} className={`${classes} transition hover:border-primary/40`}>
                                                 {contenu}
                                             </Link>
                                         )}

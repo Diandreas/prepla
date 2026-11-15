@@ -13,7 +13,10 @@ interface Etape {
     id: number;
     numero: number;
     total: number;
-    exercise_id: number;
+    kind: 'exercice' | 'replay';
+    exercise_id: number | null;
+    live_session_id: number | null;
+    url: string;
     titre: string;
     consigne: string | null;
     seuil_reussite: number | null;
@@ -32,6 +35,12 @@ interface ExerciceChoisissable {
     niveau: string | null;
     deja_pris: boolean;
 }
+interface ReplayChoisissable {
+    id: number;
+    titre: string;
+    date: string;
+    deja_pris: boolean;
+}
 interface Avancement {
     id: number;
     name: string;
@@ -47,6 +56,7 @@ interface Props {
     avancement: Avancement[];
     banque: ExerciceChoisissable[];
     exercicesCentre: ExerciceChoisissable[];
+    replays: ReplayChoisissable[];
     filtres: { q: string; competence: string; niveau: string };
     competences: { value: string; label: string }[];
     autresClasses: { id: number; name: string; etapes: number }[];
@@ -94,13 +104,19 @@ function LigneEtape({ classroomId, etape, premiere, derniere }: { classroomId: n
                             <span>{t(etape.type)}</span>
                             {etape.competence && <span>· {t(etape.competence)}</span>}
                             {etape.niveau && <span>· {etape.niveau}</span>}
-                            <span>· {etape.source === 'centre' ? t('Exercice du centre') : t('Banque PrePla')}</span>
+                            {etape.kind === 'exercice' && <span>· {etape.source === 'centre' ? t('Exercice du centre') : t('Banque PrePla')}</span>}
                             {etape.seuil_reussite && <span>· {t('Réussite ≥ {seuil} %', { seuil: etape.seuil_reussite })}</span>}
                         </p>
                         {etape.consigne && <p className="mt-1 text-xs">{etape.consigne}</p>}
                         {!etape.jouable && (
                             <p className="mt-1 text-xs font-medium text-amber-700 dark:text-amber-300">
-                                {t("Vos élèves ne voient plus cette étape : l'exercice n'appartient pas à l'examen actuel de la classe, ou il a été retiré. Retirez-la ou remplacez-la.")}
+                                {etape.kind === 'replay'
+                                    ? t(
+                                          "Vos élèves ne voient plus cette étape : le replay n'est plus publié, ou le live a été annulé. Republiez-le depuis le bilan du live, ou retirez l'étape.",
+                                      )
+                                    : t(
+                                          "Vos élèves ne voient plus cette étape : l'exercice n'appartient pas à l'examen actuel de la classe, ou il a été retiré. Retirez-la ou remplacez-la.",
+                                      )}
                             </p>
                         )}
                     </div>
@@ -140,7 +156,7 @@ function LigneEtape({ classroomId, etape, premiere, derniere }: { classroomId: n
             </div>
             {ouverte && (
                 <form onSubmit={enregistrer} className="border-border mt-3 grid gap-3 border-t pt-3">
-                    <div className="grid gap-3 sm:grid-cols-[1fr_9rem]">
+                    <div className={`grid gap-3 ${etape.kind === 'exercice' ? 'sm:grid-cols-[1fr_9rem]' : ''}`}>
                         <div className="grid gap-1.5">
                             <label htmlFor={`titre-${etape.id}`} className="text-xs font-semibold">
                                 {t('Titre (facultatif)')}
@@ -155,22 +171,24 @@ function LigneEtape({ classroomId, etape, premiere, derniere }: { classroomId: n
                             />
                             <InputError message={form.errors.titre} />
                         </div>
-                        <div className="grid gap-1.5">
-                            <label htmlFor={`seuil-${etape.id}`} className="text-xs font-semibold">
-                                {t('Seuil de réussite')}
-                            </label>
-                            <input
-                                id={`seuil-${etape.id}`}
-                                type="number"
-                                min={1}
-                                max={100}
-                                className={champ}
-                                placeholder={t('Aucun')}
-                                value={form.data.seuil_reussite}
-                                onChange={(e) => form.setData('seuil_reussite', e.target.value)}
-                            />
-                            <InputError message={form.errors.seuil_reussite} />
-                        </div>
+                        {etape.kind === 'exercice' && (
+                            <div className="grid gap-1.5">
+                                <label htmlFor={`seuil-${etape.id}`} className="text-xs font-semibold">
+                                    {t('Seuil de réussite')}
+                                </label>
+                                <input
+                                    id={`seuil-${etape.id}`}
+                                    type="number"
+                                    min={1}
+                                    max={100}
+                                    className={champ}
+                                    placeholder={t('Aucun')}
+                                    value={form.data.seuil_reussite}
+                                    onChange={(e) => form.setData('seuil_reussite', e.target.value)}
+                                />
+                                <InputError message={form.errors.seuil_reussite} />
+                            </div>
+                        )}
                     </div>
                     <div className="grid gap-1.5">
                         <label htmlFor={`consigne-${etape.id}`} className="text-xs font-semibold">
@@ -187,7 +205,11 @@ function LigneEtape({ classroomId, etape, premiere, derniere }: { classroomId: n
                         <InputError message={form.errors.consigne} />
                     </div>
                     <p className="text-muted-foreground text-xs">
-                        {t("Sans seuil, l'étape est faite dès que l'élève a terminé l'exercice. Avec un seuil, il doit atteindre ce pourcentage de réussite.")}
+                        {etape.kind === 'replay'
+                            ? t("L'étape est faite quand l'élève a assisté au live ou ouvert le replay.")
+                            : t(
+                                  "Sans seuil, l'étape est faite dès que l'élève a terminé l'exercice. Avec un seuil, il doit atteindre ce pourcentage de réussite.",
+                              )}
                     </p>
                     <div>
                         <Button type="submit" size="sm" disabled={form.processing}>
@@ -235,6 +257,39 @@ function ExerciceAAjouter({ classroomId, exercice }: { classroomId: number; exer
     );
 }
 
+/** Le replay publié d'un live de la classe, à ajouter comme étape. */
+function ReplayAAjouter({ classroomId, replay }: { classroomId: number; replay: ReplayChoisissable }) {
+    const { t, locale } = useT();
+    const [envoi, setEnvoi] = useState(false);
+    function ajouter() {
+        router.post(
+            route('center.classes.parcours.store', classroomId),
+            { live_session_id: replay.id },
+            { preserveScroll: true, onStart: () => setEnvoi(true), onFinish: () => setEnvoi(false) },
+        );
+    }
+    return (
+        <li className="border-border flex items-center justify-between gap-3 rounded-lg border p-2.5 text-sm">
+            <div className="min-w-0">
+                <p className="truncate font-medium">{replay.titre}</p>
+                <p className="text-muted-foreground truncate text-xs">
+                    {t('Replay de live')} · {new Date(replay.date).toLocaleDateString(locale)}
+                    {replay.deja_pris && ` · ${t('déjà dans le parcours')}`}
+                </p>
+            </div>
+            <Button variant="outline" size="sm" onClick={ajouter} disabled={envoi || replay.deja_pris} className="shrink-0">
+                {replay.deja_pris ? (
+                    t('Déjà ajouté')
+                ) : (
+                    <>
+                        <Plus size={14} /> {t('Ajouter')}
+                    </>
+                )}
+            </Button>
+        </li>
+    );
+}
+
 /**
  * Le parcours d'une classe, construit par le centre : la liste ordonnée des
  * étapes, de quoi en ajouter (exercices du centre ou banque PrePla de l'examen
@@ -248,13 +303,14 @@ export default function ParcoursDeClasse({
     avancement,
     banque,
     exercicesCentre,
+    replays,
     filtres,
     competences,
     autresClasses,
 }: Props) {
     const { t } = useT();
     const { flash, errors } = usePage().props as { flash?: { success?: string }; errors?: Record<string, string> };
-    const [source, setSource] = useState<'prepla' | 'centre'>('prepla');
+    const [source, setSource] = useState<'prepla' | 'centre' | 'replays'>('prepla');
     const [recherche, setRecherche] = useState(filtres);
     const [copieDepuis, setCopieDepuis] = useState('');
 
@@ -294,7 +350,8 @@ export default function ParcoursDeClasse({
 
                 {!contenuCentre && (
                     <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
-                        {t('Votre espace utilise le')} <strong>{t('parcours PrePla par défaut')}</strong>{t(' : vos élèves ne voient pas encore ce parcours.')}{' '}
+                        {t('Votre espace utilise le')} <strong>{t('parcours PrePla par défaut')}</strong>
+                        {t(' : vos élèves ne voient pas encore ce parcours.')}{' '}
                         {peutChangerLeReglage ? (
                             <Link href={`${route('center.personnalisation.edit')}#contenu-eleves`} className="font-semibold underline">
                                 {t('Passer au « Parcours créé par le centre »')}
@@ -311,6 +368,7 @@ export default function ParcoursDeClasse({
                     </div>
                 )}
                 <InputError message={errors?.exercise_id} />
+                <InputError message={errors?.live_session_id} />
 
                 <Card>
                     <CardHeader>
@@ -365,8 +423,12 @@ export default function ParcoursDeClasse({
                         <CardTitle className="text-base">{t('Ajouter une étape')}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                        <div role="tablist" aria-label={t('Origine des exercices')} className="border-border inline-flex rounded-lg border p-0.5 text-sm">
-                            {(['prepla', 'centre'] as const).map((s) => (
+                        <div
+                            role="tablist"
+                            aria-label={t('Origine des exercices')}
+                            className="border-border inline-flex rounded-lg border p-0.5 text-sm"
+                        >
+                            {(['prepla', 'centre', 'replays'] as const).map((s) => (
                                 <button
                                     key={s}
                                     role="tab"
@@ -374,12 +436,36 @@ export default function ParcoursDeClasse({
                                     onClick={() => setSource(s)}
                                     className={`rounded-md px-3 py-1.5 ${source === s ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                                 >
-                                    {s === 'prepla' ? t('Banque PrePla') : t('Exercices du centre ({n})', { n: exercicesCentre.length })}
+                                    {s === 'prepla'
+                                        ? t('Banque PrePla')
+                                        : s === 'centre'
+                                          ? t('Exercices du centre ({n})', { n: exercicesCentre.length })
+                                          : t('Replays de live ({n})', { n: replays.length })}
                                 </button>
                             ))}
                         </div>
 
-                        {source === 'prepla' ? (
+                        {source === 'replays' ? (
+                            replays.length === 0 ? (
+                                <p className="text-muted-foreground text-sm">
+                                    {t(
+                                        "Aucun replay publié pour cette classe. Après un live, collez le lien de l'enregistrement dans son bilan et publiez le replay.",
+                                    )}{' '}
+                                    <Link
+                                        href={route('center.lives.index', { classe: classroom.id })}
+                                        className="text-primary font-semibold hover:underline"
+                                    >
+                                        {t('Live class')}
+                                    </Link>
+                                </p>
+                            ) : (
+                                <ul className="space-y-2">
+                                    {replays.map((r) => (
+                                        <ReplayAAjouter key={r.id} classroomId={classroom.id} replay={r} />
+                                    ))}
+                                </ul>
+                            )
+                        ) : source === 'prepla' ? (
                             <>
                                 <form onSubmit={chercher} className="grid gap-2 sm:grid-cols-[1fr_11rem_7rem_auto]">
                                     <input
@@ -421,7 +507,9 @@ export default function ParcoursDeClasse({
                                 </form>
                                 <p className="text-muted-foreground text-xs">
                                     {classroom.exam
-                                        ? t("Les exercices PrePla de l'examen de la classe ({examen}), au niveau de la classe par défaut.", { examen: classroom.exam })
+                                        ? t("Les exercices PrePla de l'examen de la classe ({examen}), au niveau de la classe par défaut.", {
+                                              examen: classroom.exam,
+                                          })
                                         : t("Les exercices PrePla de l'examen de la classe, au niveau de la classe par défaut.")}
                                 </p>
                                 {banque.length === 0 ? (
@@ -466,7 +554,11 @@ export default function ParcoursDeClasse({
                                     {a.name}
                                 </Link>
                                 <span className="text-muted-foreground text-xs">
-                                    {a.total === 0 ? '—' : a.actuelle ? t('Étape {numero} : {titre}', { numero: a.actuelle.numero, titre: a.actuelle.titre }) : t('Parcours terminé')}
+                                    {a.total === 0
+                                        ? '—'
+                                        : a.actuelle
+                                          ? t('Étape {numero} : {titre}', { numero: a.actuelle.numero, titre: a.actuelle.titre })
+                                          : t('Parcours terminé')}
                                 </span>
                                 <Badge variant={a.total > 0 && a.faites === a.total ? 'default' : 'secondary'} className="tabular-nums">
                                     {t(a.total > 1 ? '{faites}/{total} étapes' : '{faites}/{total} étape', { faites: a.faites, total: a.total })}
