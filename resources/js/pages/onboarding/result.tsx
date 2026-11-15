@@ -2,6 +2,7 @@ import { router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import OnboardingLayout from '@/layouts/onboarding-layout';
 import PushNotificationToggle from '@/components/push-notification-toggle';
+import { Illustration } from '@/components/illustration';
 import { Renard } from '@/components/renard';
 import { useEffect, useState } from 'react';
 import * as Flags from 'country-flag-icons/react/3x2';
@@ -173,6 +174,8 @@ export default function Result({ profile, exam, program: initialProgram }: Props
     return (
         <OnboardingLayout title="Tes résultats" step={5}>
             <div className="space-y-4 sm:space-y-7 pb-6 sm:pb-8">
+
+                <Illustration src="/illustrations/onboarding/niveau-revele.webp" alt="" size={104} className="-mb-2" />
 
                 {/* Level badge */}
                 {level === 'A0' ? (

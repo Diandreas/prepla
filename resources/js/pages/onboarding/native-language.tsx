@@ -1,3 +1,4 @@
+import { Illustration } from '@/components/illustration';
 import { router } from '@inertiajs/react';
 import OnboardingLayout from '@/layouts/onboarding-layout';
 import * as Flags from 'country-flag-icons/react/3x2';
@@ -48,6 +49,7 @@ export default function NativeLanguage({ currentNativeLanguage, langueDeLExamen 
             <div className="space-y-8">
                 {/* Header */}
                 <div className="text-center">
+                    <Illustration src="/illustrations/onboarding/bonjour.webp" alt="" size={112} className="mb-3" />
                     <h1 className="text-foreground text-2xl font-black tracking-tight sm:text-3xl">
                         Quelle est ta langue maternelle ?
                     </h1>

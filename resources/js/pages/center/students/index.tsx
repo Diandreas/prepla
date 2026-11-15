@@ -419,6 +419,7 @@ export default function StudentsIndex({ students, joursAvantRelance = 7 }: { stu
                 {students.length === 0 ? (
                     <EtatVide
                         icone={GraduationCap}
+                        illustration="/illustrations/centre/inviter-eleves.webp"
                         titre={t("Aucun élève pour l'instant")}
                         texte={t("Partagez le code d'invitation d'une classe : vos élèves s'inscrivent en quelques secondes et apparaissent ici, avec leur suivi et leur classement.")}
                         action={

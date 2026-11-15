@@ -42,6 +42,7 @@ export default function ExamensBlancs({ examens }: { examens: ExamenBlanc[] }) {
                 {examens.length === 0 ? (
                     <EtatVide
                         icone={FileCheck2}
+                        illustration="/illustrations/centre/examen-blanc.webp"
                         titre={t('Aucun examen blanc pour le moment')}
                         texte={t('Choisissez un examen et un niveau : les sections et les parties officielles vous sont proposées.')}
                         action={creer}

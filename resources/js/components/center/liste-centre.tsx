@@ -1,3 +1,4 @@
+import { Illustration } from '@/components/illustration';
 import { Link, router } from '@inertiajs/react';
 import { ChevronRight } from 'lucide-react';
 import { DataTable, type Column } from '@/components/ui/data-table';
@@ -212,19 +213,26 @@ export function EtatVide({
     titre,
     texte,
     action,
+    illustration,
 }: {
     icone: React.ComponentType<{ className?: string }>;
+    /** Une scene du renard a la place de l'icone (decorative : le titre porte le sens). */
+    illustration?: string;
     titre: string;
     texte?: React.ReactNode;
     action?: React.ReactNode;
 }) {
     return (
         <div className="flex flex-col items-center rounded-xl border border-dashed border-border bg-card px-6 py-12 text-center">
-            <span className="relative mb-4 flex h-16 w-16 items-center justify-center">
-                <span className="absolute inset-0 rounded-2xl bg-primary/10 rotate-6" />
-                <span className="absolute inset-0 rounded-2xl border border-primary/20 bg-card -rotate-3" />
-                <Icone className="relative h-7 w-7 text-primary" />
-            </span>
+            {illustration ? (
+                <Illustration src={illustration} alt="" size={128} className="mb-4" />
+            ) : (
+                <span className="relative mb-4 flex h-16 w-16 items-center justify-center">
+                    <span className="absolute inset-0 rounded-2xl bg-primary/10 rotate-6" />
+                    <span className="absolute inset-0 rounded-2xl border border-primary/20 bg-card -rotate-3" />
+                    <Icone className="relative h-7 w-7 text-primary" />
+                </span>
+            )}
             <p className="text-base font-semibold">{titre}</p>
             {texte && <p className="mt-1 max-w-md text-sm text-muted-foreground">{texte}</p>}
             {action && <div className="mt-5">{action}</div>}

@@ -1,3 +1,4 @@
+import { Illustration } from '@/components/illustration';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -317,9 +318,12 @@ export default function ParcoursDeClasse({
                     </CardHeader>
                     <CardContent className="space-y-3">
                         {etapes.length === 0 ? (
+                            <div className="text-center">
+                            <Illustration src="/illustrations/centre/parcours-vide.webp" alt="" size={112} className="mb-2" />
                             <p className="text-muted-foreground text-sm">
                                 {t("Aucune étape pour le moment. Ajoutez des exercices ci-dessous, dans l'ordre où vos élèves doivent les faire.")}
                             </p>
+                            </div>
                         ) : (
                             <ol className="space-y-2">
                                 {etapes.map((etape, i) => (

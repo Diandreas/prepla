@@ -1,3 +1,4 @@
+import { Illustration } from '@/components/illustration';
 import { router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -98,6 +99,7 @@ export default function GoalSetting({ exam, profile, niveauxProposes = [] }: Pro
 
                 {/* Header */}
                 <div className="text-center animate-in fade-in slide-in-from-bottom-2 duration-500 delay-100">
+                    <Illustration src="/illustrations/onboarding/objectif.webp" alt="" size={104} className="mb-3" />
                     <h1 className="text-3xl font-bold tracking-tight">Définis ton objectif</h1>
                     <p className="mt-2 text-muted-foreground">
                         {exam
