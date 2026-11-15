@@ -9,7 +9,6 @@ use App\Models\User;
 use App\Notifications\InvitationEleveNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 
 /**
@@ -19,9 +18,15 @@ use Illuminate\Support\Str;
  * importer() refait la meme analyse (le fichier est renvoye a la validation,
  * rien n'est garde entre les deux) et applique seulement les lignes valides.
  *
- * Statuts : « nouveau » (compte cree), « existant » (compte deja la, rattache),
- * « doublon » (deja dans la classe, ou deux fois dans le fichier : ignore),
- * « erreur » (rien n'est fait, le motif est donne).
+ * Statuts :
+ *  - « invitation » : adresse hors de ce centre. L'apercu ne dit PAS si un compte
+ *    PrePla existe ni a quel centre il appartient (pas d'enumeration). A l'import,
+ *    une adresse inconnue recoit un compte et entre dans la classe ; un compte
+ *    existant n'est rattache a rien : il recoit seulement une invitation avec le
+ *    code de la classe, et c'est lui qui accepte (JoinCenterController).
+ *  - « existant » : deja eleve de CE centre, ajoute a la classe.
+ *  - « doublon » (deja dans la classe, ou deux fois dans le fichier : ignore),
+ *  - « erreur » (rien n'est fait, le motif est donne).
  */
 class ImportEleves
 {
@@ -79,7 +84,8 @@ class ImportEleves
                     $erreurs[] = $motif;
                 }
                 // Une place par eleve qui entre dans le centre.
-                if (in_array($statut, ['nouveau', 'existant'], true) && ! $this->dejaEleve($centre, $email)) {
+                // Compte conservateur : toute invitation peut devenir un eleve.
+                if ($statut === 'invitation') {
                     if ($placesRestantes < 1) {
                         $statut = 'erreur';
                         $erreurs[] = "Plus de licence disponible dans votre centre pour cet élève.";
@@ -108,13 +114,16 @@ class ImportEleves
     }
 
     /**
-     * Applique les lignes « nouveau » et « existant » d'une analyse.
+     * Applique les lignes « invitation » et « existant » d'une analyse.
      *
-     * @return array{crees:int, rattaches:int, ignores:int, erreurs:int}
+     * Le bilan ne separe pas comptes crees et comptes existants invites : ce
+     * serait la meme enumeration que l'apercu evite.
+     *
+     * @return array{invites:int, rattaches:int, ignores:int, erreurs:int}
      */
     public function importer(LanguageCenter $centre, array $analyse): array
     {
-        $bilan = ['crees' => 0, 'rattaches' => 0, 'ignores' => 0, 'erreurs' => 0];
+        $bilan = ['invites' => 0, 'rattaches' => 0, 'ignores' => 0, 'erreurs' => 0];
         $invitations = [];
 
         DB::transaction(function () use ($centre, $analyse, &$bilan, &$invitations) {
@@ -132,9 +141,15 @@ class ImportEleves
 
                 $classe = Classroom::where('center_id', $centre->id)->findOrFail($ligne['classe_id']);
                 $user = User::where('email', $ligne['email'])->first();
-                $jeton = null;
 
-                if (! $user) {
+                if ($ligne['statut'] === 'invitation') {
+                    $bilan['invites']++;
+                    if ($user) {
+                        // Compte deja la, hors de ce centre : aucune inscription d'office.
+                        $invitations[] = [$user, InvitationEleveNotification::pour($classe->setRelation('center', $centre), $user, 'rejoindre')];
+
+                        continue;
+                    }
                     $user = User::create([
                         'name' => $ligne['nom'],
                         'email' => $ligne['email'],
@@ -142,13 +157,21 @@ class ImportEleves
                         // Personne ne connait ce mot de passe : l'eleve choisit le sien par le lien.
                         'password' => Hash::make(Str::random(40)),
                     ]);
-                    $jeton = Password::broker()->createToken($user);
-                    $bilan['crees']++;
+                    $mode = 'nouveau';
                 } else {
+                    // Deja eleve de ce centre (statut verifie a l'analyse, revu ici).
+                    $estEleve = $user && CenterUser::where('center_id', $centre->id)->where('user_id', $user->id)
+                        ->where('role', 'student')->exists();
+                    if (! $estEleve) {
+                        $bilan['erreurs']++;
+
+                        continue;
+                    }
                     if ($ligne['telephone'] && ! $user->phone) {
                         $user->forceFill(['phone' => $ligne['telephone']])->save();
                     }
                     $bilan['rattaches']++;
+                    $mode = 'classe';
                 }
 
                 CenterUser::firstOrCreate(
@@ -157,7 +180,7 @@ class ImportEleves
                 );
                 $classe->members()->syncWithoutDetaching([$user->id => ['role_in_class' => 'student']]);
 
-                $invitations[] = [$user, InvitationEleveNotification::pour($classe->setRelation('center', $centre), $user->email, $jeton)];
+                $invitations[] = [$user, InvitationEleveNotification::pour($classe->setRelation('center', $centre), $user, $mode)];
             }
         });
 
@@ -177,16 +200,14 @@ class ImportEleves
         }
 
         $user = User::where('email', $email)->first();
-        if (! $user) {
-            return ['nouveau', null];
-        }
+        $ici = $user ? CenterUser::where('center_id', $centre->id)->where('user_id', $user->id)->first() : null;
 
-        $appartenances = CenterUser::where('user_id', $user->id)->get();
-        if ($appartenances->contains(fn ($a) => $a->center_id !== $centre->id)) {
-            return ['erreur', 'Ce compte appartient à un autre établissement.'];
+        // Hors de ce centre (adresse inconnue, compte libre ou d'un autre
+        // etablissement) : meme reponse, rien n'est revele.
+        if (! $ici) {
+            return ['invitation', null];
         }
-        $ici = $appartenances->firstWhere('center_id', $centre->id);
-        if ($ici && $ici->role !== 'student') {
+        if ($ici->role !== 'student') {
             return ['erreur', "Ce compte fait partie de l'équipe du centre, pas des élèves."];
         }
         if ($classe->members()->where('users.id', $user->id)->exists()) {
@@ -194,11 +215,5 @@ class ImportEleves
         }
 
         return ['existant', null];
-    }
-
-    private function dejaEleve(LanguageCenter $centre, string $email): bool
-    {
-        return CenterUser::where('center_id', $centre->id)->where('role', 'student')
-            ->whereHas('user', fn ($q) => $q->where('email', $email))->exists();
     }
 }

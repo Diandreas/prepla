@@ -10,7 +10,7 @@ import { useT } from '@/lib/i18n/traduire';
 
 interface Ligne {
     ligne: number;
-    statut: 'nouveau' | 'existant' | 'doublon' | 'erreur' | 'valide';
+    statut: 'invitation' | 'existant' | 'doublon' | 'erreur' | 'valide';
     erreurs: string[];
     [cle: string]: unknown;
 }
@@ -24,7 +24,7 @@ interface Props {
 }
 
 const TON: Record<Ligne['statut'], 'default' | 'secondary' | 'destructive' | 'outline'> = {
-    nouveau: 'default',
+    invitation: 'default',
     existant: 'default',
     valide: 'default',
     doublon: 'secondary',
@@ -32,8 +32,8 @@ const TON: Record<Ligne['statut'], 'default' | 'secondary' | 'destructive' | 'ou
 };
 
 const LIBELLE: Record<Ligne['statut'], string> = {
-    nouveau: 'Nouveau compte',
-    existant: 'Compte existant',
+    invitation: 'À inviter',
+    existant: 'Déjà élève du centre',
     valide: 'Valide',
     doublon: 'Doublon ignoré',
     erreur: 'Erreur',
@@ -99,7 +99,7 @@ function BlocImport({
         }
     }
 
-    const aImporter = lignes?.filter((l) => ['nouveau', 'existant', 'valide'].includes(l.statut)).length ?? 0;
+    const aImporter = lignes?.filter((l) => ['invitation', 'existant', 'valide'].includes(l.statut)).length ?? 0;
 
     return (
         <Card>
@@ -201,7 +201,7 @@ export default function Import({ classes, examens, peutImporterExercices, limite
                 <BlocImport
                     titre={t('Élèves')}
                     description={t(
-                        'Colonnes : nom, email, telephone (facultatif), classe. {max} lignes au plus. Chaque élève reçoit une invitation par email. Licences disponibles : {places}.',
+                        'Colonnes : nom, email, telephone (facultatif), classe. {max} lignes au plus. Chaque élève reçoit une invitation par email ; une personne qui a déjà un compte PrePla n’entre dans la classe qu’en acceptant l’invitation. Licences disponibles : {places}.',
                         { max: limites.eleves, places },
                     )}
                     accept=".csv,text/csv"
@@ -215,8 +215,8 @@ export default function Import({ classes, examens, peutImporterExercices, limite
                         { cle: 'classe', titre: t('Classe') },
                     ]}
                     bilanTexte={(b) =>
-                        t('{crees} comptes créés, {rattaches} comptes rattachés, {ignores} doublons ignorés, {erreurs} lignes en erreur.', {
-                            crees: b.crees ?? 0,
+                        t('{invites} invitations envoyées, {rattaches} élèves du centre ajoutés à leur classe, {ignores} doublons ignorés, {erreurs} lignes en erreur.', {
+                            invites: b.invites ?? 0,
                             rattaches: b.rattaches ?? 0,
                             ignores: b.ignores ?? 0,
                             erreurs: b.erreurs ?? 0,

@@ -66,7 +66,7 @@ it('montre un apercu ligne par ligne sans rien enregistrer', function () {
         'Awa bis;AWA@exemple.com;;b1 du soir',
     )])->assertOk();
 
-    expect($res->json('lignes.0.statut'))->toBe('nouveau')
+    expect($res->json('lignes.0.statut'))->toBe('invitation')
         ->and($res->json('lignes.1.statut'))->toBe('erreur')
         ->and($res->json('lignes.1.ligne'))->toBe(3)
         ->and($res->json('lignes.1.erreurs'))->toHaveCount(3)
@@ -81,33 +81,70 @@ it('importe les eleves valides, ignore les doublons et envoie une invitation', f
     $deja = User::factory()->create(['email' => 'deja@exemple.com']);
     CenterUser::create(['center_id' => $c['centre']->id, 'user_id' => $deja->id, 'role' => 'student', 'joined_at' => now()]);
     $c['classe']->members()->attach($deja->id, ['role_in_class' => 'student']);
-    $libre = User::factory()->create(['email' => 'libre@exemple.com']);
+    $ancien = User::factory()->create(['email' => 'ancien@exemple.com']);
+    CenterUser::create(['center_id' => $c['centre']->id, 'user_id' => $ancien->id, 'role' => 'student', 'joined_at' => now()]);
 
     $res = $this->actingAs($c['resp'])->post(route('center.import.eleves'), ['fichier' => csvEleves(
         'Awa Diallo;awa@exemple.com;+33 6 12 34 56 78;B1 du soir',
         'Deja la;deja@exemple.com;;B1 du soir',
-        'Libre;libre@exemple.com;;B1 du soir',
+        'Ancien;ancien@exemple.com;;B1 du soir',
         'Sans classe;x@exemple.com;;Inconnue',
     )])->assertOk();
 
-    expect($res->json('bilan'))->toBe(['crees' => 1, 'rattaches' => 1, 'ignores' => 1, 'erreurs' => 1]);
+    expect($res->json('bilan'))->toBe(['invites' => 1, 'rattaches' => 1, 'ignores' => 1, 'erreurs' => 1]);
 
     $awa = User::where('email', 'awa@exemple.com')->sole();
     expect($awa->phone)->toBe('+33 6 12 34 56 78')
         ->and($c['classe']->students()->pluck('users.id')->sort()->values()->all())
-        ->toEqual(collect([$deja->id, $libre->id, $awa->id])->sort()->values()->all());
+        ->toEqual(collect([$deja->id, $ancien->id, $awa->id])->sort()->values()->all());
 
-    // Compte cree : le lien choisit le mot de passe, avec un jeton valable.
-    Notification::assertSentTo($awa, InvitationEleveNotification::class, function ($n) use ($awa) {
-        $jeton = urldecode(explode('?', basename($n->lien))[0]);
-
-        return $n->nouveauCompte && Password::broker()->tokenExists($awa, $jeton);
-    });
-    Notification::assertSentTo($libre, InvitationEleveNotification::class, fn ($n) => ! $n->nouveauCompte);
+    Notification::assertSentTo($awa, InvitationEleveNotification::class, fn ($n) => $n->mode === 'nouveau');
+    Notification::assertSentTo($ancien, InvitationEleveNotification::class, fn ($n) => $n->mode === 'classe');
     Notification::assertNotSentTo($deja, InvitationEleveNotification::class);
 });
 
-it("refuse un compte d'un autre centre ou de l'equipe, et une classe d'un autre centre", function () {
+it("n'inscrit pas d'office un compte PrePla existant : il recoit seulement une invitation avec le code", function () {
+    $c = importCentre();
+    $libre = User::factory()->create(['email' => 'libre@exemple.com', 'phone' => null]);
+
+    $res = $this->actingAs($c['resp'])->post(route('center.import.eleves'), ['fichier' => csvEleves(
+        'Libre;libre@exemple.com;+33 6 00 00 00 00;B1 du soir',
+    )])->assertOk();
+
+    expect($res->json('bilan.invites'))->toBe(1)
+        ->and(CenterUser::where('user_id', $libre->id)->exists())->toBeFalse()
+        ->and($c['classe']->members()->where('users.id', $libre->id)->exists())->toBeFalse()
+        ->and($libre->fresh()->phone)->toBeNull();
+
+    Notification::assertSentTo($libre, InvitationEleveNotification::class, fn ($n) => $n->mode === 'rejoindre'
+        && $n->code === $c['classe']->invite_code
+        && str_contains($n->lien, 'code='.$c['classe']->invite_code));
+
+    // C'est lui qui accepte, avec le code.
+    $this->actingAs($libre)->post(route('center.join.store'), ['code' => $c['classe']->invite_code]);
+    expect($c['classe']->members()->where('users.id', $libre->id)->exists())->toBeTrue();
+});
+
+it("l'apercu ne revele ni l'existence d'un compte ni son centre", function () {
+    $a = importCentre('centre-a');
+    $b = importCentre('centre-b');
+    $eleveB = User::factory()->create(['email' => 'eleve-b@exemple.com']);
+    CenterUser::create(['center_id' => $b['centre']->id, 'user_id' => $eleveB->id, 'role' => 'student', 'joined_at' => now()]);
+    User::factory()->create(['email' => 'libre@exemple.com']);
+
+    $res = $this->actingAs($a['resp'])->post(route('center.import.eleves.apercu'), ['fichier' => csvEleves(
+        'Eleve B;eleve-b@exemple.com;;B1 du soir',
+        'Libre;libre@exemple.com;;B1 du soir',
+        'Inconnu;inconnu@exemple.com;;B1 du soir',
+    )])->assertOk();
+
+    $lignes = collect($res->json('lignes'));
+    expect($lignes->pluck('statut')->unique()->values()->all())->toBe(['invitation'])
+        ->and($lignes->pluck('erreurs')->flatten()->all())->toBe([])
+        ->and($res->json('resume'))->toBe(['invitation' => 3]);
+});
+
+it("refuse un membre de l'equipe et une classe d'un autre centre, sans rattacher l'eleve d'un autre centre", function () {
     $a = importCentre('centre-a');
     $b = importCentre('centre-b');
     $b['centre']->classrooms()->create(['name' => 'Classe B', 'invite_code' => Classroom::generateInviteCode()]);
@@ -120,10 +157,46 @@ it("refuse un compte d'un autre centre ou de l'equipe, et une classe d'un autre 
         'Intrus;intrus@exemple.com;;Classe B',
     )])->assertOk();
 
-    expect($res->json('bilan.erreurs'))->toBe(3)
-        ->and(collect($res->json('lignes'))->pluck('statut')->unique()->all())->toBe(['erreur'])
+    expect($res->json('bilan.erreurs'))->toBe(2)
+        ->and($res->json('lignes.0.statut'))->toBe('invitation')
         ->and(CenterUser::where('user_id', $eleveB->id)->pluck('center_id')->all())->toBe([$b['centre']->id])
         ->and(User::where('email', 'intrus@exemple.com')->exists())->toBeFalse();
+});
+
+it("le lien d'un compte cree reste valable des semaines et ne sert qu'une fois", function () {
+    $c = importCentre();
+    $this->actingAs($c['resp'])->post(route('center.import.eleves'), ['fichier' => csvEleves(
+        'Awa;awa@exemple.com;;B1 du soir',
+    )])->assertOk();
+    $awa = User::where('email', 'awa@exemple.com')->sole();
+
+    $lien = null;
+    Notification::assertSentTo($awa, InvitationEleveNotification::class, function ($n) use (&$lien) {
+        $lien = $n->lien;
+
+        return true;
+    });
+    auth()->logout();
+
+    // Trois semaines plus tard : le jeton est fabrique a l'ouverture.
+    $this->travel(21)->days();
+    $redir = $this->get($lien)->assertRedirect()->headers->get('Location');
+    expect($redir)->toContain('reset-password/');
+    $jeton = urldecode(explode('?', basename($redir))[0]);
+    expect(Password::broker()->tokenExists($awa, $jeton))->toBeTrue();
+
+    $this->post(route('password.store'), [
+        'token' => $jeton, 'email' => 'awa@exemple.com',
+        'password' => 'Un-mot-de-passe-solide-42', 'password_confirmation' => 'Un-mot-de-passe-solide-42',
+    ])->assertSessionHasNoErrors();
+    auth()->logout();
+
+    // Mot de passe choisi : le meme lien ne refabrique plus de jeton.
+    expect($this->get($lien)->assertRedirect()->headers->get('Location'))->not->toContain('reset-password/');
+
+    // Au-dela de la validite, la signature est refusee.
+    $this->travel(10)->days();
+    $this->get($lien)->assertForbidden();
 });
 
 it("n'inscrit pas au-dela des licences du centre", function () {
@@ -134,7 +207,7 @@ it("n'inscrit pas au-dela des licences du centre", function () {
         'Deux;deux@exemple.com;;B1 du soir',
     )])->assertOk();
 
-    expect($res->json('bilan.crees'))->toBe(1)
+    expect($res->json('bilan.invites'))->toBe(1)
         ->and($res->json('lignes.1.statut'))->toBe('erreur');
 });
 
@@ -150,7 +223,7 @@ it("limite un enseignant aux classes qu'il encadre", function () {
         'Deux;deux@exemple.com;;B1 du soir',
     )])->assertOk();
 
-    expect($res->json('lignes.0.statut'))->toBe('nouveau')
+    expect($res->json('lignes.0.statut'))->toBe('invitation')
         ->and($res->json('lignes.1.statut'))->toBe('erreur');
 });
 
