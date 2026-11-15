@@ -73,6 +73,8 @@ export function AppSidebar() {
                 ? [{ title: tc('Équipe'), url: '/center/equipe', icon: () => <SidebarIcon name="profile" /> }]
                 : []),
             { title: tc('Contenu'), url: '/center/exercises', icon: () => <SidebarIcon name="puzzle" /> },
+            // Createur de parcours : modules, seances, blocs (texte, video, audio...).
+            { title: tc('Parcours et cours'), url: '/center/cours', icon: () => <SidebarIcon name="book" /> },
             { title: tc('Devoirs'), url: '/center/assignments', icon: () => <SidebarIcon name="tasks" /> },
             { title: tc('Examens blancs'), url: '/center/examens-blancs', icon: () => <SidebarIcon name="tasks" /> },
             // Les reglages du centre (marque, examens, adresse, formule, acces
@@ -109,6 +111,8 @@ export function AppSidebar() {
         mainNavItems = [
             { title: t('sidebar.home', 'Accueil'), url: '/dashboard', icon: () => <SidebarIcon name="home" /> },
             ...(eleveDeCentre ? [{ title: t('sidebar.my_assignments', 'Mes devoirs'), url: '/devoirs', icon: () => <SidebarIcon name="tasks" /> }] : []),
+            // Les cours publies par le centre (parcours modules / seances / blocs).
+            ...(eleveDeCentre ? [{ title: t('sidebar.my_courses', 'Mes cours'), url: '/mes-cours', icon: () => <SidebarIcon name="book" /> }] : []),
             ...(eleveDeCentre && !libre ? [{ title: t('sidebar.my_path', 'Mon parcours'), url: '/mon-parcours', icon: () => <SidebarIcon name="puzzle" /> }] : []),
             ...(libre
                 ? [

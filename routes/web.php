@@ -395,6 +395,8 @@ Route::middleware(['auth', EnsureCenterStaff::class])
         require __DIR__.'/centre-equipe.php';
         // Parcours de classe construit par le centre : droits dans ParcoursClasseController.
         require __DIR__.'/centre-parcours.php';
+        // Createur de parcours complet (modules, seances, blocs) : droits dans CoursCentreController.
+        require __DIR__.'/centre-cours.php';
         // Createur d'exercices : parties officielles, banque PrePla des devoirs.
         require __DIR__.'/centre-createur.php';
         // Tableau de bord d'une classe (JSON) : droits dans TableauClasseController.
@@ -421,6 +423,8 @@ Route::middleware('auth')->group(function () {
 require __DIR__.'/eleve-devoirs.php';
 // Élève d'un centre — le parcours construit par son centre.
 require __DIR__.'/eleve-parcours.php';
+// Élève d'un centre — les cours (parcours modules/seances/blocs) de son centre.
+require __DIR__.'/eleve-cours.php';
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

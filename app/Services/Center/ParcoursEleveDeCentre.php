@@ -5,9 +5,13 @@ namespace App\Services\Center;
 use App\Models\Assignment;
 use App\Models\CenterUser;
 use App\Models\Classroom;
+use App\Models\CourseBlock;
+use App\Models\CoursePath;
 use App\Models\Exam;
 use App\Models\Exercise;
 use App\Models\LanguageCenter;
+use App\Models\MockExam;
+use App\Models\MockExamPassage;
 use App\Models\User;
 use App\Models\UserExerciseAttempt;
 use Carbon\CarbonInterface;
@@ -190,7 +194,7 @@ class ParcoursEleveDeCentre
         // Les examens blancs du centre donnes en devoir : rendu = un passage
         // enregistre apres la publication.
         $examensBlancs = $devoirs->flatMap(fn (Assignment $a) => $this->examensBlancs($a))->unique()->values();
-        $passages = $examensBlancs->isEmpty() ? collect() : \App\Models\MockExamPassage::where('user_id', $user->id)
+        $passages = $examensBlancs->isEmpty() ? collect() : MockExamPassage::where('user_id', $user->id)
             ->whereIn('mock_exam_id', $examensBlancs)
             ->get(['mock_exam_id', 'created_at']);
 
@@ -233,7 +237,7 @@ class ParcoursEleveDeCentre
     private function examensBlancs(Assignment $devoir): Collection
     {
         return $devoir->items
-            ->where('itemable_type', \App\Models\MockExam::class)
+            ->where('itemable_type', MockExam::class)
             ->pluck('itemable_id')
             ->map(fn ($id) => (int) $id)
             ->values();
@@ -312,6 +316,17 @@ class ParcoursEleveDeCentre
         $classes = $this->classes($user, $centre)->pluck('id');
 
         if (app(ParcoursDeClasse::class)->exerciceDansLeParcours($classes, $exerciceId)) {
+            return true;
+        }
+
+        // Un bloc « exercice » d'une seance publiee d'un parcours publie de ses classes.
+        if ($classes->isNotEmpty() && CourseBlock::query()
+            ->where('type', 'exercice')
+            ->where('contenu->exercise_id', $exerciceId)
+            ->whereHas('session', fn ($s) => $s->where('statut', CoursePath::PUBLIE)
+                ->whereHas('module.path', fn ($p) => $p->where('statut', CoursePath::PUBLIE)
+                    ->where('center_id', $centre->id)->whereIn('classroom_id', $classes)))
+            ->exists()) {
             return true;
         }
 
