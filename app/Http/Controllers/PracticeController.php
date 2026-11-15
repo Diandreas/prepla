@@ -740,6 +740,12 @@ class PracticeController extends Controller
                 $user->profile->increment('xp_total', $totalXp);
             }
 
+            // Un grand debutant (A0) qui ne fait que des examens blancs restait A0 :
+            // seules les seances et l'entrainement verifiaient son passage en A1.
+            if ($user->profile?->fresh()?->current_level === 'A0') {
+                app(\App\Services\LevelAdvancementService::class)->promouvoirGrandDebutant($user->id, (int) $exam->id);
+            }
+
             $avgAccuracy = round($totalAccuracy / $exerciseCount);
             $summary = "Examen blanc terminé ! Précision moyenne : {$avgAccuracy}% (+{$totalXp} XP)";
 

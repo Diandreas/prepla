@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Models\UserExerciseAttempt;
 use App\Models\UserProfile;
 use App\Services\LevelAdvancementService;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -200,6 +201,22 @@ test('un apprenant A0 passe A1 en faisant ses seances de lecture A1', function (
 
     $this->actingAs($user)->post(route('exercise.submit_session', $node), bilanReponses($exercices, 'A'))
         ->assertRedirect();
+
+    expect($user->profile->fresh()->current_level)->toBe('A1')
+        ->and(LevelAssessment::where('user_id', $user->id)->value('previous_level'))->toBe('A0');
+});
+
+test('un apprenant A0 passe A1 en ne faisant que des examens blancs', function () {
+    Http::preventStrayRequests();
+    [$user, $skeleton, $exam] = bilanApprenant(['current'], ['A1']);
+    $user->profile->update(['current_level' => 'A0']);
+
+    [, $exercices] = bilanNoeud($exam, 'practice', 5);
+    Cache::put("practice-simulation:{$user->id}:{$exam->id}", $exercices->pluck('id')->all(), now()->addHour());
+
+    $reponses = bilanReponses($exercices, 'A');
+    unset($reponses['exercise_ids']);
+    $this->actingAs($user)->post(route('practice.simulate.store', $exam), $reponses)->assertRedirect();
 
     expect($user->profile->fresh()->current_level)->toBe('A1')
         ->and(LevelAssessment::where('user_id', $user->id)->value('previous_level'))->toBe('A0');

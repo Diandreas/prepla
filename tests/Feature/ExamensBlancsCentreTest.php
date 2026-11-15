@@ -179,6 +179,35 @@ it('donne l examen blanc a une classe, l eleve le passe et le centre voit ses re
             ->where('passages.0.sections.lesen', 50));
 });
 
+it('fait passer A1 un eleve A0 qui reussit l examen blanc A1 de son centre', function () {
+    $m = examensBlancsMonde();
+    ExamBlueprint::create([
+        'exam_id' => $m['exam']->id, 'level' => 'A1', 'name' => 'Goethe A1', 'total_duration_minutes' => 60, 'scoring_config' => [],
+        'sections_config' => [['slug' => 'lesen', 'name' => 'Lesen', 'time_limit' => 25, 'parts' => [['part' => 1, 'name' => 'Teil 1', 'type' => 'mcq', 'items' => 5]]]],
+    ]);
+    $exercices = collect(range(1, 5))->map(fn () => Exercise::create([
+        'exam_id' => $m['exam']->id, 'exercise_type_id' => $m['catalogue']->exercise_type_id, 'center_id' => $m['a']->id,
+        'difficulty' => 'A1', 'content' => [], 'questions' => [['id' => 'q1', 'text' => 'Wie?', 'options' => ['a', 'b'], 'correct_answer' => 'a']],
+    ]));
+    $m['eleve']->profile->update(['current_level' => 'A0', 'target_exam_id' => $m['exam']->id]);
+
+    $this->actingAs($m['adminA'])->post('/center/examens-blancs', [
+        'exam_id' => $m['exam']->id, 'level' => 'A1', 'title' => 'Blanc A1', 'durees' => ['lesen' => 25],
+        'items' => $exercices->map(fn ($e) => ['exercise_id' => $e->id, 'section_slug' => 'lesen', 'partie' => '1'])->all(),
+        'publier' => true,
+    ])->assertRedirect();
+    $mock = MockExam::firstOrFail();
+    $this->actingAs($m['adminA'])->post("/center/examens-blancs/{$mock->id}/donner", ['classroom_id' => $m['classe']->id]);
+
+    $this->actingAs($m['eleve'])->get("/examens-blancs/{$mock->id}")->assertOk();
+    $this->actingAs($m['eleve'])->post("/examens-blancs/{$mock->id}", [
+        'answers_by_exercise' => $exercices->mapWithKeys(fn ($e) => [$e->id => ['q1' => 'a']])->all(),
+        'time_spent' => 600,
+    ])->assertRedirect(route('devoirs.index'));
+
+    expect($m['eleve']->profile->fresh()->current_level)->toBe('A1');
+});
+
 it('refuse de donner un brouillon ou a la classe d un autre centre', function () {
     $m = examensBlancsMonde();
     composer($m, [$m['catalogue']], false);
