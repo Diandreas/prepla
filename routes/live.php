@@ -32,6 +32,9 @@ Route::middleware('auth')->group(function () {
             Route::post('ressources', [LiveSalleController::class, 'ressource'])->name('ressource');
             Route::post('mains/{user}/baisser', [LiveSalleController::class, 'baisserMain'])->name('main.baisser');
             Route::put('notes', [LiveSalleController::class, 'notes'])->name('notes');
+            // Salle video Daily.co integree : jeton personnel et presence reelle.
+            Route::post('video/jeton', [LiveSalleController::class, 'jeton'])->name('video.jeton');
+            Route::post('video/presence', [LiveSalleController::class, 'presenceVideo'])->name('video.presence');
         });
     });
 });

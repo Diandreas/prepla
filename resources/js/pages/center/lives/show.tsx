@@ -11,6 +11,7 @@ interface Live {
     classe: { id: number; name: string | null };
     starts_at: string;
     statut: string;
+    fournisseur: 'daily' | 'google' | 'lien';
     recording_url: string | null;
     summary: string | null;
     assignment_id: number | null;
@@ -75,7 +76,7 @@ export default function LiveBilan({
                             <div key={p.id} className="flex items-center justify-between border-b border-border py-1.5 last:border-0">
                                 <span>{p.name}</span>
                                 <span className={p.present ? 'text-emerald-600' : 'text-muted-foreground'}>
-                                    {p.present ? (p.source === 'google' ? t('Présent (Google Meet)') : t('Présent (PrePla)')) : t('Absent')}
+                                    {p.present ? (p.source === 'google' ? (live.fournisseur === 'google' ? t('Présent (Google Meet)') : t('Présent (salle vidéo)')) : t('Présent (PrePla)')) : t('Absent')}
                                     {p.minutes !== null && ` · ${t('{n} min', { n: p.minutes })}`}
                                     {p.interactions > 0 && ` · ${t('{n} interactions', { n: p.interactions })}`}
                                 </span>

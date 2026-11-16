@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { useT } from '@/lib/i18n/traduire';
 
 interface Classe { id: number; name: string; eleves: number }
+type Fournisseur = 'daily' | 'google' | 'lien';
 interface Live {
     id: number;
     title: string;
@@ -16,6 +17,7 @@ interface Live {
     duration_minutes: number;
     statut: 'a_venir' | 'en_cours' | 'termine' | 'annule';
     meeting_uri: string | null;
+    fournisseur: Fournisseur;
     serie: boolean;
     rejoints: number | null;
     recording_url: string | null;
@@ -24,11 +26,18 @@ type Mode = 'maintenant' | 'planifie' | 'serie';
 
 const STATUTS: Record<Live['statut'], string> = { a_venir: 'À venir', en_cours: 'En cours', termine: 'Terminé', annule: 'Annulé' };
 
+const FOURNISSEURS: Record<Fournisseur, [string, string]> = {
+    daily: ['Salle vidéo PrePla', 'La vidéo s’affiche dans la page du live, à côté des questions et du chat.'],
+    google: ['Google Meet automatique', 'Une salle Meet est créée avec votre compte Google.'],
+    lien: ['Lien de réunion', 'Collez le lien d’une visio existante (Zoom, Teams, Meet…), en https.'],
+};
+
 export default function LivesIndex({
     classes,
     classeChoisie,
     aVenir,
     passes,
+    fournisseurs,
     google,
     accessTypeParDefaut,
 }: {
@@ -36,7 +45,8 @@ export default function LivesIndex({
     classeChoisie: number | null;
     aVenir: Live[];
     passes: Live[];
-    google: { connecte: boolean; email: string | null; lectureAutorisee: boolean };
+    fournisseurs: Fournisseur[];
+    google: { disponible: boolean; connecte: boolean; email: string | null; lectureAutorisee: boolean };
     accessTypeParDefaut: 'OPEN' | 'TRUSTED';
 }) {
     const { t, locale } = useT();
@@ -54,11 +64,12 @@ export default function LivesIndex({
         repetitions: 8,
         access_type: accessTypeParDefaut,
         meeting_uri: '',
+        fournisseur: (fournisseurs[0] ?? 'lien') as Fournisseur,
     });
 
     function creer(e: React.FormEvent) {
         e.preventDefault();
-        form.transform(({ classe, ...reste }) => reste);
+        form.transform(({ classe, ...reste }) => ({ ...reste, meeting_uri: reste.fournisseur === 'lien' ? reste.meeting_uri : '' }));
         form.post(route('center.lives.store', Number(form.data.classe)), { preserveScroll: true });
     }
 
@@ -68,6 +79,8 @@ export default function LivesIndex({
         router.get(route('center.lives.index'), id ? { classe: id } : {}, { preserveState: true });
     }
 
+    const erreur = flash?.error ?? errors.google ?? (errors.daily ? t(errors.daily) : undefined);
+
     return (
         <AppLayout>
             <Head title={t('Live class')} />
@@ -76,7 +89,7 @@ export default function LivesIndex({
                     <div>
                         <h1 className="text-2xl font-bold tracking-tight">{t('Live class')}</h1>
                         <p className="text-sm text-muted-foreground">
-                            {t('Cours en direct dans Google Meet, avec main levée, questions, sondages et ressources dans PrePla.')}
+                            {t('Cours en direct en vidéo, avec main levée, questions, sondages et ressources dans PrePla.')}
                         </p>
                     </div>
                     <Button className="bg-rose-600 text-white hover:bg-rose-700" onClick={() => setFormulaire((o) => !o)} disabled={classes.length === 0}>
@@ -85,29 +98,31 @@ export default function LivesIndex({
                 </div>
 
                 {flash?.success && <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300">{t(flash.success)}</div>}
-                {(flash?.error || errors.google) && <div className="rounded-lg border border-rose-300 bg-rose-50 p-3 text-sm text-rose-800 dark:bg-rose-950/30 dark:text-rose-300">{flash?.error ?? errors.google}</div>}
+                {erreur && <div className="rounded-lg border border-rose-300 bg-rose-50 p-3 text-sm text-rose-800 dark:bg-rose-950/30 dark:text-rose-300">{erreur}</div>}
 
-                <Card>
-                    <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4 text-sm">
-                        {google.connecte ? (
-                            <>
-                                <span>
-                                    {t('Compte Google connecté')} {google.email && <span className="font-medium">({google.email})</span>}
-                                    {!google.lectureAutorisee && <span className="block text-xs text-muted-foreground">{t('La présence Google ne pourra pas être relue : reconnectez le compte pour l’autoriser.')}</span>}
-                                </span>
-                                <div className="flex gap-2">
-                                    <Button variant="outline" size="sm" asChild><a href={route('center.google.connecter')}>{t('Reconnecter')}</a></Button>
-                                    <Button variant="ghost" size="sm" onClick={() => router.delete(route('center.google.deconnecter'))}>{t('Déconnecter')}</Button>
-                                </div>
-                            </>
-                        ) : (
-                            <>
-                                <span>{t('Connectez votre compte Google pour créer les salles Meet automatiquement. Sinon, collez un lien Meet existant.')}</span>
-                                <Button size="sm" asChild><a href={route('center.google.connecter')}>{t('Connecter Google')}</a></Button>
-                            </>
-                        )}
-                    </CardContent>
-                </Card>
+                {google.disponible && (
+                    <Card>
+                        <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4 text-sm">
+                            {google.connecte ? (
+                                <>
+                                    <span>
+                                        {t('Compte Google connecté')} {google.email && <span className="font-medium">({google.email})</span>}
+                                        {!google.lectureAutorisee && <span className="block text-xs text-muted-foreground">{t('La présence Google ne pourra pas être relue : reconnectez le compte pour l’autoriser.')}</span>}
+                                    </span>
+                                    <div className="flex gap-2">
+                                        <Button variant="outline" size="sm" asChild><a href={route('center.google.connecter')}>{t('Reconnecter')}</a></Button>
+                                        <Button variant="ghost" size="sm" onClick={() => router.delete(route('center.google.deconnecter'))}>{t('Déconnecter')}</Button>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <span>{t('Connectez votre compte Google pour créer les salles Meet automatiquement. Sinon, collez un lien Meet existant.')}</span>
+                                    <Button size="sm" asChild><a href={route('center.google.connecter')}>{t('Connecter Google')}</a></Button>
+                                </>
+                            )}
+                        </CardContent>
+                    </Card>
+                )}
 
                 {formulaire && classes.length > 0 && (
                     <Card>
@@ -154,21 +169,36 @@ export default function LivesIndex({
                                         <label className="block">
                                             <span className="font-medium">{t('Nombre de semaines')}</span>
                                             <input type="number" min={2} max={26} className="mt-1 w-full rounded-md border border-input bg-background p-2" value={form.data.repetitions} onChange={(e) => form.setData('repetitions', Number(e.target.value))} />
-                                            <span className="text-xs text-muted-foreground">{t('Même jour, même heure, chaque semaine, même salle Meet.')}</span>
+                                            <span className="text-xs text-muted-foreground">{t('Même jour, même heure, chaque semaine, même salle.')}</span>
                                         </label>
                                     )}
                                 </div>
-                                <label className="block">
-                                    <span className="font-medium">{t('Accès à la salle Meet')}</span>
-                                    <select className="mt-1 w-full rounded-md border border-input bg-background p-2" value={form.data.access_type} onChange={(e) => form.setData('access_type', e.target.value as 'OPEN' | 'TRUSTED')}>
-                                        <option value="OPEN">{t('Ouvert : le lien suffit pour entrer')}</option>
-                                        <option value="TRUSTED">{t('Contrôlé : les élèves hors de votre domaine demandent à entrer')}</option>
-                                    </select>
-                                </label>
-                                {!google.connecte && (
+                                <fieldset className="space-y-2">
+                                    <legend className="font-medium">{t('Salle vidéo')}</legend>
+                                    <div className="grid gap-2 sm:grid-cols-3" role="radiogroup">
+                                        {fournisseurs.map((f) => (
+                                            <button type="button" key={f} role="radio" aria-checked={form.data.fournisseur === f}
+                                                onClick={() => form.setData('fournisseur', f)}
+                                                className={`rounded-lg border p-2 text-left ${form.data.fournisseur === f ? 'border-primary ring-2 ring-primary/30' : 'border-border'}`}>
+                                                <span className="block font-medium">{t(FOURNISSEURS[f][0])}</span>
+                                                <span className="block text-xs text-muted-foreground">{t(FOURNISSEURS[f][1])}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </fieldset>
+                                {form.data.fournisseur === 'google' && (
                                     <label className="block">
-                                        <span className="font-medium">{t('Lien Google Meet')}</span>
-                                        <input type="url" placeholder="https://meet.google.com/abc-defg-hij" className="mt-1 w-full rounded-md border border-input bg-background p-2" value={form.data.meeting_uri} onChange={(e) => form.setData('meeting_uri', e.target.value)} />
+                                        <span className="font-medium">{t('Accès à la salle Meet')}</span>
+                                        <select className="mt-1 w-full rounded-md border border-input bg-background p-2" value={form.data.access_type} onChange={(e) => form.setData('access_type', e.target.value as 'OPEN' | 'TRUSTED')}>
+                                            <option value="OPEN">{t('Ouvert : le lien suffit pour entrer')}</option>
+                                            <option value="TRUSTED">{t('Contrôlé : les élèves hors de votre domaine demandent à entrer')}</option>
+                                        </select>
+                                    </label>
+                                )}
+                                {form.data.fournisseur === 'lien' && (
+                                    <label className="block">
+                                        <span className="font-medium">{t('Lien de la réunion')}</span>
+                                        <input type="url" placeholder="https://" pattern="https://.*" required className="mt-1 w-full rounded-md border border-input bg-background p-2" value={form.data.meeting_uri} onChange={(e) => form.setData('meeting_uri', e.target.value)} />
                                         {form.errors.meeting_uri && <span className="text-xs text-rose-600">{form.errors.meeting_uri}</span>}
                                     </label>
                                 )}
@@ -200,7 +230,7 @@ export default function LivesIndex({
                                         {l.title} {l.statut === 'en_cours' && <Badge className="ml-1 bg-rose-600 text-white">{t('En cours')}</Badge>}
                                         {l.serie && <Badge variant="outline" className="ml-1">{t('Série')}</Badge>}
                                     </p>
-                                    <p className="text-xs text-muted-foreground">{l.classe.name} · {date(l.starts_at)} · {t('{n} min', { n: l.duration_minutes })}</p>
+                                    <p className="text-xs text-muted-foreground">{l.classe.name} · {date(l.starts_at)} · {t('{n} min', { n: l.duration_minutes })} · {t(FOURNISSEURS[l.fournisseur][0])}</p>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                     <Button size="sm" onClick={() => router.post(route('center.lives.demarrer', l.id))}>

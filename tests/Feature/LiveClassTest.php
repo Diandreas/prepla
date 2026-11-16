@@ -78,14 +78,16 @@ function lcFakeMeet(): void
     ]);
 }
 
-test('sans identifiants Google le module est masque', function () {
+test('sans identifiants Google le module reste visible avec le lien de reunion', function () {
     $m = lcMonde();
-    config(['services.google_meet.client_id' => null]);
+    config(['services.google_meet.client_id' => null, 'services.daily.api_key' => null]);
 
-    $this->actingAs($m['prof'])->get('/center/lives')->assertNotFound();
+    $this->actingAs($m['prof'])->get('/center/lives')->assertOk()
+        ->assertInertia(fn (Assert $p) => $p->where('fournisseurs', ['lien'])->where('google.disponible', false));
     $this->actingAs($m['prof'])->get(route('center.classes.show', $m['classe']))
-        ->assertInertia(fn (Assert $p) => $p->where('menus.live', false));
-    $this->actingAs($m['eleve'])->getJson('/lives/prochains')->assertOk()->assertJson(['lives' => []]);
+        ->assertInertia(fn (Assert $p) => $p->where('menus.live', true));
+    $this->actingAs($m['prof'])->get('/center/google/connecter')->assertNotFound();
+    $this->actingAs($m['eleve'])->getJson('/lives/prochains')->assertOk();
 });
 
 test('lancer un live maintenant cree la salle Meet, previent les eleves et ouvre la salle', function () {
@@ -131,7 +133,7 @@ test('une serie recurrente cree une seance par semaine dans la meme salle', func
     Notification::assertSentTo($m['eleve'], LiveClassNotification::class, fn ($n) => ! $n->maintenant && $n->occurrences === 4);
 });
 
-test('sans compte Google on peut coller un lien Meet ; un autre lien est refuse', function () {
+test('sans compte Google on peut coller un lien de reunion https ; javascript: et http: sont refuses', function () {
     $m = lcMonde();
     Http::fake();
     Notification::fake();
@@ -142,15 +144,21 @@ test('sans compte Google on peut coller un lien Meet ; un autre lien est refuse'
 
     $this->actingAs($m['autreProf'])->post(route('center.lives.store', $m['autreClasse']), [
         'mode' => 'planifie', 'title' => 'Cours', 'starts_at' => now()->addDay()->format('Y-m-d H:i'), 'duration_minutes' => 60,
-        'meeting_uri' => 'https://evil.example.com/x',
+        'meeting_uri' => 'javascript:alert(1)',
     ])->assertSessionHasErrors('meeting_uri');
 
     $this->actingAs($m['autreProf'])->post(route('center.lives.store', $m['autreClasse']), [
         'mode' => 'planifie', 'title' => 'Cours', 'starts_at' => now()->addDay()->format('Y-m-d H:i'), 'duration_minutes' => 60,
-        'meeting_uri' => 'https://meet.google.com/aaa-bbbb-ccc',
-    ])->assertRedirect();
+        'fournisseur' => 'lien', 'meeting_uri' => 'http://zoom.example.com/j/1',
+    ])->assertSessionHasErrors('meeting_uri');
 
-    expect(LiveSession::sole()->meeting_uri)->toBe('https://meet.google.com/aaa-bbbb-ccc');
+    $this->actingAs($m['autreProf'])->post(route('center.lives.store', $m['autreClasse']), [
+        'mode' => 'planifie', 'title' => 'Cours', 'starts_at' => now()->addDay()->format('Y-m-d H:i'), 'duration_minutes' => 60,
+        'fournisseur' => 'lien', 'meeting_uri' => 'https://zoom.example.com/j/123',
+    ])->assertRedirect()->assertSessionHasNoErrors();
+
+    expect(LiveSession::sole()->meeting_uri)->toBe('https://zoom.example.com/j/123')
+        ->and(LiveSession::sole()->fournisseur())->toBe('lien');
     Http::assertNothingSent();
 });
 
@@ -373,4 +381,129 @@ test('un jeton expire est renouvele avant la creation de la salle', function () 
 
     Http::assertSent(fn ($req) => str_contains($req->url(), '/v2/spaces') && $req->hasHeader('Authorization', 'Bearer neuf'));
     expect($m['compte']->fresh()->access_token)->toBe('neuf');
+});
+
+
+// --- Daily.co : salle video integree (fournisseur par defaut) ----------------
+
+function lcFakeDaily(): void
+{
+    config(['services.daily.api_key' => 'cle-daily-secrete-test', 'services.daily.enregistrement' => false]);
+    Http::fake([
+        'api.daily.co/v1/rooms' => Http::response(['name' => 'prepla-salle', 'url' => 'https://prepla.daily.co/prepla-salle']),
+        'api.daily.co/v1/meeting-tokens' => Http::response(['token' => 'jeton-daily']),
+        'api.daily.co/v1/rooms/*' => Http::response(['deleted' => true]),
+        'api.daily.co/v1/meetings*' => Http::response(['data' => [['participants' => [['user_name' => 'Eleve Test', 'user_id' => '1', 'join_time' => 1700000000, 'duration' => 1800]]]]]),
+        'api.daily.co/v1/recordings*' => Http::response(['data' => []]),
+    ]);
+}
+
+test('Daily configure : propose par defaut, salle privee creee a la creation du live', function () {
+    $m = lcMonde();
+    lcFakeDaily();
+    Notification::fake();
+
+    $this->actingAs($m['prof'])->get('/center/lives')
+        ->assertInertia(fn (Assert $p) => $p->where('fournisseurs', ['daily', 'google', 'lien']));
+
+    $this->actingAs($m['prof'])->post(route('center.lives.store', $m['classe']), [
+        'mode' => 'planifie', 'title' => 'Oral', 'starts_at' => now()->addDay()->format('Y-m-d H:i'), 'duration_minutes' => 60,
+    ])->assertRedirect()->assertSessionHasNoErrors();
+
+    $live = LiveSession::sole();
+    expect($live->fournisseur())->toBe('daily')
+        ->and($live->daily_room)->toBe('prepla-salle')
+        ->and($live->meeting_uri)->toBe('https://prepla.daily.co/prepla-salle');
+
+    Http::assertSent(function ($req) use ($live) {
+        if ($req->url() !== 'https://api.daily.co/v1/rooms') {
+            return false;
+        }
+        $p = $req['properties'];
+
+        return $req->method() === 'POST' && $req->hasHeader('Authorization', 'Bearer cle-daily-secrete-test')
+            && $req['privacy'] === 'private' && str_starts_with($req['name'], 'prepla-') && strlen($req['name']) >= 30
+            && $p['enable_chat'] === false && $p['enable_screenshare'] === true && $p['enable_knocking'] === false
+            && $p['eject_at_room_exp'] === true && ! isset($p['enable_recording'])
+            && $p['nbf'] === $live->starts_at->copy()->subMinutes(15)->getTimestamp()
+            && $p['exp'] > $live->finPrevue()->getTimestamp();
+    });
+    Http::assertNotSent(fn ($req) => str_contains($req->url(), 'meet.googleapis.com'));
+});
+
+test('jeton Daily : proprietaire pour l enseignant, eleve de la classe simple participant, 404 sinon', function () {
+    $m = lcMonde();
+    lcFakeDaily();
+    $live = lcLive($m, ['provider' => 'daily', 'daily_room' => 'prepla-salle', 'meeting_uri' => 'https://prepla.daily.co/prepla-salle', 'meet_space_name' => null]);
+
+    $this->actingAs($m['prof'])->postJson(route('live.video.jeton', $live))->assertOk()
+        ->assertJson(['url' => 'https://prepla.daily.co/prepla-salle', 'token' => 'jeton-daily', 'proprietaire' => true]);
+    Http::assertSent(fn ($req) => $req->url() === 'https://api.daily.co/v1/meeting-tokens'
+        && $req['properties']['room_name'] === 'prepla-salle' && $req['properties']['is_owner'] === true
+        && $req['properties']['user_name'] === $m['prof']->name && $req['properties']['user_id'] === (string) $m['prof']->id);
+
+    $this->actingAs($m['eleve'])->postJson(route('live.video.jeton', $live))->assertOk()->assertJson(['proprietaire' => false]);
+    Http::assertSent(fn ($req) => $req->url() === 'https://api.daily.co/v1/meeting-tokens'
+        && $req['properties']['is_owner'] === false && $req['properties']['user_id'] === (string) $m['eleve']->id);
+    expect(LiveParticipant::where('live_session_id', $live->id)->where('user_id', $m['eleve']->id)->value('joined_at'))->not->toBeNull();
+
+    $avant = count(Http::recorded());
+    $this->actingAs($m['eleveAutreClasse'])->postJson(route('live.video.jeton', $live))->assertNotFound();
+    $this->actingAs($m['autreProf'])->postJson(route('live.video.jeton', $live))->assertNotFound();
+    $this->actingAs($m['responsableAutreCentre'])->postJson(route('live.video.jeton', $live))->assertNotFound();
+    expect(count(Http::recorded()))->toBe($avant);
+
+    // Secours « ouvrir dans un onglet » : la salle privee avec le jeton.
+    $this->actingAs($m['eleve'])->get(route('live.rejoindre', $live))->assertRedirect('https://prepla.daily.co/prepla-salle?t=jeton-daily');
+});
+
+test('la cle Daily n est jamais envoyee au navigateur', function () {
+    $m = lcMonde();
+    lcFakeDaily();
+    $live = lcLive($m, ['provider' => 'daily', 'daily_room' => 'prepla-salle', 'meeting_uri' => 'https://prepla.daily.co/prepla-salle', 'meet_space_name' => null]);
+
+    foreach ([
+        $this->actingAs($m['prof'])->get(route('live.show', $live)),
+        $this->actingAs($m['eleve'])->get(route('live.show', $live)),
+        $this->actingAs($m['prof'])->get('/center/lives'),
+        $this->actingAs($m['eleve'])->getJson(route('live.etat', $live)),
+        $this->actingAs($m['eleve'])->postJson(route('live.video.jeton', $live)),
+    ] as $r) {
+        $r->assertSuccessful();
+        expect($r->getContent())->not->toContain('cle-daily-secrete-test');
+    }
+    $this->actingAs($m['eleve'])->get(route('live.show', $live))
+        ->assertInertia(fn (Assert $p) => $p->where('live.integre', true)->where('live.fournisseur', 'daily'));
+});
+
+test('presence video, bilan Daily a la fin, salle supprimee a l annulation', function () {
+    $m = lcMonde();
+    lcFakeDaily();
+    $live = lcLive($m, ['provider' => 'daily', 'daily_room' => 'prepla-salle', 'meeting_uri' => 'https://prepla.daily.co/prepla-salle', 'meet_space_name' => null]);
+
+    $this->actingAs($m['eleve'])->postJson(route('live.video.presence', $live), ['evenement' => 'joined'])->assertOk();
+    $this->actingAs($m['eleveAutreClasse'])->postJson(route('live.video.presence', $live), ['evenement' => 'joined'])->assertNotFound();
+    expect(LiveParticipant::where('live_session_id', $live->id)->where('user_id', $m['eleve']->id)->value('joined_at'))->not->toBeNull();
+
+    $this->actingAs($m['prof'])->post(route('center.lives.terminer', $live))->assertRedirect();
+    expect($live->fresh()->google_attendance[0]['nom'])->toBe('Eleve Test');
+    Http::assertSent(fn ($req) => str_starts_with($req->url(), 'https://api.daily.co/v1/meetings') && $req['room'] === 'prepla-salle');
+
+    $futur = lcLive($m, ['provider' => 'daily', 'daily_room' => 'prepla-autre', 'starts_at' => now()->addDay(), 'started_at' => null, 'meet_space_name' => null]);
+    $this->actingAs($m['prof'])->post(route('center.lives.annuler', $futur))->assertRedirect();
+    Http::assertSent(fn ($req) => $req->method() === 'DELETE' && $req->url() === 'https://api.daily.co/v1/rooms/prepla-autre');
+});
+
+test('Google reste disponible a cote de Daily', function () {
+    $m = lcMonde();
+    lcFakeDaily();
+    Http::fake(['meet.googleapis.com/v2/spaces' => Http::response(['name' => 'spaces/xyz', 'meetingUri' => 'https://meet.google.com/xyz-abcd-efg', 'meetingCode' => 'xyz-abcd-efg'])]);
+    Notification::fake();
+
+    $this->actingAs($m['prof'])->post(route('center.lives.store', $m['classe']), [
+        'mode' => 'maintenant', 'title' => 'Meet', 'duration_minutes' => 45, 'fournisseur' => 'google',
+    ])->assertRedirect();
+    expect(LiveSession::sole()->fournisseur())->toBe('google')
+        ->and(LiveSession::sole()->meeting_uri)->toBe('https://meet.google.com/xyz-abcd-efg');
+    $this->actingAs($m['eleve'])->postJson(route('live.video.jeton', LiveSession::sole()))->assertNotFound();
 });

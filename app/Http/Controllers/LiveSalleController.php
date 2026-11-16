@@ -12,7 +12,7 @@ use App\Models\LivePollAnswer;
 use App\Models\LiveQuestionVote;
 use App\Models\LiveSession;
 use App\Models\User;
-use App\Services\Live\GoogleMeet;
+use App\Services\Live\DailyCo;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -38,7 +38,6 @@ class LiveSalleController extends Controller
     /** @return 'animateur'|'eleve' */
     private function role(Request $request, LiveSession $live): string
     {
-        abort_unless(GoogleMeet::configure(), 404);
         $user = $request->user();
         $classe = $live->classroom;
         abort_if(! $classe || $classe->center_id !== $live->center_id, 404);
@@ -95,6 +94,9 @@ class LiveSalleController extends Controller
                 'summary' => $live->summary,
                 'recording_url' => $live->replay_published || $role === 'animateur' ? $live->recording_url : null,
                 'assignment_id' => $live->assignment_id,
+                'fournisseur' => $live->fournisseur(),
+                // Salle Daily affichee dans la page ; la cle API ne quitte jamais le serveur.
+                'integre' => $live->daily_room !== null && DailyCo::configure(),
             ],
             'role' => $role,
             'notes' => $notes,
@@ -189,13 +191,75 @@ class LiveSalleController extends Controller
     {
         $role = $this->role($request, $live);
         abort_unless($live->meeting_uri, 404);
-        if ($role === 'eleve') {
-            abort_unless($live->statut(now()->addMinutes(10)) === 'en_cours', 422, 'Le live n’a pas encore commencé.');
-            $p = $this->participant($live, $request->user());
-            $p->forceFill(['joined_at' => $p->joined_at ?? now(), 'last_seen_at' => now()])->save();
+        $this->entrer($live, $request->user(), $role);
+
+        // Daily (secours « ouvrir dans un onglet ») : la salle est privee, il faut le jeton.
+        if ($live->daily_room && DailyCo::configure()) {
+            $jeton = $this->jetonDaily($live, $request->user(), $role);
+
+            return redirect()->away($live->meeting_uri.'?t='.urlencode($jeton));
         }
 
         return redirect()->away($live->meeting_uri);
+    }
+
+    private function entrer(LiveSession $live, User $user, string $role): void
+    {
+        if ($role === 'eleve') {
+            abort_unless($live->statut(now()->addMinutes(10)) === 'en_cours', 422, 'Le live n’a pas encore commencé.');
+            $p = $this->participant($live, $user);
+            $p->forceFill(['joined_at' => $p->joined_at ?? now(), 'last_seen_at' => now()])->save();
+        } else {
+            abort_if($live->cancelled_at || $live->ended_at, 422, 'Ce live est terminé.');
+        }
+    }
+
+    private function jetonDaily(LiveSession $live, User $user, string $role): string
+    {
+        try {
+            return app(DailyCo::class)->jeton(
+                $live->daily_room,
+                $user->id,
+                $user->name,
+                $role === 'animateur',
+                now()->max($live->finPrevue())->addMinutes(30),
+            );
+        } catch (\RuntimeException $e) {
+            abort(503, 'La salle vidéo est momentanément indisponible.');
+        }
+    }
+
+    /**
+     * Le jeton Daily de la personne connectee, pour afficher la salle dans la page.
+     * Seulement les eleves de la classe et l'equipe qui l'anime (404 sinon) ;
+     * l'equipe entre comme proprietaire (couper un micro, enregistrer...).
+     */
+    public function jeton(Request $request, LiveSession $live): JsonResponse
+    {
+        $role = $this->role($request, $live);
+        abort_unless($live->daily_room && DailyCo::configure(), 404);
+        $this->entrer($live, $request->user(), $role);
+
+        return response()->json([
+            'url' => $live->meeting_uri,
+            'token' => $this->jetonDaily($live, $request->user(), $role),
+            'proprietaire' => $role === 'animateur',
+        ]);
+    }
+
+    /** Evenements Daily cote navigateur (joined/left) : presence reelle dans la video. */
+    public function presenceVideo(Request $request, LiveSession $live): JsonResponse
+    {
+        $role = $this->role($request, $live);
+        $data = $request->validate(['evenement' => ['required', Rule::in(['joined', 'left'])]]);
+        if ($role === 'eleve') {
+            $p = $this->participant($live, $request->user());
+            $p->forceFill($data['evenement'] === 'joined'
+                ? ['joined_at' => $p->joined_at ?? now(), 'last_seen_at' => now()]
+                : ['last_seen_at' => now()])->save();
+        }
+
+        return response()->json(['ok' => true]);
     }
 
     public function main(Request $request, LiveSession $live): JsonResponse
@@ -358,9 +422,6 @@ class LiveSalleController extends Controller
     /** Les lives a venir (14 jours) et en cours des classes de l'eleve. */
     public function prochains(Request $request): JsonResponse
     {
-        if (! GoogleMeet::configure()) {
-            return response()->json(['lives' => []]);
-        }
         $user = $request->user();
         $classes = Classroom::query()
             ->join('classroom_user', 'classroom_user.classroom_id', '=', 'classrooms.id')

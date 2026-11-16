@@ -511,7 +511,13 @@
     "commence_dans": "Starts in {{temps}}",
     "en_cours": "Live now",
     "salle": "Questions and polls",
-    "prochain": "Next live"
+    "prochain": "Next live",
+    "rejoindre_lien": "Join the meeting",
+    "rejoints_video": "joined the video",
+    "video_erreur": "The video could not open here.",
+    "video_entrer": "Enter the video room",
+    "video_chargement": "Connecting to the room…",
+    "video_onglet": "Open the video in a tab"
   },
   "achievements": {
     "title": "Achievements",

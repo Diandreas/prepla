@@ -100,7 +100,7 @@ return [
     ],
     // Live class (Google Meet REST API v2). Meme application OAuth que Google
     // Drive : GOOGLE_MEET_* si on veut l'ecrire a part, sinon GOOGLE_DRIVE_*.
-    // Sans identifiants, le module est masque. Voir docs/live-class-google-meet.md.
+    // Sans identifiants, le module est masque. Voir docs/live-class.md.
     'google_meet' => [
         'client_id' => env('GOOGLE_MEET_CLIENT_ID', env('GOOGLE_DRIVE_CLIENT_ID', env('GOOGLE_CLIENT_ID'))),
         'client_secret' => env('GOOGLE_MEET_CLIENT_SECRET', env('GOOGLE_DRIVE_CLIENT_SECRET', env('GOOGLE_CLIENT_SECRET'))),
@@ -108,6 +108,19 @@ return [
         // OPEN : qui a le lien entre sans « frapper » ; TRUSTED : les comptes du
         // domaine Workspace et les invites entrent, les autres demandent.
         'access_type' => env('GOOGLE_MEET_ACCESS_TYPE', 'OPEN'),
+    ],
+
+    // Live class : salle video Daily.co integree a la page PrePla (fournisseur
+    // par defaut). Cle secrete cote serveur seulement, jamais envoyee au navigateur.
+    // « daily_key » (minuscules) est accepte en repli. Voir docs/live-class.md.
+    'daily' => [
+        'api_key' => env('DAILY_API_KEY', env('daily_key')),
+        // Sous-domaine Daily (ex. « prepla » pour prepla.daily.co), facultatif :
+        // l'URL de la salle est renvoyee par l'API.
+        'domaine' => env('DAILY_DOMAINE'),
+        // Enregistrement cloud (payant chez Daily) : desactive par defaut.
+        'enregistrement' => (bool) env('DAILY_ENREGISTREMENT', false),
+        'max_participants' => (int) env('DAILY_MAX_PARTICIPANTS', 60),
     ],
 
 ];

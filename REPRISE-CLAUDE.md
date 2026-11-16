@@ -100,7 +100,7 @@ Il crée un projet sur https://console.cloud.google.com :
    Jusqu'à 100 testeurs en mode test. Ensuite, demander la vérification (Meet est un scope sensible).
 3. Identifiants :
    - ID client OAuth, de type Application Web, avec l'origine `https://prepla.mirlab.cloud` ;
-   - URIs de redirection `https://prepla.mirlab.cloud/center/google/callback` ET `https://prepla.mirlab.cloud/center/google/retour` (ajouter aussi l'URI du live si `docs/live-class-google-meet.md` en donne une autre) ;
+   - URIs de redirection `https://prepla.mirlab.cloud/center/google/callback` ET `https://prepla.mirlab.cloud/center/google/retour` (ajouter aussi l'URI du live si `docs/live-class.md` en donne une autre) ;
    - une clé API, restreinte au référent `https://prepla.mirlab.cloud/*` et aux APIs Picker et Drive ;
    - l'App ID, c'est-à-dire le numéro du projet.
 4. Il met lui-même ces valeurs dans le `.env` du VPS (ne jamais lui demander de les coller dans le chat) :
@@ -110,7 +110,7 @@ Il crée un projet sur https://console.cloud.google.com :
    GOOGLE_DRIVE_API_KEY=
    GOOGLE_DRIVE_APP_ID=
    ```
-   Puis `php artisan config:cache`. Le détail est dans `docs/google-drive-centres.md` et `docs/live-class-google-meet.md`.
+   Puis `php artisan config:cache`. Le détail est dans `docs/google-drive-centres.md` et `docs/live-class.md`.
 5. Ensuite Claude teste avec un vrai compte :
    - l'envoi par morceaux (CORS) ;
    - le Picker ;
