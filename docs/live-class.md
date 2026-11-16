@@ -1,8 +1,47 @@
-# Live class (Google Meet)
+# Live class (Daily.co, Google Meet, lien de réunion)
 
 Le module « Live class » permet à un centre de faire cours en direct à une classe.
-**La vidéo passe entièrement par Google Meet** : PrePla n'héberge ni ne relaie
-aucun flux audio ou vidéo, le petit serveur ne porte que du JSON léger.
+PrePla n'héberge ni ne relaie aucun flux audio ou vidéo, le petit serveur ne
+porte que du JSON léger. Le module est **toujours visible** (bouton « Live class »
+en premier dans chaque classe, entrée de la barre latérale, bandeau élève) ;
+l'enseignant choisit la salle vidéo à chaque live :
+
+| Choix | Quand il est proposé | Ce qui se passe |
+|---|---|---|
+| **Salle vidéo PrePla** (Daily.co, par défaut) | `DAILY_API_KEY` présente | Salle privée créée par l'API, affichée **dans** la page du live à côté du panneau d'interactivité |
+| **Google Meet automatique** | OAuth Google configuré + compte Google connecté | Salle Meet créée par l'API (comportement décrit plus bas) |
+| **Lien de réunion** | toujours | Lien collé (Zoom, Teams, Meet…), `https://` seulement (`javascript:` et `http:` refusés) |
+
+## Daily.co (fournisseur par défaut)
+
+- Clé : dans le `.env` **du serveur**, `DAILY_API_KEY=...` (tableau de bord
+  https://dashboard.daily.co, rubrique « Developers »). L'ancien nom `daily_key`
+  est accepté en repli. Puis `php artisan config:cache`. La clé n'est jamais
+  envoyée au navigateur ni commitée.
+- Facultatif : `DAILY_DOMAINE` (sous-domaine), `DAILY_MAX_PARTICIPANTS` (60),
+  `DAILY_ENREGISTREMENT=true` pour autoriser l'enregistrement cloud (payant chez
+  Daily, désactivé par défaut).
+- Création du live : `POST /rooms`, `privacy: private`, nom imprévisible
+  (`prepla-` + 24 caractères), `nbf` = début − 15 min, `exp` = fin prévue (de la
+  dernière séance d'une série) + 60 min, chat Daily coupé (on garde celui de
+  PrePla), partage d'écran actif, pas de « toquer », éjection à l'expiration.
+- Entrée : `POST /live/{id}/video/jeton` → PrePla demande `POST /meeting-tokens`
+  pour la personne connectée (nom PrePla, `user_id`, `is_owner` vrai pour
+  l'équipe du centre, faux pour l'élève, expiration = fin prévue + 30 min).
+  Un compte qui n'est ni élève de la classe ni dans l'équipe reçoit 404.
+- La page charge `@daily-co/daily-js` (`createFrame`) ; lien de secours « ouvrir
+  la vidéo dans un onglet » (`/live/{id}/rejoindre`, salle + jeton).
+- Présence : les événements `joined-meeting`/`left-meeting` sont envoyés à
+  PrePla, puis à la fin `GET /meetings?room=` donne les passages réels.
+- Replay : si l'enseignant a lancé l'enregistrement cloud, `GET /recordings`
+  puis `/recordings/{id}/access-link` remplit le lien ; sinon lien collé à la main.
+- Annulation : la salle est supprimée (`DELETE /rooms/{nom}`) quand plus aucune
+  séance de la série ne l'utilise.
+- Tarifs (à vérifier sur https://www.daily.co/pricing, ils changent) : l'offre
+  gratuite inclut un quota de minutes-participant par mois (de l'ordre de
+  10 000), puis facturation à la minute ; l'enregistrement cloud est facturé à part.
+
+# Google Meet automatique
 
 PrePla ajoute autour du cours : planification, notifications, bandeau
 « Live en cours — Rejoindre », compte à rebours, fichier calendrier `.ics`,

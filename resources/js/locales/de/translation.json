@@ -506,5 +506,13 @@
         "description": "Schließen Sie eine Übung in unter 2 Minuten mit mindestens 80 % ab"
       }
     }
+  },
+  "live": {
+    "rejoindre_lien": "Dem Meeting beitreten",
+    "rejoints_video": "sind im Video",
+    "video_erreur": "Das Video konnte hier nicht geöffnet werden.",
+    "video_entrer": "Den Videoraum betreten",
+    "video_chargement": "Verbindung zum Raum…",
+    "video_onglet": "Video in einem Tab öffnen"
   }
 }

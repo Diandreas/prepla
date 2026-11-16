@@ -507,5 +507,13 @@
         "description": "Termine un exercice en moins de 2 minutes avec au moins 80 %"
       }
     }
+  },
+  "live": {
+    "rejoindre_lien": "Rejoindre la réunion",
+    "rejoints_video": "ont rejoint la vidéo",
+    "video_erreur": "La vidéo n’a pas pu s’ouvrir ici.",
+    "video_entrer": "Entrer dans la salle vidéo",
+    "video_chargement": "Connexion à la salle…",
+    "video_onglet": "Ouvrir la vidéo dans un onglet"
   }
 }

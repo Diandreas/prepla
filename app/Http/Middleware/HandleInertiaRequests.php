@@ -121,8 +121,9 @@ class HandleInertiaRequests extends Middleware
                 'parrainage' => Route::has('center.parrainage.index'),
                 // L'accueil des parametres du centre, qui rassemble les reglages ci-dessus.
                 'parametres' => Route::has('center.parametres'),
-                // Live class : masque tant que l'application OAuth Google n'est pas configuree.
-                'live' => \App\Services\Live\GoogleMeet::configure(),
+                // Live class : toujours visible (le « lien de reunion » colle marche
+                // sans aucune cle ; Daily.co et Google Meet s'ajoutent s'ils sont configures).
+                'live' => Route::has('center.lives.index'),
                 // « Mon code » : seulement pour qui est delegue (son compte porte un code).
                 'monCode' => $user !== null && \App\Models\Delegue::where('user_id', $user->id)->exists(),
             ],

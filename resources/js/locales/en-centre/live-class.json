@@ -70,5 +70,17 @@
   "Ce replay est une étape du parcours de la classe.": "This replay is a step of the class path.",
   "Voir le parcours": "View the path",
   "Ajouter le replay au parcours de la classe": "Add the replay to the class path",
-  "Publiez le replay pour pouvoir l’ajouter au parcours de la classe.": "Publish the replay to add it to the class path."
+  "Publiez le replay pour pouvoir l’ajouter au parcours de la classe.": "Publish the replay to add it to the class path.",
+  "Cours en direct en vidéo, avec main levée, questions, sondages et ressources dans PrePla.": "Live video lessons, with raised hands, questions, polls and resources in PrePla.",
+  "Salle vidéo": "Video room",
+  "Salle vidéo PrePla": "PrePla video room",
+  "La vidéo s’affiche dans la page du live, à côté des questions et du chat.": "The video shows inside the live page, next to questions and chat.",
+  "Google Meet automatique": "Automatic Google Meet",
+  "Une salle Meet est créée avec votre compte Google.": "A Meet room is created with your Google account.",
+  "Lien de réunion": "Meeting link",
+  "Collez le lien d’une visio existante (Zoom, Teams, Meet…), en https.": "Paste the link of an existing video call (Zoom, Teams, Meet…), https only.",
+  "Lien de la réunion": "Meeting link",
+  "Même jour, même heure, chaque semaine, même salle.": "Same day, same time, every week, same room.",
+  "La salle vidéo n’a pas pu être créée. Réessayez, ou collez un lien de réunion.": "The video room could not be created. Try again, or paste a meeting link.",
+  "Présent (salle vidéo)": "Present (video room)"
 }

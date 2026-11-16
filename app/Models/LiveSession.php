@@ -20,8 +20,21 @@ class LiveSession extends Model
         'center_id', 'classroom_id', 'created_by', 'series_uuid', 'title', 'agenda',
         'starts_at', 'duration_minutes', 'access_type', 'meet_space_name', 'meeting_uri',
         'meeting_code', 'started_at', 'ended_at', 'cancelled_at', 'recording_url', 'summary',
-        'assignment_id', 'replay_published', 'google_attendance',
+        'assignment_id', 'replay_published', 'google_attendance', 'provider', 'daily_room',
     ];
+
+    /** daily | google | lien (les lives anciens sans provider : google si salle API, sinon lien). */
+    public function fournisseur(): string
+    {
+        if ($this->provider) {
+            return $this->provider;
+        }
+        if ($this->daily_room) {
+            return 'daily';
+        }
+
+        return $this->meet_space_name ? 'google' : 'lien';
+    }
 
     protected function casts(): array
     {

@@ -6,10 +6,11 @@ import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Compteur from '@/components/live/compteur';
+import SalleVideo from '@/components/live/salle-video';
 
 /*
- * La salle PrePla d'un live : la video est dans Google Meet (onglet a part),
- * ici tout ce qui rend le cours interactif. L'etat est relu toutes les 3 s
+ * La salle PrePla d'un live : la video Daily.co s'affiche dans la page (sinon
+ * Google Meet ou le lien colle, dans un onglet a part), et ici tout ce qui rend le cours interactif. L'etat est relu toutes les 3 s
  * (sondage HTTP court, rien de lourd pour le serveur).
  */
 
@@ -24,6 +25,8 @@ interface Live {
     summary: string | null;
     recording_url: string | null;
     assignment_id: number | null;
+    fournisseur: 'daily' | 'google' | 'lien';
+    integre: boolean;
 }
 interface Question { id: number; body: string; votes: number; repondue: boolean; aVote: boolean; moi: boolean; auteur: string | null }
 interface Sondage { id: number; question: string; options: string[]; ferme: boolean; maReponse: number | null; quiz: boolean; correct: number | null; resultats: number[] | null; total: number }
@@ -156,9 +159,11 @@ export default function LiveSalle({
                         {!enCours && !termine && <Compteur debut={live.starts_at} />}
                     </div>
                     <div className="flex flex-wrap gap-2">
-                        {!termine && (etat?.meeting ?? enCours) && (
+                        {!termine && !live.integre && (etat?.meeting ?? enCours) && (
                             <Button asChild className="bg-rose-600 text-white hover:bg-rose-700">
-                                <a href={route('live.rejoindre', live.id)} target="_blank" rel="noopener">{L('rejoindre', 'Rejoindre sur Google Meet')}</a>
+                                <a href={route('live.rejoindre', live.id)} target="_blank" rel="noopener">
+                                    {live.fournisseur === 'google' ? L('rejoindre', 'Rejoindre sur Google Meet') : L('rejoindre_lien', 'Rejoindre la réunion')}
+                                </a>
                             </Button>
                         )}
                         {!termine && (
@@ -176,6 +181,8 @@ export default function LiveSalle({
                         )}
                     </div>
                 </div>
+
+                {live.integre && !termine && (etat?.meeting ?? enCours) && <SalleVideo liveId={live.id} L={L} />}
 
                 {live.agenda && (
                     <Card><CardContent className="whitespace-pre-line py-3 text-sm"><span className="font-semibold">{L('agenda', 'Ordre du jour')} : </span>{live.agenda}</CardContent></Card>
@@ -195,7 +202,7 @@ export default function LiveSalle({
                 {prof && etat && !termine && (
                     <div className="grid gap-3 sm:grid-cols-4">
                         <Card><CardContent className="py-3 text-sm"><p className="text-2xl font-bold">{etat.connectes ?? 0}</p>{L('connectes', 'élèves sur la page')}</CardContent></Card>
-                        <Card><CardContent className="py-3 text-sm"><p className="text-2xl font-bold">{etat.rejoints ?? 0}</p>{L('rejoints', 'ont rejoint Meet')}</CardContent></Card>
+                        <Card><CardContent className="py-3 text-sm"><p className="text-2xl font-bold">{etat.rejoints ?? 0}</p>{L('rejoints_video', 'ont rejoint la vidéo')}</CardContent></Card>
                         <Card className="sm:col-span-2">
                             <CardContent className="flex justify-around py-3 text-center text-sm">
                                 {REACTIONS.map(([k, e, fr]) => (

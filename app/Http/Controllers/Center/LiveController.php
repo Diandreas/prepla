@@ -10,6 +10,7 @@ use App\Models\ClassroomPathStep;
 use App\Models\LanguageCenter;
 use App\Models\LiveSession;
 use App\Notifications\LiveClassNotification;
+use App\Services\Live\DailyCo;
 use App\Services\Live\GoogleMeet;
 use App\Services\Live\Presence;
 use Carbon\CarbonImmutable;
@@ -30,17 +31,27 @@ use RuntimeException;
  *
  * Droits : ClassroomPolicy::update sur la classe du live (le responsable pour
  * tout le centre, l'enseignant pour ses classes), jamais un autre centre.
- * Sans identifiants OAuth Google, toutes ces routes repondent 404.
+ * Le module est toujours disponible : salle Daily.co integree (si DAILY_API_KEY),
+ * Google Meet automatique (si OAuth Google configure), ou lien de reunion colle.
+ * Les routes de connexion Google repondent 404 sans identifiants OAuth.
  */
 class LiveController extends Controller
 {
-    public function __construct(private GoogleMeet $meet, private Presence $presence) {}
+    public function __construct(private GoogleMeet $meet, private Presence $presence, private DailyCo $daily) {}
 
     private function centre(Request $request): LanguageCenter
     {
-        abort_unless(GoogleMeet::configure(), 404);
-
         return $request->attributes->get('center');
+    }
+
+    /** @return list<string> les fournisseurs proposes, le premier est celui par defaut. */
+    public static function fournisseurs(): array
+    {
+        return array_values(array_filter([
+            DailyCo::configure() ? 'daily' : null,
+            GoogleMeet::configure() ? 'google' : null,
+            'lien',
+        ]));
     }
 
     private function compte(Request $request, LanguageCenter $centre): ?CenterGoogleAccount
@@ -83,7 +94,9 @@ class LiveController extends Controller
             'classeChoisie' => $filtre ?: null,
             'aVenir' => $statuts->get('avenir', collect())->map($fiche)->values(),
             'passes' => $statuts->get('passes', collect())->sortByDesc('starts_at')->take(60)->map($fiche)->values(),
+            'fournisseurs' => self::fournisseurs(),
             'google' => [
+                'disponible' => GoogleMeet::configure(),
                 'connecte' => (bool) $compte,
                 'email' => $compte?->google_email,
                 'lectureAutorisee' => (bool) $compte?->aLeScope(GoogleMeet::SCOPE_LIRE),
@@ -103,6 +116,7 @@ class LiveController extends Controller
             'duration_minutes' => $l->duration_minutes,
             'statut' => $l->statut(),
             'meeting_uri' => $l->meeting_uri,
+            'fournisseur' => $l->fournisseur(),
             'serie' => $l->series_uuid !== null,
             'rejoints' => $l->rejoints_count ?? null,
             'recording_url' => $l->recording_url,
@@ -123,8 +137,9 @@ class LiveController extends Controller
             'duration_minutes' => ['required', 'integer', 'min:10', 'max:480'],
             'repetitions' => ['required_if:mode,serie', 'nullable', 'integer', 'min:2', 'max:26'],
             'access_type' => ['nullable', Rule::in(['OPEN', 'TRUSTED'])],
-            // Sans compte Google connecte : un lien Meet colle a la main.
-            'meeting_uri' => ['nullable', 'url', 'regex:#^https://meet\.google\.com/#', 'max:255'],
+            'fournisseur' => ['nullable', Rule::in(self::fournisseurs())],
+            // « Lien de reunion » : n'importe quelle visio, en https seulement.
+            'meeting_uri' => ['nullable', 'required_if:fournisseur,lien', 'url:https', 'regex:#^https://#i', 'max:255'],
         ]);
 
         $debut = $data['mode'] === 'maintenant' ? CarbonImmutable::now() : CarbonImmutable::parse($data['starts_at']);
@@ -132,8 +147,28 @@ class LiveController extends Controller
             return back()->withErrors(['starts_at' => 'La date doit être dans le futur.']);
         }
 
-        $salle = ['name' => null, 'meetingUri' => $data['meeting_uri'] ?? null, 'meetingCode' => null];
-        if (! $salle['meetingUri']) {
+        $nombre = $data['mode'] === 'serie' ? (int) $data['repetitions'] : 1;
+        $fournisseur = $data['fournisseur'] ?? (! empty($data['meeting_uri']) ? 'lien' : self::fournisseurs()[0]);
+        if ($fournisseur === 'lien' && empty($data['meeting_uri'])) {
+            // Ni Daily ni Google : le lien est indispensable.
+            return back()->withErrors(GoogleMeet::configure()
+                ? ['google' => 'Connectez votre compte Google, ou collez un lien de réunion.']
+                : ['meeting_uri' => 'Collez le lien de la réunion (https).']);
+        }
+
+        $salle = ['name' => null, 'meetingUri' => $fournisseur === 'lien' ? $data['meeting_uri'] : null, 'meetingCode' => null];
+        $salleDaily = null;
+        if ($fournisseur === 'daily') {
+            try {
+                $fin = $debut->addWeeks($nombre - 1)->addMinutes((int) $data['duration_minutes']);
+                $salleDaily = $this->daily->creerSalle($debut, $fin);
+            } catch (\Throwable $e) {
+                Log::warning('Live class : création Daily refusée', ['center' => $centre->id, 'erreur' => $e->getMessage()]);
+
+                return back()->withErrors(['daily' => 'La salle vidéo n’a pas pu être créée. Réessayez, ou collez un lien de réunion.']);
+            }
+            $salle['meetingUri'] = $salleDaily['url'];
+        } elseif ($fournisseur === 'google') {
             $compte = $this->compte($request, $centre);
             if (! $compte) {
                 return back()->withErrors(['google' => 'Connectez votre compte Google, ou collez un lien Meet.']);
@@ -147,7 +182,6 @@ class LiveController extends Controller
             }
         }
 
-        $nombre = $data['mode'] === 'serie' ? (int) $data['repetitions'] : 1;
         $serie = $nombre > 1 ? (string) Str::uuid() : null;
         $lives = collect(range(0, $nombre - 1))->map(fn (int $i) => LiveSession::create([
             'center_id' => $centre->id,
@@ -162,6 +196,8 @@ class LiveController extends Controller
             'meet_space_name' => $salle['name'],
             'meeting_uri' => $salle['meetingUri'],
             'meeting_code' => $salle['meetingCode'],
+            'provider' => $fournisseur,
+            'daily_room' => $salleDaily['name'] ?? null,
             'started_at' => $data['mode'] === 'maintenant' ? now() : null,
         ]));
 
@@ -213,6 +249,18 @@ class LiveController extends Controller
             }
         }
 
+        // Presence et enregistrement cloud lus chez Daily.
+        if ($live->daily_room && DailyCo::configure()) {
+            try {
+                $live->update([
+                    'google_attendance' => $this->daily->presence($live->daily_room),
+                    'recording_url' => $live->recording_url ?? $this->daily->enregistrement($live->daily_room),
+                ]);
+            } catch (\Throwable $e) {
+                Log::info('Live class : bilan Daily indisponible', ['live' => $live->id, 'erreur' => $e->getMessage()]);
+            }
+        }
+
         return redirect()->route('center.lives.show', $live)->with('success', 'Live terminé.');
     }
 
@@ -221,6 +269,16 @@ class LiveController extends Controller
         $this->autoriser($request, $live);
         abort_if($live->started_at !== null, 422);
         $live->update(['cancelled_at' => now()]);
+
+        // La salle Daily est supprimee quand plus aucune seance (d'une serie) ne l'utilise.
+        if ($live->daily_room && DailyCo::configure()
+            && ! LiveSession::where('daily_room', $live->daily_room)->whereKeyNot($live->id)->whereNull('cancelled_at')->exists()) {
+            try {
+                $this->daily->supprimerSalle($live->daily_room);
+            } catch (\Throwable $e) {
+                Log::info('Live class : suppression Daily refusée', ['live' => $live->id, 'erreur' => $e->getMessage()]);
+            }
+        }
 
         return back()->with('success', 'Live annulé.');
     }
@@ -276,6 +334,7 @@ class LiveController extends Controller
 
     public function connecter(Request $request): RedirectResponse
     {
+        abort_unless(GoogleMeet::configure(), 404);
         $this->centre($request);
         $state = Str::random(40);
         $request->session()->put('live_google_state', $state);
@@ -285,6 +344,7 @@ class LiveController extends Controller
 
     public function retour(Request $request): RedirectResponse
     {
+        abort_unless(GoogleMeet::configure(), 404);
         $centre = $this->centre($request);
         $attendu = (string) $request->session()->pull('live_google_state', '');
         if ($attendu === '' || ! hash_equals($attendu, (string) $request->query('state'))) {
