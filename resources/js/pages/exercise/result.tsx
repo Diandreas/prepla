@@ -1,3 +1,4 @@
+import { nomDuSiteCourant } from '@/lib/marque-courante';
 import { ArtIcon } from '@/components/art-icon';
 import { Renard } from '@/components/renard';
 import { XpEnvol } from '@/components/xp-envol';
@@ -370,7 +371,7 @@ export default function ExerciseResult({ attempt, nodeProgress, correctionEnseig
                     </p>
                     {isStarter && (
                         <p className="mt-4 inline-flex rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
-                            Bibliothèque PrepLa · entraînement général
+                            Bibliothèque {nomDuSiteCourant()} · entraînement général
                         </p>
                     )}
                 </div>

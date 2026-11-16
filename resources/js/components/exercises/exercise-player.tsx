@@ -1,3 +1,4 @@
+import { nomDuSiteCourant } from '@/lib/marque-courante';
 import type { FormDataConvertible } from '@inertiajs/core';
 import { router, usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
@@ -554,7 +555,7 @@ export function ExercisePlayer({ exercise, submitUrl, essai = false }: ExerciseP
                 )}
                 {isStarter && (
                     <span className="rounded-full bg-emerald-100 px-3 py-1 text-[0.8125rem] font-semibold text-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-100">
-                        Bibliothèque PrepLa · {exercise.difficulty} · sans IA
+                        Bibliothèque {nomDuSiteCourant()} · {exercise.difficulty} · sans IA
                     </span>
                 )}
                 {/* Le temps est toujours compte (reprise comprise) ; en essai, il

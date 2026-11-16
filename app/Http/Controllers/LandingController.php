@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\Billing\TarifsAffiches;
 use App\Services\Content\ExercicesDEssai;
+use App\Support\MarqueInstance;
 use App\Support\VideoAccueil;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
@@ -16,7 +17,7 @@ class LandingController extends Controller
         return Inertia::render('welcome', [
             'languages' => config('languages.languages'),
             // La video du haut de page, avec le poids reel de chaque fichier.
-            'video' => VideoAccueil::donnees(),
+            'video' => MarqueInstance::personnalisee() ? null : VideoAccueil::donnees(),
             // Les vrais exercices ouverts a l'essai, par langue puis par examen :
             // la page d'accueil les propose directement, sans compte.
             'essai' => Cache::remember('accueil.essai', now()->addMinutes(10), fn () => $essais->catalogue()),

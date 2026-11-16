@@ -1,3 +1,4 @@
+import { nomDuSiteCourant } from '@/lib/marque-courante';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle2, FilePenLine, Lightbulb, LoaderCircle, Sparkles, Upload, type LucideIcon } from 'lucide-react';
@@ -357,7 +358,7 @@ export default function WritingCorrector() {
                                 </>
                             )}
                         </Button>
-                        <p className="text-xs leading-relaxed text-muted-foreground">L’IA peut se tromper. La note est un indicateur pédagogique PrepLa sur 9, adapté à ton examen et à ton niveau ; ce n’est pas une note officielle.</p>
+                        <p className="text-xs leading-relaxed text-muted-foreground">L’IA peut se tromper. La note est un indicateur pédagogique {nomDuSiteCourant()} sur 9, adapté à ton examen et à ton niveau ; ce n’est pas une note officielle.</p>
                     </CardContent>
                 </Card>
 

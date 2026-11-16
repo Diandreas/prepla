@@ -1,3 +1,4 @@
+import { nomDuSiteCourant } from '@/lib/marque-courante';
 import { ArtIcon } from '@/components/art-icon';
 import AppLayout from '@/layouts/app-layout';
 import { rememberOwner, savePack } from '@/lib/offline/db';
@@ -150,7 +151,7 @@ export default function SectionDrills({ exam, section, exerciseTypes = [], learn
                             <p className="mt-1 text-xs leading-relaxed">
                                 {t(
                                     'practice.starter_hint',
-                                    'Les formats « Prêt sans IA » proposent un entraînement général à ton niveau, avec correction. Une connexion à PrepLa reste nécessaire ; ce ne sont pas des sujets officiels d’examen.',
+                                    `Les formats « Prêt sans IA » proposent un entraînement général à ton niveau, avec correction. Une connexion à ${nomDuSiteCourant()} reste nécessaire ; ce ne sont pas des sujets officiels d’examen.`,
                                 )}
                             </p>
                         </div>
