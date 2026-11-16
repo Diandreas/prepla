@@ -137,3 +137,14 @@ Comptes Gmail gratuits : les réunions Meet de groupe sont limitées à 60 minut
   - la connexion Google n'est pas autorisée pour ce domaine ;
   - le propriétaire crée lui-même le compte admin et règle le DNS.
 - En cours : configuration de marque (`config/marque.php`, variables `MARQUE_*`), branche `worktree-wf_4d32ec00-b0d-*`. Une fois fusionnée, mettre les `MARQUE_*` dans le `.env` de FSZ.
+
+## Mise à jour du 2026-11-16 (commit 4741792, sur les deux sites)
+- **Marque par site** : variables `MARQUE_*` (voir `docs/marque-blanche.md`). FSZ est configuré dans son `.env` : logo, icônes, rouge #DD0000 et or #FFCE00, interface de/fr/en, sans renard ni Kids. Les couleurs doivent être ENTRE GUILLEMETS dans le .env (sinon `#` est lu comme un commentaire). Pour vérifier : `php artisan marque:verifier`.
+- **Live class** : toujours visible. Daily.co par défaut (`DAILY_API_KEY` posée sur les deux .env, compte « prepla » ; salles privées, jeton par personne). Google Meet si les clés Google sont posées, ou lien collé à la main.
+- **Déployer les deux sites d'un coup** : `/root/deploy2.sh` sur le VPS (sauvegarde, pull, npm install, migrate, build, caches, chown pour chacun). À lancer avec `nohup bash /root/deploy2.sh > /tmp/deploy2.log 2>&1 &`.
+- **En local** : en parallèle, Pest efface parfois `vendor/pestphp/pest/bin/worker.php`. Dans ce cas, supprimer `vendor/pestphp/pest`, relancer `composer install` et lancer Pest sans `--parallel`. Avec le npm récent, faire `npm install-scripts approve esbuild` puis `npm rebuild esbuild` (ne pas commiter la modification de package.json).
+- **Restes** :
+  - écran hors-ligne (offline-app.tsx) encore écrit « PrepLa » en dur ;
+  - textes élève du live non traduits en allemand ;
+  - salle Daily pas encore essayée avec une vraie caméra ;
+  - mettre à jour `/root/deploy2.sh` si on ajoute un site.
