@@ -17,7 +17,7 @@
   "Les lignes en erreur et les doublons sont laissés de côté.": "Rows with errors and duplicates are left out.",
   "Fichiers de {ko} Ko au plus. Vérifiez l’aperçu avant de valider : rien n’est enregistré avant.": "Files of {ko} KB at most. Check the preview before confirming: nothing is saved until then.",
   "Élèves": "Students",
-  "Colonnes : nom, email, telephone (facultatif), classe. {max} lignes au plus. Chaque élève reçoit une invitation par email ; une personne qui a déjà un compte PrePla n’entre dans la classe qu’en acceptant l’invitation. Licences disponibles : {places}.": "Columns: nom (name), email, telephone (optional), classe (class). {max} rows at most. Each student receives an email invitation; someone who already has a PrePla account only joins the class by accepting it. Licences available: {places}.",
+  "Colonnes : nom, email, telephone (facultatif), classe. {max} lignes au plus. Chaque élève reçoit une invitation par email ; une personne qui a déjà un compte PrePla n’entre dans la classe qu’en acceptant l’invitation. Licences disponibles : {places}.": "Columns: nom (name), email, telephone (optional), classe (class). {max} rows at most. Each student receives an email invitation; someone who already has a {marque} account only joins the class by accepting it. Licences available: {places}.",
   "Nom": "Name",
   "Email": "Email",
   "Téléphone": "Phone",

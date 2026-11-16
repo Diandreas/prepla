@@ -1,3 +1,4 @@
+import { instanceCourante } from '@/lib/instance';
 import { Deferred, Link, usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import type { Tarif } from '@/data/languages';
@@ -54,7 +55,7 @@ function Tarifs() {
             </div>
 
             <div className="accueil-carte flex flex-col p-6" style={{ borderColor: 'color-mix(in srgb, var(--ciel) 55%, transparent)' }}>
-                <h3 className="text-lg font-bold" style={{ color: 'var(--texte)' }}>PrePla Plus</h3>
+                <h3 className="text-lg font-bold" style={{ color: 'var(--texte)' }}>{instanceCourante().nom} Plus</h3>
                 <p className="mt-3 text-4xl font-extrabold" style={{ color: 'var(--texte)' }}>
                     {prix(tarifs.mensuel, langue)}
                     <span className="text-base font-semibold" style={{ color: 'var(--texte-moyen)' }}> / {t('landing.tarif_mois')}</span>

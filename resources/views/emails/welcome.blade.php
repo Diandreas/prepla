@@ -1,5 +1,5 @@
 <x-mail::message>
-# Bienvenue sur PrePla, {{ $userName }} !
+# Bienvenue sur {{ config('marque.nom') }}, {{ $userName }} !
 
 Votre compte est actif et votre **essai gratuit de {{ $trialDays }} jours** commence dès maintenant.
 
@@ -14,13 +14,13 @@ Pendant votre essai, vous avez accès à toutes les fonctionnalités Premium :
 Commencer ma préparation
 </x-mail::button>
 
-**Astuce :** Pratiquez au moins 15 minutes par jour pour progresser rapidement. PrePla vous enverra des rappels pour maintenir votre rythme.
+**Astuce :** Pratiquez au moins 15 minutes par jour pour progresser rapidement. {{ config('marque.nom') }} vous enverra des rappels pour maintenir votre rythme.
 
-Après vos {{ $trialDays }} jours d'essai, vous pourrez continuer avec **PrePla Plus** à 9.99€/mois ou 79.99€/an.
+Après vos {{ $trialDays }} jours d'essai, vous pourrez continuer avec **{{ config('marque.nom') }} Plus** à 9.99€/mois ou 79.99€/an.
 
 Bonne préparation,
 
-L'équipe PrePla
+L'équipe {{ config('marque.nom') }}
 
 ---
 

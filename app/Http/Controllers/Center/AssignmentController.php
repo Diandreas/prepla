@@ -256,7 +256,7 @@ class AssignmentController extends Controller
 
         if ($demandes->isEmpty() || count($permis) !== $demandes->count()) {
             throw ValidationException::withMessages([
-                'exercise_ids' => "Un exercice choisi n'appartient ni à votre centre ni à la banque PrePla de l'examen de cette classe.",
+                'exercise_ids' => \App\Support\MarqueInstance::texte("Un exercice choisi n'appartient ni à votre centre ni à la banque PrePla de l'examen de cette classe."),
             ]);
         }
 

@@ -1,3 +1,4 @@
+import { avecMarque, instanceCourante } from '@/lib/instance';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -37,6 +38,8 @@ interface RenardProps {
  * demande moins de mouvement, voir app.css).
  */
 export function Renard(props: RenardProps) {
+    // Une instance en marque blanche peut se passer de la mascotte (MARQUE_MASCOTTE).
+    if (!instanceCourante().mascotte) return null;
     // La cle remonte le composant quand la pose change : repli remis a zero
     // et animation d'entree rejouee.
     return <RenardPose key={props.pose} {...props} />;
@@ -50,7 +53,7 @@ function RenardPose({ pose, size = 120, decoratif = false, className }: RenardPr
     return (
         <img
             src={repli ? REPLI : cheminDeLaPose(pose)}
-            alt={decoratif ? '' : DESCRIPTIONS[pose]}
+            alt={decoratif ? '' : avecMarque(DESCRIPTIONS[pose])}
             aria-hidden={decoratif || undefined}
             width={size}
             height={size}

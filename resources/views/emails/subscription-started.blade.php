@@ -1,5 +1,5 @@
 <x-mail::message>
-# Bienvenue dans PrePla Plus, {{ $userName }} !
+# Bienvenue dans {{ config('marque.nom') }} Plus, {{ $userName }} !
 
 Ton abonnement est actif dès maintenant. Tu as désormais accès à :
 
@@ -16,5 +16,5 @@ Gérer mon abonnement
 
 Merci de ta confiance — bonne préparation !
 
-L'équipe PrePla
+L'équipe {{ config('marque.nom') }}
 </x-mail::message>

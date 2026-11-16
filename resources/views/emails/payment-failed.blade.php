@@ -3,7 +3,7 @@
 
 Bonjour {{ $userName }},
 
-Nous n'avons pas pu prélever le paiement de ton abonnement PrePla Plus. Cela arrive généralement quand une carte a expiré ou que les fonds sont insuffisants.
+Nous n'avons pas pu prélever le paiement de ton abonnement {{ config('marque.nom') }} Plus. Cela arrive généralement quand une carte a expiré ou que les fonds sont insuffisants.
 
 Pour éviter toute interruption de ton accès Premium, mets à jour ton moyen de paiement dès que possible.
 
@@ -13,5 +13,5 @@ Mettre à jour mon paiement
 
 Si tu penses qu'il s'agit d'une erreur, n'hésite pas à nous contacter.
 
-L'équipe PrePla
+L'équipe {{ config('marque.nom') }}
 </x-mail::message>

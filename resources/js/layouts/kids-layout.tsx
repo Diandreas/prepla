@@ -1,3 +1,4 @@
+import { instanceCourante } from '@/lib/instance';
 import { Head, Link, router } from '@inertiajs/react';
 import * as Flags from 'country-flag-icons/react/3x2';
 import { type ReactNode, useMemo, useState } from 'react';
@@ -110,7 +111,7 @@ export default function KidsLayout({ titre, enfant, children, retour }: { titre:
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-sky-200 via-sky-100 to-amber-50 font-sans text-slate-800">
-            <Head title={`${titre} · PrePla Kids`} />
+            <Head title={`${titre} · ${instanceCourante().nom} Kids`} />
             <header className="sticky top-0 z-30 border-b border-white/60 bg-white/70 backdrop-blur">
                 <div className="mx-auto flex h-16 max-w-5xl items-center gap-3 px-4">
                     {retour ? (

@@ -124,7 +124,7 @@ class ExamensBlancsCentre
 
         if ($permis->count() !== $ids->count()) {
             throw ValidationException::withMessages([
-                'items' => "Un exercice choisi n'appartient ni à votre centre ni au catalogue PrePla de cet examen.",
+                'items' => \App\Support\MarqueInstance::texte("Un exercice choisi n'appartient ni à votre centre ni au catalogue PrePla de cet examen."),
             ]);
         }
 

@@ -1,3 +1,4 @@
+import { avecMarque } from '@/lib/instance';
 import { Link } from '@inertiajs/react';
 import AppLogo from '@/components/app-logo';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,7 @@ export function EssaiEntete() {
     return (
         <header className="border-b bg-background/85 backdrop-blur-xl">
             <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
-                <Link href="/" className="flex items-center" aria-label="Accueil PrePla">
+                <Link href="/" className="flex items-center" aria-label={avecMarque("Accueil PrePla")}>
                     <AppLogo />
                 </Link>
                 <div className="flex items-center gap-2">

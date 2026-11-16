@@ -1,3 +1,4 @@
+import { instanceCourante } from '@/lib/instance';
 import { Link } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 
@@ -78,14 +79,18 @@ export default function AuthSimpleLayout({ children, title, description }: AuthL
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             boxShadow: '0 4px 20px rgba(26,43,72,0.4)',
                         }}>
-                            <img src="/icons/logo.png?v=4" alt="PrePla" width={30} height={30} style={{ objectFit: 'contain' }} />
+                            <img src={instanceCourante().logo} alt={instanceCourante().nom} width={30} height={30} style={{ objectFit: 'contain' }} />
                         </div>
 
+                        {instanceCourante().personnalisee ? (
+                            <span style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '1.5rem', fontWeight: 700, color: logoText, lineHeight: 1 }}>{instanceCourante().nom_court}</span>
+                        ) : (
                         <div style={{ display: 'flex', alignItems: 'baseline', gap: 0 }}>
                             <span style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontSize: '1.85rem', fontWeight: 700, fontStyle: 'italic', color: logoText, lineHeight: 1, letterSpacing: '-0.02em', transition: 'color 0.3s ease' }}>Pre</span>
                             <span style={{ fontFamily: '"Cormorant Garamond", Georgia, serif', fontSize: '1.85rem', fontWeight: 700, fontStyle: 'italic', color: GOLD, lineHeight: 1, letterSpacing: '-0.02em' }}>Pla</span>
                             <span style={{ marginLeft: '0.4rem', padding: '0.2rem 0.45rem', borderRadius: '0.3rem', fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', background: `${GOLD}15`, border: `1px solid ${GOLD}22`, color: GOLD, fontFamily: '"Plus Jakarta Sans", sans-serif' }}>IA</span>
                         </div>
+                        )}
                     </Link>
 
                     <div style={{ textAlign: 'center' }}>

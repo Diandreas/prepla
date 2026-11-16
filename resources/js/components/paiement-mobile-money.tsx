@@ -1,3 +1,4 @@
+import { avecMarque, instanceCourante } from '@/lib/instance';
 import { useState } from 'react';
 import { useForm } from '@inertiajs/react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -41,7 +42,7 @@ export default function PaiementMobileMoney({ mobileMoney }: { mobileMoney: Mobi
     const destinataire = moyen === 'orange' ? mobileMoney.orange : mobileMoney.mtn;
 
     const message = [
-        'Bonjour, je viens de payer PrePla Plus par Mobile Money.',
+        avecMarque('Bonjour, je viens de payer PrePla Plus par Mobile Money.'),
         `Formule : ${formule === 'mensuel' ? '1 mois' : '1 an'} (${fcfa(montant)})`,
         `Paiement : ${moyen === 'orange' ? 'Orange Money' : 'MTN MoMo'}`,
         `E-mail de mon compte : ${mobileMoney.email}`,
@@ -152,7 +153,7 @@ export default function PaiementMobileMoney({ mobileMoney }: { mobileMoney: Mobi
                 </ol>
 
                 <p className="rounded-xl bg-muted/60 px-3 py-2 text-center text-xs text-muted-foreground">
-                    Ton accès PrePla Plus est activé dès réception, en quelques minutes en journée. Recharge cette page pour le voir.
+                    Ton accès {instanceCourante().nom} Plus est activé dès réception, en quelques minutes en journée. Recharge cette page pour le voir.
                 </p>
             </CardContent>
         </Card>

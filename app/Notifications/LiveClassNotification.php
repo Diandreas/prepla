@@ -82,7 +82,7 @@ class LiveClassNotification extends Notification implements ShouldQueue
             ->greeting("Bonjour {$notifiable->name} !")
             ->line($this->phrase())
             ->action($this->maintenant ? 'Rejoindre le live' : 'Voir le live', $this->lien)
-            ->salutation($this->centreNom ? "L'équipe de {$this->centreNom}" : "L'équipe PrePla");
+            ->salutation($this->centreNom ? "L'équipe de {$this->centreNom}" : \App\Support\MarqueInstance::texte("L'équipe PrePla"));
 
         if ($this->masquerPrepla && $this->centreNom) {
             $message->markdown('emails.centre.notification', ['nomDuSite' => $this->centreNom]);

@@ -1,3 +1,4 @@
+import { instanceCourante } from '@/lib/instance';
 import { router, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -44,7 +45,7 @@ export function PhonePrompt() {
             <div className="w-full max-w-sm rounded-t-2xl border border-border bg-card p-5 shadow-2xl sm:rounded-2xl">
                 <h2 id="phone-prompt-title" className="text-base font-bold">Ton numéro de téléphone</h2>
                 <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                    Pour te joindre si ton compte a un souci, et te demander ton avis sur PrePla. Jamais partagé, et tu peux refuser.
+                    Pour te joindre si ton compte a un souci, et te demander ton avis sur {instanceCourante().nom}. Jamais partagé, et tu peux refuser.
                 </p>
 
                 <form onSubmit={submit} className="mt-4 space-y-3">

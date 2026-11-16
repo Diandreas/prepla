@@ -223,7 +223,7 @@
     "choix_note": "Corrigé avec ses explications, et rien n’est enregistré.",
     "choix_tous": "Tous les essais",
     "choix_aria": "Essayer un exercice de {{examen}}, sans compte",
-    "video_titre": "PrePla, par où commencer ?",
+    "video_titre": "{{marque}}, par où commencer ?",
     "video_jouer_aria": "Regarder la vidéo de présentation, 34 secondes, avec le son.",
     "video_en_francais_aria": "En français, sous-titres français.",
     "video_affiche_alt": "La présentatrice de la vidéo, avec le titre « Examen de langue : par où commencer ? »",
@@ -298,11 +298,11 @@
     "tarif_ou_an": "ou {{annuel}} par an, soit {{parMois}} par mois",
     "tarif_plus_illimite": "Exercices sans limite par jour",
     "tarif_plus_memes": "Les mêmes outils que la formule gratuite",
-    "tarif_plus_cta": "Passer à PrePla Plus",
+    "tarif_plus_cta": "Passer à {{marque}} Plus",
     "tarifs_note": "À l’inscription : 7 jours d’exercices illimités, sans carte bancaire (une fois par adresse e-mail). Paiement sécurisé par Stripe, résiliable à tout moment.",
     "centres_surtitre": "Enseignants et centres de langues",
     "centres_titre": "Vous enseignez ?",
-    "centres_titre_accent": "Suivez vos élèves sur PrePla.",
+    "centres_titre_accent": "Suivez vos élèves sur {{marque}}.",
     "centres_chapo": "Créez vos classes, donnez des devoirs, et voyez qui a fait le travail, quand, et sur quoi chacun bloque.",
     "centres_cta": "En parler sur WhatsApp",
     "centres_classes_titre": "Classes et codes d’invitation",
@@ -332,8 +332,8 @@
     "footer_link_suppression": "Supprimer mon compte",
     "footer_contact_whatsapp": "WhatsApp",
     "footer_contact_call": "Appel direct",
-    "footer_copyright": "© {{year}} PrePla. Tous droits réservés.",
-    "footer_independance": "PrePla est indépendant des organismes d’examen : il ne délivre aucun diplôme et ne vend pas d’inscription."
+    "footer_copyright": "© {{year}} {{marque}}. Tous droits réservés.",
+    "footer_independance": "{{marque}} est indépendant des organismes d’examen : il ne délivre aucun diplôme et ne vend pas d’inscription."
   },
   "errors": {
     "correct_answer": "Bonne réponse",

@@ -107,7 +107,7 @@ class AssignmentPublishedNotification extends Notification implements ShouldQueu
             ->line($this->body())
             ->action('Ouvrir mon devoir', $this->lienDuTableauDeBord())
             // Le devoir vient du centre : c'est lui qui signe.
-            ->salutation($this->centreNom ? "L'équipe de {$this->centreNom}" : "L'équipe PrePla");
+            ->salutation($this->centreNom ? "L'équipe de {$this->centreNom}" : \App\Support\MarqueInstance::texte("L'équipe PrePla"));
 
         // Marque blanche : ni l'en-tete ni le pied du courriel ne disent PrePla.
         if ($this->masquerPrepla && $this->centreNom) {

@@ -56,7 +56,7 @@ class GoogleDriveController extends Controller
         try {
             $jetons = $this->google->echangerCode((string) $request->query('code'));
             if (! $jetons['refresh_token']) {
-                return $this->retour('Google n’a pas donné d’accès durable. Retirez PrePla des applications de votre compte Google puis recommencez.', true);
+                return $this->retour(\App\Support\MarqueInstance::texte('Google n’a pas donné d’accès durable. Retirez PrePla des applications de votre compte Google puis recommencez.'), true);
             }
             $arbo = $this->google->creerArborescence($jetons['access_token'], $centre);
             $email = $this->google->email($jetons['access_token']);
@@ -75,7 +75,7 @@ class GoogleDriveController extends Controller
             'connecte_le' => now(),
         ]);
 
-        return $this->retour('Google Drive connecté : vos nouveaux contenus iront dans le dossier « PrePla - '.$centre->name.' ».');
+        return $this->retour(\App\Support\MarqueInstance::texte('Google Drive connecté : vos nouveaux contenus iront dans le dossier « PrePla - ').$centre->name.' ».');
     }
 
     public function disconnect(Request $request): RedirectResponse

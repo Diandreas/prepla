@@ -222,7 +222,7 @@
     "choix_note": "Korrigiert und erklärt, und nichts wird gespeichert.",
     "choix_tous": "Alle Testübungen",
     "choix_aria": "Eine {{examen}}-Übung testen, ohne Konto",
-    "video_titre": "PrePla, wo anfangen?",
+    "video_titre": "{{marque}}, wo anfangen?",
     "video_jouer_aria": "Das Vorstellungsvideo ansehen, 34 Sekunden, mit Ton.",
     "video_en_francais_aria": "Auf Französisch, mit französischen Untertiteln.",
     "video_affiche_alt": "Die Moderatorin des Videos mit dem französischen Titel „Sprachprüfung: Wo anfangen?“",
@@ -297,11 +297,11 @@
     "tarif_ou_an": "oder {{annuel}} pro Jahr, also {{parMois}} pro Monat",
     "tarif_plus_illimite": "Übungen ohne Tageslimit",
     "tarif_plus_memes": "Dieselben Werkzeuge wie im kostenlosen Angebot",
-    "tarif_plus_cta": "Zu PrePla Plus wechseln",
+    "tarif_plus_cta": "Zu {{marque}} Plus wechseln",
     "tarifs_note": "Bei der Anmeldung: 7 Tage unbegrenzt üben, ohne Karte (einmal pro E-Mail-Adresse). Sichere Zahlung über Stripe, jederzeit kündbar.",
     "centres_surtitre": "Lehrkräfte und Sprachschulen",
     "centres_titre": "Sie unterrichten?",
-    "centres_titre_accent": "Begleiten Sie Ihre Lernenden auf PrePla.",
+    "centres_titre_accent": "Begleiten Sie Ihre Lernenden auf {{marque}}.",
     "centres_chapo": "Legen Sie Klassen an, vergeben Sie Hausaufgaben und sehen Sie, wer die Arbeit gemacht hat, wann, und wo jeder hängt.",
     "centres_cta": "Per WhatsApp sprechen",
     "centres_classes_titre": "Klassen und Einladungscodes",
@@ -331,8 +331,8 @@
     "footer_link_suppression": "Mein Konto löschen",
     "footer_contact_whatsapp": "WhatsApp",
     "footer_contact_call": "Direkt anrufen",
-    "footer_copyright": "© {{year}} PrePla. Alle Rechte vorbehalten.",
-    "footer_independance": "PrePla ist unabhängig von den Prüfungsstellen: Es stellt keine Zertifikate aus und verkauft keine Prüfungsanmeldungen."
+    "footer_copyright": "© {{year}} {{marque}}. Alle Rechte vorbehalten.",
+    "footer_independance": "{{marque}} ist unabhängig von den Prüfungsstellen: Es stellt keine Zertifikate aus und verkauft keine Prüfungsanmeldungen."
   },
   "errors": {
     "correct_answer": "Richtige Antwort",

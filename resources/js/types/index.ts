@@ -40,6 +40,7 @@ export interface SharedData {
     freeExercisesUsedToday: number;
     freeExercisesLimit: number;
     marque?: Marque;
+    instance?: Instance;
     menus?: MenusDisponibles;
     [key: string]: unknown;
 }
@@ -55,6 +56,28 @@ export interface Marque {
     centre_id: number | null;
     /** Valeurs posées en variables CSS, texte lisible compris ; null pour PrePla. */
     theme: ThemeDeMarque | null;
+}
+
+/** Marque de l'instance (config/marque.php, app/Support/MarqueInstance.php). */
+export interface Instance {
+    nom: string;
+    nom_court: string;
+    slogan: string;
+    logo: string;
+    logo_carre: string;
+    couleurs: { primaire: string; secondaire: string };
+    email_contact: string;
+    site: string | null;
+    /** [] : toutes les langues. */
+    langues_interface: string[];
+    langue_defaut: string | null;
+    /** [] : tous les examens. */
+    examens: string[];
+    masquer_kids: boolean;
+    masquer_prix_publics: boolean;
+    mascotte: boolean;
+    /** Vrai quand l'instance n'est pas PrePla. */
+    personnalisee: boolean;
 }
 
 export interface ThemeDeMarque {

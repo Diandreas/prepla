@@ -36,7 +36,7 @@
     // indexee pour ses propres examens. Une page qui compte sur sa query passe
     // donc son canonique.
     $canonique = $canonique ?? url()->current();
-    $complet = $titre.' — PrePla';
+    $complet = $titre.' — '.config('marque.nom');
 @endphp
 
 <meta name="description" content="{{ $description }}">
@@ -47,7 +47,7 @@
 @endunless
 
 <meta property="og:type" content="{{ $type }}">
-<meta property="og:site_name" content="PrePla">
+<meta property="og:site_name" content="{{ config('marque.nom') }}">
 <meta property="og:title" content="{{ $complet }}">
 <meta property="og:description" content="{{ $description }}">
 <meta property="og:url" content="{{ $canonique }}">
@@ -58,7 +58,7 @@
 <meta property="og:image" content="{{ $image }}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="{{ $titre }} — PrePla">
+<meta property="og:image:alt" content="{{ $titre }} — {{ config('marque.nom') }}">
 
 {{-- « summary_large_image » affiche la banniere en grand ; « summary » la
      reduisait a une vignette carree a cote du texte. --}}
@@ -66,4 +66,4 @@
 <meta name="twitter:title" content="{{ $complet }}">
 <meta name="twitter:description" content="{{ $description }}">
 <meta name="twitter:image" content="{{ $image }}">
-<meta name="twitter:image:alt" content="{{ $titre }} — PrePla">
+<meta name="twitter:image:alt" content="{{ $titre }} — {{ config('marque.nom') }}">

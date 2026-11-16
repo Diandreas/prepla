@@ -1,3 +1,4 @@
+import { instanceCourante } from '@/lib/instance';
 import { Head } from '@inertiajs/react';
 import { useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
@@ -17,7 +18,7 @@ const fcfa = (n: number) => `${n.toLocaleString('fr-FR')} FCFA`;
  */
 export default function MonCode({ delegue, bilan, etudiants }: Props) {
     const [copie, setCopie] = useState(false);
-    const message = `Je prépare mon examen de langue avec PrePla. Avec mon code ${delegue.code}, tu as ${delegue.reduction} % de réduction sur l'abonnement : ${delegue.lien}`;
+    const message = `Je prépare mon examen de langue avec ${instanceCourante().nom}. Avec mon code ${delegue.code}, tu as ${delegue.reduction} % de réduction sur l'abonnement : ${delegue.lien}`;
 
     const copier = () => {
         navigator.clipboard?.writeText(delegue.lien);
@@ -37,7 +38,7 @@ export default function MonCode({ delegue, bilan, etudiants }: Props) {
                 </div>
 
                 {!delegue.actif && (
-                    <p className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">Ton code est suspendu pour l'instant. Contacte l'équipe PrePla.</p>
+                    <p className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">Ton code est suspendu pour l'instant. Contacte l'équipe {instanceCourante().nom}.</p>
                 )}
 
                 <Card className="border-2 border-primary/40">

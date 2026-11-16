@@ -19,7 +19,7 @@ class PaymentFailedMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Problème avec ton paiement PrePla Plus',
+            subject: \App\Support\MarqueInstance::texte('Problème avec ton paiement PrePla Plus'),
         );
     }
 

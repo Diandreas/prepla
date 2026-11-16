@@ -1,3 +1,7 @@
+import { instanceCourante , avecMarque } from '@/lib/instance';
+
+/** Une langue d'interface que l'instance propose (MARQUE_LANGUES_INTERFACE ; vide = toutes). */
+const languesInterface = (code: string) => { const l = instanceCourante().langues_interface; return l.length === 0 || l.includes(code); };
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { ArtIcon } from '@/components/art-icon';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
@@ -191,7 +195,7 @@ export default function Profile({ mustVerifyEmail, status, profile, exams, offre
                     <div className="flex items-center gap-2.5 min-w-0">
                         <ArtIcon name="credit-card" size={36} tone="amber" />
                         <div className="min-w-0">
-                            <p className="text-sm font-black truncate">{isPremium ? 'PrePla Plus' : 'PrePla Standard'}</p>
+                            <p className="text-sm font-black truncate">{isPremium ? avecMarque('PrePla Plus') : avecMarque('PrePla Standard')}</p>
                             <p className="text-[10px] font-bold opacity-70">{isPremium ? t('profile.premium_active', 'Premium actif') : t('profile.go_premium', 'Passe au Premium')}</p>
                         </div>
                     </div>
@@ -297,9 +301,9 @@ export default function Profile({ mustVerifyEmail, status, profile, exams, offre
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="fr">🇫🇷 Français</SelectItem>
-                                    <SelectItem value="en">🇬🇧 English</SelectItem>
-                                    <SelectItem value="de">🇩🇪 Deutsch</SelectItem>
+                                    {languesInterface('fr') && <SelectItem value="fr">🇫🇷 Français</SelectItem>}
+                                    {languesInterface('en') && <SelectItem value="en">🇬🇧 English</SelectItem>}
+                                    {languesInterface('de') && <SelectItem value="de">🇩🇪 Deutsch</SelectItem>}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -414,7 +418,7 @@ export default function Profile({ mustVerifyEmail, status, profile, exams, offre
                 </div>
 
                 <p className="text-center text-[10px] text-muted-foreground uppercase tracking-widest font-black opacity-40">
-                    PrePla v1.2.0 • {t('profile.made_with', 'Made with')}  {t('profile.for_success', 'for success')}
+                    {instanceCourante().nom} v1.2.0 • {t('profile.made_with', 'Made with')}  {t('profile.for_success', 'for success')}
                 </p>
             </div>
 

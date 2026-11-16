@@ -1,3 +1,4 @@
+import { instanceCourante } from '@/lib/instance';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Illustration } from '@/components/illustration';
@@ -158,7 +159,7 @@ export default function Subscription({ currentPlan, stripeEnabled, isSubscribed,
                 {showSuccess && (
                     <div className="rounded-2xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-center">
                         <Renard pose="merci" size={120} decoratif className="mb-2 h-24 w-24" />
-                        <p className="text-sm font-bold text-emerald-800">✓ Paiement réussi — bienvenue dans PrePla Plus !</p>
+                        <p className="text-sm font-bold text-emerald-800">✓ Paiement réussi — bienvenue dans {instanceCourante().nom} Plus !</p>
                     </div>
                 )}
 
@@ -176,7 +177,7 @@ export default function Subscription({ currentPlan, stripeEnabled, isSubscribed,
                 {premiumUntil && (
                     <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-center dark:border-emerald-900/50 dark:bg-emerald-950/30">
                         <p className="text-sm font-bold text-emerald-800 dark:text-emerald-200">
-                            ✓ PrePla Plus actif jusqu'au {new Date(premiumUntil).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                            ✓ {instanceCourante().nom} Plus actif jusqu'au {new Date(premiumUntil).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
                         </p>
                         <p className="mt-0.5 text-xs text-emerald-700 dark:text-emerald-300">Payé par Mobile Money. Pour prolonger, paie à nouveau ci-dessous : les jours restants sont conservés.</p>
                     </div>
@@ -202,7 +203,7 @@ export default function Subscription({ currentPlan, stripeEnabled, isSubscribed,
                             <img src="/icons/star.png" alt="" width={12} height={12} style={{ objectFit: 'contain', }} />
                             Recommandé
                         </div>
-                        <CardTitle className="text-2xl font-black">PrePla Plus</CardTitle>
+                        <CardTitle className="text-2xl font-black">{instanceCourante().nom} Plus</CardTitle>
                         <CardDescription>L'expérience complète sans limites</CardDescription>
 
                         {!isPremium && (

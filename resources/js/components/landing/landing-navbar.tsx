@@ -1,3 +1,4 @@
+import { instanceCourante } from '@/lib/instance';
 import { Link, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +12,12 @@ const LANG_OPTIONS = [
     { code: 'de', label: 'DE', nom: 'Deutsch' },
 ];
 
+/** Les langues que l'instance propose (MARQUE_LANGUES_INTERFACE ; vide = toutes). */
+export function languesProposees<T extends { code: string }>(options: T[]): T[] {
+    const proposees = instanceCourante().langues_interface;
+    return proposees.length ? options.filter((o) => proposees.includes(o.code)) : options;
+}
+
 function LangSwitcher({ id }: { id: string }) {
     const { i18n, t } = useTranslation();
     const T = useTokens();
@@ -18,7 +25,8 @@ function LangSwitcher({ id }: { id: string }) {
     // La langue reellement affichee : un navigateur en espagnol voit l'anglais, et
     // le choix doit dire « EN », pas « FR ».
     const affichee = (i18n.resolvedLanguage ?? i18n.language ?? 'en').slice(0, 2);
-    const current = LANG_OPTIONS.find((l) => l.code === affichee) ?? LANG_OPTIONS[1];
+    const options = languesProposees(LANG_OPTIONS);
+    const current = options.find((l) => l.code === affichee) ?? (options === LANG_OPTIONS ? LANG_OPTIONS[1] : options[0]);
 
     return (
         <div style={{ position: 'relative' }}>
@@ -48,7 +56,7 @@ function LangSwitcher({ id }: { id: string }) {
                     background: T.dark ? '#111b2e' : '#ffffff', border: `1px solid ${T.border}`, borderRadius: '0.75rem',
                     boxShadow: T.dark ? '0 8px 32px rgba(0,0,0,0.4)' : '0 8px 24px rgba(26,22,18,0.1)', overflow: 'hidden',
                 }}>
-                    {LANG_OPTIONS.map((lang) => {
+                    {options.map((lang) => {
                         const actif = lang.code === current.code;
 
                         return (
@@ -138,12 +146,16 @@ export function LandingNavbar() {
             }}
         >
             <div style={{ maxWidth: '80rem', margin: '0 auto' }} className="landing-navbar-inner flex h-16 items-center justify-between gap-3">
-                <Link href="/" className="flex shrink-0 items-center gap-2 select-none" aria-label="PrePla">
-                    <img src="/icons/logo.png?v=4" alt="" width={32} height={32} style={{ objectFit: 'contain' }} />
+                <Link href="/" className="flex shrink-0 items-center gap-2 select-none" aria-label={instanceCourante().nom}>
+                    <img src={instanceCourante().logo} alt="" width={32} height={32} style={{ objectFit: 'contain' }} />
+                    {instanceCourante().personnalisee ? (
+                        <span aria-hidden="true" style={{ fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif', fontSize: '1.2rem', fontWeight: 800, color: T.text, lineHeight: 1 }}>{instanceCourante().nom_court}</span>
+                    ) : (
                     <span className="flex items-baseline gap-0.5" aria-hidden="true">
                         <span style={{ fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif', fontSize: '1.35rem', fontWeight: 800, color: T.text, lineHeight: 1, letterSpacing: '-0.02em' }}>Pre</span>
                         <span style={{ fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif', fontSize: '1.35rem', fontWeight: 800, color: T.sky, lineHeight: 1, letterSpacing: '-0.02em' }}>Pla</span>
                     </span>
+                    )}
                 </Link>
 
                 {/* Liens : a partir de 1280 px, sinon dans le menu. */}

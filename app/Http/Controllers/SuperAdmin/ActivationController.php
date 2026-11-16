@@ -88,7 +88,7 @@ class ActivationController extends Controller
             $data['moyen'], isset($data['montant']) ? (int) $data['montant'] : null, $data['reference'] ?? null);
 
         return redirect()->route('admin.activations.index', ['email' => $compte->email])
-            ->with('success', "Accès PrePla Plus ouvert pour {$compte->email} jusqu'au ".$activation->fin->locale('fr')->isoFormat('D MMMM YYYY').'.');
+            ->with('success', "Accès ".\App\Support\MarqueInstance::nom()." Plus ouvert pour {$compte->email} jusqu'au ".$activation->fin->locale('fr')->isoFormat('D MMMM YYYY').'.');
     }
 
     public function destroy(ActivationManuelle $activation, ActivationMobileMoney $service)

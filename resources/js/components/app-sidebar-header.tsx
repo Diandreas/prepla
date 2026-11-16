@@ -1,3 +1,4 @@
+import { instanceCourante } from '@/lib/instance';
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Menu, Settings } from 'lucide-react';
@@ -132,7 +133,7 @@ export function AppSidebarHeader() {
     const titleKey = PAGE_TITLE_KEYS.find(([path]) => url === path || url.startsWith(path + '/'))?.[1];
     // Un centre en marque blanche remplace PrePla jusque dans ce titre par defaut.
     const marque = (page.props as { marque?: Marque }).marque;
-    const pageTitle = titleKey ? t(`page_titles.${titleKey}`) : (marque?.masquer_prepla ? marque.nom : 'PrePla');
+    const pageTitle = titleKey ? t(`page_titles.${titleKey}`) : (marque?.masquer_prepla ? marque.nom : instanceCourante().nom);
 
     // i18n est initialisé une seule fois au tout premier chargement de page
     // (createInertiaApp.setup, voir app.tsx) — la connexion se fait en

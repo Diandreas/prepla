@@ -83,11 +83,21 @@ class OnboardingController extends Controller
         $centre = auth()->user()?->center();
         $retenus = $centre?->examensRetenus();
 
+        $slugs = \App\Support\MarqueInstance::examens();
+
         $languages = Language::where('is_active', true)
-            ->with(['exams' => fn ($q) => $retenus === null ? $q : $q->whereIn('exams.id', $retenus)])
+            ->with(['exams' => function ($q) use ($retenus, $slugs) {
+                if ($retenus !== null) {
+                    $q->whereIn('exams.id', $retenus);
+                }
+                // L'instance (marque blanche) ne propose que ses examens.
+                if ($slugs !== []) {
+                    $q->whereIn('exams.slug', $slugs);
+                }
+            }])
             ->get();
 
-        if ($retenus !== null) {
+        if ($retenus !== null || $slugs !== []) {
             $languages = $languages->filter(fn (Language $l) => $l->exams->isNotEmpty())->values();
         }
 

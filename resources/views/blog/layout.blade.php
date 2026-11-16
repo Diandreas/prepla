@@ -3,12 +3,12 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title') — Blog PrePla</title>
+    <title>@yield('title') — Blog {{ config('marque.nom') }}</title>
     <meta name="description" content="@yield('description')">
     <link rel="canonical" href="@yield('canonical')">
 
     <meta property="og:type" content="@yield('og_type', 'website')">
-    <meta property="og:site_name" content="PrePla">
+    <meta property="og:site_name" content="{{ config('marque.nom') }}">
     <meta property="og:title" content="@yield('title')">
     <meta property="og:description" content="@yield('description')">
     <meta property="og:url" content="@yield('canonical')">
@@ -19,7 +19,7 @@
     <meta property="og:image" content="@yield('og_image', url('/og/prepla.png'))">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="@yield('title') — PrePla">
+    <meta property="og:image:alt" content="@yield('title') — {{ config('marque.nom') }}">
 
     {{-- « summary » reduisait l'apercu a une vignette carree. --}}
     <meta name="twitter:card" content="summary_large_image">

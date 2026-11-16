@@ -99,7 +99,7 @@ class DelegueController extends Controller
         ], [
             'code.regex' => 'Le code : 3 à 20 lettres ou chiffres, sans espace.',
             'code.unique' => 'Ce code est déjà pris par un autre délégué.',
-            'email.exists' => "Aucun compte PrePla avec cet e-mail : le délégué doit d'abord s'inscrire, ou laisse ce champ vide.",
+            'email.exists' => \App\Support\MarqueInstance::texte("Aucun compte PrePla avec cet e-mail : le délégué doit d'abord s'inscrire, ou laisse ce champ vide."),
         ]);
 
         return $this->avecCompte($request);

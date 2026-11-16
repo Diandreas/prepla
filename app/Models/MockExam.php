@@ -65,7 +65,14 @@ class MockExam extends Model
     /** Les epreuves PrePla : celles d'un centre restent a ses eleves. */
     public function scopeCatalogue(Builder $query): Builder
     {
-        return $query->whereNull('mock_exams.center_id');
+        $query->whereNull('mock_exams.center_id');
+
+        // L'instance (marque blanche) ne montre que les examens blancs de ses examens.
+        if (($slugs = \App\Support\MarqueInstance::examens()) !== []) {
+            $query->whereHas('blueprint.exam', fn ($q) => $q->whereIn('exams.slug', $slugs));
+        }
+
+        return $query;
     }
 
     /** Duree totale : la somme du minutage par section. */

@@ -1,3 +1,4 @@
+import { instanceCourante } from '@/lib/instance';
 import { Head } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { CentresSection } from '@/components/landing/centres-section';
@@ -60,7 +61,7 @@ function WelcomeInner({ languages, video, essai }: WelcomeProps) {
                 <HowItWorks video={video} />
                 <EssaiSection langues={languages} essai={essai} />
                 <FeaturesSection />
-                <PricingSection />
+                {!instanceCourante().masquer_prix_publics && <PricingSection />}
                 <CentresSection />
                 <CtaSection avecVideo={!!video} />
             </main>

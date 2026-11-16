@@ -19,7 +19,7 @@ class WelcomeMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Bienvenue sur PrePla — votre essai de 7 jours commence maintenant',
+            subject: \App\Support\MarqueInstance::texte('Bienvenue sur PrePla — votre essai de 7 jours commence maintenant'),
         );
     }
 

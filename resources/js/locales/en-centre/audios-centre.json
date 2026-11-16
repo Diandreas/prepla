@@ -50,7 +50,7 @@
   "Une seule écoute": "One play only",
   "Deux écoutes": "Two plays",
   "Illimité": "Unlimited",
-  "Copier depuis le catalogue PrePla": "Copy from the PrePla catalogue",
+  "Copier depuis le catalogue PrePla": "Copy from the {marque} catalogue",
   "Filtrer par partie ou type": "Filter by part or type",
   "Toutes les parties": "All parts",
   "Filtrer par statut": "Filter by status",
@@ -63,8 +63,8 @@
   "Repasser en brouillon": "Back to draft",
   "Dupliquer « {nom} »": "Duplicate “{nom}”",
   "Dupliquer": "Duplicate",
-  "Catalogue PrePla": "PrePla catalogue",
-  "Copiez un exercice PrePla dans votre banque pour l’adapter. La copie part en brouillon.": "Copy a PrePla exercise into your bank to adapt it. The copy starts as a draft.",
+  "Catalogue PrePla": "{marque} catalogue",
+  "Copiez un exercice PrePla dans votre banque pour l’adapter. La copie part en brouillon.": "Copy a {marque} exercise into your bank to adapt it. The copy starts as a draft.",
   "Examen du catalogue": "Catalogue exam",
   "Niveau du catalogue": "Catalogue level",
   "Partie du catalogue": "Catalogue part",
@@ -73,5 +73,5 @@
   "Chargement…": "Loading…",
   "Aucun exercice du catalogue pour ces filtres.": "No catalogue exercise matches these filters.",
   "Copier et adapter": "Copy and adapt",
-  "{nom} dépasse la limite actuelle du serveur ({mo} Mo). Compressez-le ou contactez PrePla.": "{nom} exceeds the current server limit ({mo} MB). Compress it or contact PrePla."
+  "{nom} dépasse la limite actuelle du serveur ({mo} Mo). Compressez-le ou contactez PrePla.": "{nom} exceeds the current server limit ({mo} MB). Compress it or contact {marque}."
 }

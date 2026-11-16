@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { avecMarque, instanceCourante } from '../instance';
 
 /**
  * Traduction des ecrans ecrits en francais (espace centre).
@@ -29,7 +30,8 @@ export function langueInterface(langue: string | undefined | null): 'fr' | 'en' 
 
 /** Traduit hors d'un composant (libelles construits dans une fonction). */
 export function traduire(fr: string, langue: string, vars?: Vars): string {
-    return remplir(langueInterface(langue) === 'en' ? (ANGLAIS[fr] ?? fr) : fr, vars);
+    // Le nom de l'instance remplace PrePla, dans la phrase francaise comme dans sa traduction.
+    return avecMarque(remplir(langueInterface(langue) === 'en' ? (ANGLAIS[fr] ?? fr) : fr, { marque: instanceCourante().nom, ...vars }));
 }
 
 /**
