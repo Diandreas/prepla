@@ -1,3 +1,4 @@
+import { instanceCourante } from '@/lib/instance';
 import AppLayout from '@/layouts/app-layout';
 import { ETAPES_ECRIT, ETAPES_ORAL, ETAPES_SESSION, GenerationEnCours } from '@/components/generation-en-cours';
 import { coerceOption, collection } from '@/components/exercises/normalize-options';
@@ -1347,7 +1348,7 @@ export default function SessionPlayer({ node, exercises, sessionToken }: Props) 
 
     return (
         <AppLayout focusMode>
-            <Head title={`${node.title} - PrePla`} />
+            <Head title={`${node.title} - ${instanceCourante().nom}`} />
 
             {/* Seuil de Doherty : la correction d un ecrit ou d un oral par l IA prend
                 plusieurs secondes. Un squelette et des etapes qui avancent remplacent

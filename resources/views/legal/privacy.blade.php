@@ -5,7 +5,7 @@
 
 @section('content')
 
-    <p>PrePla (édité par Mirlab, ci-après « nous ») propose une plateforme de préparation
+    <p>{{ config('marque.nom') }} (édité par Mirlab, ci-après « nous ») propose une plateforme de préparation
     aux examens de langue (anglais, français, allemand) avec exercices générés par IA.
     Cette page explique quelles données nous collectons, pourquoi, et comment vous pouvez
     les contrôler.</p>
@@ -24,7 +24,7 @@
         traitement.</li>
         <li><strong>Image d'une copie :</strong> si vous photographiez ou importez un
         devoir écrit pour en extraire le texte, l'image est transmise à notre prestataire
-        d'IA pour ce traitement et n'est pas conservée par PrePla au-delà de l'opération.</li>
+        d'IA pour ce traitement et n'est pas conservée par {{ config('marque.nom') }} au-delà de l'opération.</li>
         <li><strong>Paiement :</strong> géré entièrement par Stripe. Nous ne recevons ni
         ne stockons jamais votre numéro de carte bancaire.</li>
         <li><strong>Notifications :</strong> si vous activez les rappels, un identifiant
@@ -85,7 +85,7 @@
     données est restreint au strict nécessaire.</p>
 
     <h2>8. Utilisateurs mineurs</h2>
-    <p>PrePla peut être utilisé par des lycéens ou étudiants préparant un examen. Si vous
+    <p>{{ config('marque.nom') }} peut être utilisé par des lycéens ou étudiants préparant un examen. Si vous
     avez moins de 15 ans, l'inscription doit se faire avec l'accord d'un parent ou
     tuteur légal.</p>
 

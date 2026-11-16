@@ -1,3 +1,4 @@
+import { instanceCourante } from '@/lib/instance';
 import { Head, useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
 
@@ -96,7 +97,7 @@ export default function Register() {
                             placeholder="+237 6 00 00 00 00"
                         />
                         <p className="text-xs text-muted-foreground">
-                            Pour te joindre si ton compte a un souci, et recueillir ton avis sur PrePla. Jamais partagé.
+                            Pour te joindre si ton compte a un souci, et recueillir ton avis sur {instanceCourante().nom}. Jamais partagé.
                         </p>
                         <InputError message={errors.phone} />
                     </div>

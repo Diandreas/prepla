@@ -270,7 +270,7 @@
     "{n} étape": "{n} step",
     "{n} étapes": "{n} steps",
     "Vos élèves suivent ce parcours, en plus de leurs devoirs.": "Your learners follow this path, in addition to their homework.",
-    "Votre espace utilise le parcours PrePla par défaut : vos élèves ne voient ce parcours que si vous passez au « Parcours créé par le centre ».": "Your centre uses the default PrePla path: your learners only see this path if you switch to “Path created by the centre”.",
+    "Votre espace utilise le parcours PrePla par défaut : vos élèves ne voient ce parcours que si vous passez au « Parcours créé par le centre ».": "Your centre uses the default {marque} path: your learners only see this path if you switch to “Path created by the centre”.",
     "Créer le parcours": "Create the path",
     "Gérer le parcours": "Manage the path",
     "Faiblesses communes de la classe": "Common weaknesses in the class",

@@ -1,3 +1,4 @@
+import { avecMarque } from '@/lib/instance';
 import { Head, Link, useForm } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
@@ -31,7 +32,7 @@ export default function OpenTeacherSpace({ existing, role, peutOuvrirUnAutre, ex
 
     return (
         <AppLayout>
-            <Head title="Enseigner avec PrePla" />
+            <Head title={avecMarque("Enseigner avec PrePla")} />
             <div className="mx-auto w-full max-w-xl space-y-5 p-4 md:p-6">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">Suivre mes élèves</h1>

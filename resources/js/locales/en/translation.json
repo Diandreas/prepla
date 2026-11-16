@@ -223,7 +223,7 @@
     "choix_note": "Corrected with explanations, and nothing is saved.",
     "choix_tous": "All trial exercises",
     "choix_aria": "Try a {{examen}} exercise, no account needed",
-    "video_titre": "PrePla, where to start?",
+    "video_titre": "{{marque}}, where to start?",
     "video_jouer_aria": "Watch the introduction video, 34 seconds, with sound.",
     "video_en_francais_aria": "In French, with French subtitles.",
     "video_affiche_alt": "The video’s presenter, with the title “Language exam: where to start?” in French",
@@ -298,11 +298,11 @@
     "tarif_ou_an": "or {{annuel}} per year, i.e. {{parMois}} per month",
     "tarif_plus_illimite": "No daily limit on exercises",
     "tarif_plus_memes": "The same tools as the free plan",
-    "tarif_plus_cta": "Upgrade to PrePla Plus",
+    "tarif_plus_cta": "Upgrade to {{marque}} Plus",
     "tarifs_note": "When you sign up: 7 days of unlimited exercises, no card needed (once per e-mail address). Secure payment by Stripe, cancel at any time.",
     "centres_surtitre": "Teachers and language schools",
     "centres_titre": "Do you teach?",
-    "centres_titre_accent": "Follow your students on PrePla.",
+    "centres_titre_accent": "Follow your students on {{marque}}.",
     "centres_chapo": "Create your classes, set homework, and see who did the work, when, and where each student struggles.",
     "centres_cta": "Talk to us on WhatsApp",
     "centres_classes_titre": "Classes and invitation codes",
@@ -332,8 +332,8 @@
     "footer_link_suppression": "Delete my account",
     "footer_contact_whatsapp": "WhatsApp",
     "footer_contact_call": "Call us",
-    "footer_copyright": "© {{year}} PrePla. All rights reserved.",
-    "footer_independance": "PrePla is independent of the exam boards: it issues no certificate and sells no exam registration."
+    "footer_copyright": "© {{year}} {{marque}}. All rights reserved.",
+    "footer_independance": "{{marque}} is independent of the exam boards: it issues no certificate and sells no exam registration."
   },
   "errors": {
     "correct_answer": "Correct answer",

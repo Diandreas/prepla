@@ -1,3 +1,4 @@
+import { useInstance } from '@/lib/instance';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -37,7 +38,8 @@ export function AppSidebar() {
     const menus = (page.props as { menus?: MenusDisponibles }).menus;
     // En marque blanche, le lien du logo porte le nom du centre, pas PrePla.
     const marque = (page.props as { marque?: Marque }).marque;
-    const nomDuSite = marque?.masquer_prepla ? marque.nom : 'PrePla';
+    const instance = useInstance();
+    const nomDuSite = marque?.masquer_prepla ? marque.nom : instance.nom;
 
     // Sur telephone le menu est un tiroir : sans cela il reste ouvert par-dessus
     // la page d'arrivee quand on touche une entree. On le referme a chaque
@@ -130,7 +132,8 @@ export function AppSidebar() {
             // nulle part : l'ecran existait, aucun chemin n'y conduisait.
             { title: t('sidebar.join_class', 'Rejoindre une classe'), url: '/join', icon: () => <SidebarIcon name="layout-grid" /> },
             // PrePla Kids : un parent fait jouer ses enfants (6-12 ans).
-            ...(!eleveDeCentre ? [{ title: 'PrePla Kids', url: '/kids', icon: () => <SidebarIcon name="star" /> }] : []),
+            // Une instance en marque blanche peut le masquer (MARQUE_MASQUER_KIDS).
+            ...(!eleveDeCentre && !instance.masquer_kids ? [{ title: `${instance.nom} Kids`, url: '/kids', icon: () => <SidebarIcon name="star" /> }] : []),
             // Un delegue suit ici ses inscrits et ses gains.
             ...(menus?.monCode ? [{ title: 'Mon code promo', url: '/mon-code', icon: () => <SidebarIcon name="share" /> }] : []),
         ];

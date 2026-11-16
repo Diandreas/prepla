@@ -1,3 +1,4 @@
+import { avecMarque, instanceCourante } from '@/lib/instance';
 import { usePwaInstall } from '@/hooks/use-pwa-install';
 import { Download, Share, X } from 'lucide-react';
 
@@ -10,13 +11,13 @@ export function PwaInstallPrompt() {
         <aside
             className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] left-4 right-4 z-50 md:bottom-6 md:left-auto md:right-6 md:w-80"
             role="dialog"
-            aria-label="Installer PrePla"
+            aria-label={avecMarque("Installer PrePla")}
         >
             <div className="overflow-hidden rounded-2xl border border-border bg-background shadow-2xl">
                 <div className="bg-gradient-to-r from-amber-500/10 to-transparent px-4 py-3 flex items-center gap-3">
                     <img src="/icons/pwa-192-v4.png" alt="" width={40} height={40} className="rounded-xl" />
                     <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold leading-tight">Installer PrePla</p>
+                        <p className="text-sm font-bold leading-tight">Installer {instanceCourante().nom}</p>
                         <p className="text-xs text-muted-foreground">Plein écran, accès rapide et rappels de pratique</p>
                     </div>
                     <button

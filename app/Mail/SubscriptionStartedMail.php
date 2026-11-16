@@ -19,7 +19,7 @@ class SubscriptionStartedMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Bienvenue dans PrePla Plus !',
+            subject: \App\Support\MarqueInstance::texte('Bienvenue dans PrePla Plus !'),
         );
     }
 

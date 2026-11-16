@@ -63,7 +63,7 @@ class MediaController extends Controller
     {
         $mo = intdiv(self::limiteServeurOctets(), 1024 * 1024);
 
-        return "Ce fichier dépasse la limite actuelle du serveur ({$mo} Mo). Compressez-le (MP3 en 128 kbit/s par exemple) ou contactez PrePla.";
+        return "Ce fichier dépasse la limite actuelle du serveur ({$mo} Mo). Compressez-le (MP3 en 128 kbit/s par exemple) ou contactez ".\App\Support\MarqueInstance::nom().".";
     }
 
     public function index(Request $request)

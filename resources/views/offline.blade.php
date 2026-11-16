@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#0b2d63">
     <meta name="color-scheme" content="light dark">
-    <title>PrePla — Hors ligne</title>
+    <title>{{ config('marque.nom') }} — Hors ligne</title>
     <style>
         :root { color-scheme: light; }
         * { box-sizing: border-box; }
@@ -101,10 +101,10 @@
 </head>
 <body>
     <main class="card">
-        <img class="logo" src="/icons/pwa-192-v4.png" alt="Logo PrePla" width="74" height="74">
+        <img class="logo" src="/icons/pwa-192-v4.png" alt="Logo {{ config('marque.nom') }}" width="74" height="74">
         <div class="status">Connexion indisponible</div>
         <h1>Vous êtes hors ligne</h1>
-        <p>PrePla a besoin d’une connexion pour charger de nouveaux exercices et enregistrer votre progression.</p>
+        <p>{{ config('marque.nom') }} a besoin d’une connexion pour charger de nouveaux exercices et enregistrer votre progression.</p>
         <button type="button" onclick="window.location.reload()">Réessayer</button>
         <a class="secondary" href="/telechargements">Ouvrir mes téléchargements</a>
         <span class="hint">Les packs déjà téléchargés restent utilisables sans connexion. Cette page se fermera automatiquement dès que la connexion reviendra.</span>

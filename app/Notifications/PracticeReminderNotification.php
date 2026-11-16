@@ -36,7 +36,7 @@ class PracticeReminderNotification extends Notification implements ShouldQueue
             : 'Une courte session suffit pour progresser. À vous !';
 
         return (new WebPushMessage)
-            ->title('PrePla — Temps de pratiquer')
+            ->title(\App\Support\MarqueInstance::texte('PrePla — Temps de pratiquer'))
             ->body($body)
             ->icon('/icons/pwa-192-v4.png')
             ->badge('/icons/pwa-192-v4.png')
@@ -48,7 +48,7 @@ class PracticeReminderNotification extends Notification implements ShouldQueue
     {
         $subject = $this->streakDays > 0
             ? "Continue ta série de {$this->streakDays} jour" . ($this->streakDays > 1 ? 's' : '') . ' !'
-            : 'PrePla — Temps de pratiquer aujourd\'hui';
+            : \App\Support\MarqueInstance::texte('PrePla — Temps de pratiquer aujourd\'hui');
 
         return (new MailMessage)
             ->subject($subject)
@@ -57,6 +57,6 @@ class PracticeReminderNotification extends Notification implements ShouldQueue
                 ? "Belle série de **{$this->streakDays} jour" . ($this->streakDays > 1 ? 's' : '') . "** ! Une courte session aujourd'hui suffit pour la continuer."
                 : 'Une courte session de 15 minutes suffit pour progresser.')
             ->action('Continuer ma préparation', route('dashboard'))
-            ->salutation('L\'équipe PrePla');
+            ->salutation(\App\Support\MarqueInstance::texte('L\'équipe PrePla'));
     }
 }

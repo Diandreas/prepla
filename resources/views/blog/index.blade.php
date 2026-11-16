@@ -10,7 +10,7 @@
 
 @section('content')
     <div style="text-align:center; margin-bottom:2.5rem;">
-        <span class="badge">Blog PrePla</span>
+        <span class="badge">Blog {{ config('marque.nom') }}</span>
         <h1 style="margin-top:.6rem;">Conseils pour réussir ton examen de langue</h1>
         <p class="meta" style="font-size:.95rem; max-width:34rem; margin:.6rem auto 0;">
             TCF/TEF Canada, IELTS, TOEFL, DELF-DALF, Goethe-Zertifikat — niveaux à viser,

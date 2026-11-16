@@ -35,6 +35,6 @@ class ContenuElevesController extends Controller
 
         return back()->with('success', $valide['contenu_eleves'] === LanguageCenter::CONTENU_CENTRE
             ? 'Vos élèves suivent désormais le parcours que vous créez pour chaque classe, en plus de vos devoirs.'
-            : 'Vos élèves suivent le parcours PrePla par défaut, en plus de vos devoirs.');
+            : \App\Support\MarqueInstance::texte('Vos élèves suivent le parcours PrePla par défaut, en plus de vos devoirs.'));
     }
 }

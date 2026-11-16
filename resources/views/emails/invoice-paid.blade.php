@@ -1,7 +1,7 @@
 <x-mail::message>
 # Merci {{ $userName }}, ton paiement est confirmé !
 
-Nous avons bien reçu ton paiement de **{{ $amount }}** pour PrePla Plus.
+Nous avons bien reçu ton paiement de **{{ $amount }}** pour {{ config('marque.nom') }} Plus.
 
 @if ($hostedInvoiceUrl || $invoicePdfUrl)
 <x-mail::button :url="$invoicePdfUrl ?? $hostedInvoiceUrl" color="primary">
@@ -17,5 +17,5 @@ Retrouve l'historique de tes factures à tout moment depuis [ton espace abonneme
 
 Bonne préparation !
 
-L'équipe PrePla
+L'équipe {{ config('marque.nom') }}
 </x-mail::message>

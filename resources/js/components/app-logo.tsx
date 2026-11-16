@@ -1,5 +1,5 @@
 import { usePage } from '@inertiajs/react';
-import type { Marque } from '@/types';
+import type { Instance, Marque } from '@/types';
 import { useT } from '@/lib/i18n/traduire';
 
 /** Les initiales d'un nom de centre, quand il n'a pas (encore) de logo. */
@@ -95,7 +95,13 @@ function LogoPrePla() {
 export default function AppLogo() {
     const marque = (usePage().props as { marque?: Marque }).marque;
 
+    const instance = (usePage().props as { instance?: Instance }).instance;
+
     if (!marque || marque.centre_id == null) {
+        // Instance en marque blanche (config/marque.php) : son logo et son nom.
+        if (instance?.personnalisee) {
+            return <LogoDeCentre nom={instance.nom} logoUrl={instance.logo} masquerPrepla />;
+        }
         return <LogoPrePla />;
     }
 

@@ -10,6 +10,8 @@ import { suivreLeCentreAffiche } from './lib/centre-affiche';
 import { nomDuSiteCourant, suivreLaMarque } from './lib/marque-courante';
 import i18n from './lib/i18n/i18n';
 import { preloadAssets } from './lib/preload-assets';
+import { definirInstance } from './lib/instance';
+import type { Instance } from './types';
 
 declare global {
     const route: typeof routeFn;
@@ -39,13 +41,31 @@ createInertiaApp({
         // Une ecriture ne part que dans le centre que la page affiche.
         suivreLeCentreAffiche(props.initialPage);
         // Couleurs et nom du centre, avant le premier rendu (le titre en depend).
-        suivreLaMarque(props.initialPage, appName);
+        // Marque de l'instance (config/marque.php) : nom par defaut du titre et des textes.
+        const instance = (props.initialPage.props as { instance?: Instance }).instance;
+        definirInstance(instance);
+        suivreLaMarque(props.initialPage, instance?.nom ?? appName);
         visiteurConnecte = !!(props.initialPage.props as InitialPageProps).auth?.user;
 
         // Initialize i18n language from user profile if authenticated
         const userLanguage = (props.initialPage.props as InitialPageProps).auth?.user?.profile?.interface_language;
         if (userLanguage) {
             i18n.changeLanguage(userLanguage);
+        } else if (instance?.langue_defaut) {
+            // Premiere visite : la langue par defaut de l'instance (une seule fois,
+            // le visiteur peut ensuite en changer). Une langue non proposee aussi.
+            const proposees = instance.langues_interface;
+            const actuelle = i18n.language?.slice(0, 2);
+            let dejaFait = false;
+            try {
+                dejaFait = localStorage.getItem('instance-langue') === '1';
+                localStorage.setItem('instance-langue', '1');
+            } catch {
+                /* stockage indisponible */
+            }
+            if (!dejaFait || (proposees.length > 0 && !proposees.includes(actuelle))) {
+                i18n.changeLanguage(instance.langue_defaut);
+            }
         }
 
         root.render(

@@ -1,3 +1,4 @@
+import { instanceCourante } from '@/lib/instance';
 import { Link, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import KidsLayout, { Drapeau } from '@/layouts/kids-layout';
@@ -104,7 +105,7 @@ export default function Parents({ enfants, langues, avatars, premium, gratuits, 
                 {!premium && (
                     <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl bg-white p-4 shadow-sm">
                         <p className="font-medium text-slate-700">
-                            Les {gratuits} premiers thèmes sont gratuits. <strong>PrePla Plus</strong> ouvre les {nbThemes} thèmes pour tous vos enfants.
+                            Les {gratuits} premiers thèmes sont gratuits. <strong>{instanceCourante().nom} Plus</strong> ouvre les {nbThemes} thèmes pour tous vos enfants.
                         </p>
                         <Link href={route('subscription.index')} className="rounded-2xl bg-slate-800 px-4 py-2.5 text-sm font-bold text-white">Débloquer</Link>
                     </div>

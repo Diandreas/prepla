@@ -41,6 +41,8 @@ use Inertia\Inertia;
 
 Route::get('/', LandingController::class)->name('home');
 Route::get('/offline', fn () => view('offline'))->name('offline');
+// Manifeste PWA de l'instance (marque blanche) ; PrePla garde public/manifest.json.
+Route::get('/manifest.webmanifest', fn () => response()->json(\App\Support\MarqueInstance::manifeste(), 200, ['Content-Type' => 'application/manifest+json'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES))->name('marque.manifeste');
 // Espace hors ligne : page publique sans donnée personnelle, servie depuis le cache
 // quand le réseau manque. Elle ne lit que le stockage local de l'appareil.
 Route::get('/telechargements', fn () => view('offline-app'))->name('offline.app');

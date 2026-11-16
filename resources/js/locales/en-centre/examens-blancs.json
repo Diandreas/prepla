@@ -24,7 +24,7 @@
   "Partie {n}": "Part {n}",
   "{n} items": "{n} items",
   "Centre": "Centre",
-  "PrePla": "PrePla",
+  "PrePla": "{marque}",
   "Retirer": "Remove",
   "Aucun exercice disponible pour cette partie.": "No exercise available for this part.",
   "Ajouter un exercice": "Add an exercise",

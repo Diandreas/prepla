@@ -17,7 +17,9 @@ i18n
     },
     fallbackLng: 'en',
     interpolation: {
-      escapeValue: false
+      escapeValue: false,
+      // Le nom de l'instance ; lib/instance.ts le remplace au demarrage.
+      defaultVariables: { marque: 'PrePla' },
     }
   });
 

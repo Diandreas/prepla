@@ -5,13 +5,13 @@
 
 @section('content')
 
-    <p>Cette page explique comment supprimer définitivement votre compte PrePla et les
+    <p>Cette page explique comment supprimer définitivement votre compte {{ config('marque.nom') }} et les
     données qui lui sont associées. Vous pouvez effectuer l'opération vous-même depuis
     le site, sans réinstaller l'application.</p>
 
     <h2>Supprimer votre compte</h2>
     <ol>
-        <li><a href="{{ route('login') }}">Connectez-vous à votre compte PrePla</a>.</li>
+        <li><a href="{{ route('login') }}">Connectez-vous à votre compte {{ config('marque.nom') }}</a>.</li>
         <li>Ouvrez <strong>Profil</strong>, puis faites défiler jusqu'à la
         <strong>Zone de danger</strong>.</li>
         <li>Sélectionnez <strong>Supprimer mon compte</strong>, confirmez votre mot de
@@ -20,7 +20,7 @@
 
     <p>Si vous ne pouvez plus accéder à votre compte, envoyez une demande depuis
     l'adresse email associée au compte à
-    <a href="mailto:prepla.mirlab@gmail.com?subject=Suppression%20de%20mon%20compte%20PrePla">prepla.mirlab@gmail.com</a>.
+    <a href="mailto:prepla.mirlab@gmail.com?subject=Suppression%20de%20mon%20compte%20{{ config('marque.nom') }}">prepla.mirlab@gmail.com</a>.
     Nous pourrons vous demander de vérifier que le compte vous appartient avant de
     traiter la demande.</p>
 

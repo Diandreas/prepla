@@ -21,7 +21,7 @@
              posees des le premier affichage (resources/js/lib/marque-centre.js
              les tient ensuite a jour d'une page a l'autre). --}}
         @php($marquePage = $page['props']['marque'] ?? null)
-        <title inertia>{{ \App\Support\Referencement::pour()['titre'] }} — {{ ($marquePage['masquer_prepla'] ?? false) ? $marquePage['nom'] : 'PrePla' }}</title>
+        <title inertia>{{ \App\Support\Referencement::pour()['titre'] }} — {{ ($marquePage['masquer_prepla'] ?? false) ? $marquePage['nom'] : config('marque.nom') }}</title>
         @include('partials.marque-centre', ['marque' => $marquePage])
 
         @include('partials.meta')
@@ -34,7 +34,7 @@
         {
             "@@context": "https://schema.org",
             "@@type": "WebApplication",
-            "name": "PrePla",
+            "name": @json(config('marque.nom')),
             "url": "{{ url('/') }}",
             "applicationCategory": "EducationalApplication",
             "operatingSystem": "Web",
@@ -80,17 +80,17 @@
         @vite(['resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
         @inertiaHead
 
-        <link rel="icon" type="image/png" sizes="192x192" href="/icons/pwa-192-v4.png">
-        <link rel="icon" type="image/png" sizes="512x512" href="/icons/pwa-512-v4.png">
-        <link rel="shortcut icon" href="/icons/pwa-192-v4.png">
-        <link rel="manifest" href="/manifest.json?v=4">
-        <meta name="theme-color" content="#0b2d63">
+        <link rel="icon" type="image/png" sizes="192x192" href="{{ config('marque.icone_192') }}">
+        <link rel="icon" type="image/png" sizes="512x512" href="{{ config('marque.icone_512') }}">
+        <link rel="shortcut icon" href="{{ config('marque.favicon') }}">
+        <link rel="manifest" href="{{ \App\Support\MarqueInstance::urlDuManifeste() }}">
+        <meta name="theme-color" content="{{ \App\Support\MarqueInstance::couleursPersonnalisees() ? \App\Support\MarqueInstance::couleurSecondaire() : '#0b2d63' }}">
         <meta name="color-scheme" content="light dark">
         <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-        <meta name="apple-mobile-web-app-title" content="PrePla">
-        <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180-v4.png">
+        <meta name="apple-mobile-web-app-title" content="{{ config('marque.nom_court') }}">
+        <link rel="apple-touch-icon" sizes="180x180" href="{{ config('marque.icone_apple') }}">
 
     </head>
     <body class="font-sans antialiased">

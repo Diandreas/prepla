@@ -29,7 +29,7 @@ class InvoicePaidMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Ta facture PrePla Plus',
+            subject: \App\Support\MarqueInstance::texte('Ta facture PrePla Plus'),
         );
     }
 

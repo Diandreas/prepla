@@ -5,6 +5,7 @@ namespace App\Services\Center;
 use App\Http\Middleware\EnsureExerciseQuota;
 use App\Models\LanguageCenter;
 use App\Models\User;
+use App\Support\MarqueInstance;
 use Illuminate\Http\Request;
 
 /**
@@ -101,8 +102,8 @@ class Marque
             return self::parDefaut();
         }
 
-        $primaire = Couleurs::estHexa($centre->brand_primary) ? Couleurs::normaliser($centre->brand_primary) : self::PRIMAIRE_PREPLA;
-        $accent = Couleurs::estHexa($centre->brand_accent) ? Couleurs::normaliser($centre->brand_accent) : self::ACCENT_PREPLA;
+        $primaire = Couleurs::estHexa($centre->brand_primary) ? Couleurs::normaliser($centre->brand_primary) : MarqueInstance::couleurPrimaire();
+        $accent = Couleurs::estHexa($centre->brand_accent) ? Couleurs::normaliser($centre->brand_accent) : MarqueInstance::couleurSecondaire();
         $primaireSombre = Couleurs::pourFondSombre($primaire);
 
         return [
@@ -132,6 +133,30 @@ class Marque
      */
     public static function parDefaut(): array
     {
+        // Instance en marque blanche (config/marque.php) : son nom, son logo et
+        // ses couleurs remplacent ceux de PrePla. Sans MARQUE_*, rien ne change.
+        if (MarqueInstance::personnalisee() || MarqueInstance::couleursPersonnalisees()) {
+            $primaire = MarqueInstance::couleurPrimaire();
+            $accent = MarqueInstance::couleurSecondaire();
+            $primaireSombre = Couleurs::pourFondSombre($primaire);
+
+            return [
+                'nom' => MarqueInstance::nom(),
+                'logo_url' => (string) config('marque.logo'),
+                'couleurs' => ['primaire' => $primaire, 'accent' => $accent],
+                'masquer_prepla' => MarqueInstance::personnalisee(),
+                'centre_id' => null,
+                'theme' => MarqueInstance::couleursPersonnalisees() ? [
+                    'primaire' => $primaire,
+                    'texte_sur_primaire' => Couleurs::texteSur($primaire),
+                    'primaire_sombre' => $primaireSombre,
+                    'texte_sur_primaire_sombre' => Couleurs::texteSur($primaireSombre),
+                    'accent' => $accent,
+                    'accent_sombre' => Couleurs::pourFondSombre($accent),
+                ] : null,
+            ];
+        }
+
         return [
             'nom' => 'PrePla',
             'logo_url' => self::LOGO_PREPLA,

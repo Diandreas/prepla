@@ -1,3 +1,4 @@
+import { instanceCourante } from '@/lib/instance';
 import { Head, Link } from '@inertiajs/react';
 import { PropsWithChildren, useEffect, useState } from 'react';
 
@@ -26,7 +27,7 @@ export default function OnboardingLayout({
 
     return (
         <>
-            <Head title={`${title} - PrePla`} />
+            <Head title={`${title} - ${instanceCourante().nom}`} />
             <div className="flex min-h-screen flex-col bg-background">
                 {/* Decorative background blobs */}
                 <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">

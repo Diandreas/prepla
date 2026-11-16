@@ -52,6 +52,11 @@ class Exam extends Model
     {
         $query->whereHas('language', fn ($q) => $q->where('is_active', true));
 
+        // L'instance (marque blanche) peut ne proposer que certains examens.
+        if (($slugs = \App\Support\MarqueInstance::examens()) !== []) {
+            $query->whereIn($this->qualifyColumn('slug'), $slugs);
+        }
+
         if ($centre !== null && ($retenus = $centre->examensRetenus()) !== null) {
             $query->whereIn($this->qualifyColumn('id'), $retenus);
         }

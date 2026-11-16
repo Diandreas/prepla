@@ -13,8 +13,8 @@
     "headline": {!! json_encode($post['title']) !!},
     "description": {!! json_encode($post['description']) !!},
     "datePublished": "{{ $post['published_at'] }}",
-    "author": { "@@type": "Organization", "name": "PrePla" },
-    "publisher": { "@@type": "Organization", "name": "PrePla" }
+    "author": { "@@type": "Organization", "name": "{{ config('marque.nom') }}" },
+    "publisher": { "@@type": "Organization", "name": "{{ config('marque.nom') }}" }
 }
 </script>
 @endsection

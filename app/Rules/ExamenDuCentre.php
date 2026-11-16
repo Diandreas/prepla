@@ -27,7 +27,14 @@ class ExamenDuCentre implements ValidationRule
             return;
         }
 
-        if ($this->centre !== null && ! $this->centre->proposeExamen(is_scalar($value) ? (string) $value : null)) {
+        if (($slugs = \App\Support\MarqueInstance::examens()) !== []
+            && ! \App\Models\Exam::whereKey(is_scalar($value) ? $value : null)->whereIn('slug', $slugs)->exists()) {
+            $fail("Cet examen n'est pas proposé ici.");
+
+            return;
+        }
+
+        if ($this->centre !== null &&! $this->centre->proposeExamen(is_scalar($value) ? (string) $value : null)) {
             $fail("Cet examen n'est pas proposé par votre centre.");
         }
     }

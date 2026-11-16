@@ -1,3 +1,4 @@
+import { avecMarque } from '@/lib/instance';
 import { Link, router } from '@inertiajs/react';
 import KidsLayout, { Drapeau, RENARD } from '@/layouts/kids-layout';
 
@@ -64,7 +65,7 @@ export default function Accueil({ connecte, enfants, langues }: { connecte: bool
                     </div>
                     <p className="text-sm text-slate-500">Les 3 premiers thèmes sont gratuits. L'enfant joue sans e-mail ni mot de passe.</p>
                 </div>
-                <img src={RENARD} alt="Le renard de PrePla, un livre sous le bras" className="mx-auto h-80 w-auto object-contain drop-shadow-xl md:h-[26rem]" />
+                <img src={RENARD} alt={avecMarque("Le renard de PrePla, un livre sous le bras")} className="mx-auto h-80 w-auto object-contain drop-shadow-xl md:h-[26rem]" />
             </section>
 
             <section className="grid gap-4 py-6 sm:grid-cols-3">

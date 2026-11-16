@@ -109,6 +109,9 @@ class HandleInertiaRequests extends Middleware
             // La marque affichee (PrePla, ou celle du centre une fois le lot A livre).
             // Aussi pour les eleves et les pages publiques : jamais derriere un role.
             'marque' => fn () => app(Marque::class)->pourRequete($request),
+            // La marque de l'instance (config/marque.php) : nom, logo, langues,
+            // examens et options d'affichage du site entier.
+            'instance' => fn () => \App\Support\MarqueInstance::pourFront(),
             // Entrees de menu des fonctions livrees par lots : le menu ne propose
             // une page que si sa route existe cote serveur.
             'menus' => fn () => [

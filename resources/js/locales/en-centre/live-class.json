@@ -1,6 +1,6 @@
 {
   "Live class": "Live class",
-  "Cours en direct dans Google Meet, avec main levée, questions, sondages et ressources dans PrePla.": "Live lessons in Google Meet, with raised hands, questions, polls and resources in PrePla.",
+  "Cours en direct dans Google Meet, avec main levée, questions, sondages et ressources dans PrePla.": "Live lessons in Google Meet, with raised hands, questions, polls and resources in {marque}.",
   "Fermer": "Close",
   "Nouveau live": "New live",
   "Compte Google connecté": "Google account connected",
@@ -44,7 +44,7 @@
   "{n} présents": "{n} present",
   "Présence": "Attendance",
   "Présent (Google Meet)": "Present (Google Meet)",
-  "Présent (PrePla)": "Present (PrePla)",
+  "Présent (PrePla)": "Present ({marque})",
   "Absent": "Absent",
   "{n} interactions": "{n} interactions",
   "Après le live": "After the live",

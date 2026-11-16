@@ -5,12 +5,12 @@
 
 @section('content')
 
-    <p>Les présentes conditions régissent l'utilisation de PrePla, plateforme de
+    <p>Les présentes conditions régissent l'utilisation de {{ config('marque.nom') }}, plateforme de
     préparation aux examens de langue (anglais, français, allemand) avec exercices
     générés par IA. En créant un compte, vous acceptez ces conditions.</p>
 
     <h2>1. Le service</h2>
-    <p>PrePla propose un test de placement, un parcours d'exercices personnalisé et des
+    <p>{{ config('marque.nom') }} propose un test de placement, un parcours d'exercices personnalisé et des
     outils de pratique (grammaire, compréhension, expression écrite et orale) pour vous
     préparer à un examen de langue (IELTS, TOEFL, DELF, Goethe...). Les exercices sont
     en grande partie générés automatiquement par intelligence artificielle.</p>
@@ -26,7 +26,7 @@
 
     <h2>3. Abonnement et paiement</h2>
     <ul>
-        <li>PrePla propose un essai gratuit puis des formules d'abonnement payantes
+        <li>{{ config('marque.nom') }} propose un essai gratuit puis des formules d'abonnement payantes
         (mensuelle ou annuelle). La durée de l'essai et les tarifs en vigueur sont
         affichés sur la page « Abonnement » de l'application.</li>
         <li>Le paiement est traité par Stripe. En vous abonnant, vous autorisez le
@@ -43,14 +43,14 @@
     <h2>4. Contenu généré par IA</h2>
     <p>Les exercices, corrections et évaluations de niveau sont en grande partie
     produits automatiquement par des modèles d'IA. Malgré nos vérifications, ce contenu
-    peut occasionnellement contenir des erreurs ou imprécisions. PrePla est un outil de
+    peut occasionnellement contenir des erreurs ou imprécisions. {{ config('marque.nom') }} est un outil de
     préparation et d'entraînement : il ne garantit pas un résultat particulier à
     l'examen officiel et ne remplace pas l'avis d'un enseignant certifié.</p>
 
     <h2>5. Usage autorisé</h2>
     <p>Vous vous engagez à ne pas :</p>
     <ul>
-        <li>Revendre, redistribuer ou exploiter commercialement le contenu de PrePla
+        <li>Revendre, redistribuer ou exploiter commercialement le contenu de {{ config('marque.nom') }}
         sans autorisation ;</li>
         <li>Tenter d'extraire massivement le contenu du service (scraping automatisé) ;</li>
         <li>Utiliser le service à des fins illégales ou pour nuire à d'autres
@@ -58,7 +58,7 @@
     </ul>
 
     <h2>6. Propriété intellectuelle</h2>
-    <p>La plateforme PrePla (marque, interface, code, méthode pédagogique) reste la
+    <p>La plateforme {{ config('marque.nom') }} (marque, interface, code, méthode pédagogique) reste la
     propriété de Mirlab. Vos propres réponses et enregistrements vous appartiennent ;
     vous nous accordez uniquement le droit de les traiter pour vous fournir le
     service (correction, suivi de progression).</p>
@@ -69,7 +69,7 @@
     partage non autorisé de compte).</p>
 
     <h2>8. Limitation de responsabilité</h2>
-    <p>PrePla est fourni « en l'état ». Dans la limite permise par la loi, nous ne
+    <p>{{ config('marque.nom') }} est fourni « en l'état ». Dans la limite permise par la loi, nous ne
     pourrons être tenus responsables des dommages indirects liés à l'utilisation du
     service, ni d'un résultat insuffisant à un examen officiel.</p>
 
