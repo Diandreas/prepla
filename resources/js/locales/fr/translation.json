@@ -453,5 +453,59 @@
     "stop": "Arrêter",
     "record_again": "Recommencer",
     "record": "Enregistrer"
+  },
+  "achievements": {
+    "title": "Mes badges",
+    "unlocked": "{{earned}} sur {{total}} débloqués",
+    "badges": {
+      "first-exercise": {
+        "name": "Premiers pas",
+        "description": "Termine ton premier exercice"
+      },
+      "ten-exercises": {
+        "name": "C’est parti",
+        "description": "Termine 10 exercices"
+      },
+      "fifty-exercises": {
+        "name": "Apprenant assidu",
+        "description": "Termine 50 exercices"
+      },
+      "hundred-exercises": {
+        "name": "Club des 100",
+        "description": "Termine 100 exercices"
+      },
+      "streak-3": {
+        "name": "Sur la lancée",
+        "description": "Tiens une série de 3 jours"
+      },
+      "streak-7": {
+        "name": "Une semaine sans faillir",
+        "description": "Tiens une série de 7 jours"
+      },
+      "streak-30": {
+        "name": "Maître du mois",
+        "description": "Tiens une série de 30 jours"
+      },
+      "perfect-score": {
+        "name": "Perfectionniste",
+        "description": "Obtiens 100 % à un exercice"
+      },
+      "xp-1000": {
+        "name": "Chasseur d’XP",
+        "description": "Gagne 1 000 XP au total"
+      },
+      "xp-10000": {
+        "name": "Légende de l’XP",
+        "description": "Gagne 10 000 XP au total"
+      },
+      "all-skills": {
+        "name": "Complet",
+        "description": "Fais des exercices dans les 4 compétences"
+      },
+      "speed-demon": {
+        "name": "Éclair",
+        "description": "Termine un exercice en moins de 2 minutes avec au moins 80 %"
+      }
+    }
   }
 }

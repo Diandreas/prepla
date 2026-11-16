@@ -28,3 +28,18 @@ test('writing correction keeps a normalized practice scale for non IELTS exams',
         ->and($result['band_scores']['grammar_accuracy'])->toBe(7)
         ->and($result['word_count'])->toBe(3);
 });
+
+test('les mots accentues comptent pour un seul mot', function () {
+    // str_word_count coupait « été », « déjà », « Müller » et « Straße » sur leurs lettres accentuees.
+    expect(\App\Models\Exercise::nombreDeMots("L'été est déjà là, dit Müller à la Straße !"))->toBe(9)
+        ->and(\App\Models\Exercise::nombreDeMots('Ça marche — vraiment ?'))->toBe(3)
+        // Un accent tape a part (e + accent combinant) ne coupe pas le mot.
+        ->and(\App\Models\Exercise::nombreDeMots("e\u{0301}te\u{0301} pre\u{0301}vu"))->toBe(2)
+        ->and(\App\Models\Exercise::nombreDeMots('Er wohnt in Köln seit 2019.'))->toBe(6);
+
+    $mistral = Mockery::mock(MistralService::class);
+    $mistral->shouldReceive('chat')->andReturn(json_encode(['score' => 5, 'corrections' => [], 'feedback' => 'Bien.']));
+    $result = (new WritingCorrectorService($mistral))->correct('Je suis allé à Genève hier.', '', 'DELF', 'Français', 'A2');
+
+    expect($result['word_count'])->toBe(6);
+});

@@ -86,7 +86,7 @@ class SonoriserEcoutes extends Command
                 continue;
             }
 
-            $this->line("  <fg=green>✓</> $etiquette — " . str_word_count($passage) . ' mots');
+            $this->line("  <fg=green>✓</> $etiquette — " . \App\Models\Exercise::nombreDeMots($passage) . ' mots');
             if ($this->output->isVerbose()) {
                 $this->line('      ' . mb_substr($passage, 0, 160) . '…');
             }

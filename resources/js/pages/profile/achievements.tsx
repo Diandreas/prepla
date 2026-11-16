@@ -1,4 +1,5 @@
 import { Head } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import AppLayout from '@/layouts/app-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -27,14 +28,20 @@ interface Props {
 }
 
 export default function Achievements({ achievements, earnedIds }: Props) {
+    const { t } = useTranslation();
+    // Les badges sont enregistres en anglais : on les traduit par leur slug, et
+    // un badge ajoute plus tard sans traduction garde son texte d'origine.
+    const nom = (a: AchievementRecord) => t(`achievements.badges.${a.slug}.name`, a.name);
+    const description = (a: AchievementRecord) => t(`achievements.badges.${a.slug}.description`, a.description);
+
     return (
         <AppLayout>
-            <Head title="Achievements" />
+            <Head title={t('achievements.title', 'Mes badges')} />
             <div className="space-y-6 p-4 md:p-6">
                 <div>
-                    <h1 className="text-2xl font-bold">Achievements</h1>
+                    <h1 className="text-2xl font-bold">{t('achievements.title', 'Mes badges')}</h1>
                     <p className="text-muted-foreground">
-                        {earnedIds.length} of {achievements.length} unlocked
+                        {t('achievements.unlocked', '{{earned}} sur {{total}} débloqués', { earned: earnedIds.length, total: achievements.length })}
                     </p>
                 </div>
 
@@ -61,8 +68,8 @@ export default function Achievements({ achievements, earnedIds }: Props) {
                                     </div>
                                     )}
                                     <div className="flex-1">
-                                        <p className="font-semibold">{achievement.name}</p>
-                                        <p className="text-sm text-muted-foreground">{achievement.description}</p>
+                                        <p className="font-semibold">{nom(achievement)}</p>
+                                        <p className="text-sm text-muted-foreground">{description(achievement)}</p>
                                         <Badge variant="secondary" className="mt-2 text-xs">
                                             +{achievement.xp_reward} XP
                                         </Badge>

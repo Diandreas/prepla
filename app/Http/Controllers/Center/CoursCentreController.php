@@ -131,6 +131,11 @@ class CoursCentreController extends Controller
             'banque' => $banque,
             'types' => collect(BlocsDeCours::TYPES)->map(fn ($l, $k) => ['value' => $k, 'label' => $l])->values(),
             'liveDisponible' => Schema::hasTable('live_classes'),
+            // « Creer un exercice » depuis un bloc : l'examen et le niveau de la
+            // classe sont proposes au createur ; au retour, la meme seance s'ouvre.
+            'examParDefaut' => $examen,
+            'niveauParDefaut' => $parcours->classroom?->level,
+            'seanceInitiale' => $request->integer('seance') ?: null,
         ]);
     }
 

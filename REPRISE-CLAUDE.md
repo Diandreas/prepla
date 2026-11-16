@@ -1,6 +1,25 @@
 # PrePla — reprise du travail (pour n'importe quel Claude en CLI)
 
-Dernière mise à jour : 2026-11-15. Lis ce fichier en entier avant d'agir.
+Dernière mise à jour : 2026-11-15 (soir). Lis ce fichier en entier avant d'agir.
+
+## État au démarrage (vérifié le 2026-11-15 au soir)
+- Tout le travail est fusionné dans `main` et poussé sur GitHub. Le dossier `E:\project\prepla` est à jour avec `origin/main`. Travaille ici, sur `main`.
+- La prod tourne sur le commit `c4890cc` (déployé le 2026-11-15, sauvegarde `storage/backups/avant-badges-20261115.sqlite`).
+- **Google : Drive et Live class sont ACTIFS en prod depuis `c4890cc`.** Ils reprennent le client OAuth de la connexion Google (`GOOGLE_CLIENT_ID` et `GOOGLE_CLIENT_SECRET`, déjà dans le `.env`) quand `GOOGLE_DRIVE_*` est absent. L'App ID est déduit de l'ID client. Il n'y a pas encore de `GOOGLE_DRIVE_API_KEY` : le Picker reste masqué, mais l'envoi vers le Drive fonctionne. Le propriétaire dit avoir activé les API Drive, Picker et Meet dans son projet Google Cloud.
+- **Bloquant au 2026-11-15 :** Google REFUSE les adresses de retour `/center/google/callback` et `/center/google/retour` (redirect_uri_mismatch). Seule `/auth/google/callback` est acceptée. Le propriétaire doit les ajouter dans Google Cloud, rubrique Identifiants, sur le MÊME ID client OAuth que celui de la connexion Google. Tant que ce n'est pas fait, le bouton « Connecter Google » des centres échoue.
+- Pour revérifier sans afficher l'identifiant : sur le VPS, lire `GOOGLE_CLIENT_ID` dans le `.env`, puis appeler `https://accounts.google.com/o/oauth2/v2/auth?client_id=…&redirect_uri=…&response_type=code&scope=openid%20email` avec curl. La réponse contient `authError` ou `redirect_uri_mismatch` quand l'adresse n'est pas déclarée.
+- Une fois les adresses acceptées : test réel avec un compte centre et un compte Google (étape 5 de la section Google Cloud).
+- Les dossiers de `.claude/worktrees/` sont d'anciennes sessions, déjà fusionnées. N'y travaille pas. Ne les supprime pas sans avoir vérifié avec `git branch --no-merged main`.
+- `.claude/settings.local.json` est suivi par git alors qu'il ne devrait pas l'être. Avant un `git pull` : `git stash push -- .claude/settings.local.json`, puis `pull`, puis `stash pop`. Ne commite jamais ce fichier.
+- `robocopy` renvoie le code 1 quand la copie a RÉUSSI (des fichiers ont été copiés). Ce n'est pas une erreur : seuls les codes 8 et plus en sont.
+
+### Ordre conseillé pour la suite
+1. Quand les 2 adresses de retour sont déclarées : tester Drive et Meet avec un vrai compte. Pour le Picker, le propriétaire peut créer une clé API et la poser lui-même dans `GOOGLE_DRIVE_API_KEY`.
+2. Vérifier dans un navigateur (démo locale) les écrans listés dans « À vérifier dans un navigateur ».
+3. Le créateur d'exercices (`zone-media.tsx`) n'envoie pas encore vers Drive.
+4. Demander au propriétaire quand retirer l'ancien éditeur de parcours.
+
+Corrigés et en prod le 2026-11-15 (`98ac826`, `98fc3fc`, `572acd4`) : le passage de A0 à A1 par les examens blancs, le comptage des mots accentués (`Exercise::nombreDeMots`) et la traduction de la page des badges. 1204 tests passent.
 
 ## Le projet
 - PrePla : préparation aux examens de langue (TCF, TEF, DELF, IELTS, Goethe, telc…) : apprenants adultes, espace centre (écoles), PrePla Kids.
@@ -102,9 +121,6 @@ Comptes Gmail gratuits : les réunions Meet de groupe sont limitées à 60 minut
 
 ## Reste à faire (après la fusion)
 - Le créateur d'exercices (`zone-media.tsx`) ne permet pas encore d'envoyer un fichier vers Drive.
-- Un A0 qui ne fait que des examens blancs ne passe pas A1 (il manque l'appel à `promouvoirGrandDebutant`).
-- `str_word_count` donne un mauvais compte avec les accents dans `WritingCorrectorService`, `ExerciseScoringService`, `DemoCompleter` et `SonoriserEcoutes`.
-- La page achievements n'est pas traduite.
 - Il n'y a que 5 médailles pour 12 badges.
 - Vidéo : les rendus EN et 9:16 sont dans `E:\project\prepla-films\out\`, à vérifier. Changer la voix quand le paiement ElevenLabs sera réglé.
 - Vérifier les nouveaux écrans dans un navigateur, sur la démo locale (port 8001, `.env.demo`).

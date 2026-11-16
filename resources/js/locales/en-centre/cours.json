@@ -162,5 +162,7 @@
   "Avis IA": "AI feedback",
   "Commentaire": "Comment",
   "Note /20": "Mark /20",
-  "Enregistrer": "Save"
+  "Enregistrer": "Save",
+  "Créer un nouvel exercice": "Create a new exercise",
+  "Tous les formats d’examen, écrit à la main ou avec l’IA. Il remplira ce bloc dès son enregistrement.": "Any exam format, written by hand or with AI. It fills this block as soon as it is saved."
 }

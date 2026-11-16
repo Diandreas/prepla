@@ -61,6 +61,13 @@ class ExamenBlancEleveController extends Controller
 
         $passage = $this->examens->corriger($mockExam, $request->user(), $donnees['answers_by_exercise'] ?? [], (int) $donnees['time_spent'], $devoir);
 
+        // Un grand debutant (A0) passe A1 des que sa comprehension tient, examens
+        // blancs du centre compris.
+        $examId = $mockExam->blueprint?->exam_id;
+        if ($examId && $request->user()->profile?->fresh()?->current_level === 'A0') {
+            app(\App\Services\LevelAdvancementService::class)->promouvoirGrandDebutant($request->user()->id, (int) $examId);
+        }
+
         return redirect()->route('devoirs.index')->with('success', "Examen blanc rendu. Score : {$passage->score} %.");
     }
 

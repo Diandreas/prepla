@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeft, Plus, X } from 'lucide-react';
+import { ArrowLeft, PenLine, Plus, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
@@ -28,10 +28,17 @@ interface Props {
     exercices: Exercice[];
 }
 
+/** Chaque section recoit aussi une partie libre : n'importe quel exercice, de n'importe quel type. */
+const PARTIE_LIBRE: Partie = { cle: 'libre', libelle: null, tache: null, items: null, exercise_type_id: null };
+
 /**
  * Composer (ou modifier) un examen blanc : l'examen et le niveau d'abord, puis
  * pour chaque partie officielle un ou plusieurs exercices, et le minutage par
  * section. Changer d'examen ou de niveau recharge la structure.
+ *
+ * Le centre n'est pas enferme dans le catalogue : chaque partie propose de
+ * creer un exercice (a la main ou avec l'IA, tous formats), et il peut y placer
+ * un exercice d'un autre type que celui de l'epreuve officielle.
  */
 export default function ComposerExamenBlanc({ examen, exams, niveaux, examId, niveau, sections, exercices }: Props) {
     const { t } = useT();
@@ -60,6 +67,32 @@ export default function ComposerExamenBlanc({ examen, exams, niveaux, examId, ni
         setChoix((c) => [...c, { exercise_id: id, section_slug: section, partie }]);
     };
     const retirer = (index: number) => setChoix((c) => c.filter((_, i) => i !== index));
+
+    /**
+     * « Creer un exercice » : on enregistre l'examen blanc tel qu'il est (sans
+     * changer sa publication), puis le createur s'ouvre regle sur cette partie.
+     * L'exercice enregistre y revient tout seul.
+     */
+    const creer = (section: string, partie: string, typeId: number | null) => {
+        if (!examId) return;
+        setEnvoi(true);
+        const donnees = {
+            exam_id: examId,
+            level: niveau,
+            title: titre.trim() || t('Examen blanc du {date}', { date: new Date().toLocaleDateString() }),
+            description,
+            durees,
+            items: choix,
+            publier: examen?.published ?? false,
+            creer: { section_slug: section, partie, exercise_type_id: typeId },
+        };
+        const options = {
+            onError: (e: Record<string, string>) => setErreurs(e),
+            onFinish: () => setEnvoi(false),
+        };
+        if (examen) router.put(`/center/examens-blancs/${examen.id}`, donnees, options);
+        else router.post('/center/examens-blancs', donnees, options);
+    };
 
     const enregistrer = (publier: boolean) => {
         if (!examId) return;
@@ -151,13 +184,16 @@ export default function ComposerExamenBlanc({ examen, exams, niveaux, examId, ni
                                     />
                                 </label>
                             </div>
-                            {s.parties.map((p) => {
+                            {(s.parties.some((p) => p.cle === 'libre') ? s.parties : [...s.parties, PARTIE_LIBRE]).map((p) => {
                                 const places = choix.map((c, i) => ({ c, i })).filter(({ c }) => c.section_slug === s.slug && c.partie === p.cle);
-                                const possibles = exercices.filter((e) => !p.exercise_type_id || e.exercise_type_id === p.exercise_type_id);
+                                // Le type officiel de la partie d'abord, puis tous les autres : rien n'est interdit.
+                                const officiels = p.exercise_type_id ? exercices.filter((e) => e.exercise_type_id === p.exercise_type_id) : exercices;
+                                const autres = p.exercise_type_id ? exercices.filter((e) => e.exercise_type_id !== p.exercise_type_id) : [];
+                                const libelle = (e: Exercice) => (e.source === 'centre' ? t('Centre') : t('PrePla')) + ' · ' + (e.titre ?? e.type ?? `#${e.id}`);
                                 return (
                                     <div key={p.cle} className="rounded-lg border border-border p-3">
                                         <p className="text-sm font-medium">
-                                            {p.cle === 'libre' ? t('Exercices de la section') : t('Partie {n}', { n: p.cle })}
+                                            {p.cle === 'libre' ? (s.parties.some((x) => x.cle !== 'libre') ? t('Partie libre (tous types)') : t('Exercices de la section')) : t('Partie {n}', { n: p.cle })}
                                             {p.libelle ? ` · ${p.libelle}` : ''}
                                             {p.items ? ` · ${t('{n} items', { n: p.items })}` : ''}
                                         </p>
@@ -180,26 +216,45 @@ export default function ComposerExamenBlanc({ examen, exams, niveaux, examId, ni
                                                 );
                                             })}
                                         </ul>
-                                        {possibles.length === 0 ? (
-                                            <p className="mt-2 text-xs text-muted-foreground">{t('Aucun exercice disponible pour cette partie.')}</p>
-                                        ) : (
-                                            <label className="mt-2 flex items-center gap-2 text-sm">
-                                                <Plus className="h-4 w-4 shrink-0" aria-hidden="true" />
-                                                <select
-                                                    className="w-full min-w-0 rounded-md border border-input bg-background px-2 py-1"
-                                                    value=""
-                                                    aria-label={t('Ajouter un exercice')}
-                                                    onChange={(e) => ajouter(s.slug, p.cle, Number(e.target.value))}
-                                                >
-                                                    <option value="">{t('Ajouter un exercice')}</option>
-                                                    {possibles.map((e) => (
-                                                        <option key={e.id} value={e.id}>
-                                                            {(e.source === 'centre' ? t('Centre') : t('PrePla')) + ' · ' + (e.titre ?? e.type ?? `#${e.id}`)}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            </label>
-                                        )}
+                                        <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
+                                            {exercices.length > 0 && (
+                                                <label className="flex min-w-0 flex-1 items-center gap-2 text-sm">
+                                                    <Plus className="h-4 w-4 shrink-0" aria-hidden="true" />
+                                                    <select
+                                                        className="w-full min-w-0 rounded-md border border-input bg-background px-2 py-1"
+                                                        value=""
+                                                        aria-label={t('Ajouter un exercice')}
+                                                        onChange={(e) => ajouter(s.slug, p.cle, Number(e.target.value))}
+                                                    >
+                                                        <option value="">{t('Ajouter un exercice existant')}</option>
+                                                        {autres.length === 0 ? (
+                                                            officiels.map((e) => <option key={e.id} value={e.id}>{libelle(e)}</option>)
+                                                        ) : (
+                                                            <>
+                                                                {officiels.length > 0 && (
+                                                                    <optgroup label={t('Type de l’épreuve officielle')}>
+                                                                        {officiels.map((e) => <option key={e.id} value={e.id}>{libelle(e)}</option>)}
+                                                                    </optgroup>
+                                                                )}
+                                                                <optgroup label={t('Autres types')}>
+                                                                    {autres.map((e) => <option key={e.id} value={e.id}>{libelle(e)}</option>)}
+                                                                </optgroup>
+                                                            </>
+                                                        )}
+                                                    </select>
+                                                </label>
+                                            )}
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                className="shrink-0"
+                                                disabled={envoi}
+                                                onClick={() => creer(s.slug, p.cle, p.exercise_type_id)}
+                                            >
+                                                <PenLine className="h-4 w-4" aria-hidden="true" /> {t('Créer un exercice')}
+                                            </Button>
+                                        </div>
                                     </div>
                                 );
                             })}

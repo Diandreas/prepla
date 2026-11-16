@@ -387,10 +387,14 @@ class Exercise extends Model
         return self::nombreDeMots($son) * 3 < self::nombreDeMots($passage);
     }
 
-    /** Le nombre de mots d'un texte, lettres et chiffres compris, toutes langues. */
+    /**
+     * Le nombre de mots d'un texte, lettres et chiffres compris, toutes langues.
+     * str_word_count ne connait que l'ASCII : « déjà » y comptait pour deux mots,
+     * et « été » pour un seul « t ». \p{M} garde un accent tape separement.
+     */
     public static function nombreDeMots(string $texte): int
     {
-        return preg_match_all('/[\p{L}\p{N}]+(?:[\'’-][\p{L}\p{N}]+)*/u', $texte);
+        return preg_match_all('/[\p{L}\p{M}\p{N}]+(?:[\'’-][\p{L}\p{M}\p{N}]+)*/u', $texte);
     }
 
     /**

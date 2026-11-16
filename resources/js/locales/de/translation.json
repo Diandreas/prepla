@@ -452,5 +452,59 @@
     "watched": "Ich habe das Video gesehen",
     "word_count": "{{n}} Wörter",
     "your_text": "Dein Text"
+  },
+  "achievements": {
+    "title": "Abzeichen",
+    "unlocked": "{{earned}} von {{total}} freigeschaltet",
+    "badges": {
+      "first-exercise": {
+        "name": "Erste Schritte",
+        "description": "Schließen Sie Ihre erste Übung ab"
+      },
+      "ten-exercises": {
+        "name": "Guter Start",
+        "description": "Schließen Sie 10 Übungen ab"
+      },
+      "fifty-exercises": {
+        "name": "Fleißig dabei",
+        "description": "Schließen Sie 50 Übungen ab"
+      },
+      "hundred-exercises": {
+        "name": "Club der 100",
+        "description": "Schließen Sie 100 Übungen ab"
+      },
+      "streak-3": {
+        "name": "In Schwung",
+        "description": "Halten Sie eine Serie von 3 Tagen"
+      },
+      "streak-7": {
+        "name": "Wochenheld",
+        "description": "Halten Sie eine Serie von 7 Tagen"
+      },
+      "streak-30": {
+        "name": "Monatsmeister",
+        "description": "Halten Sie eine Serie von 30 Tagen"
+      },
+      "perfect-score": {
+        "name": "Perfektionist",
+        "description": "Erreichen Sie 100 % bei einer Übung"
+      },
+      "xp-1000": {
+        "name": "XP-Jäger",
+        "description": "Sammeln Sie insgesamt 1.000 XP"
+      },
+      "xp-10000": {
+        "name": "XP-Legende",
+        "description": "Sammeln Sie insgesamt 10.000 XP"
+      },
+      "all-skills": {
+        "name": "Allrounder",
+        "description": "Üben Sie alle 4 Fertigkeiten"
+      },
+      "speed-demon": {
+        "name": "Blitzschnell",
+        "description": "Schließen Sie eine Übung in unter 2 Minuten mit mindestens 80 % ab"
+      }
+    }
   }
 }
