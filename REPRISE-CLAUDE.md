@@ -108,3 +108,16 @@ Comptes Gmail gratuits : les réunions Meet de groupe sont limitées à 60 minut
 - Il n'y a que 5 médailles pour 12 badges.
 - Vidéo : les rendus EN et 9:16 sont dans `E:\project\prepla-films\out\`, à vérifier. Changer la voix quand le paiement ElevenLabs sera réglé.
 - Vérifier les nouveaux écrans dans un navigateur, sur la démo locale (port 8001, `.env.demo`).
+
+## Seconde instance : Fliessende Sprache Zentrum (depuis le 2026-11-16)
+- https://app.fszentrum.com : site CloudPanel, utilisateur `fszentrum-app`, dossier `/home/fszentrum-app/htdocs/app.fszentrum.com`. Même dépôt, branche main.
+- Base SQLite à part. Elle contient seulement la banque commune, copiée depuis PrePla (exercices sans centre, examens, examens blancs PrePla). Aucun compte PrePla.
+- `.env` : copie de celui de PrePla, avec les mêmes clés pour l'instant (le propriétaire leur créera leurs propres clés). `APP_URL`, `APP_NAME` et `CACHE_PREFIX=fsz_` sont propres à ce site.
+- Certificat Let's Encrypt posé le 2026-11-16, valable jusqu'au 2027-02-14 (CloudPanel le renouvelle).
+- Leur logo : `public/marques/fszentrum/logo.png`, fond gris en basse définition (en demander un en SVG). Couleurs : noir #1A1A1A, rouge #DD0000, or #FFCE00. Tous les examens sont proposés, le centre choisit lui-même.
+- **À chaque déploiement de PrePla**, refaire la même procédure dans ce dossier (git pull, migrate, build, caches), en `sudo -u fszentrum-app`.
+- Limites connues :
+  - les webhooks Stripe arrivent sur PrePla ;
+  - la connexion Google n'est pas autorisée pour ce domaine ;
+  - le propriétaire crée lui-même le compte admin et règle le DNS.
+- En cours : configuration de marque (`config/marque.php`, variables `MARQUE_*`), branche `worktree-wf_4d32ec00-b0d-*`. Une fois fusionnée, mettre les `MARQUE_*` dans le `.env` de FSZ.
