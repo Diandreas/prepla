@@ -101,7 +101,7 @@
 </head>
 <body>
     <main class="card">
-        <img class="logo" src="/icons/pwa-192-v4.png" alt="Logo {{ config('marque.nom') }}" width="74" height="74">
+        <img class="logo" src="{{ config('marque.icone_192') }}" alt="Logo {{ config('marque.nom') }}" width="74" height="74">
         <div class="status">Connexion indisponible</div>
         <h1>Vous êtes hors ligne</h1>
         <p>{{ config('marque.nom') }} a besoin d’une connexion pour charger de nouveaux exercices et enregistrer votre progression.</p>

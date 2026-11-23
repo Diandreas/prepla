@@ -8,14 +8,20 @@
     middlewares qui lisent la langue du compte.
 
     L'illustration manquante retombe sur le renard d'accueil, puis disparait :
-    jamais d'image cassee.
+    jamais d'image cassee. Sans mascotte (MARQUE_MASCOTTE=false), le logo carre
+    de l'instance remplace le renard, et le texte ne parle plus de lui.
 --}}
 @php
-    $en = request()->getPreferredLanguage(['fr', 'en']) === 'en';
-    $t = $en ? $textes['en'] : $textes['fr'];
+    $langue = request()->getPreferredLanguage(array_keys($textes)) ?? 'fr';
+    $t = $textes[$langue] ?? $textes['fr'];
+    if (! config('marque.mascotte', true)) {
+        $image = config('marque.logo_carre');
+        $t['alt'] = config('marque.nom');
+        $t['texte'] = $t['texte_sobre'] ?? $t['texte'];
+    }
 @endphp
 <!DOCTYPE html>
-<html lang="{{ $en ? 'en' : 'fr' }}">
+<html lang="{{ $langue }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">

@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { SUPPORT_WHATSAPP_URL } from '@/lib/contact';
+import { supportWhatsappUrl } from '@/lib/contact';
 
 /**
  * L'offre aux centres de langues, que la page ne mentionnait nulle part. Cinq
@@ -22,7 +22,7 @@ export function CentresSection() {
                         {t('landing.centres_titre')} <em>{t('landing.centres_titre_accent')}</em>
                     </h2>
                     <p className="mt-4 leading-relaxed" style={{ color: 'var(--texte-moyen)' }}>{t('landing.centres_chapo')}</p>
-                    <a href={SUPPORT_WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="bouton-compte mt-6">
+                    <a href={supportWhatsappUrl()} target="_blank" rel="noopener noreferrer" className="bouton-compte mt-6">
                         {t('landing.centres_cta')}
                     </a>
                 </div>

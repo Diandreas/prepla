@@ -33,7 +33,11 @@ return [
     'couleur_primaire' => env('MARQUE_COULEUR_PRIMAIRE', '#4A90E2'),
     'couleur_secondaire' => env('MARQUE_COULEUR_SECONDAIRE', '#0B2D63'),
 
-    'email_contact' => env('MARQUE_EMAIL_CONTACT', 'contact@prepla.app'),
+    // Contact du support affiche aux eleves (pied de page, bouton d'aide, menu).
+    // Le meme numero recoit WhatsApp et les appels ; ecrire le numero tel qu'il
+    // doit s'afficher, indicatif compris (ex. "+49 30 1234 5678").
+    'email_contact' => env('MARQUE_EMAIL_CONTACT', 'prepla.mirlab@gmail.com'),
+    'telephone' => env('MARQUE_TELEPHONE', '+237 693 42 79 13'),
     'site' => env('MARQUE_SITE'),
 
     // Langues de l'interface proposees (fr, en, de) ; vide = toutes.

@@ -38,8 +38,8 @@ class PracticeReminderNotification extends Notification implements ShouldQueue
         return (new WebPushMessage)
             ->title(\App\Support\MarqueInstance::texte('PrePla — Temps de pratiquer'))
             ->body($body)
-            ->icon('/icons/pwa-192-v4.png')
-            ->badge('/icons/pwa-192-v4.png')
+            ->icon(config('marque.icone_192'))
+            ->badge(config('marque.icone_192'))
             ->action('Pratiquer maintenant', route('dashboard'))
             ->data(['url' => route('dashboard')]);
     }

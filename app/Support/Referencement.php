@@ -31,7 +31,7 @@ final class Referencement
         return [
             'titre' => (string) ($valeurs['titre'] ?? \App\Support\MarqueInstance::texte('PrePla')),
             'description' => (string) ($valeurs['description'] ?? ''),
-            'image' => url('/'.ltrim((string) ($valeurs['image'] ?? 'og/prepla.png'), '/')),
+            'image' => \App\Support\MarqueInstance::imageDePartage(isset($valeurs['image']) ? (string) $valeurs['image'] : null),
             'indexable' => (bool) ($valeurs['indexable'] ?? true),
         ];
     }

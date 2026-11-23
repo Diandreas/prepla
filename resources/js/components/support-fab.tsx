@@ -1,4 +1,4 @@
-import { SUPPORT_PHONE_DISPLAY, SUPPORT_TEL_URL, SUPPORT_WHATSAPP_URL } from '@/lib/contact';
+import { supportTelUrl, supportTelephone, supportWhatsappUrl } from '@/lib/contact';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -64,7 +64,7 @@ export function SupportFab() {
                     </p>
 
                     <a
-                        href={SUPPORT_WHATSAPP_URL}
+                        href={supportWhatsappUrl()}
                         target="_blank"
                         rel="noopener noreferrer"
                         className={actionClass}
@@ -75,17 +75,17 @@ export function SupportFab() {
                         </span>
                         <span className="flex flex-col leading-tight">
                             <span>{t('support.whatsapp', 'WhatsApp')}</span>
-                            <span className="text-[11px] font-medium text-muted-foreground">{SUPPORT_PHONE_DISPLAY}</span>
+                            <span className="text-[11px] font-medium text-muted-foreground">{supportTelephone()}</span>
                         </span>
                     </a>
 
-                    <a href={SUPPORT_TEL_URL} className={actionClass} onClick={() => setOpen(false)}>
+                    <a href={supportTelUrl()} className={actionClass} onClick={() => setOpen(false)}>
                         <span className="bg-primary/10 text-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
                             <PhoneGlyph size={16} />
                         </span>
                         <span className="flex flex-col leading-tight">
                             <span>{t('support.call', 'Appeler')}</span>
-                            <span className="text-[11px] font-medium text-muted-foreground">{SUPPORT_PHONE_DISPLAY}</span>
+                            <span className="text-[11px] font-medium text-muted-foreground">{supportTelephone()}</span>
                         </span>
                     </a>
                 </div>

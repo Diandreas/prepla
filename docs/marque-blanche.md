@@ -25,14 +25,15 @@ l'instance.
 | `MARQUE_ICONE_192`, `MARQUE_ICONE_512`, `MARQUE_ICONE_MASKABLE`, `MARQUE_ICONE_APPLE` | icônes PrePla | Icônes PWA (192, 512, 512 « maskable », 180 Apple). |
 | `MARQUE_COULEUR_PRIMAIRE` | `#4A90E2` | Boutons, liens (`--primary`). Format `#RRGGBB`. |
 | `MARQUE_COULEUR_SECONDAIRE` | `#0B2D63` | Titres, barre du navigateur (`--marque-accent`, `theme-color`). |
-| `MARQUE_EMAIL_CONTACT` | `contact@prepla.app` | Adresse de contact affichée. |
+| `MARQUE_EMAIL_CONTACT` | `prepla.mirlab@gmail.com` | E-mail du support (pied de page de l'accueil). |
+| `MARQUE_TELEPHONE` | `+237 693 42 79 13` | Numéro du support, écrit tel qu'il s'affiche (WhatsApp et appels : pied de page, bouton d'aide, menu « Aide & support »). Les demandes d'un centre à l'éditeur (formule, adresse web) restent sur le numéro PrePla. |
 | `MARQUE_SITE` | vide | Site vitrine. |
 | `MARQUE_LANGUES_INTERFACE` | vide = toutes | Langues proposées dans les sélecteurs, ex. `de,fr,en`. |
 | `MARQUE_LANGUE_DEFAUT` | vide | Langue de l'interface à la première visite. |
 | `MARQUE_EXAMENS` | vide = tous | Slugs des examens proposés (onboarding, profil, pratique, examens blancs, espaces centre), ex. `goethe,telc`. |
-| `MARQUE_MASQUER_KIDS` | `false` | Retire l'entrée « Kids » du menu. |
+| `MARQUE_MASQUER_KIDS` | `false` | Retire l'entrée « Kids » du menu, et les adresses `/kids…` répondent 404. |
 | `MARQUE_MASQUER_PRIX_PUBLICS` | `false` | Retire la section tarifs de la landing. |
-| `MARQUE_MASCOTTE` | `true` | `false` : le renard n'est plus affiché. |
+| `MARQUE_MASCOTTE` | `true` | `false` : le renard n'est plus affiché (pages d'erreur comprises : le logo carré le remplace). |
 
 Penser aussi à `APP_NAME` et `MAIL_FROM_NAME` (expéditeur des e-mails) et à `APP_URL`.
 
@@ -62,6 +63,7 @@ MARQUE_ICONE_APPLE=/marques/fszentrum/apple-touch-icon-180.png
 MARQUE_COULEUR_PRIMAIRE=#C8102E
 MARQUE_COULEUR_SECONDAIRE=#1A1A1A
 MARQUE_EMAIL_CONTACT=kontakt@fszentrum.com
+MARQUE_TELEPHONE="+237 6XX XX XX XX"
 MARQUE_SITE=https://fszentrum.com
 MARQUE_LANGUES_INTERFACE=de,fr,en
 MARQUE_LANGUE_DEFAUT=de
@@ -113,3 +115,11 @@ Même procédure que PrePla, dans un autre dossier :
 - Couleurs : variables CSS injectées (`resources/views/partials/marque-centre.blade.php`).
 
 Inchangés : clés de cache, noms de tables, routes, et le comportement de PrePla.
+
+## Ce qui suit aussi la marque, sans réglage
+
+- L'écran hors ligne de l'application installée (`/telechargements`) lit le nom dans `<meta name="application-name">`.
+- Les icônes des notifications push prennent `MARQUE_ICONE_192`.
+- Les aperçus de liens partagés (`og:image`) montrent le logo carré au lieu des images `public/og/` de PrePla.
+- Les pages d'erreur 404 et 500 sont aussi en allemand, selon la langue du navigateur.
+- Les pages légales gardent l'adresse de Mirlab, l'éditeur.

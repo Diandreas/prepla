@@ -144,7 +144,11 @@ Comptes Gmail gratuits : les réunions Meet de groupe sont limitées à 60 minut
 - **Déployer les deux sites d'un coup** : `/root/deploy2.sh` sur le VPS (sauvegarde, pull, npm install, migrate, build, caches, chown pour chacun). À lancer avec `nohup bash /root/deploy2.sh > /tmp/deploy2.log 2>&1 &`.
 - **En local** : en parallèle, Pest efface parfois `vendor/pestphp/pest/bin/worker.php`. Dans ce cas, supprimer `vendor/pestphp/pest`, relancer `composer install` et lancer Pest sans `--parallel`. Avec le npm récent, faire `npm install-scripts approve esbuild` puis `npm rebuild esbuild` (ne pas commiter la modification de package.json).
 - **Restes** :
-  - écran hors-ligne (offline-app.tsx) encore écrit « PrepLa » en dur ;
   - textes élève du live non traduits en allemand ;
   - salle Daily pas encore essayée avec une vraie caméra ;
   - mettre à jour `/root/deploy2.sh` si on ajoute un site.
+
+## Mise à jour du 2026-11-23 (finitions de la marque FSZ)
+- Plus de « PrePla » visible sur app.fszentrum.com : écran hors ligne, page Kids (404 quand `MARQUE_MASQUER_KIDS`), pages d'erreur sans renard (logo carré à la place), icônes des notifications, images d'aperçu des liens.
+- Contact du support par instance : `MARQUE_TELEPHONE` et `MARQUE_EMAIL_CONTACT` (PrePla par défaut). Tant que le .env de FSZ ne les pose pas, ses élèves voient le WhatsApp et l'e-mail de PrePla.
+- Pour lancer Pest sur une machine neuve : poser une valeur factice à `MISTRAL_API_KEY` dans `.env`, sinon 10 tests d'IA échouent.

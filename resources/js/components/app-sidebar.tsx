@@ -3,7 +3,7 @@ import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
-import { SUPPORT_WHATSAPP_URL } from '@/lib/contact';
+import { supportWhatsappUrl } from '@/lib/contact';
 import { type Marque, type MenusDisponibles, type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { useEffect } from 'react';
@@ -161,7 +161,7 @@ export function AppSidebar() {
             : []),
         {
             title: t('sidebar.support', 'Aide & support'),
-            url: SUPPORT_WHATSAPP_URL,
+            url: supportWhatsappUrl(),
             icon: () => <SidebarIcon name="help" />,
             external: true,
         },

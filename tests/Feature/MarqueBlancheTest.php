@@ -145,3 +145,41 @@ test('la commande marque:verifier affiche la marque et signale les fichiers manq
         ->expectsOutputToContain('Fichier manquant (logo) : /marques/fsz/logo.png')
         ->assertFailed();
 });
+
+test('une instance qui masque Kids repond 404 sur ses adresses, sans renard', function () {
+    $this->get('/kids')->assertOk();
+
+    marqueFsz();
+    config(['marque.logo_carre' => '/marques/fsz/icone-512.png']);
+    $html = $this->get('/kids')->assertNotFound()->getContent();
+
+    expect($html)
+        ->toContain('/marques/fsz/icone-512.png')
+        ->not->toContain('404-perdu')
+        ->not->toContain('renard')
+        ->not->toContain('PrePla');
+});
+
+test('le contact du support suit l instance, celui de PrePla par defaut', function () {
+    $this->actingAs(apprenantMarque())->get('/dashboard')
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('instance.telephone', '+237 693 42 79 13')
+            ->where('instance.email_contact', 'prepla.mirlab@gmail.com'));
+
+    marqueFsz();
+    config(['marque.telephone' => '+49 30 1234 5678', 'marque.email_contact' => 'kontakt@fszentrum.com']);
+    $this->actingAs(apprenantMarque())->get('/dashboard')
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('instance.telephone', '+49 30 1234 5678')
+            ->where('instance.email_contact', 'kontakt@fszentrum.com'));
+});
+
+test('l ecran hors ligne et les apercus de liens portent la marque de l instance', function () {
+    marqueFsz();
+    config(['marque.logo_carre' => '/marques/fsz/icone-512.png']);
+
+    expect($this->get('/telechargements')->getContent())->toContain('<meta name="application-name" content="Fliessende Sprache Zentrum">');
+    expect($this->get('/privacy')->getContent())
+        ->toContain('/marques/fsz/icone-512.png')
+        ->not->toContain('/og/prepla.png');
+});

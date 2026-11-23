@@ -90,8 +90,8 @@ class AssignmentPublishedNotification extends Notification implements ShouldQueu
         return (new WebPushMessage)
             ->title("Nouveau devoir{$from} : {$this->title}")
             ->body($this->body())
-            ->icon('/icons/pwa-192-v4.png')
-            ->badge('/icons/pwa-192-v4.png')
+            ->icon(config('marque.icone_192'))
+            ->badge(config('marque.icone_192'))
             ->action('Commencer', $this->lienDuTableauDeBord())
             ->data(['url' => $this->lienDuTableauDeBord()]);
     }

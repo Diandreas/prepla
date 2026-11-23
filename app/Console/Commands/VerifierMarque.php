@@ -27,6 +27,7 @@ class VerifierMarque extends Command
             ['Couleur primaire', $i['couleurs']['primaire']],
             ['Couleur secondaire', $i['couleurs']['secondaire']],
             ['E-mail de contact', $i['email_contact']],
+            ['Telephone / WhatsApp', $i['telephone']],
             ['Site vitrine', $i['site'] ?: '-'],
             ['Langues', $i['langues_interface'] ? implode(', ', $i['langues_interface']) : 'toutes'],
             ['Langue par defaut', $i['langue_defaut'] ?: '-'],

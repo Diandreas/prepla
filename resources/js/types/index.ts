@@ -67,6 +67,8 @@ export interface Instance {
     logo_carre: string;
     couleurs: { primaire: string; secondaire: string };
     email_contact: string;
+    /** Numero du support, tel qu'affiche ; sert aussi a WhatsApp et aux appels. */
+    telephone: string;
     site: string | null;
     /** [] : toutes les langues. */
     langues_interface: string[];

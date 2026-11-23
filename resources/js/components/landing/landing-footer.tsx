@@ -1,15 +1,12 @@
 import { PhoneGlyph, WhatsAppGlyph } from '@/components/support-fab';
-import { SUPPORT_EMAIL_URL, SUPPORT_PHONE_DISPLAY, SUPPORT_TEL_URL, SUPPORT_WHATSAPP_URL } from '@/lib/contact';
+import { supportEmailUrl, supportTelUrl, supportTelephone, supportWhatsappUrl } from '@/lib/contact';
 import { Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { useTokens } from './landing-theme';
 
-// Les liens « # » (Discord, X) ne menaient nulle part : seuls restent les vrais.
-const socialLinks = [
-    { icon: '✉', href: SUPPORT_EMAIL_URL, label: 'E-mail' },
-];
-
 export function LandingFooter({ nombreDExamens }: { nombreDExamens: number }) {
+    // Les liens « # » (Discord, X) ne menaient nulle part : seuls restent les vrais.
+    const socialLinks = [{ icon: '✉', href: supportEmailUrl(), label: 'E-mail' }];
     const T = useTokens();
     const { t } = useTranslation();
 
@@ -24,7 +21,7 @@ export function LandingFooter({ nombreDExamens }: { nombreDExamens: number }) {
             { label: t('landing.footer_link_structures'), href: '/structures' },
             { label: t('landing.nav_centres'), href: '#centres' },
             { label: t('landing.footer_link_blog'), href: '/blog' },
-            { label: t('landing.footer_link_contact'), href: SUPPORT_EMAIL_URL },
+            { label: t('landing.footer_link_contact'), href: supportEmailUrl() },
         ],
         [t('landing.footer_col_legal')]: [
             { label: t('landing.footer_link_privacy'), href: '/privacy' },
@@ -65,8 +62,8 @@ export function LandingFooter({ nombreDExamens }: { nombreDExamens: number }) {
                         {/* Support joignable directement : même numéro pour WhatsApp et les appels */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem' }}>
                             {[
-                                { href: SUPPORT_WHATSAPP_URL, label: t('landing.footer_contact_whatsapp'), glyph: <WhatsAppGlyph size={15} />, color: '#25D366', external: true },
-                                { href: SUPPORT_TEL_URL, label: t('landing.footer_contact_call'), glyph: <PhoneGlyph size={14} />, color: T.sky, external: false },
+                                { href: supportWhatsappUrl(), label: t('landing.footer_contact_whatsapp'), glyph: <WhatsAppGlyph size={15} />, color: '#25D366', external: true },
+                                { href: supportTelUrl(), label: t('landing.footer_contact_call'), glyph: <PhoneGlyph size={14} />, color: T.sky, external: false },
                             ].map((c) => (
                                 <a key={c.href} href={c.href}
                                     {...(c.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
@@ -86,7 +83,7 @@ export function LandingFooter({ nombreDExamens }: { nombreDExamens: number }) {
                                     </span>
                                     <span>
                                         <span style={{ fontWeight: 600 }}>{c.label}</span>
-                                        <span style={{ opacity: 0.75 }}> · {SUPPORT_PHONE_DISPLAY}</span>
+                                        <span style={{ opacity: 0.75 }}> · {supportTelephone()}</span>
                                     </span>
                                 </a>
                             ))}

@@ -8,6 +8,8 @@
         {{-- Aucune donnée personnelle ni jeton de session ici : cette page doit pouvoir
              s'ouvrir hors ligne depuis le cache, et lit ensuite les données locales. --}}
         <meta name="robots" content="noindex">
+        {{-- Lu par offline-app.tsx : le nom de l'instance, sans serveur. --}}
+        <meta name="application-name" content="{{ config('marque.nom') }}">
 
         <script>
             (function () {

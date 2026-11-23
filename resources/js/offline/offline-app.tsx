@@ -12,6 +12,10 @@ const RENDERERS: Record<string, React.ComponentType<any>> = {
     matching: Matching,
 };
 
+/** Le nom de l'instance, pose par offline-app.blade.php (la page s'ouvre sans Inertia). */
+const NOM =
+    (typeof document !== 'undefined' && document.querySelector<HTMLMetaElement>('meta[name="application-name"]')?.content) || 'PrePla';
+
 function useOnlineStatus(): boolean {
     const [online, setOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine));
 
@@ -163,7 +167,7 @@ function ResultView({ pack, score, onBack }: { pack: OfflinePack; score: Session
                     {score.score} / {score.total}
                 </p>
                 <p className="text-muted-foreground mt-3 text-sm leading-relaxed">
-                    Enregistré sur cet appareil. C'est un repère d'entraînement : PrepLa confirmera ce résultat et tes XP lors d'une prochaine
+                    Enregistré sur cet appareil. C'est un repère d'entraînement : {NOM} confirmera ce résultat et tes XP lors d'une prochaine
                     connexion.
                 </p>
             </div>
@@ -273,7 +277,7 @@ export function OfflineApp() {
                     <div>
                         <h1 className="text-2xl font-black tracking-tight">Mes téléchargements</h1>
                         <p className="text-muted-foreground mt-1 text-sm">
-                            {owner ? `Contenu de ${owner.name}, disponible sans connexion.` : 'Espace hors ligne de PrepLa.'}
+                            {owner ? `Contenu de ${owner.name}, disponible sans connexion.` : `Espace hors ligne de ${NOM}.`}
                         </p>
                     </div>
                     <StatusBadge online={online} />
@@ -307,7 +311,7 @@ export function OfflineApp() {
                             <div className="border-border bg-card rounded-3xl border p-6 text-center">
                                 <p className="text-base font-bold">Aucun pack sur cet appareil</p>
                                 <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-                                    Connecte-toi à PrepLa, ouvre un format marqué « Prêt sans IA » et choisis « Télécharger pour hors ligne ». Le pack
+                                    Connecte-toi à {NOM}, ouvre un format marqué « Prêt sans IA » et choisis « Télécharger pour hors ligne ». Le pack
                                     restera disponible ici, même en mode avion.
                                 </p>
                                 {online && (
@@ -341,7 +345,7 @@ export function OfflineApp() {
                         {attempts.length > 0 && (
                             <p className="text-muted-foreground border-border rounded-2xl border border-dashed p-4 text-sm leading-relaxed">
                                 {attempts.length} séance{attempts.length > 1 ? 's' : ''} terminée{attempts.length > 1 ? 's' : ''} sur cet appareil,
-                                dont {pending} en attente d'envoi à PrepLa. L'envoi automatique n'est pas encore en place : tes réponses restent
+                                dont {pending} en attente d'envoi à {NOM}. L'envoi automatique n'est pas encore en place : tes réponses restent
                                 conservées ici en attendant.
                             </p>
                         )}

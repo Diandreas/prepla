@@ -70,7 +70,7 @@ class LiveClassNotification extends Notification implements ShouldQueue
         return (new WebPushMessage)
             ->title($this->maintenant ? 'Live en cours' : 'Nouveau live planifié')
             ->body($this->phrase())
-            ->icon('/icons/pwa-192-v4.png')
+            ->icon(config('marque.icone_192'))
             ->action('Ouvrir', $this->lien)
             ->data(['url' => $this->lien]);
     }

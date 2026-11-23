@@ -77,6 +77,7 @@ class MarqueInstance
                 'secondaire' => self::couleurSecondaire(),
             ],
             'email_contact' => (string) config('marque.email_contact'),
+            'telephone' => (string) config('marque.telephone'),
             'site' => config('marque.site'),
             'langues_interface' => array_values((array) config('marque.langues_interface', [])),
             'langue_defaut' => config('marque.langue_defaut'),
@@ -86,6 +87,19 @@ class MarqueInstance
             'mascotte' => (bool) config('marque.mascotte', true),
             'personnalisee' => self::personnalisee(),
         ];
+    }
+
+    /**
+     * L'image d'apercu des liens partages (og:image). Celles de public/og/ portent
+     * la marque PrePla : une autre instance montre son logo carre.
+     */
+    public static function imageDePartage(?string $image = null): string
+    {
+        if (self::personnalisee()) {
+            return url('/'.ltrim((string) config('marque.logo_carre'), '/'));
+        }
+
+        return url('/'.ltrim($image ?? 'og/prepla.png', '/'));
     }
 
     /** PrePla garde son fichier statique ; une autre marque, la route dynamique. */

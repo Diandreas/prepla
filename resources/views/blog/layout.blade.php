@@ -16,7 +16,7 @@
 
     {{-- Le blog ne donnait AUCUNE image : les liens partages sortaient en texte
          nu. La banniere est au format attendu par les reseaux, 1200x630. --}}
-    <meta property="og:image" content="@yield('og_image', url('/og/prepla.png'))">
+    <meta property="og:image" content="@yield('og_image', \App\Support\MarqueInstance::imageDePartage())">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="@yield('title') — {{ config('marque.nom') }}">
@@ -25,13 +25,13 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="@yield('title')">
     <meta name="twitter:description" content="@yield('description')">
-    <meta name="twitter:image" content="@yield('og_image', url('/og/prepla.png'))">
+    <meta name="twitter:image" content="@yield('og_image', \App\Support\MarqueInstance::imageDePartage())">
 
     @yield('structured_data')
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=cormorant-garamond:700i|plus-jakarta-sans:400,500,600,700" rel="stylesheet" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/icons/pwa-192-v4.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ config('marque.favicon') }}">
 
     <style>
         :root { color-scheme: light dark; }

@@ -15,12 +15,12 @@
     <meta property="og:description" content="@yield('description', 'Les conditions, la politique de confidentialité et la suppression de compte de '.config('marque.nom').'.')">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:locale" content="fr_FR">
-    <meta property="og:image" content="{{ url('/og/prepla.png') }}">
+    <meta property="og:image" content="{{ \App\Support\MarqueInstance::imageDePartage() }}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="@yield('title') — {{ config('marque.nom') }}">
-    <meta name="twitter:image" content="{{ url('/og/prepla.png') }}">
+    <meta name="twitter:image" content="{{ \App\Support\MarqueInstance::imageDePartage() }}">
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=cormorant-garamond:700i|plus-jakarta-sans:400,500,600,700" rel="stylesheet" />
     <style>

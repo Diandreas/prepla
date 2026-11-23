@@ -6,7 +6,7 @@ import AppLayout from '@/layouts/app-layout';
 import { LogoDeCentre } from '@/components/app-logo';
 import OngletsParametresCentre from '@/components/onglets-parametres-centre';
 import { Badge } from '@/components/ui/badge';
-import { SUPPORT_WHATSAPP_URL } from '@/lib/contact';
+import { PLATEFORME_WHATSAPP_URL } from '@/lib/contact';
 import { texteSur } from '@/lib/marque-centre.js';
 import { formaterMontant } from '@/lib/montant-stripe';
 import type { EtatDrive } from '@/lib/drive';
@@ -284,7 +284,7 @@ export default function ParametresDuCentre({ centre, identite, examens, adresse,
                         etat={domainesActifs.length > 0 ? <EtatOk>{t('Adresse propre active')}</EtatOk> : <EtatNeutre>{t('Adresse PrePla')}</EtatNeutre>}
                         lien={{
                             libelle: adresse.domaines.length > 0 ? t('Demander un changement') : t('Demander une adresse à votre nom'),
-                            href: SUPPORT_WHATSAPP_URL,
+                            href: PLATEFORME_WHATSAPP_URL,
                             externe: true,
                         }}
                     >
@@ -317,7 +317,7 @@ export default function ParametresDuCentre({ centre, identite, examens, adresse,
                         icone={<Wallet className="h-5 w-5" aria-hidden="true" />}
                         titre={t('Formule et sièges')}
                         etat={<EtatNeutre>{t(f.titre)}</EtatNeutre>}
-                        lien={{ libelle: t('Changer de formule'), href: SUPPORT_WHATSAPP_URL, externe: true }}
+                        lien={{ libelle: t('Changer de formule'), href: PLATEFORME_WHATSAPP_URL, externe: true }}
                     >
                         <p className="text-muted-foreground">{t(f.texte)}</p>
                         <div>
